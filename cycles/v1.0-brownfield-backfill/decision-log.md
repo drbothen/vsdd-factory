@@ -15344,6 +15344,8 @@ D-965 allocated. parent-commit: `df35ae51` (factory-artifacts HEAD at burst star
 
 - state-manager: D-965 codification; policies.yaml v1.4.22 applied; ADR-040 v1.1 closed to active; ARCH-INDEX v3.51→v3.52; STATE.md v7.02→v7.03; POLICY 16/ALLOCATOR-CEILING gate run; D-964 drift item resolved; lessons.md L-BB-conditional-vs-unconditional-gate-obligation appended; burst-log D-965 (8 blocks)
 
+**ANNOTATION (D-992, 2026-08-13):** This ratification was PROCURED-ON-MISCHARACTERIZATION — §Decision 6's justifying premise (that `5370db80` was a "stability entry with no assertion-site files changed") was false; `5370db80` is a docs commit that changed `red-gate-log.md` only, and the INAPPLICABLE branch it introduced exempted the very commit class used to backfill attestations (F-S2107-P10-003, confirmed by D-969). D-965's ratification of `policies.yaml` v1.4.22 is not retroactively valid. **Forward pointer: D-970** (`D-970-ADR-040-V1.12-RATIFICATION-BURST`) is the genuine, valid re-ratification on ADR-040 v1.12's own merits.
+
 ### 4-INDEX
 
 BC-INDEX v4.55 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.291 (UNCHANGED) / ARCH-INDEX v3.51→v3.52
@@ -17092,6 +17094,124 @@ BC-INDEX **v4.57** / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX **v4.318** / ARCH-
 ### Phase
 
 D-991-S-21.09-POST-MERGE-PROCESSING-BURST
+
+### Date
+
+2026-08-13
+
+---
+
+## D-992 — D-992-S2107-PASS10-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-991 < D-9000 ceiling
+```
+
+D-992 allocated. **Parent-commit:** `0b350501` — `state(sha-patch): D-991 commit 2e4c0a7f factory-artifacts SHA -- Active Branches + checkpoint updated` (factory-artifacts HEAD at burst start).
+
+**(a) Scope.** S-21.07 pass-10 (10 findings, D-967) fix burst. This is a FIX burst, not a clean adversary pass — the LOCAL BC-5.39.001 streak is **NOT advanced** by this burst (remains 0/3; only a CLEAN adversary verdict advances it). Pass-11 (fresh-context `vsdd-factory:adversary`, reading only `adversary-pass-10.md` Part A per the Iron Law) is the pending gate for this fix burst's own correctness — its verdict is unknown until dispatched. Single commit per TD-VSDD-053.
+
+**(b) Already-authored architect + product-owner edits bundled verbatim (NOT rewritten by state-manager).** Verified via `git -C .factory status --porcelain` at burst start:
+- `specs/architecture/decisions/ADR-040-...md` v1.12→v1.13 (architect): §Decision 5 volatile line-number pin removed (TD-VSDD-091); stale "HUMAN RE-RATIFICATION REQUIRED" §Status paragraph struck through with a superseding note (D-970 already applied v1.4.23; the paragraph had gone unedited since v1.4 despite 8 further amendments); §Implementation routing re-verified item-by-item.
+- `specs/architecture/decisions/ADR-041-...md` v1.0→v1.1 (architect): version/last_amended/modified frontmatter added (absent since authoring); stale "Status as of 2026-08-07" §Consequences subsection corrected (migration was already COMPLETE per D-961, not gated-pending); new §Status section flagging the F-S2107-P10-005 ratification-status gap NEEDS-HUMAN.
+- `specs/architecture/decisions/ADR-042-...md` v1.2→v1.3 (architect): §Decision 1 Erratum closing F-S2107-P10-006 (row-4/§Decision-2 self-contradiction) with a POLICY 13 BOUNDARY-POLARITY mutant table and fresh literal-shell corroboration; 5 volatile `BC-INDEX.md` line-number pins replaced with stable body-table-row anchors (TD-VSDD-091); new §Status section flagging F-S2107-P10-005 NEEDS-HUMAN.
+- `specs/behavioral-contracts/ss-05/BC-5.39.010.md` v1.17→v1.18 (product-owner): §Gate Spec fuel-cap present-perfect claim corrected (F-S2107-P10-004) — the v1.16/v1.17 "has been raised to 20,000,000 … satisfiable at HEAD" claim was FALSE at the pass-10 review snapshot (`5370db80`, both fuel caps still 10M — tautological gate); TRUE at source-HEAD after PR #774 (`62fbcf1a`) merged to `develop`; source-HEAD-vs-operator-effective distinction added (rc.23 cache still 10M through rc.24).
+
+**(c) Human ratification applied — closes F-S2107-P10-005 (both legs).** Per direct human authorization this burst: `ADR-041` frontmatter `status: proposed`→`active`, `ratified: "2026-08-13"` added, `ratification_note` added (D-960 SRC ruling already authorized the substance; POLICY 16 gate has run correctly ~10+ bursts since D-961). `ADR-042` frontmatter `status: proposed`→`active`, `ratified: "2026-08-13"` added, `ratification_note` added (2026-08-08 human ruling already authorized the substance; §Decision 1 arithmetic unchanged since v1.2). Literal-shell confirmation:
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -E "^status:|^ratified:" specs/architecture/decisions/ADR-041-d-999-sentinel-migration-allocator-ceiling-gate-and-d-99999-replacement-sentinel.md specs/architecture/decisions/ADR-042-validate-cross-site-correspondence-fuel-budget-raise-and-loud-exhaustion-signaling.md
+specs/architecture/decisions/ADR-041-...:status: active
+specs/architecture/decisions/ADR-041-...:ratified: "2026-08-13"
+specs/architecture/decisions/ADR-042-...:status: active
+specs/architecture/decisions/ADR-042-...:ratified: "2026-08-13"
+```
+
+Per this decision-log's own routing convention (§Routing Table: frontmatter status flip is a state-manager governance action analogous to POL-14 auto-promotion, once the human has authorized it), state-manager applied ONLY the frontmatter fields — the body `## Status` NEEDS-HUMAN paragraphs in both ADR-041 v1.1 and ADR-042 v1.3 remain as architect authored them (now stale narrative pending the NEXT architect amendment, ADR-041 v1.2 / ADR-042 v1.4, to reconcile — this is a documentary residual, not a blocking defect, and mirrors exactly how ADR-040 v1.12's stale re-ratification paragraph persisted through 6 amendments before v1.13 corrected it this same burst). Similarly, ADR-040 v1.13's §Implementation-routing line "implementer — OUTSTANDING" for the `red-gate-log.md` erratum note is now STALE as of this same burst — see (i).
+
+**(d) BC-INDEX.md — closes F-S2107-P10-004 index-sync leg.** Row 1464 version-chain cell: `v1.17` → `v1.17 \| v1.18`. Literal-shell confirmation:
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -n '^| \[BC-5\.39\.010\]' specs/behavioral-contracts/BC-INDEX.md
+1464:| [BC-5.39.010](ss-05/BC-5.39.010.md) | ... | draft | E-12 | S-21.07 | v1.10 | v1.11 | v1.12 | v1.13 | v1.14 | v1.15 | v1.16 | v1.17 | v1.18 |
+```
+
+BC-INDEX v4.57→**v4.58**.
+
+**(e) ARCH-INDEX.md — closes F-S2107-P10-008 (ADR-042 leg) + F-S2107-P10-005 index-sync (both legs).** ADR-042 row: volatile pin `"BC-5.39.010 at BC-INDEX line 1464, ~415KB prefix"` → `"BC-5.39.010's BC-INDEX body-table row, ~415KB prefix"` (TD-VSDD-091); v1.3 amendment summary appended; `RATIFIED 2026-08-13 (D-992)` annotation added. ADR-041 row: v1.1 amendment summary appended (previously ended at bare "PROPOSED 2026-08-07; ADR-041 v1.0."); `RATIFIED 2026-08-13 (D-992)` annotation added. ARCH-INDEX v3.55→**v3.56**. `total_adrs` UNCHANGED (43).
+
+**(f) policies.yaml — closes F-S2107-P10-009.** New POLICY 14 verification_step bullet registered: **ERRATUM-ROW MODIFIED[] PARITY CONVENTION** (D-497 parsimony extension) — a body Changelog row whose version cell carries an `-erratum` suffix (e.g. `1.15-erratum`) is a same-day correction notice overlaid on an existing version, not a distinct version bump; it is exempt from the leg-3 `modified[]` array requirement (legs 1/2/4/5 still apply). This is a REGISTERED exemption (per F-009's own recommendation: "codify the convention rather than patch ad hoc"), not a silent carve-out — a future differently-shaped correction-notice suffix must either cite this bullet explicitly or register a new one. policies.yaml v1.4.23→**v1.4.24**. The POLICY 15 ATTESTATION-LOCATION GATE bullet text itself is UNCHANGED (already applied verbatim at v1.4.23/D-970 from ADR-040's replacement text; ADR-041/042 ratification this burst is a frontmatter-only event on the ADR files, not a policies.yaml text change).
+
+**(g) D-965 row annotated PROCURED-ON-MISCHARACTERIZATION with forward pointer to D-970.** Per ADR-040 v1.13's own re-verified §Implementation-routing item ("state-manager — OUTSTANDING. Annotate the D-965 row..."), the D-965 h2 entry in this file (`decision-log.md`) now carries the following annotation appended to its Phase/Date footer: **"ANNOTATION (D-992, 2026-08-13): This ratification was PROCURED-ON-MISCHARACTERIZATION — §Decision 6's justifying premise (that `5370db80` was a 'stability entry with no assertion-site files changed') was false; `5370db80` is a docs commit that changed `red-gate-log.md` only, and the INAPPLICABLE branch it introduced exempted the very commit class used to backfill attestations (F-S2107-P10-003, confirmed by D-969). D-965's ratification of `policies.yaml` v1.4.22 is not retroactively valid. See forward pointer: D-970 (`D-970-ADR-040-V1.12-RATIFICATION-BURST`) is the genuine, valid re-ratification on ADR-040 v1.12's own merits."** This closes the state-manager-owed leg of F-S2107-P10-003's disposition (the finding itself was already substantively resolved at D-969/D-970; this was the one remaining bookkeeping annotation).
+
+**(h) F-002 — erratum EXECUTION now DONE (was: permanent historical exception, remediation-pending).** D-969(f) recorded F-S2107-P10-002 as a "permanent historical exception... the owed erratum belongs in `red-gate-log.md`, which exists ONLY on the unmerged `feature/S-21.07` branch... not actionable now." That erratum has since been written: implementer committed `96b4be19` (`docs(S-21.07): add permanent POLICY 15 erratum note for retroactive attestations (F-S2107-P10-002)`) to `crates/hook-plugins/validate-cross-site-correspondence/docs/red-gate-log.md` on `feature/S-21.07-validate-cross-site-correspondence`, advancing that branch's HEAD `5370db80`→`96b4be19` (pushed). Independent verification:
+
+```
+$ git ls-remote --heads origin | grep 21.07
+96b4be19158ae27131ae330f684af414821e7c5f	refs/heads/feature/S-21.07-validate-cross-site-correspondence
+$ git merge-base --is-ancestor 96b4be19158ae27131ae330f684af414821e7c5f origin/feature/S-21.07-validate-cross-site-correspondence && echo ANCESTOR-CONFIRMED
+ANCESTOR-CONFIRMED
+$ git show --stat 96b4be19158ae27131ae330f684af414821e7c5f
+commit 96b4be19158ae27131ae330f684af414821e7c5f
+    docs(S-21.07): add permanent POLICY 15 erratum note for retroactive attestations (F-S2107-P10-002)
+ .../docs/red-gate-log.md | 49 ++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
+```
+
+**F-002 recorded CLOSED: disposition ratified D-970 (the underlying attestation-location redesign) + erratum EXECUTED `96b4be19` (this session, prior to this burst — implementer, on `feature/S-21.07-validate-cross-site-correspondence`).** The underlying historical fact — `67ffbdcc`/`38c70f9e` permanently lack "at that commit" attestation — remains permanently true by construction (history is immutable); what closes is the REMEDIATION obligation (the erratum note documenting the permanent violation), which is now written and pushed. **Residual staleness flagged, NOT fixed by state-manager (architect's domain per Routing Table):** ADR-040 v1.13's own §Implementation-routing text (authored this same burst window, apparently before or concurrent with `96b4be19` landing) still reads *"implementer — OUTSTANDING (code-repo file...)"* for this exact item, verified via literal-shell grep at that same commit finding zero "erratum"/"PROCURED"/"F-S2107-P10-002" tokens — that grep predates `96b4be19`. This is now stale; reconciliation is owed at ADR-040's next amendment (v1.14), not this burst — state-manager does not silently rewrite ADR body content per the Agent Routing Table (only the frontmatter ratification-flip pattern per (c) is state-manager's authorized ADR-editing scope).
+
+**(i) F-007 — independently re-verified CLOSED.** D-968(c) already recorded F-S2107-P10-007 CLOSED by `62fbcf1a` (PR #774, merged to `develop` 2026-08-10T17:34:37Z). Re-confirmed this burst by direct literal-shell inspection of `origin/develop` (fetched fresh this burst):
+
+```
+$ git show origin/develop:crates/factory-dispatcher/src/main.rs | grep -n "FUEL_EXHAUSTED\|cause: TimeoutCause::Epoch\|cause: TimeoutCause::Fuel" | head -6
+838:        // "FUEL_EXHAUSTED:" as a greppable sub-token so a future consumer can
+850:            cause: TimeoutCause::Fuel,
+854:            "fail-closed: FUEL_EXHAUSTED: fuel cap of {fuel_cap} units exhausted; \
+858:            cause: TimeoutCause::Epoch,
+```
+
+`extract_reason_from_outcome` distinguishes `TimeoutCause::Fuel` (emits `"fail-closed: FUEL_EXHAUSTED: fuel cap of {fuel_cap} units exhausted; ..."`) from `TimeoutCause::Epoch` (emits the unchanged `"fail-closed: plugin timed out"`) — fuel-vs-epoch `block_reason` disambiguation confirmed live on `develop`. **`fix/fuel-exhaustion-fail-loud` (`fbb9dcb6`, recorded ABANDONED — orchestrator dispatch error, 87 files duplicating unmerged S-21.07) is CONFIRMED SUPERSEDED, not a parallel fix that needs reconciling — the actual fix landed via PR #774, an entirely separate branch.** F-007 CLOSED (re-confirmed), anchored `62fbcf1a`.
+
+**(j) F-001 / F-003 — recorded ALREADY-RESOLVED with explicit residual dependency (not a re-opened hole).** F-S2107-P10-001 (BLOCKER, vacuous gate): redesign RATIFIED at D-970 (ADR-040 v1.12, category-error root cause — gate evaluated in factory-artifacts worktree where `*.rs`/`*.bats` count is permanently zero); mechanism implemented as `crates/policy15-attestation-gate/` (16 tests, mutation-verified, `d2a3176a`) on branch `feature/policy15-gate-rust` (pushed, no PR). F-S2107-P10-003 (HIGH, D-965 procured-on-mischaracterization): resolved at D-969/D-970 (see (g) for the bookkeeping annotation closing the last leg). **F-001's residual is NOT closed and is NOT this burst's scope to close: the CI job that makes the gate demonstrably RUNNING is not yet wired.** This residual is tracked as Drift Item `[D-969]`, routed to `devops-engineer`, and is **BLOCKED-ON `feature/policy15-gate-rust` merging to `develop`** (the crate branch is independent of `feature/S-21.07` — they are separate branches; `feature/policy15-gate-rust` has no open PR). This is recorded as a legitimately-dispositioned, explicitly-anchored deferral per the Canonical Principle (Rule 3: human-directed-equivalent, concrete future dependency, specific anchor), not an open hole.
+
+**(k) F-006 — CLOSED via architect's bundled ADR-042 v1.3 §Decision 1 Erratum** (see (b)). The self-contradiction (row-4 "independent budgets" claim vs §Decision 2's global-raise-only mechanism) is corrected with a POLICY 13 BOUNDARY-POLARITY mutant table and fresh literal-shell corroboration (`decision-log.md`/`burst-log.md`/`lessons.md` measured at 289%/297%/198% of the 20M cap under the ADR's own adapter-class model — the excluded region is empirically, not merely theoretically, harmful).
+
+**(l) F-008 — CLOSED, all three cited sites.** ADR-040 §Context "line 294" pin removed (architect, v1.13, bundled this burst per (b)). ADR-042 §Empirical "BC-INDEX line 1464" pin removed, 5 total volatile-pin sites corrected (architect, v1.3, bundled this burst per (b)). ARCH-INDEX.md's own ADR-042 row pin corrected (state-manager, this burst, see (e)) — this was the one site D-966/pass-10 flagged as NOT covered by POLICY 5's historical carve-out (a live registry row, not a Changelog/modified[]/`[Prior:...]` historical site).
+
+**(m) F-010 — codified as a [process-gap] lesson with a concrete anchor.** See `lessons.md` entry `L-BB-orchestrator-to-state-manager-relay-verification-gap` appended this burst — the relay-channel gap (orchestrator introduces an unverified factual claim into a state-manager dispatch instruction; state-manager persists it without independent re-derivation) is structurally identical to the adversary→human relay gap that D-966 codification 2 (POLICY 22 HUMAN-RATIFICATION CHANNEL EXTENSION) already addresses at the *ratification* layer; this lesson extends the same discipline to the *dispatch* layer. Anchored S-15.03 PRIORITY-A (same anchor as the sibling POLICY 22 extension), with a concrete recommendation: any state-manager dispatch instruction carrying a numeric or attributional claim not independently re-derivable from the dispatch text alone should be flagged for POLICY 22 self-application before persistence — this is the general form of what D-967's POLICY 22 self-application already did ad hoc for this specific case.
+
+**(n) F-009 — CLOSED via policies.yaml codification.** See (f).
+
+**(o) F-004 — CLOSED via product-owner's bundled BC-5.39.010 v1.18** (see (b)) + BC-INDEX index-sync (see (d)).
+
+**(p) F-005 — CLOSED via human ratification** (see (c)) + ARCH-INDEX index-sync (see (e)).
+
+**(q) Active Branches — `feature/S-21.07` SHA advanced.** `5370db80` → **`96b4be19`** (implementer erratum commit, see (h); pushed, SHA-equal with origin). Branch remains **UNFROZEN + sequenced-next**, and its convergence now depends on **adversary pass-11** (fresh-context, dispatched next — reads only `adversary-pass-10.md` Part A per the Iron Law). This fix burst does NOT itself constitute a clean pass.
+
+**(r) STREAK — explicitly NOT advanced.** This is a FIX burst, not a CLEAN adversary verdict. LOCAL BC-5.39.001 streak for the S-21.07 cascade remains **0/3**. Trajectory (10 numbered passes) `47→18→25→25→24→20→16→8→10` UNCHANGED — no new trajectory entry; a fix burst does not append to the numbered-pass trajectory. **Pass-11 adversary dispatch is the pending gate**, unchanged from the pre-burst state (D-967's "pass-11 adversary NEXT" note stands).
+
+**(s) STATE.md / burst-log.md claim-language reconciliation.** Prior narrative asserting "ADR-042 v1.2 ratified" (D-964(b) et seq.) and any parallel "ADR-041 ratified" language was, at time of writing, a mischaracterization (narrative-only, not a genuine dated ratification event — exactly the D-965 precedent this burst's own ratification note cites). As of this burst, that language is **retroactively TRUE** — both ADRs carry genuine `status: active` / `ratified: "2026-08-13"` frontmatter with `ratification_note`. No retroactive edit is made to the historical burst-log/decision-log rows that used the earlier language (historical-by-construction, POLICY 5 Part A) — this paragraph is the reconciliation record. STATE.md's own volatile-pin residuals (F-008 STATE.md leg) are swept in the STATE.md rewrite this burst.
+
+**(t) 4-INDEX.** BC-INDEX v4.57→**v4.58** / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.318 (UNCHANGED) / ARCH-INDEX v3.55→**v3.56**. policies.yaml v1.4.23→**v1.4.24**.
+
+### Agents
+
+- architect (prior to this burst, same session): ADR-040 v1.12→v1.13, ADR-041 v1.0→v1.1, ADR-042 v1.2→v1.3 authored (bundled this commit per TD-VSDD-053, not re-authored by state-manager)
+- product-owner (prior to this burst, same session): BC-5.39.010 v1.17→v1.18 authored (bundled this commit)
+- implementer (prior to this burst, same session): `feature/S-21.07-validate-cross-site-correspondence` erratum commit `96b4be19` (code repo, separate from this factory-artifacts commit)
+- human (this burst): ratified ADR-041 v1.1 + ADR-042 v1.3 (frontmatter status/ratified applied by state-manager per (c))
+- state-manager (D-992): ADR-041/042 frontmatter ratification-flip; BC-INDEX v4.58 (row 1464 + version); ARCH-INDEX v3.56 (ADR-041/042 rows + pin fix); policies.yaml v1.4.24 (POLICY 14 erratum-parity convention); D-965 annotation; F-001..F-010 disposition recorded; 1 lesson appended (F-010 relay-gap); STATE.md full advance; single atomic commit to `factory-artifacts` per TD-VSDD-053; POLICY 16 gate run with literal shell captured stdout
+
+### 4-INDEX
+
+BC-INDEX **v4.58** / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.318 (UNCHANGED) / ARCH-INDEX **v3.56**
+
+### Phase
+
+D-992-S2107-PASS10-FIX-BURST
 
 ### Date
 

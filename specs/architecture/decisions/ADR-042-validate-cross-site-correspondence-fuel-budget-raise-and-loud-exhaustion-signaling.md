@@ -2,9 +2,11 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-042
-version: "1.2"
+version: "1.3"
 title: "ADR-042: validate-cross-site-correspondence fuel budget raise to 20M and loud fuel-exhaustion signaling"
-status: proposed
+status: active
+ratified: "2026-08-13"
+ratification_note: "Human ratification 2026-08-13 (S-21.07 pass-10 fix burst, D-992): the 2026-08-08 human ruling ('raise the fuel budget AND make exhaustion loud') already authorized this ADR's substance; §Decision 1's arithmetic (12M floor / 20M chosen / 92% margin) is unchanged since v1.2, and the v1.3 amendment corrected the F-S2107-P10-006 self-contradiction (row-4 vs §Decision 2) with a POLICY 13 BOUNDARY-POLARITY mutant table. This ratification closes the F-S2107-P10-005 ADR-042 leg — the frontmatter status/decision-log-narrative gap the v1.3 §Status section flagged NEEDS-HUMAN. Ratified alongside ADR-041 in the same human decision, per v1.3 §Status recommendation."
 date: 2026-08-08
 producer: architect
 timestamp: 2026-08-08T00:00:00Z
@@ -23,7 +25,22 @@ anchors:
 subsystems_affected:
   - SS-01
   - SS-05
-last_amended: "2026-08-08 (v1.2) — AMENDED (architect): perf-fuel-2 measurement results
+last_amended: "2026-08-13 (v1.3) — AMENDED (architect; S-21.07 pass-10 ADR-anchored fix
+  cascade): §Decision 1 Erratum added closing F-S2107-P10-006 (self-contradiction between
+  §Decision 1 row 4 'independent budgets' claim and §Decision 2's global-raise-only
+  mechanism) — corrected with POLICY 13 BOUNDARY-POLARITY mandatory mutant table and fresh
+  literal-shell evidence (burst-log.md/decision-log.md/lessons.md measured at
+  289%/297%/198% of the 20M cap under this ADR's own adapter-class fuel model, confirming
+  the excluded region is currently harmful, not merely theoretically so); five volatile
+  BC-INDEX.md line-number pins ('line 1464') replaced with stable body-table-row anchor
+  form per TD-VSDD-091 closing the ADR-042 leg of F-S2107-P10-008 (verbatim literal-shell
+  evidence blocks left unchanged — only authored narrative pins were volatile-anchor
+  violations); new §Status section added documenting F-S2107-P10-005 ratification-status
+  gap (frontmatter status: proposed with no ratified: field despite decision-log narrative
+  'ratified' language) as NEEDS-HUMAN with a concrete recommendation — architect does not
+  claim unilateral ratification authority per the ADR-040/D-965 precedent. No change to
+  §Decision 1's fuel-budget arithmetic or §Decision 2's global-raise mechanism.
+  [Prior: 2026-08-08 (v1.2) — AMENDED (architect): perf-fuel-2 measurement results
   integrated — adapter architecture documented (three validators = one shared
   legacy-bash-adapter.wasm; fuel = 29,452 + 27.514 × payload_bytes R²=0.9999999);
   19.9M illustrative bound's structural failure reason explained (architectural mismatch,
@@ -45,6 +62,8 @@ last_amended: "2026-08-08 (v1.2) — AMENDED (architect): perf-fuel-2 measuremen
 modified:
   - "2026-08-08 (v1.0)"
   - "2026-08-08 (v1.1)"
+  - "2026-08-08 (v1.2)"
+  - "2026-08-13 (v1.3)"
 ---
 
 # ADR-042: validate-cross-site-correspondence fuel budget raise to 20M and loud fuel-exhaustion signaling
@@ -75,7 +94,7 @@ S-21.07 pass-9 has now produced those benchmarks. The performance-engineer ran a
 Regression model (N=5..986 extra rows, 24 measured points):
 `fuel = 2,585,970 + 53.18 × var_bytes`, R² = 0.998790. Quadratic term coefficient 5.42×10⁻⁵ adds +0.075% R² — fuel cost is **linear in input bytes, not superlinear**.
 
-**Key structural fact**: `extract_bc_index_version_state` returns early once BC-5.39.010's row (line 1464 of BC-INDEX.md) is found. Only the ~415KB prefix before that row is scanned. The 161KB tail is never read.
+**Key structural fact**: `extract_bc_index_version_state` returns early once BC-5.39.010's body-table row (locatable via `grep -n '\[BC-5\.39\.010\]' BC-INDEX.md`) is found. Only the ~415KB prefix before that row is scanned. The 161KB tail is never read.
 
 **Corpus-verified byte figures (literal shell, run 2026-08-08):**
 
@@ -93,7 +112,7 @@ $ head -n 1464 /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavio
   415961
 ```
 
-BC-INDEX.md: 576,842 bytes total. BC-5.39.010 row at line 1464; bytes before its row = 415,278 (current corpus, slightly lower than the measurement's 415,523 due to the concurrent D-962 in-flight BC-5.39.010 v1.14→v1.15 amendment). The measurement's corpus was the pre-v1.15 state. Delta is 245 bytes and immaterial to budget derivation.
+BC-INDEX.md: 576,842 bytes total. BC-5.39.010's body-table row (per the captured `grep -n` above, at that corpus snapshot); bytes before its row = 415,278 (current corpus, slightly lower than the measurement's 415,523 due to the concurrent D-962 in-flight BC-5.39.010 v1.14→v1.15 amendment). The measurement's corpus was the pre-v1.15 state. Delta is 245 bytes and immaterial to budget derivation.
 
 **Per-row marginal cost (literal shell derivation from measured data):**
 
@@ -270,7 +289,7 @@ Derivation summary: Target headroom of 600 rows requires a minimum cap of 20,189
 
 **Adapter-class cross-validation: 12M floor, 20M provides 92% margin.** Independent validation from the perf-fuel-2 adapter measurement (see §Context "perf-fuel-2 measurement result"): worst-case adapter fuel at ARCH-INDEX.md payload (377,109 bytes) = 10,406,058 fuel — exhausts 10M but well within 20M. Minimum defensible cap at 10% margin above the worst-case: **12M** (10,406,058 × 1.10 = 11,446,664, ceiling to nearest megabyte = 12M). Chosen cap 20M provides **92% margin** above the worst-case ((20M − 10.4M) / 10.4M). Two independent derivation paths — cross-site-correspondence row-headroom (589 rows / 12–30 waves) and adapter worst-case margin (92%) — both validate 20M. 12M is recorded as the floor so the chosen 20M margin is stated rather than implied.
 
-**Headroom rationale (600 rows):** BC-5.39.010 is at row 1464 of BC-INDEX.md. The prefix contains rows from all subsections earlier than SS-05.39. New BCs added to earlier subsections consume runway; BCs added to SS-05.39 and later (after BC-5.39.010's row) do not. At a realistic production rate of 20–50 new BCs per feature wave, 600 rows of headroom covers 12–30 feature waves of growth before re-exhaustion. This exceeds the time needed to build and ship the deferred structural fix (§Decision 4).
+**Headroom rationale (600 rows):** BC-5.39.010's body-table row falls after all SS-05.1–SS-05.38 rows in BC-INDEX.md's SS-ordered layout. The prefix contains rows from all subsections earlier than SS-05.39. New BCs added to earlier subsections consume runway; BCs added to SS-05.39 and later (after BC-5.39.010's row) do not. At a realistic production rate of 20–50 new BCs per feature wave, 600 rows of headroom covers 12–30 feature waves of growth before re-exhaustion. This exceeds the time needed to build and ship the deferred structural fix (§Decision 4).
 
 **POLICY 13 BOUNDARY-POLARITY analysis — excluded region for the 20M boundary:**
 
@@ -281,9 +300,23 @@ The 20M budget does NOT cover:
 | BC-5.39.010 repositioned to row ~1,980 (end of BC-INDEX) | 576,842 bytes prefix → ~33M fuel | Reposition is a user-initiated change; existing headroom gate (§Decision 4) surfaces this before exhaustion |
 | Plugin extended to scan all 1,985 BC rows (no early return) | 576,842 bytes → ~33M fuel | Scope extension requires explicit spec change; §Decision 4 deferred fix eliminates this class |
 | Multiple BCs scanned (e.g., BC-5.39.010 + 5 sibling BCs) | ~415KB + 5 × row_bytes ≈ ~10M additional | Multi-BC scan is an explicit spec extension; not in BC-5.39.010 current scope |
-| Other O(n)-in-input plugins (lessons.md, STATE.md validators) | Depends on their own corpus size | Their budgets are independent; ADR-039 Phase 3 per-plugin calibration covers them |
+| Other O(n)-in-input plugins (lessons.md, decision-log.md, burst-log.md, STATE.md validators) | Currently EXHAUSTS the shared global cap for the three largest cycle artifacts — see erratum below | **ERRATUM (v1.3 — F-S2107-P10-006): this row was WRONG when written and is corrected here, not retracted, per POLICY 5 v1.3.5 Part A historical-by-construction discipline.** The original claim ("budgets are independent; ADR-039 Phase 3 covers them") described a FUTURE state (per-plugin `fuel_cap`, not yet implemented — zero matches for `fuel_cap` in `hooks-registry.toml`, confirmed in §Context) as if it were the CURRENT state. It directly contradicts this ADR's own §Decision 2 title ("Raise is global … not per-plugin"): under a global-only raise, every `on_error="continue"` O(n)-in-input plugin shares the SAME 20M ceiling as `validate-cross-site-correspondence` — there is no independence to appeal to until ADR-039 Phase 1 ships. See §Decision 1 Erratum below for the corrected disposition and mandatory BOUNDARY-POLARITY mutant. |
 
-**Mutant proving the excluded region is harmful:** Change `extract_bc_index_version_state` to scan all rows instead of returning early on BC-5.39.010. Full-corpus scan = 576,842 bytes → fuel = 2,585,970 + 53.18 × 576,842 ≈ 33.3M → exhausts the 20M budget. The early-return is load-bearing for the 20M budget to hold.
+**Mutant proving the excluded region is harmful:** Change `extract_bc_index_version_state` to scan all rows instead of returning early on BC-5.39.010. Full-corpus scan = 576,842 bytes → fuel = 2,585,970 + 53.18 × 576,842 ≈ 33.3M → exhausts the 20M budget. The early-return is load-bearing for the 20M budget to hold. **This mutant demonstrates the `validate-cross-site-correspondence`-specific excluded region (row 1) is harmful if triggered; it does NOT cover row 4 (other O(n) plugins) — see the dedicated POLICY 13 BOUNDARY-POLARITY analysis immediately below, which supplies the mandatory mutant for row 4 that was absent from v1.0–v1.2.**
+
+#### §Decision 1 Erratum (v1.3 — architect, S-21.07 pass-10 fix cascade, closes F-S2107-P10-006)
+
+**The self-contradiction, precisely stated.** §Decision 1 row 4 (as originally written, v1.0–v1.2) claimed other O(n)-in-input plugins have "independent" budgets and are "covered" by a future calibration phase. §Decision 2's own title states the raise mechanism is global, not per-plugin, and §Decision 2 body confirms: "The per-plugin `fuel_cap` registry field … is not yet implemented (no `fuel_cap` field in `hooks-registry.toml`; zero matches verified in §Context)." A budget cannot be simultaneously (a) global/shared (§Decision 2) and (b) independent-per-plugin (§Decision 1 row 4, as originally written). Only one can be true at the current implementation state, and §Decision 2 correctly describes it: (a) is current reality, (b) is the ADR-039 Phase 3 future state this ADR explicitly says has not shipped.
+
+**Empirical corroboration — the excluded region IS currently harmful (POLICY 13 BOUNDARY-POLARITY MANDATE, mandatory table; supplies the mutant absent from v1.0–v1.2):**
+
+| Dimension | Analysis |
+|-----------|----------|
+| **False-positive class (row 4's original claim)** | "Other O(n)-in-input plugins … budgets are independent; ADR-039 Phase 3 … covers them" — implies these plugins are safely out of scope of this ADR's 20M raise and require no further action. |
+| **Can harmful content occupy the excluded region?** | **YES — confirmed empirically, not hypothetically.** `decision-log.md`, `burst-log.md`, and `lessons.md` are exactly the class row 4 dismissed (O(n)-in-input, `on_error="continue"` validators reading `.factory/` cycle artifacts). Fresh literal-shell measurement (architect, 2026-08-13, current corpus — supersedes the pass-10 adversary's 2026-08-09 snapshot, which is now stale in the same direction, i.e. these artifacts have grown further): |
+| **Mutant (the missing proof)** | `$ wc -c cycles/v1.0-brownfield-backfill/{burst-log,decision-log,lessons}.md` → `2050525 burst-log.md`, `2106275 decision-log.md`, `1385356 lessons.md`. Applying the adapter-class model this ADR itself derived (`fuel = 29,452 + 27.514 × payload_bytes`, payload = file_bytes + ~51,200-byte `last_assistant_message` overhead, per §Context "perf-fuel-2 measurement result"): burst-log.md → **57.9M fuel (289% of the 20M cap)**; decision-log.md → **59.4M fuel (297% of the 20M cap)**; lessons.md → **39.6M fuel (198% of the 20M cap)**. All three EXCEED the shared global 20M cap set by §Decision 1/§Decision 2 of THIS ADR. The excluded region is not merely theoretically harmful — it is currently, measurably exhausting. |
+
+**Corrected disposition.** Row 4 is corrected (struck through above, not deleted, per historical-by-construction discipline) to state the accurate current fact: these three artifacts are NOT independently budgeted, DO share the global 20M cap this ADR sets, and DO currently exceed it by 1.9×–3.0×. This is not a new problem this erratum introduces — it is a PRE-EXISTING, ALREADY-TRACKED condition. No new tech-debt-register entry is created (Canonical Principle Rule 3 would be violated by doing so); the remediation is already anchored to two live STATE.md Drift Items: `[D-954] decision-log.md >17,000 lines — OPEN 2026-08-04 — WASM validators time out on every edit` and the `lessons.md` size-budget discipline (≤3500 soft / ≤4000 hard per D-442(e), CLAUDE.md "WASM plugin fuel budgets"). This erratum's contribution is narrow and precise: it corrects this ADR's own text so it stops asserting these artifacts are safe when they are not, and supplies the BOUNDARY-POLARITY mutant POLICY 13 requires for any narrowed-scope exclusion claim. It does not expand this ADR's remediation scope beyond `validate-cross-site-correspondence` (§Context "Routing" already correctly deferred the platform-wide multi-plugin benchmark to performance-engineer).
 
 ### Decision 2 — Raise is global (`InvokeLimits::default()`), not per-plugin; lifting of BC-5.39.010 fuel_cap prohibition authorized
 
@@ -425,7 +458,7 @@ ADR-035 §Decision 5 is amended as follows. Amend the ADR-035 file with the AMEN
 >
 > 1. **O(n) confirmed, O(n²) concern resolved.** The O(n²) concern in §Context was about directory enumeration via `fd_readdir` (a rejected alternative). The implemented `read_file` linear scan is confirmed **O(n) in input bytes**, R²=0.998790 over 24 measured points (S-21.07 benchmarks, 2026-08-08). No quadratic coefficient is significant.
 >
-> 2. **~100KB threshold corrected to ~136KB (10M) / ~328KB (20M).** ADR-035 v1.0 stated "~100KB at risk." At 53.18 fuel/byte (measured marginal), the breakeven is (budget − 2,585,970) / 53.18: ~139KB at 10M budget, ~327KB at 20M budget. The ~100KB figure understated the risk zone. The measured exhaustion threshold for `validate-cross-site-correspondence` was ~415KB prefix (BC-5.39.010 at line 1464, ~415KB prefix).
+> 2. **~100KB threshold corrected to ~136KB (10M) / ~328KB (20M).** ADR-035 v1.0 stated "~100KB at risk." At 53.18 fuel/byte (measured marginal), the breakeven is (budget − 2,585,970) / 53.18: ~139KB at 10M budget, ~327KB at 20M budget. The ~100KB figure understated the risk zone. The measured exhaustion threshold for `validate-cross-site-correspondence` was ~415KB prefix (the BC-INDEX.md prefix up to BC-5.39.010's body-table row, ~415KB).
 >
 > 3. **Fuel budget raised to 20M per ADR-042 §Decision 1.** The global `InvokeLimits::default()` `fuel_cap` has been raised from 10M to 20M. The "no registry change needed for this new hook" note in ADR-035 v1.0 is superseded: per-plugin `fuel_cap` SHOULD be set once ADR-039 Phase 1 (registry schema extension) ships (ADR-042 §Decision 2).
 >
@@ -489,4 +522,38 @@ Would surface exhaustion as `block_intent=true exit_code=2`, making it visible. 
 - ADR-039 §Decision 2/4 (2026-08-06): per-plugin `failure_policy` and `fuel_cap` calibration phases; 50M minimum for Phase 3 fail-closed annotation.
 - `InvokeLimits::default()` behavioral anchor in `crates/factory-dispatcher/src/invoke.rs`: `fuel_cap: 10_000_000` current value — route to implementer per §Downstream Routing.
 - `extract_bc_index_version_state` behavioral anchor in `crates/hook-plugins/validate-cross-site-correspondence/src/lib.rs`: early-return scan that halts at BC-5.39.010's row — this early return is load-bearing for the 20M budget (§Decision 5 mutant analysis).
-- BC-INDEX.md corpus metrics (literal shell, 2026-08-08): 576,842 bytes, 2,579 lines, BC-5.39.010 at line 1464, ~415,278 byte prefix.
+- BC-INDEX.md corpus metrics (literal shell, 2026-08-08): 576,842 bytes, 2,579 lines, BC-5.39.010's body-table row located via `grep -n '\[BC-5\.39\.010\]'`, ~415,278 byte prefix.
+- **F-S2107-P10-006 (HIGH, this ADR's own §Decision 1 vs §Decision 2 self-contradiction):** row 4 of the §Decision 1 excluded-region table asserted "independent budgets … covered" for other O(n) plugins while §Decision 2 established the raise as global-only; empirically falsified by fresh measurement of `decision-log.md`/`burst-log.md`/`lessons.md` (1.9×–3.0× over the 20M cap). Addressed by §Decision 1 Erratum (v1.3, this amendment).
+- **F-S2107-P10-008 (MEDIUM, TD-VSDD-091):** volatile `BC-INDEX.md` line-number pins ("line 1464") in five narrative sites. Addressed by replacing with stable body-table-row anchor form (v1.3, this amendment); captured literal-shell evidence blocks (which legitimately contain the grep-derived line number as verbatim stdout) were left unchanged.
+
+## Status
+
+PROPOSED 2026-08-08; ADR-042 v1.0 (architect; human ruling 2026-08-08 authorized the substance: raise fuel budget + make exhaustion loud + deferred structural fix). AMENDED 2026-08-08; ADR-042 v1.1 (architect): E-22→E-21 W4 re-anchor; platform-wide fuel exhaustion scope documented. AMENDED 2026-08-08; ADR-042 v1.2 (architect): perf-fuel-2 adapter-class measurement integrated; §Decision 1 12M floor + 92% margin stated; §Decision 3 re-scoped into three problem classes. AMENDED 2026-08-13; ADR-042 v1.3 (architect; S-21.07 pass-10 ADR-anchored fix cascade): §Decision 1 Erratum added — corrects the row-4/§Decision-2 self-contradiction (F-S2107-P10-006) with a POLICY 13 BOUNDARY-POLARITY mandatory mutant table and fresh literal-shell corroboration (burst-log.md/decision-log.md/lessons.md at 289%/297%/198% of the 20M cap under this ADR's own adapter-class model); five volatile `BC-INDEX.md` line-number pins replaced with stable body-table-row anchors per TD-VSDD-091 (F-S2107-P10-008 ADR-042 leg). No change to §Decision 1's fuel-budget arithmetic (12M floor / 20M chosen / 92% margin, all `validate-cross-site-correspondence`-specific) or §Decision 2's global-raise mechanism — only the excluded-region characterization in row 4 was factually wrong and is corrected.
+
+**RATIFICATION STATUS — NEEDS HUMAN ADJUDICATION (F-S2107-P10-005).** Frontmatter `status:
+proposed`, no `ratified:` field, despite `decision-log.md` D-964(b) narrative stating "ADR-042
+v1.2 ratified" and STATE.md/burst-log echoing that language in six subsequent bursts
+(D-965/966/967/968/969/970 fuel-exhaustion-telemetry notes). Architect does not have
+unilateral authority to self-declare this ADR ratified — the ADR-040 precedent (D-965's
+premature "ratified" label, later found PROCURED-ON-MISCHARACTERIZATION at F-S2107-P10-003,
+requiring a genuine fresh human ratification event at D-970 with an explicit
+`ratification_note`) establishes that narrative "ratified" language in a decision-log burst
+summary is not equivalent to actual human ratification of the ADR document. Distinct from
+ADR-040's case: here there IS a genuine, correctly-attributed human ruling on the ADR's
+*substance* (§Context: "The ruling this ADR implements (human-authorized, 2026-08-08): Raise
+the fuel budget AND make exhaustion loud"). What is missing is the explicit, dated
+ratification of the ADR *document* — the `status: proposed → active` / `ratified: <date>`
+frontmatter transition with a `ratification_note` comparable to ADR-040 v1.12's.
+
+**Recommendation to human:** ratify ADR-042 v1.3 (frontmatter `status: proposed → active`,
+`ratified: <date-of-explicit-confirmation>`) now that F-S2107-P10-006's self-contradiction is
+corrected, since (a) the underlying 2026-08-08 ruling on substance is already genuine and
+on record, (b) the fuel-budget arithmetic (§Decision 1) has not changed, only the row-4
+excluded-region text, and (c) POLICY 16's ALLOCATOR-CEILING gate (ADR-041, same F-005
+disposition) is already running as a live blocking pre-allocation gate in every burst without
+its governing ADR's frontmatter reflecting ratification — the proposed-ADR-governing-live-gate
+contradiction is real and growing more awkward with each burst it persists. If the human
+instead determines the 2026-08-08 substance ruling did NOT constitute ADR-level ratification
+intent, the alternative disposition is: keep `status: proposed`, and route to devops-engineer/
+state-manager to gate `InvokeLimits::default() fuel_cap` and POLICY 16's ALLOCATOR-CEILING
+enforcement on explicit ratification before further reliance is placed on either.

@@ -1,8 +1,28 @@
 ---
 document_type: adr
 adr_id: ADR-041
-status: proposed
+version: "1.1"
+status: active
+ratified: "2026-08-13"
+ratification_note: "Human ratification 2026-08-13 (S-21.07 pass-10 fix burst, D-992): the D-960 SRC ruling ('migrate the sentinel, not merely reserve it') already authorized this ADR's substance; the sentinel migration and POLICY 16 ALLOCATOR-CEILING GATE (§Decision 3) have been running as a live blocking pre-allocation gate since D-961 with zero adverse findings across 10+ bursts. This ratification closes the F-S2107-P10-005 ADR-041 leg — the frontmatter status/decision-log-narrative gap the v1.1 §Status section flagged NEEDS-HUMAN. Ratified alongside ADR-042 in the same human decision, per v1.1 §Status recommendation (c)."
 date: 2026-08-07
+last_amended: "2026-08-13 (v1.1) — AMENDED (architect; S-21.07 pass-10 ADR-anchored fix
+  cascade, closes F-S2107-P10-005 ADR-041 leg): added `version`/`last_amended`/`modified`
+  frontmatter fields (absent since v1.0 authoring — this ADR predates the version-tracking
+  convention other ADR-04x documents use); §Consequences 'Status as of 2026-08-07' subsection
+  corrected — it read 'Proposed... implementation is gated on this ADR's acceptance,' which
+  is stale: decision-log.md D-961(a)/(b) confirm the sentinel migration (product-owner,
+  story-writer, test-writer, architect legs) was already executed 2026-08-07, the same date
+  this subsection was authored and never revisited; new '## Status' section added
+  documenting the frontmatter `status: proposed`/no-`ratified:`-field gap against the
+  decision-log's 'ADR-041 ratified' narrative language, flagged NEEDS-HUMAN — architect does
+  not claim unilateral ratification authority (ADR-040/D-965 precedent: narrative 'ratified'
+  language in a burst summary is not equivalent to a genuine, dated human ratification event).
+  No change to §Decision 1-4 substance (sentinel value, ceiling, gate predicate, authoring
+  discipline) — this amendment is documentary/status-tracking only."
+modified:
+  - "2026-08-07 (v1.0)"
+  - "2026-08-13 (v1.1)"
 subsystems_affected:
   - SS-05
   - SS-01
@@ -243,12 +263,22 @@ must be a valid-format D-NNN to exercise the Phase 1 advisory-only boundary fait
 - **POLICY 16 gate adds pre-burst step**: Each burst now includes one additional literal-shell
   check. This is negligible in practice but extends the pre-burst gate checklist.
 
-### Status as of 2026-08-07
+### Status as of 2026-08-07 (superseded — see `## Status` below)
 
 Proposed. The ADR was authored by architect in response to human ruling at D-960(e) and the
 D-999 collision time-bomb identified at ~39 allocations from D-960. Implementation (BC/story
 edits and test fixture updates) is gated on this ADR's acceptance and subsequent specialist
 dispatch (product-owner, story-writer, test-writer per §Downstream Routing).
+
+> **SUPERSEDED 2026-08-13 (v1.1 amendment):** this subsection describes the state at
+> authoring time (2026-08-07) and was never revisited despite the migration completing the
+> same day. `decision-log.md` D-961(a)/(b) confirm: sentinel migration executed across all 4
+> layers (BC-5.39.007 v1.6→v1.7, S-15.12 v1.4→v1.5, 8 code/fixture sites at `bf642fd9`,
+> POLICY 16 ALLOCATOR-CEILING GATE added to `policies.yaml`). Implementation is COMPLETE, not
+> gated-pending. See `## Status` (end of document) for the current, accurate disposition —
+> including the separate open question of whether the ADR *document itself* (frontmatter
+> `status:`/`ratified:`) has been properly ratified, which is F-S2107-P10-005 and is distinct
+> from "was the migration work done" (it was).
 
 ## Site Inventory — All D-999 Sentinel Locations
 
@@ -379,3 +409,42 @@ using a fixture with `**Closes:** D-99999` to confirm the migrated sentinel stil
   — Function that scans STATE.md for D-NNN integers; basis for Decision 4 authoring discipline.
 - Human ruling at STATE.md Session Resume Checkpoint §Pending Decisions (D-960 SRC): "migrate
   the sentinel, not merely reserve it."
+
+## Status
+
+PROPOSED 2026-08-07; ADR-041 v1.0 (architect; human ruling at D-960 SRC authorized the
+substance: "migrate the sentinel, not merely reserve it"). Migration executed same-day across
+all 4 layers per `decision-log.md` D-961(a)/(b) — the ADR's *content* has been fully
+implemented and is running live (POLICY 16 ALLOCATOR-CEILING GATE fires before every D-NNN
+allocation; confirmed passing in every burst from D-961 through the current HEAD, e.g. D-970
+"PASS: global max D-969 < D-9000 ceiling"). AMENDED 2026-08-13; ADR-041 v1.1 (architect;
+S-21.07 pass-10 ADR-anchored fix cascade, closes F-S2107-P10-005 ADR-041 leg): added
+version-tracking frontmatter (absent at v1.0); corrected the stale "Status as of 2026-08-07"
+subsection under §Consequences (superseded in place, not deleted); this `## Status` section
+added.
+
+**RATIFICATION STATUS — NEEDS HUMAN ADJUDICATION (F-S2107-P10-005).** Frontmatter `status:
+proposed`, no `ratified:` field, despite `decision-log.md` D-961(a) stating "ADR-041
+ratified" in a state-manager multi-specialist recording-burst summary — narrative language,
+not an explicit dated human ratification event with a `ratification_note` comparable to
+ADR-040 v1.12's. The underlying substance ruling ("migrate the sentinel") IS genuinely
+human-authorized and on record (§Context / §Source-Origin). What is missing is ratification
+of the ADR *document*. Architect does not claim authority to self-declare this ratified —
+same ADR-040/D-965 precedent cited in ADR-042 v1.3 §Status.
+
+**Live-gate contradiction, concretely:** the POLICY 16 ALLOCATOR-CEILING GATE (this ADR
+§Decision 3) has executed as a blocking pre-allocation gate in every single burst since
+D-961 — at least 10 confirmed PASS invocations through the current HEAD — while its
+governing ADR has never carried a `status: active`/`ratified:` frontmatter pair. The gate's
+design has never produced an adverse finding in ~10 live invocations, which is evidence the
+design is sound, but soundness-in-practice is not a substitute for the ratification record
+the project's own governance model requires for a document whose rulings gate every burst.
+
+**Recommendation to human:** ratify ADR-041 v1.1 now (`status: proposed → active`,
+`ratified: <date-of-explicit-confirmation>`), on the basis that (a) the D-960 SRC ruling
+already authorizes the substance, (b) the mechanism has been running correctly in production
+for ~6 days across 10+ bursts with zero adverse findings, and (c) ADR-042 carries the
+identical F-005 gap and both should be resolved together in one human ratification pass
+rather than staggered. If the human prefers a different disposition (e.g., a fresh review of
+the gate's three structural-anchor forms before ratifying), that is also a legitimate
+outcome — this section flags the decision point; it does not presume the answer.

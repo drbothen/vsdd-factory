@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-040
-version: "1.12"
+version: "1.13"
 title: "ADR-040: POLICY 15 ATTESTATION-LOCATION GATE — parent-SHA predicate replaces self-referential HEAD-SHA (resolves F-S2107-P8-003 logical impossibility)"
 status: active
 ratified: 2026-08-10
@@ -18,7 +18,26 @@ supersedes: "POLICY 15 ATTESTATION-LOCATION GATE clause codified at D-912 (D-912
 superseded_by: null
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 last_amended: |-
-  2026-08-10 (v1.12) — AMENDED (architect): corrects two factual errors in the v1.11
+  2026-08-13 (v1.13) — AMENDED (architect; S-21.07 pass-10 ADR-anchored fix cascade): stale
+  post-ratification content corrected — three defects found during independent re-verification
+  against current develop/factory-artifacts state, none load-bearing on the gate's semantics
+  (all corrections are documentary/routing, not predicate changes). (1) §Decision 5 line-number
+  pin ("line 294 in the policies.yaml") replaced with stable anchor form per TD-VSDD-091 —
+  closes F-S2107-P10-008 (ADR-040 leg). (2) Trailing §Status paragraph (written at v1.4,
+  2026-08-10, never updated through v1.5–v1.12) still read "HUMAN RE-RATIFICATION REQUIRED...
+  no policies.yaml edit has been made" — directly contradicted the frontmatter
+  (`status: active`, `ratified: 2026-08-10`) and the D-970 decision-log record showing
+  `policies.yaml` v1.4.23 was applied in that same burst. Struck through with a superseding
+  note rather than silently deleted (preserves historical continuity of what v1.4 actually
+  said at drafting time). (3) §Implementation routing section re-verified item-by-item via
+  literal shell against `origin/develop` and `origin/feature/S-21.07-...` — of the four
+  routed items, ONE is done (state-manager `policies.yaml` v1.4.23, confirmed live), THREE
+  remain genuinely outstanding: devops-engineer CI wiring (tracked STATE.md Drift Item
+  [D-969]), erratum note to `red-gate-log.md` (re-routed state-manager → implementer, since
+  the target file is a code-repo artifact, not `.factory/`, per CLAUDE.md Agent Routing
+  Table), and D-965 row PROCURED-ON-MISCHARACTERIZATION annotation (state-manager,
+  unchanged). No gate predicate, outcome table, or crate behavior changed in this amendment.
+  [Prior: 2026-08-10 (v1.12) — AMENDED (architect): corrects two factual errors in the v1.11
   seventh-generation record — (1) wrong test credited: generation 7 was found by mutation B
   (neutralising `run_gate` guard 1), surviving test was `test_unresolvable_base_fails_closed`
   (`!outcome.is_pass()` assertion), not `test_positive_2_no_attestation_heading`; (2) wrong
@@ -178,6 +197,7 @@ modified:
   - "2026-08-10 (v1.10)"
   - "2026-08-10 (v1.11)"
   - "2026-08-10 (v1.12)"
+  - "2026-08-13 (v1.13)"
 ---
 
 # ADR-040: POLICY 15 ATTESTATION-LOCATION GATE — parent-SHA predicate replaces self-referential HEAD-SHA
@@ -398,9 +418,10 @@ assertion-site attestation (<HEAD-SHA>)
 actual SHA being pushed
 ```
 
-Both matches are in the same POLICY 15 ATTESTATION-LOCATION GATE bullet (line 294 in the
-policies.yaml at `10914a73`). No other verification_steps predicate embeds a commit's own
-SHA or references state that cannot be known at authoring time.
+Both matches are in the same POLICY 15 ATTESTATION-LOCATION GATE bullet — the sole
+`verification_steps` entry under POLICY 15's `id: 15` block in `policies.yaml`. No other
+verification_steps predicate embeds a commit's own SHA or references state that cannot be
+known at authoring time.
 
 **Conclusion:** F-S2107-P8-003 is an instance defect, not a class defect. The
 ATTESTATION-LOCATION GATE is the only predicate in the registry that contains this defect.
@@ -1752,13 +1773,38 @@ found after the crate landed at `d5a90e74`, not before. §Consequence "Execution
 generation 7 bullet rewritten with accurate step-by-step account. §Consequence
 "Mutation-testing acceptance criterion" rewritten: generation 7 case study (steps 1–5),
 coarse-assertion-gap vs mutant-killer distinction, generation 5/7 altitude symmetry, variant-
-specific `matches!()` example. §Status v1.12 added.
+specific `matches!()` example. §Status v1.12 added. AMENDED 2026-08-13; ADR-040 v1.13
+(architect; S-21.07 pass-10 ADR-anchored fix cascade): F-S2107-P10-001/002/003 independently
+re-verified ALREADY-RESOLVED against current develop/factory-artifacts state (D-970
+ratification stands); F-S2107-P10-008 ADR-040 leg was LIVE and is fixed this burst
+(§Decision 5 line-number pin removed per TD-VSDD-091); stale trailing §Status re-ratification
+paragraph (unedited since v1.4, contradicted the `status: active`/`ratified: 2026-08-10`
+frontmatter and the D-970 record) struck through with a superseding note; §Implementation
+routing re-verified item-by-item via literal shell — 1 of 4 DONE (state-manager
+`policies.yaml` v1.4.23), 3 outstanding (devops-engineer CI wiring tracked [D-969];
+red-gate-log.md erratum note re-routed state-manager→implementer per code-repo/`.factory/`
+boundary; D-965 PROCURED-ON-MISCHARACTERIZATION annotation, state-manager). No gate
+predicate or `GateOutcome` semantics changed. §Status v1.13 added.
 
-**HUMAN RE-RATIFICATION REQUIRED** before `policies.yaml` v1.4.23 is applied.
-- The v1.4.22 text is PROCURED-ON-MISCHARACTERIZATION; it remains in force until
-  re-ratification. Agents MUST NOT apply v1.4.23 before a D-NNN re-ratification row.
-- The exact replacement text for v1.4.23 is in §Proposed `policies.yaml` Replacement Text.
-- No `policies.yaml` edit has been made in this ADR v1.4 burst.
+**AMENDED 2026-08-13 (v1.13 — architect): stale re-ratification notice corrected.** The
+paragraph immediately below this note previously read "HUMAN RE-RATIFICATION REQUIRED...
+no `policies.yaml` edit has been made" — accurate as of v1.4 (2026-08-10, drafting time) but
+never updated through v1.5–v1.12 despite six further amendments. **This is now stale and
+contradicts both the frontmatter (`status: active`, `ratified: 2026-08-10`) and the D-970
+decision-log record.** Corrected status, preserved verbatim below for historical continuity
+with a superseding note:
+
+> ~~**HUMAN RE-RATIFICATION REQUIRED** before `policies.yaml` v1.4.23 is applied.~~
+> ~~- The v1.4.22 text is PROCURED-ON-MISCHARACTERIZATION; it remains in force until~~
+> ~~  re-ratification. Agents MUST NOT apply v1.4.23 before a D-NNN re-ratification row.~~
+> ~~- The exact replacement text for v1.4.23 is in §Proposed `policies.yaml` Replacement Text.~~
+> ~~- No `policies.yaml` edit has been made in this ADR v1.4 burst.~~
+>
+> **SUPERSEDED 2026-08-10 (D-970):** ADR-040 v1.12 was ratified by human on its own merits
+> (see frontmatter `ratification_note`). `policies.yaml` v1.4.22 → v1.4.23 was applied
+> verbatim from §Proposed `policies.yaml` Replacement Text in the same D-970 burst. The
+> ATTESTATION-LOCATION GATE bullet now reads the v1.4.23 (§Decisions 7–10) text in the live
+> `policies.yaml`. Re-ratification is COMPLETE, not pending.
 
 Adjudicates (cumulative):
 - F-S2107-P8-003 — HEAD-SHA predicate logically unsatisfiable (§Decisions 1–5, v1.0).
@@ -1775,22 +1821,32 @@ extension (mutant-derived-gate alternation mandate) is unaffected and unchanged.
 scope is confirmed: supersede only the ATTESTATION-LOCATION GATE clause; D-912's POLICY 13
 extension is not in scope.
 
-Implementation routing (after human re-ratification of v1.11):
-- **devops-engineer:** Add two jobs to `.github/workflows/ci.yml` (or a dedicated
-  `policy-15-attestation.yml`): (1) `policy-15-attestation-location` — required check,
-  unconditional (no `paths:` filter), `fetch-depth: 0`, invokes
-  `policy15-attestation-gate [<base-branch>]` per §Decision 9 Ruling 9(a); (2)
-  `attestation-gate-non-vacuity-controls` — unconditional, invokes
+Implementation routing (AMENDED 2026-08-13 v1.13 — status per item, human ratification of
+v1.12 COMPLETE at D-970; three items below remain genuinely outstanding as of this amendment,
+verified by literal-shell check against `origin/develop` and `origin/feature/S-21.07-...` —
+neither branch's `red-gate-log.md` contains an "erratum"/"PROCURED"/"F-S2107-P10-002" token):
+- **devops-engineer — OUTSTANDING (tracked: STATE.md Drift Item [D-969]).** Add two jobs to
+  `.github/workflows/ci.yml` (or a dedicated `policy-15-attestation.yml`): (1)
+  `policy-15-attestation-location` — required check, unconditional (no `paths:` filter),
+  `fetch-depth: 0`, invokes `policy15-attestation-gate [<base-branch>]` per §Decision 9
+  Ruling 9(a); (2) `attestation-gate-non-vacuity-controls` — unconditional, invokes
   `cargo test -p policy15-attestation-gate` per §Decision 10 Ruling 10(d). Both jobs comply
-  with POLICY 21 (no new `.sh` files; Rust binary + cargo test).
-- **state-manager:** Edit `policies.yaml` POLICY 15 ATTESTATION-LOCATION GATE bullet per
-  §Proposed `policies.yaml` Replacement Text; bump version v1.4.22 → v1.4.23; advance
-  ARCH-INDEX frontmatter if needed (total_adrs unchanged — ADR-040 v1.4 is an amendment).
-- **state-manager:** Add erratum note to
-  `crates/hook-plugins/validate-cross-site-correspondence/docs/red-gate-log.md`
-  documenting the permanent F-S2107-P10-002 historical violation at `67ffbdcc`/`38c70f9e`.
-- **state-manager:** Annotate D-965 row in decision-log as PROCURED-ON-MISCHARACTERIZATION
-  with forward pointer to the D-NNN v1.2 re-ratification row.
+  with POLICY 21 (no new `.sh` files; Rust binary + cargo test). This is the last step that
+  makes the gate demonstrably RUNNING, not merely ratified — closes F-S2107-P10-001 in full.
+- **state-manager — DONE (D-970).** `policies.yaml` POLICY 15 ATTESTATION-LOCATION GATE
+  bullet replaced verbatim per §Proposed `policies.yaml` Replacement Text; version
+  v1.4.22 → v1.4.23 applied; ARCH-INDEX v3.53 → v3.54.
+- **implementer — OUTSTANDING (code-repo file; NOT a `.factory/` artifact, so NOT
+  state-manager scope per CLAUDE.md Agent Routing Table).** Add erratum note to
+  `crates/hook-plugins/validate-cross-site-correspondence/docs/red-gate-log.md` on
+  `feature/S-21.07-validate-cross-site-correspondence` documenting the permanent
+  F-S2107-P10-002 historical violation at `67ffbdcc`/`38c70f9e` (retroactive attestation;
+  "at that commit" obligation was not met; per-commit iteration in
+  `crates/policy15-attestation-gate/` closes the class going forward but cannot cure the
+  two historical commits — history is immutable).
+- **state-manager — OUTSTANDING.** Annotate the D-965 row in `decision-log.md` as
+  PROCURED-ON-MISCHARACTERIZATION with a forward pointer to D-970 (the v1.12 re-ratification
+  row that superseded it on independent merits).
 - **state-manager:** For future assertion-site commits in the code repo, include
   `### Pass-N assertion-site attestation (<PARENT-SHA>)` in the same commit, where
   PARENT-SHA is `git rev-parse HEAD^1` in the code repo before staging. The §Decision 6

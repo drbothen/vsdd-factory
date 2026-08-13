@@ -27526,3 +27526,123 @@ D-444(c) burst-log h2 heading `## D-991-S-21.09-POST-MERGE-PROCESSING-BURST` pre
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `d24d1c4c` — `factory(pause): session wrap — S-21.09 MERGED to develop (2e8087af), pipeline PAUSED; post-merge processing deferred to resume`
 
 **Closes:** D-990 backfilled; D-991 recorded; BC-4.16.001 v1.9 (POL-14 status-field parity fix); BC-INDEX v4.57; STORY-INDEX v4.318 (S-21.09 merged); story frontmatter merged; merged-stories-ledger.md row; `merged_count` 108; `feature/S-21.07` unfrozen + sequenced next; Active Branches table swept; `pipeline: ACTIVE`; Session Resume Checkpoint rewritten; one lesson appended — **S-21.09 POST-MERGE PROCESSING COMPLETE.**
+
+## D-992-S2107-PASS10-FIX-BURST
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-991 < D-9000 ceiling
+```
+
+D-992 allocated. **Parent-commit:** `0b350501` — `state(sha-patch): D-991 commit 2e4c0a7f factory-artifacts SHA -- Active Branches + checkpoint updated` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+**No adversary dispatch this burst — this is a FIX burst for pass-10's 10 findings (D-967), not an adversarial pass.** LOCAL BC-5.39.001 streak for the S-21.07 cascade remains **0/3, UNCHANGED** — a fix burst does not advance the streak; only a CLEAN adversary verdict does. Pass-11 (fresh-context `vsdd-factory:adversary`, reading only `adversary-pass-10.md` Part A per the Iron Law) is the pending gate, dispatched next.
+
+**Block 3: Files touched**
+
+- `.factory/specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md` — v1.12→v1.13 (architect; bundled, not rewritten)
+- `.factory/specs/architecture/decisions/ADR-041-d-999-sentinel-migration-allocator-ceiling-gate-and-d-99999-replacement-sentinel.md` — v1.0→v1.1 body (architect; bundled) + frontmatter `status: proposed→active`, `ratified: "2026-08-13"` added (state-manager, human-authorized)
+- `.factory/specs/architecture/decisions/ADR-042-validate-cross-site-correspondence-fuel-budget-raise-and-loud-exhaustion-signaling.md` — v1.2→v1.3 body (architect; bundled) + frontmatter `status: proposed→active`, `ratified: "2026-08-13"` added (state-manager, human-authorized)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md` — v1.17→v1.18 (product-owner; bundled) + input-hash recomputed (see Block 5)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v4.57→v4.58 (row 1464 version-chain +v1.18)
+- `.factory/specs/architecture/ARCH-INDEX.md` — v3.55→v3.56 (ADR-042 row: volatile pin fix + v1.3 summary + RATIFIED annotation; ADR-041 row: v1.1 summary + RATIFIED annotation)
+- `.factory/policies.yaml` — v1.4.23→v1.4.24 (POLICY 14 ERRATUM-ROW MODIFIED[] PARITY CONVENTION bullet added)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-992 appended; D-965 PROCURED-ON-MISCHARACTERIZATION annotation added
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — one lesson appended (F-010 relay-gap)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — S-21.07 Convergence Status addendum note
+- `.factory/STATE.md` — full advance (frontmatter, Phase Progress, Active Branches, Blocking Issues, Drift Items, Decisions Log, Session Resume Checkpoint)
+
+**Block 4: Codifications**
+
+One new codification: POLICY 14 **ERRATUM-ROW MODIFIED[] PARITY CONVENTION** (D-992 per F-S2107-P10-009 LOW; D-497 parsimony extension) — an `-erratum`-suffixed body Changelog row is a same-day correction notice on an existing version, not a distinct version bump, and is exempt from the leg-3 `modified[]` array requirement. No other new codifications. This burst APPLIES pre-existing disciplines: human-ratification frontmatter-flip convention (analogous to POL-14, per CLAUDE.md Routing Table), TD-VSDD-091 stable-anchor discipline (applied by architect to ADR-040/042 bodies and by state-manager to the ARCH-INDEX ADR-042 row), and TD-VSDD-053 single-commit-per-burst.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+BC-INDEX row + ADR ratification status gate (literal shell):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -n '^| \[BC-5\.39\.010\]' specs/behavioral-contracts/BC-INDEX.md
+1464:| [BC-5.39.010](ss-05/BC-5.39.010.md) | ... | draft | E-12 | S-21.07 | v1.10 | v1.11 | v1.12 | v1.13 | v1.14 | v1.15 | v1.16 | v1.17 | v1.18 |
+$ grep -E "^status:|^ratified:" specs/architecture/decisions/ADR-041-d-999-sentinel-migration-allocator-ceiling-gate-and-d-99999-replacement-sentinel.md specs/architecture/decisions/ADR-042-validate-cross-site-correspondence-fuel-budget-raise-and-loud-exhaustion-signaling.md
+specs/architecture/decisions/ADR-041-...:status: active
+specs/architecture/decisions/ADR-041-...:ratified: "2026-08-13"
+specs/architecture/decisions/ADR-042-...:status: active
+specs/architecture/decisions/ADR-042-...:ratified: "2026-08-13"
+```
+
+F-002 erratum execution verification (literal shell, against the code repo, separate from this factory-artifacts commit):
+
+```
+$ git ls-remote --heads origin | grep 21.07
+96b4be19158ae27131ae330f684af414821e7c5f	refs/heads/feature/S-21.07-validate-cross-site-correspondence
+$ git merge-base --is-ancestor 96b4be19158ae27131ae330f684af414821e7c5f origin/feature/S-21.07-validate-cross-site-correspondence && echo ANCESTOR-CONFIRMED
+ANCESTOR-CONFIRMED
+```
+
+F-007 re-verification (literal shell, against `origin/develop`):
+
+```
+$ git show origin/develop:crates/factory-dispatcher/src/main.rs | grep -n "FUEL_EXHAUSTED\|cause: TimeoutCause::Epoch\|cause: TimeoutCause::Fuel" | head -6
+838:        // "FUEL_EXHAUSTED:" as a greppable sub-token so a future consumer can
+850:            cause: TimeoutCause::Fuel,
+854:            "fail-closed: FUEL_EXHAUSTED: fuel cap of {fuel_cap} units exhausted; \
+858:            cause: TimeoutCause::Epoch,
+```
+
+BC-5.39.010 input-hash gate — recomputed AFTER the `BC-INDEX.md` and `policies.yaml` edits landed, since both are among BC-5.39.010's `inputs:` (an intermediate `--update` run before those edits landed drifted again for exactly this reason — the correct sequencing is: apply all sibling-input edits FIRST, then compute-input-hash LAST):
+
+```
+$ bash plugins/vsdd-factory/bin/compute-input-hash .factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md --update
+88a7d93
+compute-input-hash: updated /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md input-hash → 88a7d93
+$ bash plugins/vsdd-factory/bin/compute-input-hash .factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md --check; echo "EXIT=$?"
+EXIT=0
+```
+
+(`--check` exits 0 with empty stdout on a hash match — no "OK" line is emitted; `EXIT=0` is the load-bearing confirmation, captured explicitly since the command's own stdout is silent on success.)
+
+**Block 6 (Dim-5): Closes**
+
+- F-002 CLOSED (disposition ratified D-970 + erratum EXECUTED `96b4be19`, code repo)
+- F-004 CLOSED (BC-5.39.010 v1.18 + BC-INDEX v4.58)
+- F-005 CLOSED (ADR-041 v1.1 + ADR-042 v1.3 both RATIFIED 2026-08-13 + ARCH-INDEX v3.56)
+- F-006 CLOSED (ADR-042 v1.3 §Decision 1 Erratum)
+- F-007 CLOSED (re-confirmed anchored `62fbcf1a`)
+- F-008 CLOSED (ADR-040 v1.13 + ADR-042 v1.3 body pins + ARCH-INDEX ADR-042 row pin)
+- F-009 CLOSED (policies.yaml v1.4.24 POLICY 14 convention)
+- F-010 CLOSED-with-codification (one lesson appended)
+- D-965 row PROCURED-ON-MISCHARACTERIZATION annotation — CLOSED this burst (forward pointer to D-970)
+- F-001 / F-003 recorded ALREADY-RESOLVED with explicit residual (F-001's CI-wiring leg remains OPEN, anchored Drift Item `[D-969]`, BLOCKED-ON `feature/policy15-gate-rust`→`develop`)
+- `feature/S-21.07` Active Branches SHA `5370db80`→`96b4be19`
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-992-S2107-PASS10-FIX-BURST` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: the F-001..F-010 disposition table in decision-log.md D-992 paragraphs (j)/(k)/(l)/(h)/(i)/(m)/(n)/(o)/(p) faithfully describes `adversary-pass-10.md` Part A's finding set (10 findings B2/H4/M3/L1/NIT0) — verified by direct re-read of the finding summaries at burst start. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + BC-INDEX/ADR status gate + F-002 ancestor gate + F-007 grep gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode.
+
+**Dim-7 Attestation:**
+
+- This burst is NOT a numbered LOCAL adversary pass — no trajectory entry added; trajectory (10 numbered passes) `47→18→25→25→24→20→16→8→10` (tail `→20→16→8→10`), UNCHANGED
+- Streak: **0/3 — UNCHANGED (fix burst, NOT a clean adversary verdict)**. Pass-11 adversary dispatch is the pending gate.
+- 4-INDEX: BC v4.57→**v4.58** / VP v2.76 (UNCHANGED) / STORY v4.318 (UNCHANGED) / ARCH v3.55→**v3.56**
+- policies.yaml v1.4.23→**v1.4.24**
+- `feature/S-21.07` SHA `5370db80`→**`96b4be19`** (implementer erratum commit, code repo, pushed); UNFROZEN + sequenced-next UNCHANGED
+- ADR-041 v1.0→v1.1, RATIFIED 2026-08-13 (D-992); ADR-042 v1.2→v1.3, RATIFIED 2026-08-13 (D-992)
+- BC-5.39.010 v1.17→v1.18
+- `pipeline: ACTIVE` UNCHANGED
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `0b350501` — `state(sha-patch): D-991 commit 2e4c0a7f factory-artifacts SHA -- Active Branches + checkpoint updated`
+
+**Closes:** F-001 (ALREADY-RESOLVED, residual anchored); F-002 CLOSED; F-003 (ALREADY-RESOLVED, D-965 annotation CLOSED); F-004 CLOSED; F-005 CLOSED; F-006 CLOSED; F-007 CLOSED; F-008 CLOSED; F-009 CLOSED; F-010 CLOSED-with-codification; ADR-041 v1.1 RATIFIED; ADR-042 v1.3 RATIFIED; BC-5.39.010 v1.18; BC-INDEX v4.58; ARCH-INDEX v3.56; policies.yaml v1.4.24; `feature/S-21.07` SHA advanced to `96b4be19`; streak explicitly UNCHANGED 0/3 — **S-21.07 PASS-10 FIX BURST COMPLETE; PASS-11 ADVERSARY DISPATCH NEXT.**

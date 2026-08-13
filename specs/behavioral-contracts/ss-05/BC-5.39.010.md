@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.17"
+version: "1.18"
 status: draft
 producer: product-owner
 timestamp: 2026-07-30T00:00:00Z
@@ -16,7 +16,8 @@ inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-29.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-30.md
   - .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-1.md
-input-hash: "8a52418"
+  - .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-10.md
+input-hash: "88a7d93"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
 extracted_from: null
 origin: brownfield
@@ -43,6 +44,7 @@ modified:
   - "2026-08-08 (v1.15)"
   - "2026-08-08 (v1.16)"
   - "2026-08-08 (v1.17)"
+  - "2026-08-13 (v1.18)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -52,7 +54,33 @@ removal_reason: null
 bc_id: BC-5.39.010
 section: "5.39"
 last_amended: |-
-  2026-08-08 (v1.17) — §Gate Spec placement-sensitivity correction (ADR-042): retracted
+  2026-08-13 (v1.18) — §Gate Spec fuel-cap present-perfect claim corrected (S-21.07 pass-10,
+  F-S2107-P10-004, HIGH): v1.16/v1.17 asserted in present perfect that the cap "has been raised
+  to 20,000,000" and the `≤ 12,000,000` margin gate was "satisfiable at HEAD." Verified FALSE at
+  the review's frozen snapshot (`feature/S-21.07` @ `5370db80`): literal-shell grep confirmed
+  both `RegistryDefaults::default()` and `InvokeLimits::default()` still returned
+  `fuel_cap: 10_000_000` there. Because `fuel_consumed` is clamped to the operative cap and every
+  observed exhaustion trap reports `fuel_consumed == cap`, a 10,000,000 cap made
+  `fuel_consumed ≤ 12,000,000` true on every reachable path (completion or exhaustion) purely
+  because `10,000,000 < 12,000,000` — the gate was tautological, not merely early, at that
+  snapshot. Stale-baseline re-verification (production-grade default: verify before fixing) found
+  PR #774 (commit `62fbcf1a`, "raise WASM fuel cap 10M→20M + fuel-vs-epoch block_reason
+  disambiguation"; ADR-042 §Decision 1) has since merged to `develop` and is confirmed (via
+  `git merge-base --is-ancestor`) an ancestor of both `origin/develop` and this repository's
+  working HEAD: `DEFAULT_FUEL_CAP = 20_000_000` and both defaults source it (no duplicated
+  literal), pinned by a `fuel_cap_defaults_stay_in_sync` regression test. The present-perfect
+  claim is now TRUE at source-HEAD. Source-HEAD-vs-operator-effective distinction added: the
+  marketplace-cached dispatcher binary this project's own hooks actually run remains pinned to
+  the pre-raise 10,000,000 cap through v1.0.0-rc.23; the 20,000,000 cap is not operator-effective
+  for this hook's own PostToolUse enforcement until v1.0.0-rc.24 is consumed — until then the
+  margin gate remains tautological in live use despite being fixed at source. Margin-gate framing
+  rewritten to state the precise, non-tautological failure condition at the 20,000,000 cap
+  (`fuel_consumed` in `(12,000,000, 20,000,000)`: hook completes successfully but assertion
+  fails — a reachable, 8,000,000-fuel-wide region, contrasted with the empty failing region at
+  the former 10,000,000 cap) rather than merely asserting the gate is meaningful. No BC-table
+  row content change (title/priority/status unaffected); Gate Specifications §fuel-cap
+  verification, §Margin gate, and §Operational consequence prose amended only. (product-owner;
+  closes F-S2107-P10-004.) [Prior: 2026-08-08 (v1.17) — §Gate Spec placement-sensitivity correction (ADR-042): retracted
   v1.15-erratum "falsified" characterization and v1.16 "two compounding errors / ~22× overestimate"
   claim — the ~110-row figure was derived from an append-scenario measurement against the former
   10M cap and is correct for that scenario. Two distinct runway scenarios documented: append
@@ -1230,11 +1258,49 @@ fuel exhaustion is **measured and imminent**, not hypothetical.
 **Measured fuel consumption (F-S2107-P9-002; performance-engineer, adversary-pass-9 at
 factory-artifacts `0a6c8fda`, against production-scale BC-INDEX fixture sha256-identical to live
 BC-INDEX.md at 576,396 bytes / 1,985 rows; verbatim stdout in §SDK Grounding Evidence):**
-`fuel_consumed = 9,920,913` against the former 10,000,000 cap — **99.21% of that budget
-consumed**. The global fuel cap has been raised to **20,000,000** per ADR-042 §Decision 1.
-Measured current consumption (9,920,913) < 12,000,000 (60% of new 20M cap) — satisfiable at
-HEAD. Headroom from the former cap: **79,087 fuel = 0.79%**; headroom from the new 20M cap:
-**~10,079,087 fuel ≈ 589 SS-05 rows (insert-before, adversarial)** at the insert-before
+`fuel_consumed = 9,920,913`. This figure measures actual work performed by the scan and is
+unaffected by which cap value is in force below, because 9,920,913 is under every cap discussed
+in this section and the hook completed the scan without tripping any of them.
+
+**§Fuel-cap verification (F-S2107-P10-004 correction; closes v1.16/v1.17 present-perfect
+overstatement).** The v1.16/v1.17 text here previously asserted, in present perfect, that the
+cap "has been raised to 20,000,000" and that the `≤ 12,000,000` margin gate was "satisfiable at
+HEAD." At the S-21.07 pass-10 review's frozen snapshot (`feature/S-21.07` @ `5370db80`), that
+claim was FALSE: literal-shell grep confirmed both `RegistryDefaults::default()`
+(`crates/factory-dispatcher/src/registry.rs`) and `InvokeLimits::default()`
+(`crates/factory-dispatcher/src/invoke.rs`) still returned `fuel_cap: 10_000_000` — the raise
+had not landed on that snapshot. Because `fuel_consumed` is clamped to the operative cap, and
+every observed exhaustion trap reports `fuel_consumed == cap` (bisection table below,
+`extra_rows_before=5`: `fuel_consumed=10,000,000` at the former cap), a 10,000,000 cap makes
+`fuel_consumed ≤ 12,000,000` true on **every** reachable path — completion or exhaustion —
+purely because `10,000,000 < 12,000,000`. The gate was tautological at that snapshot, not
+merely early-firing: no reachable execution could have failed it.
+
+**Since that review, the raise has landed.** PR #774 (commit `62fbcf1a`,
+"fix(dispatcher): raise WASM fuel cap 10M→20M + fuel-vs-epoch block_reason disambiguation";
+ADR-042 §Decision 1) merged to `develop`. Re-verified by literal shell against current source
+(`git merge-base --is-ancestor 62fbcf1a HEAD` confirms `62fbcf1a` is an ancestor of both
+`origin/develop` and this repository's working HEAD): `crates/factory-dispatcher/src/invoke.rs`
+now declares `pub const DEFAULT_FUEL_CAP: u64 = 20_000_000;`, and both
+`InvokeLimits::default()` and `RegistryDefaults::default()` source `fuel_cap` from that constant
+(no duplicated literal) — pinned against re-drift by the `fuel_cap_defaults_stay_in_sync`
+regression test. The present-perfect claim "has been raised to 20,000,000" is now TRUE **at
+source-HEAD**.
+
+**Source-HEAD is not the same thing as operator-effective.** This project's own PostToolUse
+hook chain runs the marketplace-cached `factory-dispatcher` binary
+(`~/.claude/plugins/cache/claude-mp/vsdd-factory/<version>/hooks/dispatcher/bin/<platform>/`),
+not `crates/` compiled ad hoc. Per `CLAUDE.md`'s fuel-exhaustion diagnostics row: the bundled
+operator-level binary remains pinned to the pre-raise 10,000,000 cap through v1.0.0-rc.23; the
+20,000,000 cap is consumed only after v1.0.0-rc.24 is cut and the marketplace cache is
+refreshed. **Until rc.24 is consumed, the margin gate below remains tautological in live
+operator enforcement of this hook, even though the underlying source has already moved to
+20,000,000** — the fix is real at source-HEAD but not yet operationally effective for this
+hook's own live PostToolUse gate.
+
+Measured current consumption (9,920,913) < 12,000,000 (60% of the 20,000,000 source-HEAD cap).
+Headroom from the former 10M cap: **79,087 fuel = 0.79%**; headroom from the 20M source-HEAD
+cap: **~10,079,087 fuel ≈ 589 SS-05 rows (insert-before, adversarial)** at the insert-before
 marginal cost of ~17,114 fuel/row (see placement-sensitivity below; ADR-042 §Decision 1).
 
 **Early-return scope qualifier (ADR-042 §Context).** `extract_bc_index_version_state` returns
@@ -1311,9 +1377,29 @@ The production-scale bats gate for this hook MUST include both of the following 
 
 1. **Margin gate**: execute the real dispatcher against the production-scale BC-INDEX fixture,
    parse `fuel_consumed` from the `plugin.completed` record in dispatcher output, and assert
-   `fuel_consumed ≤ 12,000,000` (60% of the **20,000,000** cap). Satisfiable at HEAD: measured
-   current consumption is **9,920,913 < 12,000,000**. Warning horizon depends on placement
-   scenario (see placement-sensitivity above):
+   `fuel_consumed ≤ 12,000,000` (60% of the **20,000,000** source-HEAD cap — see §Fuel-cap
+   verification above for the source-HEAD-vs-operator-effective distinction; **this test is only
+   non-tautological when the dispatcher binary it exercises is actually built from source with
+   `DEFAULT_FUEL_CAP = 20_000_000`. Run against the pre-rc.24 operator-cached binary (cap
+   10,000,000) the assertion is vacuously true — see the tautology proof below — and passing MUST
+   NOT be credited as coverage until rc.24 is consumed.**). Satisfiable at source-HEAD: measured
+   current consumption is **9,920,913 < 12,000,000**.
+
+   **Why this is a real gate, not a tautological one, at the 20,000,000 cap (F-S2107-P10-004
+   closure).** `fuel_consumed` is clamped to the operative cap. At the former 10,000,000 cap the
+   assertion held on *every* reachable execution path — completion (`fuel_consumed ≤ 10,000,000`)
+   and exhaustion (`fuel_consumed == 10,000,000`, per the bisection table above) both satisfy
+   `≤ 12,000,000` unconditionally, because `10,000,000 < 12,000,000` regardless of what the hook
+   does. No reachable state could fail it: that is the definition of tautological. At the
+   20,000,000 cap, a genuine failing region exists and is reachable without exhaustion:
+   **`fuel_consumed` in `(12,000,000, 20,000,000)` is a state in which the hook completes
+   successfully — no exhaustion, no crash — yet the assertion FAILS.** That region is 8,000,000
+   fuel wide, larger than the current passing margin (9,920,913 to 12,000,000 ≈ 2,079,087 fuel).
+   The gate can only be trusted to have this discriminating power when the cap actually measured
+   by the test run is 20,000,000; the same assertion text against a 10,000,000-cap binary reverts
+   to the tautological shape described in §Fuel-cap verification.
+
+   Warning horizon depends on placement scenario (see placement-sensitivity above):
    - **Insert-before (adversarial; governing)**: gate fires at ~121 additional SS-05 rows before
      row 921 ((12,000,000 − 9,920,913) / 17,114 ≈ 121 rows); ~468 rows before 20M exhaustion.
    - **Append (realistic traffic)**: gate fires at ~3,840 additional rows appended
@@ -1322,7 +1408,10 @@ The production-scale bats gate for this hook MUST include both of the following 
    constraint. **A gate asserting ≤ 6,000,000 (the v1.15 form) is NON-CONFORMING: current
    consumption 9,920,913 > 6,000,000, making the gate permanently failing at HEAD and
    unsatisfiable without a cap change.** **A gate that passes at 99.21% of any cap is
-   NON-CONFORMING under this BC even if bats exits 0 today.**
+   NON-CONFORMING under this BC even if bats exits 0 today.** **A gate whose failing region is
+   empty for every reachable execution — as `≤ 12,000,000` was against the 10,000,000 cap — is
+   NON-CONFORMING regardless of measured value: vacuous truth is not coverage
+   (F-S2107-P10-004).**
 
 2. **Fixture drift gate**: assert that the production-scale fixture's `BC-INDEX.md` sha256 matches
    the live `.factory/specs/behavioral-contracts/BC-INDEX.md`, or that the fixture's BC-INDEX row
@@ -1333,8 +1422,10 @@ The production-scale bats gate for this hook MUST include both of the following 
    in `ci.yml`). If fail-closed-when-absent behavior is required normatively, state so here; the
    current behavior is skip-in-worktree / run-in-CI.
 
-**Operational consequence.** With the global fuel cap raised to 20M (ADR-042 §Decision 1),
-runway before re-exhaustion is scenario-dependent: **~589 rows** for SS-05-sized entries inserted
+**Operational consequence.** With the global fuel cap raised to 20M at source-HEAD (ADR-042
+§Decision 1; commit `62fbcf1a` / PR #774 — **not yet the operator-effective cap for this
+project's own live PostToolUse enforcement of this hook until v1.0.0-rc.24 is consumed; see
+§Fuel-cap verification above**), runway before re-exhaustion is scenario-dependent: **~589 rows** for SS-05-sized entries inserted
 immediately before row 921 (adversarial / insert-before; ~17,114 fuel/row); **~18,600 rows** for
 rows appended after existing SS-05 entries (realistic registration traffic; ~541 fuel/row). At a
 realistic production rate of 20–50 new BCs per feature wave (append scenario), this covers
@@ -1673,6 +1764,7 @@ The adversary independently re-derived 76/61 at factory-artifacts `10914a73` usi
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.18 | 2026-08-13 | §Gate Spec fuel-cap present-perfect claim corrected (S-21.07 pass-10, F-S2107-P10-004, HIGH — TD-VSDD-059 + POLICY 11 analog): v1.16/v1.17 asserted the cap "has been raised to 20,000,000" and the margin gate was "satisfiable at HEAD" in present perfect; verified FALSE at the review's frozen snapshot `5370db80` (both `RegistryDefaults::default()` and `InvokeLimits::default()` still `fuel_cap: 10_000_000` there) — the gate was tautological (fuel_consumed clamped to cap; `10,000,000 < 12,000,000` unconditionally on every reachable path). Stale-baseline re-verification (production-grade default) confirmed PR #774 (`62fbcf1a`; ADR-042 §Decision 1) has since merged to `develop` and is an ancestor of current HEAD: `DEFAULT_FUEL_CAP = 20,000,000`, both defaults source it, pinned by `fuel_cap_defaults_stay_in_sync`. Present-perfect claim now TRUE at source-HEAD; source-HEAD-vs-operator-effective distinction added (marketplace-cached dispatcher binary remains pinned to 10,000,000 through rc.23; not operator-effective until rc.24 is consumed). Margin-gate framing rewritten to state the precise non-tautological failure condition at 20,000,000 (`fuel_consumed` in `(12,000,000, 20,000,000)`: completes successfully but assertion fails) versus the empty failing region at the former 10,000,000 cap. No BC-table row / H1 / priority change. (product-owner; closes F-S2107-P10-004.) |
 | 1.17 | 2026-08-08 | §Gate Spec placement-sensitivity correction: retracted v1.15-erratum "falsified" characterization and v1.16 "two compounding errors / ~22× overestimate" claim — the ~110-row figure was derived from an append-scenario measurement against the former 10M cap and is correct for that scenario. Both runway figures documented normatively: append (~146 rows under 10M cap, ~541 fuel/row; exhaustion observed between 100 and 130 appended rows in §SDK Grounding Evidence; ~18,600 rows under 20M cap) and insert-before (~4–5 rows under 10M cap, ~15,761 fuel/row single-row / ~17,114 fuel/row 4-row avg; ~589 rows under 20M cap); ratio ~29× (placement-driven). Margin gate `≤ 12,000,000` rationale restated with explicit governing scenario (insert-before, adversarial). v1.16 stale STORY-INDEX cite (v4.290) corrected to v4.291. Characterization errors originated with orchestrator analysis, not product-owner authoring; v1.17 supersedes both v1.15-erratum and v1.16 characterizations. 4-index: BC-INDEX v4.55 / VP-INDEX v2.76 / STORY-INDEX v4.291 / ARCH-INDEX v3.51. (product-owner.) |
 | 1.16 | 2026-08-08 | §Gate Spec fuel corrections (ADR-042, F-S2107-P9-002): global cap raised 10M→20M (ADR-042 §Decision 1); margin gate updated to `fuel_consumed ≤ 12,000,000` (60% of 20M cap; satisfiable at HEAD — current consumption 9,920,913 < 12,000,000; ~121 SS-05 rows before gate fires, ~468 rows before exhaustion at 20M); ~110-row runway figure corrected — true runway 4 rows safe, 5th exhausts for SS-05-sized entries (~486 bytes/row); early-return scope qualifier added (extract_bc_index_version_state returns at row 921; only rows 1–920 scanned; rows beyond cost nothing); two compounding errors documented (scan-region mismatch: used total 1,985 rows instead of 921 pre-BC-5.39.010 scan rows; row-size mismatch: used ~155 bytes/row average instead of ~486 bytes/row for SS-05 entries; combined ~22× overestimate); ERRATUM block removed (measurement integrated into normative text); fuel_cap prohibition lifted per ADR-042 §Decision 2 — SHOULD set per-plugin cap once ADR-039 Phase 1 ships (p99×1.5, min 50M for Phase 3 fail-closed annotation); exhaustion visibility requirement re-scoped to ADR-042 §Decision 3 class (a): observable signaling (fuel_exhausted=true in dispatcher stderr + advisories[] entry), not on_error escalation — pending-implementation obligation, not spec gap. Changelog v1.15-erratum row preserved. 4-index: BC-INDEX v4.54 / VP-INDEX v2.76 / STORY-INDEX v4.291 / ARCH-INDEX v3.51. (product-owner; closes F-S2107-P9-002.) |
 | 1.15-erratum | 2026-08-08 | ERRATUM (D-963): `~110 rows` runway figure falsified by direct measurement. True: 4 rows safe, 5th exhausts for SS-05-sized (~486 bytes/row) entries; ~17 rows for shorter entries. `extract_bc_index_version_state` early-returns at row 921 — only rows 1–920 scanned; rows beyond cost nothing. Two compounding errors recorded (total-index vs scan-region; average vs SS-05 row size). Linear, not O(n²): R²=0.998790 (quadratic coefficient negligible). Silent-in-production: `plugin.timeout` logged internally but dispatcher exits 0/empty — live agents receive no signal. Correction notice inserted before normative fuel text. v1.16 from product-owner pending. (state-manager, D-963.) |
