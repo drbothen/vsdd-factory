@@ -17272,3 +17272,61 @@ D-993-ADR-BODY-RECONCILIATION-BATCH
 2026-08-13
 
 ---
+
+## D-994 — D-994-S2107-PASS11-RECORD-AND-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-993 < D-9000 ceiling
+```
+
+D-994 allocated. **Parent-commit:** `33771c81` — `state(sha-patch): D-993 commit e85ff8cd factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start).
+
+**(a) Scope.** Fresh-context adversary pass-11 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged since D-992) and `factory-artifacts` at `33771c81` (the D-993 SHA-patch HEAD, carrying ADR-040 v1.15 / ARCH-INDEX v3.57). Verdict: **NOT-CLEAN, 1 MEDIUM finding + 2 observations.** LOCAL BC-5.39.001 streak for the S-21.07 cascade **remains 0/3** — a NOT-CLEAN verdict does not advance the streak; a fix burst is not a clean verdict either. Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-11.md` per POLICY 22 relay-fidelity (novelty score not disclosed in the relayed summary; recorded as absent, not fabricated).
+
+**(b) Pass-10 defect classes independently re-verified as RESOLVED by fresh context.** Pass-11 re-examined every pass-10 (D-967) finding class against the D-992/D-993 fix content and found it held: F-004 fuel-cap tautology RESOLVED (`DEFAULT_FUEL_CAP=20_000_000` at `invoke.rs`, both defaults source it, pinned by `fuel_cap_defaults_stay_in_sync`; BC-5.39.010 v1.18 states source-HEAD-vs-operator-effective honestly, `(12M,20M)` failing region non-tautological). F-001/F-002/F-003 POLICY 15 gate REDESIGNED as `crates/policy15-attestation-gate/` Rust crate; CI wiring not yet complete but disclosed as anchored deferral Drift Item `[D-969]` + ADR-040 §Implementation one-remaining-OUTSTANDING — a disclosed hole, not a fresh finding. F-007 fuel-vs-epoch RESOLVED (`main.rs` distinct `FUEL_EXHAUSTED` sentinel, commit `62fbcf1a`). F-009 erratum leg-3 RESOLVED (POLICY 14 v1.4.24 ERRATUM-ROW MODIFIED[] PARITY CONVENTION). F-005 ADR ratification MOSTLY RESOLVED — ADR-041/042 both frontmatter `active`/`ratified: 2026-08-13` and §Status bodies cleanly reconciled with labeled HISTORICAL—RESOLVED framing — **EXCEPT ADR-040**, which is the pass-11 finding at (c).
+
+**(c) F-S2107-P11-001 — MEDIUM — CLOSED THIS BURST.** POLICY 4 (semantic-anchoring-integrity) + S-7.01 partial-fix regression. Location: ADR-040 `## Proposed policies.yaml Replacement Text` preamble + `### Status as of v1.3` + `### Status as of v1.4`. Defect: the v1.13→v1.15 body-vs-frontmatter reconciliation superseded only the trailing §Status paragraph, leaving three sibling sites carrying live un-superseded "Do NOT apply until re-ratification / MUST NOT be edited to v1.4.23" directives that contradicted the ratified/applied reality (frontmatter `status: active`, `ratified: 2026-08-10`, D-970; `policies.yaml` already at v1.4.24 with the ATTESTATION-LOCATION GATE bullet applied at v1.4.23). Sibling ADR-041/042 received the complete labeling pattern in the same D-992/D-993 burst pair; ADR-040 got 1 of 4 sites. Blast radius 1 file / multiple sites → MEDIUM. **Fix (architect, already-authored in worktree, bundled verbatim this commit per TD-VSDD-053):** ADR-040 v1.15→v1.16 — all three remaining sites corrected via labeled SUPERSEDED blockquote notes + strikethrough of the historical imperative (ADR-041/042 pattern; historical text preserved, not deleted). The `## Proposed policies.yaml Replacement Text` preamble site is called out explicitly as highest-risk — a non-version-scoped live imperative sitting directly in the canonical SOURCE section for the replacement text, where a future reader skipping the superseded-note could incorrectly conclude the text was never applied. Literal-shell sweep after the fix confirms zero remaining live/current-tense "Do NOT apply" / "MUST NOT be edited" / "re-ratification required" directives outside labeled-historical blocks; the sole surviving open item remains the genuinely-outstanding devops-engineer CI wiring (`[D-969]`). No gate predicate or `GateOutcome` semantics changed.
+
+**(d) O-P11-01 — CLOSED-DEFENSIVELY (ARCH-INDEX registry row, state-manager).** Observation (non-blocking, not a finding): ARCH-INDEX ADR-042 §Decision 1 cell `~415KB prefix` read as ambiguous between measurement-provenance (fixture size at which the 9,920,913-fuel baseline was measured) and a decaying live pointer subject to TD-VSDD-091's stable-anchor prohibition. Resolved this burst by reframing the figure unambiguously as dated measurement-provenance: "~415KB prefix — fixture size at which the 9,920,913-fuel baseline was measured, 2026-08-08 ADR-042 v1.0 empirical burst; provenance figure, not a live pointer." Measurement date `2026-08-08` sourced from ADR-042 frontmatter `date: 2026-08-08` (the v1.0 empirical burst that produced the `9,920,913` baseline and the `~415KB` prefix figure together — same measurement, same burst). This closes the intent ambiguity in the compliant direction and forecloses the recurrence risk of a future adversary pass raising it as an F-008-class TD-VSDD-091 finding. No semantic content change; the two ADR-body legs of the original F-008 (ADR-040 "line 294", ADR-042 "line 1464") were already remediated at prior bursts and remain unaffected.
+
+**(e) O-P11-02 [process-gap] — CODIFIED THIS BURST (lesson + decision-log; no policies.yaml text change).** Observation: the `## Proposed policies.yaml Replacement Text` pattern (a ratified proposal whose preamble retains a "Do NOT apply until re-ratification" directive) had no reconciliation-sweep convention, which is exactly the process gap that produced F-S2107-P11-001 at (c) — the D-992/D-993 reconciliation pass touched only the most visible live-directive site (the trailing §Status paragraph) rather than sweeping the entire ADR body for every live-directive site. Per S-7.02 Cycle-Closing Checklist, this process-gap is codified now, not deferred: lesson `L-BB-adr-reconciliation-sweep-scope-on-ratification` appended to `cycles/v1.0-brownfield-backfill/lessons.md`, carrying the codified obligation verbatim — **on ADR ratification or body-vs-frontmatter reconciliation, the architect MUST sweep EVERY current-tense "Do NOT apply / MUST NOT edit / re-ratification required / NEEDS-HUMAN / proposed" string in the ENTIRE ADR body (not only the §Status paragraph) and supersede each via the labeled-SUPERSEDED-blockquote-plus-strikethrough pattern; a reconciliation pass that corrects fewer than all live-directive sites in the body is a POLICY 4 S-7.01 partial-fix regression.** Routing choice: lessons.md + decision-log codification was selected over a new/extended `policies.yaml` POLICY entry (POLICY 4 or POLICY 19 extension) because the obligation is a reconciliation-procedure discipline scoped to a specific artifact class (ADR body sections) rather than a new cross-artifact gate the adversary must mechanically check every pass; this mirrors the precedent set by the two prior `L-BB-*` process-gap lessons in this same cascade (`L-BB-state-manager-delegate-death-requires-decision-log-backfill-not-silent-gap`, `L-BB-orchestrator-to-state-manager-relay-verification-gap`), neither of which required a policies.yaml entry either. `policies.yaml` v1.4.24 is therefore **UNCHANGED** by this burst.
+
+**(f) ARCH-INDEX.md.** ADR-040 row: v1.16 note appended (§(c)). ADR-042 row: `~415KB` figure reframed (§(d)). ARCH-INDEX v3.57→**v3.58**. `total_adrs` UNCHANGED (43). Literal-shell confirmation:
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -c "ADR-040 v1.16\.\*\*" specs/architecture/ARCH-INDEX.md
+1
+$ grep -c "provenance figure, not a live pointer, per O-P11-01" specs/architecture/ARCH-INDEX.md
+1
+$ grep -E "^version:" specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md
+version: "1.16"
+```
+
+**(g) INDEX.md.** S-21.07 LOCAL Adversary Reviews table: pass-11 row added (NOT-CLEAN, 1 MEDIUM, 0/3, `96b4be19`/`96b4be19`). Convergence Status narrative extended with the D-993 documentary-batch recap (previously un-narrated in this section) and the D-994 pass-11 record+fix summary. Trajectory `47→18→25→25→24→20→16→8→10→1` (tail `→16→8→10→1`, D-433(e)+D-439(c) LENGTH=4). 10 true adversary reviews; 0 CLEAN verdicts.
+
+**(h) 4-INDEX.** BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.318 (UNCHANGED) / ARCH-INDEX v3.57→**v3.58**. policies.yaml v1.4.24 (UNCHANGED — see (e)).
+
+**(i) No gate-predicate or ratification-status change.** This burst closes a finding and two observations via ADR body correction (already-authored, bundled), an ARCH-INDEX registry-row reframe, and a lessons/decision-log codification — no `GateOutcome` semantics, POLICY 15 predicate, or ADR `status`/`ratified` frontmatter fields were touched beyond ADR-040's own version bump. `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst — the fix is factory-artifacts-only). **Streak for the S-21.07 cascade EXPLICITLY 0/3** — pass-11 was NOT-CLEAN and this is a fix burst, neither of which advances a BC-5.39.001 streak; **pass-12 adversary (fresh-context, reading only `adversary-pass-11.md` Part A per the Iron Law) is the pending gate.**
+
+### Agents
+
+- architect (prior to this burst, same session): ADR-040 v1.15→v1.16 authored (bundled this commit per TD-VSDD-053, not re-authored by state-manager)
+- vsdd-factory:adversary (fresh-context, this session): pass-11 review dispatched and relayed (POLICY 22 relay-fidelity; novelty not disclosed, recorded as absent)
+- state-manager (D-994): `adversary-pass-11.md` persisted verbatim; INDEX.md pass-11 row + Convergence Status; ARCH-INDEX v3.58 (ADR-040 row v1.16 note + ADR-042 `~415KB` provenance reframe); 1 lesson appended (`L-BB-adr-reconciliation-sweep-scope-on-ratification`); STATE.md full advance; single atomic commit to `factory-artifacts` per TD-VSDD-053; POLICY 16 gate run with literal shell captured stdout
+
+### 4-INDEX
+
+BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.318 (UNCHANGED) / ARCH-INDEX **v3.58**
+
+### Phase
+
+D-994-S2107-PASS11-RECORD-AND-FIX-BURST
+
+### Date
+
+2026-08-13
+
+---

@@ -27726,3 +27726,96 @@ D-444(c) burst-log h2 heading `## D-993-ADR-BODY-RECONCILIATION-BATCH` present. 
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `f672b582` — `state(sha-patch): D-992 commit b046531d factory-artifacts SHA -- Active Branches + checkpoint updated`
 
 **Closes:** Drift Item `[D-992]` RESOLVED; ADR-040 v1.15, ADR-041 v1.2, ADR-042 v1.4 bundled and reflected in ARCH-INDEX v3.57; streak explicitly UNCHANGED 0/3 — **D-993 ADR BODY RECONCILIATION BATCH COMPLETE; SHA-PATCH FOLLOW-UP THEN PASS-11 ADVERSARY DISPATCH NEXT.**
+
+## D-994-S2107-PASS11-RECORD-AND-FIX-BURST
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-993 < D-9000 ceiling
+```
+
+D-994 allocated. **Parent-commit:** `33771c81` — `state(sha-patch): D-993 commit e85ff8cd factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` pass-11 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged since D-992) and `factory-artifacts` at `33771c81` (D-993 SHA-patch HEAD). **Verdict: NOT-CLEAN — 1 MEDIUM finding (F-S2107-P11-001) + 2 observations (O-P11-01, O-P11-02).** LOCAL BC-5.39.001 streak for the S-21.07 cascade **remains 0/3** — NOT-CLEAN does not advance the streak, and this burst's own fix does not either (a fix burst is not a clean adversary verdict). Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-11.md` per POLICY 22 relay-fidelity. Pass-12 (fresh-context, reading only `adversary-pass-11.md` Part A per the Iron Law) is the pending gate, dispatched next.
+
+**Block 3: Files touched**
+
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-11.md` — new (pass-11 record, persisted verbatim)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-11 row added; Convergence Status extended (D-993 recap + D-994 summary)
+- `.factory/specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md` — v1.15→v1.16 (architect; bundled, not rewritten)
+- `.factory/specs/architecture/ARCH-INDEX.md` — v3.57→v3.58 (ADR-040 row: v1.16 note appended; ADR-042 row: `~415KB` figure reframed as dated measurement-provenance per O-P11-01)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — one lesson appended (`L-BB-adr-reconciliation-sweep-scope-on-ratification`, closes O-P11-02)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-994 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (frontmatter, Phase Progress, Current Phase Steps, Active Branches, Decisions Log, Session Resume Checkpoint)
+
+**Block 4: Codifications**
+
+One new codification: the O-P11-02 [process-gap] obligation, lesson `L-BB-adr-reconciliation-sweep-scope-on-ratification` — on ADR ratification/reconciliation, the architect MUST sweep EVERY current-tense "Do NOT apply / MUST NOT edit / re-ratification required / NEEDS-HUMAN / proposed" string in the ENTIRE ADR body (not only the §Status paragraph); a partial reconciliation is a POLICY 4 S-7.01 partial-fix regression. Codified via lessons.md + decision-log D-994 (not a `policies.yaml` text change — see decision-log D-994(e) for the routing rationale). No other new codifications. Applies pre-existing disciplines: TD-VSDD-053 single-commit-per-burst; S-7.02 defensive-sweep discipline (applied by state-manager to close O-P11-01 defensively before it can recur as a finding).
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+ADR-040 fix gate (literal shell):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -E "^version:" specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md
+version: "1.16"
+$ grep -c "Do NOT apply\|MUST NOT be edited\|re-ratification required" specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md
+3
+$ grep -n "Do NOT apply\|MUST NOT be edited\|re-ratification required" specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md | grep -v "~~"
+(empty — zero live/unstruck occurrences; all 3 remaining matches fall inside strikethrough `~~...~~` historical blocks)
+```
+
+ARCH-INDEX row-note + reframe gate (literal shell):
+
+```
+$ grep -c "ADR-040 v1.16\.\*\*" specs/architecture/ARCH-INDEX.md
+1
+$ grep -c "provenance figure, not a live pointer, per O-P11-01" specs/architecture/ARCH-INDEX.md
+1
+$ grep -c 'version: "3.58"' specs/architecture/ARCH-INDEX.md
+1
+```
+
+Lesson-persistence gate (literal shell):
+
+```
+$ grep -c "L-BB-adr-reconciliation-sweep-scope-on-ratification" cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+
+**Block 6 (Dim-5): Closes**
+
+- F-S2107-P11-001 CLOSED (ADR-040 v1.16, architect-authored, bundled verbatim; 3 remaining live-directive sites superseded, ADR-041/042 pattern mirrored)
+- O-P11-01 CLOSED-DEFENSIVELY (ARCH-INDEX ADR-042 `~415KB` figure reframed as dated measurement-provenance; not a finding, resolved before it could become one)
+- O-P11-02 [process-gap] CODIFIED (lesson `L-BB-adr-reconciliation-sweep-scope-on-ratification` + D-994(e))
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-994-S2107-PASS11-RECORD-AND-FIX-BURST` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: the F-S2107-P11-001 disposition paragraph in decision-log.md D-994(c) faithfully describes `adversary-pass-11.md` Part A's finding set (1 MEDIUM finding, verbatim location/defect/blast-radius text) — verified by direct comparison against the persisted pass-11 file at burst time; the O-P11-01/O-P11-02 dispositions at D-994(d)/(e) likewise faithfully describe the persisted Observations section. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + ADR-040 fix gate + ARCH-INDEX gate + lesson-persistence gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered LOCAL adversary pass (pass-11) — trajectory entry added; trajectory (10 true adversary passes) `47→18→25→25→24→20→16→8→10→1` (tail `→16→8→10→1`, D-433(e)+D-439(c) LENGTH=4)
+- Streak: **0/3 — EXPLICITLY UNCHANGED**. Pass-11 was NOT-CLEAN; this fix burst is not a clean verdict either. Pass-12 adversary dispatch is the pending gate.
+- 4-INDEX: BC v4.58 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY v4.318 (UNCHANGED) / ARCH v3.57→**v3.58**
+- policies.yaml v1.4.24 (UNCHANGED — O-P11-02 routed to lessons.md + decision-log, not a policies.yaml text change)
+- `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst; fix is factory-artifacts-only)
+- ADR-040 v1.15→v1.16 (architect, bundled) — no ratification-status change, ADR-040 remains `status: active` since D-970
+- `pipeline: ACTIVE` UNCHANGED
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `33771c81` — `state(sha-patch): D-993 commit e85ff8cd factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
+
+**Closes:** F-S2107-P11-001 CLOSED (ADR-040 v1.16); O-P11-01 CLOSED-DEFENSIVELY (ARCH-INDEX reframe); O-P11-02 CODIFIED (lesson + D-994(e)); ARCH-INDEX v3.58; streak explicitly UNCHANGED 0/3 — **S-21.07 PASS-11 RECORD + FIX BURST COMPLETE; PASS-12 ADVERSARY DISPATCH NEXT.**

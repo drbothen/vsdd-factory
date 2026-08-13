@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-040
-version: "1.15"
+version: "1.16"
 title: "ADR-040: POLICY 15 ATTESTATION-LOCATION GATE — parent-SHA predicate replaces self-referential HEAD-SHA (resolves F-S2107-P8-003 logical impossibility)"
 status: active
 ratified: 2026-08-10
@@ -18,7 +18,23 @@ supersedes: "POLICY 15 ATTESTATION-LOCATION GATE clause codified at D-912 (D-912
 superseded_by: null
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 last_amended: |-
-  2026-08-13 (v1.15) — AMENDED (architect; S-21.07 pass-10 fix cascade, second
+  2026-08-13 (v1.16) — AMENDED (architect; adversary pass-11 fix cascade, closes
+  F-S2107-P11-001 MEDIUM [partial-fix regression]): the v1.13 body-vs-frontmatter
+  reconciliation pass superseded only the trailing §Status re-ratification paragraph, leaving
+  three sibling sites in this same document carrying live "Do NOT apply / re-ratification
+  required" directives that contradicted the ratified/applied reality (frontmatter
+  `status: active`, `ratified: 2026-08-10`, D-970; `policies.yaml` already at v1.4.24 with the
+  v1.4.23 ATTESTATION-LOCATION GATE bullet applied). All three sites corrected with SUPERSEDED
+  notes mirroring the ADR-041/042 pattern (historical text preserved via strikethrough +
+  blockquote note, not deleted): (1) `### Status as of v1.3` re-ratification paragraph, (2)
+  `### Status as of v1.4` re-ratification paragraph, (3) `## Proposed policies.yaml
+  Replacement Text` preamble — the highest-risk site, a non-version-scoped live imperative in
+  the canonical SOURCE section for the replacement text. Literal-shell grep sweep after the
+  fix confirms zero remaining live/current-tense "Do NOT apply" / "MUST NOT be edited" /
+  "re-ratification required" directives outside labeled-historical blocks; the sole surviving
+  open item is the genuinely-outstanding devops-engineer CI wiring ([D-969]). No gate
+  predicate or `GateOutcome` semantics changed.
+  [Prior: 2026-08-13 (v1.15) — AMENDED (architect; S-21.07 pass-10 fix cascade, second
   BODY-vs-COMMITTED-STATE reconciliation pass, pre-adversary-pass-11): Implementation
   routing's remaining "state-manager — OUTSTANDING" item (D-965 row annotation) corrected to
   DONE — `decision-log.md` (`.factory/cycles/v1.0-brownfield-backfill/decision-log.md`)
@@ -221,6 +237,7 @@ modified:
   - "2026-08-13 (v1.13)"
   - "2026-08-13 (v1.14)"
   - "2026-08-13 (v1.15)"
+  - "2026-08-13 (v1.16)"
 ---
 
 # ADR-040: POLICY 15 ATTESTATION-LOCATION GATE — parent-SHA predicate replaces self-referential HEAD-SHA
@@ -1534,15 +1551,29 @@ burst-log Dim-2 attestation.
 
 ### Status as of v1.3
 
-PROPOSED 2026-08-10. **Human re-ratification required before `policies.yaml` v1.4.23 is
-applied.** ADR re-opened from `active` due to PROCURED-ON-MISCHARACTERIZATION ratification.
+> **SUPERSEDED 2026-08-10 (D-970) / confirmed D-992 (2026-08-13):** the re-ratification
+> requirement below was accurate at v1.3 drafting time (same day, prior to ratification) but
+> is now historical, not live. ADR-040 v1.12 was human-ratified 2026-08-10 (D-970
+> decision-log row); `policies.yaml` v1.4.22 → v1.4.23 was applied verbatim from §Proposed
+> `policies.yaml` Replacement Text in that same D-970 burst; `policies.yaml` is now at
+> v1.4.24. Preserved verbatim below for historical continuity — this is a record of what the
+> ADR said at v1.3 authoring time, not a current directive.
+
+~~PROPOSED 2026-08-10. **Human re-ratification required before `policies.yaml` v1.4.23 is
+applied.** ADR re-opened from `active` due to PROCURED-ON-MISCHARACTERIZATION ratification.~~
 The exact replacement text for POLICY 15's ATTESTATION-LOCATION GATE bullet is provided
 verbatim in §Proposed `policies.yaml` Replacement Text below (v1.4.23).
 
 ### Status as of v1.4
 
-PROPOSED 2026-08-10 (amended from v1.3). **Human re-ratification still required before
-`policies.yaml` v1.4.23 is applied.** v1.4 incorporates two human decisions received after
+> **SUPERSEDED 2026-08-10 (D-970) / confirmed D-992 (2026-08-13):** same disposition as the
+> v1.3 status note immediately above — the re-ratification requirement below was accurate at
+> v1.4 drafting time but is now historical. ADR-040 v1.12 was human-ratified 2026-08-10
+> (D-970); `policies.yaml` v1.4.23 was applied in that same burst. Preserved verbatim below
+> for historical continuity; NOT a live directive.
+
+PROPOSED 2026-08-10 (amended from v1.3). ~~**Human re-ratification still required before
+`policies.yaml` v1.4.23 is applied.**~~ v1.4 incorporates two human decisions received after
 v1.3 was drafted: (1) obligation becomes unconditional + path-pinned; INAPPLICABLE branch
 retired; EMPTY-or-UNREACHABLE added as third outcome; (2) §Decision 10 codified as
 project-wide three-outcome gate rule (not POLICY 15-specific). §Proposed Replacement Text
@@ -1556,10 +1587,25 @@ The following is the exact string to replace the current ATTESTATION-LOCATION GA
 in POLICY 15's `verification_steps` array. It replaces the entire bullet starting with
 `"ATTESTATION-LOCATION GATE (v1.4.22;...)`.
 
-**IMPORTANT: Do NOT apply this text until human re-ratification of ADR-040 v1.4.**
-The v1.4.22 text (applied at D-965) is PROCURED-ON-MISCHARACTERIZATION; it remains in
-`policies.yaml` until re-ratification. `policies.yaml` MUST NOT be edited to v1.4.23
-before a D-NNN re-ratification decision row is recorded.
+> **SUPERSEDED 2026-08-10 (D-970) / confirmed D-992 (2026-08-13):** the "Do NOT apply" /
+> "MUST NOT be edited" directive immediately below was live guidance at v1.4 drafting time,
+> gating this section as the canonical SOURCE for the replacement text pending human
+> re-ratification. That gating condition has since been satisfied and closed: ADR-040 v1.12
+> was human-ratified 2026-08-10 (D-970 decision-log row), and the replacement text below WAS
+> applied verbatim to `policies.yaml` in that same D-970 burst (v1.4.22 → v1.4.23);
+> `policies.yaml` is now at v1.4.24. **This is the highest-risk of the three
+> historical-directive sites in this ADR (F-S2107-P11-001):** unlike the two `### Status as
+> of vX` sections above, this is a non-version-scoped live imperative sitting directly in the
+> canonical SOURCE section for the replacement text itself — a future reader who skips this
+> note and reads only the paragraph below would incorrectly conclude the text has never been
+> applied. The paragraph below is preserved verbatim as the historical record of what gated
+> this section at v1.4 authoring time; the code block that follows still matches the live
+> `policies.yaml` bullet content verbatim — only the "Do NOT apply" imperative is stale.
+
+~~**IMPORTANT: Do NOT apply this text until human re-ratification of ADR-040 v1.4.**~~
+~~The v1.4.22 text (applied at D-965) is PROCURED-ON-MISCHARACTERIZATION; it remains in~~
+~~`policies.yaml` until re-ratification. `policies.yaml` MUST NOT be edited to v1.4.23~~
+~~before a D-NNN re-ratification decision row is recorded.~~
 
 **Version after replacement: v1.4.23.** Version chain: v1.4.20 = ADR-040 §Decision 2
 parent-SHA form; v1.4.21 = ADR-041 POLICY 16; v1.4.22 = ADR-040 §Decision 6 conditional
@@ -1819,7 +1865,19 @@ reconciliation pass, pre-adversary-pass-11): Implementation routing's remaining
 entry's own footer and the D-992 entry body item (g) carry the PROCURED-ON-MISCHARACTERIZATION
 text with forward pointer to D-970). Routing-list header count corrected "two items
 outstanding" → "one item outstanding" — only devops-engineer CI wiring [D-969] remains
-open. §Status v1.15 added.
+open. §Status v1.15 added. AMENDED 2026-08-13; ADR-040 v1.16 (architect;
+adversary pass-11 fix cascade, closes F-S2107-P11-001 MEDIUM [partial-fix regression]): the
+v1.13 body-vs-frontmatter reconciliation superseded only the trailing §Status re-ratification
+paragraph, leaving three sibling live-directive sites uncorrected. Fixed this burst: (1)
+`### Status as of v1.3` re-ratification paragraph superseded, (2) `### Status as of v1.4`
+re-ratification paragraph superseded, (3) `## Proposed policies.yaml Replacement Text`
+preamble's "Do NOT apply" / "MUST NOT be edited" imperative superseded — the highest-risk
+site, a non-version-scoped live directive in the canonical SOURCE section for the
+replacement text. All three corrected via labeled SUPERSEDED blockquote notes +
+strikethrough of the historical imperative (ADR-041/042 pattern; text preserved, not
+deleted). Literal-shell sweep confirms no remaining live "Do NOT apply" / "MUST NOT be
+edited" / "re-ratification required" directives outside labeled-historical blocks. §Status
+v1.16 added.
 
 **AMENDED 2026-08-13 (v1.13 — architect): stale re-ratification notice corrected.** The
 paragraph immediately below this note previously read "HUMAN RE-RATIFICATION REQUIRED...
