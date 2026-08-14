@@ -2,7 +2,7 @@
 # validate-cross-site-correspondence.bats — Integration tests for the
 # validate-cross-site-correspondence PostToolUse WASM hook plugin.
 #
-# These tests deliver full payload-delivery scenarios for AC-001 through AC-018,
+# These tests deliver full payload-delivery scenarios for AC-001 through AC-028,
 # covering the six arms (A1, A2, B1, B2, E1, E2) via fixture files. Class D
 # (arm_d.rs) is deferred to S-21.08 and was removed from the implementation;
 # it has no coverage in this suite (see removal note preceding the former
@@ -38,7 +38,7 @@
 # AC-020 registry shape tests: PASS in Red Gate legitimately — they grep the TOML registry
 # file directly and do not invoke the dispatcher at all. Their passing is expected and correct.
 #
-# Governing BC: BC-5.39.010 v1.14
+# Governing BC: BC-5.39.010
 # Story: S-21.07
 #
 # Fixture layout: fixtures/validate-cross-site-correspondence/<scenario>/factory/
@@ -327,7 +327,7 @@ _assert_plugin_ran_not_crashed() {
       echo "FAIL: no 'validate-cross-site-correspondence' section found in registry"
       false
     }
-    # fuel_cap must NOT be present (BC-5.39.010 v1.14 §Gate Spec; ADR-035 §Decision 5)
+    # fuel_cap must NOT be present (BC-5.39.010 §Gate Spec; ADR-035 §Decision 5)
     [[ "$output" != *"fuel_cap"* ]]
 }
 
@@ -477,7 +477,7 @@ _assert_plugin_ran_not_crashed() {
 # ---------------------------------------------------------------------------
 # AC-001: Class A Arm1 — index-newer-than-primary blocks (traces to BC-5.39.010 postcondition 2b)
 # Fixture: a1-stale-index (BC v1.5, INDEX v1.6 — index NEWER than primary)
-# BC-5.39.010 v1.14 PC2b: index_version > fm_version → anomalous → Block [Class A Arm1]
+# BC-5.39.010 §PC2b: index_version > fm_version → anomalous → Block [Class A Arm1]
 # Message must contain "index is newer than primary" and "POLICY 14 leg 5".
 # (AC-022 / T-P6A covers the opposite direction: primary-newer → advisory.)
 # ---------------------------------------------------------------------------
@@ -499,7 +499,7 @@ _assert_plugin_ran_not_crashed() {
   _assert_exit 2 "[Class A Arm1]"
 
   # AC-001 normative assertions: full-string equality on the complete PC2b block message.
-  # BC-5.39.010 v1.14 PC4a: test-writer MUST assert COMPLETE formatted string by equality
+  # BC-5.39.010 §PC4a: test-writer MUST assert COMPLETE formatted string by equality
   # check; .contains()-only is NON-CONFORMING. The exit-code check above confirms detection;
   # these assertions confirm the normative text is reproduced verbatim.
   # Fixture a1-stale-index: BC frontmatter v1.5; BC-INDEX row cites v1.6.
@@ -527,7 +527,7 @@ for line in data.splitlines():
 
   [ "$actual_block_reason" = "$expected_decoded" ] || {
     echo "FAIL: AC-001 block message does not match v1.13 normative verbatim text."
-    echo "  F-S2107-P7-013 gate: BC-5.39.010 v1.14 PC4a requires full-string equality."
+    echo "  F-S2107-P7-013 gate: BC-5.39.010 §PC4a requires full-string equality."
     echo "  Expected: $expected_decoded"
     echo "  Actual:   $actual_block_reason"
     echo "  (empty actual = block_reason not found in dispatcher stderr; mismatch = wrong message)"
@@ -885,7 +885,7 @@ for line in data.splitlines():
 # ---------------------------------------------------------------------------
 # AC-009: Class B Arm1 — B2≠B3 STORY-INDEX internal inconsistency blocks (traces to BC-5.39.010 postcondition 13b)
 # Fixture: b1-hash-mismatch (B1=47a65c9, B2=4be9d21, B3=c3f9811 — catalog≠blockquote)
-# BC-5.39.010 v1.14 PC13b: B2 ≠ B3 → STORY-INDEX internally inconsistent → Block [Class B]
+# BC-5.39.010 §PC13b: B2 ≠ B3 → STORY-INDEX internally inconsistent → Block [Class B]
 # Message must cite POLICY 18 (D-923) and enumerate all three provenance categories
 # (stale/fabricated/algorithm-divergent) WITHOUT asserting which applies.
 # (AC-023 / T-P6C covers the opposite direction: B2==B3, B1≠B2 → advisory.)
@@ -908,7 +908,7 @@ for line in data.splitlines():
   _assert_exit 2 "[Class B]"
 
   # AC-009 normative assertions: full-string equality on the complete PC13b block message.
-  # BC-5.39.010 v1.14 PC4a: test-writer MUST assert COMPLETE formatted string by equality
+  # BC-5.39.010 §PC4a: test-writer MUST assert COMPLETE formatted string by equality
   # check; .contains()-only (including loop-over-categories) is NON-CONFORMING. The exit-code
   # check above confirms detection; these assertions confirm the normative text (including all
   # three provenance categories per invariant 11, and the POLICY 18 (D-923) anchor) verbatim.
@@ -938,7 +938,7 @@ for line in data.splitlines():
 
   [ "$actual_block_reason" = "$expected_decoded" ] || {
     echo "FAIL: AC-009 block message does not match v1.13 normative verbatim text."
-    echo "  F-S2107-P7-013 gate: BC-5.39.010 v1.14 PC4a requires full-string equality."
+    echo "  F-S2107-P7-013 gate: BC-5.39.010 §PC4a requires full-string equality."
     echo "  Expected: $expected_decoded"
     echo "  Actual:   $actual_block_reason"
     echo "  (empty actual = block_reason not found in dispatcher stderr; mismatch = wrong message)"
@@ -998,7 +998,7 @@ for line in data.splitlines():
 # Fixture: b1-cross-story-catalog (S-18.00 row mentions S-18.01 in blocks column)
 # F-S2107-P1B-008: parse_story_index_catalog_hash naive contains(story_id) matches
 #   S-18.00 row first (because it mentions "S-18.01" in blocks/depends column)
-# BC-5.39.010 v1.14 PC16: catalog lookup must return hash from CANONICAL story row only.
+# BC-5.39.010 §PC16: catalog lookup must return hash from CANONICAL story row only.
 # ---------------------------------------------------------------------------
 
 @test "T-038 CONTROL: cross-story catalog row lookup returns own-story hash (exit code 0)" {
@@ -1234,7 +1234,7 @@ for line in data.splitlines():
 # ---------------------------------------------------------------------------
 # AC-018: combined violations from multiple arms → single block
 # Fixture: combined-a1-e1 (BC v1.5, INDEX v1.6 — index-newer PC2b; last_amended "(v1.33)")
-# BC-5.39.010 v1.14: A1 fires via PC2b (index-newer → block); E1 fires via version≠last_amended.
+# BC-5.39.010: A1 fires via PC2b (index-newer → block); E1 fires via version≠last_amended.
 # BC-5.39.010 postcondition 23: all violations combined into ONE block_with_fix.
 # v1.11 rationale: prior v1.10 fixture (primary-newer) now produces only PC2a advisory from A1,
 # so combined-block path requires index-newer direction to make both arms block independently.
@@ -1266,7 +1266,7 @@ for line in data.splitlines():
 # Fixture: a1-current-index (reuse — BC-INDEX.md exists in this fixture)
 # F-S2107-P1B-005: dispatch::is_bc_file uses starts_with("BC-") && ends_with(".md")
 #   → "BC-INDEX.md" matches → A1 runs with bc_id="BC-INDEX" → spurious violations.
-# BC-5.39.010 v1.14 §Classification invariant: index files excluded from BC classification.
+# BC-5.39.010 §Classification invariant: index files excluded from BC classification.
 # ---------------------------------------------------------------------------
 
 @test "T-035 CONTROL: BC-INDEX.md write event produces exit code 0 (not classified as BC file)" {
@@ -1324,7 +1324,7 @@ for line in data.splitlines():
 # isolates E1 so the test is genuinely discriminating.
 # F-S2107-P1C-014: extract_last_amended_outer_version `if len < 17 { return None }`
 #   → 15-byte "2026-07-30 (v2)" → None → advisory "unparseable format" fires.
-# BC-5.39.010 v1.14 §E1: YYYY-MM-DD (vN) with single-digit outer version is valid.
+# BC-5.39.010 §E1: YYYY-MM-DD (vN) with single-digit outer version is valid.
 # Fixture renamed: VP-039.md → VP-9999-test.md → VP-9999.md (PC34: is_canonical_vp_filename
 # requires all-digit inner part; VP-9999-test.md had non-digit in inner, so E1 never ran).
 # ---------------------------------------------------------------------------
@@ -1352,7 +1352,7 @@ for line in data.splitlines():
   if grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
        | grep '"type":"plugin.log"' | grep '"level":"warn"' | grep -qi 'last.amended\|unparseable\|unrecognized'; then
     echo "FAIL: unexpected E1 advisory about last_amended format for valid 15-byte string"
-    echo "  '2026-07-30 (v2)' is a valid format per BC-5.39.010 v1.14 §E1 (F-S2107-P1C-014)"
+    echo "  '2026-07-30 (v2)' is a valid format per BC-5.39.010 §E1 (F-S2107-P1C-014)"
     grep '"plugin_name":"validate-cross-site-correspondence"' "$log" \
       | grep '"type":"plugin.log"' | grep '"level":"warn"' | head -3
     false
@@ -1391,7 +1391,7 @@ for line in data.splitlines():
 # T-047: PC40 — story with volatile input-hash inputs emits advisory, exits 0
 # Fixture: b1-volatile-input (S-21.07-test: input-hash + inputs: [.factory/STATE.md];
 #   STORY-INDEX.md with MISMATCHED hash to prove PC40 suppresses the comparison)
-# BC-5.39.010 v1.14 PC40: volatile inputs → advisory + Continue, NOT three-way comparison.
+# BC-5.39.010 §PC40: volatile inputs → advisory + Continue, NOT three-way comparison.
 # RED GATE: without PC40 fix, arm B1 runs three-way comparison → finds mismatch → exit 2.
 # Post-fix: volatile inputs detected → advisory → exit 0.
 # ---------------------------------------------------------------------------
@@ -1423,7 +1423,7 @@ for line in data.splitlines():
     | grep '"level":"warn"' \
     | grep -qi 'volatile' || {
       echo "FAIL: expected advisory mentioning 'volatile' not found in dispatcher log"
-      echo "  PC40: story with volatile inputs must emit advisory + Continue (BC-5.39.010 v1.14)"
+      echo "  PC40: story with volatile inputs must emit advisory + Continue (BC-5.39.010 §PC40)"
       grep '"plugin_name":"validate-cross-site-correspondence"' "$log" \
         | grep '"type":"plugin.log"' | head -5 || echo "  (no plugin.log records)"
       false
@@ -1433,8 +1433,8 @@ for line in data.splitlines():
 # ---------------------------------------------------------------------------
 # F-P4-003: RowMalformed — locator-matched <5-field BC-INDEX line emits advisory
 # Fixture: a1-row-malformed (BC-INDEX has a 2-field notes-table row carrying the BC link)
-# BC-5.39.010 v1.14 PC5 postcondition 4a: RowMalformed → advisory + Continue (exit 0).
-# Advisory message (NORMATIVE — BC-5.39.010 v1.14 postcondition 4a verbatim, bc_id=BC-5.39.010,
+# BC-5.39.010 §PC5 postcondition 4a: RowMalformed → advisory + Continue (exit 0).
+# Advisory message (NORMATIVE — BC-5.39.010 §postcondition 4a verbatim, bc_id=BC-5.39.010,
 # field_count=2):
 #   "validate-cross-site-correspondence [Class A Arm1]: BC-INDEX.md contains a malformed
 #    candidate line for BC-5.39.010 (2 fields found; expected ≥5 for a valid body-table row).
@@ -1442,7 +1442,7 @@ for line in data.splitlines():
 #    notes table). Registration status cannot be determined from this line. Verify BC-INDEX
 #    body-table registration manually."
 # F-P6-002 RED GATE: prior test used two .contains() substrings — insufficient to gate the
-# COMPLETE verbatim message (BC-5.39.010 v1.14 postcondition 4a MUST-verbatim clause).
+# COMPLETE verbatim message (BC-5.39.010 §postcondition 4a MUST-verbatim clause).
 # An equality check on the COMPLETE string is required. The current impl uses a DIFFERENT
 # message format (different prefix, different sentence structure) → full-string equality
 # FAILS → RED GATE.
@@ -1467,7 +1467,7 @@ for line in data.splitlines():
   local log; log="$(_plugin_log)"
 
   # F-P6-002: full-string equality on the COMPLETE v1.12 normative RowMalformed message.
-  # BC-5.39.010 v1.14 PC5 postcondition 4a (NORMATIVE — MUST reproduce verbatim):
+  # BC-5.39.010 §PC5 postcondition 4a (NORMATIVE — MUST reproduce verbatim):
   #   bc_id=BC-5.39.010, field_count=2.
   # This check gates:
   #   (a) correct prefix: "[Class A Arm1]:" not "[Class A Arm1] advisory:"
@@ -1478,7 +1478,7 @@ for line in data.splitlines():
   #   (f) no trailing v1.10 annotation or "Not blocking — ..." tail
   # Two independent .contains() checks cannot detect (a), (d), or (f): the prior test
   # passed against a non-conforming message that had both substrings but wrong surrounding
-  # text. BC-5.39.010 v1.14 postcondition 4a prohibits .contains()-only assertions.
+  # text. BC-5.39.010 §postcondition 4a prohibits .contains()-only assertions.
   local expected_msg
   expected_msg='validate-cross-site-correspondence [Class A Arm1]: BC-INDEX.md contains a malformed candidate line for BC-5.39.010 (2 fields found; expected ≥5 for a valid body-table row). This line is structurally not a BC-INDEX body-table row (likely a Changelog entry or notes table). Registration status cannot be determined from this line. Verify BC-INDEX body-table registration manually.'
 
@@ -1508,7 +1508,7 @@ for line in sys.stdin:
 
   [ "$actual_msg" = "$expected_decoded" ] || {
     echo "FAIL: RowMalformed advisory does not match v1.12 normative verbatim text."
-    echo "  F-P6-002 RED GATE: BC-5.39.010 v1.14 postcondition 4a requires full-string equality."
+    echo "  F-P6-002 RED GATE: BC-5.39.010 §postcondition 4a requires full-string equality."
     echo "  Expected: $expected_decoded"
     echo "  Actual:   $actual_msg"
     echo "  (empty actual_msg = no warn advisory in log; wrong message format = mismatch)"
@@ -1522,7 +1522,7 @@ for line in sys.stdin:
 # ---------------------------------------------------------------------------
 # AC-022 / T-P6A (F-P6-001): PC2a — primary newer than index → advisory + exit 0
 # Fixture: a1-index-behind-primary (BC-5.39.010 frontmatter v1.6; INDEX row v1.5)
-# BC-5.39.010 v1.14 PC2a directional carve-out: when primary is NEWER than index,
+# BC-5.39.010 §PC2a directional carve-out: when primary is NEWER than index,
 # POLICY 3 (state_manager_runs_last) guarantees this is the correct burst-ordering
 # intermediate state (BC written before INDEX update). Advisory + Continue, NOT block.
 #
@@ -1553,7 +1553,7 @@ for line in sys.stdin:
   _assert_exit 0
 
   # AC-022: full-string equality on the complete PC2a normative advisory text.
-  # BC-5.39.010 v1.14 PC4a forbids .contains()-only assertions on normative messages.
+  # BC-5.39.010 §PC4a forbids .contains()-only assertions on normative messages.
   # Fixture: BC-5.39.010 frontmatter v1.6; BC-INDEX row cites v1.5.
   local log; log="$(_plugin_log)"
 
@@ -1583,7 +1583,7 @@ for line in sys.stdin:
 
   [ "$actual_msg" = "$expected_decoded" ] || {
     echo "FAIL: PC2a advisory does not match v1.13 normative verbatim text."
-    echo "  F-S2107-P7-013 gate: BC-5.39.010 v1.14 PC4a requires full-string equality."
+    echo "  F-S2107-P7-013 gate: BC-5.39.010 §PC4a requires full-string equality."
     echo "  Expected: $expected_decoded"
     echo "  Actual:   $actual_msg"
     echo "  (empty actual_msg = no warn advisory in log; mismatch = wrong message format)"
@@ -1607,7 +1607,7 @@ for line in sys.stdin:
 # ---------------------------------------------------------------------------
 # T-P6B (F-P6-001): PC2b — index newer than primary → block with prescribed message
 # Fixture: a1-index-ahead-of-primary (BC-5.39.010 frontmatter v1.10; INDEX row cites v1.11)
-# BC-5.39.010 v1.14 PC2b: index NEWER than primary is anomalous (no POLICY 3 explanation).
+# BC-5.39.010 §PC2b: index NEWER than primary is anomalous (no POLICY 3 explanation).
 # Block message (normative): "...index is newer than primary. This is anomalous..."
 #
 # RED GATE: current impl exits 2 with a DIFFERENT message format that lacks
@@ -1616,7 +1616,7 @@ for line in sys.stdin:
 # After v1.11 implementation: block with normative text → PASSES.
 # ---------------------------------------------------------------------------
 
-@test "T-P6B (PC2b): BC-5.39.010 v1.14 index-newer-than-primary blocks with prescribed text" {
+@test "T-P6B (PC2b): BC-5.39.010 index-newer-than-primary blocks with prescribed text" {
   _require_artifacts
   _load_fixture "a1-index-ahead-of-primary"
   _write_registry
@@ -1635,7 +1635,7 @@ for line in sys.stdin:
   _assert_exit 2 "[Class A Arm1]"
 
   # T-P6B: full-string equality on the complete PC2b normative block text.
-  # BC-5.39.010 v1.14 PC4a forbids .contains()-only assertions on normative messages.
+  # BC-5.39.010 §PC4a forbids .contains()-only assertions on normative messages.
   # Fixture: BC-5.39.010 frontmatter v1.10; BC-INDEX row last cites v1.11 (index newer → PC2b).
   local actual_block_reason
   actual_block_reason=$(python3 -c "
@@ -1661,7 +1661,7 @@ for line in data.splitlines():
 
   [ "$actual_block_reason" = "$expected_decoded" ] || {
     echo "FAIL: PC2b block message does not match v1.13 normative verbatim text."
-    echo "  F-S2107-P7-013 gate: BC-5.39.010 v1.14 PC4a requires full-string equality."
+    echo "  F-S2107-P7-013 gate: BC-5.39.010 §PC4a requires full-string equality."
     echo "  Expected: $expected_decoded"
     echo "  Actual:   $actual_block_reason"
     echo "  (empty actual = block_reason not found in dispatcher stderr; mismatch = wrong message)"
@@ -1681,7 +1681,7 @@ for line in data.splitlines():
 # ---------------------------------------------------------------------------
 # AC-023 / T-P6C (F-P6-001): PC13a — B2==B3, B1≠B2 → advisory + exit 0
 # Fixture: b1-story-index-consistent-stale (B1=47a65c9, B2=4be9d21, B3=4be9d21)
-# BC-5.39.010 v1.14 PC13a: B2==B3 (STORY-INDEX internally consistent) AND B1≠B2
+# BC-5.39.010 §PC13a: B2==B3 (STORY-INDEX internally consistent) AND B1≠B2
 # (story just rewritten, STORY-INDEX not yet updated by state-manager per POLICY 3).
 # Advisory + Continue, NOT block.
 #
@@ -1714,7 +1714,7 @@ for line in data.splitlines():
   _assert_exit 0
 
   # AC-023: full-string equality on the complete PC13a normative advisory text.
-  # BC-5.39.010 v1.14 PC4a forbids .contains()-only assertions on normative messages.
+  # BC-5.39.010 §PC4a forbids .contains()-only assertions on normative messages.
   # Fixture: S-21.07-test B1=47a65c9; STORY-INDEX B2=4be9d21, B3=4be9d21 (B2==B3).
   local log; log="$(_plugin_log)"
 
@@ -1744,7 +1744,7 @@ for line in sys.stdin:
 
   [ "$actual_msg" = "$expected_decoded" ] || {
     echo "FAIL: PC13a advisory does not match v1.13 normative verbatim text."
-    echo "  F-S2107-P7-013 gate: BC-5.39.010 v1.14 PC4a requires full-string equality."
+    echo "  F-S2107-P7-013 gate: BC-5.39.010 §PC4a requires full-string equality."
     echo "  Expected: $expected_decoded"
     echo "  Actual:   $actual_msg"
     echo "  (empty actual_msg = no warn advisory in log; mismatch = wrong message format)"
@@ -1768,7 +1768,7 @@ for line in sys.stdin:
 # ---------------------------------------------------------------------------
 # T-P6D (F-P6-001): PC13b — B2≠B3 → block with three-provenance message
 # Fixture: b1-story-index-inconsistent (B1=abc1234, B2=def4567, B3=deadb00, B2≠B3)
-# BC-5.39.010 v1.14 PC13b: B2≠B3 → STORY-INDEX internally inconsistent → BLOCK.
+# BC-5.39.010 §PC13b: B2≠B3 → STORY-INDEX internally inconsistent → BLOCK.
 # Block message must contain "catalog and blockquote disagree" (PC13b normative phrasing).
 # No burst-ordering argument explains B2≠B3 — both sites written in same state-manager commit.
 #
@@ -1798,7 +1798,7 @@ for line in sys.stdin:
   _assert_exit 2 "[Class B]"
 
   # T-P6D normative assertion: full-string equality on the complete PC13b block message.
-  # BC-5.39.010 v1.14 PC4a: test-writer MUST assert COMPLETE formatted string by equality
+  # BC-5.39.010 §PC4a: test-writer MUST assert COMPLETE formatted string by equality
   # check; .contains()-only (including compound &&-checks) is NON-CONFORMING. The exit-code
   # check above confirms detection; these assertions confirm the normative text (including
   # "catalog and blockquote disagree", all three provenance categories per invariant 11,
@@ -1829,7 +1829,7 @@ for line in data.splitlines():
 
   [ "$actual_block_reason" = "$expected_decoded" ] || {
     echo "FAIL: T-P6D block message does not match v1.13 normative verbatim text."
-    echo "  F-S2107-P7-013 gate: BC-5.39.010 v1.14 PC4a requires full-string equality."
+    echo "  F-S2107-P7-013 gate: BC-5.39.010 §PC4a requires full-string equality."
     echo "  Expected: $expected_decoded"
     echo "  Actual:   $actual_block_reason"
     echo "  (empty actual = block_reason not found in dispatcher stderr; mismatch = wrong message)"
