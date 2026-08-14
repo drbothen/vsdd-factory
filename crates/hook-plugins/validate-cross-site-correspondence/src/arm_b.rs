@@ -1079,8 +1079,12 @@ mod tests {
     // (STATE.md, INDEX files, cycles/ artifacts), Arm B1 must emit advisory +
     // Continue rather than proceeding with the three-way comparison.
     //
-    // Volatile paths: .factory/STATE.md, .factory/**/BC-INDEX.md,
-    // .factory/**/VP-INDEX.md, .factory/**/STORY-INDEX.md, .factory/cycles/**
+    // Volatile paths (path-equals, per shipped `is_volatile_path`): .factory/STATE.md;
+    // .factory/cycles/**/{STATE,decision-log,lessons,burst-log}.md (filename match under
+    // cycles/); .factory/specs/architecture/ARCH-INDEX.md;
+    // .factory/specs/behavioral-contracts/BC-INDEX.md; .factory/stories/STORY-INDEX.md.
+    // VP-INDEX.md is NOT volatile (absent from ADR-037 §Decision 2; see
+    // test_BC_5_39_010_pc40_vp_index_not_volatile below).
     //
     // IMPLEMENTATION REQUIREMENT:
     //   1. Add `pub fn is_volatile_path(path: &str) -> bool` to arm_b.rs.
