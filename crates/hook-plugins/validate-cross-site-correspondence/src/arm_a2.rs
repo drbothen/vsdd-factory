@@ -693,36 +693,77 @@ mod tests {
     /// collected and returned. Violations must reference both BC IDs and the stale
     /// versions from the story's citation table.
     ///
-    /// RED GATE (F-P4-015): current test calls `run_arm_a2` → host::read_file →
-    /// CapabilityDenied → fail-closed violations that do NOT contain stale-version info.
-    /// The assertions `combined.contains("v1.17")` and `combined.contains("v1.5")` FAIL
-    /// against CapabilityDenied messages (which never mention cited versions).
+    /// ADV-RECON2-005 (was F-P4-015 RED GATE, now genuine-cascade): the ORIGINAL
+    /// form of this test called `run_arm_a2` → `host::read_file` → the non-WASM
+    /// test host's `CapabilityDenied` fail-closed path — whose message ALSO happens
+    /// to echo the cited versions (`run_arm_a2_for_bc_with_result`'s `Err(other)`
+    /// arm formats `"Story cites '{bc_id}' at version(s) {cited}"`, per F-P4-015's
+    /// own fix). That meant `combined.contains("v1.17")` / `combined.contains("v1.5")`
+    /// were satisfied by the FAIL-CLOSED message text, NOT by reaching the
+    /// postcondition-7 staleness-comparison cascade this test claims to exercise —
+    /// a genuinely stale-vs-current comparison never ran. A regression that broke
+    /// the staleness-comparison arm entirely (e.g. `bc_version` always treated as
+    /// matching) would NOT have been caught by this test, because the CapabilityDenied
+    /// path never reaches that arm.
     ///
-    /// After fix: implementer must inject BC content via `run_arm_a2_for_bc_with_result`
-    /// so that real stale-citation violations are produced. Those violations carry
-    /// "v1.17" and "v1.5" from the story's citation table → assertions pass.
+    /// Fixed to genuinely exercise the cascade: uses the `_with_result` seam (as
+    /// the sibling `test_BC_5_39_010_arm_a2_stale_token_budget_row_blocks` and the
+    /// ADV-RECON-003 tests above do) to inject REAL BC frontmatter content for BOTH
+    /// BCs, so the `Ok(bc_bytes)` arm's `cited_version != bc_version` comparison
+    /// actually runs for each BC, and the two per-BC violation sets are combined —
+    /// mirroring exactly what `run_arm_a2`'s loop does internally, but with the
+    /// effect boundary (`host::read_file`) replaced by injected fixtures per
+    /// ADR-035 §Decision 1 (effectful-shell / pure-core seam).
     #[test]
     fn test_BC_5_39_010_arm_a2_two_stale_bcs_combined_block() {
         // Fixture reflects real corpus shape: BC table rows live under the
         // ## Behavioral Contracts section heading (POLICY 8 / PC13 v1.3+).
-        // Citations are extracted → run_arm_a2_for_bc called → host::read_file
-        // returns CapabilityDenied (non-WASM stub: -1) → fail-closed violation.
-        // NOTE: CapabilityDenied violations do NOT contain stale-version strings;
-        // the RED GATE assertions below fail against this path.
         let story_content = "---\nbehavioral_contracts: [BC-6.26.001, BC-5.39.008]\n---\n\
             ## Behavioral Contracts\n\n\
             | BC-6.26.001 | Title | v1.17 | active |\n\
             | BC-5.39.008 | Title | v1.5 | active |\n";
-        let (violations, _) = run_arm_a2("S-21.07", story_content);
-        assert!(
-            !violations.is_empty(),
-            "two stale BCs must produce combined violations"
+
+        // Extract citations via the production extraction fn (POLICY 11), one call
+        // per BC — exactly as `run_arm_a2`'s loop does internally.
+        let citations_1 = extract_story_bc_version_citations(story_content, "BC-6.26.001");
+        let citations_2 = extract_story_bc_version_citations(story_content, "BC-5.39.008");
+
+        // Inject REAL BC frontmatter content whose `version:` genuinely mismatches
+        // each story citation, so the `Ok(bc_bytes)` staleness-comparison arm of
+        // `run_arm_a2_for_bc_with_result` actually runs (not the CapabilityDenied
+        // fail-closed arm).
+        let bc1_content = b"---\nversion: \"1.18\"\n---\n# BC-6.26.001\n";
+        let bc2_content = b"---\nversion: \"1.6\"\n---\n# BC-5.39.008\n";
+
+        let (violations_1, _) = run_arm_a2_for_bc_with_result(
+            "S-21.07",
+            "BC-6.26.001",
+            &citations_1,
+            Ok(bc1_content.to_vec()),
         );
-        // RED GATE assertions (F-P4-015): require stale-citation format, not CapabilityDenied.
-        // CapabilityDenied message = "host error reading BC 'BC-6.26.001' … CapabilityDenied."
-        // Stale-citation message = "… cites 'BC-6.26.001' at version v1.17 … BC says 1.X."
-        // The combined message must reference stale versions v1.17 and v1.5 (from the
-        // story's citation table). CapabilityDenied messages omit version info → FAILS.
+        let (violations_2, _) = run_arm_a2_for_bc_with_result(
+            "S-21.07",
+            "BC-5.39.008",
+            &citations_2,
+            Ok(bc2_content.to_vec()),
+        );
+
+        // Combine per-BC results — the same "collect all stale citations across all
+        // BCs" cascade behavior `run_arm_a2` performs via `Vec::extend` in its loop
+        // (BC-5.39.010 postcondition 7 last sentence).
+        let mut violations = violations_1;
+        violations.extend(violations_2);
+
+        assert_eq!(
+            violations.len(),
+            2,
+            "ADV-RECON2-005: both BC-6.26.001 (v1.17 cited vs 1.18 current) and \
+            BC-5.39.008 (v1.5 cited vs 1.6 current) are genuinely stale — the \
+            cascade must produce exactly one violation per stale BC, proving the \
+            REAL staleness-comparison arm ran for both, not the fail-closed arm. \
+            Violations: {violations:?}"
+        );
+
         let combined: String = violations
             .iter()
             .map(|v| v.description.as_str())
@@ -731,16 +772,24 @@ mod tests {
         assert!(
             combined.contains("v1.17"),
             "violations must reference stale citation version v1.17 for BC-6.26.001. \
-            CapabilityDenied path does not carry version info → test fails until \
-            refactored to inject BC content. F-P4-015 RED GATE. \
             Got combined: {combined:?}"
+        );
+        assert!(
+            combined.contains("1.18"),
+            "violations must reference BC-6.26.001's current frontmatter version 1.18 \
+            — proves the real staleness comparison ran, not the CapabilityDenied \
+            fail-closed path. Got combined: {combined:?}"
         );
         assert!(
             combined.contains("v1.5"),
             "violations must reference stale citation version v1.5 for BC-5.39.008. \
-            CapabilityDenied path does not carry version info → test fails until \
-            refactored to inject BC content. F-P4-015 RED GATE. \
             Got combined: {combined:?}"
+        );
+        assert!(
+            combined.contains("1.6"),
+            "violations must reference BC-5.39.008's current frontmatter version 1.6 \
+            — proves the real staleness comparison ran, not the CapabilityDenied \
+            fail-closed path. Got combined: {combined:?}"
         );
         assert!(
             combined.contains("[Class A Arm2]"),
@@ -1997,6 +2046,104 @@ mod tests {
         assert!(
             msg.contains("2.0"),
             "violation must cite the current BC version '2.0'. Got: {msg}"
+        );
+    }
+
+    /// ADV-RECON2-001 MUTANT: a SAME-CELL compound/supersession first field
+    /// (`BC-X (supersedes BC-Y)`) must be excluded from Phase 1 for target
+    /// BC-Y — proving the strong Arm-A1 predicate (`first_cell_matches_bc_id`:
+    /// exact-equals or `[BC-Y]` link form) is what `row_first_field_matches_bc_id`
+    /// now delegates to, not the weaker `contains`-at-boundary anchor it used
+    /// before the ADV-RECON2-001 fix (implementer commit `6f92702e`).
+    ///
+    /// This is a STRONGER pin than the existing ADV-RECON-003 cross-BC-row
+    /// tests above: those fixtures put the target BC ID mention in a separate
+    /// Notes *column* (first field names a wholly different BC, e.g.
+    /// `BC-9.99.010`, and `BC-9.99.011` appears only in a later cell). Here the
+    /// mention is INSIDE the first cell itself — `BC-9.99.010 (supersedes
+    /// BC-9.99.011)` — which is exactly the same-cell compound shape called
+    /// out by `row_first_field_matches_bc_id`'s doc comment as the hazard the
+    /// shared-predicate fix closes. A weaker anchor that merely checks
+    /// "does the first cell CONTAIN bc_id at a word boundary" (rather than
+    /// "IS the first cell bc_id, in plain or `[bc_id]` link form") would wrongly
+    /// admit this row as Phase-1-eligible for BC-9.99.011, because
+    /// "BC-9.99.011" does appear at a word boundary inside the first cell.
+    ///
+    /// Fixture: single BC table row whose first cell is the compound form
+    /// `BC-9.99.010 (supersedes BC-9.99.011)` with an own Version cell "1.7"
+    /// that genuinely belongs to BC-9.99.010, not BC-9.99.011.
+    ///
+    /// Under the OLD weak `contains`-at-boundary anchor: `line_contains_bc_id_at_boundary`
+    /// gates the row into the scan (target ID present in the line); the old
+    /// anchor then reused that same weak "contains" check as the Phase-1
+    /// eligibility test, wrongly admitting Row 1 → `extract_version_token_from_table_row`
+    /// scans ALL fields right-to-left → finds pure-version field "1.7" → wrongly
+    /// attributes it to BC-9.99.011 → false stale-citation BLOCK.
+    ///
+    /// Under the FIXED strong Arm-A1 predicate: `row_first_field_matches_bc_id`
+    /// requires the first cell to BE `BC-9.99.011` (plain) or `[BC-9.99.011](...)`
+    /// (link form) — `BC-9.99.010 (supersedes BC-9.99.011)` is neither, so Phase 1
+    /// is ineligible. Phase 2 (BC-ID-anchored first-v-token) is then tried and
+    /// also finds nothing: the only `v`-token-shaped field ("1.7", which Phase 2
+    /// requires a mandatory `v` prefix for) never appears, and no v-token follows
+    /// "BC-9.99.011" within its own cell. Result: zero citations, zero violations.
+    ///
+    /// This test calls the production pipeline fn `extract_story_bc_version_citations`
+    /// (POLICY 11 — no reimplementation/tautology) and the production
+    /// `run_arm_a2_for_bc_with_result` seam to prove no false block results.
+    ///
+    /// Coverage-strengthening: PASSES now (implementer fixed the predicate in
+    /// `6f92702e`); would have gone RED under the pre-fix weak `contains` anchor.
+    ///
+    /// BC trace: BC-5.39.010 v1.20 PC13 Phase 1 (ADV-RECON-003 / ADV-RECON2-001);
+    /// postcondition 8 (skip-not-block on absent citations).
+    #[test]
+    fn test_BC_5_39_010_arm_a2_phase1_supersession_first_cell_excluded_from_phase1() {
+        let story_content = concat!(
+            "---\n",
+            "behavioral_contracts: [BC-9.99.011]\n",
+            "---\n",
+            "\n",
+            "## Behavioral Contracts\n",
+            "\n",
+            "| BC ID | Title | Version |\n",
+            "|---|---|---|\n",
+            "| BC-9.99.010 (supersedes BC-9.99.011) | Other contract | 1.7 |\n",
+        );
+
+        let citations = extract_story_bc_version_citations(story_content, "BC-9.99.011");
+        assert!(
+            citations.is_empty(),
+            "ADV-RECON2-001: a same-cell compound/supersession first field \
+            'BC-9.99.010 (supersedes BC-9.99.011)' must yield ZERO Phase-1 (and \
+            zero overall) citations for BC-9.99.011 — the strong Arm-A1 predicate \
+            (exact-equals or `[BC-9.99.011]` link form) excludes this row from \
+            Phase 1 because the first cell does not EQUAL 'BC-9.99.011' and is not \
+            in link form, even though 'BC-9.99.011' appears at a word boundary \
+            inside that same cell. Own Version cell '1.7' belongs to BC-9.99.010, \
+            not BC-9.99.011, and must NOT be attributed to it. Citations: {citations:?}"
+        );
+
+        // No false block: with zero citations, postcondition 8 (skip-not-block on
+        // absent citations) applies — run_arm_a2_for_bc_with_result must return no
+        // violations regardless of the injected BC content (early-return path).
+        let bc_content = b"---\nversion: \"9.9\"\n---\n# BC-9.99.011\n";
+        let (violations, advisories) = run_arm_a2_for_bc_with_result(
+            "S-21.07",
+            "BC-9.99.011",
+            &citations,
+            Ok(bc_content.to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "ADV-RECON2-001: a same-cell supersession first field must produce NO \
+            false block for the target BC — postcondition 8 skip-not-block. \
+            Violations: {violations:?}"
+        );
+        assert!(
+            advisories.is_empty(),
+            "no advisory expected either — this is a clean skip, not a NotFound \
+            path. Advisories: {advisories:?}"
         );
     }
 }

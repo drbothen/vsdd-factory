@@ -701,6 +701,55 @@ for line in data.splitlines():
 
   _assert_plugin_ran_not_crashed
   _assert_exit 2
+
+  # ADV-RECON2-002 (MEDIUM): BC-5.39.010 v1.20 postcondition 25 prescribes an exact
+  # message; the exit-code-only assertion above is necessary but not sufficient
+  # (F-P6-002 message-equality discipline; matches the AC-001/PC4a full-string
+  # equality pattern used elsewhere in this suite — .contains()-only is
+  # NON-CONFORMING). Full-string equality on the complete block_reason as surfaced
+  # by dispatcher stderr (BLOCKED by / [N] / Fix / Code wrapper from
+  # HookResult::block_with_fix + combine_violations_into_block; trailing period on
+  # the postcondition-25 description stripped by trim_end_matches('.') in
+  # block_with_fix). Fixture utf8-decode-failure/.../BC-9.99.012.md: invalid byte
+  # 0xFF at byte offset 196 → std::str::from_utf8 Display = "invalid utf-8
+  # sequence of 1 bytes from index 196" (confirmed via direct decode of the
+  # fixture bytes with std::str::from_utf8).
+  local actual_block_reason
+  actual_block_reason=$(python3 -c "
+import sys
+data = open(sys.argv[1]).read()
+for line in data.splitlines():
+    key = 'block_reason=\"'
+    if key in line:
+        idx = line.find(key) + len(key)
+        val = line[idx:]
+        if val.endswith('\"'):
+            val = val[:-1]
+        val = val.replace('\\\\n', '\\n').replace('\\\\r', '\\r')
+        print(val, end='')
+        break
+" "$_DISP_STDERR" 2>/dev/null || true)
+
+  local expected_decoded
+  expected_decoded=$(python3 -c "print('BLOCKED by validate-cross-site-correspondence: [1] validate-cross-site-correspondence [primary-read]: cannot decode primary target \'.factory/specs/behavioral-contracts/ss-09/BC-9.99.012.md\' as UTF-8: invalid utf-8 sequence of 1 bytes from index 196. Fail-closed per BC-5.39.010 invariant 4 (extended, v1.20) — invariant 9 governs slicing safety only and does not authorize Continue here. Fix: verify the file\'s encoding and re-save as UTF-8, then retry the write. Fix: review and fix all cross-site correspondence issues listed above, then retry the write. Code: POLICY 14/18.', end='')" 2>/dev/null || true)
+
+  [ "$actual_block_reason" = "$expected_decoded" ] || {
+    echo "FAIL: ADV-RECON2-002 postcondition-25 block message does not match BC-5.39.010 v1.20 normative verbatim text."
+    echo "  This assertion is expected to remain RED until validate-cross-site-correspondence.wasm is rebuilt from src/lib.rs (devops rebuild pending)."
+    echo "  Expected: $expected_decoded"
+    echo "  Actual:   $actual_block_reason"
+    echo "  (empty actual = block_reason not found in dispatcher stderr; mismatch = wrong message or stale wasm)"
+    false
+  }
+
+  # Anti-vacuity: a message containing only the old substrings but wrong format fails equality.
+  local wrong_substr_msg
+  wrong_substr_msg="(WRONG FORMAT) cannot decode primary target as UTF-8. invariant 4."
+  [ "$wrong_substr_msg" != "$expected_decoded" ] || {
+    echo "FAIL: ANTI-VACUITY: substring-passing wrong message must not equal normative text."
+    echo "  The equality gate failed to discriminate. expected_decoded may be incorrect."
+    false
+  }
 }
 
 # ADV-RECON-007 CONTROL: a primary target that DOES decode as valid UTF-8 must
