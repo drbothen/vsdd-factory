@@ -28837,3 +28837,100 @@ D-444(c) burst-log h2 heading `## D-1005-S2107-PASS20-RECORD-ONLY-BURST` present
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `3bf8561a` — `state(sha-patch): D-1004 commit eb5ecbf1 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
 
 **Closes:** None (pass-20 CLEAN; nothing to close). **STREAK ADVANCES 0/3 → 1/3** — second fresh CLEAN in the current restart window; 2 more CONSECUTIVE CLEAN passes required. O-P19-01/O-P15-03/O-P17-02/O-P17-01/O-P14-03 re-observed unchanged, not fixed. **S-21.07 PASS-20 RECORD-ONLY BURST COMPLETE; SHA-PATCH FOLLOW-UP NEXT; PASS-21 ADVERSARY DISPATCH AFTER THAT.**
+
+## D-1006-S2107-PASS21-RECORD-AND-FIX-BURST
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1005 < D-9000 ceiling
+```
+
+D-1006 allocated (D-999 remains permanently skipped). **Parent-commit:** `e9fd7607` — `state(sha-patch): D-1005 commit 2d0c6d37 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` pass-21 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged; story unbuilt) and `factory-artifacts` at `e9fd7607` (D-1005 SHA-patch HEAD, carrying STORY-INDEX v4.324 + S-21.07 story v1.13 as landed). **Verdict: NOT-CLEAN — 1 HIGH finding (F-S2107-P21-001) + 2 non-blocking observations (REC-P21-A, OBS-P21-B) + 5 tracked carve-outs re-observed unchanged.** LOCAL BC-5.39.001 streak for the S-21.07 cascade **RESETS 1/3 → 0/3** — the finding is IN-PERIMETER (a live spec-implementation contradiction inside S-21.07's own Task 10 build directive). Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-21.md`. The finding: Task 10 directed the implementer to build the Arm A2 version-citation extractor using `\bv?([0-9]+\.[0-9]+)\b`, the single-pass bare-optional-v regex that BC-5.39.010 v1.19 PC13 itself declares NON-CONFORMING, annotated "per BC-5.39.010 v1.19 PC13 (unchanged since v1.14)" — a version-NUMBER annotation that was true while the regex CONTENT it was attached to had silently diverged from the BC seven story-versions earlier (at BC v1.8, when PC13 was rewritten to the two-phase algorithm). Pass-22 (fresh-context, reading only `adversary-pass-21.md` Part A per the Iron Law) is the pending gate, dispatched next; 3 fresh consecutive CLEAN passes required from pass-22 to converge.
+
+**Block 3: Files touched**
+
+- `.factory/stories/S-21.07-validate-cross-site-correspondence.md` — v1.13→v1.14 (story-writer; Task 10 rewritten verbatim to the two-phase algorithm per BC-5.39.010 v1.19 PC13; collision rationale restated inline; class-complete bare-regex-literal sweep confirmed no other live directive sites; frontmatter `last_amended:` entry added; input-hash UNCHANGED `93c4a89`, body-only fix)
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-21.md` — new (pass-21 record, persisted verbatim)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-21 row added; Convergence Status extended (D-1006 summary)
+- `.factory/stories/STORY-INDEX.md` — v4.324→**v4.325** (S-21.07 catalog row story-version display cell `1.13`→`1.14`, input-hash + BC-version-cite cells UNCHANGED; frontmatter `version:`/`last_amended:` self-bumped same-commit, no parity gap this time)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1006 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — `L-BB-version-cite-propagation-must-include-algorithm-content-not-just-version-numbers` appended
+- `.factory/STATE.md` — full advance (frontmatter, Phase Progress, Current Phase Steps, Active Branches, Decisions Log, Blocking Issues, §8 tracked items REC-P21-A/OBS-P21-B, Session Resume Checkpoint)
+
+No BC-5.39.010.md, BC-INDEX.md, VP-INDEX.md, or ARCH-INDEX.md touched this burst — the finding and fix are entirely story-side; BC-5.39.010 was not amended (Task 10 was already citing the correct v1.19; only its regex content was wrong).
+
+**Block 4: Codifications**
+
+New lesson `L-BB-version-cite-propagation-must-include-algorithm-content-not-just-version-numbers` (D-1006) — when a governing spec (BC) revises an ALGORITHM or CONTENT directive (a regex, pseudocode block, or procedural rule) under the SAME postcondition/clause identity across BC versions, a downstream story's build-directive citation of that clause MUST re-derive the CONTENT from the BC's current text on every version-cite propagation sweep, not merely advance the cited VERSION NUMBER. A version-cite propagation sweep that only checks "does this site say vX.Y" without checking "does this site's CONTENT match what vX.Y's clause actually specifies" can silently carry a stale algorithm forward for many story-versions while every cite reads current — precisely the shape of this defect (Task 10 correctly read "v1.19" for six consecutive propagation sweeps while its regex content had been stale since v1.8). Distinct in kind from the D-996/D-998/D-1000/D-1004 fix-scoped-to-named-site/predicate-adequacy family (those concern sibling-site SCOPE or verification-predicate ADEQUACY after a fix; this concerns a build directive's own CONTENT never having been re-derived from its cited source in the first place). Detection heuristic: whenever a story-body site embeds copied ALGORITHM/CONTENT (not just a version number) from a BC clause, a version-cite sweep MUST diff the embedded content against the BC's current text for that clause, not merely regex-match the version token. Also applies pre-existing disciplines: TD-VSDD-053 single-commit-per-burst; POLICY 4 semantic-anchoring; TD-VSDD-060 sibling-sweep on value changes; POLICY 8 BC-version propagation; POLICY 18 three-way input-hash parity; BC-5.39.001 3-CLEAN convergence protocol; D-433(e)+D-439(c) trajectory-tail LENGTH=4; POLICY 16 ALLOCATOR-CEILING GATE; Canonical Principle Rule 4 (AI-built defects fixed in scope).
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+Independent Task-10 verify gate (literal shell — defense-in-depth, run BEFORE trusting story-writer's claimed fix):
+
+```
+$ sed -n '1013,1035p' stories/S-21.07-validate-cross-site-correspondence.md | grep -n "Phase 1\|Phase 2\|two-phase\|NON-CONFORMING"
+3:    a single bare-optional-v regex. **Phase 1 (pure-version field):** scan all
+8:    in the Behavioral Contracts table below). **Phase 2 (fallback -- BC-ID-anchored
+9:    mandatory-v inline token):** only when Phase 1 finds no pure-version field, locate the
+16:    form `\bv?([0-9]+\.[0-9]+)\b` is NON-CONFORMING (BC-5.39.010 v1.19 PC13 "Why the prior
+17:    `\bv?([0-9]+\.[0-9]+)\b` bare form (v1.3-v1.7) is NON-CONFORMING" clause): it produces a
+$ grep -nE "bv\?\(|v\?\(\[0-9\]" stories/S-21.07-validate-cross-site-correspondence.md
+15: (frontmatter last_amended, narrative describing the fix)
+30: (frontmatter last_amended, quoting the live Phase-1 regex)
+1017: (Task 10 body, Phase-1 regex -- the live, correct directive)
+1028-1029: (Task 10 body, rationale prose quoting the REJECTED bare form for comparison, not a directive)
+$ plugins/vsdd-factory/bin/compute-input-hash stories/S-21.07-validate-cross-site-correspondence.md --check
+(exit 0 -- MATCH)
+$ plugins/vsdd-factory/bin/compute-input-hash stories/S-21.07-validate-cross-site-correspondence.md
+93c4a89
+```
+
+Task 10 confirmed specifying the two-phase algorithm (Phase 1 `^v?([0-9]+\.[0-9]+)$` for the body BC-table Version cell; Phase 2 BC-ID-anchored mandatory-v `\bv([0-9]+\.[0-9]+)\b` for Token Budget rows), matching BC-5.39.010 v1.19 PC13 and the story's own §BC Status. The 4 remaining bare-form-literal hits are narrative/rationale prose describing the rejected form for comparison — none are live extraction directives. Input-hash confirmed UNCHANGED `93c4a89`.
+
+STORY-INDEX post-fix verification gate (literal shell):
+
+```
+$ grep -oE "story v1\.[0-9]+; authored" stories/STORY-INDEX.md
+story v1.14; authored
+$ grep -n '^version:' stories/STORY-INDEX.md
+4:version: "4.325"
+```
+
+**Block 6 (Dim-5): Closes**
+
+- F-S2107-P21-001 CLOSED (story-writer + state-manager; S-21.07 v1.14 — Task 10 rewritten to the two-phase algorithm verbatim per BC-5.39.010 v1.19 PC13; STORY-INDEX v4.325 catalog-row sync)
+- REC-P21-A (test-coverage recommendation, non-blocking) — tracked in STATE.md §8, NOT actioned this burst (anchored to S-21.07 implementation phase or a future pass)
+- OBS-P21-B (cosmetic bracket-count mismatch, non-blocking) — tracked in STATE.md §8, NOT fixed (append-only history, no parse impact)
+- O-P19-01/O-P15-03/O-P17-02/O-P17-01/O-P14-03 (non-findings, carried) — re-observed unchanged this pass, not reopened
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1006-S2107-PASS21-RECORD-AND-FIX-BURST` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: the F-S2107-P21-001 disposition paragraph in decision-log.md D-1006 faithfully describes `adversary-pass-21.md` Part A's finding set (1 HIGH finding, verbatim location/defect text) — verified by direct comparison against the persisted pass-21 file at burst time; the REC-P21-A/OBS-P21-B/O-P19-01/O-P17-01/O-P17-02/O-P14-03 dispositions likewise faithfully describe the persisted Observations section. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + independent Task-10 verify gate + STORY-INDEX post-fix verification gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts, no trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered LOCAL adversary pass (pass-21) — trajectory entry added; trajectory (20 true adversary passes, 3 CLEAN) `47→18→25→25→24→20→16→8→10→1→1→2→0→1→1→0→1→1→0→1` (tail `→1→1→0→1`, D-433(e)+D-439(c) LENGTH=4)
+- Streak: **0/3 — RESETS from 1/3** (in-perimeter HIGH; BC-5.39.001 requires 3 FRESH CONSECUTIVE CLEAN passes from pass-22 onward).
+- 4-INDEX: BC v4.59 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY v4.324→**v4.325** / ARCH v3.58 (UNCHANGED)
+- policies.yaml v1.4.24 (UNCHANGED — no `policies.yaml` text change this burst; codification routed to lessons.md only)
+- `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst; fix is spec-only: story file + STORY-INDEX)
+- `pipeline: ACTIVE` UNCHANGED
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `e9fd7607` — `state(sha-patch): D-1005 commit 2d0c6d37 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
+
+**Closes:** F-S2107-P21-001 CLOSED (S-21.07 v1.14; STORY-INDEX v4.325; Task-10 two-phase rewrite independently re-verified). REC-P21-A/OBS-P21-B tracked in STATE.md §8, not actioned. O-P19-01/O-P15-03/O-P17-02/O-P17-01/O-P14-03 re-observed unchanged, not fixed. **STREAK EXPLICITLY RESETS 1/3 → 0/3.** **S-21.07 PASS-21 RECORD + FIX BURST COMPLETE; SHA-PATCH FOLLOW-UP NEXT; PASS-22 ADVERSARY DISPATCH AFTER THAT.**
