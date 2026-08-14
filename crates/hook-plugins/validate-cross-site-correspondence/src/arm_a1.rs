@@ -63,7 +63,7 @@ pub fn derive_bc_path(bc_id: &str) -> String {
 
 /// Four-state result for BC-INDEX.md row classification.
 ///
-/// BC-5.39.010 v1.14 PC5 (column-count-anchored, four-state, full-file scan):
+/// BC-5.39.010 v1.19 PC5 (column-count-anchored, four-state, full-file scan):
 /// - `RowAbsent`: NO candidate line found at all for this BC ID. A candidate line must
 ///   satisfy the normative recognition predicate conditions (1)+(2): (1) starts with `|`;
 ///   (2) first non-empty field is `[bc_id]` link form or `bc_id` plain form. If no line
@@ -78,7 +78,10 @@ pub fn derive_bc_path(bc_id: &str) -> String {
 ///   by the non-empty predicate and counts as exactly 5 fields (field 6 unread).
 ///   Silent-continue in all `RowPresentNoVersion` cases.
 /// - `Version(v)`: candidate found AND ≥6 non-empty fields after escape-aware split;
-///   version extracted from the 6th field via rightmost `\bv([0-9]+\.[0-9]+)\b`.
+///   `fields[5..]` are rejoined with `\|` and re-split on the escape sentinel to recover
+///   the version-chain cell, then the FIRST `\bv([0-9]+\.[0-9]+)\b` token of the LAST
+///   non-empty chain entry is extracted (first-token-of-last-chain-entry; ADR-038
+///   §Decision 1 — rightmost-of-field[5] is NON-CONFORMING).
 /// - `RowMalformed(n)`: a candidate line WAS found (conditions (1)+(2) hold) but after
 ///   escape-aware split has fewer than 5 non-empty fields — NOT a valid body-table row
 ///   (likely a Changelog entry, subsystem-section row, or notes table carrying the BC ID
@@ -90,7 +93,7 @@ pub fn derive_bc_path(bc_id: &str) -> String {
 ///   BC-ID-candidate lines have ≥5 fields. This state is forward-looking protection.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.14 PC5: four-state classification with full-file scan (F-S2107-P4-005).
+/// BC-5.39.010 v1.19 PC5: four-state classification with full-file scan (F-S2107-P4-005).
 /// F-P6-018: ≥6-field/no-v-token state classified as `RowPresentNoVersion` (normative).
 /// F-S2107-P3-001 BLOCKER: two-state `Option<String>` conflated RowAbsent with
 /// RowPresentNoVersion — every 5-column row triggered a spurious block for v>1.0 BCs.
@@ -105,7 +108,8 @@ pub enum BcIndexVersionState {
     RowAbsent,
     /// Candidate found; exactly 5 non-empty fields (canonical shape) — no version-chain cell.
     RowPresentNoVersion,
-    /// Candidate found; ≥6 non-empty fields — version extracted from 6th field.
+    /// Candidate found; ≥6 non-empty fields — version extracted from the last chain entry
+    /// of the version-chain cell (first-token-of-last-chain-entry; ADR-038 §Decision 1).
     Version(String),
     /// Candidate found but <5 non-empty fields after escape-aware split — not a body-table row.
     /// Advisory + Continue (postcondition 4a). NEVER blocks. `usize` = observed field count.
@@ -114,7 +118,7 @@ pub enum BcIndexVersionState {
 
 /// Extract the BC-INDEX.md row state for `bc_id` using the v1.13 four-state algorithm.
 ///
-/// **Algorithm (BC-5.39.010 v1.14 PC5 — column-count-anchored, full-file scan):**
+/// **Algorithm (BC-5.39.010 v1.19 PC5 — column-count-anchored, full-file scan):**
 ///
 /// Scans ALL lines in `index_content`. For each line:
 /// 1. **Condition (1):** line starts with `|` — skips YAML frontmatter, prose, blank lines.
@@ -130,7 +134,7 @@ pub enum BcIndexVersionState {
 ///      - No token found → return `RowPresentNoVersion` (F-P6-018 normative: ≥6-field/no-v-token)
 ///    - <5 fields → record as malformed candidate; **continue scanning for a valid line**
 ///
-/// **F-P4-005 full-file selection order (BC-5.39.010 v1.14):**
+/// **F-P4-005 full-file selection order (BC-5.39.010 v1.19):**
 /// Return the FIRST (1)+(2)+(3)-satisfying line (≥5 fields). Return `RowMalformed(n)` ONLY
 /// when ALL locator-matched lines fail condition (3). First-match-wins on malformed lines
 /// is NON-CONFORMING — a malformed line earlier in the file MUST NOT shadow a valid row later.
@@ -146,7 +150,7 @@ pub enum BcIndexVersionState {
 /// Pure: operates on already-read bytes.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.14 PC5: full-file-scan selection order (F-S2107-P4-005).
+/// BC-5.39.010 v1.19 PC5: full-file-scan selection order (F-S2107-P4-005).
 /// F-P6-018: ≥6-field/no-v-token → `RowPresentNoVersion` (normative).
 /// F-S2107-P2-002: first-cell anchor (cross-reference rows must not match).
 /// F-P6-019b/019c: first-token-of-last-entry extraction (replaces F-S2107-P1B-006 last-wins).
@@ -185,7 +189,7 @@ pub(crate) fn extract_bc_index_version_state(
 
         // Condition (2): normative recognition predicate — first non-empty pipe-cell must
         // match the BC ID in either link form `[bc_id](...)` or plain form `bc_id`.
-        // BC-5.39.010 v1.14 PC5: "first non-empty field" (escape-aware).
+        // BC-5.39.010 v1.19 PC5: "first non-empty field" (escape-aware).
         // F-P2-002: anchor on the first pipe-cell only; cross-reference rows that cite
         // bc_id in Title or Depends columns must not be matched.
         let first_cell = non_empty_fields.first().copied().unwrap_or("");
@@ -211,14 +215,14 @@ pub(crate) fn extract_bc_index_version_state(
                 let version_cell = non_empty_fields[5..].join("|");
                 return match extract_first_v_token_of_last_entry(&version_cell) {
                     Some(v) => BcIndexVersionState::Version(v),
-                    // F-P6-018 (BC-5.39.010 v1.14 PC5 normative): ≥6 fields AND no
+                    // F-P6-018 (BC-5.39.010 v1.19 PC5 normative): ≥6 fields AND no
                     // \bv([0-9]+\.[0-9]+)\b in field 6 → RowPresentNoVersion.
                     // Same Continue outcome as the 5-field case; no version to compare.
                     None => BcIndexVersionState::RowPresentNoVersion,
                 };
             }
             // <5 fields: candidate found but not a valid body-table row.
-            // BC-5.39.010 v1.14 PC5 (F-P4-005): do NOT return here — keep scanning for
+            // BC-5.39.010 v1.19 PC5 (F-P4-005): do NOT return here — keep scanning for
             // a valid (≥5-field) line. RowMalformed is returned only when the entire file
             // has been scanned and NO valid candidate was found.
             // MUST NOT be collapsed into RowAbsent — that would trigger false BLOCKs.
@@ -274,7 +278,7 @@ pub fn index_ver_matches_frontmatter(index_ver: &str, frontmatter_version: &str)
 /// Returns `true` if the trimmed first pipe-cell content of a BC-INDEX body-table row
 /// matches the given BC ID under the normative recognition predicate.
 ///
-/// **Normative recognition predicate condition (2) per BC-5.39.010 v1.14 PC5:**
+/// **Normative recognition predicate condition (2) per BC-5.39.010 v1.19 PC5:**
 /// - **Link form:** first cell starts with `[bc_id]` followed by `(` (markdown link:
 ///   `[BC-5.39.010](ss-05/BC-5.39.010.md)`)
 /// - **Plain form:** first cell equals `bc_id` exactly (e.g., `BC-5.39.010`)
@@ -284,7 +288,7 @@ pub fn index_ver_matches_frontmatter(index_ver: &str, frontmatter_version: &str)
 /// from being classified as the BC's own registration row.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.14 PC5: normative recognition predicate condition (2).
+/// BC-5.39.010 v1.19 PC5: normative recognition predicate condition (2).
 /// F-P2-002: first-cell anchor.
 fn first_cell_matches_bc_id(first_cell: &str, bc_id: &str) -> bool {
     // Plain form: cell IS the bc_id (e.g., "BC-5.39.010")
@@ -435,7 +439,7 @@ pub fn run_arm_a1_with_index_result(
             // extract_bc_index_version_state returns version tokens without the v prefix.
             // Shadow the parameter so all downstream comparisons use the same format.
             let bc_version = bc_version.trim_start_matches('v');
-            // BC-5.39.010 v1.14 PC5: four-state classification (full-file scan).
+            // BC-5.39.010 v1.19 PC5: four-state classification (full-file scan).
             match extract_bc_index_version_state(bc_id, &index_bytes) {
                 BcIndexVersionState::RowAbsent => {
                     // No candidate line found at all — BC not in INDEX.
@@ -470,7 +474,7 @@ pub fn run_arm_a1_with_index_result(
                 }
                 BcIndexVersionState::Version(index_version) => {
                     // Candidate found; explicit version-chain cell — compare versions.
-                    // BC-5.39.010 v1.14 PC2: directional carve-out.
+                    // BC-5.39.010 v1.19 PC2: directional carve-out.
                     // Strip 'v' prefix (already stripped by extract_last_v_token); parse
                     // as major.minor integers for directional comparison.
                     // PC2a: bc_version > index_version → burst-ordering artefact (primary
@@ -529,7 +533,7 @@ pub fn run_arm_a1_with_index_result(
                     // PC5 postcondition 4a: advisory + Continue. NEVER blocks.
                     // MUST NOT reach the RowAbsent blocking path (postcondition 4) —
                     // a found-but-malformed line is not a dropped registration.
-                    // BC-5.39.010 v1.14 PC4a (NORMATIVE — verbatim message required):
+                    // BC-5.39.010 v1.19 PC4a (NORMATIVE — verbatim message required):
                     let advisory = Advisory {
                         message: format!(
                             "validate-cross-site-correspondence [Class A Arm1]: \
@@ -610,9 +614,9 @@ mod tests {
     // run_arm_a1_with_index_result — BC-5.39.010 postconditions 1-6
     // -----------------------------------------------------------------------
 
-    /// AC-001 MUTANT: index-ahead-of-primary blocks (BC-5.39.010 v1.14 PC2b postcondition 2).
+    /// AC-001 MUTANT: index-ahead-of-primary blocks (BC-5.39.010 v1.19 PC2b postcondition 2).
     ///
-    /// BC-5.39.010 v1.14 PC2 directional carve-out:
+    /// BC-5.39.010 v1.19 PC2 directional carve-out:
     /// - PC2a (primary newer than index): advisory + Continue (burst-ordering artefact).
     /// - PC2b (index newer than primary): block (anomalous — index cannot legitimately
     ///   advance ahead of the BC it cites).
@@ -760,7 +764,7 @@ mod tests {
 
     /// T-039 (Rust unit test): escaped-pipe chain must use LAST token (F-S2107-P1B-006).
     ///
-    /// BC-5.39.010 v1.14 PC5 (F-P6-019b/019c): when the version-chain cell has an
+    /// BC-5.39.010 v1.19 PC5 (F-P6-019b/019c): when the version-chain cell has an
     /// escaped-pipe-delimited chain, the first token of the last chain entry is authoritative.
     ///
     /// RED GATE: current code returns "1.3" (first token from split('|') on
@@ -795,12 +799,12 @@ mod tests {
     /// T-039b (Rust unit test): frontmatter changelog line must not be matched as BC body row
     /// (F-S2107-P1B-007).
     ///
-    /// BC-5.39.010 v1.14 PC5 condition (1) (F-S2107-P1B-007): extract_bc_index_version_state
+    /// BC-5.39.010 v1.19 PC5 condition (1) (F-S2107-P1B-007): extract_bc_index_version_state
     /// must scan only lines starting with '|' — skipping YAML frontmatter, prose, and blank lines.
     ///
     /// RED GATE: current code scans ALL lines. Frontmatter changelog entry
     /// `    change: "v4.43: BC-5.39.010 v1.5|v1.6."` contains both `|` and "BC-5.39.010"
-    /// → matched first. extract_version_token on `    change: "v4.43: BC-5.39.010 v1.14`
+    /// → matched first. extract_version_token on `    change: "v4.43: BC-5.39.010 v1.19`
     /// returns "4.43". "4.43" ≠ "1.6" → violation → violations NOT empty.
     /// assert!(violations.is_empty()) FAILS → RED gate.
     /// After fix (skip lines before body): canonical 6-field body row with `v1.6` in
@@ -913,7 +917,7 @@ mod tests {
     // -----------------------------------------------------------------------
     // F-S2107-P3-001 (BLOCKER): three-state extractor — RowPresentNoVersion
     //
-    // BC-5.39.010 v1.14 PC5: extract_bc_index_version_state must distinguish
+    // BC-5.39.010 v1.19 PC5: extract_bc_index_version_state must distinguish
     // four states (RowAbsent, RowPresentNoVersion, Version, RowMalformed):
     //   RowAbsent         — no line for this BC ID in the index
     //   RowPresentNoVersion — row exists but has no version-chain cell (5-column shape)
@@ -934,7 +938,7 @@ mod tests {
     /// F-S2107-P3-001 RED GATE: 5-column row (RowPresentNoVersion) with version > "1.0"
     /// must NOT block.
     ///
-    /// BC-5.39.010 v1.14 PC5: COLUMN-COUNT-ANCHORED classification. After escape-aware
+    /// BC-5.39.010 v1.19 PC5: COLUMN-COUNT-ANCHORED classification. After escape-aware
     /// split, count non-empty fields: exactly 5 → RowPresentNoVersion unconditionally —
     /// no token search performed. Current token-search implementation returns None
     /// (no v-prefixed token) which maps to the old RowAbsent → block path.
@@ -944,7 +948,7 @@ mod tests {
     #[test]
     fn test_BC_5_39_010_arm_a1_row_present_no_version_cell_not_blocked() {
         // 5-column canonical BC-INDEX shape: no version-chain cell.
-        // BC-5.39.010 v1.14 PC5: column count alone determines state — no token search
+        // BC-5.39.010 v1.19 PC5: column count alone determines state — no token search
         // is performed on any field, including story IDs in the Stories column.
         let index_content =
             b"| [BC-9.99.001](ss-09/BC-9.99.001.md) | Some title | draft | CAP-TBD | S-99.01 |\n";
@@ -957,7 +961,7 @@ mod tests {
         assert!(
             violations.is_empty(),
             "5-column row (no version-chain cell) with bc_version='1.2' must NOT block. \
-            BC-5.39.010 v1.14 PC5: column-count-anchored — exactly 5 fields → RowPresentNoVersion \
+            BC-5.39.010 v1.19 PC5: column-count-anchored — exactly 5 fields → RowPresentNoVersion \
             unconditionally; no token search on any field. \
             Violations: {:?}",
             violations
@@ -965,14 +969,14 @@ mod tests {
         assert!(
             advisories.is_empty(),
             "RowPresentNoVersion must be fully silent — no advisory either. \
-            BC-5.39.010 v1.14 PC5. Advisories: {:?}",
+            BC-5.39.010 v1.19 PC5. Advisories: {:?}",
             advisories
         );
     }
 
     /// F-P6-018: ≥6-field row with no v-token in field 6 → RowPresentNoVersion (normative).
     ///
-    /// BC-5.39.010 v1.14 PC5 (F-P6-018 normative addition): a row with ≥6 non-empty fields
+    /// BC-5.39.010 v1.19 PC5 (F-P6-018 normative addition): a row with ≥6 non-empty fields
     /// where the 6th field contains no `\bv([0-9]+\.[0-9]+)\b` token is classified as
     /// `RowPresentNoVersion`, producing the same `Continue` outcome as the 5-field case.
     ///
@@ -994,14 +998,14 @@ mod tests {
         assert!(
             violations.is_empty(),
             "6-field row with no v-token in field 6 must NOT block. \
-            F-P6-018 (BC-5.39.010 v1.14 PC5 normative): ≥6 fields AND no v-token → \
+            F-P6-018 (BC-5.39.010 v1.19 PC5 normative): ≥6 fields AND no v-token → \
             RowPresentNoVersion → silent-continue. Violations: {:?}",
             violations
         );
         assert!(
             advisories.is_empty(),
             "6-field row with no v-token in field 6 must emit NO advisory. \
-            F-P6-018 (BC-5.39.010 v1.14 PC5): RowPresentNoVersion is fully silent. \
+            F-P6-018 (BC-5.39.010 v1.19 PC5): RowPresentNoVersion is fully silent. \
             Advisories: {:?}",
             advisories
         );
@@ -1014,7 +1018,7 @@ mod tests {
     ///   schema version | draft | CAP-TBD | S-15.01 |`
     ///   BC-1.01.001.md version: "1.2"
     ///
-    /// BC-5.39.010 v1.14 PC5: column-count-anchored — 5 non-empty fields after escape-aware
+    /// BC-5.39.010 v1.19 PC5: column-count-anchored — 5 non-empty fields after escape-aware
     /// split → RowPresentNoVersion unconditionally. No token search on any field, including
     /// the Stories column which contains "S-15.01". Current implementation performs token
     /// search and finds no v-prefixed token → None → RowAbsent path → block.
@@ -1023,7 +1027,7 @@ mod tests {
     #[test]
     fn test_BC_5_39_010_arm_a1_bc_1_01_001_exact_row_shape_not_blocked() {
         // Exact row shape from live BC-INDEX.md (adversary pass-3 corpus verification).
-        // BC-5.39.010 v1.14 PC5: 5 fields → RowPresentNoVersion, no token search performed.
+        // BC-5.39.010 v1.19 PC5: 5 fields → RowPresentNoVersion, no token search performed.
         let index_content = b"| [BC-1.01.001](ss-01/BC-1.01.001.md) | Registry rejects \
             unknown schema version | draft | CAP-TBD | S-15.01 |\n";
         let (violations, _) = run_arm_a1_with_index_result(
@@ -1035,7 +1039,7 @@ mod tests {
         assert!(
             violations.is_empty(),
             "BC-1.01.001 canonical 5-column INDEX row with bc_version='1.2' must NOT block. \
-            BC-5.39.010 v1.14 PC5: 5 fields escape-aware → RowPresentNoVersion unconditionally. \
+            BC-5.39.010 v1.19 PC5: 5 fields escape-aware → RowPresentNoVersion unconditionally. \
             F-S2107-P3-001 BLOCKER. Violations: {:?}",
             violations
         );
@@ -1044,17 +1048,17 @@ mod tests {
     /// F-S2107-P3-001 RED GATE (product-owner regression guard): row with S-15.01 in the
     /// Stories column MUST yield RowPresentNoVersion, NOT Version("15.01").
     ///
-    /// BC-5.39.010 v1.14 PC5 (corpus stat): 194 of 1,943 five-field rows carry story IDs
+    /// BC-5.39.010 v1.19 PC5 (corpus stat): 194 of 1,943 five-field rows carry story IDs
     /// whose decimal fragments (e.g., "15.01") resemble version tokens. This is the single
     /// most important test in this burst — it names the exact defect the v1.8 contract was
     /// designed to eliminate. Any extractor that converts "S-15.01" → Version("15.01")
-    /// is non-conforming with BC-5.39.010 v1.14 PC5.
+    /// is non-conforming with BC-5.39.010 v1.19 PC5.
     ///
     /// RED GATE: current None path → RowAbsent → block → violations NOT empty.
     #[test]
     fn test_BC_5_39_010_arm_a1_stories_column_s15_01_yields_row_present_no_version() {
         // Same corpus row as bc_1_01_001_exact_row_shape_not_blocked, explicitly named for
-        // the S-15.01 regression guard as required by product-owner (BC-5.39.010 v1.14 PC5).
+        // the S-15.01 regression guard as required by product-owner (BC-5.39.010 v1.19 PC5).
         let index_content = b"| [BC-1.01.001](ss-01/BC-1.01.001.md) | Registry rejects \
             unknown schema version | draft | CAP-TBD | S-15.01 |\n";
         let (violations, _) = run_arm_a1_with_index_result(
@@ -1066,14 +1070,14 @@ mod tests {
         assert!(
             violations.is_empty(),
             "S-15.01 in the Stories column must yield RowPresentNoVersion, NOT Version('15.01'). \
-            BC-5.39.010 v1.14 PC5 regression guard: column-count 5 → RowPresentNoVersion, \
+            BC-5.39.010 v1.19 PC5 regression guard: column-count 5 → RowPresentNoVersion, \
             no token search on any field. This is the exact false-positive the v1.8 \
             column-count-anchored contract was designed to close. Violations: {:?}",
             violations
         );
     }
 
-    /// BC-5.39.010 v1.14 PC5 escape-aware split RED GATE: 5-field row where the Stories cell
+    /// BC-5.39.010 v1.19 PC5 escape-aware split RED GATE: 5-field row where the Stories cell
     /// contains a literal `\|` (escaped pipe) must NOT be inflated to 6+ fields.
     ///
     /// Row shape: `| [BC-9.99.002](...) | Title | active | CAP-TBD | S-1.03 \| S-2.06 |`
@@ -1092,7 +1096,7 @@ mod tests {
     #[test]
     fn test_BC_5_39_010_arm_a1_escape_aware_5field_stories_pipe_not_a_version_cell() {
         // Stories cell contains `\|` which naive splitting inflates to phantom 6th field.
-        // BC-5.39.010 v1.14 PC5: escape-aware split must count this as 5 fields → RowPresentNoVersion.
+        // BC-5.39.010 v1.19 PC5: escape-aware split must count this as 5 fields → RowPresentNoVersion.
         let index_content =
             b"| [BC-9.99.002](ss-09/BC-9.99.002.md) | Two linked stories | active | \
             CAP-TBD | S-1.03 \\| S-2.06 |\n";
@@ -1105,14 +1109,14 @@ mod tests {
         assert!(
             violations.is_empty(),
             "5-field row with \\| in Stories cell must NOT block. \
-            BC-5.39.010 v1.14 PC5: escape-aware split → 5 non-empty fields → RowPresentNoVersion. \
+            BC-5.39.010 v1.19 PC5: escape-aware split → 5 non-empty fields → RowPresentNoVersion. \
             Naive split inflates to 6 fields, converting a RowPresentNoVersion row into a \
             spurious Version check. Violations: {:?}",
             violations
         );
     }
 
-    /// BC-5.39.010 v1.14 PC5 escape-aware split GREEN regression guard: 6-field row where
+    /// BC-5.39.010 v1.19 PC5 escape-aware split GREEN regression guard: 6-field row where
     /// the Version cell contains a `\|`-separated version chain must still yield the correct
     /// version.
     ///
@@ -1143,7 +1147,7 @@ mod tests {
         assert!(
             violations.is_empty(),
             "6-field version chain row with \\| separators in version cell must extract 'v1.7'. \
-            BC-5.39.010 v1.14 PC5: escape-aware split → 6 fields → Version from field 6 \
+            BC-5.39.010 v1.19 PC5: escape-aware split → 6 fields → Version from field 6 \
             (rightmost vN.N). This is a regression guard — the fix must NOT break this case. \
             Violations: {:?}",
             violations
@@ -1153,7 +1157,7 @@ mod tests {
     // -----------------------------------------------------------------------
     // F-P4-003 / F-P4-025 — RowMalformed advisory coverage
     //
-    // BC-5.39.010 v1.14 postcondition 4a (NORMATIVE VERBATIM):
+    // BC-5.39.010 v1.19 postcondition 4a (NORMATIVE VERBATIM):
     //   "validate-cross-site-correspondence [Class A Arm1]: BC-INDEX.md contains a
     //   malformed candidate line for <id> (<N> fields found; expected ≥5 for a valid
     //   body-table row). This line is structurally not a BC-INDEX body-table row (likely
@@ -1167,7 +1171,7 @@ mod tests {
     // The shipped message (arm_a1.rs:406-415) substitutes non-normative prose:
     //   "Not blocking — this is not a dropped registration. Manual verification
     //   recommended. The genuine dropped-registration case (no candidate line at all)
-    //   is RowAbsent (postcondition 4). BC-5.39.010 v1.14 PC5 postcondition 4a."
+    //   is RowAbsent (postcondition 4). BC-5.39.010 v1.19 PC5 postcondition 4a."
     // Neither "Registration status cannot be determined from this line" nor
     // "Verify BC-INDEX body-table registration manually" appears.
     // -----------------------------------------------------------------------
@@ -1175,7 +1179,7 @@ mod tests {
     /// F-P4-003: RowMalformed MUST NOT block (advisory-only, postcondition 4a).
     ///
     /// Fixture: 2-field locator-matched line (notes table row shape).
-    /// BC-5.39.010 v1.14 PC5 postcondition 4a: RowMalformed → advisory + Continue.
+    /// BC-5.39.010 v1.19 PC5 postcondition 4a: RowMalformed → advisory + Continue.
     /// NEVER blocks — a found-but-malformed line is not a dropped registration.
     ///
     /// RED GATE: if this test fails, advisory-only path is broken (test should pass
@@ -1186,7 +1190,7 @@ mod tests {
     fn test_BC_5_39_010_arm_a1_row_malformed_no_block() {
         // 2-field locator-matched line: carries BC link in cell 1, a note in cell 2.
         // Real corpus shape: a notes/changelog table row that happens to carry the BC ID.
-        // BC-5.39.010 v1.14 PC5: 2 non-empty fields < 5 → RowMalformed(2) → advisory only.
+        // BC-5.39.010 v1.19 PC5: 2 non-empty fields < 5 → RowMalformed(2) → advisory only.
         let index_content = concat!(
             "| BC ID | Title | Status | Capabilities | Stories | Version History |\n",
             "|-------|-------|--------|--------------|---------|----------------|\n",
@@ -1200,13 +1204,13 @@ mod tests {
         );
         assert!(
             violations.is_empty(),
-            "RowMalformed MUST NOT block (BC-5.39.010 v1.14 postcondition 4a: \
+            "RowMalformed MUST NOT block (BC-5.39.010 v1.19 postcondition 4a: \
             advisory + Continue only). Violations: {:?}",
             violations
         );
         assert!(
             !advisories.is_empty(),
-            "RowMalformed MUST emit an advisory (BC-5.39.010 v1.14 postcondition 4a). \
+            "RowMalformed MUST emit an advisory (BC-5.39.010 v1.19 postcondition 4a). \
             Advisories: {:?}",
             advisories
         );
@@ -1214,7 +1218,7 @@ mod tests {
 
     /// F-P4-003 / F-P4-025 RED GATE: advisory MUST contain verbatim clause 1.
     ///
-    /// BC-5.39.010 v1.14 postcondition 4a NORMATIVE: advisory MUST contain
+    /// BC-5.39.010 v1.19 postcondition 4a NORMATIVE: advisory MUST contain
     /// "Registration status cannot be determined from this line".
     ///
     /// RED GATE: shipped message omits this clause entirely. Test FAILS until
@@ -1239,14 +1243,14 @@ mod tests {
             msg.contains("Registration status cannot be determined from this line"),
             "advisory MUST contain verbatim postcondition-4a clause: \
             'Registration status cannot be determined from this line'. \
-            BC-5.39.010 v1.14 PC5 postcondition 4a (F-P4-003 / F-P4-025). \
+            BC-5.39.010 v1.19 PC5 postcondition 4a (F-P4-003 / F-P4-025). \
             Got: {msg:?}"
         );
     }
 
     /// F-P4-003 / F-P4-025 RED GATE: advisory MUST contain verbatim clause 2.
     ///
-    /// BC-5.39.010 v1.14 postcondition 4a NORMATIVE: advisory MUST contain
+    /// BC-5.39.010 v1.19 postcondition 4a NORMATIVE: advisory MUST contain
     /// "Verify BC-INDEX body-table registration manually".
     ///
     /// RED GATE: shipped message omits this operator-actionable instruction.
@@ -1271,7 +1275,7 @@ mod tests {
             msg.contains("Verify BC-INDEX body-table registration manually"),
             "advisory MUST contain verbatim postcondition-4a clause: \
             'Verify BC-INDEX body-table registration manually'. \
-            BC-5.39.010 v1.14 PC5 postcondition 4a (F-P4-003 / F-P4-025). \
+            BC-5.39.010 v1.19 PC5 postcondition 4a (F-P4-003 / F-P4-025). \
             Got: {msg:?}"
         );
     }
@@ -1280,7 +1284,7 @@ mod tests {
     ///
     /// Fixture: 2-field line → RowMalformed(2). Advisory must mention "2" to tell
     /// the operator how many fields were found.
-    /// BC-5.39.010 v1.14 postcondition 4a: "(<N> fields found; expected ≥5 …)".
+    /// BC-5.39.010 v1.19 postcondition 4a: "(<N> fields found; expected ≥5 …)".
     ///
     /// Note: this assertion is ADDITIONALLY a RED GATE because the current message
     /// says "non-empty fields found" (different from spec's "fields found") and
@@ -1304,7 +1308,7 @@ mod tests {
         assert!(
             msg.contains('2'),
             "advisory MUST cite the field count (2 for this fixture). \
-            BC-5.39.010 v1.14 postcondition 4a: '(<N> fields found; …)'. \
+            BC-5.39.010 v1.19 postcondition 4a: '(<N> fields found; …)'. \
             Got: {msg:?}"
         );
     }
