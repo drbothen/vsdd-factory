@@ -685,9 +685,10 @@ for line in data.splitlines():
 # (0xFF) that `host::read_file` reads successfully (the read itself succeeds;
 # only the subsequent UTF-8 decode fails).
 #
-# RED GATE: current code returns HookResult::Continue (exit 0) on decode
-# failure. `_assert_exit 2` FAILS now. After fix (block_with_fix per
-# postcondition 25): exit 2.
+# Fixed behavior: on decode failure the shipped wasm returns
+# HookResult::block_with_fix per postcondition 25 (exit 2), not
+# HookResult::Continue. `_assert_exit 2` below asserts this against the
+# committed release wasm.
 # ---------------------------------------------------------------------------
 
 @test "ADV-RECON-007: primary target UTF-8 decode failure produces exit code 2 (block), not Continue" {
@@ -735,7 +736,7 @@ for line in data.splitlines():
 
   [ "$actual_block_reason" = "$expected_decoded" ] || {
     echo "FAIL: ADV-RECON2-002 postcondition-25 block message does not match BC-5.39.010 v1.20 normative verbatim text."
-    echo "  This assertion is expected to remain RED until validate-cross-site-correspondence.wasm is rebuilt from src/lib.rs (devops rebuild pending)."
+    echo "  This asserts full-string equality of the block_reason against the committed release wasm."
     echo "  Expected: $expected_decoded"
     echo "  Actual:   $actual_block_reason"
     echo "  (empty actual = block_reason not found in dispatcher stderr; mismatch = wrong message or stale wasm)"
@@ -764,7 +765,7 @@ for line in data.splitlines():
 # a1-no-bc-index fixture's NotFound-is-advisory-only shape (BC-5.39.010
 # precondition 8) so Arm A1 does not itself produce a block.
 #
-# This control PASSES against the current (about-to-be-rebuilt) wasm — it is a
+# This control PASSES against the committed release wasm — it is a
 # coverage-fill regression guard, not a red-gate test.
 @test "ADV-RECON-007 CONTROL: primary target valid UTF-8 dispatches normally (exit code 0)" {
   _require_artifacts
