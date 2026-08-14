@@ -1456,4 +1456,75 @@ mod tests {
             Advisories: {advisories:?}"
         );
     }
+
+    // -----------------------------------------------------------------------
+    // BC-5.39.010 v1.22 / ADV-RECON11-001: precondition 15b / postcondition 26
+    // — Secondary Index-File UTF-8 Decode Failure (Arm B1 STORY-INDEX.md
+    // secondary read ONLY — NOT Arm B2, where STORY-INDEX.md is the primary
+    // target and is already governed by precondition 15a / postcondition 25's
+    // fail-closed BLOCK). ADVISORY (Continue), not block.
+    //
+    // RED GATE: `parse_story_index_catalog_hash` and
+    // `parse_story_index_blockquote_hash` both do
+    // `std::str::from_utf8(index_content).ok()?` — non-UTF-8 bytes silently
+    // produce `None` for both B2 and B3, indistinguishable from a genuinely
+    // new, not-yet-registered story in a DECODABLE index file.
+    // `run_arm_b1_with_index_result`'s `(None, None)` arm then emits the
+    // GENERIC postcondition-12 "not yet registered" fail-open advisory —
+    // silently disabling three-way hash checking with no disclosure that the
+    // actual root cause is an undecodable STORY-INDEX.md, not legitimate
+    // bootstrap absence. Postcondition 26 instead requires a DISTINCT advisory
+    // naming STORY-INDEX.md and stating the hash state is INDETERMINATE, not
+    // confirmed-absent.
+    // -----------------------------------------------------------------------
+
+    /// BC-5.39.010 precondition 15b / postcondition 26 (v1.22 / ADV-RECON11-001):
+    /// non-UTF-8 STORY-INDEX.md secondary read at Arm B1 must emit the distinct
+    /// INDETERMINATE advisory + Continue, NOT the generic PC12 "not yet
+    /// registered" fail-open advisory that conflates decode failure with
+    /// legitimate bootstrap absence.
+    #[test]
+    fn test_BC_5_39_010_arm_b1_non_utf8_story_index_indeterminate_advisory() {
+        // STORY-INDEX.md "read" succeeds as bytes (Ok(...)) but the bytes are not
+        // valid UTF-8.
+        let non_utf8_bytes: Vec<u8> = vec![0xFF, 0xFE, 0xFD, 0x80, 0x81, b'|', b'S', b'-'];
+        let (violations, advisories) =
+            run_arm_b1_with_index_result("S-21.07", "47a65c9", Ok(non_utf8_bytes));
+
+        assert!(
+            violations.is_empty(),
+            "postcondition 26 (v1.22): non-UTF-8 STORY-INDEX.md secondary read at Arm \
+            B1 MUST NOT block. Actual violations: {violations:?}"
+        );
+        assert!(
+            !advisories.is_empty(),
+            "postcondition 26 (v1.22): non-UTF-8 STORY-INDEX.md secondary read MUST \
+            emit an advisory. Actual advisories: {advisories:?}"
+        );
+        let combined = advisories
+            .iter()
+            .map(|a| a.message.as_str())
+            .collect::<Vec<_>>()
+            .join(" | ");
+        assert!(
+            combined.contains("STORY-INDEX.md")
+                && combined.contains("failed UTF-8 decode")
+                && combined.contains("INDETERMINATE, not confirmed-absent"),
+            "postcondition 26 (v1.22) prescribed verbatim message substring not found — \
+            expected a DISTINCT advisory naming 'STORY-INDEX.md failed UTF-8 decode ... \
+            row/hash state for '<id>' is INDETERMINATE, not confirmed-absent. Fix: \
+            verify the index file's encoding and re-save as UTF-8.' \
+            Actual advisories: {advisories:?}"
+        );
+        assert!(
+            !combined.contains("not yet registered"),
+            "postcondition 26 (v1.22): the non-UTF-8-decode advisory MUST be distinct \
+            from the generic PC12 'not yet registered' fail-open advisory — decode \
+            failure (indeterminate hash state) and legitimate bootstrap absence in a \
+            decodable index file MUST NOT be conflated (precondition 15b / invariant 5 \
+            extension). RED GATE: current code's (None, None) arm from `.ok()?` on \
+            both parse_story_index_catalog_hash and parse_story_index_blockquote_hash \
+            emits exactly this generic message. Actual advisories: {advisories:?}"
+        );
+    }
 }

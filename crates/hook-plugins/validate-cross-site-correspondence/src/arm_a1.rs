@@ -1656,4 +1656,78 @@ mod tests {
             result
         );
     }
+
+    // -----------------------------------------------------------------------
+    // BC-5.39.010 v1.22 / ADV-RECON11-001: precondition 15b / postcondition 26
+    // — Secondary Index-File UTF-8 Decode Failure (Arm A1 BC-INDEX.md secondary
+    // read). DISTINCT from precondition 15a / postcondition 25 (primary-target
+    // decode failure — BLOCK); this clause governs the secondary BC-INDEX.md
+    // read only, and is ADVISORY (Continue), not block.
+    //
+    // RED GATE: `extract_bc_index_version_state` currently does
+    // `std::str::from_utf8(index_content).unwrap_or("")` — non-UTF-8 bytes
+    // silently decode to "" (empty string), yielding zero candidate lines →
+    // `BcIndexVersionState::RowAbsent`. For a BC with frontmatter `version:` >
+    // "1.0", `RowAbsent` routes to postcondition 4's BLOCK path ("previous
+    // registration appears to have been dropped") — a MISLEADING message,
+    // since the true root cause is index-file corruption (undecodable bytes),
+    // not a dropped registration. Postcondition 26 instead requires a DISTINCT
+    // advisory naming BC-INDEX.md and stating the row state is INDETERMINATE,
+    // not confirmed-absent, with `HookResult::Continue` — no block.
+    // -----------------------------------------------------------------------
+
+    /// BC-5.39.010 precondition 15b / postcondition 26 (v1.22 / ADV-RECON11-001):
+    /// non-UTF-8 BC-INDEX.md secondary read must emit the distinct INDETERMINATE
+    /// advisory + Continue, NOT the misleading `RowAbsent` → postcondition 4 BLOCK.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_non_utf8_bc_index_indeterminate_advisory_not_block() {
+        // BC-INDEX.md "read" succeeds as bytes (Ok(...)) but the bytes are not
+        // valid UTF-8 (lone continuation/invalid leading bytes 0xFF/0xFE mixed
+        // with a plausible-looking pipe-table fragment so a naive lossy decode
+        // couldn't accidentally "fix" it into a matching row either).
+        let non_utf8_bytes: Vec<u8> = vec![0xFF, 0xFE, 0xFD, 0x80, 0x81, b'|', b'B', b'C'];
+        let (violations, advisories) = run_arm_a1_with_index_result(
+            "BC-5.39.010",
+            "1.6",
+            ".factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md",
+            Ok(non_utf8_bytes),
+        );
+
+        assert!(
+            violations.is_empty(),
+            "postcondition 26 (v1.22): non-UTF-8 BC-INDEX.md secondary read MUST NOT \
+            block — MUST NOT fall through to RowAbsent's postcondition-4 BLOCK path \
+            ('previous registration appears to have been dropped'). \
+            RED GATE: current code decodes non-UTF-8 bytes via unwrap_or(\"\") → zero \
+            candidate lines → RowAbsent → BLOCK for BC version \"1.6\" (> \"1.0\"). \
+            Actual violations: {violations:?}"
+        );
+        assert!(
+            !advisories.is_empty(),
+            "postcondition 26 (v1.22): non-UTF-8 BC-INDEX.md secondary read MUST emit \
+            a distinct INDETERMINATE advisory + Continue. Actual advisories: {advisories:?}"
+        );
+        let combined = advisories
+            .iter()
+            .map(|a| a.message.as_str())
+            .collect::<Vec<_>>()
+            .join(" | ");
+        assert!(
+            combined.contains("BC-INDEX.md")
+                && combined.contains("failed UTF-8 decode")
+                && combined.contains("INDETERMINATE, not confirmed-absent"),
+            "postcondition 26 (v1.22) prescribed verbatim message substring not found. \
+            Expected an advisory naming 'BC-INDEX.md failed UTF-8 decode ... row/hash \
+            state for '<id>' is INDETERMINATE, not confirmed-absent. Fix: verify the \
+            index file's encoding and re-save as UTF-8.' Actual advisories: {advisories:?}"
+        );
+        assert!(
+            !combined.contains("previous registration appears to have been dropped"),
+            "postcondition 26 (v1.22): the non-UTF-8-decode advisory MUST NOT be the \
+            misleading RowAbsent-derived 'dropped registration' block message — those \
+            two dispositions (INDETERMINATE decode failure vs. genuinely-absent row in \
+            a decodable index file) MUST NOT be conflated (precondition 15b). \
+            Actual advisories: {advisories:?}"
+        );
+    }
 }
