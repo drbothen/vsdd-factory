@@ -111,7 +111,10 @@ pub struct Advisory {
 ///    If violations empty: return `HookResult::Continue`.
 ///
 /// # BC trace
-/// BC-5.39.010 preconditions 1-39; postconditions 1-23; invariants 1-11.
+/// BC-5.39.010 preconditions, postconditions, and invariants (current version per BC-INDEX) —
+/// including preconditions 15a/15b/40 (primary-target decode-failure fail-closed + Arm B1
+/// volatile-input scan), postcondition 25 (primary UTF-8 decode BLOCK, Step 4 below), and
+/// postcondition 26 (secondary-index INDETERMINATE advisory).
 /// BC-5.39.010 invariant 7: arms MUST NOT suppress each other.
 /// BC-5.39.010 invariant 9: `is_char_boundary()` on byte-index slicing.
 pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
