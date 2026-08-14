@@ -848,18 +848,20 @@ mod tests {
     /// Vacuity guard — Arm B2 with no blockquote entries must not pass vacuously.
     /// BC-5.39.010 invariant 8 (B2 cascade). An Arm B2 invocation with no
     /// blockquote entries must invoke the comparison logic (not short-circuit to
-    /// "nothing to check → clean pass"). The function must execute — this test
-    /// panics on the todo!() body which is the correct Red Gate failure mode.
+    /// "nothing to check → clean pass"). run_arm_b2 is fully implemented; this test
+    /// is a green regression guard confirming it still executes the comparison
+    /// logic (rather than short-circuiting) and correctly reports zero violations
+    /// when there is nothing in the blockquote to compare.
     #[test]
     fn test_BC_5_39_010_arm_b2_no_blockquote_entries_not_vacuous() {
         // STORY-INDEX.md with catalog rows but NO blockquote (> lines)
-        // Expected when implemented: 0 violations (nothing in blockquote to compare).
-        // The key is that run_arm_b2 EXECUTES (not skips) — the Red Gate confirms this.
+        // Expected: 0 violations (nothing in blockquote to compare).
+        // The key is that run_arm_b2 EXECUTES (not skips) the comparison logic.
         let content = "| S-21.07 | title | input-hash 47a65c9 | W4 | P1 |\n\
             # No blockquote section here\n";
         let violations = run_arm_b2(content);
-        // run_arm_b2 is todo!() → panics → test FAILS (RED Gate confirmed)
-        // When implemented: 0 violations (no blockquote entries to compare against catalog)
+        // run_arm_b2 is fully implemented: 0 violations expected (no blockquote
+        // entries to compare against catalog).
         assert!(
             violations.is_empty(),
             "absent blockquote entries must not produce violations (nothing to compare)"
@@ -1092,16 +1094,16 @@ mod tests {
     //   7. `.factory/specs/behavioral-contracts/BC-INDEX.md`  (path-equals)
     //   8. `.factory/stories/STORY-INDEX.md`                  (path-equals)
     //
-    // Current impl has THREE drifts from this spec:
-    //   (a) ARCH-INDEX.md ABSENT — causes live self-block on S-21.07 writes
-    //   (b) `.factory/cycles/**` ANY-FILE — too broad; adv-cycle-pass-N.md is volatile
-    //   (c) VP-INDEX.md PRESENT — not in PC40; always returns true for VP-INDEX.md
+    // Pre-fix impl (now closed) had FOUR drifts from this spec:
+    //   (a) ARCH-INDEX.md ABSENT — caused live self-block on S-21.07 writes
+    //   (b) `.factory/cycles/**` ANY-FILE — too broad; adv-cycle-pass-N.md was volatile
+    //   (c) VP-INDEX.md PRESENT — not in PC40; used to always return true for VP-INDEX.md
     //       at any depth under .factory/
     //   (d) Index files matched by FILENAME ONLY (no path-depth check) — e.g.,
-    //       .factory/cycles/v1.0/BC-INDEX.md currently returns true
+    //       .factory/cycles/v1.0/BC-INDEX.md used to return true
     //
     // Per-row documentary tests (patterns 1-5) confirm currently-correct behavior.
-    // RED GATE tests cover the three drifts.
+    // The RED GATE tests below covered these drifts; all four are now closed and green.
     // -----------------------------------------------------------------------
 
     // -- Per-row documentary tests (GREEN) -----------------------------------
@@ -1296,17 +1298,19 @@ mod tests {
     // -----------------------------------------------------------------------
     // F-S2107-P3-015 (MEDIUM): extract_story_id_from_table_row too broad
     //
-    // Current `id.starts_with("S-")` admits non-canonical IDs like "S-README".
-    // TD-VSDD-060 sibling sweep: dispatch.rs F-P2-011 fixed is_canonical_story_basename
-    // but the fix was not swept to arm_b.rs extract_story_id_from_table_row.
+    // Pre-fix bug (now closed): `id.starts_with("S-")` used to admit non-canonical
+    // IDs like "S-README". TD-VSDD-060 sibling sweep: dispatch.rs F-P2-011 fixed
+    // is_canonical_story_basename; that fix has since been swept to arm_b.rs
+    // extract_story_id_from_table_row as well (see `parse_story_id_len` below).
     //
     // PC9/PC16: story ID must match S-[0-9]+\.[0-9]+ (e.g., "S-21.07", "S-1.1").
     // -----------------------------------------------------------------------
 
     /// F-S2107-P3-015 RED GATE: non-canonical story IDs like "S-README" must return None.
     ///
-    /// `extract_story_id_from_table_row("| S-README | ... |")` → currently returns
-    /// Some("S-README") via `starts_with("S-")`. After fix (canonical predicate): None.
+    /// Pre-fix Red Gate (now closed): `extract_story_id_from_table_row("| S-README | ... |")`
+    /// used to return Some("S-README") via `starts_with("S-")`. After fix (canonical
+    /// predicate): None.
     ///
     /// RED GATE: current impl returns Some("S-README") → assert!(result.is_none()) FAILS.
     #[test]

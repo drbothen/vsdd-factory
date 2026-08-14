@@ -1014,9 +1014,9 @@ mod tests {
     // T-049 / F-S2107-P1B-001: scan must be bounded to the Behavioral Contracts
     // section; Edge Cases table rows must NOT be scanned.
     //
-    // Current bug: `extract_story_bc_version_citations` scans ALL lines that
-    // contain both bc_id and a pipe character. In the real S-21.07 story file,
-    // the Edge Cases table contains rows like:
+    // Pre-fix bug (now closed): `extract_story_bc_version_citations` used to scan
+    // ALL lines that contained both bc_id and a pipe character. In the real S-21.07
+    // story file, the Edge Cases table contains rows like:
     //
     //   EC-002: "BC bumped v1.17→v1.18; INDEX says v1.17" in col 2, "BC-5.39.010 EC-002" in col 4
     //   EC-015: "BC written `version: "1.33"`, `last_amended: "... (v1.31) ..."` " in col 2,
@@ -1024,10 +1024,10 @@ mod tests {
     //   EC-017: "modified: ["2026-05-14", "2026-05-18", "2026-05-20 (v1.3)"]" in col 2,
     //           "BC-5.39.010 EC-017" in col 4
     //
-    // All three rows pass the "contains bc_id" check (last cell has "BC-5.39.010 EC-NNN").
-    // All three rows have version tokens in other columns (v1.17, v1.31, v1.3 respectively).
-    // The unbounded scan therefore picks up spurious "stale version" citations from
-    // descriptive content, leading to false-positive blocking violations.
+    // All three rows passed the "contains bc_id" check (last cell has "BC-5.39.010 EC-NNN").
+    // All three rows had version tokens in other columns (v1.17, v1.31, v1.3 respectively).
+    // The pre-fix unbounded scan therefore picked up spurious "stale version" citations
+    // from descriptive content, leading to false-positive blocking violations.
     //
     // The fix (amended PC13): scan is bounded to the `## Behavioral Contracts`
     // and `## Token Budget` sections only; scanning stops at the next `##` heading.

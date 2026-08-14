@@ -369,27 +369,28 @@ mod tests {
     // -----------------------------------------------------------------------
     // T-046 / F-S2107-P1C-001: unclassified paths must return Continue, not block.
     //
-    // Current bug: on_post_tool_use reads the primary target file (Step 2) BEFORE
-    // it classifies the path (Step 4). In the non-wasm test host, `ffi::read_file`
-    // always returns -1 (CapabilityDenied), so EVERY path — including completely
-    // unclassified ones like ordinary source files, CLAUDE.md, and critically
-    // .factory/STATE.md — produces a blocking HookResult.
+    // Pre-fix bug (now closed): on_post_tool_use used to read the primary target
+    // file (Step 2) BEFORE it classified the path (Step 4). In the non-wasm test
+    // host, `ffi::read_file` always returns -1 (CapabilityDenied), so EVERY path —
+    // including completely unclassified ones like ordinary source files, CLAUDE.md,
+    // and critically .factory/STATE.md — used to produce a blocking HookResult.
     //
     // The most severe consequence: .factory/STATE.md is inside .factory/ but
     // NOT under any of the four `path_allow` prefixes
     // (.factory/specs/behavioral-contracts/, .factory/specs/verification-properties/,
     // .factory/stories/, .factory/cycles/). State-manager writes .factory/STATE.md
-    // on every fix burst, so the factory cannot record its own state.
-    // .factory/policies.yaml has the same problem.
+    // on every fix burst, so under the pre-fix ordering the factory could not
+    // record its own state. .factory/policies.yaml had the same problem.
     //
-    // After fix (classify-then-read): classify first; if unclassified, return
+    // Fix applied (classify-then-read): classify first; if unclassified, return
     // Continue without calling host::read_file at all.
     //
     // BC-5.39.010: unclassified paths are outside the hook's scope (PC1/PC9/PC16/
     // PC22/PC28/PC34). No arm fires → Continue.
     //
-    // RED GATE: current code returns Block (CapabilityDenied on primary read for
-    // all paths). assert_eq!(result, HookResult::Continue) FAILS for every case.
+    // Pre-fix Red Gate (now closed): current code used to return Block
+    // (CapabilityDenied on primary read for all paths). assert_eq!(result,
+    // HookResult::Continue) failed for every case.
     // -----------------------------------------------------------------------
 
     /// T-046 / F-S2107-P1C-001: unclassified paths must return Continue.
@@ -579,7 +580,7 @@ mod tests {
     // F-S2107-P1B-006: escaped-pipe version chains in production BC-INDEX rows.
     // arm_a1::run_arm_a1_with_index_result with production-shaped content must
     // correctly identify `1.6` as current when version history is `v1.3 \| v1.6`.
-    // Current code: split on '|' → first token "1.3" → "1.3" ≠ "1.6" → violation.
+    // Pre-fix code (now closed): split on '|' → first token was "1.3" → "1.3" ≠ "1.6" → violation.
     // After fix: last token "1.6" → match → no violation.
     // -----------------------------------------------------------------------
 
@@ -612,7 +613,7 @@ mod tests {
     // F-S2107-P1C-014: 15-byte last_amended string rejected by length guard.
     // "2026-07-30 (v2)" — single-digit outer version, no sub-version suffix.
     // BC-5.39.010 v1.20 §E1: this is a valid format.
-    // Current code: `if len < 17 { return None }` — 15 < 17 → None.
+    // Pre-fix code (now closed): `if len < 17 { return None }` — 15 < 17 → returned None.
     // -----------------------------------------------------------------------
 
     /// T-045 lib-level: extract_last_amended_outer_version must accept 15-byte format.
@@ -1099,8 +1100,8 @@ mod tests {
     // Corpus tests 3 + 4 — dispatch (RED GATE + GREEN on arrival)
     //
     // is_frontmatter_parity_target on the LIVE VP-INDEX.md path must return false.
-    // Current code: starts_with("VP-") && ends_with(".md") admits VP-INDEX.md.
-    // F-P2-003 / PC34 corpus evidence.
+    // Pre-fix code (now closed): starts_with("VP-") && ends_with(".md") used to admit
+    // VP-INDEX.md. F-P2-003 / PC34 corpus evidence.
     // -----------------------------------------------------------------------
 
     /// CORPUS RED GATE: VP-INDEX.md path must be excluded by is_frontmatter_parity_target.

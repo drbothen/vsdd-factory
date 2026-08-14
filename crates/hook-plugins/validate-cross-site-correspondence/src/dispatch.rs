@@ -531,8 +531,8 @@ mod tests {
 
     /// [DEFERRED v1.6 — Class D] burst-log.md must return None after Class D removal.
     ///
-    /// RED GATE: is_cycle_artifact currently returns Some(BurstLog) →
-    /// `result.is_none()` is false → assertion FAILS.
+    /// Pre-fix Red Gate (now closed): is_cycle_artifact used to return Some(BurstLog) →
+    /// `result.is_none()` was false → assertion failed.
     /// After fix (remove is_cycle_artifact cycle-artifact dispatch): returns None.
     #[test]
     fn test_BC_5_39_010_dispatch_class_d_deferred_burst_log_returns_none() {
@@ -546,14 +546,14 @@ mod tests {
             "burst-log.md must NOT classify as cycle artifact after Class D deferral \
             (BC-5.39.010 v1.6 Class D DEFERRED). \
             F-P2-007 resolution: is_cycle_artifact dispatch removed. \
-            RED GATE: currently returns Some(BurstLog)."
+            Pre-fix Red Gate (now closed): used to return Some(BurstLog)."
         );
     }
 
     /// [DEFERRED v1.6 — Class D] lessons.md must return None after Class D removal.
     ///
-    /// RED GATE: is_cycle_artifact currently returns Some(Lessons) →
-    /// `result.is_none()` is false → assertion FAILS.
+    /// Pre-fix Red Gate (now closed): is_cycle_artifact used to return Some(Lessons) →
+    /// `result.is_none()` was false → assertion failed.
     /// After fix: returns None → PASSES.
     #[test]
     fn test_BC_5_39_010_dispatch_class_d_deferred_lessons_returns_none() {
@@ -563,7 +563,7 @@ mod tests {
             result.is_none(),
             "lessons.md must NOT classify as cycle artifact after Class D deferral \
             (BC-5.39.010 v1.6 Class D DEFERRED). \
-            RED GATE: currently returns Some(Lessons)."
+            Pre-fix Red Gate (now closed): used to return Some(Lessons)."
         );
     }
 

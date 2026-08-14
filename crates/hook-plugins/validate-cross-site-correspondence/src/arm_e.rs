@@ -477,9 +477,9 @@ mod tests {
     // F-S2107-P1C-014: 15-byte last_amended string rejected by length guard.
     // BC-5.39.010 v1.19 §E1: "2026-07-30 (v2)" is a valid last_amended format
     // (single-digit outer version, no sub-version suffix). The string is 15 bytes.
-    // Current code: `if len < 17 { return None }` — 15 < 17 → returns None.
-    // Returns None → advisory "unparseable format" fires → exit 2.
-    // Expected: extract Some("2"), match BC version "2", exit 0, no advisory.
+    // Pre-fix code (now closed): `if len < 17 { return None }` — 15 < 17 → returned None.
+    // Returning None used to make the advisory "unparseable format" fire → exit 2.
+    // Expected (and now implemented): extract Some("2"), match BC version "2", exit 0, no advisory.
     // -----------------------------------------------------------------------
 
     /// T-045 (Rust unit test): 15-byte last_amended must parse to Some("2") (F-S2107-P1C-014).
@@ -549,8 +549,8 @@ mod tests {
             - \"2026-07-18 (v1.1): Active [Prior: 2026-07-01 (v1.0) — first]\"\n  \
             - \"2026-07-15\"\n---\nbody\n";
         let violations = run_arm_e2(content);
-        // run_arm_e2 is todo!() → panics → test FAILS (RED Gate confirmed)
-        // When implemented: strip suffixes → ["2026-07-14", "2026-07-18", "2026-07-15"]
+        // run_arm_e2 is fully implemented: strips suffixes →
+        // ["2026-07-14", "2026-07-18", "2026-07-15"]
         // 2026-07-15 < 2026-07-18 → non-monotonic → block
         assert!(
             !violations.is_empty(),
