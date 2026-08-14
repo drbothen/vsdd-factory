@@ -57,17 +57,21 @@ pub fn parse_story_input_hash(story_content: &str) -> Option<String> {
 /// and extracts the `input-hash <hash>` token from that row.
 /// Returns `None` if no row is found for this story ID (new story not yet indexed).
 ///
-/// Pure: operates on already-read bytes.
+/// Pure: operates on already-decoded content. Takes `&str` (not `&[u8]`) — callers
+/// decode STORY-INDEX.md's bytes ONCE at the orchestration entry point
+/// (`run_arm_b1_with_index_result`) and thread the resulting `&str` into both this
+/// function and `parse_story_index_blockquote_hash`, rather than each leaf parser
+/// independently re-decoding the same bytes (ADV-RECON12-002: avoids 3x O(n) UTF-8
+/// decode of a ≤1 MiB artifact on the Arm B1 path).
 ///
 /// # BC trace
 /// BC-5.39.010 precondition 19 (B2 catalog row extraction).
-pub fn parse_story_index_catalog_hash(index_content: &[u8], story_id: &str) -> Option<String> {
+pub fn parse_story_index_catalog_hash(index_content: &str, story_id: &str) -> Option<String> {
     // F-S2107-P1B-008: naive `contains(story_id)` matches rows WHERE story_id appears
     // in depends_on/blocks columns (e.g. S-18.00's row contains "[S-18.01]"), returning
     // the wrong row's hash. PC16: catalog lookup must anchor on the FIRST pipe-delimited
     // cell — the row whose first cell is exactly the story_id.
-    let content = std::str::from_utf8(index_content).ok()?;
-    for line in content.lines() {
+    for line in index_content.lines() {
         // Must be a table row (starts with |)
         if !line.starts_with('|') {
             continue;
@@ -92,18 +96,18 @@ pub fn parse_story_index_catalog_hash(index_content: &[u8], story_id: &str) -> O
 /// Scans the aggregation blockquote (`> S-21.07=47a65c9`) in STORY-INDEX.md for
 /// an entry matching `story_id`. Returns `None` if not found.
 ///
-/// Pure: operates on already-read bytes.
+/// Pure: operates on already-decoded content. Takes `&str` (not `&[u8]`) — see
+/// `parse_story_index_catalog_hash`'s doc for why (ADV-RECON12-002 decode-once refactor).
 ///
 /// # BC trace
 /// BC-5.39.010 precondition 20 (B3 blockquote extraction).
-pub fn parse_story_index_blockquote_hash(index_content: &[u8], story_id: &str) -> Option<String> {
+pub fn parse_story_index_blockquote_hash(index_content: &str, story_id: &str) -> Option<String> {
     // F-S2107-P1B-003: production STORY-INDEX blockquote is ONE prose line with all hashes
     // embedded as `S-XX.YY=HHHHHHH` tokens (not one line per story). PC21 specifies a
     // WITHIN-line search for `\b<id>=([0-9a-f]{7,40})\b` on `^> ` lines.
-    let content = std::str::from_utf8(index_content).ok()?;
     let needle = format!("{}=", story_id);
 
-    for line in content.lines() {
+    for line in index_content.lines() {
         if !line.starts_with("> ") {
             continue;
         }
@@ -212,20 +216,27 @@ pub fn run_arm_b1_with_index_result(
             // checking with no disclosure that the actual root cause is an undecodable
             // STORY-INDEX.md. Checked once here, at the orchestration entry point,
             // before either leaf parser runs.
-            if std::str::from_utf8(bytes).is_err() {
-                advisories.push(Advisory {
-                    message: format!(
-                        "validate-cross-site-correspondence: STORY-INDEX.md failed UTF-8 \
-                        decode — row/hash state for '{story_id}' is INDETERMINATE, not \
-                        confirmed-absent. Fix: verify the index file's encoding and \
-                        re-save as UTF-8."
-                    ),
-                });
-                return (violations, advisories);
-            }
+            //
+            // ADV-RECON12-002: decode once and thread the resulting `&str` into both
+            // leaf parsers below, rather than each independently re-decoding `bytes`
+            // via its own `.ok()?` — avoids 3x O(n) UTF-8 decode of a ≤1 MiB artifact.
+            let content = match std::str::from_utf8(bytes) {
+                Ok(content) => content,
+                Err(_) => {
+                    advisories.push(Advisory {
+                        message: format!(
+                            "validate-cross-site-correspondence: STORY-INDEX.md failed UTF-8 \
+                            decode — row/hash state for '{story_id}' is INDETERMINATE, not \
+                            confirmed-absent. Fix: verify the index file's encoding and \
+                            re-save as UTF-8."
+                        ),
+                    });
+                    return (violations, advisories);
+                }
+            };
 
-            let catalog_hash = parse_story_index_catalog_hash(bytes, story_id);
-            let blockquote_hash = parse_story_index_blockquote_hash(bytes, story_id);
+            let catalog_hash = parse_story_index_catalog_hash(content, story_id);
+            let blockquote_hash = parse_story_index_blockquote_hash(content, story_id);
 
             match (catalog_hash, blockquote_hash) {
                 (None, None) => {
@@ -951,7 +962,7 @@ mod tests {
             " Input-hashes: S-21.01=32aaccc; S-21.02=11bbddd; S-21.07=47a65c9.",
             " All 7 distinct.\n",
         );
-        let b3 = parse_story_index_blockquote_hash(content.as_bytes(), "S-21.07");
+        let b3 = parse_story_index_blockquote_hash(content, "S-21.07");
         assert_eq!(
             b3,
             Some("47a65c9".to_string()),
@@ -1017,7 +1028,7 @@ mod tests {
     fn test_BC_5_39_010_arm_b_non_hex_catalog_token_not_accepted() {
         // "bonus" contains letters outside 0-9a-f ('o', 'n', 'u', 's') → non-hex
         let content = "| S-21.07 | ... | input-hash bonus | ...\n";
-        let catalog_hash = parse_story_index_catalog_hash(content.as_bytes(), "S-21.07");
+        let catalog_hash = parse_story_index_catalog_hash(content, "S-21.07");
         assert!(
             catalog_hash.is_none(),
             "non-hex token 'bonus' must not be accepted as input-hash value. \
@@ -1052,7 +1063,7 @@ mod tests {
             "| S-18.01 | child story | E-18 | ... | []        | input-hash 1b4ea21 |\n",
             "> **E-18 delivery:** S-18.00=e5bc551; S-18.01=1b4ea21.\n",
         );
-        let catalog_hash = parse_story_index_catalog_hash(index.as_bytes(), "S-18.01");
+        let catalog_hash = parse_story_index_catalog_hash(index, "S-18.01");
         assert_eq!(
             catalog_hash,
             Some("1b4ea21".to_string()),

@@ -1744,13 +1744,16 @@ mod tests {
     //   - Excludes *-INDEX.md files (index files, not BC definitions).
     //   - Excludes files whose names do not start with "BC-" (naming convention guard).
     //   - Extracts frontmatter `version:` from each BC file.
-    //   - Calls arm_a1::extract_bc_index_version_state for the full four-state
-    //     classification plus the actual version comparison:
+    //   - Calls arm_a1::extract_bc_index_version_state for the full five-variant
+    //     classification (four post-decode §PC5 states plus the v1.22 pre-decode
+    //     IndexUnreadable state) plus the actual version comparison:
     //   - RowAbsent: BC not registered in INDEX — NOT a sync failure. Skip.
     //   - RowPresentNoVersion: BC registered but no version chain — NOT a sync failure.
     //     These are BCs using the legacy INDEX shape (no version-cell column) or
     //     BCs whose 6th cell carries no vN.N token. Skip.
     //   - RowMalformed: INDEX row is structurally malformed — separate concern. Skip.
+    //   - IndexUnreadable: the live BC-INDEX.md itself failed UTF-8 decoding — a
+    //     genuine corpus-shape anomaly, surfaced as a mismatch (see the match arm below).
     //   - Version(index_ver): INDEX has a version chain. The extracted last-chain-entry
     //     version is compared DIRECTLY to the normalized frontmatter version. This uses
     //     arm_a1's v1.13 extractor (ADR-038 §Decision 1: first-token-of-last-chain-entry)

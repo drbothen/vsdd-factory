@@ -61,9 +61,15 @@ pub fn derive_bc_path(bc_id: &str) -> String {
     format!(".factory/specs/behavioral-contracts/ss-{section_padded}/{bc_id}.md")
 }
 
-/// Four-state result for BC-INDEX.md row classification.
+/// Five-variant result for BC-INDEX.md row classification: four post-decode
+/// row-classification states defined by §PC5 (`RowAbsent`, `RowPresentNoVersion`,
+/// `Version`, `RowMalformed` — see below), plus one pre-decode indeterminate state,
+/// `IndexUnreadable` (§PC15b / postcondition 26, v1.22), returned when BC-INDEX.md's
+/// bytes fail UTF-8 decoding before the §PC5 row scan can even run. `IndexUnreadable`
+/// is not a fifth row-classification outcome of the §PC5 scan itself — it is a
+/// distinct, earlier-stage decode-failure signal (see its own variant doc below).
 ///
-/// BC-5.39.010 §PC5 (column-count-anchored, four-state, full-file scan):
+/// BC-5.39.010 §PC5 (column-count-anchored, four-state post-decode scan, full-file scan):
 /// - `RowAbsent`: NO candidate line found at all for this BC ID. A candidate line must
 ///   satisfy the normative recognition predicate conditions (1)+(2): (1) starts with `|`;
 ///   (2) first non-empty field is `[bc_id]` link form or `bc_id` plain form. If no line
@@ -93,7 +99,9 @@ pub fn derive_bc_path(bc_id: &str) -> String {
 ///   BC-ID-candidate lines have ≥5 fields. This state is forward-looking protection.
 ///
 /// # BC trace
-/// BC-5.39.010 §PC5: four-state classification with full-file scan (F-S2107-P4-005).
+/// BC-5.39.010 §PC5: four-state post-decode classification with full-file scan
+/// (F-S2107-P4-005). Overall enum is five-variant as of v1.22 — see the
+/// `IndexUnreadable` variant doc above for the pre-decode fifth state.
 /// F-P6-018: ≥6-field/no-v-token state classified as `RowPresentNoVersion` (normative).
 /// F-S2107-P3-001 BLOCKER: two-state `Option<String>` conflated RowAbsent with
 /// RowPresentNoVersion — every 5-column row triggered a spurious block for v>1.0 BCs.
@@ -101,6 +109,7 @@ pub fn derive_bc_path(bc_id: &str) -> String {
 /// "no candidate line at all" → RowAbsent (potential block for v>1.0 BCs).
 /// v1.10 resolved first-match-wins (F-S2107-P4-005): full-file scan preferred; RowMalformed
 /// only when ALL locator-matched lines fail condition (3).
+/// v1.22 (ADV-RECON11-001) added the pre-decode `IndexUnreadable` state, described above.
 #[derive(Debug, PartialEq)]
 pub enum BcIndexVersionState {
     /// No candidate line found at all for this BC ID in BC-INDEX.md.
@@ -130,7 +139,10 @@ pub enum BcIndexVersionState {
     IndexUnreadable,
 }
 
-/// Extract the BC-INDEX.md row state for `bc_id` using the v1.13 four-state algorithm.
+/// Extract the BC-INDEX.md row state for `bc_id`. As of v1.22, this is a two-stage
+/// classification: a v1.22 pre-decode check (UTF-8 decode failure → `IndexUnreadable`,
+/// see below) followed by the v1.13 four-state post-decode §PC5 scan (`RowAbsent`,
+/// `RowPresentNoVersion`, `Version`, `RowMalformed`) described next.
 ///
 /// **Algorithm (BC-5.39.010 §PC5 — column-count-anchored, full-file scan):**
 ///
@@ -535,7 +547,9 @@ pub fn run_arm_a1_with_index_result(
             // extract_bc_index_version_state returns version tokens without the v prefix.
             // Shadow the parameter so all downstream comparisons use the same format.
             let bc_version = bc_version.trim_start_matches('v');
-            // BC-5.39.010 §PC5: four-state classification (full-file scan).
+            // BC-5.39.010: dispatches on all five BcIndexVersionState variants — the
+            // §PC5 four-state post-decode classification (full-file scan) plus the
+            // v1.22 pre-decode IndexUnreadable state (arm below).
             match extract_bc_index_version_state(bc_id, &index_bytes) {
                 BcIndexVersionState::RowAbsent => {
                     // No candidate line found at all — BC not in INDEX.
@@ -1032,7 +1046,8 @@ mod tests {
     // F-S2107-P3-001 (BLOCKER): three-state extractor — RowPresentNoVersion
     //
     // BC-5.39.010 §PC5: extract_bc_index_version_state must distinguish
-    // four states (RowAbsent, RowPresentNoVersion, Version, RowMalformed):
+    // four post-decode states (RowAbsent, RowPresentNoVersion, Version, RowMalformed) —
+    // a fifth, pre-decode state (IndexUnreadable) was added in v1.22; see the enum doc:
     //   RowAbsent         — no line for this BC ID in the index
     //   RowPresentNoVersion — row exists but has no version-chain cell (5-column shape)
     //   Version(v)        — row exists and carries a version token
