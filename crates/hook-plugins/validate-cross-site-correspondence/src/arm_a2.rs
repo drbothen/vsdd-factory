@@ -13,7 +13,7 @@
 //!
 //! # Key design invariants
 //! - Path derivation: ONLY `derive_bc_path` (from arm_a1); NO `read_dir`/`glob`.
-//! - Version token extraction: two-phase (BC-5.39.010 v1.20 PC13) — Phase 1 is
+//! - Version token extraction: two-phase (BC-5.39.010 §PC13) — Phase 1 is
 //!   BC-ID-anchored (ADV-RECON-003 / ADV-RECON2-001): a row is eligible for Phase 1
 //!   pure-version-field extraction (`^v?([0-9]+\.[0-9]+)$`, rightmost field) ONLY when
 //!   the row's own first field names the target BC (the same strong locator predicate
@@ -71,7 +71,7 @@ fn is_section_prefix(heading: &str, prefix: &str) -> bool {
 ///
 /// Scans `content` for pipe-delimited table rows (`|...|`) that contain both
 /// the `bc_id` token and a version token found via the two-phase extraction
-/// algorithm (BC-5.39.010 v1.20 PC13, ADV-RECON-003 / ADV-RECON2-001):
+/// algorithm (BC-5.39.010 §PC13, ADV-RECON-003 / ADV-RECON2-001):
 ///
 /// - **Phase 1 (BC-ID-anchored eligibility gate):** a row is eligible for Phase 1
 ///   pure-version-field extraction ONLY when the row's own first field names
@@ -113,7 +113,7 @@ fn is_section_prefix(heading: &str, prefix: &str) -> bool {
 ///
 /// # BC trace
 /// BC-5.39.010 §Architecture Anchors `extract_story_bc_version_citations`;
-/// preconditions 12-13 (table row detection + version token regex); PC13 (v1.20:
+/// preconditions 12-13 (table row detection + version token regex); §PC13 (
 /// word-boundary prefix predicate, two-phase extraction — Phase 1 pure-version field
 /// rightmost, Phase 2 BC-ID-anchored first-v-token per ADR-038 §Decision 5);
 /// F-P2-001 (skip_section initialization — preamble must not be scanned).
@@ -152,7 +152,7 @@ pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(St
         // Row is in a scannable section and contains the BC ID somewhere: extract version.
         //
         // Phase 1 (pure-version field, right-to-left) via extract_version_token_from_table_row
-        // is BC-ID-anchored (v1.20 PC13 / ADV-RECON-003): it is only attempted when the row's
+        // is BC-ID-anchored (§PC13 / ADV-RECON-003): it is only attempted when the row's
         // OWN first non-empty field names this BC — see `row_first_field_matches_bc_id`. A row
         // whose first field names a DIFFERENT BC (and merely mentions this BC ID elsewhere, e.g.
         // a Notes/Trace/Related-BC cell) is ineligible for Phase 1 even if some other field in
@@ -195,7 +195,7 @@ pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(St
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
 /// # BC trace
-/// BC-5.39.010 v1.20 PC13: word-boundary bc_id token test (both boundaries).
+/// BC-5.39.010 §PC13: word-boundary bc_id token test (both boundaries).
 /// F-S2107-P3-004: `line.contains(bc_id)` prefix-collision fix (trailing boundary).
 /// ADV-RECON2-003: leading-boundary symmetric fix.
 fn line_contains_bc_id_at_boundary(line: &str, bc_id: &str) -> bool {
@@ -231,7 +231,7 @@ fn line_contains_bc_id_at_boundary(line: &str, bc_id: &str) -> bool {
 /// SAME strong locator predicate normative for Part A Arm1 (`^\[X\]` link form or `X`
 /// plain form; see `arm_a1::first_cell_matches_bc_id`).
 ///
-/// BC-5.39.010 v1.20 PC13 Phase 1 (BC-ID-anchored, ADV-RECON-003 / ADV-RECON2-001): a
+/// BC-5.39.010 §PC13 Phase 1 (BC-ID-anchored, ADV-RECON-003 / ADV-RECON2-001): a
 /// table row is eligible for Phase 1 pure-version-field extraction for BC ID X only if
 /// the row's own first field names X — "the same locator-predicate test already
 /// normative for Part A Arm1 (`^\[X\]` link form or `X` plain form)", i.e. the cell
@@ -260,7 +260,7 @@ fn line_contains_bc_id_at_boundary(line: &str, bc_id: &str) -> bool {
 /// match predicate, closes that gap for good.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.20 PC13 Phase 1 (ADV-RECON-003, ADV-RECON2-001, ADV-RECON3-007);
+/// BC-5.39.010 §PC13 Phase 1 (ADV-RECON-003, ADV-RECON2-001, ADV-RECON3-007);
 /// EC-037; Canonical Test Vector "A Arm2 — Phase 1 cross-BC-row anchoring (v1.20 /
 /// ADV-RECON-003)".
 fn row_first_field_matches_bc_id(line: &str, bc_id: &str) -> bool {
@@ -277,7 +277,7 @@ fn row_first_field_matches_bc_id(line: &str, bc_id: &str) -> bool {
 /// different BC's inline version token to `bc_id`.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.20 PC13 Phase 2 (ADR-038 §Decision 5).
+/// BC-5.39.010 §PC13 Phase 2 (ADR-038 §Decision 5).
 fn find_phase2_version(line: &str, bc_id: &str) -> Option<String> {
     for field in line.split('|') {
         let trimmed = field.trim();
@@ -340,7 +340,7 @@ fn parse_pure_version_field(s: &str) -> Option<String> {
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
 /// # BC trace
-/// BC-5.39.010 v1.20 PC13 Phase 2 (ADR-038 §Decision 5): position anchor for
+/// BC-5.39.010 §PC13 Phase 2 (ADR-038 §Decision 5): position anchor for
 /// first-v-token extraction in `extract_story_bc_version_citations`.
 /// ADV-RECON2-003: leading-boundary symmetric fix.
 fn find_bc_id_boundary_end(s: &str, bc_id: &str) -> Option<usize> {
@@ -381,7 +381,7 @@ fn find_bc_id_boundary_end(s: &str, bc_id: &str) -> Option<usize> {
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
 /// # BC trace
-/// BC-5.39.010 v1.20 PC13 Phase 2 (ADR-038 §Decision 5): first-v-token-after-bc_id
+/// BC-5.39.010 §PC13 Phase 2 (ADR-038 §Decision 5): first-v-token-after-bc_id
 /// extraction for the BC-ID-anchored pass in `extract_story_bc_version_citations`.
 fn extract_first_v_token_after_position(s: &str, start: usize) -> Option<String> {
     let bytes = s.as_bytes();
@@ -415,7 +415,7 @@ fn extract_first_v_token_after_position(s: &str, start: usize) -> Option<String>
     None
 }
 
-/// Extract a version token from a table row using Phase 1 of the v1.20 PC13 algorithm.
+/// Extract a version token from a table row using Phase 1 of the §PC13 algorithm.
 ///
 /// **Phase 1 (pure-version field):** split row by `|`; scan fields right-to-left;
 /// return the version from the first (rightmost) field whose trimmed content
@@ -436,7 +436,7 @@ fn extract_first_v_token_after_position(s: &str, start: usize) -> Option<String>
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
 /// # BC trace
-/// BC-5.39.010 v1.20 PC13: Phase 1 pure-version field (right-to-left) algorithm.
+/// BC-5.39.010 §PC13: Phase 1 pure-version field (right-to-left) algorithm.
 /// F-S2107-P1B-002: optional-v Phase 1 (detects bare "1.3" version cells).
 fn extract_version_token_from_table_row(line: &str) -> Option<String> {
     let fields: Vec<&str> = line.split('|').collect();
@@ -1250,7 +1250,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // BC-5.39.010 v1.20 PC13: two-phase algorithm — three collision classes.
+    // BC-5.39.010 §PC13: two-phase algorithm — three collision classes.
     //
     // The v1.10 two-phase PC13 algorithm:
     //   Phase 1: scan fields right-to-left for a pure-version field
@@ -1271,7 +1271,7 @@ mod tests {
     // wrong output. After two-phase fix, all three pass.
     // -----------------------------------------------------------------------
 
-    /// BC-5.39.010 v1.20 PC13 RED GATE — Collision Class 1 (story-ID Trace column):
+    /// BC-5.39.010 §PC13 RED GATE — Collision Class 1 (story-ID Trace column):
     /// story IDs in the Scope Reason cell must NOT be extracted as version citations.
     ///
     /// Corpus shape (S-4.07, BC-3.07.002 BC table row — 3-column reference table):
@@ -1304,7 +1304,7 @@ mod tests {
         assert!(
             citations.is_empty(),
             "Story-ID tokens in the Scope Reason column (S-4.10, S-4.07) must NOT be \
-            extracted as version citations. BC-5.39.010 v1.20 PC13 Class 1: old optional-v \
+            extracted as version citations. BC-5.39.010 §PC13 Class 1: old optional-v \
             last-token finds '4.07' from 'S-4.07' in the Trace column. Two-phase fix: \
             Phase 1 no pure-version field; Phase 2 no mandatory-v token → no citation. \
             29 rows across 6 stories (S-0.03, S-1.03, S-2.06, S-3.01, S-4.07, S-8.09) \
@@ -1313,7 +1313,7 @@ mod tests {
         );
     }
 
-    /// BC-5.39.010 v1.20 PC13 RED GATE — Collision Class 2 (ACs-column DEFERRED annotation):
+    /// BC-5.39.010 §PC13 RED GATE — Collision Class 2 (ACs-column DEFERRED annotation):
     /// version from Version cell must be returned, NOT the later "v1.6" from ACs cell.
     ///
     /// Corpus shape (S-21.07, BC-5.39.010 BC table row — 4-column row):
@@ -1351,13 +1351,13 @@ mod tests {
             citations.len(),
             1,
             "Row with Version field '1.7' and ACs 'DEFERRED v1.6' must produce exactly 1 \
-            citation. BC-5.39.010 v1.20 PC13 Class 2. Citations: {:?}",
+            citation. BC-5.39.010 §PC13 Class 2. Citations: {:?}",
             citations
         );
         assert_eq!(
             citations[0].1, "1.7",
             "Citation must be '1.7' (Version field), NOT '1.6' (ACs DEFERRED annotation). \
-            BC-5.39.010 v1.20 PC13 Class 2: Phase 1 pure-version field (right-to-left) \
+            BC-5.39.010 §PC13 Class 2: Phase 1 pure-version field (right-to-left) \
             returns the Version column '1.7' before reaching the 'DEFERRED v1.6' in ACs. \
             Old optional-v last-token incorrectly returns '1.6'. Citation: {:?}",
             citations[0]
@@ -1425,7 +1425,7 @@ mod tests {
         );
     }
 
-    /// BC-5.39.010 v1.20 PC13 RED GATE — Collision Class 3 (Token Budget bare BC-ID):
+    /// BC-5.39.010 §PC13 RED GATE — Collision Class 3 (Token Budget bare BC-ID):
     /// BC-section-number fragment in "BC-1.13.001" must NOT be extracted as a version.
     ///
     /// Corpus shape (S-12.03, Token Budget section row — 2-column row):
@@ -1459,7 +1459,7 @@ mod tests {
         assert!(
             citations.is_empty(),
             "BC-section-number '1.13' from 'BC-1.13.001' in a Token Budget row must NOT \
-            be extracted as a version citation. BC-5.39.010 v1.20 PC13 Class 3: old \
+            be extracted as a version citation. BC-5.39.010 §PC13 Class 3: old \
             optional-v last-token finds '1.13' (bare digit after '-' word boundary). \
             Two-phase fix: Phase 1 no pure-version field (BC-1.13.001 is not ^v?N.N$); \
             Phase 2 no mandatory-v token → no citation. \
@@ -1555,7 +1555,7 @@ mod tests {
     // -----------------------------------------------------------------------
     // ADR-038 §Decision 5 — Phase 2 BC-ID-anchored first-v-token (regression guards)
     //
-    // BC-5.39.010 v1.20 PC13 declared Phase 2's reverse-field (rightmost-first)
+    // BC-5.39.010 §PC13 declared Phase 2's reverse-field (rightmost-first)
     // algorithm NON-CONFORMING. The correct algorithm is:
     //   For each pipe-delimited field (left-to-right): locate the field containing
     //   the BC ID at a word boundary (same predicate as line_contains_bc_id_at_boundary).
@@ -1563,7 +1563,7 @@ mod tests {
     //   position within that field. If no field contains both the BC ID and a
     //   subsequent v-token, Phase 2 returns None.
     //
-    // Citation: ADR-038 §Decision 5 (v1.2); BC-5.39.010 v1.20 PC13.
+    // Citation: ADR-038 §Decision 5 (v1.2); BC-5.39.010 §PC13.
     //
     // Implementation (S-21.07 pass-7 fix burst): the implementer reused
     // `line_contains_bc_id_at_boundary` as the per-field anchor predicate, built
@@ -1925,7 +1925,7 @@ mod tests {
     /// target BC merely mentioned in a Notes cell) must NOT contribute a false
     /// citation for the target BC, and must NOT produce a false BLOCK.
     ///
-    /// BC-5.39.010 v1.20 PC13 Phase 1 (BC-ID-anchored): Row 1 (first field
+    /// BC-5.39.010 §PC13 Phase 1 (BC-ID-anchored): Row 1 (first field
     /// "BC-9.99.010") is INELIGIBLE for Phase 1 resolution of "BC-9.99.011" —
     /// its Version cell "1.7" must not be attributed to BC-9.99.011. Only Row 2
     /// (first field "BC-9.99.011", Version "2.0") is a valid citation.
@@ -1973,7 +1973,7 @@ mod tests {
 
         assert!(
             violations.is_empty(),
-            "ADV-RECON-003 (BC-5.39.010 v1.20 PC13 Phase 1, EC-037): a cross-BC-row \
+            "ADV-RECON-003 (BC-5.39.010 §PC13 Phase 1, EC-037): a cross-BC-row \
             whose FIRST field names a different BC (BC-9.99.010, Version '1.7') must \
             NOT be attributed to BC-9.99.011 merely because BC-9.99.011 is mentioned \
             in that row's Notes cell. Row 2 (first field BC-9.99.011, Version '2.0') \
@@ -2017,7 +2017,7 @@ mod tests {
         assert_eq!(
             citations.len(),
             1,
-            "ADV-RECON-003 (BC-5.39.010 v1.20 PC13 Phase 1, EC-037): a cross-BC row \
+            "ADV-RECON-003 (BC-5.39.010 §PC13 Phase 1, EC-037): a cross-BC row \
             whose first field names a DIFFERENT BC (BC-9.99.010) must contribute \
             ZERO citations for BC-9.99.011, even though BC-9.99.011 is mentioned in \
             that row's Notes cell. Only Row 2 (first field BC-9.99.011) is a valid \
@@ -2060,7 +2060,7 @@ mod tests {
     /// `citations.len() == 1` for the NON-stale case, which a
     /// citations-always-empty regression would also satisfy vacuously.
     ///
-    /// BC trace: BC-5.39.010 v1.20 PC13 Phase 1 (BC-ID-anchored), postcondition 7.
+    /// BC trace: BC-5.39.010 §PC13 Phase 1 (BC-ID-anchored), postcondition 7.
     #[test]
     fn test_BC_5_39_010_arm_a2_phase1_bc_id_anchored_own_row_stale_still_blocks() {
         let story_content = concat!(
@@ -2171,7 +2171,7 @@ mod tests {
     /// Coverage-strengthening: PASSES now (implementer fixed the predicate in
     /// `6f92702e`); would have gone RED under the pre-fix weak `contains` anchor.
     ///
-    /// BC trace: BC-5.39.010 v1.20 PC13 Phase 1 (ADV-RECON-003 / ADV-RECON2-001);
+    /// BC trace: BC-5.39.010 §PC13 Phase 1 (ADV-RECON-003 / ADV-RECON2-001);
     /// postcondition 8 (skip-not-block on absent citations).
     #[test]
     fn test_BC_5_39_010_arm_a2_phase1_supersession_first_cell_excluded_from_phase1() {

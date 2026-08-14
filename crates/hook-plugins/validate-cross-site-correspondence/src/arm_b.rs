@@ -215,7 +215,7 @@ pub fn run_arm_b1_with_index_result(
                     });
                 }
                 (Some(b2), Some(b3)) => {
-                    // BC-5.39.010 v1.19 PC13: directional two sub-cases.
+                    // BC-5.39.010 §PC13: directional two sub-cases.
                     // PC13a: B2==B3 AND B1!=B2 — STORY-INDEX internally consistent;
                     //   story frontmatter stale (burst-ordering artefact). Advisory + Continue.
                     // PC13b: B2!=B3 — STORY-INDEX internally inconsistent; anomalous block.
@@ -365,7 +365,7 @@ const VOLATILE_PATTERNS_CYCLES_NAMED: [&str; 4] =
 /// Pure: no I/O.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.19 PC40: volatile-input precondition.
+/// BC-5.39.010 §PC40: volatile-input precondition.
 /// ADR-037 §Decision 2: canonical volatile path list.
 /// F-S2107-P4-020: `starts_with` narrowing fixed to `contains` per spec predicate.
 pub fn is_volatile_path(path: &str) -> bool {
@@ -411,7 +411,7 @@ pub fn is_volatile_path(path: &str) -> bool {
 /// Pure: no I/O.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.19 PC40: volatile-input precondition.
+/// BC-5.39.010 §PC40: volatile-input precondition.
 pub fn parse_story_volatile_inputs(content: &str) -> Vec<String> {
     crate::frontmatter::extract_frontmatter_sequence(content, "inputs")
 }
@@ -421,7 +421,7 @@ pub fn parse_story_volatile_inputs(content: &str) -> Vec<String> {
 /// Reads STORY-INDEX.md via `host::read_file` (`max_bytes = 1048576`,
 /// `timeout_ms = 3000`), then delegates to `run_arm_b1_with_index_result`.
 ///
-/// PC40 (BC-5.39.010 v1.19): if the story's `inputs:` list contains any volatile
+/// BC-5.39.010 §PC40: if the story's `inputs:` list contains any volatile
 /// paths (STATE.md, INDEX files, cycles/ artifacts), emits advisory + Continue
 /// without performing the three-way hash comparison.
 ///
@@ -429,7 +429,7 @@ pub fn parse_story_volatile_inputs(content: &str) -> Vec<String> {
 ///
 /// # BC trace
 /// BC-5.39.010 preconditions 17-21 (STORY-INDEX.md read + hash comparison).
-/// BC-5.39.010 v1.19 PC40: volatile-input precondition.
+/// BC-5.39.010 §PC40: volatile-input precondition.
 pub fn run_arm_b1(story_id: &str, story_content: &str) -> (Vec<Violation>, Vec<Advisory>) {
     let story_hash = match parse_story_input_hash(story_content) {
         Some(h) => h,
@@ -753,9 +753,9 @@ mod tests {
     // run_arm_b1_with_index_result — BC-5.39.010 postconditions 12-13
     // -----------------------------------------------------------------------
 
-    /// AC-009 MUTANT: STORY-INDEX internally inconsistent blocks (BC-5.39.010 v1.19 PC13b).
+    /// AC-009 MUTANT: STORY-INDEX internally inconsistent blocks (BC-5.39.010 §PC13b).
     ///
-    /// BC-5.39.010 v1.19 PC13 directional carve-out:
+    /// BC-5.39.010 §PC13 directional carve-out:
     /// - PC13a (B2==B3, B1!=B2): advisory (burst-ordering artefact; STORY-INDEX consistent).
     /// - PC13b (B2!=B3): block (anomalous — STORY-INDEX internal inconsistency has no
     ///   burst-ordering explanation; catalog row and blockquote written in the same commit).
@@ -776,7 +776,7 @@ mod tests {
         let msg = &violations[0].description;
         assert!(msg.contains("[Class B]"), "violation must cite [Class B]");
         assert!(msg.contains("POLICY 18"), "violation must cite POLICY 18");
-        // PC13b three-provenance note (invariant 11, BC-5.39.010 v1.19)
+        // PC13b three-provenance note (invariant 11, BC-5.39.010)
         assert!(
             msg.contains("STALE") || msg.contains("FABRICATED"),
             "violation must include provenance categories (STALE/FABRICATED/ALGORITHM-DIVERGENT)"
@@ -905,7 +905,7 @@ mod tests {
     //   > **E-21 delivery:** ... S-21.07=47a65c9. All 7 distinct.
     // This shape never starts with "> S-21.07=" → B3 is always None → advisory
     // (never blocking) even when blockquote hash mismatches → gate is inert.
-    // BC-5.39.010 v1.19 §B3 invariant: B3 must be extracted from the prose line.
+    // BC-5.39.010 §B3 invariant: B3 must be extracted from the prose line.
     // -----------------------------------------------------------------------
 
     /// F-S2107-P1B-003: production blockquote B3 must be extractable from prose line.
@@ -978,7 +978,7 @@ mod tests {
     // -----------------------------------------------------------------------
     // F-S2107-P1B-009: extract_input_hash_token accepts any 7+ char alphanumeric
     // token after "input-hash ". Non-hex tokens like "bonus" are accepted.
-    // BC-5.39.010 v1.19 precondition 17: input-hash value must be hex (0-9a-f only).
+    // BC-5.39.010 precondition 17: input-hash value must be hex (0-9a-f only).
     // -----------------------------------------------------------------------
 
     /// F-S2107-P1B-009: non-hex catalog token must not be accepted as input-hash.
@@ -1004,7 +1004,7 @@ mod tests {
     // When STORY-INDEX.md has a row for S-18.00 that includes "S-18.01" in its
     // blocks or depends_on column, `contains("S-18.01")` matches the S-18.00 row
     // FIRST (before the actual S-18.01 row), returning the wrong hash.
-    // BC-5.39.010 v1.19 PC16: catalog lookup must match the CANONICAL S-NNN.NNN row
+    // BC-5.39.010 §PC16: catalog lookup must match the CANONICAL S-NNN.NNN row
     // (i.e., the row whose FIRST cell is the story_id, not any row mentioning it).
     // -----------------------------------------------------------------------
 
@@ -1061,7 +1061,7 @@ mod tests {
     /// Verifies the two PC40 pure functions and indirectly validates that
     /// run_arm_b1 skips the three-way comparison when volatile inputs are present.
     ///
-    /// BC-5.39.010 v1.19 PC40: volatile inputs → advisory + Continue (skip comparison).
+    /// BC-5.39.010 §PC40: volatile inputs → advisory + Continue (skip comparison).
     #[test]
     fn test_BC_5_39_010_arm_b1_pc40_volatile_input_detection_required() {
         assert!(
@@ -1205,7 +1205,7 @@ mod tests {
     /// F-S2107-P3-002(c) RED GATE: VP-INDEX.md is NOT in PC40 and must NOT be volatile.
     ///
     /// VP-INDEX.md appears in the current impl's filename matches but is absent from
-    /// ADR-037 §Decision 2 and BC-5.39.010 v1.19 PC40. It must NOT be volatile.
+    /// ADR-037 §Decision 2 and BC-5.39.010 §PC40. It must NOT be volatile.
     ///
     /// RED GATE: current `matches!(filename, "BC-INDEX.md" | "VP-INDEX.md" | ...)` → true.
     #[test]
@@ -1245,7 +1245,7 @@ mod tests {
     //   per BC-5.39.010 v1.19 PC40 ... Update input-hash manually when non-volatile
     //   inputs change."
     //
-    // Prescribed text (ADR-037 §Decision 4 / BC-5.39.010 v1.19 PC40 note):
+    // Prescribed text (ADR-037 §Decision 4 / BC-5.39.010 §PC40 note):
     //   "Story <id> has volatile inputs per ADR-037 §Decision 2 — three-way equality
     //   is unsatisfiable until story-writer removes volatile inputs and state-manager
     //   recomputes the hash; Class B BLOCK suspended. Volatile path(s): <list>"

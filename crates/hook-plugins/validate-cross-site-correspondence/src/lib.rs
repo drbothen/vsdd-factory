@@ -1030,7 +1030,7 @@ mod tests {
             violations.is_empty(),
             "BC-1.01.001 (version={bc_version}) has a 5-column RowPresentNoVersion row in the \
             live BC-INDEX.md. run_arm_a1_with_index_result must NOT produce violations. \
-            BC-5.39.010 v1.20 PC5: RowPresentNoVersion → silent-continue. \
+            BC-5.39.010 §PC5: RowPresentNoVersion → silent-continue. \
             F-S2107-P3-001 BLOCKER: corpus test sampling the ~1,943-row majority. \
             Violations: {violations:?}"
         );
