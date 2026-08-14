@@ -287,10 +287,19 @@ pub fn index_ver_matches_frontmatter(index_ver: &str, frontmatter_version: &str)
 /// a substring. Prevents cross-reference rows (where bc_id appears in Title/Depends cells)
 /// from being classified as the BC's own registration row.
 ///
+/// `pub(crate)`: reused by `arm_a2::row_first_field_matches_bc_id` (BC-5.39.010 v1.20
+/// PC13 Phase 1, ADV-RECON-003 / ADV-RECON2-001) so that Part A Arm1's row-eligibility
+/// anchor and Part A Arm2's Phase 1 row-eligibility anchor are the SAME function, not
+/// two independently-maintained copies that can drift apart (TD-VSDD-060 sibling-site
+/// sweep — the two copies previously diverged: Arm1 used this strong equals/link-form
+/// predicate while Arm2 used a weaker `contains`-at-boundary predicate).
+///
 /// # BC trace
-/// BC-5.39.010 v1.19 PC5: normative recognition predicate condition (2).
+/// BC-5.39.010 v1.20 PC5: normative recognition predicate condition (2).
+/// BC-5.39.010 v1.20 PC13 Phase 1 (ADV-RECON-003 / ADV-RECON2-001): reused verbatim
+/// by Arm2 as "the same locator-predicate test already normative for Part A Arm1".
 /// F-P2-002: first-cell anchor.
-fn first_cell_matches_bc_id(first_cell: &str, bc_id: &str) -> bool {
+pub(crate) fn first_cell_matches_bc_id(first_cell: &str, bc_id: &str) -> bool {
     // Plain form: cell IS the bc_id (e.g., "BC-5.39.010")
     if first_cell == bc_id {
         return true;

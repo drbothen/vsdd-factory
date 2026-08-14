@@ -663,7 +663,7 @@ path_allow = [
 ]
 
 # ---------- validate-cross-site-correspondence (PostToolUse, Edit|Write|MultiEdit) ----------
-# BC-5.39.010 v1.19 §Gate Spec: PostToolUse cross-site value-correspondence gate.
+# BC-5.39.010 v1.20 §Gate Spec: PostToolUse cross-site value-correspondence gate.
 # Six active arms: Class A Arm1 (BC version vs BC-INDEX row), Class A Arm2 (story BC-table
 # citations vs BC frontmatter), Class B Arm1 (story input-hash three-way equality),
 # Class B Arm2 (STORY-INDEX internal catalog/blockquote parity), Class E1 (frontmatter
@@ -684,7 +684,7 @@ path_allow = [
 #   (BC-5.39.010 v1.15) was LIFTED by ADR-042 §Decision 2 (v1.16): once ADR-039
 #   Phase 1 ships, a per-plugin fuel_cap SHOULD be set for this hook, calibrated to
 #   p99×1.5 (minimum 50M for Phase 3 fail-closed annotation). Until then the only
-#   available lever is the global InvokeLimits::default() cap (BC-5.39.010 v1.19
+#   available lever is the global InvokeLimits::default() cap (BC-5.39.010 v1.20
 #   §Gate Spec §Fuel-cap verification).
 # path_allow: covers .factory/specs/behavioral-contracts/, .factory/specs/
 #   verification-properties/, .factory/stories/ — three directory subtrees the

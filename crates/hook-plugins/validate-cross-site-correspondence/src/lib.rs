@@ -7,12 +7,12 @@
 //! **Class A Arm2 (story file write):** story body BC-table version citations vs BC frontmatter.
 //! **Class B Arm1 (story file write):** story `input-hash:` vs STORY-INDEX catalog row vs blockquote.
 //! **Class B Arm2 (STORY-INDEX.md write):** internal catalog vs blockquote hash parity.
-//! **Class D (cycle artifact write):** finding-ID namespace format advisory — **[DEFERRED to S-21.08; not created — BC-5.39.010 v1.19 §File Structure / Task 12]**.
+//! **Class D (cycle artifact write):** finding-ID namespace format advisory — **[DEFERRED to S-21.08; not created — BC-5.39.010 v1.20 §File Structure / Task 12]**.
 //! **Class E1 (BC/VP/story/epic write):** `version:` vs `last_amended:` outer prefix mismatch.
 //! **Class E2 (BC/VP/story/epic write):** `modified:` sequence date monotonicity.
 //!
 //! # Governing BC
-//! BC-5.39.010 v1.19 — six-arm PostToolUse cross-site value-correspondence gate (A1/A2/B1/B2/E1/E2; Class D deferred).
+//! BC-5.39.010 v1.20 — six-arm PostToolUse cross-site value-correspondence gate (A1/A2/B1/B2/E1/E2; Class D deferred).
 //!
 //! # Architecture
 //! - **Tier 2A** (ADR-035 §Decision 1): PostToolUse read-only validator.
@@ -224,7 +224,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     }
 
     // [DEFERRED v1.6 — Class D]: Class D (arm_d.rs) does not exist in this crate per
-    // BC-5.39.010 v1.19 §File Structure / Task 12 ("DEFERRED v1.6 — Class D; do NOT
+    // BC-5.39.010 v1.20 §File Structure / Task 12 ("DEFERRED v1.6 — Class D; do NOT
     // create"; target: S-21.08). cycle_kind is always None (is_cycle_artifact returns
     // None); the cap-selection and primary-read-error branches above are kept intact
     // so re-enabling Class D in S-21.08 only requires restoring the is_cycle_artifact
@@ -432,7 +432,7 @@ mod tests {
     // Three divergences stayed invisible because the primary read caps were not
     // pinned. This test covers all six BC-5.39.010 read cap spec values.
     //
-    // Spec (BC-5.39.010 v1.19, unchanged):
+    // Spec (BC-5.39.010 v1.20, unchanged):
     //   BC file primary:        524288 / 3000 ms
     //   Story file primary:     524288 / 3000 ms
     //   Cycle artifact primary: 2097152 / 5000 ms
@@ -543,7 +543,7 @@ mod tests {
     // admits "BC-INDEX.md" as a valid BC path. When admitted, arm A1 tries to
     // read BC-INDEX.md as both primary target AND secondary index, producing
     // spurious version mismatches (F-S2107-P1B-005 + F-S2107-P1B-007 cascade).
-    // BC-5.39.010 v1.19 §Classification invariant: index files are excluded.
+    // BC-5.39.010 v1.20 §Classification invariant: index files are excluded.
     // -----------------------------------------------------------------------
 
     /// T-035 lib-level: BC-INDEX.md must NOT be classified as a BC file (F-S2107-P1B-005).
@@ -597,7 +597,7 @@ mod tests {
     // -----------------------------------------------------------------------
     // F-S2107-P1C-014: 15-byte last_amended string rejected by length guard.
     // "2026-07-30 (v2)" — single-digit outer version, no sub-version suffix.
-    // BC-5.39.010 v1.19 §E1: this is a valid format.
+    // BC-5.39.010 v1.20 §E1: this is a valid format.
     // Current code: `if len < 17 { return None }` — 15 < 17 → None.
     // -----------------------------------------------------------------------
 
@@ -613,7 +613,7 @@ mod tests {
             result,
             Some("2".to_string()),
             "15-byte last_amended '2026-07-30 (v2)' must parse to outer version '2'. \
-            BC-5.39.010 v1.19 §E1 (F-S2107-P1C-014). \
+            BC-5.39.010 v1.20 §E1 (F-S2107-P1C-014). \
             Red Gate: len < 17 guard rejects 15-byte strings → None → assertion FAILS"
         );
     }
@@ -1016,7 +1016,7 @@ mod tests {
             violations.is_empty(),
             "BC-1.01.001 (version={bc_version}) has a 5-column RowPresentNoVersion row in the \
             live BC-INDEX.md. run_arm_a1_with_index_result must NOT produce violations. \
-            BC-5.39.010 v1.19 PC5: RowPresentNoVersion → silent-continue. \
+            BC-5.39.010 v1.20 PC5: RowPresentNoVersion → silent-continue. \
             F-S2107-P3-001 BLOCKER: corpus test sampling the ~1,943-row majority. \
             Violations: {violations:?}"
         );
