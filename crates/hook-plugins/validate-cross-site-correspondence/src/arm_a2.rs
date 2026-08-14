@@ -1873,4 +1873,93 @@ mod tests {
             );
         }
     }
+
+    /// ADV-RECON-003 CONTROL: anchoring must not disable real stale-citation
+    /// detection on the target BC's OWN row. Same cross-BC-row fixture shape as
+    /// the two tests above (a cross-BC row whose first field names a DIFFERENT
+    /// BC, target BC merely mentioned in its Notes cell), but this time
+    /// BC-9.99.011's own row (Row 2) carries a STALE version ("1.5") that does
+    /// NOT match the BC's current frontmatter version ("2.0").
+    ///
+    /// This proves two things the mutant tests above do not, on their own:
+    /// 1. `extract_story_bc_version_citations` still resolves exactly ONE
+    ///    citation for BC-9.99.011 from its own row even in the presence of a
+    ///    competing cross-BC row (anchoring excludes the cross-BC row without
+    ///    also swallowing the legitimate own-row citation — a single-subject
+    ///    own-row citation still resolves).
+    /// 2. That citation, being genuinely stale, still produces a BLOCK via
+    ///    `run_arm_a2_for_bc_with_result` — the v1.20 BC-ID-anchored Phase 1
+    ///    fix narrows WHICH rows are eligible; it does not weaken what happens
+    ///    once a row is found eligible and stale.
+    ///
+    /// Without this control, a regression that over-anchors (e.g. accidentally
+    /// filtering out the target's own row alongside the cross-BC row) would
+    /// pass both tests above — those only assert `violations.is_empty()` /
+    /// `citations.len() == 1` for the NON-stale case, which a
+    /// citations-always-empty regression would also satisfy vacuously.
+    ///
+    /// BC trace: BC-5.39.010 v1.20 PC13 Phase 1 (BC-ID-anchored), postcondition 7.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_phase1_bc_id_anchored_own_row_stale_still_blocks() {
+        let story_content = concat!(
+            "---\n",
+            "behavioral_contracts: [BC-9.99.011]\n",
+            "---\n",
+            "\n",
+            "## Behavioral Contracts\n",
+            "\n",
+            "| BC ID | Title | Version | Notes |\n",
+            "|---|---|---|---|\n",
+            "| BC-9.99.010 | Other contract | 1.7 | Supersedes BC-9.99.011 |\n",
+            "| BC-9.99.011 | Target contract | 1.5 | — |\n",
+        );
+        let citations = extract_story_bc_version_citations(story_content, "BC-9.99.011");
+
+        assert_eq!(
+            citations.len(),
+            1,
+            "own-row citation must still resolve (exactly one) even with a \
+            competing cross-BC row present — anchoring must exclude the \
+            cross-BC row WITHOUT also suppressing the legitimate own-row \
+            citation. Citations: {citations:?}"
+        );
+        assert_eq!(
+            citations.first().map(|c| c.1.as_str()),
+            Some("1.5"),
+            "the sole citation must be Row 2's own Version cell '1.5', not \
+            Row 1's '1.7' (which belongs to BC-9.99.010). Citations: {citations:?}"
+        );
+
+        // BC-9.99.011's true frontmatter version is "2.0" — the story's own-row
+        // citation "1.5" is genuinely stale against it.
+        let bc_content = b"---\nversion: \"2.0\"\n---\n# BC-9.99.011\n";
+        let (violations, _advisories) = run_arm_a2_for_bc_with_result(
+            "S-21.07",
+            "BC-9.99.011",
+            &citations,
+            Ok(bc_content.to_vec()),
+        );
+
+        assert!(
+            !violations.is_empty(),
+            "ADV-RECON-003 CONTROL: a genuinely stale own-row citation ('1.5' \
+            vs current frontmatter '2.0') must still produce a blocking \
+            violation after the v1.20 BC-ID-anchored Phase 1 fix — anchoring \
+            narrows which rows are eligible sources, it does not disable \
+            stale-citation detection on eligible rows. Violations: {violations:?}"
+        );
+        let msg = &violations[0].description;
+        assert!(
+            msg.contains("[Class A Arm2]"),
+            "violation must cite [Class A Arm2]. Got: {msg}"
+        );
+        assert!(
+            msg.contains("1.5"),
+            "violation must cite the stale cited version '1.5'. Got: {msg}"
+        );
+        assert!(
+            msg.contains("2.0"),
+            "violation must cite the current BC version '2.0'. Got: {msg}"
+        );
+    }
 }

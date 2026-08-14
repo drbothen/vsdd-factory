@@ -703,6 +703,33 @@ for line in data.splitlines():
   _assert_exit 2
 }
 
+# ADV-RECON-007 CONTROL: a primary target that DOES decode as valid UTF-8 must
+# NOT be affected by the v1.20 fail-closed decode-failure path — it proceeds to
+# normal Step 5 dispatch (Arm A1 for a BC file). Regression guard proving the
+# UTF-8 fail-closed change does not over-block valid content.
+#
+# Fixture: utf8-valid-target/factory/specs/behavioral-contracts/ss-09/
+# BC-9.99.012.md — same path/shape as the mutant fixture above, but containing
+# a genuinely valid multi-byte UTF-8 character (an em dash) instead of the
+# invalid 0xFF/0xFE byte. No BC-INDEX.md is present, mirroring the
+# a1-no-bc-index fixture's NotFound-is-advisory-only shape (BC-5.39.010
+# precondition 8) so Arm A1 does not itself produce a block.
+#
+# This control PASSES against the current (about-to-be-rebuilt) wasm — it is a
+# coverage-fill regression guard, not a red-gate test.
+@test "ADV-RECON-007 CONTROL: primary target valid UTF-8 dispatches normally (exit code 0)" {
+  _require_artifacts
+  _load_fixture "utf8-valid-target"
+  _write_registry
+
+  local envelope
+  envelope="$(_post_write_event '.factory/specs/behavioral-contracts/ss-09/BC-9.99.012.md')"
+  _run_dispatcher "$envelope"
+
+  _assert_plugin_ran_not_crashed
+  _assert_exit 0
+}
+
 # ---------------------------------------------------------------------------
 # AC-005: Class A Arm2 — stale story BC-table version citation blocks
 # Fixture: a2-stale-citation (story cites v1.17, BC fm v1.18)
@@ -1817,13 +1844,15 @@ for line in data.splitlines():
 #       reinstated contract. This assertion guards against the marker being
 #       silently reintroduced as a way to leave future orphaned tests in a
 #       permanently-skipped state instead of removing them.
-#   (b) Exactly 42 _require_artifacts call sites.
+#   (b) Exactly 43 _require_artifacts call sites.
 #       Each site becomes a skip when the factory-dispatcher binary or WASM is absent.
 #       Bounding this explicitly prevents silent growth in dispatcher-gated test count.
 #       (was 46; -5 for the removed Class D AC-012/013/014 tests, S-21.07 reconciliation;
-#       +1 for ADV-RECON-007 primary-target UTF-8 decode failure red-gate test, v1.20)
+#       +1 for ADV-RECON-007 primary-target UTF-8 decode failure red-gate test, v1.20;
+#       +1 for ADV-RECON-007 CONTROL valid-UTF-8 regression guard, AC-026 coverage-fill)
 #   (c) Total @test declarations >=40 (sanity floor; not the primary execution measure).
-#       (was 52 before Class D removal; 47 after; now 48 — ADV-RECON-007 test added)
+#       (was 52 before Class D removal; 47 after; 48 after ADV-RECON-007 mutant added;
+#       now 49 — ADV-RECON-007 CONTROL added, AC-026 coverage-fill)
 #
 # F-S2107-P8-007: removed the "N passed / M skipped / 0 failed" echo that was derived
 # from grep counts and hardcoded "0 failed". A test cannot observe its own run's results;
@@ -1833,7 +1862,7 @@ for line in data.splitlines():
 # ALWAYS PASSES: no dispatcher invocation. Pure file-structure analysis.
 # ---------------------------------------------------------------------------
 
-@test "F-P6-016: coverage gate — 0 deferred, 42 dispatcher-gated, structural counts only" {
+@test "F-P6-016: coverage gate — 0 deferred, 43 dispatcher-gated, structural counts only" {
   local bats_file="$BATS_TEST_FILENAME"
 
   # (a) Class-D-DEFERRED skip count: must be exactly 0 (removed, not skip-preserved).
@@ -1848,15 +1877,16 @@ for line in data.splitlines():
     false
   }
 
-  # (b) _require_artifacts call sites: must be exactly 41.
+  # (b) _require_artifacts call sites: must be exactly 43.
   # Each site becomes a skip when the factory-dispatcher binary or WASM is absent.
   # Bounding this explicitly prevents silent inflation: a new dispatcher-gated test added
   # without updating this count will fail the gate, not silently grow the skip count.
-  # (was 46; -5 for the removed Class D AC-012/013/014 tests, S-21.07 reconciliation)
+  # (was 46; -5 for the removed Class D AC-012/013/014 tests, S-21.07 reconciliation;
+  # +1 ADV-RECON-007 mutant; +1 ADV-RECON-007 control, AC-026 coverage-fill)
   local req_count
   req_count=$(grep -c '^\s*_require_artifacts$' "$bats_file" 2>/dev/null || true)
-  [ "$req_count" -eq 42 ] || {
-    echo "FAIL: expected exactly 42 _require_artifacts call sites, got $req_count."
+  [ "$req_count" -eq 43 ] || {
+    echo "FAIL: expected exactly 43 _require_artifacts call sites, got $req_count."
     echo "  This bounds the number of tests that skip when the factory-dispatcher binary"
     echo "  or WASM artifact is absent. Update this count when adding or removing a"
     echo "  dispatcher-gated test."
