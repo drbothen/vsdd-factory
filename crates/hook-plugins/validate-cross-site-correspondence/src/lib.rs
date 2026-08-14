@@ -186,6 +186,20 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     // NOT eligible for silent Continue — invariant 9 governs is_char_boundary()
     // slicing safety on already-decoded strings only and does NOT authorize
     // fail-open disposition of a decode failure.
+    //
+    // ============================================================================
+    // S-21.08 OBLIGATION (Class D re-enablement — currently harmless, do not skip):
+    // Precondition 15a's primary-target set EXCLUDES cycle artifacts — Class D is
+    // advisory-only per invariant 6, so a decode failure on a cycle artifact must
+    // NOT reach this unconditional block. Today this arm is correct-but-coincidental:
+    // `cycle_kind` is always `None` (`is_cycle_artifact` returns `None` unconditionally
+    // per the v1.6/D-953 Class D deferral — see `dispatch.rs`), so no cycle artifact
+    // ever reaches Step 4 as a classified target. When Class D is restored in S-21.08,
+    // this block MUST gain a `cycle_kind.is_some()` advisory carve-out (log_warn +
+    // Continue, not block_with_fix) per PC15a / invariant 6 — a cycle-artifact decode
+    // failure must be advisory, not blocking. Do NOT let this arm silently regress to
+    // blocking cycle-artifact decode failures once Class D starts producing `Some(_)`.
+    // ============================================================================
     let content = match std::str::from_utf8(&primary_bytes) {
         Ok(s) => s.to_string(),
         Err(decode_error) => {

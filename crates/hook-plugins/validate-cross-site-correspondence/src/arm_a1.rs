@@ -192,8 +192,16 @@ pub(crate) fn extract_bc_index_version_state(
         // BC-5.39.010 v1.19 PC5: "first non-empty field" (escape-aware).
         // F-P2-002: anchor on the first pipe-cell only; cross-reference rows that cite
         // bc_id in Title or Depends columns must not be matched.
-        let first_cell = non_empty_fields.first().copied().unwrap_or("");
-        if !first_cell_matches_bc_id(first_cell, bc_id) {
+        //
+        // Routed through `escape_aware_first_field` (ADV-RECON3-007) rather than
+        // `non_empty_fields.first()` so this candidacy check and Arm2's
+        // `row_first_field_matches_bc_id` (v1.20 PC13 Phase 1) share the identical
+        // escape-aware first-cell computation, not two independently-maintained
+        // copies (TD-VSDD-060). `non_empty_fields` below is still used for condition
+        // (3)'s field count and the version-cell join — only the first-cell value is
+        // re-derived here.
+        let first_cell = escape_aware_first_field(line);
+        if !first_cell_matches_bc_id(&first_cell, bc_id) {
             continue;
         }
 
@@ -273,6 +281,34 @@ pub(crate) fn extract_bc_index_version_state(
 pub fn index_ver_matches_frontmatter(index_ver: &str, frontmatter_version: &str) -> bool {
     let normalized_fv = frontmatter_version.trim_start_matches('v');
     normalized_fv == index_ver
+}
+
+/// Extracts the first non-empty pipe-delimited field of `line`, using the same
+/// escape-aware split as `extract_bc_index_version_state`'s condition (2)/(3)
+/// candidacy check: `\|` is substituted with the `\x00` sentinel BEFORE splitting
+/// on `|`, so an escaped pipe inside an earlier cell cannot create a phantom field
+/// boundary that shifts which cell counts as "first."
+///
+/// Shared by `extract_bc_index_version_state` (BC-INDEX row first-cell extraction,
+/// PC5 condition (2)) and `arm_a2::row_first_field_matches_bc_id` (story-table row
+/// first-cell extraction, PC13 Phase 1 eligibility gate, v1.20 / ADV-RECON-003) so
+/// the two "first cell" computations can never silently diverge (TD-VSDD-060
+/// sibling-site sweep; ADV-RECON3-007 — the prior Arm2 copy used a naive
+/// `line.split('|')` with no escape substitution, which is byte-identical to this
+/// escape-aware split for every corpus row today — no row has an escaped pipe
+/// before its first cell — but was not provably the SAME computation).
+///
+/// # BC trace
+/// BC-5.39.010 PC5 condition (2) (escape-aware first-cell, F-P4-017); v1.20 PC13
+/// Phase 1 (ADV-RECON-003 / ADV-RECON2-001 / ADV-RECON3-007).
+pub(crate) fn escape_aware_first_field(line: &str) -> String {
+    let escaped = line.replace("\\|", "\x00");
+    escaped
+        .split('|')
+        .map(str::trim)
+        .find(|field| !field.is_empty())
+        .unwrap_or("")
+        .to_string()
 }
 
 /// Returns `true` if the trimmed first pipe-cell content of a BC-INDEX body-table row

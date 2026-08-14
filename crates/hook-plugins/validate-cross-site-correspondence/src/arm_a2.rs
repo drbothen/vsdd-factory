@@ -13,9 +13,14 @@
 //!
 //! # Key design invariants
 //! - Path derivation: ONLY `derive_bc_path` (from arm_a1); NO `read_dir`/`glob`.
-//! - Version token extraction: two-phase (BC-5.39.010 v1.20 PC13) — Phase 1 pure-version
-//!   field `^v?([0-9]+\.[0-9]+)$` (rightmost); Phase 2 BC-ID-anchored first
-//!   `\bv([0-9]+\.[0-9]+)\b` after the BC ID — table rows only.
+//! - Version token extraction: two-phase (BC-5.39.010 v1.20 PC13) — Phase 1 is
+//!   BC-ID-anchored (ADV-RECON-003 / ADV-RECON2-001): a row is eligible for Phase 1
+//!   pure-version-field extraction (`^v?([0-9]+\.[0-9]+)$`, rightmost field) ONLY when
+//!   the row's own first field names the target BC (the same strong locator predicate
+//!   normative for Arm1, `arm_a1::first_cell_matches_bc_id`). Phase 2 (BC-ID-anchored
+//!   first `\bv([0-9]+\.[0-9]+)\b` after the BC ID) runs BOTH as the fallback for an
+//!   eligible row with no pure-version field AND directly for an ineligible row —
+//!   table rows only.
 //! - Skip (not block) on: missing citations in table rows, NotFound BC files.
 //! - Block on: present-but-stale citations, CapabilityDenied on BC reads.
 //! - Cascade: single combined block when multiple BCs have stale citations.
@@ -66,10 +71,21 @@ fn is_section_prefix(heading: &str, prefix: &str) -> bool {
 ///
 /// Scans `content` for pipe-delimited table rows (`|...|`) that contain both
 /// the `bc_id` token and a version token found via the two-phase extraction
-/// algorithm (BC-5.39.010 v1.20 PC13): Phase 1 scans fields right-to-left for a
-/// pure-version field matching `^v?([0-9]+\.[0-9]+)$` (the `v` prefix optional);
-/// if Phase 1 finds no match, Phase 2 falls back to the first `\bv([0-9]+\.[0-9]+)\b`
-/// token (the `v` prefix mandatory) found after the BC-ID's word-boundary end.
+/// algorithm (BC-5.39.010 v1.20 PC13, ADV-RECON-003 / ADV-RECON2-001):
+///
+/// - **Phase 1 (BC-ID-anchored eligibility gate):** a row is eligible for Phase 1
+///   pure-version-field extraction ONLY when the row's own first field names
+///   `bc_id` via the strong locator predicate normative for Part A Arm1
+///   (`row_first_field_matches_bc_id` → `arm_a1::first_cell_matches_bc_id`: `^\[X\]`
+///   link form or bare `X` plain form — the cell must BE the BC ID, not merely
+///   contain it). When eligible, Phase 1 scans fields right-to-left for a
+///   pure-version field matching `^v?([0-9]+\.[0-9]+)$` (the `v` prefix optional).
+/// - **Phase 2 (BC-ID-anchored first-v-token):** runs the first `\bv([0-9]+\.[0-9]+)\b`
+///   token (the `v` prefix mandatory) found after the BC-ID's word-boundary end.
+///   Phase 2 fires in TWO cases, not one: as the fallback when the row is Phase-1
+///   ELIGIBLE but no pure-version field is found, AND directly when the row is
+///   Phase-1 INELIGIBLE (its first field names a different BC).
+///
 /// Returns a `Vec<(location, version)>` where `location` is a human-readable
 /// row identifier and `version` is the cited version string (e.g., `"1.17"`).
 ///
@@ -234,16 +250,22 @@ fn line_contains_bc_id_at_boundary(line: &str, bc_id: &str) -> bool {
 /// Arm1's row-eligibility anchor and Arm2's Phase 1 row-eligibility anchor can never
 /// silently diverge again (TD-VSDD-060 sibling-site sweep).
 ///
+/// First-cell EXTRACTION also delegates to `arm_a1::escape_aware_first_field`
+/// (ADV-RECON3-007) rather than a second naive `line.split('|')`: Arm1's own
+/// first-cell extraction (`extract_bc_index_version_state`) is escape-aware
+/// (`\|` → `\x00` sentinel before splitting), so a prior plain `line.split('|')`
+/// here computed a DIFFERENT "first cell" than Arm1's for any row with an escaped
+/// pipe before the BC ID cell — no live corpus row has this shape today, but the
+/// two anchors were not provably identical. Sharing the extraction, not just the
+/// match predicate, closes that gap for good.
+///
 /// # BC trace
-/// BC-5.39.010 v1.20 PC13 Phase 1 (ADV-RECON-003, ADV-RECON2-001); EC-037; Canonical
-/// Test Vector "A Arm2 — Phase 1 cross-BC-row anchoring (v1.20 / ADV-RECON-003)".
+/// BC-5.39.010 v1.20 PC13 Phase 1 (ADV-RECON-003, ADV-RECON2-001, ADV-RECON3-007);
+/// EC-037; Canonical Test Vector "A Arm2 — Phase 1 cross-BC-row anchoring (v1.20 /
+/// ADV-RECON-003)".
 fn row_first_field_matches_bc_id(line: &str, bc_id: &str) -> bool {
-    let first_field = line
-        .split('|')
-        .map(str::trim)
-        .find(|field| !field.is_empty())
-        .unwrap_or("");
-    crate::arm_a1::first_cell_matches_bc_id(first_field, bc_id)
+    let first_field = crate::arm_a1::escape_aware_first_field(line);
+    crate::arm_a1::first_cell_matches_bc_id(&first_field, bc_id)
 }
 
 /// Phase 2 (BC-ID-anchored first-v-token) resolution for a table row.

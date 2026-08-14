@@ -14,8 +14,13 @@
 /// Which category of cycle artifact a triggered write maps to.
 ///
 /// **[DEFERRED v1.6 — Class D]**: `is_cycle_artifact` always returns `None` per
-/// BC-5.39.010 v1.6 / D-953. Variants are constructed only inside `#[ignore]`d tests.
-/// Retained for S-21.08 Phase 2 re-enablement alongside `arm_d.rs`.
+/// BC-5.39.010 v1.6 / D-953. Retained-but-unconstructed pending Class D
+/// re-enablement in S-21.08: the `#[ignore]`d tests that once constructed these
+/// variants directly were removed (ADV-RECON-005 — they asserted the opposite of
+/// current normative behavior, dead and misleading test content; see the removal
+/// note above `test_BC_5_39_010_dispatch_non_cycle_index_md_rejected` below), so
+/// no test or production code constructs `CycleArtifactKind` anywhere in this crate
+/// today.
 ///
 /// Used by Arm D to determine the scope-limited extraction strategy
 /// (BC-5.39.010 precondition 30).
