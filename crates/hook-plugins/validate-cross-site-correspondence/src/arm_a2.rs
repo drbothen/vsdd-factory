@@ -2222,4 +2222,115 @@ mod tests {
             path. Advisories: {advisories:?}"
         );
     }
+
+    /// RED GATE — BC-5.39.010 v1.21 / ADV-RECON5-003: PC13 Phase 2 same-field
+    /// scan-stop.
+    ///
+    /// Corpus-confirmed reachable (2026-08-14, not hypothetical): the row shape
+    /// below is a faithful transcription of
+    /// `.factory/stories/S-4.08-rc1-release-gate.md`'s `## Behavioral Contracts`
+    /// table row for `BC-9.01.002` (see that file around line 242). The row's
+    /// FIRST field names `BC-9.01.002` — so Phase 1 (BC-ID-anchored, ADV-RECON-003)
+    /// is correctly INELIGIBLE when resolving `BC-9.01.001` (first field does not
+    /// name it). The row's Trace field (3rd column) is the Phase 2 anchor field
+    /// for `BC-9.01.001`: it mentions `BC-9.01.001` and, scanning FORWARD from that
+    /// position, next mentions a DIFFERENT BC ID — `BC-9.01.002` — BEFORE any
+    /// qualifying `\bv([0-9]+\.[0-9]+)\b` token is reached; only after that
+    /// intervening different-BC mention does the field's actual v-token ("v1.1",
+    /// part of "v1.1 BC candidate `BC-9.01.NNN-...`") appear.
+    ///
+    /// Per BC-5.39.010 v1.21 §Preconditions PC13 "Phase 2 same-field scan-stop":
+    /// the forward scan MUST terminate — without producing a version — the moment
+    /// it encounters `BC-9.01.002` (a different `BC-S.SS.NNN` word-boundary token)
+    /// before any qualifying v-token. The anchor field must then yield NO citation
+    /// (no other field in the row names `BC-9.01.001`), and the caller falls
+    /// through to the per-field fallback with nothing more to try — zero citations
+    /// for `BC-9.01.001` overall, consistent with its real frontmatter `version:`
+    /// of `"1.0"`.
+    ///
+    /// **Current code (pre-scan-stop) is NON-CONFORMING and this test is RED
+    /// against it**: `extract_first_v_token_after_position` (the Phase 2
+    /// first-v-token scanner backing `find_phase2_version`) has no check for an
+    /// intervening different-BC-ID token — it scans past `BC-9.01.002` and returns
+    /// the field's first `\bv([0-9]+\.[0-9]+)\b` match regardless, which is
+    /// "v1.1" (from "v1.1 BC candidate ..."). That produces a citation of "1.1"
+    /// for `BC-9.01.001`, which does not equal its real frontmatter version "1.0"
+    /// — a live false BLOCK (EC-039; BC-5.39.010 §Canonical Test Vectors "A Arm2 —
+    /// Phase 2 same-field scan-stop (v1.21 / ADV-RECON5-003)"). The implementer
+    /// closes this by adding the same-field scan-stop to `find_phase2_version` in
+    /// `crates/hook-plugins/validate-cross-site-correspondence/src/arm_a2.rs`.
+    ///
+    /// # BC trace
+    /// BC-5.39.010 v1.21 §Preconditions PC13 Phase 2 same-field scan-stop; EC-039;
+    /// §Canonical Test Vectors "A Arm2 — Phase 2 same-field scan-stop
+    /// (v1.21 / ADV-RECON5-003)"; postcondition 8 (skip-not-block on absent
+    /// citations).
+    #[test]
+    fn test_BC_5_39_010_arm_a2_phase2_same_field_scan_stop_different_bc_no_false_citation() {
+        // Faithful transcription of the S-4.08 corpus row (story file
+        // `.factory/stories/S-4.08-rc1-release-gate.md`, `## Behavioral
+        // Contracts` table, BC-9.01.002 row). First field: BC-9.01.002 (a
+        // DIFFERENT BC than the one being resolved below). Trace field (3rd
+        // column): mentions BC-9.01.001, then — later in the SAME field, past
+        // an intervening BC-9.01.002 mention — an unrelated "v1.1" token.
+        let content = concat!(
+            "## Behavioral Contracts\n",
+            "\n",
+            "| BC ID | Title | Trace |\n",
+            "|-------|-------|-------|\n",
+            "| BC-9.01.002 | chore commit (operator-staged) modifies only \
+             CHANGELOG.md | This BC is in scope as a v1.1 candidate observation; \
+             AC-13 traces ONLY to BC-9.01.001 PC2 (CHANGELOG monotonicity). \
+             BC-9.01.002 covers the orthogonal \"CHANGELOG-only chore commit\" \
+             invariant which is enforced operationally (by code review of the \
+             bump-version.sh-generated commit) rather than by an AC. v1.1 BC \
+             candidate `BC-9.01.NNN-rc1-gate-changelog-only-chore-commit` \
+             proposed for explicit gate. |\n",
+        );
+
+        // Resolve BC-9.01.001 (NOT BC-9.01.002, the row's own subject) against
+        // this row. Calls the production extraction pipeline directly —
+        // POLICY 11, no tautology.
+        let citations = extract_story_bc_version_citations(content, "BC-9.01.001");
+        assert!(
+            citations.is_empty(),
+            "BC-5.39.010 v1.21 / ADV-RECON5-003 (EC-039): the Phase 2 anchor \
+            field for BC-9.01.001 (the Trace cell) mentions a DIFFERENT BC ID \
+            ('BC-9.01.002') BEFORE any qualifying v-token following the \
+            BC-9.01.001 occurrence — the forward scan MUST stop there and \
+            yield NO citation. Row's first field names BC-9.01.002 (not \
+            BC-9.01.001), so Phase 1 is correctly ineligible; no other field \
+            in the row names BC-9.01.001, so the row must produce zero \
+            citations overall. Pre-v1.21 same-field-scoped-only algorithm \
+            (NON-CONFORMING) scans past the intervening BC-9.01.002 mention \
+            and extracts 'v1.1' (from 'v1.1 BC candidate ...') instead. \
+            Citations: {citations:?}"
+        );
+
+        // Full pipeline: BC-9.01.001's real frontmatter version is "1.0"
+        // (S-4.08 corpus fact). With citations correctly empty, postcondition 8
+        // (skip-not-block on absent citations) applies — zero violations,
+        // zero advisories. If citations were non-empty (pre-fix "1.1"), this
+        // would instead produce a false-BLOCK violation ("1.1" != "1.0").
+        let bc_content = b"---\nversion: \"1.0\"\n---\n# BC-9.01.001\n";
+        let (violations, advisories) = run_arm_a2_for_bc_with_result(
+            "S-4.08-rc1-release-gate",
+            "BC-9.01.001",
+            &citations,
+            Ok(bc_content.to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "BC-5.39.010 v1.21 / ADV-RECON5-003: with the Phase 2 same-field \
+            scan-stop correctly applied, zero citations means zero violations \
+            (postcondition 8) — no false BLOCK against BC-9.01.001's real \
+            frontmatter version '1.0'. Pre-fix, the spurious '1.1' citation \
+            produces exactly one false-BLOCK violation here. \
+            Violations: {violations:?}"
+        );
+        assert!(
+            advisories.is_empty(),
+            "clean skip, not a NotFound path. Advisories: {advisories:?}"
+        );
+    }
 }
