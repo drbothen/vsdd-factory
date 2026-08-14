@@ -114,6 +114,20 @@ pub enum BcIndexVersionState {
     /// Candidate found but <5 non-empty fields after escape-aware split — not a body-table row.
     /// Advisory + Continue (postcondition 4a). NEVER blocks. `usize` = observed field count.
     RowMalformed(usize),
+    /// BC-INDEX.md was read successfully as bytes but the bytes failed UTF-8 decoding —
+    /// the row-location scan cannot run against undecodable bytes, so the row state for
+    /// this BC ID is genuinely INDETERMINATE (not confirmed-absent). Distinct from
+    /// `RowAbsent`: `RowAbsent` means the file WAS decodable and scanned but no candidate
+    /// line was found; `IndexUnreadable` means the file could not be scanned at all.
+    /// MUST NOT be collapsed into `RowAbsent` — for a BC with frontmatter `version:` >
+    /// "1.0", that would trigger postcondition 4's BLOCK with a MISLEADING "dropped
+    /// registration" message when the true root cause is index-file corruption.
+    /// Disposition: distinct advisory naming BC-INDEX.md + Continue (postcondition 26).
+    /// NEVER blocks.
+    ///
+    /// # BC trace
+    /// BC-5.39.010 precondition 15b / postcondition 26 (v1.22 / ADV-RECON11-001).
+    IndexUnreadable,
 }
 
 /// Extract the BC-INDEX.md row state for `bc_id` using the v1.13 four-state algorithm.
@@ -161,7 +175,15 @@ pub(crate) fn extract_bc_index_version_state(
     bc_id: &str,
     index_content: &[u8],
 ) -> BcIndexVersionState {
-    let content = std::str::from_utf8(index_content).unwrap_or("");
+    // BC-5.39.010 precondition 15b / postcondition 26 (v1.22 / ADV-RECON11-001):
+    // BC-INDEX.md is a SECONDARY read target. A decode failure here is genuinely
+    // INDETERMINATE, not a confirmed-absent row — it MUST NOT silently degrade to
+    // "" (zero candidate lines → RowAbsent), which would misclassify index-file
+    // corruption as a dropped registration. Signal the distinct disposition instead.
+    let content = match std::str::from_utf8(index_content) {
+        Ok(c) => c,
+        Err(_) => return BcIndexVersionState::IndexUnreadable,
+    };
 
     // Track the first malformed candidate's field count. Used as the RowMalformed(n) value
     // only when the full-file scan finds NO valid (≥5-field) candidate line.
@@ -617,6 +639,24 @@ pub fn run_arm_a1_with_index_result(
                             (likely a Changelog entry or notes table). Registration status \
                             cannot be determined from this line. \
                             Verify BC-INDEX body-table registration manually."
+                        ),
+                    };
+                    (vec![], vec![advisory])
+                }
+                BcIndexVersionState::IndexUnreadable => {
+                    // BC-5.39.010 precondition 15b / postcondition 26 (v1.22 /
+                    // ADV-RECON11-001): BC-INDEX.md succeeded as bytes but failed UTF-8
+                    // decoding. Row state is genuinely INDETERMINATE — MUST NOT fall
+                    // through to RowAbsent's postcondition-4 BLOCK path (which would
+                    // misreport index-file corruption as a "dropped registration").
+                    // Deliberately lower severity than precondition 15a / postcondition
+                    // 25's primary-target BLOCK: advisory + Continue only.
+                    let advisory = Advisory {
+                        message: format!(
+                            "validate-cross-site-correspondence: BC-INDEX.md failed UTF-8 \
+                            decode — row/hash state for '{bc_id}' is INDETERMINATE, not \
+                            confirmed-absent. Fix: verify the index file's encoding and \
+                            re-save as UTF-8."
                         ),
                     };
                     (vec![], vec![advisory])

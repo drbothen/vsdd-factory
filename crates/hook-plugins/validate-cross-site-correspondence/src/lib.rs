@@ -1945,6 +1945,19 @@ active | CAP-123 | S-21.07 | v1.10 |\n";
                     // INDEX row structurally malformed — separate concern from version sync.
                     row_malformed_count += 1;
                 }
+                arm_a1::BcIndexVersionState::IndexUnreadable => {
+                    // BC-5.39.010 precondition 15b / postcondition 26 (v1.22 /
+                    // ADV-RECON11-001): the corpus-sync gate reads the real BC-INDEX.md
+                    // from disk, which MUST be valid UTF-8. Reaching this arm means the
+                    // live corpus file itself failed to decode — a genuine corpus-shape
+                    // anomaly distinct from every other classification above, so it is
+                    // surfaced as a mismatch rather than silently skipped.
+                    mismatches.push(format!(
+                        "{bc_id}: BC-INDEX.md failed UTF-8 decode while checking this BC — \
+                        row/version state is INDETERMINATE, not confirmed-absent. \
+                        Verify the index file's encoding and re-save as UTF-8."
+                    ));
+                }
                 arm_a1::BcIndexVersionState::Version(index_ver) => {
                     // INDEX has a version chain. Compare via the named predicate
                     // arm_a1::index_ver_matches_frontmatter, which encapsulates the

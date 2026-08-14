@@ -199,6 +199,31 @@ pub fn run_arm_b1_with_index_result(
             });
         }
         Ok(ref bytes) => {
+            // BC-5.39.010 precondition 15b / postcondition 26 (v1.22 / ADV-RECON11-001):
+            // STORY-INDEX.md is a SECONDARY read target at Arm B1 (not Arm B2, which is
+            // already governed by precondition 15a / postcondition 25's primary-target
+            // BLOCK). A decode failure here is genuinely INDETERMINATE, not confirmed-
+            // absent — it MUST NOT be allowed to silently degrade into
+            // `parse_story_index_catalog_hash`/`parse_story_index_blockquote_hash`'s
+            // `.ok()?` -> `None` fallback, which is indistinguishable from a genuinely
+            // new, not-yet-registered story in a DECODABLE index file and would
+            // otherwise fall through into the generic `(None, None)` "not yet
+            // registered" fail-open advisory below — silently disabling three-way hash
+            // checking with no disclosure that the actual root cause is an undecodable
+            // STORY-INDEX.md. Checked once here, at the orchestration entry point,
+            // before either leaf parser runs.
+            if std::str::from_utf8(bytes).is_err() {
+                advisories.push(Advisory {
+                    message: format!(
+                        "validate-cross-site-correspondence: STORY-INDEX.md failed UTF-8 \
+                        decode — row/hash state for '{story_id}' is INDETERMINATE, not \
+                        confirmed-absent. Fix: verify the index file's encoding and \
+                        re-save as UTF-8."
+                    ),
+                });
+                return (violations, advisories);
+            }
+
             let catalog_hash = parse_story_index_catalog_hash(bytes, story_id);
             let blockquote_hash = parse_story_index_blockquote_hash(bytes, story_id);
 
