@@ -209,7 +209,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
                     description: format!(
                         "validate-cross-site-correspondence [primary-read]: cannot decode \
                         primary target '{file_path}' as UTF-8: {decode_error}. Fail-closed \
-                        per BC-5.39.010 invariant 4 (extended, v1.21) — invariant 9 governs \
+                        per BC-5.39.010 invariant 4 (extended, v1.20) — invariant 9 governs \
                         slicing safety only and does not authorize Continue here. Fix: verify \
                         the file's encoding and re-save as UTF-8, then retry the write."
                     ),
@@ -628,7 +628,7 @@ mod tests {
             result,
             Some("2".to_string()),
             "15-byte last_amended '2026-07-30 (v2)' must parse to outer version '2'. \
-            BC-5.39.010 v1.21 §E1 (F-S2107-P1C-014). \
+            BC-5.39.010 v1.20 §E1 (F-S2107-P1C-014). \
             Red Gate: len < 17 guard rejects 15-byte strings → None → assertion FAILS"
         );
     }
