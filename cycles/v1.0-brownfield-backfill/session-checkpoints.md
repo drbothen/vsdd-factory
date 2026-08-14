@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "7127986"
+input-hash: "895dcbb"
 traces_to: STATE.md
 ---
 
@@ -1786,3 +1786,17 @@ Key state at D-1009 archive:
 - S-7.02 Cycle-Closing Checklist SATISFIED this burst — 2 new justified-deferral Drift Items added (STORY-INDEX self-bump-omission recurrence; state-manager POL-3 bash-append-discipline slip), both anchored S-15.03 PRIORITY-A.
 
 **This checkpoint superseded by the D-1010 session-wrap PAUSE checkpoint burst 2026-08-14 — human-requested session wrap at this CONVERGED boundary.**
+
+## Session Resume Checkpoint (2026-08-14 — HEAD `2077bcd8`; D-1011-RESUME-AND-CORRECTION COMPLETE; PIPELINE ACTIVE; ground-truth audit dispatched next)
+
+Archived from STATE.md by the SESSION-WRAP-PAUSE-2026-08-14 checkpoint burst (2026-08-14). Full content preserved in git: `git show 2077bcd8:.factory/STATE.md` (factory-artifacts HEAD at the D-1011 SHA-patch tip, pre-session-work).
+
+Key state at D-1011 archive:
+- Pipeline ACTIVE (human-directed resume from the D-1010 pause). D-1011-RESUME-AND-CORRECTION COMPLETE (commit `2077bcd8`). 4-INDEX: BC v4.59 / VP v2.76 / STORY v4.325 / ARCH v3.58. policies.yaml v1.4.24 UNCHANGED.
+- Chosen track: reconcile-and-land the EXISTING `feature/S-21.07-validate-cross-site-correspondence` implementation @ `96b4be19` (not a from-scratch greenfield TDD build).
+- STATE-INTEGRITY CORRECTION applied: the prior D-1008/D-1009/D-1010 characterization of S-21.07 as "unbuilt / no implementation code" was FALSE per git ground truth — the crate was already substantially implemented (lib.rs/main.rs/dispatch.rs/frontmatter.rs/arm_a1-e.rs + docs/red-gate-log.md, wired into workspace Cargo.toml, registered hooks-registry.toml priority 460, staged WASM + 1,958-line bats suite) but BUILT-BUT-STALE vs. the converged story spec v1.14 and behind `develop` (merge-base `948f0fb1` vs. tip `2e8087af`).
+- Orchestrator's immediate next dispatch at this point: a ground-truth audit (develop-sync + full cargo+bats baseline + code-vs-v1.14-spec delta).
+- **What actually happened next (not captured in STATE.md at the time — see SESSION-WRAP-PAUSE-2026-08-14 checkpoint in the live STATE.md for the full account):** the audit was performed, the branch was reconciled with `develop` (merge `cc0c560d`, now `a39d6bbb`), the deferred Class D/`arm_d.rs` arm was removed, WASM rebuilt, and a human-directed STRICT BC-5.39.001 3-CLEAN adversarial cascade (~17 fresh-context passes) drove three further BC-5.39.010 amendments (v1.19→v1.20→v1.21→v1.22) and a crate-wide TD-VSDD-091 de-versioning sweep, with story S-21.07 advancing to v1.18. decision-log.md D-1012+ backfill for all of this remains OWED.
+- develop: `2e8087af`; main: `80e5cd7b`; merged_count: 108.
+
+**This checkpoint superseded by the SESSION-WRAP-PAUSE-2026-08-14 checkpoint burst — human-requested session wrap (`/wrap`) after the reconcile-and-land track was substantially executed.**
