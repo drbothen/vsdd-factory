@@ -28934,3 +28934,91 @@ D-444(c) burst-log h2 heading `## D-1006-S2107-PASS21-RECORD-AND-FIX-BURST` pres
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `e9fd7607` — `state(sha-patch): D-1005 commit 2d0c6d37 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
 
 **Closes:** F-S2107-P21-001 CLOSED (S-21.07 v1.14; STORY-INDEX v4.325; Task-10 two-phase rewrite independently re-verified). REC-P21-A/OBS-P21-B tracked in STATE.md §8, not actioned. O-P19-01/O-P15-03/O-P17-02/O-P17-01/O-P14-03 re-observed unchanged, not fixed. **STREAK EXPLICITLY RESETS 1/3 → 0/3.** **S-21.07 PASS-21 RECORD + FIX BURST COMPLETE; SHA-PATCH FOLLOW-UP NEXT; PASS-22 ADVERSARY DISPATCH AFTER THAT.**
+
+## D-1009-S2107-PASS24-CONVERGENCE-BURST
+
+**RECOVERY NOTE:** A prior state-manager delegate died mid-burst (API connection loss) before committing. `adversary-pass-24.md` and the INDEX.md pass-24 row + Convergence Status paragraph were already authored; both verified byte-complete and internally consistent before this entry was written, per `L-BB-state-manager-delegate-death-requires-decision-log-backfill-not-silent-gap` (D-991) discipline. No content in either file was altered by this recovery.
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1008 < D-9000 ceiling
+```
+
+D-1009 allocated (D-999 remains permanently skipped). **Parent-commit:** `811f34c9` — `state(sha-patch): D-1008 commit df2bba17 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` pass-24 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged; story unbuilt) and `factory-artifacts` at `811f34c9` (D-1008 SHA-patch HEAD, carrying STORY-INDEX v4.325 + S-21.07 story v1.14 as landed). **Verdict: CLEAN — 0 findings at any severity (BLOCKER 0 / HIGH 0 / MEDIUM 0 / LOW 0 / NIT 0).** This is the THIRD consecutive CLEAN verdict (pass-22, pass-23, pass-24) — **BC-5.39.001 3-CLEAN CONVERGENCE SATISFIED**, streak **CONVERGES 2/3 → 3/3**. Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-24.md`. F-S2107-P21-001 closure independently re-verified CLOSED for the third consecutive fresh-context pass; 8-axis exhaustive re-derivation all CLEAN (see decision-log.md D-1009(c) for the full axis list). RECORD-ONLY burst — nothing to close; story stays STABLE at v1.14. **The S-21.07 LOCAL adversarial cascade is CONVERGED — no further adversary pass is owed against this spec state. NEXT PHASE = TDD implementation (test-writer dispatch).**
+
+**Block 3: Files touched**
+
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-24.md` — new (pass-24 record, authored by the died delegate, verified complete this burst; not re-authored)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-24 row added (authored by the died delegate, verified complete); Convergence Status extended with the D-1009 3-CLEAN-CONVERGED declaration (verified complete)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1009 appended (this burst; includes S-7.02 Cycle-Closing Checklist table)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (frontmatter, Phase Progress, Current Phase Steps, Story Status, Active Branches, Blocking Issues, Drift Items — 2 NEW justified-deferral rows per the S-7.02 checklist, §8 tracked-observation anchoring wording, Session Resume Checkpoint)
+
+No `stories/S-21.07-validate-cross-site-correspondence.md`, `stories/STORY-INDEX.md`, BC-5.39.010.md, BC-INDEX.md, VP-INDEX.md, or ARCH-INDEX.md touched this burst — pass-24 was CLEAN with nothing to fix, and the S-7.02 checklist's 2 new deferrals are STATE.md-only bookkeeping.
+
+**Block 4: Codifications**
+
+No new `[process-gap]` lesson this burst — OBS-P24-A is a tracked cosmetic carve-out, not a process-gap. The S-7.02 Cycle-Closing Checklist (decision-log.md D-1009(h)) confirms all 6 distinct cascade-wide process-gap lesson classes (P11/P12/P13/P15/P19/P21) already carry a live `S-15.03-PRIORITY-A-anchor` tag in lessons.md — no re-codification needed. 2 additional recurring process-gaps identified by orchestrator relay (STORY-INDEX frontmatter self-bump-omission recurrence, D-1001/D-1002/D-1003/D-1004 class; state-manager POL-3 bash-append-tool-discipline slip, recurring lapse this session) did not previously carry an open STATE.md Drift Items tracking row — both received one this burst, anchored S-15.03 PRIORITY-A, justified per Canonical Principle Rule 3 (explicit direction to defer + concrete future dependency on S-15.03 PRIORITY-A automation + attachment to that named anchor).
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+S-7.02 checklist anchor-verification gate (literal shell — confirms the 6 process-gap lessons genuinely carry the anchor tag, and confirms the 2 new items were genuinely absent from STATE.md before this burst):
+
+```
+$ for tag in "L-BB-adr-reconciliation-sweep-scope-on-ratification" "L-BB-story-propagation-obligation-on-governing-bc-normative-prose-amendment" "L-BB-retracted-claim-class-complete-sibling-sweep-on-fuel-claim-amendment" "L-BB-epic-total-aggregation-sweep-on-any-epic-blockquote-edit" "L-BB-attestation-predicate-must-be-whitespace-tolerant-and-line-wrap-aware" "L-BB-version-cite-propagation-must-include-algorithm-content-not-just-version-numbers"; do grep -c "S-15.03-PRIORITY-A-anchor" <(grep -A15 "$tag \[process-gap\]" cycles/v1.0-brownfield-backfill/lessons.md | head -20); done
+1
+1
+1
+1
+1
+1
+$ grep -n "self-bump\|bash-append" .factory/STATE.md
+(no output — confirmed absent before this burst)
+```
+
+Independent STORY-INDEX/story unchanged-verification gate (defense-in-depth, run BEFORE trusting the "nothing to fix" claim):
+
+```
+$ ./plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-21.07-validate-cross-site-correspondence.md --check
+(exit 0 -- MATCH; hash 93c4a89 UNCHANGED)
+$ grep -n '^version:' .factory/stories/STORY-INDEX.md
+version: "4.325"
+```
+
+**Block 6 (Dim-5): Closes**
+
+- Nothing new to close — pass-24 was CLEAN, and F-S2107-P21-001's closure was already CLOSED at D-1006, independently re-verified at D-1007/D-1008/D-1009.
+- OBS-P24-A (cosmetic, non-blocking) — tracked in STATE.md §8, NOT actioned (anchored S-21.07 implementation phase, optional cosmetic normalization)
+- OBS-P22-A/OBS-P23-A/OBS-P23-B/O-P19-01/O-P15-03/O-P17-02/O-P17-01/O-P14-03/REC-P21-A/OBS-P21-B (non-findings, carried) — re-observed unchanged this pass, not reopened; anchoring wording confirmed/tightened in STATE.md §8 this burst
+- **BC-5.39.001 3-CLEAN CONVERGENCE SATISFIED — the S-21.07 LOCAL cascade is CONVERGED.**
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1009-S2107-PASS24-CONVERGENCE-BURST` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: the pass-24 disposition paragraph in decision-log.md D-1009 faithfully describes `adversary-pass-24.md` Part A's finding set (0 findings, verbatim closure-re-verification text) — verified by direct comparison against the persisted pass-24 file at burst time; the OBS-P24-A disposition likewise faithfully describes the persisted Observations section. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + S-7.02 anchor-verification gate + STORY-INDEX/story unchanged-verification gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts, no trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered LOCAL adversary pass (pass-24) — trajectory entry added; trajectory (23 true adversary passes, 6 CLEAN) `47→18→25→25→24→20→16→8→10→1→1→2→0→1→1→0→1→1→0→1→0→0→0` (tail `→1→0→0→0`, D-433(e)+D-439(c) LENGTH=4)
+- Streak: **3/3 — CONVERGED** (BC-5.39.001 requires 3 CONSECUTIVE CLEAN passes to converge — SATISFIED by passes 22/23/24).
+- 4-INDEX: BC v4.59 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY v4.325 (UNCHANGED) / ARCH v3.58 (UNCHANGED)
+- policies.yaml v1.4.24 (UNCHANGED — no `policies.yaml` text change this burst)
+- `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst; fix is spec-only, and there is nothing to fix — CLEAN pass)
+- `pipeline: ACTIVE` UNCHANGED
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `811f34c9` — `state(sha-patch): D-1008 commit df2bba17 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
+
+**Closes:** BC-5.39.001 3-CLEAN CONVERGENCE SATISFIED (passes 22/23/24 all CLEAN). S-7.02 Cycle-Closing Checklist SATISFIED — 6 process-gap lessons confirmed anchored; 2 new justified-deferral Drift Items added (STORY-INDEX self-bump-omission recurrence; state-manager POL-3 bash-append slip recurrence), both anchored S-15.03 PRIORITY-A. Tracked observations OBS-P22-A/OBS-P23-A/OBS-P23-B/REC-P21-A/OBS-P21-B/OBS-P24-A anchoring confirmed/tightened. **THE S-21.07 LOCAL ADVERSARIAL CASCADE IS CONVERGED. S-21.07 remains an unbuilt CONVERGED spec at v1.14 — NEXT PHASE = TDD implementation (test-writer dispatch). SHA-PATCH FOLLOW-UP NEXT.**
