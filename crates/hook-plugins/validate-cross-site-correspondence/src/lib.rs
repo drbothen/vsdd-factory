@@ -96,8 +96,9 @@ pub struct Advisory {
 ///    On HostError for cycle artifacts: advisory + Continue (invariant 6 — Class D
 ///    is advisory-only, never blocking). On HostError for all other classified targets:
 ///    BLOCK (fail-closed per invariant 4 + BC-5.39.008 v1.6).
-///    On UTF-8 decode failure: BLOCK (fail-closed per invariant 4 extension, v1.21 /
-///    ADV-RECON-007 — invariant 9 governs slicing safety only, not decode disposition).
+///    On UTF-8 decode failure: BLOCK (fail-closed per invariant 4 extension — introduced
+///    BC-5.39.010 v1.20, ADV-RECON-007; governing BC v1.21 — invariant 9 governs slicing
+///    safety only, not decode disposition).
 /// 4. Dispatch to applicable arms based on classification:
 ///    - STORY-INDEX.md: Arm B2 only.
 ///    - Cycle artifact: Arm D advisory (returns Continue).
@@ -180,8 +181,9 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
         }
     };
 
-    // Step 4: decode UTF-8; fail-closed on decode failure (BC-5.39.010 v1.21 /
-    // ADV-RECON-007: precondition 15a, postcondition 25, invariant 4 extension).
+    // Step 4: decode UTF-8; fail-closed on decode failure (precondition 15a /
+    // postcondition 25 / invariant 4 extension — introduced BC-5.39.010 v1.20,
+    // ADV-RECON-007; governing BC v1.21).
     // A primary target that reads successfully as bytes but is not valid UTF-8 is
     // NOT eligible for silent Continue — invariant 9 governs is_char_boundary()
     // slicing safety on already-decoded strings only and does NOT authorize
