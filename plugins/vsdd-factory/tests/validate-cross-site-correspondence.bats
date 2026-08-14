@@ -2,14 +2,21 @@
 # validate-cross-site-correspondence.bats — Integration tests for the
 # validate-cross-site-correspondence PostToolUse WASM hook plugin.
 #
-# These tests deliver full payload-delivery scenarios for AC-001 through AC-027,
-# covering the six arms (A1, A2, B1, B2, E1, E2) via fixture files. Class D
-# (arm_d.rs) is deferred to S-21.08 and was removed from the implementation;
-# it has no coverage in this suite (see removal note preceding the former
-# AC-012/013/014 section for detail). AC-028 (BC-5.39.010 precondition 15b /
-# postcondition 26, secondary index-file UTF-8 decode advisory) has no bats
-# scenario in this suite — it is covered at the Rust-unit level only, in
-# arm_a1.rs and arm_b.rs (see the story's AC-028 test citations).
+# These tests deliver bats payload-delivery scenarios covering the six blocking
+# arms (A1, A2, B1, B2, E1, E2) via fixture files. Class D (arm_d.rs, formerly
+# AC-012/013/014) is deferred to S-21.08 and was removed from the
+# implementation; it has no coverage in this suite.
+#
+# This file does NOT enumerate a contiguous "AC-001 through AC-NNN" span —
+# that claim decays every time an AC is added, renumbered, or moved to a
+# different test layer, and has repeatedly gone stale. The AUTHORITATIVE
+# per-AC coverage mapping (which ACs are bats vs Rust-unit vs manual) lives
+# in the story's Test Plan (S-21.07, .factory/stories/S-21.07-validate-cross-
+# site-correspondence.md, "## Test Plan" section) — consult it, not this
+# comment, for AC-to-test-layer traceability. Some ACs are intentionally
+# covered outside this bats suite: e.g. AC-028 (BC-5.39.010 precondition 15b
+# / postcondition 26, secondary index-file UTF-8 decode advisory) is
+# Rust-unit only, in arm_a1.rs and arm_b.rs.
 #
 # RED GATE (BC-5.38.001): Every payload-driven test MUST FAIL before implementation.
 #
