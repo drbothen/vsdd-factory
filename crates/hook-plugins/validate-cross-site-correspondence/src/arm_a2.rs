@@ -26,7 +26,13 @@
 //! - Cascade: single combined block when multiple BCs have stale citations.
 //!
 //! # BC trace
-//! BC-5.39.010 preconditions 9-15; postconditions 7-11; invariant 1 (no enumeration).
+//! BC-5.39.010 Class A Arm2 preconditions, postconditions, and invariant 1 (no
+//! directory enumeration; current version per BC-INDEX) — story-file trigger
+//! (precondition 9), deterministic BC path derivation (precondition 11), §PC13
+//! citation-section scan and two-phase version extraction, per-BC read-failure
+//! semantics (preconditions 14/15), and cascade reporting (postcondition 7). Not in
+//! scope for the v1.22 secondary-index-file amendment (precondition 15b /
+//! postcondition 26 governs Arm A1 and Arm B1 secondary-index reads only).
 
 use crate::{Advisory, Violation};
 use vsdd_hook_sdk::host::HostError;
@@ -113,9 +119,9 @@ fn is_section_prefix(heading: &str, prefix: &str) -> bool {
 ///
 /// # BC trace
 /// BC-5.39.010 §Architecture Anchors `extract_story_bc_version_citations`;
-/// preconditions 12-13 (table row detection + version token regex); §PC13 (
-/// word-boundary prefix predicate, two-phase extraction — Phase 1 pure-version field
-/// rightmost, Phase 2 BC-ID-anchored first-v-token per ADR-038 §Decision 5);
+/// precondition 12 (table row detection) and precondition 13 (version token regex,
+/// §PC13 word-boundary prefix predicate, two-phase extraction — Phase 1 pure-version
+/// field rightmost, Phase 2 BC-ID-anchored first-v-token per ADR-038 §Decision 5);
 /// F-P2-001 (skip_section initialization — preamble must not be scanned).
 pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(String, String)> {
     let mut citations = Vec::new();
@@ -561,7 +567,9 @@ fn extract_version_token_from_table_row(line: &str) -> Option<String> {
 /// - If any citation has a stale version: blocking violation per stale cite.
 ///
 /// # BC trace
-/// BC-5.39.010 postconditions 7-11; preconditions 14-15.
+/// BC-5.39.010 postcondition 7 (cascade), postcondition 8 (empty citations skip),
+/// postcondition 10 (BC-file NotFound advisory); preconditions 14/15 (per-BC
+/// read-failure semantics — CapabilityDenied/other HostError fail-closed).
 pub fn run_arm_a2_for_bc_with_result(
     story_id: &str,
     bc_id: &str,
@@ -665,7 +673,8 @@ pub fn run_arm_a2_for_bc_with_result(
 /// ```
 ///
 /// # BC trace
-/// BC-5.39.010 preconditions 11 (derive_bc_path), 14-15 (read failure semantics).
+/// BC-5.39.010 precondition 11 (`derive_bc_path`) and preconditions 14/15
+/// (per-BC read-failure semantics, delegated to `run_arm_a2_for_bc_with_result`).
 pub fn run_arm_a2_for_bc(
     story_id: &str,
     bc_id: &str,
@@ -685,7 +694,9 @@ pub fn run_arm_a2_for_bc(
 /// (postcondition 7 last sentence).
 ///
 /// # BC trace
-/// BC-5.39.010 postcondition 7 (cascade); preconditions 9-15.
+/// BC-5.39.010 postcondition 7 (cascade — all stale citations across all cited BCs
+/// combined into one block); precondition 9 (Arm A2 story-file trigger), delegating
+/// per-BC checks to `run_arm_a2_for_bc` (preconditions 11, 14/15).
 pub fn run_arm_a2(story_id: &str, story_content: &str) -> (Vec<Violation>, Vec<Advisory>) {
     let bc_ids =
         crate::frontmatter::extract_frontmatter_sequence(story_content, "behavioral_contracts");

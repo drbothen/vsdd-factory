@@ -16,7 +16,12 @@
 //!   Primary target failure is handled in `lib.rs` before dispatching here.
 //!
 //! # BC trace
-//! BC-5.39.010 preconditions 1-8; postconditions 1-6; invariants 4-5.
+//! BC-5.39.010 Class A Arm1 preconditions, postconditions, and invariants (current
+//! version per BC-INDEX) — including precondition 11 (`derive_bc_path`), §PC5 row
+//! classification, the PC2a/PC2b directional version carve-out, preconditions 7/8
+//! read-failure semantics, invariants 4/5, and the v1.22 secondary-index UTF-8
+//! decode-failure path (precondition 15b / postcondition 26, `IndexUnreadable`;
+//! ADV-RECON11-001).
 
 use crate::{Advisory, Violation};
 use vsdd_hook_sdk::host::HostError;
@@ -499,7 +504,13 @@ fn extract_first_v_token_of_last_entry(cell: &str) -> Option<String> {
 /// - Advisory: `NotFound` on BC-INDEX.md (precondition 8, invariant 5 second clause).
 ///
 /// # BC trace
-/// BC-5.39.010 postconditions 1-6; preconditions 1-8; invariants 4-5.
+/// BC-5.39.010 Class A Arm1 postconditions and preconditions (current version per
+/// BC-INDEX) — dispatches on all five `BcIndexVersionState` variants: `RowAbsent`
+/// (postconditions 3/4), `RowPresentNoVersion` (silent continue), `Version`
+/// directional carve-out (PC2a/PC2b, postconditions 1/2), `RowMalformed`
+/// (postcondition 4a), and `IndexUnreadable` (precondition 15b / postcondition 26,
+/// v1.22 / ADV-RECON11-001). BC-INDEX.md secondary-read HostError handling:
+/// precondition 8, invariants 4/5.
 pub fn run_arm_a1_with_index_result(
     bc_id: &str,
     bc_version: &str,
@@ -695,7 +706,10 @@ pub fn run_arm_a1_with_index_result(
 /// ```
 ///
 /// # BC trace
-/// BC-5.39.010 preconditions 7-8; invariants 4-5 (fail-closed on CapabilityDenied).
+/// BC-5.39.010 precondition 7 (primary BC file read failure — handled upstream in
+/// `lib.rs` before this fn is called) and precondition 8 (BC-INDEX.md secondary
+/// read: NotFound advisory / CapabilityDenied block); invariants 4/5 (fail-closed
+/// on CapabilityDenied, fail-open on secondary NotFound).
 pub fn run_arm_a1(
     bc_id: &str,
     bc_version: &str,

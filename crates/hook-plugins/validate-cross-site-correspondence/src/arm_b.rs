@@ -23,7 +23,13 @@
 //!   manually edited without updating the story file
 //!
 //! # BC trace
-//! BC-5.39.010 preconditions 16-25; postconditions 12-15; invariant 11.
+//! BC-5.39.010 Class B preconditions, postconditions, and invariant 11 (current
+//! version per BC-INDEX) — Arm B1 three-way B1/B2/B3 input-hash comparison with
+//! PC13a/PC13b directional carve-out and the PC40 volatile-input carve-out, Arm B2
+//! internal catalog-vs-blockquote cascade (postcondition 15, invariant 11 provenance
+//! taxonomy), and the v1.22 Arm B1 secondary-index UTF-8 decode-failure path
+//! (precondition 15b / postcondition 26; Arm B2 explicitly excluded — already
+//! primary-target-governed by precondition 15a / postcondition 25).
 
 use crate::{Advisory, Violation};
 use vsdd_hook_sdk::host::HostError;
@@ -160,7 +166,12 @@ pub fn parse_story_index_blockquote_hash(index_content: &str, story_id: &str) ->
 /// - Advisory: B2 or B3 absent (new story not yet in STORY-INDEX.md).
 ///
 /// # BC trace
-/// BC-5.39.010 postconditions 12-13; preconditions 16-21, 26; invariant 11.
+/// BC-5.39.010 Class B Arm B1 postconditions and preconditions (current version per
+/// BC-INDEX) — three-way B1/B2/B3 comparison with PC13a/PC13b directional carve-out
+/// (postconditions 12/13), precondition 26 (STORY-INDEX.md secondary-read
+/// CapabilityDenied/NotFound disposition, invariant 11), and the v1.22
+/// secondary-index UTF-8 decode-failure path (precondition 15b / postcondition 26 —
+/// a distinct clause from precondition 26 above; v1.22 / ADV-RECON11-001).
 pub fn run_arm_b1_with_index_result(
     story_id: &str,
     story_hash: &str,
@@ -464,8 +475,9 @@ pub fn parse_story_volatile_inputs(content: &str) -> Vec<String> {
 /// Called from `on_post_tool_use` when a story file write is detected.
 ///
 /// # BC trace
-/// BC-5.39.010 preconditions 17-21 (STORY-INDEX.md read + hash comparison).
-/// BC-5.39.010 §PC40: volatile-input precondition.
+/// BC-5.39.010 §PC40 volatile-input precondition (skip three-way comparison when
+/// declared inputs are volatile) and precondition 26 (STORY-INDEX.md secondary-read
+/// CapabilityDenied/NotFound disposition, delegated to `run_arm_b1_with_index_result`).
 pub fn run_arm_b1(story_id: &str, story_content: &str) -> (Vec<Violation>, Vec<Advisory>) {
     let story_hash = match parse_story_input_hash(story_content) {
         Some(h) => h,
@@ -517,7 +529,13 @@ pub fn run_arm_b1(story_id: &str, story_content: &str) -> (Vec<Violation>, Vec<A
 /// Pure: operates on already-read content string.
 ///
 /// # BC trace
-/// BC-5.39.010 preconditions 22-25; postcondition 15 (cascade); invariant 11.
+/// BC-5.39.010 Class B Arm B2 preconditions and postconditions (current version per
+/// BC-INDEX) — precondition 22 (STORY-INDEX.md IS the primary target; any HostError
+/// blocks), postcondition 15 (cascade — all mismatches reported in one combined
+/// block), invariant 11 (provenance taxonomy). Not in scope for the v1.22
+/// secondary-index decode-failure amendment (precondition 15b / postcondition 26
+/// explicitly excludes Arm B2 — already primary-target-governed by precondition 15a
+/// / postcondition 25).
 pub fn run_arm_b2(story_index_content: &str) -> Vec<Violation> {
     let mut violations = Vec::new();
 

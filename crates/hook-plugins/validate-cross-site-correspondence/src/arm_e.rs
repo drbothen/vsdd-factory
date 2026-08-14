@@ -27,7 +27,11 @@
 //! and return Continue — do NOT block on unparseable format (precondition 37 last sentence).
 //!
 //! # BC trace
-//! BC-5.39.010 preconditions 34-39; postconditions 19-23; invariant 9 (UTF-8 safety).
+//! BC-5.39.010 Class E preconditions, postconditions, and invariant 9 (UTF-8 safety;
+//! current version per BC-INDEX) — E1 frontmatter `version:` vs `last_amended:`
+//! text-prefix parity and E2 `modified:` sequence date monotonicity. Not in scope for
+//! the v1.22 secondary-index-file amendment (precondition 15b / postcondition 26
+//! governs Arm A1's BC-INDEX.md and Arm B1's STORY-INDEX.md secondary reads only).
 
 use crate::{Advisory, Violation};
 
@@ -148,7 +152,9 @@ pub fn strip_date_annotation(entry: &str) -> String {
 /// - One advisory: `last_amended:` does not match the regex (precondition 37 last sentence).
 ///
 /// # BC trace
-/// BC-5.39.010 preconditions 35-37; postconditions 19-21; invariant 9.
+/// BC-5.39.010 Class E1: frontmatter `version:` vs `last_amended:` outer-prefix
+/// parity check (precondition 37 positional regex anchor), invariant 9
+/// (`is_char_boundary()` UTF-8 slicing safety).
 pub fn run_arm_e1(content: &str) -> (Vec<Violation>, Vec<Advisory>) {
     use crate::frontmatter::extract_frontmatter_field;
     // F-P6-019f: extract_version_field normalizes at the parse boundary.
@@ -222,7 +228,9 @@ pub fn run_arm_e1(content: &str) -> (Vec<Violation>, Vec<Advisory>) {
 /// (`date[i+1] < date[i]`) is a violation; equality is allowed.
 ///
 /// # BC trace
-/// BC-5.39.010 precondition 38 (suffix strip); postconditions 22-23.
+/// BC-5.39.010 precondition 38 (suffix strip) and postcondition 22 (block on first
+/// non-monotonic `modified:` date pair — postcondition 23 no-block-on-equality
+/// clause).
 pub fn run_arm_e2(content: &str) -> Vec<Violation> {
     use crate::frontmatter::extract_frontmatter_sequence;
 
