@@ -7,12 +7,12 @@
 //! **Class A Arm2 (story file write):** story body BC-table version citations vs BC frontmatter.
 //! **Class B Arm1 (story file write):** story `input-hash:` vs STORY-INDEX catalog row vs blockquote.
 //! **Class B Arm2 (STORY-INDEX.md write):** internal catalog vs blockquote hash parity.
-//! **Class D (cycle artifact write):** finding-ID namespace format advisory — **[DEFERRED to S-21.08; not created — BC-5.39.010 v1.20 §File Structure / Task 12]**.
+//! **Class D (cycle artifact write):** finding-ID namespace format advisory — **[DEFERRED to S-21.08; not created — BC-5.39.010 v1.21 §File Structure / Task 12]**.
 //! **Class E1 (BC/VP/story/epic write):** `version:` vs `last_amended:` outer prefix mismatch.
 //! **Class E2 (BC/VP/story/epic write):** `modified:` sequence date monotonicity.
 //!
 //! # Governing BC
-//! BC-5.39.010 v1.20 — six-arm PostToolUse cross-site value-correspondence gate (A1/A2/B1/B2/E1/E2; Class D deferred).
+//! BC-5.39.010 v1.21 — six-arm PostToolUse cross-site value-correspondence gate (A1/A2/B1/B2/E1/E2; Class D deferred).
 //!
 //! # Architecture
 //! - **Tier 2A** (ADR-035 §Decision 1): PostToolUse read-only validator.
@@ -96,7 +96,7 @@ pub struct Advisory {
 ///    On HostError for cycle artifacts: advisory + Continue (invariant 6 — Class D
 ///    is advisory-only, never blocking). On HostError for all other classified targets:
 ///    BLOCK (fail-closed per invariant 4 + BC-5.39.008 v1.6).
-///    On UTF-8 decode failure: BLOCK (fail-closed per invariant 4 extension, v1.20 /
+///    On UTF-8 decode failure: BLOCK (fail-closed per invariant 4 extension, v1.21 /
 ///    ADV-RECON-007 — invariant 9 governs slicing safety only, not decode disposition).
 /// 4. Dispatch to applicable arms based on classification:
 ///    - STORY-INDEX.md: Arm B2 only.
@@ -127,7 +127,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 
     // Step 2: classify first; return Continue for unclassified paths (F-S2107-P1C-001).
     // Classify before any read — the registry fires on tool="^(Edit|Write|MultiEdit)$"
-    // with path_allow covering only four prefixes. Paths outside those prefixes
+    // with path_allow covering only three prefixes. Paths outside those prefixes
     // (e.g., .factory/STATE.md, crates/**, CLAUDE.md) get CapabilityDenied from
     // host::read_file, causing spurious blocks if we read before classifying.
     let is_si = dispatch::is_story_index(&file_path);
@@ -180,7 +180,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
         }
     };
 
-    // Step 4: decode UTF-8; fail-closed on decode failure (BC-5.39.010 v1.20 /
+    // Step 4: decode UTF-8; fail-closed on decode failure (BC-5.39.010 v1.21 /
     // ADV-RECON-007: precondition 15a, postcondition 25, invariant 4 extension).
     // A primary target that reads successfully as bytes but is not valid UTF-8 is
     // NOT eligible for silent Continue — invariant 9 governs is_char_boundary()
@@ -209,7 +209,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
                     description: format!(
                         "validate-cross-site-correspondence [primary-read]: cannot decode \
                         primary target '{file_path}' as UTF-8: {decode_error}. Fail-closed \
-                        per BC-5.39.010 invariant 4 (extended, v1.20) — invariant 9 governs \
+                        per BC-5.39.010 invariant 4 (extended, v1.21) — invariant 9 governs \
                         slicing safety only and does not authorize Continue here. Fix: verify \
                         the file's encoding and re-save as UTF-8, then retry the write."
                     ),
@@ -238,7 +238,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     }
 
     // [DEFERRED v1.6 — Class D]: Class D (arm_d.rs) does not exist in this crate per
-    // BC-5.39.010 v1.20 §File Structure / Task 12 ("DEFERRED v1.6 — Class D; do NOT
+    // BC-5.39.010 v1.21 §File Structure / Task 12 ("DEFERRED v1.6 — Class D; do NOT
     // create"; target: S-21.08). cycle_kind is always None (is_cycle_artifact returns
     // None); the cap-selection and primary-read-error branches above are kept intact
     // so re-enabling Class D in S-21.08 only requires restoring the is_cycle_artifact
@@ -376,9 +376,9 @@ mod tests {
     // and critically .factory/STATE.md — used to produce a blocking HookResult.
     //
     // The most severe consequence: .factory/STATE.md is inside .factory/ but
-    // NOT under any of the four `path_allow` prefixes
+    // NOT under any of the three `path_allow` prefixes
     // (.factory/specs/behavioral-contracts/, .factory/specs/verification-properties/,
-    // .factory/stories/, .factory/cycles/). State-manager writes .factory/STATE.md
+    // .factory/stories/). State-manager writes .factory/STATE.md
     // on every fix burst, so under the pre-fix ordering the factory could not
     // record its own state. .factory/policies.yaml had the same problem.
     //
@@ -411,7 +411,7 @@ mod tests {
             .expect("test payload must parse")
         }
 
-        // These paths are all OUTSIDE the four path_allow prefixes and must
+        // These paths are all OUTSIDE the three path_allow prefixes and must
         // never be blocked by this hook.
         let cases: &[&str] = &[
             // Ordinary source file — no .factory component
@@ -447,7 +447,7 @@ mod tests {
     // Three divergences stayed invisible because the primary read caps were not
     // pinned. This test covers all six BC-5.39.010 read cap spec values.
     //
-    // Spec (BC-5.39.010 v1.20, unchanged):
+    // Spec (BC-5.39.010 v1.21, unchanged):
     //   BC file primary:        524288 / 3000 ms
     //   Story file primary:     524288 / 3000 ms
     //   Cycle artifact primary: 2097152 / 5000 ms
@@ -558,7 +558,7 @@ mod tests {
     // admits "BC-INDEX.md" as a valid BC path. When admitted, arm A1 tries to
     // read BC-INDEX.md as both primary target AND secondary index, producing
     // spurious version mismatches (F-S2107-P1B-005 + F-S2107-P1B-007 cascade).
-    // BC-5.39.010 v1.20 §Classification invariant: index files are excluded.
+    // BC-5.39.010 v1.21 §Classification invariant: index files are excluded.
     // -----------------------------------------------------------------------
 
     /// T-035 lib-level: BC-INDEX.md must NOT be classified as a BC file (F-S2107-P1B-005).
@@ -612,7 +612,7 @@ mod tests {
     // -----------------------------------------------------------------------
     // F-S2107-P1C-014: 15-byte last_amended string rejected by length guard.
     // "2026-07-30 (v2)" — single-digit outer version, no sub-version suffix.
-    // BC-5.39.010 v1.20 §E1: this is a valid format.
+    // BC-5.39.010 v1.21 §E1: this is a valid format.
     // Pre-fix code (now closed): `if len < 17 { return None }` — 15 < 17 → returned None.
     // -----------------------------------------------------------------------
 
@@ -628,7 +628,7 @@ mod tests {
             result,
             Some("2".to_string()),
             "15-byte last_amended '2026-07-30 (v2)' must parse to outer version '2'. \
-            BC-5.39.010 v1.20 §E1 (F-S2107-P1C-014). \
+            BC-5.39.010 v1.21 §E1 (F-S2107-P1C-014). \
             Red Gate: len < 17 guard rejects 15-byte strings → None → assertion FAILS"
         );
     }

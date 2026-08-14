@@ -1048,7 +1048,7 @@ mod tests {
     // The real S-21.07 Behavioral Contracts table row is:
     //   | BC-5.39.010 | <title> | 1.3 | AC-001 through AC-021 |
     //
-    // BC-5.39.010 v1.20 AC-017 (amended PC13) explicitly requires the version
+    // BC-5.39.010 v1.21 AC-017 (amended PC13) explicitly requires the version
     // column in the Behavioral Contracts table to be treated as authoritative even
     // without a `v` prefix. The production story file S-21.07 uses bare "1.3".
     //
@@ -1056,7 +1056,7 @@ mod tests {
     // A bare "1.3" cell has no `v` byte at position 0, so the digit sequence is
     // invisible → function returns None → zero citations for the story's own BC.
     //
-    // This means the arm fires NO version check against BC-5.39.010 v1.20 when the
+    // This means the arm fires NO version check against BC-5.39.010 v1.21 when the
     // story body references it — a complete silent bypass of the Arm A2 gate for
     // the governing BC of this very plugin.
     //
