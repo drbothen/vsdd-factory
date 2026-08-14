@@ -1802,7 +1802,7 @@ for line in data.splitlines():
 
   # (a) Class-D-DEFERRED skip count: must be exactly 0 (removed, not skip-preserved).
   local deferred_count
-  deferred_count=$(grep -c 'skip "\[DEFERRED v1\.6 — Class D\]' "$bats_file" 2>/dev/null || echo 0)
+  deferred_count=$(grep -c 'skip "\[DEFERRED v1\.6 — Class D\]' "$bats_file" 2>/dev/null || true)
   [ "$deferred_count" -eq 0 ] || {
     echo "FAIL: expected zero Class-D-DEFERRED skip lines, got $deferred_count."
     echo "  S-21.07 reconciliation removed arm_d.rs and its orphaned bats tests"
@@ -1818,7 +1818,7 @@ for line in data.splitlines():
   # without updating this count will fail the gate, not silently grow the skip count.
   # (was 46; -5 for the removed Class D AC-012/013/014 tests, S-21.07 reconciliation)
   local req_count
-  req_count=$(grep -c '^\s*_require_artifacts$' "$bats_file" 2>/dev/null || echo 0)
+  req_count=$(grep -c '^\s*_require_artifacts$' "$bats_file" 2>/dev/null || true)
   [ "$req_count" -eq 41 ] || {
     echo "FAIL: expected exactly 41 _require_artifacts call sites, got $req_count."
     echo "  This bounds the number of tests that skip when the factory-dispatcher binary"
@@ -1829,7 +1829,7 @@ for line in data.splitlines():
 
   # (c) Total @test declarations: sanity floor >=40.
   local total_count
-  total_count=$(grep -c '^@test ' "$bats_file" 2>/dev/null || echo 0)
+  total_count=$(grep -c '^@test ' "$bats_file" 2>/dev/null || true)
   [ "$total_count" -ge 40 ] || {
     echo "FAIL: expected >=40 @test declarations, got $total_count."
     echo "  Sanity floor. If this fails, tests may have been silently removed."
