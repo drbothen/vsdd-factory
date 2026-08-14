@@ -17995,3 +17995,49 @@ D-1007-S2107-PASS22-RECORD-ONLY-BURST
 2026-08-14
 
 ---
+
+## D-1008 — D-1008-S2107-PASS23-RECORD-ONLY-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1007 < D-9000 ceiling
+```
+
+D-1008 allocated (D-999 remains permanently skipped per D-1000 preamble; sequence continues D-1000, D-1001, D-1002, D-1003, D-1004, D-1005, D-1006, D-1007, D-1008). **Parent-commit:** `39c3dae2` — `state(sha-patch): D-1007 commit a1370a6e factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start; the D-1007 SHA-patch follow-up commit).
+
+**(a) Scope.** Fresh-context adversary pass-23 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged since D-992; story unbuilt) and `factory-artifacts` at `39c3dae2` (the D-1007 SHA-patch HEAD, carrying STORY-INDEX v4.325 and S-21.07 story v1.14 as landed post-D-1006, UNCHANGED since). **Verdict: CLEAN — 0 findings at any severity (BLOCKER 0 / HIGH 0 / MEDIUM 0 / LOW 0 / NIT 0).** Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-23.md`. **This is a RECORD-ONLY burst — no fix is owed, because there is nothing to close; the story stays STABLE at v1.14 to preserve a 3-CLEAN over a stable artifact.**
+
+**(b) F-S2107-P21-001 closure independently re-verified CLOSED.** Fresh context confirmed Task 10 (story lines 1013-1035) directs `extract_story_bc_version_citations` with the two-phase algorithm — Phase 1 pure-version field `^v?([0-9]+\.[0-9]+)$` (matches BC lines 413-417); Phase 2 BC-ID-anchored mandatory-v inline `\bv([0-9]+\.[0-9]+)\b` first-token-after-BC-ID None-fallback (matches BC lines 419-425) — matching BC-5.39.010 v1.19 PC13 §Postconditions verbatim. Three collision classes story-ID (29 rows/6 stories) / BC-section / ACs-column (1 row, S-21.07's own DEFERRED v1.6) match BC lines 444-462 verbatim; bare form correctly labeled NON-CONFORMING. Grep confirms only bare-form hits are the NON-CONFORMING rationale (lines 1028-29) plus the append-only Changelog v1.2 row (historically-true, POLICY 1 untouched).
+
+**(c) Independent fresh checks (all pass).** Content-directive axis (the pass-21 lesson class) exhaustively re-swept CLEAN: PC5 first-token-of-last-chain-entry; PC2/PC13 arm logic (AC-001/AC-022/AC-009/AC-023/AC-024+T-P8A/B/C — all conformant); RowMalformed three-state; PC36 block-scalar; `derive_bc_path`; fuel-cap framing uses the current source-HEAD 20M / operator-effective 10M-through-rc.23 framing. Version parity: story v1.14; BC v1.19; three-way input-hash `93c4a89` HOLDS (story frontmatter L146 = STORY-INDEX catalog L732 = aggregation blockquote L741); BC pin v1.19 consistent catalog+coverage+story-BC-table+title; BC-INDEX body-table row L1464 chain ends `…|v1.18|v1.19|` = frontmatter v1.19; POLICY 7 BC H1 L139 = BC-INDEX L1464 = story BC-table cell L878 verbatim; no live sub-v1.19 governing residuals. Counts: 24 ACs / 34 story-ECs (catalog L732); §VP Anchors 19 = Token Budget "19 VPs"; E-21 aggregation 14 stories/117 pts. D-1007 record-only confirmed no content change since pass-22.
+
+**(d) Observations (non-blocking, NOT findings, tracked — not actioned this burst per direction to keep the story stable).** **OBS-P23-A** [Token Budget aggregate, immaterial]: Token Budget "Estimated Tokens" rows (L963-972) sum ~47,500 while the Total row (L973) states ~47,000, and Budget usage (L975) derives ~23.5% from 47,000 (row-sum yields ~23.75%). Every cell is explicitly an estimate ("~"); the ~500-token/~1% divergence changes no actionable conclusion (both within the 20-30% target). Scheduled as a POST-CONVERGENCE cleanup (fix Total→~47,500, usage→~23.75% after 3-CLEAN, or at the S-21.07 implementation phase). Recorded as a tracked item in STATE.md §8, not actioned this burst. **OBS-P23-B** [label overload "PC13", resolves correctly]: "PC13" is overloaded — Task 10/§BC Status "two-phase PC13" maps to BC PRECONDITION 13 (Arm A2 two-phase extractor); AC-009/AC-023/AC-024 "PC13a/b/c" map to BC POSTCONDITION 13 (Class B Arm B1). Both resolve to the semantically-correct BC clause, disambiguated by arm context (`arm_a2.rs` vs `arm_b.rs`); overload originates in the product-owner-authored BC itself; longstanding across all prior passes; not a mis-anchor. Recorded as a tracked convention-note in STATE.md §8 (potential future BC-side disambiguation, product-owner, if ever desired), not actioned. Tracked carve-outs OBS-P22-A, O-P19-01/O-P15-03, O-P17-02, O-P17-01, O-P14-03, REC-P21-A, OBS-P21-B all re-observed unchanged, not reopened.
+
+**(e) STREAK ADVANCES 1/3 → 2/3.** This is the second consecutive fresh CLEAN adversary verdict since the pass-21 reset. BC-5.39.001 requires 3 CONSECUTIVE CLEAN passes to converge — **1 more (pass-24) is required — the FINAL 3-CLEAN convergence gate for the S-21.07 LOCAL cascade.** A single finding at pass-24 resets the streak to 0/3.
+
+**(f) INDEX.md.** S-21.07 LOCAL Adversary Reviews table: pass-23 row added (**CLEAN**, 0 findings, **2/3**, `96b4be19`/`96b4be19`). Convergence Status narrative extended with the D-1008 pass-23 record-only summary. Trajectory `47→18→25→25→24→20→16→8→10→1→1→2→0→1→1→0→1→1→0→1→0→0` (tail `→0→1→0→0`, D-433(e)+D-439(c) LENGTH=4). 22 true adversary reviews; 5 CLEAN verdicts (pass-14, pass-17, pass-20, pass-22, pass-23).
+
+**(g) 4-INDEX.** BC-INDEX v4.59 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.325 (UNCHANGED this burst) / ARCH-INDEX v3.58 (UNCHANGED). policies.yaml v1.4.24 (UNCHANGED — no codification this burst; OBS-P23-A/OBS-P23-B are tracked carve-outs, not new process-gap lessons).
+
+**(h) No gate-predicate or ratification-status change.** This burst closes nothing (pass-23 was CLEAN — there was nothing to close) and adds no new spec/code content; it persists the pass-23 record and advances the streak counter. `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit — story remains unbuilt). **Streak for the S-21.07 cascade EXPLICITLY 2/3** — the fifth CLEAN pass this cascade overall (pass-14, pass-17, pass-20, pass-22, pass-23), second consecutive in the current restart window; **pass-24 adversary (fresh-context, reading only `adversary-pass-23.md` Part A per the Iron Law) is the pending gate — the FINAL 3-CLEAN convergence gate for the S-21.07 LOCAL cascade.**
+
+### Agents
+
+- vsdd-factory:adversary (fresh-context, this session): pass-23 review dispatched and relayed — CLEAN, 0 findings
+- state-manager (D-1008): `adversary-pass-23.md` persisted verbatim; INDEX.md pass-23 row + Convergence Status extended; OBS-P23-A/OBS-P23-B tracked in STATE.md §8; STATE.md full advance; single atomic commit to `factory-artifacts` per TD-VSDD-053; POLICY 16 gate run with literal shell captured stdout
+
+### 4-INDEX
+
+BC-INDEX v4.59 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.325 (UNCHANGED) / ARCH-INDEX v3.58 (UNCHANGED)
+
+### Phase
+
+D-1008-S2107-PASS23-RECORD-ONLY-BURST
+
+### Date
+
+2026-08-14
+
+---
