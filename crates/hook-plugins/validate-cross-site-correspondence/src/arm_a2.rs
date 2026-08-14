@@ -13,7 +13,9 @@
 //!
 //! # Key design invariants
 //! - Path derivation: ONLY `derive_bc_path` (from arm_a1); NO `read_dir`/`glob`.
-//! - Version token extraction: `\bv([0-9]+\.[0-9]+)\b` — table rows only.
+//! - Version token extraction: two-phase (BC-5.39.010 v1.19 PC13) — Phase 1 pure-version
+//!   field `^v?([0-9]+\.[0-9]+)$` (rightmost); Phase 2 BC-ID-anchored first
+//!   `\bv([0-9]+\.[0-9]+)\b` after the BC ID — table rows only.
 //! - Skip (not block) on: missing citations in table rows, NotFound BC files.
 //! - Block on: present-but-stale citations, CapabilityDenied on BC reads.
 //! - Cascade: single combined block when multiple BCs have stale citations.
@@ -63,7 +65,11 @@ fn is_section_prefix(heading: &str, prefix: &str) -> bool {
 /// Extract all table-row version citations for a given BC ID in story body content.
 ///
 /// Scans `content` for pipe-delimited table rows (`|...|`) that contain both
-/// the `bc_id` token and a version token matching `\bv?([0-9]+\.[0-9]+)\b`.
+/// the `bc_id` token and a version token found via the two-phase extraction
+/// algorithm (BC-5.39.010 v1.19 PC13): Phase 1 scans fields right-to-left for a
+/// pure-version field matching `^v?([0-9]+\.[0-9]+)$` (the `v` prefix optional);
+/// if Phase 1 finds no match, Phase 2 falls back to the first `\bv([0-9]+\.[0-9]+)\b`
+/// token (the `v` prefix mandatory) found after the BC-ID's word-boundary end.
 /// Returns a `Vec<(location, version)>` where `location` is a human-readable
 /// row identifier and `version` is the cited version string (e.g., `"1.17"`).
 ///
@@ -91,7 +97,7 @@ fn is_section_prefix(heading: &str, prefix: &str) -> bool {
 ///
 /// # BC trace
 /// BC-5.39.010 §Architecture Anchors `extract_story_bc_version_citations`;
-/// preconditions 12-13 (table row detection + version token regex); PC13 (v1.13:
+/// preconditions 12-13 (table row detection + version token regex); PC13 (v1.14:
 /// word-boundary prefix predicate, two-phase extraction — Phase 1 pure-version field
 /// rightmost, Phase 2 BC-ID-anchored first-v-token per ADR-038 §Decision 5);
 /// F-P2-001 (skip_section initialization — preamble must not be scanned).
@@ -300,7 +306,7 @@ fn extract_first_v_token_after_position(s: &str, start: usize) -> Option<String>
     None
 }
 
-/// Extract a version token from a table row using Phase 1 of the v1.13 PC13 algorithm.
+/// Extract a version token from a table row using Phase 1 of the v1.14 PC13 algorithm.
 ///
 /// **Phase 1 (pure-version field):** split row by `|`; scan fields right-to-left;
 /// return the version from the first (rightmost) field whose trimmed content

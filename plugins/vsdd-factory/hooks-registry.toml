@@ -671,8 +671,10 @@ path_allow = [
 # Class D (finding-ID namespace format advisory) is DEFERRED to S-21.08 (BC-5.39.010 v1.6 / D-953).
 # priority = 460: next available slot after validate-wave-handoff-completeness (450).
 # on_error = "continue": fuel exhaustion (debug build, oversized artifact) → silent
-#   non-finding, not spurious block (ADR-035 §Decision 5). max_bytes caps calibrated
-#   to keep reads within the 10M-instruction fuel budget at typical artifact sizes.
+#   non-finding, not spurious block (ADR-035 §Decision 5). NOTE: max_bytes caps are
+#   NOT calibrated against the fuel budget — BC-5.39.010 v1.15 RETRACTED that claim
+#   as false (measured fuel consumption ~99.21% of the 10M-instruction budget at
+#   typical artifact sizes, i.e. near-exhaustion, not comfortable headroom).
 # tool = "^(Edit|Write|MultiEdit)$": aligns with all 41 Edit/Write/MultiEdit hooks
 #   in the live registry. BC-5.39.010 v1.1 §Gate Spec had MultiEdit omitted — a
 #   POLICY 13 ESCAPE-SCOPE-PARITY gap. v1.2 corrects to include MultiEdit.

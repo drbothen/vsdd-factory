@@ -8,8 +8,10 @@
 //! (graceful degradation).
 //!
 //! Unit-testable logic lives in `src/lib.rs` (`on_post_tool_use`) and the
-//! arm modules (`arm_a1`, `arm_a2`, `arm_b`, `arm_d`, `arm_e`); this file
-//! wires the pure logic to real host function calls.
+//! arm modules (`arm_a1`, `arm_a2`, `arm_b`, `arm_e`); this file
+//! wires the pure logic to real host function calls. Class D (`arm_d`) is
+//! DEFERRED per BC-5.39.010 v1.14 §File Structure / Task 12 (target: S-21.08)
+//! and does not exist in this crate.
 //!
 //! # Compliance notes (BC-5.39.010 v1.14)
 //! - HOST_ABI_VERSION = 1 (no new host functions introduced).

@@ -7,7 +7,7 @@
 //! **Class A Arm2 (story file write):** story body BC-table version citations vs BC frontmatter.
 //! **Class B Arm1 (story file write):** story `input-hash:` vs STORY-INDEX catalog row vs blockquote.
 //! **Class B Arm2 (STORY-INDEX.md write):** internal catalog vs blockquote hash parity.
-//! **Class D (cycle artifact write):** finding-ID namespace format advisory — **[DEFERRED to S-21.08; not compiled]**.
+//! **Class D (cycle artifact write):** finding-ID namespace format advisory — **[DEFERRED to S-21.08; not created — BC-5.39.010 v1.14 §File Structure / Task 12]**.
 //! **Class E1 (BC/VP/story/epic write):** `version:` vs `last_amended:` outer prefix mismatch.
 //! **Class E2 (BC/VP/story/epic write):** `modified:` sequence date monotonicity.
 //!
@@ -31,7 +31,6 @@
 pub mod arm_a1;
 pub mod arm_a2;
 pub mod arm_b;
-pub mod arm_d;
 pub mod arm_e;
 pub mod dispatch;
 pub mod frontmatter;
@@ -211,11 +210,12 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
         };
     }
 
-    // [DEFERRED v1.6 — Class D]: arm_d dispatch removed per BC-5.39.010 v1.6 / D-953.
-    // cycle_kind is always None (is_cycle_artifact returns None); the cap-selection
-    // and primary-read-error branches above are kept intact so re-enabling Class D
-    // only requires restoring is_cycle_artifact body + adding back this dispatch block.
-    // arm_d module is retained for its own tests.
+    // [DEFERRED v1.6 — Class D]: Class D (arm_d.rs) does not exist in this crate per
+    // BC-5.39.010 v1.14 §File Structure / Task 12 ("DEFERRED v1.6 — Class D; do NOT
+    // create"; target: S-21.08). cycle_kind is always None (is_cycle_artifact returns
+    // None); the cap-selection and primary-read-error branches above are kept intact
+    // so re-enabling Class D in S-21.08 only requires restoring the is_cycle_artifact
+    // body and adding back arm_d.rs plus its dispatch block here.
 
     // BC file: Arm A1 + Class E
     if is_bc {
