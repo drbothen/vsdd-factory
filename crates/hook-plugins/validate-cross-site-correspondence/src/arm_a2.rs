@@ -1048,7 +1048,7 @@ mod tests {
     // The real S-21.07 Behavioral Contracts table row is:
     //   | BC-5.39.010 | <title> | 1.3 | AC-001 through AC-021 |
     //
-    // BC-5.39.010 v1.21 AC-017 (amended PC13) explicitly requires the version
+    // BC-5.39.010 AC-017 (amended PC13) explicitly requires the version
     // column in the Behavioral Contracts table to be treated as authoritative even
     // without a `v` prefix. The production story file S-21.07 uses bare "1.3".
     //
@@ -1056,7 +1056,7 @@ mod tests {
     // A bare "1.3" cell has no `v` byte at position 0, so the digit sequence is
     // invisible → function returns None → zero citations for the story's own BC.
     //
-    // This means the arm fires NO version check against BC-5.39.010 v1.21 when the
+    // This means the arm fires NO version check against BC-5.39.010 when the
     // story body references it — a complete silent bypass of the Arm A2 gate for
     // the governing BC of this very plugin.
     //
@@ -2332,7 +2332,7 @@ mod tests {
     /// intervening different-BC mention does the field's actual v-token ("v1.1",
     /// part of "v1.1 BC candidate `BC-9.01.NNN-...`") appear.
     ///
-    /// Per BC-5.39.010 v1.21 §Preconditions PC13 "Phase 2 same-field scan-stop":
+    /// Per BC-5.39.010 §Preconditions PC13 "Phase 2 same-field scan-stop":
     /// the forward scan MUST terminate — without producing a version — the moment
     /// it encounters `BC-9.01.002` (a different `BC-S.SS.NNN` word-boundary token)
     /// before any qualifying v-token. The anchor field must then yield NO citation
@@ -2354,7 +2354,7 @@ mod tests {
     /// `crates/hook-plugins/validate-cross-site-correspondence/src/arm_a2.rs`.
     ///
     /// # BC trace
-    /// BC-5.39.010 v1.21 §Preconditions PC13 Phase 2 same-field scan-stop; EC-039;
+    /// BC-5.39.010 §Preconditions PC13 Phase 2 same-field scan-stop; EC-039;
     /// §Canonical Test Vectors "A Arm2 — Phase 2 same-field scan-stop
     /// (v1.21 / ADV-RECON5-003)"; postcondition 8 (skip-not-block on absent
     /// citations).
@@ -2463,7 +2463,7 @@ mod tests {
     /// `run_arm_a2_for_bc_with_result` directly (POLICY 11) — no tautology.
     ///
     /// # BC trace
-    /// BC-5.39.010 v1.21 §Preconditions PC13 Phase 2 same-field scan-stop
+    /// BC-5.39.010 §Preconditions PC13 Phase 2 same-field scan-stop
     /// (v1.21 / ADV-RECON5-003); ADV-RECON6-004 coverage-fill (own-BC-re-mention
     /// skip branch); §Canonical Test Vectors "A Arm2 — Phase 2 same-field scan-stop
     /// (v1.21 / ADV-RECON5-003)"; postcondition 7 (matching-version clean pass).
