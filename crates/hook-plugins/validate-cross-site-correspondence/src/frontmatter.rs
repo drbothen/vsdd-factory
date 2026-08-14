@@ -590,4 +590,105 @@ mod tests {
             "second paragraph must be present after the \\n separator. Got: {val:?}"
         );
     }
+
+    // -----------------------------------------------------------------------
+    // AC-019 coverage-fill (S-21.07 reconciliation drift-audit Gap A / T-032):
+    // multibyte UTF-8 through the frontmatter read/parse path must not panic.
+    //
+    // BC-5.39.010 invariant 9 ("is_char_boundary() guard: byte-index slicing on
+    // extracted strings MUST use is_char_boundary() checks where multi-byte
+    // UTF-8 is possible", BC-5.39.008 v1.6 inv-11) and AC-019 §UTF-8 safety name
+    // this exact test: `test_BC_5_39_010_multibyte_utf8_no_panic` — "fixture
+    // content with multi-byte UTF-8 characters in BC title or frontmatter
+    // values → no panic; clean exit."
+    //
+    // This is a COVERAGE-FILL regression test, not a Red Gate: the
+    // is_char_boundary() guards already exist and are already correct
+    // (extract_frontmatter_field's quote-stripping branch above; strip_quotes'
+    // guards used by extract_frontmatter_sequence). No prior Rust-level test
+    // exercised multi-byte content through them; this closes that gap without
+    // changing any production behavior.
+    // -----------------------------------------------------------------------
+
+    /// AC-019 / T-032: multibyte UTF-8 in frontmatter values must not panic and
+    /// must be extracted intact, across every `is_char_boundary()`-guarded call
+    /// site in this module (quoted-scalar stripping, `strip_quotes` for sequence
+    /// items, and the block-scalar body collector).
+    #[test]
+    fn test_BC_5_39_010_multibyte_utf8_no_panic() {
+        // Double-quoted scalar with multi-byte content directly adjacent to both
+        // quote delimiters — stresses is_char_boundary(1) (byte right after the
+        // opening quote) and is_char_boundary(len - 1) (byte right before the
+        // closing quote) in extract_frontmatter_field's quote-stripping branch.
+        let content = "---\ntitle: \"日本語タイトル🎉テスト\"\nversion: 1.6\n---\nbody\n";
+        let title = extract_frontmatter_field(content, "title");
+        assert_eq!(
+            title,
+            Some("日本語タイトル🎉テスト".to_string()),
+            "multibyte double-quoted scalar must be extracted intact without panicking"
+        );
+
+        // Single-quoted variant: a single 4-byte emoji directly against both quotes.
+        let content2 = "---\nname: '🎉'\n---\n";
+        let name = extract_frontmatter_field(content2, "name");
+        assert_eq!(
+            name,
+            Some("🎉".to_string()),
+            "single 4-byte-emoji quoted scalar must be extracted without panicking"
+        );
+
+        // Sequence field: multi-byte quoted items exercise strip_quotes' own
+        // is_char_boundary guards, via both inline and block-sequence forms.
+        let seq_inline =
+            "---\nbehavioral_contracts: [\"BC-日本語-5.39.010\", \"BC-🎉-5.39.008\"]\n---\n";
+        let items = extract_frontmatter_sequence(seq_inline, "behavioral_contracts");
+        assert_eq!(
+            items,
+            vec![
+                "BC-日本語-5.39.010".to_string(),
+                "BC-🎉-5.39.008".to_string(),
+            ],
+            "multibyte inline-sequence items must be extracted intact without panicking"
+        );
+
+        let seq_block = "---\nmodified:\n  - \"2026-08-05 日本語\"\n  - '🎉 emoji entry'\n---\n";
+        let block_items = extract_frontmatter_sequence(seq_block, "modified");
+        assert_eq!(
+            block_items.len(),
+            2,
+            "both multibyte block-sequence items must parse"
+        );
+        assert!(
+            block_items[0].contains("日本語"),
+            "multibyte content in first block-sequence item must survive. Got: {block_items:?}"
+        );
+        assert!(
+            block_items[1].contains("🎉"),
+            "multibyte content in second block-sequence item must survive. Got: {block_items:?}"
+        );
+
+        // Block scalar body containing multibyte content exercises
+        // collect_block_scalar_body's line handling with non-ASCII bytes present.
+        let content3 = "---\nlast_amended: |-\n  2026-08-05 (v1.10) — 日本語コメント🎉\n---\n";
+        let last_amended = extract_frontmatter_field(content3, "last_amended");
+        let val = last_amended
+            .expect("block scalar with multibyte body must extract Some(...), not panic");
+        assert!(
+            val.contains("日本語コメント🎉"),
+            "multibyte block-scalar body must be preserved intact. Got: {val:?}"
+        );
+
+        // Malformed input: multi-byte value with an unterminated quote must not
+        // panic — the quote-stripping branch's starts_with/ends_with guard
+        // rejects it before any slicing is attempted, so it falls through and
+        // is returned as-is (graceful handling, not an extraction failure).
+        let content4 = "---\nfield: \"日本語不完全\n---\n";
+        let malformed = extract_frontmatter_field(content4, "field");
+        assert!(
+            malformed.is_some(),
+            "malformed unterminated-quote multibyte value must still return Some(raw value), \
+            not panic. BC-5.39.010 invariant 9 requires graceful handling, not just avoiding \
+            a crash on well-formed input."
+        );
+    }
 }

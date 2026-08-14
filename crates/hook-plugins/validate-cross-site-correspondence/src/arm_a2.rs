@@ -1117,6 +1117,11 @@ mod tests {
     ///     Version field "1.7": matches `^v?[0-9]+\.[0-9]+$` → return "1.7". CORRECT.
     ///
     /// RED GATE: current code returns citation "1.6". Test asserts "1.7". FAILS.
+    ///
+    /// REC-P21-A (partial): this test covers the *extraction* half of the ACs-column
+    /// hazard. See `test_BC_5_39_010_arm_a2_no_false_block_on_acs_column` below for
+    /// the complementary *block-outcome* half (full pipeline through
+    /// `run_arm_a2_for_bc_with_result`, asserting zero violations).
     #[test]
     fn test_BC_5_39_010_arm_a2_pc13_class2_acs_column_deferred_yields_version_cell() {
         // Corpus: S-21.07 story file — BC-5.39.010 row in Behavioral Contracts section.
@@ -1144,6 +1149,67 @@ mod tests {
             returns the Version column '1.7' before reaching the 'DEFERRED v1.6' in ACs. \
             Old optional-v last-token incorrectly returns '1.6'. Citation: {:?}",
             citations[0]
+        );
+    }
+
+    /// REC-P21-A: no false BLOCK on the ACs-column DEFERRED annotation.
+    ///
+    /// The S-21.07 reconciliation drift-audit's REC-P21-A recommendation asked for a
+    /// negative regression test named exactly
+    /// `test_BC_5_39_010_arm_a2_no_false_block_on_acs_column`, guarding the ACs-column
+    /// collision hazard end-to-end — this story's own governing BC-table cell
+    /// ("AC-001 through AC-021 (AC-012/013/014 DEFERRED v1.6 — Class D)") is a live
+    /// instance of exactly this corpus shape.
+    ///
+    /// `test_BC_5_39_010_arm_a2_pc13_class2_acs_column_deferred_yields_version_cell`
+    /// (immediately above) proves the *intermediate extraction* is correct — the
+    /// citation returned is `"1.7"` (Version column), not `"1.6"` (ACs DEFERRED
+    /// annotation). That test stops at `extract_story_bc_version_citations` and never
+    /// runs the citation through the actual block/no-block decision. This test closes
+    /// that remaining gap: it feeds the same ACs-DEFERRED-shaped row through the full
+    /// Arm A2 pipeline — `extract_story_bc_version_citations` →
+    /// `run_arm_a2_for_bc_with_result` — against a BC whose frontmatter `version:` is
+    /// the matching `"1.7"`, and asserts **zero violations**. If the old optional-v
+    /// last-token behavior (or any regression reintroducing it) resurfaced and derived
+    /// `"1.6"` from the ACs cell instead of `"1.7"` from the Version cell, this test
+    /// would fail with a false stale-citation BLOCK, since the injected BC content is
+    /// pinned at `"1.7"` — a version that never matches `"1.6"`.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_no_false_block_on_acs_column() {
+        // Same corpus shape as the Class 2 collision test: Version column "1.7",
+        // ACs column carries a DEFERRED v1.6 annotation that must NOT be mistaken
+        // for the cited version.
+        let story_content = concat!(
+            "## Behavioral Contracts\n\n",
+            "| BC ID | Title | Version | Story ACs |\n",
+            "|---|---|---|---|\n",
+            "| BC-5.39.010 | validate-cross-site-correspondence WASM hook | 1.7 | ",
+            "AC-001 through AC-021 (AC-012/013/014 DEFERRED v1.6 — Class D) |\n",
+        );
+        let citations = extract_story_bc_version_citations(story_content, "BC-5.39.010");
+
+        // BC frontmatter genuinely at version 1.7 — matches the Version column, not
+        // the ACs-column "v1.6" annotation.
+        let bc_content = b"---\nversion: \"1.7\"\n---\n# BC-5.39.010\n";
+        let (violations, advisories) = run_arm_a2_for_bc_with_result(
+            "S-21.07",
+            "BC-5.39.010",
+            &citations,
+            Ok(bc_content.to_vec()),
+        );
+
+        assert!(
+            violations.is_empty(),
+            "REC-P21-A: the ACs-column 'DEFERRED v1.6' annotation must NOT produce a \
+            false stale-citation BLOCK when the story correctly cites the Version \
+            column's '1.7' and the BC is genuinely at version 1.7. A regression to the \
+            old optional-v last-token scanner would derive '1.6' from the ACs cell and \
+            falsely block here (citing v1.6 != BC version 1.7). Violations: {violations:?}"
+        );
+        assert!(
+            advisories.is_empty(),
+            "no advisory expected on a correctly-cited, matching-version BC. \
+            Advisories: {advisories:?}"
         );
     }
 

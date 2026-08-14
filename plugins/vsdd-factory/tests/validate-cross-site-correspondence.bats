@@ -3,7 +3,10 @@
 # validate-cross-site-correspondence PostToolUse WASM hook plugin.
 #
 # These tests deliver full payload-delivery scenarios for AC-001 through AC-018,
-# covering the six arms (A1, A2, B1, B2, E1, E2) via fixture files; Class D deferred.
+# covering the six arms (A1, A2, B1, B2, E1, E2) via fixture files. Class D
+# (arm_d.rs) is deferred to S-21.08 and was removed from the implementation;
+# it has no coverage in this suite (see removal note preceding the former
+# AC-012/013/014 section for detail).
 #
 # RED GATE (BC-5.38.001): Every payload-driven test MUST FAIL before implementation.
 #
@@ -972,146 +975,29 @@ for line in data.splitlines():
 }
 
 # ---------------------------------------------------------------------------
-# AC-012: Class D — excluded namespace tokens do not trigger advisory
-# Fixture: d-clean-tokens (burst-log with D-944, S-, BC-, VP- tokens only)
-# BC-5.39.010 PC32: excluded prefixes list
-# ---------------------------------------------------------------------------
-
-@test "AC-012: Closes: D-944 in burst-log produces exit code 0 (no advisory)" {
-  # [DEFERRED v1.6 — Class D] BC-5.39.010 v1.6 defers Class D entirely.
-  # is_cycle_artifact() will return None after Class D removal; burst-log.md writes
-  # become unclassified → Continue (no Class D advisory arm runs).
-  # Restore this test when Class D is re-implemented in a future wave.
-  skip "[DEFERRED v1.6 — Class D] burst-log.md unclassified after Class D arm removal; test preserved per POLICY 1 for future re-activation"
-  _require_artifacts
-  _load_fixture "d-clean-tokens"
-  _write_registry
-
-  local envelope
-  # burst-log.md is the primary trigger for Class D Arm
-  envelope="$(_post_write_event '.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md')"
-  _run_dispatcher "$envelope"
-
-  _assert_plugin_ran_not_crashed
-  _assert_exit 0
-}
-
-@test "AC-012: excluded-namespace tokens produce exit code 0 AND no advisory in log" {
-  # [DEFERRED v1.6 — Class D] BC-5.39.010 v1.6 defers Class D entirely.
-  # Class D advisory arm removed; burst-log.md writes are unclassified → Continue.
-  # Restore this test when Class D is re-implemented in a future wave.
-  skip "[DEFERRED v1.6 — Class D] burst-log.md unclassified after Class D arm removal; test preserved per POLICY 1 for future re-activation"
-  # Strengthened: also verifies NO advisory is emitted for excluded-namespace tokens.
-  # First AC-012 tests only exit code; this test additionally checks the dispatcher log
-  # to confirm no spurious `plugin.log warn` record was emitted.
-  # F-S2107-P1C-020 overlap: if "discloses:" triggers advisory for excluded tokens,
-  # this test would catch it because advisories would appear in the log.
-  _require_artifacts
-  _load_fixture "d-clean-tokens"
-  _write_registry
-
-  local envelope
-  envelope="$(_post_write_event '.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md')"
-  _run_dispatcher "$envelope"
-
-  _assert_plugin_ran_not_crashed
-  _assert_exit 0
-
-  # No advisory must be emitted for excluded-namespace tokens (D-, S-, BC-, VP-, etc.)
-  local log; log="$(_plugin_log)"
-  if grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
-       | grep '"type":"plugin.log"' | grep -q '"level":"warn"'; then
-    echo "FAIL: unexpected advisory emitted for excluded-namespace tokens in Closes/Refs"
-    echo "  All tokens in d-clean-tokens are excluded-namespace; no advisory expected."
-    grep '"plugin_name":"validate-cross-site-correspondence"' "$log" \
-      | grep '"type":"plugin.log"' | grep '"level":"warn"' | head -3
-    false
-  fi
-}
-
-# ---------------------------------------------------------------------------
-# AC-013: Class D — non-F- token triggers advisory, not block
-# Fixtures: d-non-f-token (B01 in Closes) / d-all-f-token (only F- tokens)
-# BC-5.39.010 invariant 6: Class D NEVER blocks; advisory-only
-# ---------------------------------------------------------------------------
-
-@test "AC-013 MUTANT: B01 in burst-log Closes produces advisory in log (exit code 0, not 2)" {
-  # [DEFERRED v1.6 — Class D] BC-5.39.010 v1.6 defers Class D entirely.
-  # Class D advisory arm removed; burst-log.md writes are unclassified → Continue.
-  # Restore when Class D is re-implemented.
-  skip "[DEFERRED v1.6 — Class D] burst-log.md unclassified after Class D arm removal; test preserved per POLICY 1 for future re-activation"
-  _require_artifacts
-  _load_fixture "d-non-f-token"
-  _write_registry
-
-  local envelope
-  envelope="$(_post_write_event '.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md')"
-  _run_dispatcher "$envelope"
-
-  _assert_plugin_ran_not_crashed
-  # Class D is advisory-only per BC-5.39.010 invariant 6: NEVER blocks → exit 0 always.
-  _assert_exit 0
-
-  # Advisory for "B01" must be present in the dispatcher internal log.
-  # BC-5.39.010 PC33: advisory must be emitted for non-F- tokens; message cites the token.
-  # F-S2107-P1C-020 overlap guard: if "closes:" false-matches for excluded content, no advisory
-  # would fire for B01 → this assertion would catch the wrong behavior.
-  # RED GATE: stub panics → _assert_plugin_ran_not_crashed fails before this check.
-  # Post-stub: advisory must appear in log as plugin.log warn record mentioning "B01".
-  local log; log="$(_plugin_log)"
-  grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
-    | grep '"type":"plugin.log"' \
-    | grep '"level":"warn"' \
-    | grep -q 'B01' || {
-      echo "FAIL: expected advisory mentioning 'B01' not found in dispatcher log"
-      echo "  BC-5.39.010 invariant 6: Class D must emit advisory for non-F- token B01"
-      grep '"plugin_name":"validate-cross-site-correspondence"' "$log" \
-        | grep '"type":"plugin.log"' | head -5 || echo "  (no plugin.log records)"
-      false
-    }
-}
-
-@test "AC-013 CONTROL: only F- tokens in burst-log Closes produces exit code 0" {
-  # [DEFERRED v1.6 — Class D] BC-5.39.010 v1.6 defers Class D entirely.
-  # Restore when Class D is re-implemented.
-  skip "[DEFERRED v1.6 — Class D] burst-log.md unclassified after Class D arm removal; test preserved per POLICY 1 for future re-activation"
-  _require_artifacts
-  _load_fixture "d-all-f-token"
-  _write_registry
-
-  local envelope
-  envelope="$(_post_write_event '.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md')"
-  _run_dispatcher "$envelope"
-
-  _assert_plugin_ran_not_crashed
-  _assert_exit 0
-}
-
-# ---------------------------------------------------------------------------
-# AC-014: Class D — historical section excluded by positional anchor
-# Fixture: d-historical-excluded (lessons.md: old L-EDP1-001 has P45-001, latest L-EDP1-062 clean)
-# BC-5.39.010 PC30: scope-limited extraction — last L-EDP1 block only
-# ---------------------------------------------------------------------------
-
-@test "AC-014: P45-001 in old L-EDP1 block not flagged (positional exclusion)" {
-  # [DEFERRED v1.6 — Class D] BC-5.39.010 v1.6 defers Class D entirely.
-  # is_cycle_artifact() returns None after removal; lessons.md writes are unclassified → Continue.
-  # Restore when Class D is re-implemented.
-  skip "[DEFERRED v1.6 — Class D] lessons.md unclassified after Class D arm removal; test preserved per POLICY 1 for future re-activation"
-  _require_artifacts
-  _load_fixture "d-historical-excluded"
-  _write_registry
-
-  local envelope
-  # lessons.md is a cycle artifact → triggers Class D
-  envelope="$(_post_write_event '.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md')"
-  _run_dispatcher "$envelope"
-
-  _assert_plugin_ran_not_crashed
-  # Historical L-EDP1-001 with P45-001 must NOT trigger advisory (only last block scanned)
-  _assert_exit 0
-}
-
+# AC-012/AC-013/AC-014 (Class D — excluded-namespace / non-F- advisory /
+# historical-positional-exclusion) integration tests REMOVED.
+#
+# Class D (arm_d.rs) was removed from the implementation per v1.14 spec +
+# S-21.07 reconciliation (commit e6ce015f): the story's File Structure section
+# and Task 12 explicitly mark Class D "DEFERRED v1.6 — do NOT create," and the
+# module's dispatch hook (is_cycle_artifact) always returned None, i.e. the
+# arm was already runtime-inert. The five tests that previously lived here
+# (AC-012 x2, AC-013 MUTANT/CONTROL, AC-014) exercised the deleted arm_d
+# module end-to-end and had been left `skip`-marked as "preserved for future
+# re-activation." That skip rationale cited POLICY 1 (append-only ID
+# numbering for BC/VP/DI/CAP/STORY/HS artifacts, scope: .factory/policies.yaml
+# id 1) — POLICY 1 does not apply to bats test function bodies, so the
+# citation did not hold. Per the production-grade default (CLAUDE.md), an
+# orphaned integration test for code that no longer exists is deleted, not
+# preserved in a permanently-skipped state; Class D re-implementation in
+# S-21.08 will need fresh tests written against whatever the reinstated arm's
+# actual contract is, not a resurrection of these stale bodies. One of the
+# removed tests (AC-013 MUTANT) asserted a Class-D advisory is emitted while
+# runtime dispatch was already inert -- exactly the kind of test that must not
+# ship. The four Class-D-only fixtures (d-clean-tokens, d-non-f-token,
+# d-all-f-token, d-historical-excluded) were deleted alongside these tests as
+# they had no other referents in the repo.
 # ---------------------------------------------------------------------------
 # AC-015: Class E1 — version vs last_amended mismatch blocks
 # Fixtures: e1-version-mismatch / e1-version-match / e1-unparseable
@@ -1880,18 +1766,28 @@ for line in data.splitlines():
 }
 
 # ---------------------------------------------------------------------------
-# F-P6-016: Coverage gate — structural counts only (F-S2107-P8-007 fix).
+# F-P6-016: Coverage gate — structural counts only (F-S2107-P8-007 fix;
+# S-21.07 reconciliation: Class-D-DEFERRED tests removed, not skip-preserved).
 # Verifies structural invariants of the bats file itself by counting declaration
 # and skip-marker sites.
-#   (a) Exactly 5 tests carry the "[DEFERRED v1.6 — Class D]" skip marker.
-#       These are the five Class D tests (AC-012 x2, AC-013, AC-014, AC-015) deferred
-#       per BC-5.39.010 v1.6. No new Class D deferred tests should be added without
-#       updating this count. No existing ones should be silently removed.
-#   (b) Exactly 46 _require_artifacts call sites.
+#   (a) Zero tests carry the "[DEFERRED v1.6 — Class D]" skip marker.
+#       The five Class D tests that previously carried this marker (AC-012 x2,
+#       AC-013 MUTANT/CONTROL, AC-014) were DELETED alongside arm_d.rs removal
+#       (commit e6ce015f) rather than left permanently skipped — a skipped
+#       integration test for a deleted module is not preserved coverage, and
+#       the "preserved per POLICY 1" rationale that had justified the skip
+#       marker misapplied POLICY 1 (append-only ID numbering; scope is
+#       BC/VP/DI/CAP/STORY/HS artifacts, not bats test bodies). Class D
+#       re-implementation in S-21.08 gets fresh tests against its actual
+#       reinstated contract. This assertion guards against the marker being
+#       silently reintroduced as a way to leave future orphaned tests in a
+#       permanently-skipped state instead of removing them.
+#   (b) Exactly 41 _require_artifacts call sites.
 #       Each site becomes a skip when the factory-dispatcher binary or WASM is absent.
 #       Bounding this explicitly prevents silent growth in dispatcher-gated test count.
-#       (was 45; +1 for F-S2107-P8-013 production-scale fuel-budget gate)
+#       (was 46; -5 for the removed Class D AC-012/013/014 tests, S-21.07 reconciliation)
 #   (c) Total @test declarations >=40 (sanity floor; not the primary execution measure).
+#       (was 52 before Class D removal; now 47)
 #
 # F-S2107-P8-007: removed the "N passed / M skipped / 0 failed" echo that was derived
 # from grep counts and hardcoded "0 failed". A test cannot observe its own run's results;
@@ -1901,28 +1797,30 @@ for line in data.splitlines():
 # ALWAYS PASSES: no dispatcher invocation. Pure file-structure analysis.
 # ---------------------------------------------------------------------------
 
-@test "F-P6-016: coverage gate — 5 deferred, 46 dispatcher-gated, structural counts only" {
+@test "F-P6-016: coverage gate — 0 deferred, 41 dispatcher-gated, structural counts only" {
   local bats_file="$BATS_TEST_FILENAME"
 
-  # (a) Class-D-DEFERRED skip count: must be exactly 5.
+  # (a) Class-D-DEFERRED skip count: must be exactly 0 (removed, not skip-preserved).
   local deferred_count
   deferred_count=$(grep -c 'skip "\[DEFERRED v1\.6 — Class D\]' "$bats_file" 2>/dev/null || echo 0)
-  [ "$deferred_count" -eq 5 ] || {
-    echo "FAIL: expected exactly 5 Class-D-DEFERRED skip lines, got $deferred_count."
-    echo "  BC-5.39.010 v1.6 deferred Class D (AC-012 x2, AC-013, AC-014, AC-015)."
-    echo "  If a new deferred test was added, update this count. If one was removed, investigate."
+  [ "$deferred_count" -eq 0 ] || {
+    echo "FAIL: expected zero Class-D-DEFERRED skip lines, got $deferred_count."
+    echo "  S-21.07 reconciliation removed arm_d.rs and its orphaned bats tests"
+    echo "  (AC-012 x2, AC-013 MUTANT/CONTROL, AC-014) rather than skip-preserving them."
+    echo "  If Class D is being re-implemented, write fresh tests for its real contract"
+    echo "  instead of reintroducing this skip marker."
     false
   }
 
-  # (b) _require_artifacts call sites: must be exactly 46.
+  # (b) _require_artifacts call sites: must be exactly 41.
   # Each site becomes a skip when the factory-dispatcher binary or WASM is absent.
   # Bounding this explicitly prevents silent inflation: a new dispatcher-gated test added
   # without updating this count will fail the gate, not silently grow the skip count.
-  # (was 45; +1 for F-S2107-P8-013 production-scale fuel-budget gate)
+  # (was 46; -5 for the removed Class D AC-012/013/014 tests, S-21.07 reconciliation)
   local req_count
   req_count=$(grep -c '^\s*_require_artifacts$' "$bats_file" 2>/dev/null || echo 0)
-  [ "$req_count" -eq 46 ] || {
-    echo "FAIL: expected exactly 46 _require_artifacts call sites, got $req_count."
+  [ "$req_count" -eq 41 ] || {
+    echo "FAIL: expected exactly 41 _require_artifacts call sites, got $req_count."
     echo "  This bounds the number of tests that skip when the factory-dispatcher binary"
     echo "  or WASM artifact is absent. Update this count when adding or removing a"
     echo "  dispatcher-gated test."
