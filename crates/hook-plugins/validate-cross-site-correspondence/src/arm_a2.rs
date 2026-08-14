@@ -1669,4 +1669,158 @@ mod tests {
             Citation: {citations:?}"
         );
     }
+
+    // -----------------------------------------------------------------------
+    // ADV-RECON-003 (BC-5.39.010 v1.20) — Phase 1 BC-ID-anchored row eligibility.
+    //
+    // v1.20 rearchitects PC13 Phase 1 (pure-version-field extraction) from an
+    // unanchored full-row scan to BC-ID-anchored: a row is eligible for Phase 1
+    // extraction for BC ID X ONLY IF the row's FIRST non-empty pipe-delimited
+    // field contains X at a word boundary (the same locator-predicate test
+    // already normative for Part A Arm1 and Phase 2).
+    //
+    // Hazard (corpus-confirmed, 14 of 480 `## Behavioral Contracts` body-table
+    // rows across `.factory/stories/*.md` name more than one distinct BC ID
+    // within a single row — S-4.06, S-4.08, S-2.01, S-21.11, S-8.04, S-5.01,
+    // S-6.01, S-5.02): the CURRENT `extract_version_token_from_table_row`
+    // (Phase 1) splits the row and scans ALL fields right-to-left for the
+    // rightmost pure-version field — with NO check that the row's own subject
+    // (first field) is the BC ID being resolved. `extract_story_bc_version_citations`
+    // gates entry into this scan only via `line_contains_bc_id_at_boundary`
+    // (the row merely CONTAINS the BC ID somewhere), not via first-field anchoring.
+    //
+    // Canonical Test Vector: "A Arm2 — Phase 1 cross-BC-row anchoring
+    // (v1.20 / ADV-RECON-003)" (BC-5.39.010 §Canonical Test Vectors).
+    // EC-037 (BC-5.39.010 §Edge Cases).
+    //
+    // Fixture shape: Row 1's first field names a DIFFERENT BC ("BC-9.99.010")
+    // with Version cell "1.7"; its Notes cell mentions the target BC
+    // ("BC-9.99.011") inline (no trailing v-token, so Phase 2's anchored
+    // fallback cannot spuriously contribute either). Row 2's first field IS the
+    // target BC ("BC-9.99.011") with its own correct Version cell "2.0",
+    // matching BC-9.99.011's current frontmatter version.
+    //
+    // RED GATE: current unanchored Phase 1 attributes Row 1's "1.7" to
+    // BC-9.99.011 (because Row 1's line contains "BC-9.99.011" via the Notes
+    // cell, and `extract_version_token_from_table_row` scans the WHOLE row for
+    // any rightmost pure-version field, oblivious to which BC the row's first
+    // field names) IN ADDITION TO Row 2's correct "2.0" — two citations
+    // instead of one, and the spurious "1.7" produces a stale-citation BLOCK
+    // against BC-9.99.011's true "2.0" frontmatter version.
+    // -----------------------------------------------------------------------
+
+    /// ADV-RECON-003 RED GATE: a cross-BC-row (first field names a DIFFERENT BC,
+    /// target BC merely mentioned in a Notes cell) must NOT contribute a false
+    /// citation for the target BC, and must NOT produce a false BLOCK.
+    ///
+    /// BC-5.39.010 v1.20 PC13 Phase 1 (BC-ID-anchored): Row 1 (first field
+    /// "BC-9.99.010") is INELIGIBLE for Phase 1 resolution of "BC-9.99.011" —
+    /// its Version cell "1.7" must not be attributed to BC-9.99.011. Only Row 2
+    /// (first field "BC-9.99.011", Version "2.0") is a valid citation.
+    ///
+    /// RED GATE: current unanchored code resolves TWO citations for
+    /// "BC-9.99.011" — Row 1's "1.7" (spurious, cross-BC) and Row 2's "2.0"
+    /// (correct). `run_arm_a2_for_bc_with_result` checks every citation
+    /// inclusively — since "1.7" != "2.0" (BC-9.99.011's current frontmatter
+    /// version), the spurious Row 1 citation produces a blocking violation.
+    /// `assert!(violations.is_empty())` FAILS now (false BLOCK).
+    ///
+    /// After fix (v1.20 BC-ID-anchored Phase 1): Row 1 excluded entirely for
+    /// "BC-9.99.011" → exactly one citation ("2.0", from Row 2) → matches BC's
+    /// current frontmatter version → no violation.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_phase1_bc_id_anchored_no_cross_bc_row_false_block() {
+        // Row 1: first field names BC-9.99.010 (a DIFFERENT BC), Version cell
+        // "1.7"; Notes cell mentions "BC-9.99.011" inline with no trailing
+        // v-token (so Phase 2's own anchored fallback cannot also contribute).
+        // Row 2: first field names BC-9.99.011 (the checked BC) with its own
+        // correct, current Version cell "2.0".
+        let story_content = concat!(
+            "---\n",
+            "behavioral_contracts: [BC-9.99.011]\n",
+            "---\n",
+            "\n",
+            "## Behavioral Contracts\n",
+            "\n",
+            "| BC ID | Title | Version | Notes |\n",
+            "|---|---|---|---|\n",
+            "| BC-9.99.010 | Other contract | 1.7 | Supersedes BC-9.99.011 |\n",
+            "| BC-9.99.011 | Target contract | 2.0 | — |\n",
+        );
+        let citations = extract_story_bc_version_citations(story_content, "BC-9.99.011");
+
+        // BC-9.99.011's true frontmatter version is "2.0" — matches Row 2's own
+        // Version cell exactly. Row 1's "1.7" belongs to a different BC entirely.
+        let bc_content = b"---\nversion: \"2.0\"\n---\n# BC-9.99.011\n";
+        let (violations, _advisories) = run_arm_a2_for_bc_with_result(
+            "S-21.07",
+            "BC-9.99.011",
+            &citations,
+            Ok(bc_content.to_vec()),
+        );
+
+        assert!(
+            violations.is_empty(),
+            "ADV-RECON-003 (BC-5.39.010 v1.20 PC13 Phase 1, EC-037): a cross-BC-row \
+            whose FIRST field names a different BC (BC-9.99.010, Version '1.7') must \
+            NOT be attributed to BC-9.99.011 merely because BC-9.99.011 is mentioned \
+            in that row's Notes cell. Row 2 (first field BC-9.99.011, Version '2.0') \
+            is the only valid citation and matches BC-9.99.011's current frontmatter \
+            version '2.0' exactly — no violation should result. \
+            RED GATE: unanchored Phase 1 also resolves Row 1's '1.7' for \
+            BC-9.99.011, producing a false stale-citation BLOCK ('1.7' != '2.0'). \
+            Citations extracted: {citations:?}. Violations: {violations:?}"
+        );
+    }
+
+    /// ADV-RECON-003 RED GATE (extraction-layer pin): `extract_story_bc_version_citations`
+    /// must return EXACTLY the one citation belonging to the target BC's own row
+    /// — a cross-BC row must contribute ZERO citations for the target BC.
+    ///
+    /// Same fixture as the false-block test above, isolated at the extraction
+    /// layer (POLICY 11 — exercises the production extraction fn directly, no
+    /// tautology). Pins the intermediate value so a future regression that
+    /// re-introduces unanchored Phase 1 is caught even if a downstream
+    /// coincidental match were to mask the effect on `violations`.
+    ///
+    /// RED GATE: current unanchored code returns TWO citations
+    /// (`[("...", "1.7"), ("...", "2.0")]`) — `citations.len() == 1` FAILS, and
+    /// `citations[0].1 == "2.0"` FAILS (Row 1 is encountered first in file
+    /// order, so index 0 holds the spurious "1.7").
+    #[test]
+    fn test_BC_5_39_010_arm_a2_phase1_bc_id_anchored_cross_bc_row_excluded_from_citations() {
+        let story_content = concat!(
+            "---\n",
+            "behavioral_contracts: [BC-9.99.011]\n",
+            "---\n",
+            "\n",
+            "## Behavioral Contracts\n",
+            "\n",
+            "| BC ID | Title | Version | Notes |\n",
+            "|---|---|---|---|\n",
+            "| BC-9.99.010 | Other contract | 1.7 | Supersedes BC-9.99.011 |\n",
+            "| BC-9.99.011 | Target contract | 2.0 | — |\n",
+        );
+        let citations = extract_story_bc_version_citations(story_content, "BC-9.99.011");
+        assert_eq!(
+            citations.len(),
+            1,
+            "ADV-RECON-003 (BC-5.39.010 v1.20 PC13 Phase 1, EC-037): a cross-BC row \
+            whose first field names a DIFFERENT BC (BC-9.99.010) must contribute \
+            ZERO citations for BC-9.99.011, even though BC-9.99.011 is mentioned in \
+            that row's Notes cell. Only Row 2 (first field BC-9.99.011) is a valid \
+            citation source. RED GATE: unanchored Phase 1 also resolves Row 1's \
+            Version cell '1.7' for BC-9.99.011 — 2 citations instead of 1. \
+            Citations: {citations:?}"
+        );
+        if citations.len() == 1 {
+            assert_eq!(
+                citations[0].1, "2.0",
+                "the sole citation for BC-9.99.011 must be '2.0' (Row 2's own \
+                Version cell), not '1.7' (Row 1's Version cell, belonging to \
+                BC-9.99.010). Citation: {:?}",
+                citations[0]
+            );
+        }
+    }
 }

@@ -908,8 +908,14 @@ mod tests {
         let bc_file_str =
             std::fs::read_to_string(root.join("specs/behavioral-contracts/ss-01/BC-1.17.001.md"))
                 .expect("BC-1.17.001.md must be readable from corpus root");
-        // Read expected version from live BC frontmatter — durable (updates with the file)
-        let expected = frontmatter::extract_frontmatter_field(&bc_file_str, "version")
+        // Read expected version from live BC frontmatter — durable (updates with the file).
+        // ADV-RECON-006: uses extract_version_field (v-stripped), not raw
+        // extract_frontmatter_field(_, "version"), because arm_a1::extract_bc_index_version_state
+        // returns v-stripped tokens (BcIndexVersionState::Version) — comparing against a
+        // possibly-"v"-prefixed raw frontmatter value would be an apples-to-oranges mismatch
+        // for any BC whose frontmatter carries a "v"-prefixed version. Matches the sibling
+        // corpus test below (test_BC_5_39_010_corpus_arm_a1_row_present_no_version_cell_majority_shape).
+        let expected = frontmatter::extract_version_field(&bc_file_str)
             .expect("BC-1.17.001.md must have a version: field");
         let result = arm_a1::extract_bc_index_version_state("BC-1.17.001", &bc_index_bytes);
         assert_eq!(

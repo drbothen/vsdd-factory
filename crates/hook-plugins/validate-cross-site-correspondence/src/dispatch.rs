@@ -352,30 +352,15 @@ mod tests {
         assert!(result, "STORY-INDEX.md must be detected as story index");
     }
 
-    #[test]
-    #[ignore = "[DEFERRED v1.6 — Class D] is_cycle_artifact always returns None after Class D removal per BC-5.39.010 v1.6 / D-953"]
-    fn test_BC_5_39_010_dispatch_burst_log_detected() {
-        // BC-5.39.010 PC28: burst-log.md under cycles/
-        let result =
-            is_cycle_artifact(".factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md");
-        assert_eq!(
-            result,
-            Some(CycleArtifactKind::BurstLog),
-            "burst-log.md must be classified as BurstLog cycle artifact"
-        );
-    }
-
-    #[test]
-    #[ignore = "[DEFERRED v1.6 — Class D] is_cycle_artifact always returns None after Class D removal per BC-5.39.010 v1.6 / D-953"]
-    fn test_BC_5_39_010_dispatch_lessons_md_detected() {
-        let result =
-            is_cycle_artifact(".factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md");
-        assert_eq!(
-            result,
-            Some(CycleArtifactKind::Lessons),
-            "lessons.md must be classified as Lessons cycle artifact"
-        );
-    }
+    // ADV-RECON-005: the former test_BC_5_39_010_dispatch_burst_log_detected and
+    // test_BC_5_39_010_dispatch_lessons_md_detected `#[ignore]`d tests asserted
+    // `Some(CycleArtifactKind::BurstLog/Lessons)` — directly contradicting the active
+    // Class-D-deferred `..._returns_none` tests below (which assert `is_cycle_artifact`
+    // returns `None` for the SAME two paths, per BC-5.39.010 v1.6 / D-953 Class D
+    // deferral). An `#[ignore]`d test that asserts the OPPOSITE of current normative
+    // behavior is dead, misleading test content — removed rather than retained
+    // ignored. The `returns_none` assertions below are the sole active source of
+    // truth for `is_cycle_artifact` until S-21.08 re-enables Class D.
 
     #[test]
     fn test_BC_5_39_010_dispatch_non_cycle_index_md_rejected() {

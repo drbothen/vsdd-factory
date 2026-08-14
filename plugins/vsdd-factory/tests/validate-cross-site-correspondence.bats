@@ -669,6 +669,41 @@ for line in data.splitlines():
 }
 
 # ---------------------------------------------------------------------------
+# ADV-RECON-007 (BC-5.39.010 v1.20 precondition 15a / postcondition 25 /
+# invariant 4 extension): a primary target that reads successfully as bytes
+# but fails UTF-8 decoding MUST block — it is NOT eligible for silent
+# Continue. The shipped `on_post_tool_use` (lib.rs Step 4) currently decodes
+# with `std::str::from_utf8(&primary_bytes)` and, on `Err(_)`, logs a warning
+# and returns `HookResult::Continue` ("fail-open, invariant 9") — invariant 9
+# governs `is_char_boundary()` slicing safety on already-decoded strings only
+# and does NOT authorize this fail-open disposition (BC-5.39.010 v1.20
+# precondition 15a). This is the invariant-9-misattribution the amendment
+# names NON-CONFORMING (EC-038).
+#
+# Fixture: utf8-decode-failure/factory/specs/behavioral-contracts/ss-09/
+# BC-9.99.012.md — a raw byte sequence containing an invalid UTF-8 start byte
+# (0xFF) that `host::read_file` reads successfully (the read itself succeeds;
+# only the subsequent UTF-8 decode fails).
+#
+# RED GATE: current code returns HookResult::Continue (exit 0) on decode
+# failure. `_assert_exit 2` FAILS now. After fix (block_with_fix per
+# postcondition 25): exit 2.
+# ---------------------------------------------------------------------------
+
+@test "ADV-RECON-007: primary target UTF-8 decode failure produces exit code 2 (block), not Continue" {
+  _require_artifacts
+  _load_fixture "utf8-decode-failure"
+  _write_registry
+
+  local envelope
+  envelope="$(_post_write_event '.factory/specs/behavioral-contracts/ss-09/BC-9.99.012.md')"
+  _run_dispatcher "$envelope"
+
+  _assert_plugin_ran_not_crashed
+  _assert_exit 2
+}
+
+# ---------------------------------------------------------------------------
 # AC-005: Class A Arm2 — stale story BC-table version citation blocks
 # Fixture: a2-stale-citation (story cites v1.17, BC fm v1.18)
 # BC-5.39.010 PC10-15
@@ -1782,12 +1817,13 @@ for line in data.splitlines():
 #       reinstated contract. This assertion guards against the marker being
 #       silently reintroduced as a way to leave future orphaned tests in a
 #       permanently-skipped state instead of removing them.
-#   (b) Exactly 41 _require_artifacts call sites.
+#   (b) Exactly 42 _require_artifacts call sites.
 #       Each site becomes a skip when the factory-dispatcher binary or WASM is absent.
 #       Bounding this explicitly prevents silent growth in dispatcher-gated test count.
-#       (was 46; -5 for the removed Class D AC-012/013/014 tests, S-21.07 reconciliation)
+#       (was 46; -5 for the removed Class D AC-012/013/014 tests, S-21.07 reconciliation;
+#       +1 for ADV-RECON-007 primary-target UTF-8 decode failure red-gate test, v1.20)
 #   (c) Total @test declarations >=40 (sanity floor; not the primary execution measure).
-#       (was 52 before Class D removal; now 47)
+#       (was 52 before Class D removal; 47 after; now 48 — ADV-RECON-007 test added)
 #
 # F-S2107-P8-007: removed the "N passed / M skipped / 0 failed" echo that was derived
 # from grep counts and hardcoded "0 failed". A test cannot observe its own run's results;
@@ -1797,7 +1833,7 @@ for line in data.splitlines():
 # ALWAYS PASSES: no dispatcher invocation. Pure file-structure analysis.
 # ---------------------------------------------------------------------------
 
-@test "F-P6-016: coverage gate — 0 deferred, 41 dispatcher-gated, structural counts only" {
+@test "F-P6-016: coverage gate — 0 deferred, 42 dispatcher-gated, structural counts only" {
   local bats_file="$BATS_TEST_FILENAME"
 
   # (a) Class-D-DEFERRED skip count: must be exactly 0 (removed, not skip-preserved).
@@ -1819,8 +1855,8 @@ for line in data.splitlines():
   # (was 46; -5 for the removed Class D AC-012/013/014 tests, S-21.07 reconciliation)
   local req_count
   req_count=$(grep -c '^\s*_require_artifacts$' "$bats_file" 2>/dev/null || true)
-  [ "$req_count" -eq 41 ] || {
-    echo "FAIL: expected exactly 41 _require_artifacts call sites, got $req_count."
+  [ "$req_count" -eq 42 ] || {
+    echo "FAIL: expected exactly 42 _require_artifacts call sites, got $req_count."
     echo "  This bounds the number of tests that skip when the factory-dispatcher binary"
     echo "  or WASM artifact is absent. Update this count when adding or removing a"
     echo "  dispatcher-gated test."
