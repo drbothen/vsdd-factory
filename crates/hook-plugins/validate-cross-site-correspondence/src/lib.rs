@@ -96,7 +96,8 @@ pub struct Advisory {
 ///    On HostError for cycle artifacts: advisory + Continue (invariant 6 — Class D
 ///    is advisory-only, never blocking). On HostError for all other classified targets:
 ///    BLOCK (fail-closed per invariant 4 + BC-5.39.008 v1.6).
-///    On UTF-8 decode failure: Continue (fail-open, invariant 9).
+///    On UTF-8 decode failure: BLOCK (fail-closed per invariant 4 extension, v1.20 /
+///    ADV-RECON-007 — invariant 9 governs slicing safety only, not decode disposition).
 /// 4. Dispatch to applicable arms based on classification:
 ///    - STORY-INDEX.md: Arm B2 only.
 ///    - Cycle artifact: Arm D advisory (returns Continue).
@@ -179,15 +180,27 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
         }
     };
 
-    // Step 4: decode UTF-8; fail-open on decode failure (invariant 9)
+    // Step 4: decode UTF-8; fail-closed on decode failure (BC-5.39.010 v1.20 /
+    // ADV-RECON-007: precondition 15a, postcondition 25, invariant 4 extension).
+    // A primary target that reads successfully as bytes but is not valid UTF-8 is
+    // NOT eligible for silent Continue — invariant 9 governs is_char_boundary()
+    // slicing safety on already-decoded strings only and does NOT authorize
+    // fail-open disposition of a decode failure.
     let content = match std::str::from_utf8(&primary_bytes) {
         Ok(s) => s.to_string(),
-        Err(_) => {
-            host::log_warn(&format!(
-                "validate-cross-site-correspondence: UTF-8 decode failure on '{}' — skipping (fail-open)",
-                file_path
-            ));
-            return HookResult::Continue;
+        Err(decode_error) => {
+            return combine_violations_into_block(
+                "validate-cross-site-correspondence",
+                &[Violation {
+                    description: format!(
+                        "validate-cross-site-correspondence [primary-read]: cannot decode \
+                        primary target '{file_path}' as UTF-8: {decode_error}. Fail-closed \
+                        per BC-5.39.010 invariant 4 (extended, v1.20) — invariant 9 governs \
+                        slicing safety only and does not authorize Continue here. Fix: verify \
+                        the file's encoding and re-save as UTF-8, then retry the write."
+                    ),
+                }],
+            );
         }
     };
 

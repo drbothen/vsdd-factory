@@ -133,23 +133,25 @@ pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(St
             continue;
         }
 
-        // Row is in a scannable section and contains the BC ID: extract version.
-        // Phase 1 (pure-version field, right-to-left) via extract_version_token_from_table_row.
-        // Phase 2 (BC-ID-anchored first-v-token, left-to-right) when Phase 1 returns None.
+        // Row is in a scannable section and contains the BC ID somewhere: extract version.
+        //
+        // Phase 1 (pure-version field, right-to-left) via extract_version_token_from_table_row
+        // is BC-ID-anchored (v1.20 PC13 / ADV-RECON-003): it is only attempted when the row's
+        // OWN first non-empty field names this BC — see `row_first_field_matches_bc_id`. A row
+        // whose first field names a DIFFERENT BC (and merely mentions this BC ID elsewhere, e.g.
+        // a Notes/Trace/Related-BC cell) is ineligible for Phase 1 even if some other field in
+        // the row happens to be a pure-version field belonging to that different BC.
+        //
+        // Phase 2 (BC-ID-anchored first-v-token, left-to-right) is already per-field anchored
+        // and applies regardless of Phase-1 eligibility — either as the fallback when Phase 1
+        // is eligible but finds no pure-version field, or directly when Phase 1 is ineligible.
         // ADR-038 §Decision 5: scan fields left-to-right; for each field containing
         // bc_id at a word boundary, return the first \bv([0-9]+\.[0-9]+)\b after bc_id.
-        let version = extract_version_token_from_table_row(line).or_else(|| {
-            for field in line.split('|') {
-                let trimmed = field.trim();
-                if let Some(after_bc_id) = find_bc_id_boundary_end(trimmed, bc_id)
-                    && let Some(v) = extract_first_v_token_after_position(trimmed, after_bc_id)
-                {
-                    return Some(v);
-                }
-                // bc_id present at boundary but no subsequent v-token; try next field.
-            }
-            None
-        });
+        let version = if row_first_field_matches_bc_id(line, bc_id) {
+            extract_version_token_from_table_row(line).or_else(|| find_phase2_version(line, bc_id))
+        } else {
+            find_phase2_version(line, bc_id)
+        };
         if let Some(version) = version {
             let location = format!("table row {}", line_num + 1);
             citations.push((location, version));
@@ -191,6 +193,54 @@ fn line_contains_bc_id_at_boundary(line: &str, bc_id: &str) -> bool {
         search_start = abs + 1;
     }
     false
+}
+
+/// Returns `true` if the row's FIRST non-empty pipe-delimited field contains `bc_id`
+/// as a word-boundary token.
+///
+/// BC-5.39.010 v1.20 PC13 Phase 1 (BC-ID-anchored, ADV-RECON-003): a table row is
+/// eligible for Phase 1 pure-version-field extraction for BC ID X only if the row's
+/// own first field names X — the same locator-predicate test already normative for
+/// Part A Arm1's first-cell recognition and for Phase 2's `find_bc_id_boundary_end`.
+/// Rows whose first field names a DIFFERENT BC (and merely mention X elsewhere, e.g.
+/// a Notes/Trace/Related-BC cell) are ineligible for Phase 1 even though some other
+/// field in the row may look like a pure-version field belonging to that other BC.
+///
+/// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
+///
+/// # BC trace
+/// BC-5.39.010 v1.20 PC13 Phase 1 (ADV-RECON-003); EC-037; Canonical Test Vector
+/// "A Arm2 — Phase 1 cross-BC-row anchoring (v1.20 / ADV-RECON-003)".
+fn row_first_field_matches_bc_id(line: &str, bc_id: &str) -> bool {
+    let first_field = line
+        .split('|')
+        .map(str::trim)
+        .find(|field| !field.is_empty())
+        .unwrap_or("");
+    line_contains_bc_id_at_boundary(first_field, bc_id)
+}
+
+/// Phase 2 (BC-ID-anchored first-v-token) resolution for a table row.
+///
+/// Scans fields left-to-right; for the first field containing `bc_id` at a word
+/// boundary, returns the first `\bv([0-9]+\.[0-9]+)\b` token appearing after `bc_id`
+/// within that same field. Per-field anchoring means this fallback is safe to apply
+/// regardless of Phase 1 (BC-ID-anchored) eligibility — it never attributes a
+/// different BC's inline version token to `bc_id`.
+///
+/// # BC trace
+/// BC-5.39.010 v1.20 PC13 Phase 2 (ADR-038 §Decision 5).
+fn find_phase2_version(line: &str, bc_id: &str) -> Option<String> {
+    for field in line.split('|') {
+        let trimmed = field.trim();
+        if let Some(after_bc_id) = find_bc_id_boundary_end(trimmed, bc_id)
+            && let Some(v) = extract_first_v_token_after_position(trimmed, after_bc_id)
+        {
+            return Some(v);
+        }
+        // bc_id present at boundary but no subsequent v-token; try next field.
+    }
+    None
 }
 
 /// Check if `s` is a pure-version string `^v?[0-9]+\.[0-9]+$`.
