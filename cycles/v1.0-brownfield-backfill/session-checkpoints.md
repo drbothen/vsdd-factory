@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "94835ec"
+input-hash: "7127986"
 traces_to: STATE.md
 ---
 
@@ -1771,3 +1771,18 @@ Key state at D-970 archive:
 - `feature/policy15-gate-rust` at `d2a3176a`: gate crate; 16 tests; mutation-verified; no PR. Tip `f81ab5a6` bundles unrelated CLAUDE.md docs commit.
 
 **This checkpoint superseded by SESSION-WRAP-2026-08-10 checkpoint burst 2026-08-10.**
+
+## Session Resume Checkpoint (2026-08-14 — HEAD `c0f14974`; D-1009 pass-24 CONVERGENCE burst COMPLETE — BC-5.39.001 3-CLEAN CONVERGENCE SATISFIED; PIPELINE ACTIVE)
+
+Archived from STATE.md by the D-1010 session-wrap PAUSE checkpoint burst (2026-08-14). Full content preserved in git: `git show c0f14974:.factory/STATE.md` (factory-artifacts HEAD at the D-1009 SHA-patch tip, pre-pause).
+
+Key state at D-1009 archive:
+- Pipeline ACTIVE. D-1009 pass-24 CONVERGENCE burst COMPLETE (SHA-patch `6ef8568e`; own commit `c0f14974`). 4-INDEX: BC v4.59 / VP v2.76 / STORY v4.325 / ARCH v3.58. policies.yaml v1.4.24 UNCHANGED.
+- S-21.07 LOCAL BC-5.39.001 cascade CONVERGED 3/3 (passes 22/23/24 all CLEAN, D-1009). Story spec CONVERGED v1.14 (input-hash `93c4a89`), unbuilt; branch `feature/S-21.07-validate-cross-site-correspondence` @ `96b4be19`. As recorded at that time, NEXT PHASE = TDD implementation — **this framing was later corrected by D-1010 to an OPEN human decision, not a settled default.**
+- S-21.09 MERGED PR #775 `2e8087af` 2026-08-13; merged_count 108.
+- develop: `2e8087af`; main: `80e5cd7b`.
+- F-001 (POLICY 15 gate redesign) RATIFIED; CI-wiring residual only, BLOCKED-ON `feature/policy15-gate-rust`→`develop` (Drift Item `[D-969]`).
+- ADR-043 v1.5 proposed, NOT RATIFIED.
+- S-7.02 Cycle-Closing Checklist SATISFIED this burst — 2 new justified-deferral Drift Items added (STORY-INDEX self-bump-omission recurrence; state-manager POL-3 bash-append-discipline slip), both anchored S-15.03 PRIORITY-A.
+
+**This checkpoint superseded by the D-1010 session-wrap PAUSE checkpoint burst 2026-08-14 — human-requested session wrap at this CONVERGED boundary.**
