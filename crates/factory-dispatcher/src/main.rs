@@ -48,7 +48,7 @@ use factory_dispatcher::internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_STARTED, INTERNAL_DISPATCHER_ERROR, InternalEvent,
     InternalLog,
 };
-use factory_dispatcher::invoke::PluginResult;
+use factory_dispatcher::invoke::{PluginResult, TimeoutCause};
 use factory_dispatcher::partition::partition_plugins;
 use factory_dispatcher::payload::HookPayload;
 use factory_dispatcher::plugin_loader::PluginCache;
@@ -826,9 +826,38 @@ fn extract_reason_from_outcome(result: &PluginResult) -> Option<String> {
                 .ok()
                 .and_then(|v| v.get("reason").and_then(|r| r.as_str()).map(str::to_owned))
         }
-        // Fail-closed crash/timeout: sentinel reason.
+        // Fail-closed crash/timeout: sentinel reasons distinguished by cause so
+        // operators can choose the right remedy without opening the internal log.
+        // Fuel exhaustion is a permanent resource-policy failure (raise cap or
+        // reduce payload); epoch/wall-clock is a transient compute failure
+        // (investigate slow script). Conflating them forces operators to grep
+        // the internal log for the trace UUID to determine cause — TD #71 pattern.
+        //
+        // All three arms use the "fail-closed:" family prefix, consistent with
+        // the rest of the fail-closed taxonomy. The fuel arm additionally embeds
+        // "FUEL_EXHAUSTED:" as a greppable sub-token so a future consumer can
+        // distinguish fuel from epoch without parsing the trailing prose. The
+        // epoch arm string "fail-closed: plugin timed out" is unchanged —
+        // existing operator runbooks match it.
+        //
+        // On Trap::OutOfFuel, wasmtime's remaining-fuel counter reaches zero, so
+        // fuel_consumed_from_store() == fuel_cap (cap.saturating_sub(0) = cap).
+        // The interpolated value therefore represents the configured cap, not a
+        // measured cost. The message is framed accordingly ("fuel cap of N units")
+        // rather than "N units consumed" which would imply a metered demand figure.
         PluginResult::Crashed { .. } => Some("fail-closed: plugin crashed".to_owned()),
-        PluginResult::Timeout { .. } => Some("fail-closed: plugin timed out".to_owned()),
+        PluginResult::Timeout {
+            cause: TimeoutCause::Fuel,
+            fuel_cap,
+            ..
+        } => Some(format!(
+            "fail-closed: FUEL_EXHAUSTED: fuel cap of {fuel_cap} units exhausted; \
+             raise fuel_cap or reduce payload size"
+        )),
+        PluginResult::Timeout {
+            cause: TimeoutCause::Epoch,
+            ..
+        } => Some("fail-closed: plugin timed out".to_owned()),
     }
 }
 
@@ -1123,6 +1152,155 @@ mod red_gate_s18_14_log_dir {
             Path::new(log_dir_value).is_absolute(),
             "log_dir field value must be an absolute path (BC-1.13.001 PC-10 absolutize-on-emit); \
              got: {log_dir_value:?} (relative path means absolutize-on-emit fix is not applied)"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// extract_reason_from_outcome — fuel vs epoch distinction
+//
+// Fuel exhaustion and wall-clock (epoch) timeouts need opposite operator
+// responses: fuel is a permanent resource-policy failure requiring a cap
+// raise or payload reduction; epoch is a transient compute failure requiring
+// script investigation. Both previously returned "fail-closed: plugin timed
+// out", making them indistinguishable from the agent-visible block_reason.
+//
+// TDD: `fuel_timeout_reason_identifies_fuel_exhaustion` is RED before the
+// fix (current returns "plugin timed out" for both causes).  The epoch and
+// crash tests confirm those arms are unaffected by the change.
+// ---------------------------------------------------------------------------
+#[cfg(test)]
+mod tests_extract_reason_cause_distinction {
+    #![allow(clippy::expect_used, clippy::unwrap_used)]
+    use factory_dispatcher::invoke::{PluginResult, TimeoutCause};
+
+    // Fuel timeout must produce a fuel-specific reason, not "plugin timed out".
+    //
+    // The test input uses fuel_consumed == 20_000_000 to reflect the real invariant:
+    // on Trap::OutOfFuel, wasmtime's remaining-fuel counter is zero, so
+    // fuel_consumed_from_store() == fuel_cap (cap.saturating_sub(0) = cap).
+    // A value like 10_500_000 that differs from any plausible cap is unreachable
+    // in production and would make assertions on the interpolated value misleading.
+    #[test]
+    fn fuel_timeout_reason_identifies_fuel_exhaustion() {
+        use factory_dispatcher::invoke::DEFAULT_FUEL_CAP;
+        let result = PluginResult::Timeout {
+            cause: TimeoutCause::Fuel,
+            stderr: String::new(),
+            elapsed_ms: 5,
+            // consumed == cap on fuel trap (see invariant comment above).
+            fuel_consumed: DEFAULT_FUEL_CAP,
+            // fuel_cap is the configured cap; message interpolates this field.
+            fuel_cap: DEFAULT_FUEL_CAP,
+        };
+        let reason = super::extract_reason_from_outcome(&result);
+        let text = reason
+            .as_deref()
+            .expect("fuel timeout must produce Some reason");
+        // Family prefix + greppable sub-token. Both must be present in the
+        // emitted message so operators see the fail-closed taxonomy and can
+        // still grep FUEL_EXHAUSTED: without opening the internal log.
+        assert!(
+            text.starts_with("fail-closed: FUEL_EXHAUSTED:"),
+            "fuel timeout block_reason must start with 'fail-closed: FUEL_EXHAUSTED:', got: {text:?}"
+        );
+        assert!(
+            text.contains("exhausted"),
+            "fuel timeout block_reason must contain 'exhausted', got: {text:?}"
+        );
+        assert!(
+            !text.contains("timed out"),
+            "fuel timeout block_reason must NOT say 'timed out' — \
+             operators need distinct messages to choose the right remedy; got: {text:?}"
+        );
+        // The interpolated value is the cap (consumed == cap on fuel trap).
+        // Assert against the actual cap constant so this tracks deliberate changes.
+        assert!(
+            text.contains(&DEFAULT_FUEL_CAP.to_string()),
+            "fuel timeout block_reason should include the cap value ({DEFAULT_FUEL_CAP}) \
+             so operators know which cap to raise; got: {text:?}"
+        );
+    }
+
+    // Decoupling test: the message is a function of `fuel_cap` alone and must
+    // not read `fuel_consumed`.  With `fuel_consumed=0` and
+    // `fuel_cap=DEFAULT_FUEL_CAP`, the message must still cite the configured
+    // cap so operators know which budget to raise — regardless of whatever
+    // value `fuel_consumed` holds.
+    //
+    // Note: `fuel_consumed_from_store` has a dead `Err(_) => 0` arm (it can
+    // only err when fuel is disabled, but `build_engine` enables fuel
+    // unconditionally and `set_fuel` failing aborts in `InvokeError::Setup`
+    // before execution begins).  The `fuel_consumed: 0` input here is simply
+    // a synthetic boundary value, not a claim about the Err(_) path.
+    #[test]
+    fn fuel_timeout_with_zero_consumed_still_reports_cap() {
+        use factory_dispatcher::invoke::DEFAULT_FUEL_CAP;
+        // Synthetic: consumed=0 to verify the message ignores fuel_consumed.
+        let result = PluginResult::Timeout {
+            cause: TimeoutCause::Fuel,
+            stderr: String::new(),
+            elapsed_ms: 0,
+            fuel_consumed: 0,
+            fuel_cap: DEFAULT_FUEL_CAP,
+        };
+        let reason = super::extract_reason_from_outcome(&result);
+        let text = reason
+            .as_deref()
+            .expect("fuel timeout must produce Some reason");
+        assert!(
+            text.starts_with("fail-closed: FUEL_EXHAUSTED:"),
+            "message must carry fail-closed: FUEL_EXHAUSTED: prefix even when fuel_consumed=0; got: {text:?}"
+        );
+        assert!(
+            text.contains(&DEFAULT_FUEL_CAP.to_string()),
+            "message must report the configured cap ({DEFAULT_FUEL_CAP}), \
+             not fuel_consumed (0); got: {text:?}"
+        );
+        // Fails against the pre-fix form "fuel cap of 0 units exhausted":
+        //   pre-fix:  "…fail-closed: FUEL_EXHAUSTED: fuel cap of 0 units exhausted…"  → contains → assertion FAILS  ✓
+        //   post-fix: "…fail-closed: FUEL_EXHAUSTED: fuel cap of 20000000 units …"    → absent   → assertion PASSES ✓
+        assert!(
+            !text.contains("of 0 units"),
+            "message must NOT interpolate fuel_consumed=0 as the cap; \
+             pre-fix form contained 'of 0 units'; got: {text:?}"
+        );
+    }
+
+    // Epoch timeout must still produce the original "plugin timed out" sentinel —
+    // changing this arm would break existing operator runbooks for slow scripts.
+    #[test]
+    fn epoch_timeout_reason_is_unaffected() {
+        use factory_dispatcher::invoke::DEFAULT_FUEL_CAP;
+        let result = PluginResult::Timeout {
+            cause: TimeoutCause::Epoch,
+            stderr: String::new(),
+            elapsed_ms: 5_001,
+            fuel_consumed: 2_000_000,
+            fuel_cap: DEFAULT_FUEL_CAP,
+        };
+        let reason = super::extract_reason_from_outcome(&result);
+        assert_eq!(
+            reason.as_deref(),
+            Some("fail-closed: plugin timed out"),
+            "epoch timeout block_reason must remain 'fail-closed: plugin timed out'"
+        );
+    }
+
+    // Crash arm must be untouched — regression guard.
+    #[test]
+    fn crash_reason_is_unaffected() {
+        let result = PluginResult::Crashed {
+            trap_string: "unreachable".to_owned(),
+            stderr: String::new(),
+            elapsed_ms: 1,
+            fuel_consumed: 50_000,
+        };
+        let reason = super::extract_reason_from_outcome(&result);
+        assert_eq!(
+            reason.as_deref(),
+            Some("fail-closed: plugin crashed"),
+            "crash block_reason must remain 'fail-closed: plugin crashed'"
         );
     }
 }

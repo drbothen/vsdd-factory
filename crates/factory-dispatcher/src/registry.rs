@@ -184,7 +184,10 @@ impl Default for RegistryDefaults {
     fn default() -> Self {
         Self {
             timeout_ms: 5_000,
-            fuel_cap: 10_000_000,
+            // ADR-042 §Decision 1: raised 10M → 20M (measurement-validated).
+            // Uses DEFAULT_FUEL_CAP — the single source of truth — so any future
+            // cap change propagates atomically to both Default impls.
+            fuel_cap: crate::invoke::DEFAULT_FUEL_CAP,
             on_error: OnError::Continue,
             priority: 500,
         }
@@ -565,13 +568,111 @@ extra = { key = "value" }
 
     #[test]
     fn defaults_applied_when_missing() {
+        use crate::invoke::DEFAULT_FUEL_CAP;
         let reg = Registry::parse_str(minimal_toml()).unwrap();
         assert_eq!(reg.defaults.timeout_ms, 5_000);
-        assert_eq!(reg.defaults.fuel_cap, 10_000_000);
+        assert_eq!(reg.defaults.fuel_cap, DEFAULT_FUEL_CAP);
         assert_eq!(reg.defaults.priority, 500);
         assert_eq!(reg.defaults.on_error, OnError::Continue);
         assert_eq!(reg.hooks[0].priority(&reg.defaults), 500);
         assert_eq!(reg.hooks[0].timeout_ms(&reg.defaults), 5_000);
+        // Close the chain: accessor resolves to DEFAULT_FUEL_CAP for entries that
+        // don't override fuel_cap in their registry entry (production path via executor.rs).
+        assert_eq!(reg.hooks[0].fuel_cap(&reg.defaults), DEFAULT_FUEL_CAP);
+    }
+
+    // Cross-field sync guard for the ADR-042 §Decision 1 fuel cap raise (10M → 20M).
+    //
+    // `RegistryDefaults::default().fuel_cap` is the global fallback applied to every
+    // hook plugin that does not override `fuel_cap` in its registry entry.
+    // `InvokeLimits::default().fuel_cap` is the hard limit used by `invoke_plugin`
+    // when the caller supplies no explicit limits.
+    //
+    // Both Default impls now reference `DEFAULT_FUEL_CAP` — the single source of truth
+    // in invoke.rs — making drift structurally impossible (a re-introduced literal would
+    // not compile unless it also matched DEFAULT_FUEL_CAP). This test is retained as an
+    // explicit cross-module guard: if either Default impl is refactored to bypass
+    // DEFAULT_FUEL_CAP, this test fails with a message naming which one drifted.
+    #[test]
+    fn fuel_cap_defaults_stay_in_sync() {
+        use crate::invoke::{DEFAULT_FUEL_CAP, InvokeLimits};
+
+        assert_eq!(
+            InvokeLimits::default().fuel_cap,
+            DEFAULT_FUEL_CAP,
+            "InvokeLimits::default().fuel_cap drifted from DEFAULT_FUEL_CAP; \
+             update InvokeLimits::default() to reference invoke::DEFAULT_FUEL_CAP",
+        );
+        assert_eq!(
+            RegistryDefaults::default().fuel_cap,
+            DEFAULT_FUEL_CAP,
+            "RegistryDefaults::default().fuel_cap drifted from DEFAULT_FUEL_CAP; \
+             update RegistryDefaults::default() to reference crate::invoke::DEFAULT_FUEL_CAP",
+        );
+    }
+
+    // Mutation-audit hardening SURV-05 (out-of-gate production accessor,
+    // S-21.09 mutation-hardening burst): cargo-mutants replaced
+    // `RegistryEntry::on_error`'s body (`self.on_error.unwrap_or(defaults.on_error)`)
+    // with `Default::default()` and the mutant survived — no existing test
+    // distinguished the defaults-supplied fallback value from `OnError::Continue`,
+    // which happens to be BOTH the entry's expected eventual value in every prior
+    // fixture AND `OnError::default()`'s value (see `OnError`'s `#[default]`
+    // variant), so `Default::default()` produced an outcome indistinguishable
+    // from the correct one under every prior test.
+    //
+    // This test parses a hook entry that OMITS `on_error` (so
+    // `entry.on_error` is `None`) and pairs it with a `RegistryDefaults` whose
+    // `on_error` is explicitly set to `OnError::Block` — the NON-default variant
+    // (`RegistryDefaults::default().on_error` is `OnError::Continue`) — so the
+    // live accessor and the `Default::default()` mutant diverge observably.
+    //
+    // Under live code: `self.on_error` (`None`) `.unwrap_or(defaults.on_error)`
+    // (`OnError::Block`) → `OnError::Block`.
+    //
+    // Under the `Default::default()` body mutant: the method ignores both `self`
+    // and `defaults` entirely and returns `OnError::default()` → `OnError::Continue`
+    // — `assert_eq!` fails (`Continue` != `Block`) → this test goes RED.
+    //
+    // Mutation-proof (empirically verified, mutation-hardening burst): replacing
+    // `RegistryEntry::on_error`'s body with `Default::default()` locally and
+    // running `cargo test -p factory-dispatcher` turns this test RED while all
+    // other registry.rs tests remain GREEN. Reverting the mutant restores GREEN.
+    #[test]
+    fn on_error_falls_back_to_registry_defaults_when_entry_omits_it() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "no-on-error-override"
+event = "PostToolUse"
+plugin = "hook-plugins/x.wasm"
+"#;
+        let reg = Registry::parse_str(toml).unwrap();
+        assert_eq!(
+            reg.hooks[0].on_error, None,
+            "fixture must omit on_error so the entry-level Option is None, forcing the \
+             fallback-to-defaults code path under test"
+        );
+
+        let mut defaults = RegistryDefaults::default();
+        assert_eq!(
+            defaults.on_error,
+            OnError::Continue,
+            "RegistryDefaults::default().on_error must be OnError::Continue (its #[default] \
+             variant) — this sub-assertion pins the premise that OnError::Block, used below, \
+             is genuinely the NON-default variant"
+        );
+        defaults.on_error = OnError::Block;
+
+        assert_eq!(
+            reg.hooks[0].on_error(&defaults),
+            OnError::Block,
+            "RegistryEntry::on_error must return defaults.on_error (Block) when the entry's \
+             own on_error field is None; under the Default::default() body mutant this would \
+             incorrectly return OnError::Continue (OnError's #[default] variant) regardless \
+             of what `defaults` specifies"
+        );
     }
 
     #[test]

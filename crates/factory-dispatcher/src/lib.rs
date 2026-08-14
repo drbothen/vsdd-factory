@@ -55,7 +55,7 @@ pub use internal_log::{
     PLUGIN_LOADED, PLUGIN_TIMEOUT,
 };
 pub use invoke::{
-    EventType, InvokeError, InvokeLimits, PluginResult, StoreData, TimeoutCause,
+    DEFAULT_FUEL_CAP, EventType, InvokeError, InvokeLimits, PluginResult, StoreData, TimeoutCause,
     dispatch_postcompact, dispatch_precompact, invoke_plugin,
 };
 pub use partition::{PluginPartition, partition_plugins};
