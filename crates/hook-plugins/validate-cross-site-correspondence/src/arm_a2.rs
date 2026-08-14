@@ -276,19 +276,87 @@ fn row_first_field_matches_bc_id(line: &str, bc_id: &str) -> bool {
 /// regardless of Phase 1 (BC-ID-anchored) eligibility — it never attributes a
 /// different BC's inline version token to `bc_id`.
 ///
+/// **Same-field scan-stop (v1.21 / ADV-RECON5-003):** within the anchor field, the
+/// forward scan for the v-token MUST terminate — without producing a version — the
+/// moment it encounters a DIFFERENT `BC-S.SS.NNN` word-boundary token before any
+/// qualifying v-token is found. Field-scoping alone (v1.19 / ADR-038 §Decision 5)
+/// does not exclude a false match that resides in the SAME field as a later,
+/// intervening different-BC-ID mention (S-4.08 corpus case: the Trace field
+/// mentions `BC-9.01.001`, then `BC-9.01.002`, then an unrelated `v1.1` token — the
+/// scan must stop at `BC-9.01.002` and yield no citation from this field). When the
+/// scan stops this way, the caller (this function) proceeds to the next
+/// pipe-delimited field per the existing per-field fallback. See
+/// `extract_first_v_token_after_position`, which performs the single left-to-right
+/// pass and applies the stop-check.
+///
 /// # BC trace
-/// BC-5.39.010 §PC13 Phase 2 (ADR-038 §Decision 5).
+/// BC-5.39.010 §PC13 Phase 2 (ADR-038 §Decision 5); §PC13 Phase 2 same-field
+/// scan-stop (v1.21 / ADV-RECON5-003); EC-039.
 fn find_phase2_version(line: &str, bc_id: &str) -> Option<String> {
     for field in line.split('|') {
         let trimmed = field.trim();
         if let Some(after_bc_id) = find_bc_id_boundary_end(trimmed, bc_id)
-            && let Some(v) = extract_first_v_token_after_position(trimmed, after_bc_id)
+            && let Some(v) = extract_first_v_token_after_position(trimmed, after_bc_id, bc_id)
         {
             return Some(v);
         }
-        // bc_id present at boundary but no subsequent v-token; try next field.
+        // bc_id present at boundary but no subsequent v-token before either the
+        // field ends or an intervening different-BC-ID token stops the scan;
+        // try next field.
     }
     None
+}
+
+/// Returns `Some((token, token_end))` if a section-scoped BC ID token
+/// (`BC-[0-9]+\.[0-9]+\.[0-9]+`) starts exactly at byte offset `i` in `s`, as a
+/// word-boundary-delimited token: the character immediately before `i` (if any)
+/// must not be ASCII alphanumeric, and the character immediately after the last
+/// matched digit (if any) must not be ASCII alphanumeric. Returns `None` if no
+/// such token starts at `i`.
+///
+/// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
+///
+/// # BC trace
+/// BC-5.39.010 §PC13 Phase 2 same-field scan-stop (v1.21 / ADV-RECON5-003):
+/// generic different-BC-ID detection for `extract_first_v_token_after_position`.
+fn bc_id_token_starting_at(s: &str, i: usize) -> Option<(&str, usize)> {
+    let bytes = s.as_bytes();
+    if i + 3 > bytes.len() || &bytes[i..i + 3] != b"BC-" {
+        return None;
+    }
+    let leading_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
+    if !leading_ok {
+        return None;
+    }
+    let mut j = i + 3;
+    let d1_start = j;
+    while j < bytes.len() && bytes[j].is_ascii_digit() {
+        j += 1;
+    }
+    if j == d1_start || j >= bytes.len() || bytes[j] != b'.' {
+        return None;
+    }
+    j += 1;
+    let d2_start = j;
+    while j < bytes.len() && bytes[j].is_ascii_digit() {
+        j += 1;
+    }
+    if j == d2_start || j >= bytes.len() || bytes[j] != b'.' {
+        return None;
+    }
+    j += 1;
+    let d3_start = j;
+    while j < bytes.len() && bytes[j].is_ascii_digit() {
+        j += 1;
+    }
+    if j == d3_start {
+        return None;
+    }
+    let trailing_ok = j >= bytes.len() || !bytes[j].is_ascii_alphanumeric();
+    if !trailing_ok {
+        return None;
+    }
+    Some((&s[i..j], j))
 }
 
 /// Check if `s` is a pure-version string `^v?[0-9]+\.[0-9]+$`.
@@ -367,26 +435,51 @@ fn find_bc_id_boundary_end(s: &str, bc_id: &str) -> Option<usize> {
     None
 }
 
-/// Find the first `\bv([0-9]+\.[0-9]+)\b` token at or after byte offset `start` in `s`.
+/// Find the first `\bv([0-9]+\.[0-9]+)\b` token at or after byte offset `start` in `s`,
+/// subject to the Phase 2 same-field scan-stop (v1.21 / ADV-RECON5-003).
 ///
 /// The `v` prefix is mandatory. Returns the version digits without the leading `v`
 /// (e.g., `"1.9"` from `"v1.9"`). Returns `None` if no such token exists from
-/// `start` onward.
+/// `start` onward, OR if the scan-stop fires first (see below).
 ///
 /// Semantics differ from the removed `extract_mandatory_v_inline` (Phase 2 prior
 /// to ADR-038 §Decision 5), which returned the LAST (rightmost) match. This
 /// function returns the FIRST match from `start` — required for the BC-ID-anchored
 /// first-v-token algorithm.
 ///
+/// **Same-field scan-stop (v1.21 / ADV-RECON5-003):** this function performs a
+/// single left-to-right pass over `s` from `start`. At each byte offset, it checks
+/// — in order — whether a `BC-S.SS.NNN` word-boundary token starts there
+/// (`bc_id_token_starting_at`) BEFORE checking whether a `\bv([0-9]+\.[0-9]+)\b`
+/// token starts there. If a BC ID token is found AND it is NOT equal to
+/// `own_bc_id`, the scan terminates immediately and returns `None` — the field
+/// yields no citation, regardless of whether a qualifying v-token exists later in
+/// the field. An occurrence of `own_bc_id` itself does not stop the scan (it is
+/// not "a DIFFERENT `BC-S.SS.NNN` token"); the scan resumes past it. This closes
+/// the S-4.08 corpus case: the Trace field for `BC-9.01.001` mentions
+/// `BC-9.01.002` (different) before the field's `v1.1` token — the scan must stop
+/// at `BC-9.01.002` and never reach `v1.1`.
+///
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
 /// # BC trace
 /// BC-5.39.010 §PC13 Phase 2 (ADR-038 §Decision 5): first-v-token-after-bc_id
 /// extraction for the BC-ID-anchored pass in `extract_story_bc_version_citations`.
-fn extract_first_v_token_after_position(s: &str, start: usize) -> Option<String> {
+/// §PC13 Phase 2 same-field scan-stop (v1.21 / ADV-RECON5-003); EC-039.
+fn extract_first_v_token_after_position(s: &str, start: usize, own_bc_id: &str) -> Option<String> {
     let bytes = s.as_bytes();
     let mut i = start;
     while i < bytes.len() {
+        // Scan-stop check first: a DIFFERENT BC-S.SS.NNN token at this position
+        // terminates the scan without producing a version (v1.21 / ADV-RECON5-003).
+        if let Some((token, token_end)) = bc_id_token_starting_at(s, i) {
+            if token != own_bc_id {
+                return None;
+            }
+            // Same BC ID re-mentioned: not "different" — resume scanning past it.
+            i = token_end;
+            continue;
+        }
         if bytes[i] == b'v' {
             let prev_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
             if prev_ok && i + 1 < bytes.len() && bytes[i + 1].is_ascii_digit() {
