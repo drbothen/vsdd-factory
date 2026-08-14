@@ -709,6 +709,60 @@ mod tests {
         assert!(violations.is_empty(), "current citation must not block");
     }
 
+    /// ADV-RECON3-006: secondary BC read yields non-UTF-8 bytes → distinct
+    /// "[Class A Arm2]" "not valid UTF-8" violation fires (F-S2107-P1B-016).
+    ///
+    /// The PRIMARY-read UTF-8 decode path (story-file read in `lib.rs`) is
+    /// unit-untestable in the non-wasm host and is covered by the bats
+    /// integration suite instead. This SECONDARY path — the BC-file read inside
+    /// `run_arm_a2_for_bc_with_result`'s `Ok(bc_bytes)` arm — is fully seam-testable:
+    /// inject invalid UTF-8 bytes directly as the `bc_read_result` and exercise the
+    /// production `std::str::from_utf8` decode-failure branch (POLICY 11).
+    ///
+    /// MUTANT: would go RED if the fix regressed to
+    /// `std::str::from_utf8(&bc_bytes).unwrap_or_default()` (the pre-fix bug
+    /// F-S2107-P1B-016 closed) — silently turning corrupt bytes into
+    /// `bc_content = ""` produces a stale-citation violation (mismatched version)
+    /// instead of the distinct "not valid UTF-8" violation this test asserts, and
+    /// the assertions below on message content and violation count would fail.
+    ///
+    /// CONTROL: `test_BC_5_39_010_arm_a2_current_citation_passes` above exercises
+    /// the sibling valid-UTF-8 secondary-read path (`Ok` with well-formed bytes)
+    /// and asserts zero violations, establishing that the decode-failure branch
+    /// below is reached only for genuinely invalid bytes, not for every `Ok(..)`.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_secondary_bc_non_utf8_blocks() {
+        // 0xFF is never a valid UTF-8 lead byte — guarantees decode failure.
+        let invalid_utf8_bytes: Vec<u8> = vec![0xFF, 0xFE, 0x00, 0x01];
+        let citations = vec![("Token Budget row".to_string(), "1.18".to_string())];
+        let (violations, advisories) = run_arm_a2_for_bc_with_result(
+            "S-21.07",
+            "BC-6.26.001",
+            &citations,
+            Ok(invalid_utf8_bytes),
+        );
+        assert!(
+            advisories.is_empty(),
+            "non-UTF-8 secondary BC read must not produce an advisory"
+        );
+        assert_eq!(
+            violations.len(),
+            1,
+            "non-UTF-8 secondary BC read must produce exactly one violation"
+        );
+        let msg = &violations[0].description;
+        assert!(
+            msg.contains("[Class A Arm2]"),
+            "violation must cite [Class A Arm2]"
+        );
+        assert!(
+            msg.contains("not valid UTF-8"),
+            "violation must cite the distinct non-UTF-8 decode-failure message"
+        );
+        assert!(msg.contains("BC-6.26.001"), "violation must cite the BC ID");
+        assert!(msg.contains("S-21.07"), "violation must cite the story ID");
+    }
+
     /// AC-006: two stale BCs → stale-citation violations with both BC IDs and versions.
     ///
     /// BC-5.39.010 postcondition 7 cascade: all stale citations across all BCs are
