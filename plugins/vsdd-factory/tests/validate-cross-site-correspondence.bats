@@ -2,11 +2,14 @@
 # validate-cross-site-correspondence.bats — Integration tests for the
 # validate-cross-site-correspondence PostToolUse WASM hook plugin.
 #
-# These tests deliver full payload-delivery scenarios for AC-001 through AC-028,
+# These tests deliver full payload-delivery scenarios for AC-001 through AC-027,
 # covering the six arms (A1, A2, B1, B2, E1, E2) via fixture files. Class D
 # (arm_d.rs) is deferred to S-21.08 and was removed from the implementation;
 # it has no coverage in this suite (see removal note preceding the former
-# AC-012/013/014 section for detail).
+# AC-012/013/014 section for detail). AC-028 (BC-5.39.010 precondition 15b /
+# postcondition 26, secondary index-file UTF-8 decode advisory) has no bats
+# scenario in this suite — it is covered at the Rust-unit level only, in
+# arm_a1.rs and arm_b.rs (see the story's AC-028 test citations).
 #
 # RED GATE (BC-5.38.001): Every payload-driven test MUST FAIL before implementation.
 #

@@ -1583,23 +1583,36 @@ mod tests {
             "postcondition 26 (v1.22): non-UTF-8 STORY-INDEX.md secondary read MUST \
             emit an advisory. Actual advisories: {advisories:?}"
         );
-        let combined = advisories
-            .iter()
-            .map(|a| a.message.as_str())
-            .collect::<Vec<_>>()
-            .join(" | ");
-        assert!(
-            combined.contains("STORY-INDEX.md")
-                && combined.contains("failed UTF-8 decode")
-                && combined.contains("INDETERMINATE, not confirmed-absent"),
-            "postcondition 26 (v1.22) prescribed verbatim message substring not found — \
-            expected a DISTINCT advisory naming 'STORY-INDEX.md failed UTF-8 decode ... \
-            row/hash state for '<id>' is INDETERMINATE, not confirmed-absent. Fix: \
-            verify the index file's encoding and re-save as UTF-8.' \
-            Actual advisories: {advisories:?}"
+
+        // BC-5.39.010 §PC4a (NORMATIVE): test-writer MUST assert the COMPLETE
+        // formatted string by equality check; `.contains()`-only on substrings is
+        // NON-CONFORMING. Build the COMPLETE prescribed postcondition 26 message
+        // verbatim from the BC body (§Postconditions, postcondition 26) with
+        // `<index-file>` = "STORY-INDEX.md" and `<id>` = "S-21.07" substituted,
+        // then assert full-string equality — this also asserts the second
+        // sentence ("Fix: verify the index file's encoding and re-save as
+        // UTF-8."), which a `.contains()`-only check on the first sentence would
+        // leave a mutation free to delete or corrupt undetected.
+        let expected_decoded = "validate-cross-site-correspondence: STORY-INDEX.md failed \
+            UTF-8 decode — row/hash state for 'S-21.07' is INDETERMINATE, not confirmed-absent. \
+            Fix: verify the index file's encoding and re-save as UTF-8."
+            .to_string();
+        assert_eq!(
+            advisories.len(),
+            1,
+            "postcondition 26 (v1.22): exactly one distinct INDETERMINATE advisory \
+            expected for the non-UTF-8 STORY-INDEX.md secondary read. Actual advisories: \
+            {advisories:?}"
+        );
+        assert_eq!(
+            advisories[0].message, expected_decoded,
+            "postcondition 26 (v1.22) prescribed verbatim message does not match by \
+            full-string equality (BC-5.39.010 §PC4a: test-writer MUST assert the \
+            COMPLETE formatted string by equality check, not `.contains()`-only). \
+            Expected: {expected_decoded:?} Actual advisories: {advisories:?}"
         );
         assert!(
-            !combined.contains("not yet registered"),
+            !advisories[0].message.contains("not yet registered"),
             "postcondition 26 (v1.22): the non-UTF-8-decode advisory MUST be distinct \
             from the generic PC12 'not yet registered' fail-open advisory — decode \
             failure (indeterminate hash state) and legitimate bootstrap absence in a \

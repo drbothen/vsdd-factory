@@ -1776,22 +1776,38 @@ mod tests {
             "postcondition 26 (v1.22): non-UTF-8 BC-INDEX.md secondary read MUST emit \
             a distinct INDETERMINATE advisory + Continue. Actual advisories: {advisories:?}"
         );
-        let combined = advisories
-            .iter()
-            .map(|a| a.message.as_str())
-            .collect::<Vec<_>>()
-            .join(" | ");
-        assert!(
-            combined.contains("BC-INDEX.md")
-                && combined.contains("failed UTF-8 decode")
-                && combined.contains("INDETERMINATE, not confirmed-absent"),
-            "postcondition 26 (v1.22) prescribed verbatim message substring not found. \
-            Expected an advisory naming 'BC-INDEX.md failed UTF-8 decode ... row/hash \
-            state for '<id>' is INDETERMINATE, not confirmed-absent. Fix: verify the \
-            index file's encoding and re-save as UTF-8.' Actual advisories: {advisories:?}"
+
+        // BC-5.39.010 §PC4a (NORMATIVE): test-writer MUST assert the COMPLETE
+        // formatted string by equality check; `.contains()`-only on substrings is
+        // NON-CONFORMING. Build the COMPLETE prescribed postcondition 26 message
+        // verbatim from the BC body (§Postconditions, postcondition 26) with
+        // `<index-file>` = "BC-INDEX.md" and `<id>` = "BC-5.39.010" substituted,
+        // then assert full-string equality — this also asserts the second
+        // sentence ("Fix: verify the index file's encoding and re-save as
+        // UTF-8."), which a `.contains()`-only check on the first sentence would
+        // leave a mutation free to delete or corrupt undetected.
+        let expected_decoded = "validate-cross-site-correspondence: BC-INDEX.md failed UTF-8 \
+            decode — row/hash state for 'BC-5.39.010' is INDETERMINATE, not confirmed-absent. \
+            Fix: verify the index file's encoding and re-save as UTF-8."
+            .to_string();
+        assert_eq!(
+            advisories.len(),
+            1,
+            "postcondition 26 (v1.22): exactly one distinct INDETERMINATE advisory \
+            expected for the non-UTF-8 BC-INDEX.md secondary read. Actual advisories: \
+            {advisories:?}"
+        );
+        assert_eq!(
+            advisories[0].message, expected_decoded,
+            "postcondition 26 (v1.22) prescribed verbatim message does not match by \
+            full-string equality (BC-5.39.010 §PC4a: test-writer MUST assert the \
+            COMPLETE formatted string by equality check, not `.contains()`-only). \
+            Expected: {expected_decoded:?} Actual advisories: {advisories:?}"
         );
         assert!(
-            !combined.contains("previous registration appears to have been dropped"),
+            !advisories[0]
+                .message
+                .contains("previous registration appears to have been dropped"),
             "postcondition 26 (v1.22): the non-UTF-8-decode advisory MUST NOT be the \
             misleading RowAbsent-derived 'dropped registration' block message — those \
             two dispositions (INDETERMINATE decode failure vs. genuinely-absent row in \
