@@ -261,6 +261,35 @@ pub(crate) fn extract_bc_index_version_state(
 /// function; it is pinned by `test_bypass_1_*`, `test_bypass_2_*`, `test_bypass_3_*`
 /// in `lib.rs`.
 ///
+/// # TEST-ONLY — STRICT EQUALITY, deliberately stricter than production (ADV-RECON11-002)
+///
+/// This function is used ONLY by `#[cfg(test)]` code in `lib.rs` (the corpus-sync
+/// gate and the three bypass-mutant tests) — never by the live PostToolUse dispatch
+/// path. It is `pub` (not `pub(crate)`) solely so the cross-module test call sites in
+/// `lib.rs` can name it; that visibility is NOT an invitation to wire it into
+/// production.
+///
+/// Its strict-equality semantics (`index_ver == frontmatter_version`, no directional
+/// carve-out) are CORRECT for its actual purpose — the corpus-sync gate asserts a
+/// post-burst invariant ("every indexed BC's BC-INDEX entry exactly matches its
+/// frontmatter") where any drift, in either direction, is a sync failure that must be
+/// caught by CI.
+///
+/// This is intentionally DIFFERENT from — and stricter than — the runtime comparison
+/// in [`run_arm_a1_with_index_result`], which implements the write-time PC2 directional
+/// carve-out: `bc_version > index_version` (primary newer than index) is a legitimate,
+/// non-blocking burst-ordering artifact (PC2a, advisory only), while
+/// `index_version >= bc_version` is anomalous and blocks (PC2b). Post-burst corpus
+/// state has no such in-flight window, so the corpus gate is right to demand exact
+/// parity rather than tolerate the same directional slack.
+///
+/// **Do not** call this function from `run_arm_a1_with_index_result` or any other
+/// production comparison path — doing so would re-introduce false BLOCKs for BCs
+/// whose BC-INDEX entry legitimately lags behind a just-bumped frontmatter version
+/// during an in-progress burst. The production directional comparison must stay
+/// inline in `run_arm_a1_with_index_result` (see its `index_version == bc_version` /
+/// PC2a / PC2b branches below).
+///
 /// # Arguments
 /// * `index_ver` — last-chain-entry version extracted by `extract_bc_index_version_state`,
 ///   already stripped of the `v` prefix (e.g., `"1.19"`).
