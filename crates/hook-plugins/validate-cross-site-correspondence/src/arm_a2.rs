@@ -2426,4 +2426,93 @@ mod tests {
             "clean skip, not a NotFound path. Advisories: {advisories:?}"
         );
     }
+
+    /// ADV-RECON6-004 coverage-fill control: `extract_first_v_token_after_position`'s
+    /// own-BC-re-mention SKIP branch (`if token == own_bc_id { i = token_end;
+    /// continue; }`) is load-bearing but was NEVER exercised by any prior test — the
+    /// scan-stop mutant and its controls (see
+    /// `test_BC_5_39_010_arm_a2_phase2_same_field_scan_stop_different_bc_no_false_citation`
+    /// immediately above) each mention the anchor BC exactly ONCE per field, so the
+    /// forward scan never encounters `own_bc_id` a second time before its qualifying
+    /// v-token. If a regression made an own-BC re-mention wrongly trigger the
+    /// scan-stop (i.e. `return None` instead of `continue`), a legitimate citation
+    /// would be silently dropped — a false PASS (missed staleness) — with no failing
+    /// test to catch it.
+    ///
+    /// This test constructs a Token Budget row (the same corpus-realistic 2-column
+    /// shape as `test_BC_5_39_010_arm_a2_pc13_class3_token_budget_bc_id_section_number_not_cited`
+    /// above) whose first (and only relevant) field mentions the TARGET BC
+    /// (`BC-5.39.010`) TWICE — once at the field's start (the anchor occurrence
+    /// `find_phase2_version` locates via `find_bc_id_boundary_end`), and once again
+    /// later in the SAME field, BEFORE the field's qualifying `v1.21` token — with NO
+    /// intervening DIFFERENT `BC-S.SS.NNN` token anywhere between the two mentions or
+    /// between the second mention and `v1.21`.
+    ///
+    /// Correct behavior (branch under test): `extract_first_v_token_after_position`'s
+    /// forward scan, on reaching the second `BC-5.39.010` occurrence, recognizes
+    /// `token == own_bc_id` and treats it as NOT "a DIFFERENT `BC-S.SS.NNN` token" —
+    /// it resumes scanning past it (`i = token_end; continue;`) rather than stopping.
+    /// The scan then reaches `v1.21` and returns `Some("1.21")`. This test asserts
+    /// exactly that: the citation resolves to `("1.21")`, and the full Arm A2 pipeline
+    /// produces zero violations against a BC-5.39.010 frontmatter version of `"1.21"`
+    /// (matching citation → clean pass) and would produce a stale-citation violation
+    /// against a mismatched frontmatter version — proving the citation was genuinely
+    /// extracted, not vacuously absent.
+    ///
+    /// Calls the production pipeline fns `extract_story_bc_version_citations` and
+    /// `run_arm_a2_for_bc_with_result` directly (POLICY 11) — no tautology.
+    ///
+    /// # BC trace
+    /// BC-5.39.010 v1.21 §Preconditions PC13 Phase 2 same-field scan-stop
+    /// (v1.21 / ADV-RECON5-003); ADV-RECON6-004 coverage-fill (own-BC-re-mention
+    /// skip branch); §Canonical Test Vectors "A Arm2 — Phase 2 same-field scan-stop
+    /// (v1.21 / ADV-RECON5-003)"; postcondition 7 (matching-version clean pass).
+    #[test]
+    fn test_BC_5_39_010_arm_a2_phase2_own_bc_rementioned_before_v_token_still_resolves() {
+        // Token Budget row: single relevant field mentions BC-5.39.010 TWICE before
+        // its qualifying v1.21 token, with no intervening DIFFERENT BC ID token.
+        let content = concat!(
+            "## Token Budget Estimate (MANDATORY)\n",
+            "\n",
+            "| Context Source | Estimated Tokens |\n",
+            "|---|---|\n",
+            "| BC-5.39.010 §Architecture Anchors; see BC-5.39.010 §PC13 v1.21 \
+             (full text) | ~500 |\n",
+        );
+
+        let citations = extract_story_bc_version_citations(content, "BC-5.39.010");
+        assert_eq!(
+            citations,
+            vec![("table row 5".to_string(), "1.21".to_string())],
+            "ADV-RECON6-004: the anchor field mentions BC-5.39.010 twice before its \
+            qualifying v1.21 token, with no intervening DIFFERENT BC-S.SS.NNN token. \
+            The own-BC re-mention must be SKIPPED (not treated as a scan-stopping \
+            'different BC' token) — the forward scan resumes past it and returns the \
+            v1.21 token found afterward. A regression that wrongly stops the scan on \
+            the own-BC re-mention would yield an empty citations vec here (silently \
+            dropping a legitimate citation — false PASS / missed staleness). \
+            Citations: {citations:?}"
+        );
+
+        // Full pipeline: matching frontmatter version "1.21" against the resolved
+        // citation "1.21" — clean pass, zero violations, zero advisories. Proves the
+        // citation is genuinely load-bearing (not vacuously ignored downstream).
+        let bc_content = b"---\nversion: \"1.21\"\n---\n# BC-5.39.010\n";
+        let (violations, advisories) = run_arm_a2_for_bc_with_result(
+            "S-21.07-validate-cross-site-correspondence",
+            "BC-5.39.010",
+            &citations,
+            Ok(bc_content.to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "ADV-RECON6-004: resolved citation '1.21' matches frontmatter version \
+            '1.21' — clean pass, zero violations. Violations: {violations:?}"
+        );
+        assert!(
+            advisories.is_empty(),
+            "clean matching-version pass, not a NotFound path. \
+            Advisories: {advisories:?}"
+        );
+    }
 }
