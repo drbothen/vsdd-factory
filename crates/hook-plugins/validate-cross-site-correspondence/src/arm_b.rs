@@ -651,8 +651,15 @@ fn extract_input_hash_token(line: &str) -> Option<String> {
         if hash.len() >= 7 && hash.len() <= 40 {
             return Some(hash);
         }
-        // Non-conforming token: retry past this occurrence
-        search_start = hash_start + 1;
+        // Non-conforming token: retry past this occurrence.
+        // F-S2107-RECON-001: `hash_start + 1` is NOT safe — `hash` may be empty
+        // (zero hex chars matched) when the char at `hash_start` is a multibyte
+        // UTF-8 char, in which case `hash_start + 1` lands mid-char and the next
+        // iteration's `&line[search_start..]` slice panics (BC-5.39.010
+        // invariant 9). Step forward by the actual byte length of the char at
+        // `hash_start` instead — always lands on a valid boundary.
+        let step = line[hash_start..].chars().next().map_or(1, char::len_utf8);
+        search_start = hash_start + step;
     }
     None
 }
@@ -744,7 +751,24 @@ fn extract_blockquote_pairs(line: &str) -> Vec<(String, String)> {
         if hash.len() >= 7 && hash.len() <= 40 {
             pairs.push((story_id.to_string(), hash.clone()));
         }
-        search_pos = abs + hash_start + hash.len().max(1);
+        // F-S2107-RECON-001: `hash.len().max(1)` is NOT safe as a fallback step
+        // when `hash` is empty (zero hex chars matched) — the char immediately
+        // after `=` may be a multibyte UTF-8 char, in which case advancing by a
+        // literal `1` byte lands mid-char and the next iteration's
+        // `&rest[search_pos..].find("S-")` slice panics (BC-5.39.010
+        // invariant 9). When `hash` is non-empty every matched char is ASCII
+        // hex (1 byte each), so `hash.len()` is already a safe byte-length
+        // step; only the empty case needs the char-boundary-aware fallback —
+        // step by the actual byte length of the char right after `=`.
+        let step = if hash.is_empty() {
+            candidate[hash_start..]
+                .chars()
+                .next()
+                .map_or(1, char::len_utf8)
+        } else {
+            hash.len()
+        };
+        search_pos = abs + hash_start + step;
     }
     pairs
 }
@@ -1583,6 +1607,79 @@ mod tests {
             extension). RED GATE: current code's (None, None) arm from `.ok()?` on \
             both parse_story_index_catalog_hash and parse_story_index_blockquote_hash \
             emits exactly this generic message. Actual advisories: {advisories:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-RECON-001 (MEDIUM): byte-index slicing on retry offsets computed
+    // by `+1` on a byte index can land INSIDE a multibyte UTF-8 char, causing a
+    // slice panic ("byte index N is not a char boundary") on the NEXT loop
+    // iteration's `&line[search_start..]` / `&rest[search_pos..]` re-slice.
+    //
+    // Under the registry `on_error="continue"`, that WASM trap is silently
+    // swallowed — the gate is silently disabled for that write, which is the
+    // exact silent-guard-failure class BC-5.39.010 invariant 9 exists to
+    // prevent ("byte-index slicing on extracted strings MUST use
+    // `is_char_boundary()` checks where multi-byte UTF-8 is possible").
+    //
+    // Two sibling sites (TD-VSDD-060):
+    //   1. extract_input_hash_token: `search_start = hash_start + 1;` retry.
+    //   2. extract_blockquote_pairs: `search_pos = abs + hash_start +
+    //      hash.len().max(1);` retry (the `.max(1)` fallback is the same
+    //      naive `+1`-on-a-byte-index defect when `hash` is empty).
+    //
+    // Trigger: `input-hash`/`S-XX.YY=` followed by whitespace/`=` then a
+    // multibyte UTF-8 char that is not a hex digit — the hex `take_while`
+    // matches zero chars, so control reaches the `+1` retry landing mid-char.
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-RECON-001 site 1: `extract_input_hash_token` must not panic when
+    /// the byte immediately after `input-hash \s+` is a non-hex multibyte
+    /// UTF-8 character (e.g. an em-dash). Pre-fix: `search_start = hash_start +
+    /// 1` lands mid-char inside the 3-byte em-dash, and the next loop
+    /// iteration's `&line[search_start..]` panics with "byte index N is not a
+    /// char boundary". Post-fix: the retry step advances by the em-dash's
+    /// actual UTF-8 byte length, no valid hex token is found, and the function
+    /// returns `None` instead of panicking.
+    #[test]
+    fn test_BC_5_39_010_arm_b_extract_input_hash_token_multibyte_non_hex_no_panic() {
+        // "input-hash " followed immediately by a 3-byte em-dash (non-hex) then
+        // more non-hex ASCII — no valid [0-9a-f]{7,40} token exists on this line.
+        let line = "| S-21.07 | ... | input-hash \u{2014}notahexvalue | ...";
+        let result = extract_input_hash_token(line);
+        assert_eq!(
+            result, None,
+            "no valid hex input-hash token exists on this line \
+            (BC-5.39.010 F-S2107-RECON-001); got {result:?}"
+        );
+    }
+
+    /// F-S2107-RECON-001 site 2: `extract_blockquote_pairs` must not panic when
+    /// the byte immediately after `S-XX.YY=` is a non-hex multibyte UTF-8
+    /// character, AND must correctly resume scanning past it to find a later
+    /// well-formed pair on the same line. Pre-fix: `search_pos = abs +
+    /// hash_start + hash.len().max(1)` lands mid-char inside the em-dash, and
+    /// the next loop iteration's `&rest[search_pos..].find("S-")` panics.
+    /// Post-fix: the retry step advances by the em-dash's actual UTF-8 byte
+    /// length; the malformed `S-21.07=` entry yields no pair, but the
+    /// well-formed `S-21.08=1234567` entry later on the same line is still
+    /// found (proves the fix recovers correctly, not merely avoids panic).
+    #[test]
+    fn test_BC_5_39_010_arm_b_extract_blockquote_pairs_multibyte_non_hex_no_panic() {
+        let line = "> S-21.07=\u{2014}notahex; S-21.08=1234567\n";
+        let pairs = extract_blockquote_pairs(line);
+        assert!(
+            !pairs.iter().any(|(id, _)| id == "S-21.07"),
+            "S-21.07 has no valid hex hash (multibyte non-hex char after '=') and \
+            must not appear in the extracted pairs; got {pairs:?}"
+        );
+        assert!(
+            pairs
+                .iter()
+                .any(|(id, hash)| id == "S-21.08" && hash == "1234567"),
+            "S-21.08's well-formed pair later on the same line must still be found \
+            after recovering from the malformed S-21.07 entry (BC-5.39.010 \
+            F-S2107-RECON-001); got {pairs:?}"
         );
     }
 }
