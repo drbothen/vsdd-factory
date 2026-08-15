@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "7.87"
+version: "7.88"
 status: draft
 producer: state-manager
-timestamp: 2026-08-15T19:10:00Z
-phase: D-1013-S2107-MERGED-PR776-POL14-PROMOTION
-last_amended: "2026-08-15 (v7.87) — D-1013-S2107-MERGED-PR776-POL14-PROMOTION (state-manager; single-commit POST-MERGE burst): S-21.07 (`validate-cross-site-correspondence` WASM hook) DELIVERED — PR #776 squash-merged to `develop` at commit `e94767bc` 2026-08-15 (\"feat(S-21.07): validate-cross-site-correspondence WASM hook — six-arm cross-site correspondence gate (#776)\"); feature branch `feature/S-21.07-validate-cross-site-correspondence` auto-deleted on origin post-merge. POL-14 auto-promotion at merge: BC-5.39.010 `status`/`lifecycle_status` draft→active (v1.23→v1.24, no behavioral/content change); BC-INDEX v4.62→v4.63 (row status column draft→active + version-chain cell +v1.24). `merged_count` 108→109 (`stories/sprint-state.yaml` S-21.07 row draft→merged). Story Status: S-21.07 moved to the Merged ledger; In-Flight remains 0. `develop` HEAD advanced `2e8087af`→`e94767bc`; Active Branches `feature/S-21.07-validate-cross-site-correspondence` row REMOVED (branch deleted on origin). E-21 remaining scope (S-21.10/S-21.11/S-21.12/S-21.13/S-21.14/S-21.15) all draft, no story in-flight — next wave dispatch is a human/orchestrator decision. VP-INDEX/ARCH-INDEX UNCHANGED. The D-1012 exhaustive per-decision decision-log.md backfill (D-1011 + this session's reconcile-and-land arc) remains separately OWED per that entry's own note — NOT closed by this burst. [Prior: 2026-08-15 (v7.86) — D-1012-S2107-SEC001-CWE697-RECONVERGE-PR776-OPEN-BANNER-FIX — see git show 347f6bbc:.factory/STATE.md for the complete pre-this-burst state.]"
+timestamp: 2026-08-15T20:58:00Z
+phase: SESSION-WRAP-PAUSE-2026-08-15
+last_amended: "2026-08-15 (v7.88) — SESSION-WRAP-PAUSE-2026-08-15 (state-manager; human-requested `/wrap`; pausing on top of D-1013-S2107-MERGED-PR776-POL14-PROMOTION, latest-allocated decision): pipeline `ACTIVE`→`PAUSED` at the clean post-S-21.07-merge resting state established by D-1013 (PR #776 squash `e94767bc`, POL-14 BC-5.39.010 v1.24 active, `merged_count` 109, NO story in-flight). Session Resume Checkpoint refreshed in-place (already-current D-1013 content retained; PAUSED status + resume command annotated). No spec/index/ADR content changed. [Prior: 2026-08-15 (v7.87) — D-1013-S2107-MERGED-PR776-POL14-PROMOTION — see git show cb46740e:.factory/STATE.md for the complete pre-this-burst state.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-pipeline: ACTIVE
-current_step: "D-1013-S2107-MERGED-PR776-POL14-PROMOTION (state-manager; single-commit POST-MERGE burst; trajectory-tail S-21.07 spec-only-cascade counter →1→0→0→0 UNCHANGED — cascade converged D-1009, unaffected by this delivery burst): S-21.07 MERGED (PR #776 squash-merged `e94767bc` 2026-08-15); POL-14 BC-5.39.010 draft→active (v1.23→v1.24, BC-INDEX v4.62→v4.63); merged_count 108→109; develop HEAD 2e8087af→e94767bc; Active Branches `feature/S-21.07-validate-cross-site-correspondence` row removed (deleted on origin). NEXT ACTION: none pending — E-21 remaining stories (S-21.10..S-21.15) all draft, no story in-flight; next wave dispatch is a human/orchestrator decision on resume."
+pipeline: PAUSED
+current_step: "SESSION-WRAP-PAUSE-2026-08-15 (state-manager; human-requested `/wrap`; pausing on top of D-1013-S2107-MERGED-PR776-POL14-PROMOTION, latest-allocated decision; trajectory-tail S-21.07 spec-only-cascade counter →1→0→0→0 UNCHANGED — cascade converged D-1009, unaffected by this pause burst): pipeline `ACTIVE`→`PAUSED` at the clean post-S-21.07-merge resting state established by D-1013 (PR #776 `e94767bc`; POL-14 BC-5.39.010 v1.24 active; merged_count 109; develop HEAD e94767bc; NO story in-flight). NEXT ACTION on resume: `/vsdd-factory:next-step` — E-21 remaining stories (S-21.10..S-21.15) all draft, no story in-flight; next wave dispatch is a human/orchestrator decision."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -26,6 +26,7 @@ dtu_services: []
   Soft target: <=415 lines; hard cap: 500 lines (validate-state-md-size hook enforcement).
   D-446(c) dual-margin form: margin from soft-target = 500 - 415 = 85; margin from actual tracked below.
   Historical content belongs in cycle files, NOT here.
+  SESSION-WRAP-PAUSE-2026-08-15 (state-manager; human-requested /wrap): pipeline ACTIVE→PAUSED at the clean post-S-21.07-merge resting state established by D-1013 (PR #776 e94767bc; POL-14 BC-5.39.010 v1.24 active; merged_count 109; NO story in-flight). Session Resume Checkpoint refreshed in-place. No spec/index/ADR content changed. v7.87→v7.88.
 
   D-430(a) compaction history D-532..D-808 (see decision-log.md for full range; exhaustive) COLLAPSED 2026-07-12. Full per-burst wc-l history archived; SoT: decision-log.md + git show 903aa863:.factory/STATE.md for D-828 pre-compaction state.
   D-862 E21-PHASE-3-W1-DISPATCH-APPROVED 2026-07-20; v6.08→v6.09. Full per-burst wc-l history D-819..D-861 (see decision-log.md for full range; exhaustive) archived; SoT: decision-log.md + git show 9debd920:.factory/STATE.md for D-861 pre-compaction state.
@@ -50,7 +51,7 @@ dtu_services: []
   (wc-l post-SHA-patch e90446df 2026-08-14; Active Branches factory-artifacts pending push→e90446df; v7.81→v7.82 UNCHANGED content)
   (wc-l post-D-1012-S2107-SEC001-CWE697-RECONVERGE-PR776-OPEN-BANNER-FIX 2026-08-15; CI-CRITICAL banner repair — restored the missing `N lines (wc-l)` claim, closing the FAIL on `test_BC_5_39_005_f_p1_001_real_state_md_banner_wc_passes` + `test_BC_5_39_005_full_validation_against_real_state_md`; S-21.07 SEC-001/CWE-697 arc + PR #776 recorded; v7.82→v7.86; commit 347f6bbc)
   (wc-l post-D-1013-S2107-MERGED-PR776-POL14-PROMOTION 2026-08-15; POST-MERGE burst — S-21.07 DELIVERED (PR #776 squash e94767bc); POL-14 BC-5.39.010 draft→active (v1.24); merged_count 108→109; develop e94767bc; Active Branches feature/S-21.07 row removed; v7.86→v7.87; commit pending push)
-  Current: 284 lines (wc-l).
+  Current: 287 lines (wc-l).
 -->
 
 # Pipeline State: vsdd-factory
@@ -66,8 +67,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-08-15 — D-1013-S2107-MERGED-PR776-POL14-PROMOTION (state-manager; single-commit POST-MERGE burst): S-21.07 DELIVERED — PR #776 squash-merged to `develop` at commit `e94767bc` 2026-08-15. POL-14 auto-promotion: BC-5.39.010 draft→active (v1.23→v1.24, no behavioral change); BC-INDEX v4.62→v4.63. `merged_count` 108→109. Story Status: S-21.07 moved to the Merged ledger; In-Flight 0. `feature/S-21.07-validate-cross-site-correspondence` branch row removed (deleted on origin post-merge). E-21 remaining stories (S-21.10..S-21.15) all draft — no story in-flight. trajectory-tail (S-21.07) →1→0→0→0 UNCHANGED (spec-only cascade counter; converged D-1009). D-1012 exhaustive per-decision decision-log.md backfill remains separately OWED. **PIPELINE ACTIVE.** |
-| **Current Phase** | **D-1013-S2107-MERGED-PR776-POL14-PROMOTION (state-manager; single-commit POST-MERGE burst; PIPELINE ACTIVE).** S-21.07 **MERGED** (PR #776, `e94767bc`, 2026-08-15) — six-arm `validate-cross-site-correspondence` WASM hook; SEC-001/CWE-697 arc closed pre-merge (BC-5.39.010 v1.23 ratification). S-21.09 remains **MERGED** (PR #775, `2e8087af`, UNCHANGED). Spec: BC-5.39.010 **v1.24** (POL-14 status draft→active) / story **v1.22** (UNCHANGED — no content amendment on promotion). 4-INDEX BC v4.63 (was v4.62) / VP v2.76 (UNCHANGED) / STORY v4.338 (UNCHANGED) / ARCH v3.58 (UNCHANGED). policies.yaml v1.4.24 UNCHANGED. `develop` HEAD `e94767bc` (was `2e8087af`). **No pending human decision on S-21.07 — delivery complete.** Next wave dispatch (E-21 remaining draft stories S-21.10..S-21.15) is an open human/orchestrator decision on resume. |
+| **Last Updated** | 2026-08-15 — SESSION-WRAP-PAUSE-2026-08-15 (state-manager; human-requested `/wrap`): pipeline `ACTIVE`→`PAUSED` at the clean post-S-21.07-merge resting state established by D-1013 (PR #776 squash `e94767bc`; POL-14 BC-5.39.010 v1.24 active; merged_count 109; NO story in-flight; trajectory-tail (S-21.07) →1→0→0→0 UNCHANGED, spec-only cascade counter converged D-1009). Session Resume Checkpoint refreshed in-place (PAUSED status + resume command annotated). No spec/index/ADR content changed. **PIPELINE PAUSED.** |
+| **Current Phase** | **SESSION-WRAP-PAUSE-2026-08-15 (state-manager; human-requested `/wrap`; PIPELINE PAUSED).** S-21.07 **MERGED** (PR #776, `e94767bc`, 2026-08-15) — six-arm `validate-cross-site-correspondence` WASM hook; SEC-001/CWE-697 arc closed pre-merge (BC-5.39.010 v1.23 ratification), POL-14-promoted to v1.24/active at D-1013. S-21.09 remains **MERGED** (PR #775, `2e8087af`, UNCHANGED). Spec: BC-5.39.010 **v1.24** / story **v1.22** (UNCHANGED). 4-INDEX BC v4.63 / VP v2.76 (UNCHANGED) / STORY v4.338 (UNCHANGED) / ARCH v3.58 (UNCHANGED). policies.yaml v1.4.24 UNCHANGED. `develop` HEAD `e94767bc`. **No pending human decision on S-21.07 — delivery complete.** Resume command: `/vsdd-factory:next-step`. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -92,6 +93,7 @@ dtu_services: []
 | SESSION-WRAP-PAUSE-2026-08-14 (state-manager; commit `e90446df`; SHA-patch done; human-requested `/wrap`) | **PAUSED** | Reconcile-and-land track substantially executed this session (decision-log.md D-1012+ backfill OWED — see Decisions Log note): code branch reconciled with `develop` (merge `cc0c560d`), Class D/`arm_d.rs` removed, WASM rebuilt, now `a39d6bbb` pushed clean green (cargo 2497/0, fmt/clippy clean, bats 2225/0). HUMAN-DIRECTED STRICT BC-5.39.001 3-CLEAN cascade (~17 fresh-context passes) produced 3 BC-5.39.010 amendments (v1.19→v1.20→v1.21→v1.22: PC13 Phase-1 BC-ID anchoring+UTF-8 fail-closed / PC13 Phase-2 same-field scan-stop / secondary index-file UTF-8 decode advisory) + a crate-wide TD-VSDD-091 de-versioning sweep; story S-21.07 advanced to v1.18. Streak reached 1/3 (pass 5) then RESET 0/3 at pass 6 (ADV-RECON17-001 — stale bats governing-BC pins not reached by the sweep). Landing (demo evidence, PR, merge, POST-MERGE burst) NOT started. STATE.md v7.80→v7.81→v7.82. |
 | D-1012-S2107-SEC001-CWE697-RECONVERGE-PR776-OPEN-BANNER-FIX 2026-08-15 (single commit TD-VSDD-053; commit `347f6bbc`) | **COMPLETE** | CI-CRITICAL SIZE BUDGET banner repair; S-21.07 SEC-001/CWE-697 arc recorded (RECONCILED+HARDENED+RE-CONVERGED, BC-5.39.010 v1.23, story v1.22); PR #776 opened OPEN/MERGEABLE. CONSOLIDATED decision-log.md entry only — exhaustive per-decision backfill OWED. STATE.md v7.82→v7.86. |
 | D-1013-S2107-MERGED-PR776-POL14-PROMOTION 2026-08-15 (single commit TD-VSDD-053; POST-MERGE burst) | **COMPLETE** | S-21.07 MERGED — PR #776 squash-merged `e94767bc` (human-authorized). POL-14 BC-5.39.010 v1.23→v1.24 (draft→active); BC-INDEX v4.62→v4.63. `merged_count` 108→109. `develop` `2e8087af`→`e94767bc`. STATE.md v7.86→v7.87. |
+| SESSION-WRAP-PAUSE-2026-08-15 (state-manager; human-requested `/wrap`) | **PAUSED** | Session pause at the D-1013 clean post-S-21.07-merge resting state. Pipeline `ACTIVE`→`PAUSED`; Session Resume Checkpoint refreshed in-place (PAUSED status + resume command). No spec/index/ADR content changed. STATE.md v7.87→v7.88. |
 | **E-18 EPIC COMPLETE 2026-07-01 D-744** | **EPIC COMPLETE** | Final story S-18.12 MERGED PR #384 ec05606a. |
 
 ## Current Phase Steps
@@ -102,6 +104,7 @@ dtu_services: []
 |------|-------|--------|--------|
 | D-1012-S2107-SEC001-CWE697-RECONVERGE-PR776-OPEN-BANNER-FIX (state-manager; commit `347f6bbc`) | state-manager | COMPLETE | CI-CRITICAL banner repair; S-21.07 SEC-001/CWE-697 arc + PR #776 OPEN recorded; consolidated D-1012 decision-log.md entry. |
 | D-1013-S2107-MERGED-PR776-POL14-PROMOTION (state-manager; single-commit POST-MERGE burst) | state-manager | COMPLETE | S-21.07 MERGED (PR #776 `e94767bc`); POL-14 promotion BC-5.39.010 v1.24 active; BC-INDEX v4.63; `merged_count` 109; `develop` HEAD `e94767bc`; Active Branches `feature/S-21.07` row removed (branch deleted on origin). |
+| SESSION-WRAP-PAUSE-2026-08-15 (state-manager; human-requested `/wrap`) | state-manager | COMPLETE | Pipeline `ACTIVE`→`PAUSED` at the clean post-S-21.07-merge resting state. Session Resume Checkpoint refreshed in-place. No spec/index/ADR content changed. |
 
 ## Identifier Conventions
 
@@ -130,7 +133,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle 2026-07-18 |
 | develop | **e94767bc** | PR #776 (`feature/S-21.07-validate-cross-site-correspondence`) squash-merged 2026-08-15 ("feat(S-21.07): validate-cross-site-correspondence WASM hook — six-arm cross-site correspondence gate (#776)"); feature branch auto-deleted on origin. Pull on next code-worktree resume. |
-| factory-artifacts | *(this commit — see `git -C .factory log -1`)* | D-1013-S2107-MERGED-PR776-POL14-PROMOTION single-commit POST-MERGE burst. Pipeline `ACTIVE` (resumed D-1011/D-1012, UNCHANGED this burst). |
+| factory-artifacts | *(this commit — see `git -C .factory log -1`)* | SESSION-WRAP-PAUSE-2026-08-15 single-commit human-requested `/wrap`. Pipeline `ACTIVE`→`PAUSED` this burst (was resumed D-1011/D-1012). |
 | feature/policy15-gate-rust | d2a3176a | F-001 redesign: crates/policy15-attestation-gate/ 16 tests, GateOutcome enum, mutation-verified. Pushed; no PR. **F-001's sole remaining residual (D-992) is BLOCKED-ON this branch merging to `develop`** — routed devops-engineer, anchored Drift Item `[D-969]`. |
 | feature/S-21.09 | c20cf2fe | **MERGED** to `develop` via PR #775, merge commit `2e8087af`, 2026-08-13T14:16:26Z. Branch ref retained (standard post-merge retention). LOCAL BC-5.39.001 streak 3/3 RE-CONVERGED (D-988), PRESERVED through D-989 — final state at merge. |
 | feature/S-21.04 | 323f440f | pass-31 pending; no PR. Pushed; SHA-equal with origin. |
@@ -144,7 +147,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **ACTIVE** | S-21.07 **MERGED** (PR #776, `e94767bc`, 2026-08-15; six-arm `validate-cross-site-correspondence` WASM hook; SEC-001/CWE-697 arc closed pre-merge via BC-5.39.010 v1.23 human-ratification; POL-14-promoted to v1.24/active this burst). S-21.09 **MERGED** (PR #775, `2e8087af`, UNCHANGED). `develop` **e94767bc**; main `80e5cd7b`; `merged_count` **109**; BC v4.63 (was v4.62); VP v2.76 (UNCHANGED); STORY v4.338 (UNCHANGED); ARCH v3.58 (UNCHANGED); policies.yaml v1.4.24 UNCHANGED. F-001 redesign (`feature/policy15-gate-rust`) RATIFIED, CI wiring still PENDING — BLOCKED-ON merge to `develop` (Blocking Issues P0). LOCAL BC-5.39.001 spec-only-cascade streak (S-21.07) **3/3 — CONVERGED**, UNCHANGED (trajectory-tail →1→0→0→0). decision-log.md D-1012 exhaustive per-decision backfill (D-1011 + this session's reconcile-and-land arc) remains OWED — anchored next state-manager burst. No story in-flight; E-21 remaining draft stories S-21.10..S-21.15 — next wave dispatch is an open human/orchestrator decision. |
+| v1.0-brownfield-backfill | brownfield | **PAUSED** | Session-wrapped 2026-08-15 at the clean post-S-21.07-merge resting state. S-21.07 **MERGED** (PR #776, `e94767bc`, 2026-08-15; six-arm `validate-cross-site-correspondence` WASM hook; SEC-001/CWE-697 arc closed pre-merge via BC-5.39.010 v1.23 human-ratification; POL-14-promoted to v1.24/active). S-21.09 **MERGED** (PR #775, `2e8087af`, UNCHANGED). `develop` **e94767bc**; main `80e5cd7b`; `merged_count` **109**; BC v4.63 (was v4.62); VP v2.76 (UNCHANGED); STORY v4.338 (UNCHANGED); ARCH v3.58 (UNCHANGED); policies.yaml v1.4.24 UNCHANGED. F-001 redesign (`feature/policy15-gate-rust`) RATIFIED, CI wiring still PENDING — BLOCKED-ON merge to `develop` (Blocking Issues P0). LOCAL BC-5.39.001 spec-only-cascade streak (S-21.07) **3/3 — CONVERGED**, UNCHANGED (trajectory-tail →1→0→0→0). decision-log.md D-1012 exhaustive per-decision backfill (D-1011 + this session's reconcile-and-land arc) remains OWED — anchored next state-manager burst. No story in-flight; E-21 remaining draft stories S-21.10..S-21.15 — next wave dispatch is an open human/orchestrator decision on resume. Resume command: `/vsdd-factory:next-step`. |
 | v1.0-feature-engine-discipline-pass-1 | feature | PAUSED | F5 pass-75 complete D-510; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -243,20 +246,20 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`
 
-## Session Resume Checkpoint (2026-08-15 — HEAD `e94767bc` develop / factory-artifacts this commit; D-1013-S2107-MERGED-PR776-POL14-PROMOTION COMPLETE; PIPELINE ACTIVE)
+## Session Resume Checkpoint (2026-08-15 — HEAD `e94767bc` develop / factory-artifacts this commit; SESSION-WRAP-PAUSE-2026-08-15 COMPLETE; PIPELINE PAUSED)
 
 > **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
 
 ### §1 Position
 
-Cycle `v1.0-brownfield-backfill`, brownfield mode. S-21.07 (`validate-cross-site-correspondence` WASM hook — six-arm PostToolUse cross-site value-correspondence gate) is **DELIVERED**: PR #776 squash-merged to `develop` at commit `e94767bc` 2026-08-15. The feature branch `feature/S-21.07-validate-cross-site-correspondence` was auto-deleted on origin. Pre-merge, the story went through a HUMAN-DIRECTED STRICT BC-5.39.001 3-CLEAN adversarial cascade that RE-CONVERGED after a SEC-001/CWE-697 security-review finding was TRIAGED (CWE-22 REFUTED as bypass; the narrower CWE-697 over-inclusion genuinely fixed on-branch) and the governing BC HUMAN-RATIFIED to v1.23. This burst performs the standard POST-MERGE bookkeeping: POL-14 BC auto-promotion, `merged_count` increment, Story Status ledger move, and Active Branches sync.
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE PAUSED** at a clean resting state via human-requested `/wrap`, on top of D-1013 (S-21.07 POST-MERGE bookkeeping COMPLETE). S-21.07 (`validate-cross-site-correspondence` WASM hook — six-arm PostToolUse cross-site value-correspondence gate) is **MERGED**: PR #776 squash-merged to `develop` at commit `e94767bc` 2026-08-15. The feature branch `feature/S-21.07-validate-cross-site-correspondence` was auto-deleted on origin. POL-14 BC-5.39.010 v1.24 active; `merged_count` 109; **NO story in-flight**. Pre-merge, the story went through a HUMAN-DIRECTED STRICT BC-5.39.001 3-CLEAN adversarial cascade that RE-CONVERGED after a SEC-001/CWE-697 security-review finding was TRIAGED (CWE-22 REFUTED as bypass; the narrower CWE-697 over-inclusion genuinely fixed on-branch) and the governing BC HUMAN-RATIFIED to v1.23. No active convergence loop — the S-21.07 cascade CONVERGED and landed.
 
 ### §2 What This Burst Did
 
-- **POL-14 auto-promotion:** BC-5.39.010 `status`/`lifecycle_status` draft→active (v1.23→v1.24; no behavioral/content change). BC-INDEX v4.62→v4.63 (row status column + version-chain cell).
-- **`merged_count`:** 108→109 (`stories/sprint-state.yaml` S-21.07 row draft→merged).
-- **Story Status:** S-21.07 moved to the Merged ledger (109 merged); In-Flight remains 0.
-- **Active Branches:** `develop` HEAD `2e8087af`→`e94767bc`; `feature/S-21.07-validate-cross-site-correspondence` row REMOVED (branch deleted on origin).
+- **Session pause:** `pipeline` frontmatter `ACTIVE`→`PAUSED`; `phase` set to `SESSION-WRAP-PAUSE-2026-08-15`.
+- **Phase Progress / Current Phase Steps:** appended a `SESSION-WRAP-PAUSE-2026-08-15` row to both tables recording the human-requested pause at the clean post-S-21.07-merge resting state.
+- **Session Resume Checkpoint:** refreshed in-place (this section) — heading, §1, §5, §7 updated to reflect PAUSED status and the resume command; §2-§4/§6 content otherwise carried forward from the D-1013 checkpoint since nothing else changed this burst.
+- No spec/index/ADR/BC/VP/STORY content changed — this is a bookkeeping-only pause burst.
 
 ### §3 Convergence Counters (unchanged by this burst)
 
@@ -264,11 +267,11 @@ The S-21.07 LOCAL spec-only adversarial cascade CONVERGED 3/3 at D-1009 (traject
 
 ### §4 Outstanding Backfill (carried forward, NOT closed by this burst)
 
-decision-log.md is missing the exhaustive per-decision backfill for: (a) D-1011's full reconcile-and-land session (develop-merge `cc0c560d`, 3 BC-5.39.010 amendments v1.20/v1.21/v1.22, ~17 adversary passes), and (b) D-1012's own SEC-001/CWE-697 arc detail (only a CONSOLIDATED entry exists). Per the D-991-precedent gap-tracking discipline (`L-BB-state-manager-delegate-death-requires-decision-log-backfill-not-silent-gap`), this remains OWED — anchored to a future state-manager burst with decision-log-backfill scope. D-1012 also has no dedicated STATE.md Decisions Log table row (folded into narrative); D-1013 (this burst) does have one.
+decision-log.md is missing the exhaustive per-decision backfill for: (a) D-1011's full reconcile-and-land session (develop-merge `cc0c560d`, 3 BC-5.39.010 amendments v1.20/v1.21/v1.22, ~17 adversary passes), and (b) D-1012's own SEC-001/CWE-697 arc detail (only a CONSOLIDATED entry exists). Per the D-991-precedent gap-tracking discipline (`L-BB-state-manager-delegate-death-requires-decision-log-backfill-not-silent-gap`), this remains OWED — anchored to a future state-manager burst with decision-log-backfill scope. Also carried forward: pre-existing `sprint-state.yaml` S-21.09-shows-in-flight drift; STORY-INDEX historical-YAML malformation → S-15.03; harmless duplicate APPROVE review comment on PR #776.
 
 ### §5 Next Action
 
-No pending decision on S-21.07 — delivery is complete. E-21 remaining scope is entirely draft (S-21.10/S-21.11/S-21.12/S-21.13/S-21.14/S-21.15); next wave dispatch is an open human/orchestrator decision on resume. Other standing pending items (unchanged by this burst): P0 POLICY 15 CI-wiring residual (`feature/policy15-gate-rust`→`develop`), C-1/C-2/C-4/C-5 exec_subprocess security findings (ADR-043 NOT RATIFIED), the decision-log.md backfill above.
+**PIPELINE PAUSED — no pipeline work should begin until explicit resume.** On resume: no pending decision on S-21.07 — delivery is complete. E-21 remaining scope is entirely draft (S-21.10/S-21.11/S-21.12/S-21.13/S-21.14/S-21.15); next wave dispatch is an open human/orchestrator decision. Other standing pending items (unchanged by this burst): P0 POLICY 15 CI-wiring residual (`feature/policy15-gate-rust`→`develop`), C-1/C-2/C-4/C-5 exec_subprocess security findings (ADR-043 NOT RATIFIED), the decision-log.md backfill above.
 
 ### §6 Open Follow-ups (accepted/deferred, non-blocking — Drift Items, carried forward unchanged)
 
