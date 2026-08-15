@@ -123,10 +123,12 @@ pub fn parse_story_index_blockquote_hash(index_content: &str, story_id: &str) ->
             let search_in = &line[search_start..];
             if let Some(rel_pos) = search_in.find(&needle) {
                 let abs_pos = search_start + rel_pos;
-                // Word boundary before story_id: preceding char must not be alphanumeric
+                // Word boundary before story_id: preceding char must not be
+                // a word char (F-S2107-RECON-004: shares `is_word_char`
+                // with the trailing boundary check — same `\b` definition).
                 let wb_ok = abs_pos == 0 || {
                     let prev = line[..abs_pos].chars().last().unwrap_or('\0');
-                    !prev.is_ascii_alphanumeric()
+                    !is_word_char(prev)
                 };
                 if wb_ok {
                     let hash_start = abs_pos + needle.len();
@@ -625,10 +627,12 @@ fn extract_input_hash_token(line: &str) -> Option<String> {
         };
         let pos = search_start + rel_pos;
 
-        // Word boundary before "input-hash"
+        // Word boundary before "input-hash" (F-S2107-RECON-004: shares
+        // `is_word_char` with the trailing boundary check — same `\b`
+        // definition).
         let wb_before_ok = pos == 0 || {
             let prev = line[..pos].chars().last().unwrap_or('\0');
-            !prev.is_ascii_alphanumeric()
+            !is_word_char(prev)
         };
         let after_keyword = pos + keyword.len();
         if !wb_before_ok || after_keyword >= line.len() {
@@ -678,11 +682,25 @@ fn extract_input_hash_token(line: &str) -> Option<String> {
     None
 }
 
+/// Regex `\b` word-character class: `[A-Za-z0-9_]`.
+///
+/// The single source of truth for "is this a word character" across ALL
+/// PC20/PC21 `\b` boundary checks (both leading and trailing) in this
+/// module. BC-5.39.010 PC20 (`\binput-hash\s+([0-9a-f]{7,40})\b`) and PC21
+/// (`\b<id>=([0-9a-f]{7,40})\b`) both use standard regex `\b` semantics,
+/// which include `_` as a word character — NOT just
+/// `is_ascii_alphanumeric()`. Factored out (F-S2107-RECON-004) so leading
+/// and trailing boundary checks cannot drift onto two different
+/// definitions of `\b`.
+fn is_word_char(c: char) -> bool {
+    c.is_ascii_alphanumeric() || c == '_'
+}
+
 /// PC20/PC21 trailing `\b` (word-boundary) check.
 ///
 /// Returns `true` if the byte position `pos` in `s` is at or past the end of
 /// `s` (end-of-line — always a boundary), or the character starting at `pos`
-/// is NOT a word character (`is_ascii_alphanumeric()` or `_`).
+/// is NOT a word character (see `is_word_char`).
 ///
 /// Shared by all three PC20/PC21 hex-run extractors (`extract_input_hash_token`,
 /// `extract_blockquote_pairs`, `parse_story_index_blockquote_hash`) to enforce
@@ -700,7 +718,7 @@ fn extract_input_hash_token(line: &str) -> Option<String> {
 fn trailing_word_boundary_ok(s: &str, pos: usize) -> bool {
     pos >= s.len() || {
         let next = s[pos..].chars().next().unwrap_or('\0');
-        !(next.is_ascii_alphanumeric() || next == '_')
+        !is_word_char(next)
     }
 }
 
@@ -755,10 +773,12 @@ fn extract_blockquote_pairs(line: &str) -> Vec<(String, String)> {
         };
         let abs = search_pos + rel;
 
-        // Word boundary: char before "S" must not be alphanumeric
+        // Word boundary: char before "S" must not be a word char
+        // (F-S2107-RECON-004: shares `is_word_char` with the trailing
+        // boundary check — same `\b` definition).
         let wb_ok = abs == 0 || {
             let prev = rest[..abs].chars().last().unwrap_or('\0');
-            !prev.is_ascii_alphanumeric()
+            !is_word_char(prev)
         };
         if !wb_ok {
             search_pos = abs + 1;
@@ -1891,6 +1911,195 @@ mod tests {
             result,
             Some("47a65c9".to_string()),
             "hash followed by EOL must still extract (positive control, O-1)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-RECON-004 (adversary observation): the LEADING `\b`
+    // (word-boundary) checks in the three PC20/PC21 hex-run extractors used
+    // `!prev.is_ascii_alphanumeric()` only — omitting `_` — while the O-1
+    // trailing-boundary helper (`trailing_word_boundary_ok`) correctly
+    // treats `_` as a word char. Two different `\b` word-char definitions in
+    // the same functions. A preceding `_` is a word char under regex `\b`
+    // semantics (`[A-Za-z0-9_]`), so `\binput-hash` / `\b<id>=` must NOT
+    // match immediately after a `_`. Pre-fix: the leading checks wrongly
+    // treated `_` as a boundary and accepted the match. Post-fix: both
+    // leading and trailing checks share one `is_word_char` predicate.
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-RECON-004 RED GATE site 1: `extract_input_hash_token` (PC20)
+    /// must reject a keyword occurrence immediately preceded by `_` (a word
+    /// char under `\b`). Pre-fix: returns `Some("47a65c9")` (wrongly treats
+    /// `_` as a boundary). Post-fix: `None` (no later valid occurrence on
+    /// this line).
+    #[test]
+    fn test_BC_5_39_010_arm_b_input_hash_token_leading_underscore_rejected() {
+        let line = "x_input-hash 47a65c9";
+        let result = extract_input_hash_token(line);
+        assert_eq!(
+            result, None,
+            "PC20 leading \\b fails ('_' immediately precedes 'input-hash', a \
+            word char) — no valid match exists on this line; got {result:?} \
+            (F-S2107-RECON-004)"
+        );
+    }
+
+    /// F-S2107-RECON-004 continuation guard: a leading-boundary failure on
+    /// the first occurrence must not abort the whole scan — a later,
+    /// well-formed occurrence on the same line must still be found.
+    #[test]
+    fn test_BC_5_39_010_arm_b_input_hash_token_leading_underscore_then_later_valid_match() {
+        let line = "_input-hash bad, input-hash 47a65c9";
+        let result = extract_input_hash_token(line);
+        assert_eq!(
+            result,
+            Some("47a65c9".to_string()),
+            "first occurrence fails PC20 leading \\b ('_' precedes it); scan \
+            must continue and find the later, well-formed occurrence \
+            (F-S2107-RECON-004)"
+        );
+    }
+
+    /// F-S2107-RECON-004 positive controls: `extract_input_hash_token` must
+    /// still extract when the keyword is preceded by space, `|`, `;`, or is
+    /// at the start of the line (none of these are word chars).
+    #[test]
+    fn test_BC_5_39_010_arm_b_input_hash_token_leading_boundary_positive_controls() {
+        assert_eq!(
+            extract_input_hash_token("foo input-hash 47a65c9"),
+            Some("47a65c9".to_string()),
+            "leading boundary preceded by space must still extract \
+            (positive control, F-S2107-RECON-004)"
+        );
+        assert_eq!(
+            extract_input_hash_token("|input-hash 47a65c9"),
+            Some("47a65c9".to_string()),
+            "leading boundary preceded by '|' must still extract \
+            (positive control, F-S2107-RECON-004)"
+        );
+        assert_eq!(
+            extract_input_hash_token(";input-hash 47a65c9"),
+            Some("47a65c9".to_string()),
+            "leading boundary preceded by ';' must still extract \
+            (positive control, F-S2107-RECON-004)"
+        );
+        assert_eq!(
+            extract_input_hash_token("input-hash 47a65c9"),
+            Some("47a65c9".to_string()),
+            "leading boundary at start-of-line must still extract \
+            (positive control, F-S2107-RECON-004)"
+        );
+    }
+
+    /// F-S2107-RECON-004 RED GATE site 2: `parse_story_index_blockquote_hash`
+    /// (PC21) must reject a story-ID occurrence immediately preceded by `_`.
+    /// Pre-fix: returns `Some("deadbee5")`. Post-fix: `None`.
+    #[test]
+    fn test_BC_5_39_010_arm_b_blockquote_hash_leading_underscore_rejected() {
+        let content = "> x_S-21.07=deadbee5\n";
+        let result = parse_story_index_blockquote_hash(content, "S-21.07");
+        assert_eq!(
+            result, None,
+            "PC21 leading \\b fails ('_' immediately precedes 'S-21.07=', a \
+            word char) — no valid match exists; got {result:?} \
+            (F-S2107-RECON-004)"
+        );
+    }
+
+    /// F-S2107-RECON-004 continuation guard: a leading-boundary failure on
+    /// the first occurrence must not abort the scan — a later, well-formed
+    /// occurrence must still be found.
+    #[test]
+    fn test_BC_5_39_010_arm_b_blockquote_hash_leading_underscore_then_later_valid_match() {
+        let content = "> _S-21.07=deadbee5 S-21.07=8899aab\n";
+        let result = parse_story_index_blockquote_hash(content, "S-21.07");
+        assert_eq!(
+            result,
+            Some("8899aab".to_string()),
+            "first occurrence fails PC21 leading \\b ('_' precedes it); scan \
+            must continue and find the later, well-formed occurrence \
+            (F-S2107-RECON-004)"
+        );
+    }
+
+    /// F-S2107-RECON-004 positive controls: `parse_story_index_blockquote_hash`
+    /// must still extract when the story ID is preceded by space or `;`
+    /// (start-of-line is not reachable here — every qualifying line starts
+    /// with the literal `"> "` prefix).
+    #[test]
+    fn test_BC_5_39_010_arm_b_blockquote_hash_leading_boundary_positive_controls() {
+        assert_eq!(
+            parse_story_index_blockquote_hash("> S-21.07=47a65c9\n", "S-21.07"),
+            Some("47a65c9".to_string()),
+            "leading boundary preceded by space (after '> ') must still \
+            extract (positive control, F-S2107-RECON-004)"
+        );
+        assert_eq!(
+            parse_story_index_blockquote_hash("> ;S-21.07=47a65c9\n", "S-21.07"),
+            Some("47a65c9".to_string()),
+            "leading boundary preceded by ';' must still extract \
+            (positive control, F-S2107-RECON-004)"
+        );
+    }
+
+    /// F-S2107-RECON-004 RED GATE site 3: `extract_blockquote_pairs` (PC21)
+    /// must reject an `S-` occurrence immediately preceded by `_`. Pre-fix:
+    /// returns `[("S-21.07", "47a65c9")]`. Post-fix: no pair for S-21.07.
+    #[test]
+    fn test_BC_5_39_010_arm_b_blockquote_pairs_leading_underscore_rejected() {
+        let line = "> _S-21.07=47a65c9\n";
+        let pairs = extract_blockquote_pairs(line);
+        assert!(
+            !pairs.iter().any(|(id, _)| id == "S-21.07"),
+            "PC21 leading \\b fails ('_' immediately precedes 'S-21.07', a \
+            word char) — S-21.07 must not appear in extracted pairs; \
+            got {pairs:?} (F-S2107-RECON-004)"
+        );
+    }
+
+    /// F-S2107-RECON-004 continuation guard: a leading-boundary failure on
+    /// the first pair must not abort the scan — a later, well-formed pair on
+    /// the same line must still be found.
+    #[test]
+    fn test_BC_5_39_010_arm_b_blockquote_pairs_leading_underscore_then_later_valid_pair() {
+        let line = "> _S-21.07=47a65c9; S-21.08=8899aab\n";
+        let pairs = extract_blockquote_pairs(line);
+        assert!(
+            !pairs.iter().any(|(id, _)| id == "S-21.07"),
+            "S-21.07's leading boundary fails PC21 ('_' precedes it); must \
+            not appear; got {pairs:?} (F-S2107-RECON-004)"
+        );
+        assert!(
+            pairs
+                .iter()
+                .any(|(id, hash)| id == "S-21.08" && hash == "8899aab"),
+            "S-21.08's well-formed pair later on the same line must still be \
+            found (F-S2107-RECON-004); got {pairs:?}"
+        );
+    }
+
+    /// F-S2107-RECON-004 positive controls: `extract_blockquote_pairs` must
+    /// still extract when the story ID is preceded by space (start of
+    /// `rest` after the `"> "` prefix is stripped) or `;` (the production
+    /// semicolon separator between pairs).
+    #[test]
+    fn test_BC_5_39_010_arm_b_blockquote_pairs_leading_boundary_positive_controls() {
+        assert_eq!(
+            extract_blockquote_pairs("> S-21.07=47a65c9\n"),
+            vec![("S-21.07".to_string(), "47a65c9".to_string())],
+            "leading boundary at start-of-rest (immediately after '> ') must \
+            still extract (positive control, F-S2107-RECON-004)"
+        );
+        let pairs = extract_blockquote_pairs("> S-21.07=47a65c9;S-21.08=8899aab\n");
+        assert!(
+            pairs.contains(&("S-21.07".to_string(), "47a65c9".to_string())),
+            "leading boundary preceded by space must still extract \
+            (positive control, F-S2107-RECON-004); got {pairs:?}"
+        );
+        assert!(
+            pairs.contains(&("S-21.08".to_string(), "8899aab".to_string())),
+            "leading boundary preceded by ';' must still extract \
+            (positive control, F-S2107-RECON-004); got {pairs:?}"
         );
     }
 }
