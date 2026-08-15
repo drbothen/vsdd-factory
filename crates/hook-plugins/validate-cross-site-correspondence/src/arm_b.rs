@@ -139,7 +139,14 @@ pub fn parse_story_index_blockquote_hash(index_content: &str, story_id: &str) ->
                             .chars()
                             .take_while(|c| matches!(c, '0'..='9' | 'a'..='f'))
                             .collect();
-                        if hash.len() >= 7 && hash.len() <= 40 {
+                        // O-1 / PC21 trailing `\b`: the character immediately
+                        // after the hex run must be absent (EOL) or a
+                        // non-word character. All hex chars are ASCII, so
+                        // `hash_start + hash.len()` is a valid byte boundary.
+                        if hash.len() >= 7
+                            && hash.len() <= 40
+                            && trailing_word_boundary_ok(line, hash_start + hash.len())
+                        {
                             return Some(hash);
                         }
                     }
@@ -648,10 +655,17 @@ fn extract_input_hash_token(line: &str) -> Option<String> {
             .take_while(|c| matches!(c, '0'..='9' | 'a'..='f'))
             .collect();
 
-        if hash.len() >= 7 && hash.len() <= 40 {
+        // O-1 / PC20 trailing `\b`: the character immediately after the hex
+        // run must be absent (EOL) or a non-word character. All hex chars
+        // are ASCII, so `hash_start + hash.len()` is a valid byte boundary.
+        if hash.len() >= 7
+            && hash.len() <= 40
+            && trailing_word_boundary_ok(line, hash_start + hash.len())
+        {
             return Some(hash);
         }
-        // Non-conforming token: retry past this occurrence.
+        // Non-conforming token (length out of {7,40} range, OR the PC20
+        // trailing \b fails): retry past this occurrence.
         // F-S2107-RECON-001: `hash_start + 1` is NOT safe — `hash` may be empty
         // (zero hex chars matched) when the char at `hash_start` is a multibyte
         // UTF-8 char, in which case `hash_start + 1` lands mid-char and the next
@@ -662,6 +676,32 @@ fn extract_input_hash_token(line: &str) -> Option<String> {
         search_start = hash_start + step;
     }
     None
+}
+
+/// PC20/PC21 trailing `\b` (word-boundary) check.
+///
+/// Returns `true` if the byte position `pos` in `s` is at or past the end of
+/// `s` (end-of-line — always a boundary), or the character starting at `pos`
+/// is NOT a word character (`is_ascii_alphanumeric()` or `_`).
+///
+/// Shared by all three PC20/PC21 hex-run extractors (`extract_input_hash_token`,
+/// `extract_blockquote_pairs`, `parse_story_index_blockquote_hash`) to enforce
+/// the trailing `\b` in BC-5.39.010 PC20 (`\binput-hash\s+([0-9a-f]{7,40})\b`)
+/// and PC21 (`\b<id>=([0-9a-f]{7,40})\b`). A hex-run candidate immediately
+/// followed by another word character (e.g. uppercase `D` in `47a65c9D`, or
+/// `g` in `47a65c9abcg`) fails `\b` — no regex match exists at that position
+/// at all, since every shorter backtrack length within the same contiguous
+/// run is still followed by a word character — so the candidate MUST be
+/// rejected, not truncated to the maximal hex-only prefix (O-1).
+///
+/// `pos` MUST be a valid UTF-8 char boundary in `s`; all three call sites
+/// derive it as `hash_start + hash.len()` where `hash` was built entirely
+/// from single-byte ASCII hex digits, so this always holds.
+fn trailing_word_boundary_ok(s: &str, pos: usize) -> bool {
+    pos >= s.len() || {
+        let next = s[pos..].chars().next().unwrap_or('\0');
+        !(next.is_ascii_alphanumeric() || next == '_')
+    }
 }
 
 /// Extract the story ID from a STORY-INDEX.md table row.
@@ -748,7 +788,13 @@ fn extract_blockquote_pairs(line: &str) -> Vec<(String, String)> {
             .take_while(|c| matches!(c, '0'..='9' | 'a'..='f'))
             .collect();
 
-        if hash.len() >= 7 && hash.len() <= 40 {
+        // O-1 / PC21 trailing `\b`: the character immediately after the hex
+        // run must be absent (EOL) or a non-word character. All hex chars
+        // are ASCII, so `hash_start + hash.len()` is a valid byte boundary.
+        if hash.len() >= 7
+            && hash.len() <= 40
+            && trailing_word_boundary_ok(candidate, hash_start + hash.len())
+        {
             pairs.push((story_id.to_string(), hash.clone()));
         }
         // F-S2107-RECON-001: `hash.len().max(1)` is NOT safe as a fallback step
@@ -1693,6 +1739,158 @@ mod tests {
             "S-21.08's well-formed pair later on the same line must still be found \
             after recovering from the malformed S-21.07 entry (BC-5.39.010 \
             F-S2107-RECON-001); got {pairs:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // O-1 (adversary observation): PC20/PC21 trailing `\b` (word-boundary)
+    // enforcement. BC-5.39.010 PC20 specifies
+    // `\binput-hash\s+([0-9a-f]{7,40})\b` and PC21 specifies
+    // `\b<id>=([0-9a-f]{7,40})\b` — both require the character immediately
+    // AFTER the matched hex run to be either end-of-line or a non-word
+    // character. Pre-fix: the hex-run extractors accepted a 7-40-char
+    // candidate purely on its length, without checking what followed it — a
+    // hash immediately followed by another word character (uppercase hex
+    // digit, `g`-`z`, digit, or `_`) fails the spec's trailing `\b` and has
+    // NO regex match at that position at all (within a contiguous run, every
+    // shorter backtrack length is still followed by a word char), yet the
+    // implementation returned a TRUNCATED hash instead of rejecting.
+    // -----------------------------------------------------------------------
+
+    /// O-1 RED GATE site 1: `extract_input_hash_token` (PC20) must reject a
+    /// hex run immediately followed by a word character. Pre-fix: returns
+    /// `Some("47a65c9")` (truncated — drops the trailing `D`). Post-fix:
+    /// `None` (no later valid occurrence on this line).
+    #[test]
+    fn test_BC_5_39_010_arm_b_input_hash_token_trailing_word_char_rejected() {
+        let line = "| S-21.07 | ... | input-hash 47a65c9D | ...";
+        let result = extract_input_hash_token(line);
+        assert_eq!(
+            result, None,
+            "PC20 trailing \\b fails ('D' immediately follows the hex run) — \
+            no valid match exists on this line; got truncated {result:?} (O-1)"
+        );
+    }
+
+    /// O-1 RED GATE site 1b: hex run of 10 chars immediately followed by
+    /// non-hex-but-alphanumeric 'g' — every backtrack length (7..=10) is
+    /// still followed by a word char, so PC20 has no match anywhere in the
+    /// run. Pre-fix: returns `Some("47a65c9abc")` (truncated at the 10th hex
+    /// char, dropping 'g'). Post-fix: `None`.
+    #[test]
+    fn test_BC_5_39_010_arm_b_input_hash_token_trailing_alnum_non_hex_rejected() {
+        let line = "| S-21.07 | ... | input-hash 47a65c9abcg | ...";
+        let result = extract_input_hash_token(line);
+        assert_eq!(
+            result, None,
+            "PC20 trailing \\b fails ('g' immediately follows the hex run, \
+            still a word char even though not hex) — no valid match exists; \
+            got truncated {result:?} (O-1)"
+        );
+    }
+
+    /// O-1 continuation guard: a trailing-boundary failure on the FIRST
+    /// occurrence must not abort the whole scan — a later, well-formed
+    /// occurrence on the same line must still be found.
+    #[test]
+    fn test_BC_5_39_010_arm_b_input_hash_token_trailing_failure_then_later_valid_match() {
+        let line = "input-hash 47a65c9D ... input-hash 8899aab ";
+        let result = extract_input_hash_token(line);
+        assert_eq!(
+            result,
+            Some("8899aab".to_string()),
+            "first occurrence fails PC20 trailing \\b; scan must continue and \
+            find the second, well-formed occurrence (O-1)"
+        );
+    }
+
+    /// O-1 positive control: a hash followed by whitespace still extracts
+    /// correctly (trailing \b succeeds — whitespace is not a word char).
+    #[test]
+    fn test_BC_5_39_010_arm_b_input_hash_token_trailing_whitespace_control() {
+        let line = "input-hash 47a65c9 ";
+        let result = extract_input_hash_token(line);
+        assert_eq!(
+            result,
+            Some("47a65c9".to_string()),
+            "hash followed by whitespace must still extract (positive control, O-1)"
+        );
+    }
+
+    /// O-1 RED GATE site 2: `extract_blockquote_pairs` (PC21) must reject a
+    /// hex run immediately followed by `_` (a word character in \b
+    /// semantics). Pre-fix: returns `[("S-21.07", "47a65c9")]` (truncated,
+    /// dropping the trailing `_`). Post-fix: no pair for S-21.07.
+    #[test]
+    fn test_BC_5_39_010_arm_b_blockquote_pairs_trailing_underscore_rejected() {
+        let line = "> S-21.07=47a65c9_\n";
+        let pairs = extract_blockquote_pairs(line);
+        assert!(
+            !pairs.iter().any(|(id, _)| id == "S-21.07"),
+            "PC21 trailing \\b fails ('_' immediately follows the hex run, a \
+            word char) — S-21.07 must not appear in extracted pairs; \
+            got {pairs:?} (O-1)"
+        );
+    }
+
+    /// O-1 continuation guard: a trailing-boundary failure on the first
+    /// pair must not abort the scan — a later, well-formed pair on the same
+    /// line must still be found.
+    #[test]
+    fn test_BC_5_39_010_arm_b_blockquote_pairs_trailing_failure_then_later_valid_pair() {
+        let line = "> S-21.07=47a65c9D; S-21.08=8899aab\n";
+        let pairs = extract_blockquote_pairs(line);
+        assert!(
+            !pairs.iter().any(|(id, _)| id == "S-21.07"),
+            "S-21.07's hash fails PC21 trailing \\b; must not appear; got {pairs:?} (O-1)"
+        );
+        assert!(
+            pairs
+                .iter()
+                .any(|(id, hash)| id == "S-21.08" && hash == "8899aab"),
+            "S-21.08's well-formed pair later on the same line must still be \
+            found (O-1); got {pairs:?}"
+        );
+    }
+
+    /// O-1 positive control: a pair followed by `;` still extracts correctly.
+    #[test]
+    fn test_BC_5_39_010_arm_b_blockquote_pairs_trailing_semicolon_control() {
+        let line = "> S-21.07=47a65c9;\n";
+        let pairs = extract_blockquote_pairs(line);
+        assert_eq!(
+            pairs,
+            vec![("S-21.07".to_string(), "47a65c9".to_string())],
+            "hash followed by ';' must still extract (positive control, O-1)"
+        );
+    }
+
+    /// O-1 RED GATE site 3: `parse_story_index_blockquote_hash` (PC21) must
+    /// reject a hex run immediately followed by an uppercase letter ('F' is
+    /// alphanumeric — a word char — even though it is outside the
+    /// deliberately lowercase-only [0-9a-f] charset). Pre-fix: returns
+    /// `Some("deadbee5")` (truncated). Post-fix: `None`.
+    #[test]
+    fn test_BC_5_39_010_arm_b_blockquote_hash_trailing_uppercase_rejected() {
+        let content = "> S-21.08=deadbee5F\n";
+        let result = parse_story_index_blockquote_hash(content, "S-21.08");
+        assert_eq!(
+            result, None,
+            "PC21 trailing \\b fails ('F' immediately follows the hex run) — \
+            no valid match exists; got truncated {result:?} (O-1)"
+        );
+    }
+
+    /// O-1 positive control: `parse_story_index_blockquote_hash` still
+    /// extracts correctly when the hash is followed by whitespace/EOL.
+    #[test]
+    fn test_BC_5_39_010_arm_b_blockquote_hash_trailing_eol_control() {
+        let content = "> S-21.07=47a65c9\n";
+        let result = parse_story_index_blockquote_hash(content, "S-21.07");
+        assert_eq!(
+            result,
+            Some("47a65c9".to_string()),
+            "hash followed by EOL must still extract (positive control, O-1)"
         );
     }
 }
