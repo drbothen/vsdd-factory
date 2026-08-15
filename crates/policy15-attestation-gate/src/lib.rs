@@ -1,4 +1,4 @@
-//! POLICY 15 ATTESTATION-LOCATION GATE — ADR-040 §Decisions 8+9 (v1.8)
+//! POLICY 15 ATTESTATION-LOCATION GATE — ADR-040 §Decisions 7-10 (v1.17)
 //!
 //! # Why this exists
 //!
@@ -241,6 +241,9 @@ fn run_gate_inner(repo: &Path, merge_base: &str) -> Result<GateOutcome, GateErro
     for commit_sha in &commits {
         // Skip parentless commits (root commit or shallow-clone boundary).
         if !commit_has_parent(repo, commit_sha)? {
+            eprintln!(
+                "WARNING: commit {commit_sha} has no first parent (root commit or shallow-clone boundary) — skipping POLICY 15 evaluation for this commit"
+            );
             continue;
         }
 
@@ -932,6 +935,117 @@ mod tests {
             "expected PassWithActivations(2), got: {:?}",
             outcome
         );
+    }
+
+    // ── Coverage-gap fix-pass tests (pre-merge mutant-survival closure) ────────
+    //
+    // The four groups below (F-1, F-2, F-5, F-6) close per-guard mutant-survival
+    // gaps identified in pre-merge validation. F-1's WARNING assertion is
+    // EXPECTED RED pending implementer per ADR-040 §Decision 9 Ruling 9(c) — see
+    // `tests/binary_integration_test.rs`. F-2 and F-5 below are expected GREEN.
+
+    /// F-2 — exactly-once upper bound (`count != 1` upper arm, lib.rs `run_gate_inner`).
+    ///
+    /// Existing controls (`test_positive_2_no_attestation_heading`,
+    /// `test_negative_compliant_attestation`) only exercise `count == 0` and
+    /// `count == 1`. This test drives `count == 2`: a single activating commit
+    /// whose pinned `red-gate-log.md` contains TWO
+    /// `### <Pass-N> assertion-site attestation (<PARENT-SHA>)` headings for the
+    /// SAME parent SHA. The obligation is "exactly one", not "at least one", so
+    /// this must still fail with `AttestationMissing`. A plain mutation run on
+    /// `count != 1` (e.g. a mutant that flips the comparison to `count == 0`)
+    /// cannot be generated from existing fixtures alone — this hand-authored
+    /// control is required to kill it.
+    ///
+    /// Expected: GREEN (existing `count != 1` logic already handles this
+    /// correctly; this is coverage, not a behavior change).
+    #[test]
+    fn test_f2_two_attestation_headings_same_parent_fails() {
+        let repo = Repo::new();
+        let base = repo.head_sha();
+        let parent_sha = base.clone();
+
+        repo.write(&format!("{PC}/src/lib.rs"), "// assertion site\n");
+        // TWO headings for the SAME parent SHA within the SAME commit's log.
+        repo.write(
+            LOG,
+            &format!(
+                "# Red Gate Log\n\n\
+                 ### Pass-1 assertion-site attestation ({parent_sha})\n\n\
+                 Attestation body 1.\n\n\
+                 ### Pass-2 assertion-site attestation ({parent_sha})\n\n\
+                 Attestation body 2 (duplicate heading for the same parent SHA).\n"
+            ),
+        );
+        repo.commit("assertion site + duplicate attestation headings for same parent");
+
+        let outcome = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+        assert!(
+            matches!(
+                &outcome,
+                GateOutcome::Fail(v) if v.len() == 1 && v[0].reason == FailReason::AttestationMissing
+            ),
+            "expected Fail(AttestationMissing) for count==2 (exactly-once upper bound), got: {:?}",
+            outcome
+        );
+        assert_eq!(outcome.identifier(), "FAIL: obligation violated");
+        assert_eq!(outcome.exit_code(), 2);
+    }
+
+    /// F-5 — `git_merge_base` SUCCESS path, driven through `run_gate()`.
+    ///
+    /// Existing `run_gate()`-level controls (`test_unresolvable_base_fails_closed`,
+    /// `test_run_gate_guard1_stale_pin_beats_unresolvable_base`) only exercise the
+    /// ERROR arm of `git_merge_base` (no `origin` remote → merge-base command
+    /// fails → `EmptyOrUnreachable(EmptyRange)`). Neither test proves the SUCCESS
+    /// arm (`Ok(sha)`) is wired correctly.
+    ///
+    /// This test fakes a `refs/remotes/origin/<branch>` ref via `git update-ref`
+    /// — no real `origin` remote or network access required; `git merge-base`
+    /// cannot distinguish a synthesized remote-tracking ref from a fetched one —
+    /// so `git merge-base HEAD origin/develop` genuinely succeeds. The downstream
+    /// outcome (`Fail(LogAbsent)`) is reachable ONLY if the merge-base SHA was
+    /// correctly threaded into `run_gate_inner`; the ERROR arm would instead
+    /// short-circuit to `EmptyOrUnreachable(EmptyRange)` before any commit is
+    /// ever inspected.
+    ///
+    /// Expected: GREEN.
+    #[test]
+    fn test_f5_run_gate_resolves_real_merge_base_success_path() {
+        let repo = Repo::new();
+
+        // Seed the crate so guard 1 (stale-pin) passes.
+        repo.write_and_commit(
+            &format!("{PC}/docs/placeholder.md"),
+            "placeholder\n",
+            "seed: crate in HEAD tree",
+        );
+        let base = repo.head_sha();
+
+        // Fake the remote-tracking ref WITHOUT a real `origin` remote.
+        repo.git(&["update-ref", "refs/remotes/origin/develop", &base]);
+
+        // Activating commit with no red-gate-log.md → Fail(LogAbsent). This
+        // outcome is reachable only via the merge-base SUCCESS arm: if
+        // `git_merge_base` had errored, the gate would report
+        // EmptyOrUnreachable(EmptyRange) instead, before ever inspecting commits.
+        repo.write_and_commit(
+            &format!("{PC}/src/lib.rs"),
+            "// assertion site\n",
+            "activate, no log (drives merge-base success path)",
+        );
+
+        let outcome = run_gate(repo.path(), "develop").expect("no gate error");
+        assert!(
+            matches!(
+                &outcome,
+                GateOutcome::Fail(v) if v.len() == 1 && v[0].reason == FailReason::LogAbsent
+            ),
+            "expected Fail(LogAbsent) via resolved real merge-base (success path), got: {:?}",
+            outcome
+        );
+        assert_eq!(outcome.identifier(), "FAIL: obligation violated");
+        assert_eq!(outcome.exit_code(), 2);
     }
 
     /// `GateOutcome::identifier` produces strings that are greppable — spot-check.

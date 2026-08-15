@@ -1,6 +1,6 @@
 //! POLICY 15 ATTESTATION-LOCATION GATE — binary entry point.
 //!
-//! Invocation (intended for CI, post human re-ratification of ADR-040 v1.8):
+//! Invocation (for CI):
 //!
 //! ```text
 //! policy15-attestation-gate [BASE_BRANCH]
@@ -19,8 +19,8 @@
 //! | Hard error (git not found, I/O) | 1 |
 //!
 //! GitHub Actions job name: `policy-15-attestation-location`
-//! (see ADR-040 §Decision 7 Ruling 7(a), pending devops-engineer wiring after
-//! human re-ratification of ADR-040 v1.8).
+//! (see ADR-040 §Decision 7 Ruling 7(a)). The gate is ratified (ADR-040 v1.17,
+//! active); only CI wiring of this job remains pending (D-969).
 
 use clap::Parser;
 use policy15_attestation_gate::{
@@ -37,15 +37,15 @@ use policy15_attestation_gate::{
 )]
 struct Cli {
     /// Base branch name; merge base is computed as merge-base(HEAD, origin/<base_branch>).
-    /// Defaults to `develop`; also honoured via the `BASE_BRANCH` environment variable.
-    #[arg(default_value = "develop")]
+    /// Precedence: explicit CLI argument > `BASE_BRANCH` environment variable > `develop`
+    /// default (clap's native derive precedence for an `env`-backed argument).
+    #[arg(env = "BASE_BRANCH", default_value = "develop")]
     base_branch: String,
 }
 
 fn main() {
     let cli = Cli::parse();
-    // Honour BASE_BRANCH env var (mirrors the ADR-040 §Decision 9 bash convention).
-    let base_branch = std::env::var("BASE_BRANCH").unwrap_or(cli.base_branch);
+    let base_branch = cli.base_branch;
 
     let repo = match std::env::current_dir() {
         Ok(p) => p,
