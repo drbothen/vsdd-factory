@@ -466,6 +466,7 @@ jobs:
         # present so they execute under CI_REQUIRE_ARTIFACTS=1 rather than silently
         # skipping. F-S2107-P7-003 class fix — sweeps build-dispatcher in addition to
         # cargo-host; mount precedes Test (cargo) on every test-enabled matrix entry.
+        shell: bash
         run: |
           git fetch origin factory-artifacts:refs/remotes/origin/factory-artifacts
           git rev-parse origin/factory-artifacts || (echo "factory-artifacts ref missing" >&2; exit 1)
