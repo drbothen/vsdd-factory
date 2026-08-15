@@ -18114,3 +18114,54 @@ D-1009-S2107-PASS24-CONVERGENCE-BURST
 2026-08-14
 
 ---
+
+## D-1012 — D-1012-S2107-SEC001-CWE697-RECONVERGE-PR776-OPEN-BANNER-FIX
+
+**CONSOLIDATED ENTRY — NOT exhaustive per-decision.** This entry covers the whole arc between the D-1011 checkpoint (`2077bcd8`) and this burst in one pass, and it also stands in for the still-missing D-1011 decision-log.md entry (D-1011 was recorded only in STATE.md narrative, never persisted here — see the archived checkpoint `git show 2077bcd8:.factory/STATE.md`). Exhaustive per-decision backfill (D-1011 as its own entry; this arc split into granular D-1013+ rows covering the ADV-RECON17-001 fix, the SEC-001 triage verdict, the CWE-697 fix, the BC ratification, the story propagation, and PR creation individually) remains OWED — flagged explicitly rather than silently dropped, per the D-991-precedent gap-tracking discipline (`L-BB-state-manager-delegate-death-requires-decision-log-backfill-not-silent-gap`). The consolidation is a deliberate scope decision for this burst: decision-log.md is already ~18,000 lines and a fully granular reconstruction of ~17+ additional fresh-context passes plus the SEC-001/CWE-697 arc would materially bloat it without a compensating benefit this burst — the fuller record already exists in `cycles/v1.0-brownfield-backfill/burst-log.md`, the story/BC files' own `last_amended` changelog chains, and PR #776's review thread.
+
+**(a) CI-CRITICAL banner repair.** `.factory/STATE.md`'s SIZE BUDGET banner had drifted over many prior SHA-patch bursts to carry only prose archive-history rows (`(wc-l post-<burst> ...)` narrative lines) with no line actually matching the `<N> lines (wc-l)` claim pattern the `validate-state-structure` hook plugin's `extract_banner_line_count` scans for. This caused two corpus-guard tests reading the live `.factory/STATE.md` — `test_BC_5_39_005_f_p1_001_real_state_md_banner_wc_passes` and `test_BC_5_39_005_full_validation_against_real_state_md` — to FAIL: `extract_banner_line_count returned None` / `no SIZE BUDGET banner found`. This is a genuine pre-existing repo-wide defect (develop's own CI is red on the same gate, independent of any branch's changes) and is also the gate blocking PR #776's `cargo-host` CI check, since that job mounts `origin/factory-artifacts` via `VSDD_CORPUS_ROOT` and runs this same corpus-guard suite. Repaired the banner to the canonical dual-margin form (`Hard cap (500 lines) margin from soft-target = ... ; margin from actual = ... (D-446(c) dual-margin form). N lines (wc-l).`) with a current claim matching this file's actual final newline count, and collapsed the D-993..D-1011 archive-history prose rows into one pointer row (per the established D-430(a) precedent) to keep the banner itself compact. Verified via literal shell (D-449(a)):
+
+```
+$ VSDD_CORPUS_ROOT="$PWD/.factory" CI_REQUIRE_ARTIFACTS=1 cargo test -p validate-state-structure \
+    --manifest-path crates/hook-plugins/validate-state-structure/Cargo.toml \
+    test_BC_5_39_005_f_p1_001_real_state_md_banner_wc_passes \
+    test_BC_5_39_005_full_validation_against_real_state_md -- --nocapture
+test tests::test_BC_5_39_005_f_p1_001_real_state_md_banner_wc_passes ... ok
+test tests::test_BC_5_39_005_full_validation_against_real_state_md ... ok
+```
+
+**(b) S-21.07 SEC-001/CWE-697 arc.** Resumed the ADV-RECON17-001 remediation that was open at the SESSION-WRAP-PAUSE-2026-08-14 checkpoint (stale bats governing-BC version pins in `plugins/vsdd-factory/tests/validate-cross-site-correspondence.bats` — header cited `BC-5.39.010 v1.14`, six body sites, and a stale AC-count). test-writer de-versioned the pins and corrected the AC-count; the strict human-directed BC-5.39.001 3-CLEAN adversarial cascade against the reconciled `feature/S-21.07-validate-cross-site-correspondence` implementation then achieved 3-CLEAN. A security-review finding, **SEC-001** (alleged CWE-22 path-traversal), was subsequently raised during PR review of the resulting PR. security-reviewer TRIAGED it and REFUTED the CWE-22 characterization as a bypass finding — the Kani-proven `path_util::check_path_allowed` function remains the actual, load-bearing defense against path traversal in this crate, and SEC-001's proposed exploit path does not route around it. However, the review correctly surfaced a genuine, narrower **CWE-697** ("Incorrect Comparison" / over-inclusive classification) defect in the crate's path-component classifiers: certain non-contiguous decoy sequences could be misclassified because component matching was not anchored to contiguity, and a `ParentDir` (`..`) component was not explicitly rejected in the classification path. implementer fixed both: contiguity-anchored path-component matching (commit `eeeb5666`, WASM rebuild `ffca9075`) and definitive `ParentDir` rejection (commit `639268b3`, WASM rebuild `3fc6d7d9`). research-agent validated the fix approach against current CWE-697 guidance before it was finalized.
+
+**(c) Spec ratification.** product-owner HUMAN-AUTHORIZED-amended the governing BC to ratify the fix: BC-5.39.010 **v1.22→v1.23** mandates contiguity-anchored + `ParentDir`-rejecting path classification for preconditions 1/9/34 and invariant 3, adds a new exact-gap sub-clause and a new Canonical Test Vector row. This is a spec-ratifies-already-shipped-code amendment (no further code change, no new EC, no BC H1 change) — the code was already fixed and validated; the BC amendment brings the spec into alignment per the Standing Rule (spec wins on conflict; here the human explicitly authorized the spec to catch up to the validated fix rather than the reverse). story-writer propagated story S-21.07 **v1.18→v1.22** in lockstep: a full 29-site governing-BC-version-cite sweep v1.22→v1.23, six missing edge-case rows (EC-034..040) mirrored in from the BC (F-S2107-RECON-003), the AC-019 STORY-INDEX B1 read-cap label corrected (F-S2107-RECON-001), Task-10 governing-BC-version examples de-versioned to pin-free style (F-S2107-RECON-002, TD-VSDD-091), and one v1.18 changelog-table parity row backfilled (ADV-RECON11-001 follow-through). state-manager then ran a targeted B3 hash-drift reconcile (commit `0574b5c7`) correcting the STORY-INDEX E-21 delivery-blockquote's input-hash cell for S-21.07 from a stale `3885444` to the current `69332f2` (a B2/B3 sibling-sweep gap the v1.23-propagation burst had left behind — POLICY 5/TD-VSDD-060 companion class). The strict BC-5.39.001 3-CLEAN adversarial cascade **RE-CONVERGED** against the final v1.23/v1.22 spec pair.
+
+**(d) PR #776.** Opened against `develop` from `feature/S-21.07-validate-cross-site-correspondence`, code HEAD **`3fc6d7d9`**, pushed. State at this burst: **OPEN, MERGEABLE**. CI shows most checks green; `cargo-host` (macOS + ubuntu) and `build-dispatcher (windows-x64)` were failing at last check — the `cargo-host` failures are the exact pre-existing STATE.md-banner corpus-guard defect this burst's Part (a) fixes (will re-run green once factory-artifacts picks up this commit); the `windows-x64` build-dispatcher failure is unrelated and out of this burst's scope. The orchestrator STOPPED before merging per explicit human directive (standard human-in-the-loop merge gate) — this is a deliberate pause, not an incomplete task. `merged_count` remains **UNCHANGED at 108** (S-21.07 not yet merged).
+
+**(e) 4-index.** BC-INDEX **v4.62** (BC-5.39.010 row v1.23, was v4.61/v1.22) / STORY-INDEX **v4.338** (S-21.07 row v1.22, was v4.333/v1.18; input-hash `69332f2`) / VP-INDEX v2.76 UNCHANGED / ARCH-INDEX v3.58 UNCHANGED. policies.yaml v1.4.24 UNCHANGED.
+
+**(f) No new POLICY-level lesson codified this burst** beyond the B3 hash-drift sibling-sweep gap noted in (c), which is already an instance of the existing `L-BB-retracted-claim-class-complete-sibling-sweep-on-fuel-claim-amendment`-family discipline (POLICY 5/TD-VSDD-060), not a new class.
+
+### Agents
+
+- vsdd-factory:test-writer: de-versioned the bats governing-BC pins closing ADV-RECON17-001
+- vsdd-factory:adversary (multiple fresh-context passes, prior session, relayed): strict BC-5.39.001 3-CLEAN cascade re-convergence
+- vsdd-factory:security-reviewer: SEC-001 triage (CWE-22 REFUTED as bypass; CWE-697 genuine, narrower)
+- vsdd-factory:implementer: CWE-697 fix (contiguity anchoring + `ParentDir` rejection), 2 WASM rebuilds
+- vsdd-factory:research-agent: CWE-697 fix-approach validation
+- vsdd-factory:product-owner: BC-5.39.010 v1.22→v1.23 HUMAN-AUTHORIZED ratification amendment
+- vsdd-factory:story-writer: S-21.07 v1.18→v1.22 propagation
+- vsdd-factory:pr-manager: PR #776 creation and review-cycle coordination
+- state-manager (this burst): STATE.md SIZE BUDGET banner repair (CI-CRITICAL); STATE.md full convergence-record advance; this consolidated D-1012 decision-log.md entry; session-checkpoints.md archival; burst-log.md narrative; single atomic commit to `factory-artifacts` per TD-VSDD-053
+
+### 4-INDEX
+
+BC-INDEX v4.62 (was v4.61) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.338 (was v4.333) / ARCH-INDEX v3.58 (UNCHANGED)
+
+### Phase
+
+D-1012-S2107-SEC001-CWE697-RECONVERGE-PR776-OPEN-BANNER-FIX
+
+### Date
+
+2026-08-15
+
+---

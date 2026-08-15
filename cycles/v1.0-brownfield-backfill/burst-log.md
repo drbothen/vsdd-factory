@@ -29035,3 +29035,53 @@ D-444(c) burst-log h2 heading `## D-1009-S2107-PASS24-CONVERGENCE-BURST` present
 | D-1011-RESUME-AND-CORRECTION (state-manager; commit 2077bcd8; human-directed resume) | state-manager | COMPLETE | pipeline `PAUSED`→`ACTIVE`; track = reconcile-and-land the EXISTING S-21.07 implementation; STATE-INTEGRITY CORRECTION swept 6 in-body "unbuilt" claims to "substantially implemented, BUILT-BUT-STALE vs v1.14, behind develop"; STATE.md v7.78→v7.79. |
 
 **Unrecorded-session gap (pointer, not a backfill):** Between the D-1011 commit (`2077bcd8`) and this SESSION-WRAP-PAUSE burst, the orchestrator dispatched — and specialist agents completed — the reconcile-and-land ground-truth audit, a develop-merge (`cc0c560d`) of `feature/S-21.07-validate-cross-site-correspondence` (now `a39d6bbb`), removal of the deferred Class D / `arm_d.rs` arm, a WASM rebuild, and a HUMAN-DIRECTED STRICT BC-5.39.001 3-CLEAN adversarial cascade of roughly 17 fresh-context passes against the reconciled crate. That cascade produced three BC-5.39.010 amendments (v1.19→v1.20→v1.21→v1.22) and a crate-wide TD-VSDD-091 de-versioning sweep, each already committed to `.factory/` by the responsible specialist (product-owner / story-writer / state-manager index-parity syncs) — see `git log --oneline .factory` between `2077bcd8` and this burst's parent for the actual commit list. **None of this was captured as a formal Decisions Log D-NNN entry or as per-burst narrative in this file.** Full pass-by-pass burst-log detail (Blocks 1-8 per pass) and the D-1012+ Decisions Log backfill are OWED at the next state-manager burst, per the D-991-precedent gap-tracking discipline (`L-BB-state-manager-delegate-death-requires-decision-log-backfill-not-silent-gap`). The authoritative summary of what happened is the SESSION-WRAP-PAUSE-2026-08-14 Session Resume Checkpoint in STATE.md (and its archived-to-`session-checkpoints.md` predecessor for the pre-session D-1011 state).
+
+## D-1012-S2107-SEC001-CWE697-RECONVERGE-PR776-OPEN-BANNER-FIX — CI banner repair + S-21.07 arc convergence record
+
+**Parent commit:** `0574b5c7` (`spec(STORY-INDEX): reconcile S-21.07 blockquote input-hash 3885444→69332f2 (BC-5.39.010 v1.23 sync completion)`) — the latest `factory-artifacts` commit at burst start, per D-419(b)/D-444(c) parent-commit-SHA convention.
+
+**Adversary verdict:** N/A — this burst does not run a new adversary pass. It (1) repairs a CI-CRITICAL structural defect in STATE.md's own SIZE BUDGET banner, discovered because `validate-state-structure`'s corpus-guard tests read the live `.factory/STATE.md` and were failing, and (2) rolls STATE.md forward from a stale pre-session narrative to record the S-21.07 SEC-001/CWE-697 arc that was executed and committed to `factory-artifacts` earlier this session (commits `d6166315`..`0574b5c7`, listed below) but never reflected in STATE.md's own Project Metadata / Phase Progress / Story Status / Active Branches / Session Resume Checkpoint sections.
+
+**Files touched this burst:**
+- `.factory/STATE.md` — frontmatter (version/timestamp/phase/last_amended/current_step/pipeline), SIZE BUDGET banner (repaired + collapsed archive rows), Project Metadata, Phase Progress (collapsed D-1004..SESSION-WRAP-PAUSE rows + new D-1012 row), Current Phase Steps, Identifier Conventions, Story Status, Active Branches, Concurrent Cycles, Decisions Log (new D-1012 row + note), Blocking Issues, Session Resume Checkpoint (replaced; old archived to `session-checkpoints.md`)
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — archived the 2026-08-14 SESSION-WRAP-PAUSE checkpoint
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — this consolidated D-1012 entry
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+
+**Prior-session factory-artifacts commits this burst's STATE.md advance now reflects** (already committed and pushed by the responsible specialists during the session; not re-committed by this burst — this burst only updates STATE.md's narrative to match them):
+
+```
+0574b5c7 spec(STORY-INDEX): reconcile S-21.07 blockquote input-hash 3885444→69332f2 (BC-5.39.010 v1.23 sync completion)
+658aff86 spec(BC-5.39.010): v1.23 mandate contiguity-anchored path classification (SEC-001/CWE-697); propagate S-21.07 v1.22
+e0616f03 spec(S-21.07): mirror 6 missing edge-case rows EC-034..040 (F-S2107-RECON-003); story v1.20→v1.21
+d34d0270 spec(S-21.07): de-version Task-10 governing-BC-version examples to pin-free (F-S2107-RECON-002); story v1.19→v1.20
+c2b2652e spec(S-21.07): backfill v1.18 changelog-table parity row (ADV-RECON11-001)
+2e6f4b95 spec(S-21.07): correct AC-019 STORY-INDEX B1 read-cap label (F-S2107-RECON-001); story v1.18→v1.19
+d6166315 state(sha-patch): SESSION-WRAP-PAUSE commit e90446df factory-artifacts SHA -- Active Branches + checkpoint + Project Metadata + Phase Progress + Concurrent Cycles updated
+```
+
+Corresponding code-branch commits on `feature/S-21.07-validate-cross-site-correspondence` (also already pushed, not part of this `.factory/` commit):
+
+```
+3fc6d7d9 build(S-21.07): rebuild validate-cross-site-correspondence.wasm after ParentDir-reject hardening
+639268b3 fix(S-21.07): reject ParentDir in path classifiers — definitive CWE-697 close (SEC-001 hardening)
+ffca9075 build(S-21.07): rebuild validate-cross-site-correspondence.wasm after path-classifier anchoring fix
+eeeb5666 fix(S-21.07): anchor path-classifier component matching to reject non-contiguous decoys (SEC-001 CWE-697)
+```
+
+**Codifications:** none new this burst (see decision-log.md D-1012(f) — the STORY-INDEX B3 sibling-sweep gap noted in that entry is an instance of an already-codified lesson class, not a new one).
+
+**CI-CRITICAL banner-repair verification (literal shell, D-449(a)):**
+
+```
+$ VSDD_CORPUS_ROOT="$PWD/.factory" CI_REQUIRE_ARTIFACTS=1 cargo test -p validate-state-structure \
+    --manifest-path crates/hook-plugins/validate-state-structure/Cargo.toml \
+    test_BC_5_39_005_f_p1_001_real_state_md_banner_wc_passes \
+    test_BC_5_39_005_full_validation_against_real_state_md -- --nocapture
+test tests::test_BC_5_39_005_f_p1_001_real_state_md_banner_wc_passes ... ok
+test tests::test_BC_5_39_005_full_validation_against_real_state_md ... ok
+```
+
+**Closes:** the pre-existing repo-wide `validate-state-structure` CI failure on `.factory/STATE.md`'s SIZE BUDGET banner (blocks PR #776's `cargo-host` check, and develop's own CI on the same gate). Records S-21.07's RECONCILED+hardened+RE-CONVERGED status, PR #776 OPEN/MERGEABLE/awaiting-human-merge-approval, and flags the D-1011 + granular-D-1012 decision-log.md backfill as OWED.
+
+**Factory-artifacts commit (this burst — TD-VSDD-053 single-commit-per-burst):** single commit pushed as `git push origin HEAD:factory-artifacts`; SHA per `git -C .factory log -1` after push (per TD-VSDD-053, this burst does not cite its own commit SHA in STATE.md prose — see CLAUDE.md "How to know the current factory-artifacts HEAD SHA").

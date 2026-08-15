@@ -1800,3 +1800,50 @@ Key state at D-1011 archive:
 - develop: `2e8087af`; main: `80e5cd7b`; merged_count: 108.
 
 **This checkpoint superseded by the SESSION-WRAP-PAUSE-2026-08-14 checkpoint burst — human-requested session wrap (`/wrap`) after the reconcile-and-land track was substantially executed.**
+
+## Session Resume Checkpoint (2026-08-14 — HEAD `e90446df`; SHA-patch done; PIPELINE PAUSED — human-requested `/wrap`)
+
+Archived from STATE.md by the D-1012-S2107-SEC001-CWE697-RECONVERGE-PR776-OPEN-BANNER-FIX checkpoint burst (2026-08-15). Full content preserved in git: `git show e90446df:.factory/STATE.md` (factory-artifacts HEAD at the SESSION-WRAP-PAUSE-2026-08-14 SHA-patch tip).
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT** (as originally written).
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. Track: reconcile-and-land S-21.07 (chosen by the human at D-1010/D-1011; the earlier "S-21.07 unbuilt" claim was FALSE — the crate was substantially built; corrected D-1011). This session went far beyond the D-1011 checkpoint's ground-truth-audit-just-starting narrative.
+
+This session (as of the archive point): reconciled the existing S-21.07 `validate-cross-site-correspondence` crate (merged `develop` in via `cc0c560d`, removed the deferred Class D/`arm_d` arm, rebuilt WASM), then ran a HUMAN-DIRECTED STRICT BC-5.39.001 3-CLEAN adversarial cascade (~17 fresh-context passes) that found and fixed real defects via three BC amendments: BC-5.39.010 v1.19→v1.20 (PC13 Phase-1 BC-ID anchoring + primary UTF-8 fail-closed), v1.20→v1.21 (PC13 Phase-2 same-field scan-stop, closing a corpus-confirmed false-block on story S-4.08), v1.21→v1.22 (secondary index-file UTF-8 decode advisory), plus a crate-wide TD-VSDD-091 doc-provenance de-versioning sweep.
+
+Code branch `feature/S-21.07-validate-cross-site-correspondence` @ `a39d6bbb` — pushed to origin (0 ahead/0 behind), worktree clean, fully green (cargo test 2497/0, cargo fmt/clippy clean, full bats 2225/0). Spec (factory-artifacts, pushed): BC-5.39.010 v1.22; story S-21.07 v1.18. `develop` @ `2e8087af`.
+
+### §2 Convergence Counter
+
+The v1.22 re-hardening adversarial cascade, STRICT BC-5.39.001 3-CLEAN (human-directed). Separate counter from the already-CONVERGED (3/3) spec-only cascade closed at D-1009 (trajectory-tail →1→0→0→0, unchanged). The STRICT streak reached 1/3 (v1.22 pass 5), then RESET to 0/3 by v1.22 pass 6 (finding ADV-RECON17-001).
+
+### §3 In-Flight / Next Action (at archive point)
+
+ADV-RECON17-001 OPEN (MEDIUM/LOW): `plugins/vsdd-factory/tests/validate-cross-site-correspondence.bats` still hard-coded stale governing-BC version pins (header `BC-5.39.010 v1.14` + ~6 body sites + a stale AC-count). NEXT ACTION on resume: dispatch `vsdd-factory:test-writer` to de-version the bats governing-BC pins + fix the AC count, then re-run the fresh adversary pass toward 3-CLEAN.
+
+**What actually happened next (see the live STATE.md D-1012 burst for the full account):** ADV-RECON17-001 was fixed, strict 3-CLEAN was achieved, a PR-review security finding SEC-001 (alleged CWE-22) was raised, TRIAGED and REFUTED as a bypass, the narrower CWE-697 over-inclusion it surfaced was genuinely fixed on-branch, BC-5.39.010 was HUMAN-RATIFIED to v1.23, story S-21.07 propagated to v1.22, strict 3-CLEAN RE-CONVERGED, and PR #776 was opened against `develop` — OPEN, MERGEABLE, awaiting human merge approval as of the D-1012 burst.
+
+### §4 Pending Human Decision (at archive point)
+
+Convergence endgame for the strict 3-CLEAN loop (continue grinding vs. accept D-386 asymptotic convergence). **Superseded:** the loop converged via the SEC-001/CWE-697 arc; the pending decision as of D-1012 is PR #776 merge approval instead.
+
+### §5 Open Follow-ups (accepted/deferred, non-blocking — Drift Items, carried forward unchanged)
+
+- `capability: "E-12"` in BC-5.39.010 frontmatter — product-owner to confirm.
+- VP-template `last_amended` scaffold gap — architect-owned.
+- BC-INDEX read-cap ceiling growth — anchored S-21.13.
+- `report.tap` untracked in the MAIN repo — gitignore hygiene (POLICY 20).
+- STORY-INDEX.md `last_amended` field bloat — anchored S-15.03.
+- Frontmatter BOM/leading-line tolerance — accepted (unreachable, fails-closed).
+
+### §6 Landing NOT Done (at archive point; superseded — see D-1012)
+
+Demo-evidence, PR, merge, POST-MERGE burst were NOT started as of this checkpoint. **Superseded:** demo evidence and PR #776 were completed by the archive point of the D-1012 burst; PR #776 is OPEN MERGEABLE awaiting human merge approval; merge + POST-MERGE burst remain owed.
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the D-1012-S2107-SEC001-CWE697-RECONVERGE-PR776-OPEN-BANNER-FIX checkpoint burst (2026-08-15) — the strict 3-CLEAN cascade converged via the SEC-001/CWE-697 arc and PR #776 was opened.**
