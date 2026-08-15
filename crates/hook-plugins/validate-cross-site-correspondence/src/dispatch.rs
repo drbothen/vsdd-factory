@@ -67,8 +67,11 @@ fn is_canonical_bc_filename(filename: &str) -> bool {
 /// (`components.len() - (chain.len() + gap + 1)`), never searched — so the
 /// chain can occupy only the one position immediately (modulo `gap` plain
 /// directory segments) before the file name. Components before that position
-/// are unconstrained, so real absolute/worktree paths (where `.factory` is
-/// not the first component) still classify correctly.
+/// are otherwise unconstrained (any `Normal` name is allowed), so real
+/// absolute/worktree paths (where `.factory` is not the first component)
+/// still classify correctly — EXCEPT for `Component::ParentDir` (`..`),
+/// which this function rejects unconditionally wherever it appears (prefix,
+/// chain, gap, or filename position); see the definitive-close guard below.
 ///
 /// # Why this exists (SEC-001 / CWE-697)
 /// The prior implementation tested for each required component with an
@@ -79,6 +82,16 @@ fn is_canonical_bc_filename(filename: &str) -> bool {
 /// as a governed path. This function anchors the chain to a fixed position so
 /// only the real governed directory sequence, immediately preceding the file,
 /// classifies as a match.
+///
+/// # Definitive close (CWE-697 residual)
+/// Anchoring alone left one bounded over-acceptance residual: a leading `..`
+/// BEFORE the anchored chain — e.g.
+/// `../.factory/specs/behavioral-contracts/ss-05/BC-1.2.3.md` — sits entirely
+/// in the unconstrained prefix and still classified true. Since no legitimate
+/// governed corpus path ever contains `..`, this function now rejects the
+/// whole path outright if ANY component is `Component::ParentDir`, closing
+/// the residual at the classification layer rather than leaving prefix
+/// components unconstrained to `..`.
 ///
 /// This is a classification-correctness fix only: `..` sequences cannot lexically
 /// cancel a `Normal` component via `Path::components()`, and the actual
@@ -92,6 +105,24 @@ fn chain_immediately_precedes_filename(
     gap: usize,
 ) -> bool {
     use std::path::Component;
+    // SEC-001 / CWE-697 DEFINITIVE CLOSE: reject the whole path if ANY component
+    // is a `ParentDir` (`..`), wherever it appears — including in the prefix
+    // BEFORE `chain_start`, which is otherwise intentionally unconstrained so
+    // real absolute/worktree paths (where `.factory` is not component 0) still
+    // classify correctly. No legitimate governed corpus path ever contains
+    // `..` — AI agents write real `.factory/...` paths, and the actual
+    // traversal defense (`factory-dispatcher/src/host/path_util.rs::check_path_allowed`,
+    // Kani-proven VP-097) canonicalizes + allow-lists downstream and fails
+    // closed on any real escape regardless of this classifier's answer. This
+    // guard only removes the last bounded spurious-classification residual
+    // (a leading `..` before the anchored chain, e.g.
+    // `../.factory/specs/behavioral-contracts/ss-05/BC-1.2.3.md`) — it does
+    // not change containment. `CurDir` (`.`) / `RootDir` (`/`) / `Prefix`
+    // (Windows drive letters) are deliberately NOT rejected: those are
+    // legitimate for `./`-relative and absolute/worktree paths.
+    if components.iter().any(|c| matches!(c, Component::ParentDir)) {
+        return false;
+    }
     let needed = chain.len() + gap + 1;
     if components.len() < needed {
         return false;
@@ -871,6 +902,102 @@ mod tests {
             result,
             "canonical epic path in absolute/worktree form must still classify as \
             a frontmatter parity target."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // SEC-001 DEFINITIVE CLOSE (CWE-697 residual): a leading `..` BEFORE the
+    // anchored chain still classifies TRUE today, because
+    // `chain_immediately_precedes_filename` derives the chain's start position
+    // from the total component count and leaves components BEFORE that
+    // position entirely unconstrained (that unconstrained-prefix behavior is
+    // intentional and correct for real absolute/worktree paths, where
+    // `.factory` legitimately isn't component 0 — see the
+    // `*_absolute_form_accepted` positive controls above). A `../.factory/...`
+    // decoy exploits that same unconstrained prefix by placing `ParentDir`
+    // there instead of ordinary directory names.
+    //
+    // Research-confirmed impact: bounded spurious block (availability only) —
+    // the actual traversal defense is the Kani-proven
+    // `path_util::check_path_allowed` downstream, which canonicalizes and
+    // fails closed on any real escape. This is a classification-correctness
+    // close, not a bypass close. No legitimate governed corpus path ever
+    // contains `..`; the fix rejects the whole path if ANY component is
+    // `Component::ParentDir`, wherever it appears (before, within, or after
+    // the anchored chain) — while leaving `CurDir` / `RootDir` / `Prefix`
+    // unconstrained, since those are legitimate for `./` relative and
+    // absolute/worktree paths (the existing positive-control tests above
+    // must still pass unchanged).
+    //
+    // RED GATE (pre-fix): `chain_immediately_precedes_filename` only
+    // examines the chain/gap window; a `ParentDir` sitting in the prefix
+    // (before `chain_start`) is invisible to it, so these paths wrongly
+    // classify true today. `assert!(!result)` FAILS pre-fix.
+    // -----------------------------------------------------------------------
+
+    /// SEC-001 definitive-close RED GATE: is_bc_file — leading `..` before the
+    /// anchored `.factory`/specs/behavioral-contracts chain must be rejected.
+    #[test]
+    fn test_SEC_001_dispatch_bc_file_leading_dotdot_rejected() {
+        let result = is_bc_file("../.factory/specs/behavioral-contracts/ss-05/BC-1.2.3.md");
+        assert!(
+            !result,
+            "leading '..' before the anchored governed chain must NOT classify as \
+            a BC file (SEC-001 CWE-697 definitive close — bounded over-acceptance \
+            residual: components before chain_start were previously unconstrained)."
+        );
+    }
+
+    /// SEC-001 definitive-close RED GATE: is_story_file — leading `..` before
+    /// the anchored `.factory`/stories chain must be rejected.
+    #[test]
+    fn test_SEC_001_dispatch_story_file_leading_dotdot_rejected() {
+        let result = is_story_file("../.factory/stories/S-1.1-decoy.md");
+        assert!(
+            !result,
+            "leading '..' before the anchored governed chain must NOT classify as \
+            a story file (SEC-001 CWE-697 definitive close)."
+        );
+    }
+
+    /// SEC-001 definitive-close RED GATE: is_story_index — leading `..` before
+    /// the anchored `.factory`/stories chain must be rejected.
+    #[test]
+    fn test_SEC_001_dispatch_story_index_leading_dotdot_rejected() {
+        let result = is_story_index("../.factory/stories/STORY-INDEX.md");
+        assert!(
+            !result,
+            "leading '..' before the anchored governed chain must NOT classify as \
+            the story index (SEC-001 CWE-697 definitive close)."
+        );
+    }
+
+    /// SEC-001 definitive-close RED GATE: is_frontmatter_parity_target (VP arm)
+    /// — leading `..` before the anchored verification-properties chain must be
+    /// rejected.
+    #[test]
+    fn test_SEC_001_dispatch_fpm_vp_leading_dotdot_rejected() {
+        let result =
+            is_frontmatter_parity_target("../.factory/specs/verification-properties/VP-039.md");
+        assert!(
+            !result,
+            "leading '..' before the anchored governed chain must NOT classify as \
+            a frontmatter parity target (SEC-001 CWE-697 definitive close, VP arm)."
+        );
+    }
+
+    /// SEC-001 definitive-close RED GATE: is_frontmatter_parity_target (epic
+    /// arm) — leading `..` before the anchored stories/epics chain must be
+    /// rejected.
+    #[test]
+    fn test_SEC_001_dispatch_fpm_epic_leading_dotdot_rejected() {
+        let result = is_frontmatter_parity_target(
+            "../.factory/stories/epics/E-21-factory-state-data-loss-hardening.md",
+        );
+        assert!(
+            !result,
+            "leading '..' before the anchored governed chain must NOT classify as \
+            a frontmatter parity target (SEC-001 CWE-697 definitive close, epic arm)."
         );
     }
 }
