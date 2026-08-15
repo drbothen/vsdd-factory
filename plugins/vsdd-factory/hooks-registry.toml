@@ -662,6 +662,53 @@ path_allow = [
   ".factory/HANDOFF.md",
 ]
 
+# ---------- validate-cross-site-correspondence (PostToolUse, Edit|Write|MultiEdit) ----------
+# BC-5.39.010 §Gate Spec: PostToolUse cross-site value-correspondence gate (current version per BC-INDEX).
+# Six active arms: Class A Arm1 (BC version vs BC-INDEX row), Class A Arm2 (story BC-table
+# citations vs BC frontmatter), Class B Arm1 (story input-hash three-way equality),
+# Class B Arm2 (STORY-INDEX internal catalog/blockquote parity), Class E1 (frontmatter
+# version/last_amended parity), Class E2 (modified[] monotonicity).
+# Class D (finding-ID namespace format advisory) is DEFERRED to S-21.08 (BC-5.39.010 v1.6 / D-953).
+# priority = 460: next available slot after validate-wave-handoff-completeness (450).
+# on_error = "continue": fuel exhaustion (debug build, oversized artifact) → silent
+#   non-finding, not spurious block (ADR-035 §Decision 5). NOTE: max_bytes caps are
+#   NOT calibrated against the fuel budget — BC-5.39.010 v1.15 RETRACTED that claim
+#   as false (measured fuel consumption ~99.21% of the 10M-instruction budget at
+#   typical artifact sizes, i.e. near-exhaustion, not comfortable headroom).
+# tool = "^(Edit|Write|MultiEdit)$": aligns with all 41 Edit/Write/MultiEdit hooks
+#   in the live registry. BC-5.39.010 v1.1 §Gate Spec had MultiEdit omitted — a
+#   POLICY 13 ESCAPE-SCOPE-PARITY gap. v1.2 corrects to include MultiEdit.
+# No fuel_cap field: the per-plugin fuel_cap registry field (ADR-035 §Decision 5,
+#   ADR-039 §Decision 2) is not yet implemented — ADR-039 Phase 1 (registry fuel_cap
+#   schema extension) has not shipped. The general prohibition on fuel_cap entries
+#   (BC-5.39.010 v1.15) was LIFTED by ADR-042 §Decision 2 (v1.16): once ADR-039
+#   Phase 1 ships, a per-plugin fuel_cap SHOULD be set for this hook, calibrated to
+#   p99×1.5 (minimum 50M for Phase 3 fail-closed annotation). Until then the only
+#   available lever is the global InvokeLimits::default() cap (BC-5.39.010
+#   §Gate Spec §Fuel-cap verification).
+# path_allow: covers .factory/specs/behavioral-contracts/, .factory/specs/
+#   verification-properties/, .factory/stories/ — three directory subtrees the
+#   hook reads from. .factory/cycles/ was removed with Class D deferral
+#   (BC-5.39.010 v1.6 / D-953): cycle artifact dispatch descoped; no reads needed.
+# S-21.07 deliverable — E-21 W4 cross-site correspondence validation.
+
+[[hooks]]
+name = "validate-cross-site-correspondence"
+event = "PostToolUse"
+tool = "^(Edit|Write|MultiEdit)$"
+plugin = "hook-plugins/validate-cross-site-correspondence.wasm"
+priority = 460
+timeout_ms = 8000
+on_error = "continue"
+async = false
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/specs/behavioral-contracts/",
+  ".factory/specs/verification-properties/",
+  ".factory/stories/",
+]
+
 # ---------- PreToolUse ----------
 
 [[hooks]]

@@ -3765,6 +3765,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "validate-cross-site-correspondence"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "validate-dispatch-advance"
 version = "0.0.1"
 dependencies = [
