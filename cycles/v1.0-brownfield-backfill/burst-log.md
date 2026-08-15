@@ -29085,3 +29085,48 @@ test tests::test_BC_5_39_005_full_validation_against_real_state_md ... ok
 **Closes:** the pre-existing repo-wide `validate-state-structure` CI failure on `.factory/STATE.md`'s SIZE BUDGET banner (blocks PR #776's `cargo-host` check, and develop's own CI on the same gate). Records S-21.07's RECONCILED+hardened+RE-CONVERGED status, PR #776 OPEN/MERGEABLE/awaiting-human-merge-approval, and flags the D-1011 + granular-D-1012 decision-log.md backfill as OWED.
 
 **Factory-artifacts commit (this burst — TD-VSDD-053 single-commit-per-burst):** single commit pushed as `git push origin HEAD:factory-artifacts`; SHA per `git -C .factory log -1` after push (per TD-VSDD-053, this burst does not cite its own commit SHA in STATE.md prose — see CLAUDE.md "How to know the current factory-artifacts HEAD SHA").
+
+## D-1013-S2107-MERGED-PR776-POL14-PROMOTION — POST-MERGE burst
+
+**Parent commit:** `347f6bbc` (D-1012 banner-repair + arc-record burst) — the `factory-artifacts` HEAD at burst start, per D-419(b)/D-444(c) parent-commit-SHA convention.
+
+**Adversary verdict:** N/A — this is a POST-MERGE bookkeeping burst, not an adversary-review burst. PR #776 was human-approved for merge (pr-reviewer verdict APPROVE, recorded at D-1012) and squash-merged to `develop` at commit `e94767bc` 2026-08-15 by the human/pr-manager merge action ("feat(S-21.07): validate-cross-site-correspondence WASM hook — six-arm cross-site correspondence gate (#776)"). The feature branch `feature/S-21.07-validate-cross-site-correspondence` was auto-deleted on origin per the repository's merge settings.
+
+**Files touched this burst:**
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md` — POL-14 auto-promotion: `status`/`lifecycle_status` draft→active; `version` 1.23→1.24; `modified[]` +v1.24 entry; `last_amended` prepended; body `## Changelog` table +v1.24 row. No behavioral/content change — Description/Preconditions/Postconditions/Invariants/Edge Cases/Canonical Test Vectors byte-identical to v1.23.
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — version 4.62→4.63; `changelog:` array +v4.63 entry; `last_amended` prepended (old v4.62 entry preserved as `[Prior: ...]`); body-table BC-5.39.010 row status column draft→active + version-chain cell +v1.24.
+- `.factory/stories/sprint-state.yaml` — S-21.07 entry `status: draft`→`status: merged`.
+- `.factory/STATE.md` — frontmatter (version/timestamp/phase/last_amended/current_step); SIZE BUDGET banner (new archive row + wc-l claim refreshed to match the file's actual final line count); Project Metadata (Last Updated + Current Phase); Phase Progress (+D-1012 backfill row +D-1013 row); Current Phase Steps (rows through D-1012 archived-pointer, +D-1012/D-1013 rows); Identifier Conventions (BC row, Merged Count row); Story Status (Merged bullet, E-21 bullet); Active Branches (`develop` row SHA+note; `feature/S-21.07-validate-cross-site-correspondence` row REMOVED — branch deleted on origin; `factory-artifacts` row refreshed per TD-VSDD-053 no-self-SHA-citation guidance); Concurrent Cycles (`v1.0-brownfield-backfill` row rewritten); Decisions Log (note text + new D-1013 row); Session Resume Checkpoint (replaced; old archived to `session-checkpoints.md`).
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — archived the D-1012-dated Session Resume Checkpoint.
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — this D-1013 entry.
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry.
+
+**Codifications:** none new this burst.
+
+**Dim-2/5/6/7 attestations — literal shell, D-449(a):**
+
+```
+$ VSDD_CORPUS_ROOT="$PWD/.factory" CI_REQUIRE_ARTIFACTS=1 cargo test -p validate-state-structure \
+    --manifest-path crates/hook-plugins/validate-state-structure/Cargo.toml \
+    test_BC_5_39_005 -- --nocapture
+test tests::test_BC_5_39_005_f_p1_001_real_state_md_banner_wc_passes ... ok
+test tests::test_BC_5_39_005_full_validation_against_real_state_md ... ok
+test result: ok. 63 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out
+```
+
+```
+$ grep -n '| \[BC-5.39.010\]' .factory/specs/behavioral-contracts/BC-INDEX.md
+| ... | active | E-12 | S-21.07 | v1.10 | ... | v1.23 | v1.24 |
+$ grep -n '^status:\|^lifecycle_status:\|^version:' .factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md
+version: "1.24"
+status: active
+lifecycle_status: active
+$ wc -l .factory/STATE.md
+284 .factory/STATE.md
+$ grep -n 'Current:.*lines (wc-l)' .factory/STATE.md
+Current: 284 lines (wc-l).
+```
+
+**Closes:** the POL-14 auto-promotion obligation for S-21.07's PR #776 merge (BC-5.39.010 draft→active), the `merged_count` 108→109 increment, and the Story Status / Active Branches / develop-SHA sync obligations opened by the merge. Does NOT close: the D-1012 exhaustive per-decision decision-log.md backfill (still OWED, unaffected by this burst — see the Decisions Log note and Blocking Issues `[BACKFILL OWED]` row).
+
+**Factory-artifacts commit (this burst — TD-VSDD-053 single-commit-per-burst):** single commit pushed as `git push origin HEAD:factory-artifacts`; SHA per `git -C .factory log -1` after push (per TD-VSDD-053, this burst does not cite its own commit SHA in STATE.md prose — see CLAUDE.md "How to know the current factory-artifacts HEAD SHA").

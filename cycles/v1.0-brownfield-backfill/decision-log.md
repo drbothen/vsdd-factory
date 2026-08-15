@@ -18165,3 +18165,41 @@ D-1012-S2107-SEC001-CWE697-RECONVERGE-PR776-OPEN-BANNER-FIX
 2026-08-15
 
 ---
+
+## D-1013 — D-1013-S2107-MERGED-PR776-POL14-PROMOTION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → the prior max was `## D-1012`; D-1013 allocated.
+
+**(a) PR #776 merged.** Human-authorized merge: PR #776 (`feature/S-21.07-validate-cross-site-correspondence` → `develop`) squash-merged 2026-08-15 at commit `e94767bc` ("feat(S-21.07): validate-cross-site-correspondence WASM hook — six-arm cross-site correspondence gate (#776)"). This closes out the S-21.07 delivery whose SEC-001/CWE-697 arc and strict-3-CLEAN RE-CONVERGENCE were recorded at D-1012. The feature branch was auto-deleted on origin by the repository's post-merge branch-deletion setting.
+
+**(b) POL-14 auto-promotion at merge.** BC-5.39.010 `status`/`lifecycle_status` draft→active. Per the established POL-14 precedent (D-884 BC-4.16.001 v1.7→v1.8; D-991 BC-4.16.001 v1.8→v1.9 field-parity completion), this is recorded as a version bump rather than a bare frontmatter flip, to keep the BC's own `## Changelog` table and 5-leg parity (POLICY 14/kk_n) intact: BC-5.39.010 v1.23→v1.24 ("POL-14 auto-promotion at merge... No behavioral/content change"). BC-INDEX row status column draft→active + version-chain cell +v1.24; BC-INDEX v4.62→v4.63.
+
+**(c) merged_count.** `stories/sprint-state.yaml` S-21.07 entry `status: draft`→`status: merged`. STATE.md explicit counter 108→109.
+
+**(d) Story Status / Active Branches sync.** STATE.md Story Status: S-21.07 moved into the Merged bullet (109 merged); the E-21 bullet's long in-progress SEC-001/CWE-697-grind narrative replaced with a pointer to the Merged bullet + burst-log.md D-1012/D-1013 entries (avoiding duplicate narrative). Active Branches: `develop` row SHA `2e8087af`→`e94767bc` with updated note; `feature/S-21.07-validate-cross-site-correspondence` row REMOVED (branch deleted on origin — this differs from the `feature/S-21.09` row precedent, which is RETAINED because that branch ref was NOT deleted on origin after its merge); `factory-artifacts` row refreshed to point at `git -C .factory log -1` rather than a hardcoded SHA guess, per the TD-VSDD-053 "no self-SHA-citation" guidance in CLAUDE.md.
+
+**(e) 4-index.** BC-INDEX **v4.63** (BC-5.39.010 row v1.24, was v4.62/v1.23) / STORY-INDEX v4.338 UNCHANGED (no story-file content change — POL-14 promotion touches only the governing BC's frontmatter) / VP-INDEX v2.76 UNCHANGED / ARCH-INDEX v3.58 UNCHANGED. policies.yaml v1.4.24 UNCHANGED.
+
+**(f) No new POLICY-level lesson codified this burst.** Standard POST-MERGE bookkeeping following the D-884/D-991 POL-14 precedent; no novel process-gap surfaced.
+
+**(g) Outstanding backfill unaffected.** The D-1012 exhaustive per-decision decision-log.md backfill (D-1011's reconcile-and-land session + the ~17-pass strict cascade) remains OWED — this burst records its OWN decision fully (this D-1013 entry) but does not retroactively expand D-1012's consolidated entry. Tracked in STATE.md Blocking Issues `[BACKFILL OWED]` row and the Decisions Log note.
+
+### Agents
+
+- human: merge-approval authorization for PR #776
+- vsdd-factory:pr-manager (prior session, relayed): PR #776 merge execution
+- state-manager (this burst): POL-14 BC-5.39.010 promotion (BC file + BC-INDEX); sprint-state.yaml S-21.07 status update; STATE.md full POST-MERGE advance; this D-1013 decision-log.md entry; burst-log.md narrative; single atomic commit to `factory-artifacts` per TD-VSDD-053
+
+### 4-INDEX
+
+BC-INDEX v4.63 (was v4.62) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.338 (UNCHANGED) / ARCH-INDEX v3.58 (UNCHANGED)
+
+### Phase
+
+D-1013-S2107-MERGED-PR776-POL14-PROMOTION
+
+### Date
+
+2026-08-15
+
+---
