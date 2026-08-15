@@ -609,6 +609,23 @@ mod tests {
             String::from_utf8(out.stdout).unwrap().trim().to_string()
         }
 
+        /// CR-2 (v1.18): run `git <args>` and return its trimmed single-line stdout,
+        /// asserting the command succeeded. Ported from
+        /// `tests/binary_integration_test.rs`'s `Repo::git_stdout` — that file's module
+        /// doc documents the established precedent for this exact duplication
+        /// (integration test files are a separate compilation unit and cannot reach
+        /// this private `#[cfg(test)]` module).
+        fn git_stdout(&self, args: &[&str]) -> String {
+            let out = self.git(args);
+            assert!(
+                out.status.success(),
+                "git {:?} failed: {}",
+                args,
+                String::from_utf8_lossy(&out.stderr)
+            );
+            String::from_utf8(out.stdout).unwrap().trim().to_string()
+        }
+
         /// Write `content` to `rel_path` (relative to repo root), creating parent dirs.
         fn write(&self, rel_path: &str, content: &str) {
             let full = self.dir.path().join(rel_path);
@@ -628,6 +645,77 @@ mod tests {
         fn write_and_commit(&self, rel_path: &str, content: &str, message: &str) {
             self.write(rel_path, content);
             self.commit(message);
+        }
+
+        /// CR-2 (v1.18): port of `tests/binary_integration_test.rs`'s
+        /// `create_range_containing_parentless_commit` — builds a genuinely parentless
+        /// ("root-like") commit and merges it, via `git merge --allow-unrelated-histories`,
+        /// back onto the tip of the current branch, so that:
+        ///
+        /// - `git merge-base <old-tip> <new-tip>` still resolves to `<old-tip>` (it is the
+        ///   merge commit's FIRST parent), keeping `run_gate_from_merge_base`'s caller-supplied
+        ///   merge-base on the expected path; and
+        /// - `git log <old-tip>..<new-tip>` (what `run_gate_inner` evaluates) nonetheless
+        ///   contains the parentless root commit, because it is reachable from the new tip via
+        ///   the merge's SECOND parent and is not reachable from `<old-tip>` at all.
+        ///
+        /// The only file-level change introduced relative to `<old-tip>` is a single new file
+        /// outside the pinned crate (non-activating), so the only way the fixture can affect
+        /// the gate's outcome is through the skip-guard behavior under test.
+        ///
+        /// Returns the new parentless root commit's full SHA. Leaves the current branch at the
+        /// new merge commit.
+        fn create_range_containing_parentless_commit(&self) -> String {
+            // 1. A parentless commit reusing the CURRENT (clean) tree verbatim.
+            let base_tree = self.git_stdout(&["write-tree"]);
+            let root_commit =
+                self.git_stdout(&["commit-tree", &base_tree, "-m", "synthetic root commit"]);
+            let parent_check = self.git(&["rev-parse", "--verify", &format!("{root_commit}^1")]);
+            assert!(
+                !parent_check.status.success(),
+                "fixture bug: synthetic root commit unexpectedly has a parent"
+            );
+
+            // 2. A child of the root commit adding one new file (built directly via
+            //    plumbing, so the current branch/index/working tree are never touched by
+            //    this step).
+            self.write("unrelated/extra.md", "extra\n");
+            self.git(&["add", "unrelated/extra.md"]);
+            let child_tree = self.git_stdout(&["write-tree"]);
+            let child_commit = self.git_stdout(&[
+                "commit-tree",
+                &child_tree,
+                "-p",
+                &root_commit,
+                "-m",
+                "docs on unrelated root chain",
+            ]);
+
+            // 3. Restore the index to match the current branch tip (undo the `git add`
+            //    from step 2) and remove the working-tree file so the upcoming merge
+            //    starts from a clean, matching state.
+            let reset = self.git(&["reset", "--mixed", "HEAD"]);
+            assert!(reset.status.success());
+            fs::remove_dir_all(self.path().join("unrelated")).expect("remove_dir_all");
+
+            // 4. Merge the unrelated chain onto the current branch tip. Because
+            //    `git merge` runs from the CURRENT branch, the resulting commit's first
+            //    parent is the pre-merge tip and its second parent is `child_commit`
+            //    (whose own parent is the parentless root commit).
+            let merge = self.git(&[
+                "merge",
+                "--allow-unrelated-histories",
+                "-m",
+                "merge unrelated parentless-root chain",
+                &child_commit,
+            ]);
+            assert!(
+                merge.status.success(),
+                "merge --allow-unrelated-histories failed: {}",
+                String::from_utf8_lossy(&merge.stderr)
+            );
+
+            root_commit
         }
     }
 
@@ -1199,6 +1287,279 @@ mod tests {
         );
         assert_eq!(outcome.identifier(), "FAIL: obligation violated");
         assert_eq!(outcome.exit_code(), 2);
+    }
+
+    // ── v1.18 formal regression controls (PR #777 review: CR-2, H-1, H-2) ──────
+
+    /// CR-2 — structural (not stderr-substring) proof that a parentless/root commit
+    /// placed INSIDE a non-empty evaluated range is recorded in
+    /// `GateResult.skipped_parentless`, not merely inferred from a WARNING string.
+    ///
+    /// This is the still-outstanding v1.17 test directive
+    /// (`test_root_commit_is_skipped_not_activating`), delivered per ADR-040 §Decision
+    /// 9 Ruling 9(c) item 4 + v1.18 CR-2 adjudication (`.factory/specs/architecture/
+    /// decisions/ADR-040-...md`, "v1.18 replacement routing — test-writer" item 1). The
+    /// companion binary-boundary stderr-substring test
+    /// (`test_f1_parentless_commit_in_range_is_skipped_with_warning` in
+    /// `tests/binary_integration_test.rs`) is UNCHANGED and remains the CLI-contract
+    /// proof; this test is the library-level structural proof CR-2 asked for. A mutant
+    /// that drops the `skipped_parentless.push(...)` call, pushes the wrong SHA, or
+    /// pushes a duplicate now fails this `assert_eq!` regardless of any message-text
+    /// formatting.
+    ///
+    /// Expected: GREEN.
+    #[test]
+    fn test_root_commit_is_skipped_not_activating() {
+        let repo = Repo::new();
+        repo.write_and_commit(
+            &format!("{PC}/docs/placeholder.md"),
+            "placeholder\n",
+            "seed: crate in HEAD tree",
+        );
+        let base = repo.head_sha();
+
+        let root_sha = repo.create_range_containing_parentless_commit();
+
+        let GateResult {
+            outcome,
+            skipped_parentless,
+            ..
+        } = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+
+        assert_eq!(
+            skipped_parentless,
+            vec![root_sha.clone()],
+            "expected skipped_parentless to contain exactly the root commit's SHA"
+        );
+        assert_eq!(
+            outcome,
+            GateOutcome::PassZeroActivations,
+            "the parentless-commit skip must be harmless to the verdict"
+        );
+    }
+
+    /// H-1 control 1 (false-FAIL-gone) — a real, non-fast-forward merge commit whose
+    /// FIRST-PARENT (two-dot) diff would re-flag an already-attested crate change
+    /// pulled in from the second parent, but whose COMBINED diff is INERT for the
+    /// crate (the file matches the parent that introduced it). Mirrors PR #777's own
+    /// `010e6140` shape (ADR-040 §Decision 9 Ruling 9(e), H-1 pr-reviewer finding).
+    ///
+    /// Fixture: a `feature` lineage adds a pinned-crate `.rs` file WITH a compliant
+    /// attestation (mirrors `test_negative_compliant_attestation` — "already attested
+    /// elsewhere"); `main` independently diverges with an unrelated docs commit so the
+    /// merge cannot fast-forward; a real `git merge --no-ff` brings `feature` back onto
+    /// `main`. Pre-fix (two-dot endpoint diff on the merge commit), the crate file
+    /// would appear "new" at the merge and false-FAIL for missing an attestation keyed
+    /// to the merge's OWN first parent. Post-fix, the combined diff excludes it (it
+    /// matches the `feature` parent) and the merge commit is recorded as
+    /// `skipped_merge_inert`.
+    ///
+    /// Asserts: `result.outcome` is NOT `Fail` AND the merge commit's SHA is in
+    /// `result.skipped_merge_inert`.
+    ///
+    /// Expected: GREEN.
+    #[test]
+    fn test_h1_merge_pass_through_content_is_skipped_not_failed() {
+        let repo = Repo::new();
+        repo.write_and_commit(
+            &format!("{PC}/docs/placeholder.md"),
+            "placeholder\n",
+            "seed: crate in HEAD tree",
+        );
+        let base = repo.head_sha();
+        let main_branch = repo.git_stdout(&["rev-parse", "--abbrev-ref", "HEAD"]);
+        let attestation_parent = base.clone();
+
+        // `feature` lineage: adds a pinned-crate `.rs` file WITH a compliant
+        // attestation — this is the "already attested on its own originating branch"
+        // content Ruling 9(e) says must not be re-flagged at the merge.
+        repo.git(&["checkout", "-b", "feature"]);
+        repo.write(&format!("{PC}/src/lib.rs"), "// assertion site (feature)\n");
+        repo.write(
+            LOG,
+            &format!(
+                "# Red Gate Log\n\n### Pass-1 assertion-site attestation ({attestation_parent})\n\nAttestation body.\n"
+            ),
+        );
+        repo.commit("feature: assertion site + compliant attestation");
+
+        // `main` diverges independently (unrelated docs change) so the upcoming merge
+        // cannot fast-forward and must produce a genuine two-parent merge commit.
+        repo.git(&["checkout", &main_branch]);
+        repo.write_and_commit(
+            "docs/unrelated.md",
+            "unrelated\n",
+            "main: unrelated docs change",
+        );
+
+        let merge_out = repo.git(&[
+            "merge",
+            "--no-ff",
+            "-m",
+            "merge feature into main (sync)",
+            "feature",
+        ]);
+        assert!(
+            merge_out.status.success(),
+            "expected a clean, non-conflicting merge: {}",
+            String::from_utf8_lossy(&merge_out.stderr)
+        );
+        let merge_sha = repo.head_sha();
+
+        let GateResult {
+            outcome,
+            skipped_merge_inert,
+            ..
+        } = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+
+        assert!(
+            !matches!(&outcome, GateOutcome::Fail(_)),
+            "H-1 false-FAIL regression: a merge pulling in already-attested content \
+             must not FAIL, got: {:?}",
+            outcome
+        );
+        assert!(
+            skipped_merge_inert.contains(&merge_sha),
+            "expected the merge commit {merge_sha} in skipped_merge_inert (combined \
+             diff must be empty for pass-through crate content), got: {:?}",
+            skipped_merge_inert
+        );
+    }
+
+    /// H-1 control 2 (bypass-stays-closed) — a merge commit whose COMBINED diff
+    /// genuinely contains merge-authored crate content (introduced ONLY at the merge
+    /// point, nowhere else in the DAG — the exact bypass H-1 asked to be closed,
+    /// ADR-040 §Decision 9 Ruling 9(e) "Closing the bypass" paragraph), with NO
+    /// attestation heading for the merge commit's first parent.
+    ///
+    /// Fixture: two independent lineages (`parent1`, `parent2`) off `base`, NEITHER of
+    /// which touches the pinned crate (so neither generates its own, unrelated Fail).
+    /// A merge commit is fabricated directly via `commit-tree` plumbing (same
+    /// technique `create_range_containing_parentless_commit` uses) whose tree adds a
+    /// pinned-crate `.rs` file present in NEITHER parent — content that, by
+    /// definition, is exactly what git's combined diff surfaces as merge-authored. No
+    /// `red-gate-log.md` is ever committed, so the attestation lookup keyed on the
+    /// merge commit's first parent (`parent1`) finds nothing.
+    ///
+    /// This proves the H-1 skip does not open a hole: attestation is still enforced on
+    /// genuinely merge-authored content.
+    ///
+    /// Asserts: `result.outcome` IS `Fail(v)` with exactly one entry, whose `commit`
+    /// is the merge commit's SHA and whose `reason` is `FailReason::LogAbsent`.
+    ///
+    /// Expected: GREEN.
+    #[test]
+    fn test_h1_merge_authored_content_with_no_attestation_still_fails() {
+        let repo = Repo::new();
+        repo.write_and_commit(
+            &format!("{PC}/docs/placeholder.md"),
+            "placeholder\n",
+            "seed: crate in HEAD tree",
+        );
+        let base = repo.head_sha();
+        let main_branch = repo.git_stdout(&["rev-parse", "--abbrev-ref", "HEAD"]);
+
+        // Parent 1: unrelated docs change off `base` — does NOT touch the pinned
+        // crate, so it carries no obligation of its own.
+        repo.write_and_commit("docs/p1.md", "p1\n", "parent1: unrelated docs change");
+        let parent1 = repo.head_sha();
+
+        // Parent 2: a second, independent lineage off `base` — also does NOT touch
+        // the pinned crate.
+        repo.git(&["checkout", "-b", "lineage-p2", &base]);
+        repo.write_and_commit("docs/p2.md", "p2\n", "parent2: unrelated docs change");
+        let parent2 = repo.head_sha();
+
+        // Back to `main_branch`'s tip (== parent1) so the working tree/index reflect
+        // parent1's committed state before staging the merge-only content.
+        repo.git(&["checkout", &main_branch]);
+
+        // Fabricate a merge commit whose tree adds a pinned-crate `.rs` file that
+        // exists NOWHERE else in the DAG — content introduced ONLY at the merge point
+        // itself, mirroring a conflict-resolution edit authored during the merge.
+        repo.write(
+            &format!("{PC}/src/merge_authored.rs"),
+            "// authored only at the merge commit, no attestation\n",
+        );
+        repo.git(&["add", "-A"]);
+        let merge_tree = repo.git_stdout(&["write-tree"]);
+        let merge_sha = repo.git_stdout(&[
+            "commit-tree",
+            &merge_tree,
+            "-p",
+            &parent1,
+            "-p",
+            &parent2,
+            "-m",
+            "merge: introduce crate .rs only at the merge point (no attestation)",
+        ]);
+        // Advance the branch ref to the fabricated merge commit. No separate checkout
+        // is needed: the index/working tree already match `merge_tree`, since that is
+        // exactly what was just staged on top of `parent1`'s checkout.
+        repo.git(&[
+            "update-ref",
+            &format!("refs/heads/{main_branch}"),
+            &merge_sha,
+        ]);
+        assert_eq!(
+            repo.head_sha(),
+            merge_sha,
+            "fixture bug: HEAD did not advance"
+        );
+
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+
+        assert!(
+            matches!(
+                &outcome,
+                GateOutcome::Fail(v) if v.len() == 1
+                    && v[0].commit == merge_sha
+                    && v[0].reason == FailReason::LogAbsent
+            ),
+            "expected Fail(LogAbsent) for the sole merge-authored, unattested commit \
+             {merge_sha}, got: {:?}",
+            outcome
+        );
+    }
+
+    /// H-2 control — a non-ASCII path component under the pinned crate must still
+    /// activate the gate. Regression for `git diff --name-only`'s default
+    /// `core.quotePath=true`, which C-quotes (surrounds with `"` + octal escapes) any
+    /// path containing non-ASCII bytes — breaking both the `starts_with(&crate_prefix)`
+    /// and `ends_with(".rs")` predicates and silently producing `PassZeroActivations`
+    /// for a genuinely unattested crate change (pr-reviewer H-2, PR #777).
+    ///
+    /// This test FAILS against the pre-fix code (which invoked plain
+    /// `git diff --name-only` without `-c core.quotePath=false`) and PASSES now that
+    /// `git_diff_name_only` pins `core.quotePath=false`.
+    ///
+    /// Expected: GREEN.
+    #[test]
+    fn test_h2_non_ascii_path_activates_gate() {
+        let repo = Repo::new();
+        let base = repo.head_sha();
+        let parent_sha = base.clone();
+
+        let non_ascii_path = format!("{PC}/src/café.rs");
+        repo.write(&non_ascii_path, "// non-ASCII filename assertion site\n");
+        repo.write(
+            LOG,
+            &format!(
+                "# Red Gate Log\n\n### Pass-1 assertion-site attestation ({parent_sha})\n\nAttestation body.\n"
+            ),
+        );
+        repo.commit("add non-ASCII-named .rs file + compliant attestation");
+
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+
+        assert!(
+            matches!(outcome, GateOutcome::PassWithActivations(1)),
+            "H-2 regression: a non-ASCII activating path must be detected (not \
+             silently PASS-zero-activations due to core.quotePath C-quoting), got: {:?}",
+            outcome
+        );
     }
 
     /// `GateOutcome::identifier` produces strings that are greppable — spot-check.
