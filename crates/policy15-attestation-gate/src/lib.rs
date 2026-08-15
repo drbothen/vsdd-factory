@@ -1,4 +1,4 @@
-//! POLICY 15 ATTESTATION-LOCATION GATE — ADR-040 §Decisions 7-10 (v1.17)
+//! POLICY 15 ATTESTATION-LOCATION GATE — ADR-040 §Decisions 7-10 (v1.18)
 //!
 //! # Why this exists
 //!
@@ -21,12 +21,12 @@
 //! # Usage
 //!
 //! ```no_run
-//! use policy15_attestation_gate::{run_gate, GateOutcome};
+//! use policy15_attestation_gate::run_gate;
 //! use std::path::Path;
 //!
-//! let outcome = run_gate(Path::new("."), "develop").expect("gate error");
-//! println!("{}", outcome.identifier());
-//! std::process::exit(outcome.exit_code());
+//! let result = run_gate(Path::new("."), "develop").expect("gate error");
+//! println!("{}", result.outcome.identifier());
+//! std::process::exit(result.outcome.exit_code());
 //! ```
 
 use std::path::Path;
@@ -50,6 +50,13 @@ pub enum FailReason {
     LogAbsent,
     /// The log was present but contained no `^### .*assertion-site attestation (<parent>)` heading.
     AttestationMissing,
+    /// The pinned log was present and contained more than one
+    /// `^### .*assertion-site attestation (<parent>)` heading for this commit's parent —
+    /// ambiguous, not absent (ADR-040 §Decision 8 Ruling 8(b) amendment, v1.18).
+    AttestationAmbiguous {
+        /// Number of matching attestation headings found (always ≥ 2).
+        count: usize,
+    },
 }
 
 /// A commit that violated the POLICY 15 obligation.
@@ -149,6 +156,37 @@ impl GateOutcome {
     }
 }
 
+/// Result of a gate run: the verdict plus non-verdict-affecting diagnostics.
+///
+/// `skipped_parentless` and `skipped_merge_inert` are both orthogonal to `outcome` —
+/// they record commits inside the evaluated range that were skipped without affecting
+/// the verdict, for two different reasons:
+///
+/// - `skipped_parentless`: commits lacking a first parent (root commit or shallow-clone
+///   boundary). Skipping such a commit never causes `Fail` (§Decision 9 Ruling 9(c) item 4).
+///   `main.rs` prints an operator-facing WARNING for each entry — this is an unusual
+///   condition worth operator attention.
+/// - `skipped_merge_inert`: merge commits (parent-count > 1) whose COMBINED diff does not
+///   touch the pinned crate's `.rs`/`.bats` surface — a routine sync-merge pulling in
+///   content already attested on its own originating branch (§Decision 9 Ruling 9(e)).
+///   `main.rs` prints NO warning for these — this is the expected, routine case for this
+///   repository's branch-sync workflow, not an anomaly.
+///
+/// Printing operator-facing diagnostics from these fields is `main.rs`'s responsibility,
+/// not this library's — mirrors the FAIL/EmptyOrUnreachable detail-line convention already
+/// used there.
+#[derive(Debug, PartialEq, Eq)]
+pub struct GateResult {
+    /// The four-way verdict (see `GateOutcome`).
+    pub outcome: GateOutcome,
+    /// Full 40-character SHAs of commits skipped for lacking a first parent. Empty in
+    /// the common case.
+    pub skipped_parentless: Vec<String>,
+    /// Full 40-character SHAs of merge commits skipped as inert (combined diff does not
+    /// touch the pinned crate's `.rs`/`.bats` surface). Empty in the common case.
+    pub skipped_merge_inert: Vec<String>,
+}
+
 // ── Error type ────────────────────────────────────────────────────────────────
 
 /// Hard failure: git not installed, repository inaccessible, or unexpected I/O error.
@@ -180,7 +218,7 @@ pub enum GateError {
 ///
 /// The stale-pin guard runs **before** the merge-base computation, so when both
 /// the crate is absent *and* the base is unresolvable, `StalePin` is returned.
-pub fn run_gate(repo: &Path, base_branch: &str) -> Result<GateOutcome, GateError> {
+pub fn run_gate(repo: &Path, base_branch: &str) -> Result<GateResult, GateError> {
     // Guard 1 — stale-pin check BEFORE the origin/<branch> merge-base lookup.
     //
     // This guard is intentionally duplicated from the one in `run_gate_from_merge_base`
@@ -192,7 +230,11 @@ pub fn run_gate(repo: &Path, base_branch: &str) -> Result<GateOutcome, GateError
     //
     // Pinned by: `test_run_gate_guard1_stale_pin_beats_unresolvable_base`.
     if !tree_path_exists(repo, "HEAD", PLUGIN_CRATE)? {
-        return Ok(GateOutcome::EmptyOrUnreachable(UnreachableCause::StalePin));
+        return Ok(GateResult {
+            outcome: GateOutcome::EmptyOrUnreachable(UnreachableCause::StalePin),
+            skipped_parentless: Vec::new(),
+            skipped_merge_inert: Vec::new(),
+        });
     }
 
     let remote_ref = format!("origin/{base_branch}");
@@ -200,9 +242,11 @@ pub fn run_gate(repo: &Path, base_branch: &str) -> Result<GateOutcome, GateError
         Ok(sha) => sha,
         Err(_) => {
             // Unresolvable base → fail closed (not a silent empty range).
-            return Ok(GateOutcome::EmptyOrUnreachable(
-                UnreachableCause::EmptyRange,
-            ));
+            return Ok(GateResult {
+                outcome: GateOutcome::EmptyOrUnreachable(UnreachableCause::EmptyRange),
+                skipped_parentless: Vec::new(),
+                skipped_merge_inert: Vec::new(),
+            });
         }
     };
 
@@ -216,9 +260,13 @@ pub fn run_gate(repo: &Path, base_branch: &str) -> Result<GateOutcome, GateError
 ///
 /// The stale-pin guard is still applied — the `merge_base` parameter only
 /// replaces the `git merge-base HEAD origin/<branch>` computation.
-pub fn run_gate_from_merge_base(repo: &Path, merge_base: &str) -> Result<GateOutcome, GateError> {
+pub fn run_gate_from_merge_base(repo: &Path, merge_base: &str) -> Result<GateResult, GateError> {
     if !tree_path_exists(repo, "HEAD", PLUGIN_CRATE)? {
-        return Ok(GateOutcome::EmptyOrUnreachable(UnreachableCause::StalePin));
+        return Ok(GateResult {
+            outcome: GateOutcome::EmptyOrUnreachable(UnreachableCause::StalePin),
+            skipped_parentless: Vec::new(),
+            skipped_merge_inert: Vec::new(),
+        });
     }
     run_gate_inner(repo, merge_base)
 }
@@ -226,31 +274,57 @@ pub fn run_gate_from_merge_base(repo: &Path, merge_base: &str) -> Result<GateOut
 // ── Gate core ─────────────────────────────────────────────────────────────────
 
 /// Core gate logic (stale-pin guard applied by callers).
-fn run_gate_inner(repo: &Path, merge_base: &str) -> Result<GateOutcome, GateError> {
+fn run_gate_inner(repo: &Path, merge_base: &str) -> Result<GateResult, GateError> {
     let commits = git_log_range(repo, merge_base, "HEAD")?;
     if commits.is_empty() {
-        return Ok(GateOutcome::EmptyOrUnreachable(
-            UnreachableCause::EmptyRange,
-        ));
+        return Ok(GateResult {
+            outcome: GateOutcome::EmptyOrUnreachable(UnreachableCause::EmptyRange),
+            skipped_parentless: Vec::new(),
+            skipped_merge_inert: Vec::new(),
+        });
     }
 
     let mut fail_list: Vec<FailedCommit> = Vec::new();
     let mut empty_diff_commit: Option<String> = None;
     let mut activations: usize = 0;
+    let mut skipped_parentless: Vec<String> = Vec::new();
+    let mut skipped_merge_inert: Vec<String> = Vec::new();
 
     for commit_sha in &commits {
-        // Skip parentless commits (root commit or shallow-clone boundary).
-        if !commit_has_parent(repo, commit_sha)? {
-            eprintln!(
-                "WARNING: commit {commit_sha} has no first parent (root commit or shallow-clone boundary) — skipping POLICY 15 evaluation for this commit"
-            );
-            continue;
-        }
+        // Skip parentless commits (root commit or shallow-clone boundary). CR-4:
+        // `commit_has_parent` returns the resolved parent SHA so this loop avoids a
+        // second `git rev-parse {commit}^1` spawn later for the attestation lookup.
+        let parent_sha = match commit_has_parent(repo, commit_sha)? {
+            Some(p) => p,
+            None => {
+                skipped_parentless.push(commit_sha.clone());
+                continue;
+            }
+        };
 
-        // All files changed in this commit vs its first parent.
-        let all_changed = git_diff_name_only(repo, &format!("{commit_sha}^1"), commit_sha)?;
+        // H-1 (ADR-040 §Decision 9 Ruling 9(e)): merge commits (parent-count > 1) are
+        // evaluated with git's COMBINED diff, which by construction shows only content
+        // differing from EVERY parent — excluding pass-through content already attested
+        // on its own originating branch. Ordinary commits (parent-count == 1) keep the
+        // two-dot endpoint diff, unchanged.
+        let parent_count = commit_parent_count(repo, commit_sha)?;
+        let all_changed = if parent_count > 1 {
+            let combined = git_diff_tree_combined_name_only(repo, commit_sha)?;
+            if combined.is_empty() {
+                // Inert sync-merge — the routine, expected case. Not an anomaly, so no
+                // WARNING and no `empty_diff_commit` (that branch stays reserved for
+                // parent-count == 1 commits — see the check below).
+                skipped_merge_inert.push(commit_sha.clone());
+                continue;
+            }
+            combined
+        } else {
+            git_diff_name_only(repo, &format!("{commit_sha}^1"), commit_sha)?
+        };
 
-        // Empty diff → unmeasurable scope (§Decision 8 trigger 3).
+        // Empty diff → unmeasurable scope (§Decision 8 trigger 3). Reserved for
+        // parent-count == 1 commits; an empty combined diff on a merge commit is the
+        // NORMAL case, already handled above as `skipped_merge_inert`.
         if all_changed.is_empty() {
             empty_diff_commit = Some(commit_sha.clone());
             continue;
@@ -266,9 +340,10 @@ fn run_gate_inner(repo: &Path, merge_base: &str) -> Result<GateOutcome, GateErro
             continue;
         }
 
-        // Unconditional obligation: gate activates for this commit.
+        // Unconditional obligation: gate activates for this commit. Attestation lookup
+        // keys on the FIRST parent (`{commit_sha}^1`) in both the ordinary and
+        // merge-commit (Ruling 9(e)) cases — unchanged.
         activations += 1;
-        let parent_sha = git_rev_parse(repo, &format!("{commit_sha}^1"))?;
 
         // FAIL-when-absent: pinned log must exist at this commit (§Decision 8 Ruling 8(b)).
         let log_content = match git_show_file(repo, commit_sha, RED_GATE_LOG) {
@@ -283,29 +358,39 @@ fn run_gate_inner(repo: &Path, merge_base: &str) -> Result<GateOutcome, GateErro
             Err(e) => return Err(e),
         };
 
-        // Count `^### .*assertion-site attestation (<parent_sha>)` headings.
+        // Count `^### .*assertion-site attestation (<parent_sha>)` headings. Ruling 8(b)
+        // amendment (v1.18, M-3): absence (0) and ambiguity (>= 2) are distinct
+        // `FailReason` variants — the `count != 1` FAIL boundary itself is unchanged.
         let count = count_attestation_headings(&log_content, &parent_sha);
-        if count != 1 {
-            fail_list.push(FailedCommit {
+        match count {
+            1 => {}
+            0 => fail_list.push(FailedCommit {
                 commit: commit_sha.clone(),
                 reason: FailReason::AttestationMissing,
-            });
+            }),
+            n => fail_list.push(FailedCommit {
+                commit: commit_sha.clone(),
+                reason: FailReason::AttestationAmbiguous { count: n },
+            }),
         }
     }
 
     // Priority order: FAIL > EMPTY-or-UNREACHABLE > PASS.
-    if !fail_list.is_empty() {
-        return Ok(GateOutcome::Fail(fail_list));
-    }
-    if let Some(commit) = empty_diff_commit {
-        return Ok(GateOutcome::EmptyOrUnreachable(
-            UnreachableCause::UnmeasurableDiff { commit },
-        ));
-    }
-    if activations == 0 {
-        return Ok(GateOutcome::PassZeroActivations);
-    }
-    Ok(GateOutcome::PassWithActivations(activations))
+    let outcome = if !fail_list.is_empty() {
+        GateOutcome::Fail(fail_list)
+    } else if let Some(commit) = empty_diff_commit {
+        GateOutcome::EmptyOrUnreachable(UnreachableCause::UnmeasurableDiff { commit })
+    } else if activations == 0 {
+        GateOutcome::PassZeroActivations
+    } else {
+        GateOutcome::PassWithActivations(activations)
+    };
+
+    Ok(GateResult {
+        outcome,
+        skipped_parentless,
+        skipped_merge_inert,
+    })
 }
 
 // ── Attestation-heading matcher ───────────────────────────────────────────────
@@ -333,6 +418,44 @@ fn run_git(repo: &Path, args: &[&str]) -> Result<std::process::Output, GateError
         .map_err(GateError::Io)
 }
 
+/// CR-3: run `git <args>` and return its trimmed single-line stdout.
+///
+/// Shared by `git_merge_base` and `commit_parent_count` — both invocations produce
+/// exactly one line of stdout on success.
+fn run_git_line(repo: &Path, args: &[&str]) -> Result<String, GateError> {
+    let output = run_git(repo, args)?;
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    } else {
+        Err(GateError::GitCommand(format!(
+            "git {} exited {}",
+            args.join(" "),
+            output.status
+        )))
+    }
+}
+
+/// CR-3: run `git <args>` and return its non-blank stdout lines.
+///
+/// Shared by `git_log_range`, `git_diff_name_only`, and
+/// `git_diff_tree_combined_name_only` — all three invocations produce a newline-
+/// delimited list on stdout on success.
+fn run_git_lines(repo: &Path, args: &[&str]) -> Result<Vec<String>, GateError> {
+    let output = run_git(repo, args)?;
+    if !output.status.success() {
+        return Err(GateError::GitCommand(format!(
+            "git {} exited {}",
+            args.join(" "),
+            output.status
+        )));
+    }
+    Ok(String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .filter(|l| !l.is_empty())
+        .map(|l| l.to_string())
+        .collect())
+}
+
 /// Returns `true` if `<treeish>:<path>` exists in the git object tree.
 ///
 /// Uses `git cat-file -e` — a tree query, NOT a filesystem `is_dir()` check.
@@ -346,70 +469,83 @@ fn tree_path_exists(repo: &Path, treeish: &str, path: &str) -> Result<bool, Gate
 
 /// Returns the full 40-character SHA of `git merge-base a b`.
 fn git_merge_base(repo: &Path, a: &str, b: &str) -> Result<String, GateError> {
-    let output = run_git(repo, &["merge-base", a, b])?;
-    if output.status.success() {
-        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
-    } else {
-        Err(GateError::GitCommand(format!(
-            "git merge-base {a} {b} exited {}",
-            output.status
-        )))
-    }
+    run_git_line(repo, &["merge-base", a, b])
 }
 
 /// Returns full SHAs of commits in `base..head`, newest-first.
 fn git_log_range(repo: &Path, base: &str, head: &str) -> Result<Vec<String>, GateError> {
     let range = format!("{base}..{head}");
-    let output = run_git(repo, &["log", &range, "--format=%H"])?;
-    if !output.status.success() {
-        return Err(GateError::GitCommand(format!(
-            "git log {range} exited {}",
-            output.status
-        )));
-    }
-    let shas = String::from_utf8_lossy(&output.stdout)
-        .lines()
-        .filter(|l| !l.is_empty())
-        .map(|l| l.to_string())
-        .collect();
-    Ok(shas)
+    run_git_lines(repo, &["log", &range, "--format=%H"])
 }
 
-/// Returns `true` if `commit` has a first parent (is not a root or parentless commit).
-fn commit_has_parent(repo: &Path, commit: &str) -> Result<bool, GateError> {
+/// Returns `Some(<resolved first-parent SHA>)` if `commit` has a first parent, or
+/// `None` if it is a root or parentless commit (shallow-clone boundary).
+///
+/// CR-4: returns the resolved parent SHA (not just a bool) so callers that need the
+/// parent SHA (the attestation-heading lookup key) reuse this result instead of
+/// re-spawning `git rev-parse {commit}^1`.
+fn commit_has_parent(repo: &Path, commit: &str) -> Result<Option<String>, GateError> {
     let parent_rev = format!("{commit}^1");
     let output = run_git(repo, &["rev-parse", "--verify", &parent_rev])?;
-    Ok(output.status.success())
+    if output.status.success() {
+        Ok(Some(
+            String::from_utf8_lossy(&output.stdout).trim().to_string(),
+        ))
+    } else {
+        Ok(None)
+    }
+}
+
+/// Returns the number of parents of `commit` (1 for an ordinary commit, > 1 for a
+/// merge commit, 0 for a root commit — though root commits are filtered out by
+/// `commit_has_parent` before this is called).
+///
+/// H-1 (ADR-040 §Decision 9 Ruling 9(e)): `git rev-list --parents -n1 <commit>` prints
+/// `<commit> <parent1> <parent2> ...` on one line; the parent count is the token count
+/// minus one (the commit itself).
+fn commit_parent_count(repo: &Path, commit: &str) -> Result<usize, GateError> {
+    let line = run_git_line(repo, &["rev-list", "--parents", "-n1", commit])?;
+    let token_count = line.split_whitespace().count();
+    Ok(token_count.saturating_sub(1))
 }
 
 /// Returns the list of files changed between `from` and `to` (one per line, no blanks).
+///
+/// H-2: `-c core.quotePath=false` disables git's default C-quoting of non-ASCII paths,
+/// which would otherwise cause a non-ASCII `.rs`/`.bats` path to be missed by the
+/// activating-path suffix/prefix match below (false PASS-zero).
 fn git_diff_name_only(repo: &Path, from: &str, to: &str) -> Result<Vec<String>, GateError> {
-    let output = run_git(repo, &["diff", "--name-only", from, to])?;
-    if !output.status.success() {
-        return Err(GateError::GitCommand(format!(
-            "git diff --name-only {from} {to} exited {}",
-            output.status
-        )));
-    }
-    let files = String::from_utf8_lossy(&output.stdout)
-        .lines()
-        .filter(|l| !l.is_empty())
-        .map(|l| l.to_string())
-        .collect();
-    Ok(files)
+    run_git_lines(
+        repo,
+        &[
+            "-c",
+            "core.quotePath=false",
+            "diff",
+            "--name-only",
+            from,
+            to,
+        ],
+    )
 }
 
-/// Returns the full SHA for a git revision.
-fn git_rev_parse(repo: &Path, rev: &str) -> Result<String, GateError> {
-    let output = run_git(repo, &["rev-parse", rev])?;
-    if output.status.success() {
-        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
-    } else {
-        Err(GateError::GitCommand(format!(
-            "git rev-parse {rev} exited {}",
-            output.status
-        )))
-    }
+/// Returns the list of files in `commit`'s COMBINED diff — files whose content differs
+/// from EVERY parent (H-1, ADR-040 §Decision 9 Ruling 9(e)).
+///
+/// H-2: `-c core.quotePath=false` applied for the same reason as `git_diff_name_only`.
+fn git_diff_tree_combined_name_only(repo: &Path, commit: &str) -> Result<Vec<String>, GateError> {
+    run_git_lines(
+        repo,
+        &[
+            "-c",
+            "core.quotePath=false",
+            "diff-tree",
+            "-c",
+            "--name-only",
+            "--no-commit-id",
+            "-r",
+            commit,
+        ],
+    )
 }
 
 /// Returns the content of `path` at `commit`.
@@ -513,7 +649,8 @@ mod tests {
             "add assertion site, no log",
         );
 
-        let outcome = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
         assert!(
             matches!(
                 &outcome,
@@ -541,7 +678,8 @@ mod tests {
         );
         repo.commit("assertion site + log, no attestation heading");
 
-        let outcome = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
         assert!(
             matches!(
                 &outcome,
@@ -572,7 +710,8 @@ mod tests {
         );
         repo.commit("assertion site + correct attestation heading");
 
-        let outcome = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
         assert!(
             matches!(outcome, GateOutcome::PassWithActivations(1)),
             "expected PassWithActivations(1), got: {:?}",
@@ -604,7 +743,8 @@ mod tests {
         // A docs-only commit outside the crate (no *.rs/*.bats changes).
         repo.write_and_commit("docs/README.md", "# README\n", "docs update outside crate");
 
-        let outcome = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
         assert!(
             matches!(outcome, GateOutcome::PassZeroActivations),
             "expected PassZeroActivations, got: {:?}",
@@ -634,7 +774,8 @@ mod tests {
         let head = repo.head_sha(); // captured AFTER seeding
 
         // MERGE_BASE == HEAD → git log head..HEAD returns zero commits.
-        let outcome = run_gate_from_merge_base(repo.path(), &head).expect("no gate error");
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &head).expect("no gate error");
         assert!(
             matches!(
                 outcome,
@@ -659,7 +800,8 @@ mod tests {
         // Non-empty commit range, but nothing inside the pinned crate.
         repo.write_and_commit("docs/CHANGELOG.md", "# Changelog\n", "changelog only");
 
-        let outcome = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
         assert!(
             matches!(
                 outcome,
@@ -694,7 +836,8 @@ mod tests {
             "empty commit (allow-empty)",
         ]);
 
-        let outcome = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
         assert!(
             matches!(
                 outcome,
@@ -728,7 +871,8 @@ mod tests {
         // A non-crate commit to give a non-empty range.
         repo.write_and_commit("docs/README.md", "# README\n", "docs only, no crate commit");
 
-        let outcome = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
         assert!(
             matches!(
                 outcome,
@@ -757,7 +901,8 @@ mod tests {
         // No `origin` remote — merge-base fails → EmptyOrUnreachable(EmptyRange).
         // Assert the specific variant, not merely !is_pass(): a coarse boolean check
         // would survive a mutation that changed the outcome identifier (level-5 defect).
-        let outcome = run_gate(repo.path(), "nonexistent-branch-xyz").expect("no hard I/O error");
+        let GateResult { outcome, .. } =
+            run_gate(repo.path(), "nonexistent-branch-xyz").expect("no hard I/O error");
         assert!(
             matches!(
                 outcome,
@@ -779,7 +924,8 @@ mod tests {
         let head = repo.head_sha(); // MERGE_BASE == HEAD → would be empty range
 
         // Neither condition holds: crate absent (→ StalePin) AND range empty (→ EmptyRange).
-        let outcome = run_gate_from_merge_base(repo.path(), &head).expect("no gate error");
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &head).expect("no gate error");
         assert!(
             matches!(
                 outcome,
@@ -805,7 +951,8 @@ mod tests {
         // Crate is NOT seeded — absent from HEAD tree (StalePin trigger).
         // No origin remote — merge-base would fail (EmptyRange trigger).
         // Guard 1 must fire first → outcome must be StalePin, not EmptyRange.
-        let outcome = run_gate(repo.path(), "nonexistent-branch-xyz").expect("no hard I/O error");
+        let GateResult { outcome, .. } =
+            run_gate(repo.path(), "nonexistent-branch-xyz").expect("no hard I/O error");
         assert!(
             matches!(
                 outcome,
@@ -837,7 +984,8 @@ mod tests {
         );
         repo.commit("add .bats assertion + attestation");
 
-        let outcome = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
         assert!(
             matches!(outcome, GateOutcome::PassWithActivations(1)),
             "expected PassWithActivations(1) for .bats activation, got: {:?}",
@@ -864,7 +1012,8 @@ mod tests {
             "add other crate .rs file",
         );
 
-        let outcome = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
         assert!(
             matches!(outcome, GateOutcome::PassZeroActivations),
             "expected PassZeroActivations (.rs outside crate), got: {:?}",
@@ -893,7 +1042,8 @@ mod tests {
         );
         repo.commit("assertion site + attestation + prose quote");
 
-        let outcome = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
         // Should be PASS-1-activations, not FAIL due to count > 1.
         assert!(
             matches!(outcome, GateOutcome::PassWithActivations(1)),
@@ -929,7 +1079,8 @@ mod tests {
         );
         repo.commit("commit 2: b.rs + attestation 2");
 
-        let outcome = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
         assert!(
             matches!(outcome, GateOutcome::PassWithActivations(2)),
             "expected PassWithActivations(2), got: {:?}",
@@ -940,9 +1091,9 @@ mod tests {
     // ── Coverage-gap fix-pass tests (pre-merge mutant-survival closure) ────────
     //
     // The four groups below (F-1, F-2, F-5, F-6) close per-guard mutant-survival
-    // gaps identified in pre-merge validation. F-1's WARNING assertion is
-    // EXPECTED RED pending implementer per ADR-040 §Decision 9 Ruling 9(c) — see
-    // `tests/binary_integration_test.rs`. F-2 and F-5 below are expected GREEN.
+    // gaps identified in pre-merge validation. F-1's WARNING assertion is delivered
+    // and GREEN (ADR-040 §Decision 9 Ruling 9(c) — see `tests/binary_integration_test.rs`).
+    // F-2 and F-5 below are GREEN.
 
     /// F-2 — exactly-once upper bound (`count != 1` upper arm, lib.rs `run_gate_inner`).
     ///
@@ -952,13 +1103,14 @@ mod tests {
     /// whose pinned `red-gate-log.md` contains TWO
     /// `### <Pass-N> assertion-site attestation (<PARENT-SHA>)` headings for the
     /// SAME parent SHA. The obligation is "exactly one", not "at least one", so
-    /// this must still fail with `AttestationMissing`. A plain mutation run on
-    /// `count != 1` (e.g. a mutant that flips the comparison to `count == 0`)
-    /// cannot be generated from existing fixtures alone — this hand-authored
-    /// control is required to kill it.
+    /// this must still fail — with `AttestationAmbiguous { count: 2 }` (ADR-040
+    /// §Decision 8 Ruling 8(b) amendment, v1.18: absence and ambiguity are distinct
+    /// `FailReason` variants; the `count != 1` FAIL boundary itself is unchanged). A
+    /// plain mutation run on `count != 1` (e.g. a mutant that flips the comparison to
+    /// `count == 0`) cannot be generated from existing fixtures alone — this
+    /// hand-authored control is required to kill it.
     ///
-    /// Expected: GREEN (existing `count != 1` logic already handles this
-    /// correctly; this is coverage, not a behavior change).
+    /// Expected: GREEN.
     #[test]
     fn test_f2_two_attestation_headings_same_parent_fails() {
         let repo = Repo::new();
@@ -979,13 +1131,14 @@ mod tests {
         );
         repo.commit("assertion site + duplicate attestation headings for same parent");
 
-        let outcome = run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &base).expect("no gate error");
         assert!(
             matches!(
                 &outcome,
-                GateOutcome::Fail(v) if v.len() == 1 && v[0].reason == FailReason::AttestationMissing
+                GateOutcome::Fail(v) if v.len() == 1 && v[0].reason == FailReason::AttestationAmbiguous { count: 2 }
             ),
-            "expected Fail(AttestationMissing) for count==2 (exactly-once upper bound), got: {:?}",
+            "expected Fail(AttestationAmbiguous {{ count: 2 }}) for count==2 (exactly-once upper bound), got: {:?}",
             outcome
         );
         assert_eq!(outcome.identifier(), "FAIL: obligation violated");
@@ -1035,7 +1188,7 @@ mod tests {
             "activate, no log (drives merge-base success path)",
         );
 
-        let outcome = run_gate(repo.path(), "develop").expect("no gate error");
+        let GateResult { outcome, .. } = run_gate(repo.path(), "develop").expect("no gate error");
         assert!(
             matches!(
                 &outcome,

@@ -439,24 +439,22 @@ fn test_f3_cli_arg_wins_over_base_branch_env_var() {
 /// harmless.
 ///
 /// ## Assertion (a) — SKIPPED, no Fail / hard error
-/// GREEN today: `commit_has_parent` returning `false` already just
-/// `continue`s in `run_gate_inner` (lib.rs:243-245); this fixture proves it.
+/// GREEN: `commit_has_parent` returning `None` already just `continue`s
+/// (via `skipped_parentless.push(...)`) in `run_gate_inner` (lib.rs); this
+/// fixture proves it.
 ///
 /// ## Assertion (b) — WARNING emitted
-/// EXPECTED RED, PENDING IMPLEMENTER. Neither `run_gate_inner` (lib.rs) nor
-/// `main.rs`'s per-outcome stderr detail printer currently has any code path
-/// that observes or reports a skipped parentless commit — `GateOutcome`
-/// carries no such information, and `main.rs`'s `_ => {}` catch-all arm
-/// (which `PassZeroActivations` falls into) prints nothing. This assertion
-/// therefore fails today by design: it is the implementer's target for
-/// wiring the ADR-040 §Decision 9 Ruling 9(c) WARNING (e.g., threading skip
-/// information through `GateOutcome` and printing it from `main.rs`, mirroring
-/// the existing FAIL/EmptyOrUnreachable stderr detail-line pattern). Per the
-/// Test Writer's Red Gate discipline, this test is written now, against the
-/// CURRENT public API/binary surface (no new symbols invented), and is
-/// expected to fail until that wiring lands.
+/// GREEN, delivered. `run_gate_inner` threads skipped-parentless SHAs through
+/// the structured `GateResult.skipped_parentless` field (CR-2, v1.18); `main.rs`
+/// prints one WARNING line per entry, mirroring the existing FAIL/EmptyOrUnreachable
+/// stderr detail-line pattern, before matching on `outcome` (ADR-040 §Decision 9
+/// Ruling 9(c)). This is the binary-boundary CLI-contract test — a spawned-process
+/// test can only observe stdout/stderr/exit code, so a stderr substring assertion
+/// is the correct and sufficient tool at this boundary. A companion structural
+/// assertion directly on `GateResult.skipped_parentless` at the library boundary
+/// is test-writer scope for a following pass, not duplicated here.
 #[test]
-fn test_f1_parentless_commit_in_range_is_skipped_with_warning_expected_red_pending_implementer() {
+fn test_f1_parentless_commit_in_range_is_skipped_with_warning() {
     let repo = Repo::new();
     repo.write_and_commit(
         &format!("{PC}/docs/placeholder.md"),
@@ -470,7 +468,7 @@ fn test_f1_parentless_commit_in_range_is_skipped_with_warning_expected_red_pendi
 
     let (exit_code, stdout, stderr) = repo.run_binary("develop");
 
-    // (a) SKIPPED — no Fail, no hard error. Expected GREEN.
+    // (a) SKIPPED — no Fail, no hard error.
     assert_eq!(
         exit_code, 0,
         "a parentless commit in-range must not cause FAIL/hard-error exit; stdout={stdout} stderr={stderr}"
@@ -484,16 +482,13 @@ fn test_f1_parentless_commit_in_range_is_skipped_with_warning_expected_red_pendi
         "a parentless commit in-range must never surface as FAIL, got stdout: {stdout}"
     );
 
-    // (b) WARNING emitted on skip — EXPECTED RED, PENDING IMPLEMENTER.
-    // ADR-040 §Decision 9 Ruling 9(c): "emits a WARNING and skips". Today
-    // main.rs's stderr is empty for PassZeroActivations (see doc comment
-    // above) so this assertion currently fails. DO NOT weaken this
-    // assertion to make it pass — it is the implementer's Red Gate target.
+    // (b) WARNING emitted on skip — delivered and GREEN.
+    // ADR-040 §Decision 9 Ruling 9(c): "emits a WARNING and skips". `main.rs`
+    // prints one WARNING line per `GateResult.skipped_parentless` entry (CR-2, v1.18).
     let root_short = &root_sha[..12];
     assert!(
         stderr.contains("WARNING") && stderr.contains(root_short),
-        "EXPECTED RED (pending implementer, ADR-040 §Decision 9 Ruling 9(c)): \
-         expected a WARNING mentioning the skipped parentless commit {root_short:?} \
+        "expected a WARNING mentioning the skipped parentless commit {root_short:?} \
          on stderr, got stderr: {stderr:?}"
     );
 }
