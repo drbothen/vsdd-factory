@@ -200,6 +200,12 @@ pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(St
 ///
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
+/// Leading/trailing `\b` boundary checks route through the crate-shared
+/// `crate::is_word_char` predicate (F-S2107-RECON-005 — sibling-file sweep of
+/// F-S2107-RECON-004, which had unified only Arm B's `\b` checks). `_` is a
+/// word character under regex `\b` semantics, so `bc_id` immediately
+/// preceded or followed by `_` must NOT match.
+///
 /// # BC trace
 /// BC-5.39.010 §PC13: word-boundary bc_id token test (both boundaries).
 /// F-S2107-P3-004: `line.contains(bc_id)` prefix-collision fix (trailing boundary).
@@ -212,17 +218,17 @@ fn line_contains_bc_id_at_boundary(line: &str, bc_id: &str) -> bool {
         };
         let abs = search_start + rel;
         let end = abs + bc_id.len();
-        // Leading boundary: char immediately before bc_id must not be alphanumeric.
+        // Leading boundary: char immediately before bc_id must not be a word char.
         let leading_ok = line[..abs]
             .chars()
             .next_back()
-            .map(|c| !c.is_ascii_alphanumeric())
+            .map(|c| !crate::is_word_char(c))
             .unwrap_or(true); // start-of-string is always a boundary
-        // Trailing boundary: char immediately after bc_id must not be alphanumeric.
+        // Trailing boundary: char immediately after bc_id must not be a word char.
         let trailing_ok = line[end..]
             .chars()
             .next()
-            .map(|c| !c.is_ascii_alphanumeric())
+            .map(|c| !crate::is_word_char(c))
             .unwrap_or(true); // end-of-string is always a boundary
         if leading_ok && trailing_ok {
             return true;
@@ -322,6 +328,12 @@ fn find_phase2_version(line: &str, bc_id: &str) -> Option<String> {
 ///
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
+/// Leading/trailing `\b` boundary checks route through the crate-shared
+/// `crate::is_word_char` predicate (F-S2107-RECON-005 — sibling-file sweep of
+/// F-S2107-RECON-004, which had unified only Arm B's `\b` checks). `_` is a
+/// word character under regex `\b` semantics, so a BC-ID token immediately
+/// preceded or followed by `_` must NOT match.
+///
 /// # BC trace
 /// BC-5.39.010 §PC13 Phase 2 same-field scan-stop (v1.21 / ADV-RECON5-003):
 /// generic different-BC-ID detection for `extract_first_v_token_after_position`.
@@ -330,7 +342,7 @@ fn bc_id_token_starting_at(s: &str, i: usize) -> Option<(&str, usize)> {
     if i + 3 > bytes.len() || &bytes[i..i + 3] != b"BC-" {
         return None;
     }
-    let leading_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
+    let leading_ok = i == 0 || !crate::is_word_char(bytes[i - 1] as char);
     if !leading_ok {
         return None;
     }
@@ -358,7 +370,7 @@ fn bc_id_token_starting_at(s: &str, i: usize) -> Option<(&str, usize)> {
     if j == d3_start {
         return None;
     }
-    let trailing_ok = j >= bytes.len() || !bytes[j].is_ascii_alphanumeric();
+    let trailing_ok = j >= bytes.len() || !crate::is_word_char(bytes[j] as char);
     if !trailing_ok {
         return None;
     }
@@ -413,6 +425,12 @@ fn parse_pure_version_field(s: &str) -> Option<String> {
 ///
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
+/// Leading/trailing `\b` boundary checks route through the crate-shared
+/// `crate::is_word_char` predicate (F-S2107-RECON-005 — sibling-file sweep of
+/// F-S2107-RECON-004, which had unified only Arm B's `\b` checks). `_` is a
+/// word character under regex `\b` semantics, so `bc_id` immediately
+/// preceded or followed by `_` must NOT match.
+///
 /// # BC trace
 /// BC-5.39.010 §PC13 Phase 2 (ADR-038 §Decision 5): position anchor for
 /// first-v-token extraction in `extract_story_bc_version_citations`.
@@ -426,12 +444,12 @@ fn find_bc_id_boundary_end(s: &str, bc_id: &str) -> Option<usize> {
         let leading_ok = s[..abs]
             .chars()
             .next_back()
-            .map(|c| !c.is_ascii_alphanumeric())
+            .map(|c| !crate::is_word_char(c))
             .unwrap_or(true);
         let trailing_ok = s[end..]
             .chars()
             .next()
-            .map(|c| !c.is_ascii_alphanumeric())
+            .map(|c| !crate::is_word_char(c))
             .unwrap_or(true);
         if leading_ok && trailing_ok {
             return Some(end);
@@ -468,6 +486,12 @@ fn find_bc_id_boundary_end(s: &str, bc_id: &str) -> Option<usize> {
 ///
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
+/// Leading/trailing `\b` boundary checks on the v-token route through the
+/// crate-shared `crate::is_word_char` predicate (F-S2107-RECON-005 —
+/// sibling-file sweep of F-S2107-RECON-004, which had unified only Arm B's
+/// `\b` checks). `_` is a word character under regex `\b` semantics, so a
+/// `v`-token immediately preceded or followed by `_` must NOT match.
+///
 /// # BC trace
 /// BC-5.39.010 §PC13 Phase 2 (ADR-038 §Decision 5): first-v-token-after-bc_id
 /// extraction for the BC-ID-anchored pass in `extract_story_bc_version_citations`.
@@ -487,7 +511,7 @@ fn extract_first_v_token_after_position(s: &str, start: usize, own_bc_id: &str) 
             continue;
         }
         if bytes[i] == b'v' {
-            let prev_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
+            let prev_ok = i == 0 || !crate::is_word_char(bytes[i - 1] as char);
             if prev_ok && i + 1 < bytes.len() && bytes[i + 1].is_ascii_digit() {
                 let digit_start = i + 1;
                 let mut j = digit_start;
@@ -501,7 +525,7 @@ fn extract_first_v_token_after_position(s: &str, start: usize, own_bc_id: &str) 
                         while k < bytes.len() && bytes[k].is_ascii_digit() {
                             k += 1;
                         }
-                        let next_ok = k >= bytes.len() || !bytes[k].is_ascii_alphanumeric();
+                        let next_ok = k >= bytes.len() || !crate::is_word_char(bytes[k] as char);
                         if next_ok {
                             return Some(s[digit_start..k].to_string());
                         }
@@ -2524,6 +2548,188 @@ mod tests {
             advisories.is_empty(),
             "clean matching-version pass, not a NotFound path. \
             Advisories: {advisories:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-RECON-005 (adversary observation): the Arm A2 `\b` (word-boundary)
+    // checks in `line_contains_bc_id_at_boundary`, `bc_id_token_starting_at`,
+    // `find_bc_id_boundary_end`, and `extract_first_v_token_after_position` used
+    // `is_ascii_alphanumeric()` only — omitting `_` — while `arm_b::is_word_char`
+    // (F-S2107-RECON-004) and Arm A1's `extract_first_v_token` (post-fix,
+    // F-S2107-RECON-005) correctly treat `_` as a word char. A preceding/following
+    // `_` is a word char under regex `\b` semantics (`[A-Za-z0-9_]`), so a `\b`
+    // delimiter must NOT hold immediately after/before `_`. Pre-fix: these four
+    // functions wrongly treated `_` as a boundary and accepted the match. Post-fix:
+    // all four route through the single crate-shared `is_word_char` predicate.
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-RECON-005 RED GATE: `line_contains_bc_id_at_boundary` must reject a
+    /// BC ID immediately preceded by `_`.
+    ///
+    /// Pre-fix: leading boundary uses `!c.is_ascii_alphanumeric()` on `_` → `true`
+    /// (wrongly treats `_` as a boundary) → returns `true`.
+    /// Post-fix: `_` is a word char via `is_word_char` → leading boundary fails →
+    /// no other occurrence in the fixture → returns `false`.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_line_contains_bc_id_leading_underscore_rejected() {
+        let result = line_contains_bc_id_at_boundary("_BC-5.39.010", "BC-5.39.010");
+        assert!(
+            !result,
+            "'_BC-5.39.010': the BC ID is immediately preceded by '_' — a word char \
+            under regex \\b semantics — so the \\b-delimited match must NOT hold. \
+            F-S2107-RECON-005 RED GATE: pre-fix code treats '_' as a boundary and \
+            wrongly returns true."
+        );
+    }
+
+    /// F-S2107-RECON-005 RED GATE: `line_contains_bc_id_at_boundary` must reject a
+    /// BC ID immediately followed by `_`.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_line_contains_bc_id_trailing_underscore_rejected() {
+        let result = line_contains_bc_id_at_boundary("BC-5.39.010_", "BC-5.39.010");
+        assert!(
+            !result,
+            "'BC-5.39.010_': the BC ID is immediately followed by '_' — a word char \
+            under regex \\b semantics — so the \\b-delimited match must NOT hold. \
+            F-S2107-RECON-005 RED GATE: pre-fix code treats '_' as a boundary and \
+            wrongly returns true."
+        );
+    }
+
+    /// F-S2107-RECON-005 positive control: space-delimited BC ID still matches.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_line_contains_bc_id_space_boundary_control() {
+        let result = line_contains_bc_id_at_boundary(" BC-5.39.010 ", "BC-5.39.010");
+        assert!(
+            result,
+            "' BC-5.39.010 ': space delimiters are not word chars — \\b holds — \
+            must still match"
+        );
+    }
+
+    /// F-S2107-RECON-005 RED GATE: `bc_id_token_starting_at` must reject a
+    /// BC-S.SS.NNN token immediately preceded by `_`.
+    ///
+    /// Pre-fix: leading boundary uses `!bytes[i-1].is_ascii_alphanumeric()` on `_`
+    /// → `true` (wrongly treats `_` as a boundary) → returns
+    /// `Some(("BC-5.39.010", 12))`.
+    /// Post-fix: `_` is a word char via `is_word_char` → leading boundary fails →
+    /// returns `None`.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_bc_id_token_starting_at_leading_underscore_rejected() {
+        let s = "_BC-5.39.010";
+        // Token candidate starts at byte offset 1 (right after the leading '_').
+        let result = bc_id_token_starting_at(s, 1);
+        assert_eq!(
+            result, None,
+            "'_BC-5.39.010' at offset 1: the token is immediately preceded by '_' — a \
+            word char under regex \\b semantics — so the \\b-delimited token must NOT \
+            be recognized. F-S2107-RECON-005 RED GATE: pre-fix code treats '_' as a \
+            boundary and wrongly returns Some. Got: {result:?}"
+        );
+    }
+
+    /// F-S2107-RECON-005 positive control: `bc_id_token_starting_at` still matches
+    /// when preceded by a non-word delimiter (start-of-string here).
+    #[test]
+    fn test_BC_5_39_010_arm_a2_bc_id_token_starting_at_start_of_string_control() {
+        let s = "BC-5.39.010";
+        let result = bc_id_token_starting_at(s, 0);
+        assert_eq!(
+            result,
+            Some(("BC-5.39.010", 11)),
+            "start-of-string is always a \\b boundary — must still match"
+        );
+    }
+
+    /// F-S2107-RECON-005 RED GATE: `find_bc_id_boundary_end` must reject a BC ID
+    /// immediately preceded by `_`.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_find_bc_id_boundary_end_leading_underscore_rejected() {
+        let result = find_bc_id_boundary_end("_BC-5.39.010 v1.21", "BC-5.39.010");
+        assert_eq!(
+            result, None,
+            "'_BC-5.39.010 v1.21': the BC ID is immediately preceded by '_' — a word \
+            char under regex \\b semantics — so the \\b-delimited match must NOT hold, \
+            and there is no other occurrence in the fixture. F-S2107-RECON-005 RED \
+            GATE: pre-fix code treats '_' as a boundary and wrongly returns Some(12). \
+            Got: {result:?}"
+        );
+    }
+
+    /// F-S2107-RECON-005 RED GATE: `find_bc_id_boundary_end` must reject a BC ID
+    /// immediately followed by `_`.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_find_bc_id_boundary_end_trailing_underscore_rejected() {
+        let result = find_bc_id_boundary_end("BC-5.39.010_ v1.21", "BC-5.39.010");
+        assert_eq!(
+            result, None,
+            "'BC-5.39.010_ v1.21': the BC ID is immediately followed by '_' — a word \
+            char under regex \\b semantics — so the \\b-delimited match must NOT hold, \
+            and there is no other occurrence in the fixture. F-S2107-RECON-005 RED \
+            GATE: pre-fix code treats '_' as a boundary and wrongly returns Some(11). \
+            Got: {result:?}"
+        );
+    }
+
+    /// F-S2107-RECON-005 positive control: `find_bc_id_boundary_end` still matches
+    /// a space-delimited BC ID.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_find_bc_id_boundary_end_space_boundary_control() {
+        let result = find_bc_id_boundary_end(" BC-5.39.010 v1.21", "BC-5.39.010");
+        assert!(
+            result.is_some(),
+            "' BC-5.39.010 v1.21': space delimiters are not word chars — \\b holds — \
+            must still match. Got: {result:?}"
+        );
+    }
+
+    /// F-S2107-RECON-005 RED GATE: `extract_first_v_token_after_position` must
+    /// reject a `v`-token immediately preceded by `_`.
+    ///
+    /// Pre-fix: `!bytes[i-1].is_ascii_alphanumeric()` on `_` → `true` (wrongly
+    /// treats `_` as a boundary) → returns `Some("1.21")`.
+    /// Post-fix: `_` is a word char via `is_word_char` → `prev_ok` is `false` → no
+    /// other qualifying v-token in the fixture → returns `None`.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_extract_first_v_token_after_position_leading_underscore_rejected() {
+        let result = extract_first_v_token_after_position("_v1.21", 0, "BC-DOES-NOT-APPEAR");
+        assert_eq!(
+            result, None,
+            "'_v1.21': the 'v' is immediately preceded by '_' — a word char under \
+            regex \\b semantics — so \\bv([0-9]+\\.[0-9]+)\\b must NOT match, and \
+            there is no other v-token in the fixture. F-S2107-RECON-005 RED GATE: \
+            pre-fix code treats '_' as a boundary and wrongly returns Some(\"1.21\"). \
+            Got: {result:?}"
+        );
+    }
+
+    /// F-S2107-RECON-005 RED GATE: `extract_first_v_token_after_position` must
+    /// reject a `v`-token immediately followed by `_`.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_extract_first_v_token_after_position_trailing_underscore_rejected() {
+        let result = extract_first_v_token_after_position("v1.21_", 0, "BC-DOES-NOT-APPEAR");
+        assert_eq!(
+            result, None,
+            "'v1.21_': the v-token digit run is immediately followed by '_' — a word \
+            char under regex \\b semantics — so \\bv([0-9]+\\.[0-9]+)\\b must NOT \
+            match, and there is no other v-token in the fixture. F-S2107-RECON-005 \
+            RED GATE: pre-fix code treats '_' as a boundary and wrongly returns \
+            Some(\"1.21\"). Got: {result:?}"
+        );
+    }
+
+    /// F-S2107-RECON-005 positive control: `extract_first_v_token_after_position`
+    /// still matches a space/EOL-delimited v-token.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_extract_first_v_token_after_position_control() {
+        let result = extract_first_v_token_after_position("v1.21", 0, "BC-DOES-NOT-APPEAR");
+        assert_eq!(
+            result,
+            Some("1.21".to_string()),
+            "'v1.21': start-of-string leading boundary and EOL trailing boundary are \
+            not word chars — \\b holds — must still match"
         );
     }
 }

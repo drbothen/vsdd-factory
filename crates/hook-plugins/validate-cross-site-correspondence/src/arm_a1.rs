@@ -425,6 +425,12 @@ pub(crate) fn first_cell_matches_bc_id(first_cell: &str, bc_id: &str) -> bool {
 /// first v-token is the current version and subsequent tokens are annotation prose
 /// (e.g., back-references in `(promoted v1.23 D-839)` clauses or `[prior: v1.4]`).
 ///
+/// Leading/trailing `\b` boundary checks route through the crate-shared
+/// `crate::is_word_char` predicate (F-S2107-RECON-005 — sibling-file sweep of
+/// F-S2107-RECON-004, which had unified only Arm B's `\b` checks). `_` is a
+/// word character under regex `\b` semantics, so a `v`-token immediately
+/// preceded or followed by `_` must NOT match.
+///
 /// # BC trace
 /// F-P6-019b/019c: first-token-of-entry semantics (replaces last-wins extraction).
 fn extract_first_v_token(text: &str) -> Option<String> {
@@ -432,7 +438,7 @@ fn extract_first_v_token(text: &str) -> Option<String> {
     let mut i = 0;
     while i < bytes.len() {
         if bytes[i] == b'v' {
-            let prev_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
+            let prev_ok = i == 0 || !crate::is_word_char(bytes[i - 1] as char);
             if prev_ok && i + 1 < bytes.len() && bytes[i + 1].is_ascii_digit() {
                 let start = i + 1;
                 let mut end = start;
@@ -445,7 +451,8 @@ fn extract_first_v_token(text: &str) -> Option<String> {
                         while end < bytes.len() && bytes[end].is_ascii_digit() {
                             end += 1;
                         }
-                        let next_ok = end >= bytes.len() || !bytes[end].is_ascii_alphanumeric();
+                        let next_ok =
+                            end >= bytes.len() || !crate::is_word_char(bytes[end] as char);
                         if next_ok {
                             return Some(text[start..end].to_string());
                         }
@@ -1814,5 +1821,92 @@ mod tests {
             a decodable index file) MUST NOT be conflated (precondition 15b). \
             Actual advisories: {advisories:?}"
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-RECON-005 (adversary observation): the leading/trailing `\b`
+    // (word-boundary) checks in `extract_first_v_token` used
+    // `is_ascii_alphanumeric()` only — omitting `_` — while `arm_b::is_word_char`
+    // (F-S2107-RECON-004) correctly treats `_` as a word char. Two divergent
+    // `\b` word-char definitions in the same crate. A preceding/following `_`
+    // is a word char under regex `\b` semantics (`[A-Za-z0-9_]`), so
+    // `\bv([0-9]+\.[0-9]+)\b` must NOT match immediately after/before `_`.
+    // Pre-fix: the leading/trailing checks wrongly treated `_` as a boundary
+    // and accepted the match. Post-fix: both checks route through the single
+    // crate-shared `is_word_char` predicate (promoted from `arm_b`-private).
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-RECON-005 RED GATE (leading): `extract_first_v_token` must reject a
+    /// `v`-token immediately preceded by `_` (a word char under `\b`).
+    ///
+    /// Pre-fix: `!bytes[i-1].is_ascii_alphanumeric()` on `_` (0x5F) is `true` (wrongly
+    /// treats `_` as a boundary) → matches → returns `Some("1.4")`.
+    /// Post-fix: `_` is a word char via `is_word_char` → `prev_ok` is `false` → no
+    /// other `v`-token in the fixture → returns `None`.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_first_v_token_leading_underscore_rejected() {
+        let result = extract_first_v_token("foo_v1.4");
+        assert_eq!(
+            result, None,
+            "'foo_v1.4': the 'v' is immediately preceded by '_' — a word char under \
+            regex \\b semantics — so \\bv([0-9]+\\.[0-9]+)\\b must NOT match at that \
+            position, and there is no other v-token in the fixture. \
+            F-S2107-RECON-005 RED GATE: pre-fix code treats '_' as a boundary and \
+            wrongly returns Some(\"1.4\")."
+        );
+    }
+
+    /// F-S2107-RECON-005 RED GATE (trailing): `extract_first_v_token` must reject a
+    /// `v`-token immediately followed by `_` (a word char under `\b`).
+    ///
+    /// Pre-fix: `!bytes[end].is_ascii_alphanumeric()` on `_` (0x5F) is `true` (wrongly
+    /// treats `_` as a boundary) → matches → returns `Some("1.4")`.
+    /// Post-fix: `_` is a word char via `is_word_char` → `next_ok` is `false` → no
+    /// other qualifying v-token in the fixture → returns `None`.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_first_v_token_trailing_underscore_rejected() {
+        let result = extract_first_v_token("v1.4_5");
+        assert_eq!(
+            result, None,
+            "'v1.4_5': the digit run '1.4' is immediately followed by '_' — a word char \
+            under regex \\b semantics — so \\bv([0-9]+\\.[0-9]+)\\b must NOT match, and \
+            there is no other v-token in the fixture. \
+            F-S2107-RECON-005 RED GATE: pre-fix code treats '_' as a boundary and \
+            wrongly returns Some(\"1.4\")."
+        );
+    }
+
+    /// F-S2107-RECON-005 positive control: leading space still qualifies as a boundary.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_first_v_token_leading_space_control() {
+        let result = extract_first_v_token("foo v1.4");
+        assert_eq!(
+            result,
+            Some("1.4".to_string()),
+            "'foo v1.4': ' ' before 'v' is not a word char — \\b holds — must still match"
+        );
+    }
+
+    /// F-S2107-RECON-005 positive control: leading pipe/period/start-of-string and
+    /// trailing space/EOL all still qualify as boundaries (unaffected by the fix).
+    #[test]
+    fn test_BC_5_39_010_arm_a1_first_v_token_non_underscore_boundaries_control() {
+        let cases: &[(&str, &str)] = &[
+            ("v1.4", "1.4"),          // start-of-string leading boundary
+            ("|v1.4", "1.4"),         // pipe leading boundary
+            (".v1.4", "1.4"),         // period leading boundary
+            ("v1.4 trailing", "1.4"), // trailing space boundary
+            ("v1.4.", "1.4"),         // trailing period boundary (non-word char)
+            ("v1.4", "1.4"),          // trailing EOL boundary
+        ];
+        for (input, expected) in cases {
+            let result = extract_first_v_token(input);
+            assert_eq!(
+                result,
+                Some((*expected).to_string()),
+                "non-underscore boundary case {input:?} must still match — regression \
+                control for F-S2107-RECON-005 fix"
+            );
+        }
     }
 }

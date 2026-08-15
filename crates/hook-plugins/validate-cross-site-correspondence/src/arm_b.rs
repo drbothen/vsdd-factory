@@ -124,11 +124,11 @@ pub fn parse_story_index_blockquote_hash(index_content: &str, story_id: &str) ->
             if let Some(rel_pos) = search_in.find(&needle) {
                 let abs_pos = search_start + rel_pos;
                 // Word boundary before story_id: preceding char must not be
-                // a word char (F-S2107-RECON-004: shares `is_word_char`
+                // a word char (F-S2107-RECON-004/005: shares `crate::is_word_char`
                 // with the trailing boundary check — same `\b` definition).
                 let wb_ok = abs_pos == 0 || {
                     let prev = line[..abs_pos].chars().last().unwrap_or('\0');
-                    !is_word_char(prev)
+                    !crate::is_word_char(prev)
                 };
                 if wb_ok {
                     let hash_start = abs_pos + needle.len();
@@ -627,12 +627,12 @@ fn extract_input_hash_token(line: &str) -> Option<String> {
         };
         let pos = search_start + rel_pos;
 
-        // Word boundary before "input-hash" (F-S2107-RECON-004: shares
-        // `is_word_char` with the trailing boundary check — same `\b`
+        // Word boundary before "input-hash" (F-S2107-RECON-004/005: shares
+        // `crate::is_word_char` with the trailing boundary check — same `\b`
         // definition).
         let wb_before_ok = pos == 0 || {
             let prev = line[..pos].chars().last().unwrap_or('\0');
-            !is_word_char(prev)
+            !crate::is_word_char(prev)
         };
         let after_keyword = pos + keyword.len();
         if !wb_before_ok || after_keyword >= line.len() {
@@ -682,25 +682,11 @@ fn extract_input_hash_token(line: &str) -> Option<String> {
     None
 }
 
-/// Regex `\b` word-character class: `[A-Za-z0-9_]`.
-///
-/// The single source of truth for "is this a word character" across ALL
-/// PC20/PC21 `\b` boundary checks (both leading and trailing) in this
-/// module. BC-5.39.010 PC20 (`\binput-hash\s+([0-9a-f]{7,40})\b`) and PC21
-/// (`\b<id>=([0-9a-f]{7,40})\b`) both use standard regex `\b` semantics,
-/// which include `_` as a word character — NOT just
-/// `is_ascii_alphanumeric()`. Factored out (F-S2107-RECON-004) so leading
-/// and trailing boundary checks cannot drift onto two different
-/// definitions of `\b`.
-fn is_word_char(c: char) -> bool {
-    c.is_ascii_alphanumeric() || c == '_'
-}
-
 /// PC20/PC21 trailing `\b` (word-boundary) check.
 ///
 /// Returns `true` if the byte position `pos` in `s` is at or past the end of
 /// `s` (end-of-line — always a boundary), or the character starting at `pos`
-/// is NOT a word character (see `is_word_char`).
+/// is NOT a word character (see `crate::is_word_char`).
 ///
 /// Shared by all three PC20/PC21 hex-run extractors (`extract_input_hash_token`,
 /// `extract_blockquote_pairs`, `parse_story_index_blockquote_hash`) to enforce
@@ -715,10 +701,15 @@ fn is_word_char(c: char) -> bool {
 /// `pos` MUST be a valid UTF-8 char boundary in `s`; all three call sites
 /// derive it as `hash_start + hash.len()` where `hash` was built entirely
 /// from single-byte ASCII hex digits, so this always holds.
+///
+/// `is_word_char` was promoted from `arm_b`-private (F-S2107-RECON-004) to
+/// crate-shared (`crate::is_word_char`, F-S2107-RECON-005) so Arm A1 and
+/// Arm A2's `\b` boundary checks share the same predicate — see
+/// `crate::is_word_char` doc for the full sibling-file sweep rationale.
 fn trailing_word_boundary_ok(s: &str, pos: usize) -> bool {
     pos >= s.len() || {
         let next = s[pos..].chars().next().unwrap_or('\0');
-        !is_word_char(next)
+        !crate::is_word_char(next)
     }
 }
 
@@ -774,11 +765,11 @@ fn extract_blockquote_pairs(line: &str) -> Vec<(String, String)> {
         let abs = search_pos + rel;
 
         // Word boundary: char before "S" must not be a word char
-        // (F-S2107-RECON-004: shares `is_word_char` with the trailing
-        // boundary check — same `\b` definition).
+        // (F-S2107-RECON-004/005: shares `crate::is_word_char` with the
+        // trailing boundary check — same `\b` definition).
         let wb_ok = abs == 0 || {
             let prev = rest[..abs].chars().last().unwrap_or('\0');
-            !is_word_char(prev)
+            !crate::is_word_char(prev)
         };
         if !wb_ok {
             search_pos = abs + 1;

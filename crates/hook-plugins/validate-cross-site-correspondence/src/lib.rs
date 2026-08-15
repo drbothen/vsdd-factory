@@ -322,6 +322,29 @@ pub fn combine_violations_into_block(hook_name: &str, violations: &[Violation]) 
 // Private helpers
 // ---------------------------------------------------------------------------
 
+/// Regex `\b` word-character class: `[A-Za-z0-9_]`.
+///
+/// The single source of truth for "is this a word character" across ALL
+/// `\b` (word-boundary) checks in this crate — Arm A1, Arm A2, and Arm B
+/// alike. BC-5.39.010 PC5 (`\bv([0-9]+\.[0-9]+)\b`), PC13 (word-boundary
+/// BC-ID / v-token matching), PC20 (`\binput-hash\s+([0-9a-f]{7,40})\b`),
+/// and PC21 (`\b<id>=([0-9a-f]{7,40})\b`) all use standard regex `\b`
+/// semantics, which include `_` as a word character — NOT just
+/// `is_ascii_alphanumeric()`.
+///
+/// Promoted here from `arm_b`-private (F-S2107-RECON-004, which unified
+/// only Arm B's leading/trailing checks) to crate-shared (F-S2107-RECON-005)
+/// after a sibling-file sweep found Arm A1 (`extract_first_v_token`) and
+/// Arm A2 (`line_contains_bc_id_at_boundary`, `bc_id_token_starting_at`,
+/// `find_bc_id_boundary_end`, `extract_first_v_token_after_position`) still
+/// used the narrower `!is_ascii_alphanumeric()`-only predicate — a SECOND,
+/// divergent definition of `\b` living alongside the first. Every `\b`
+/// boundary check in the crate now routes through this single function so
+/// the two definitions cannot drift apart again (TD-VSDD-060).
+pub(crate) fn is_word_char(c: char) -> bool {
+    c.is_ascii_alphanumeric() || c == '_'
+}
+
 /// Emit advisories via `host::log_warn`.
 fn emit_advisories(advisories: &[Advisory]) {
     for adv in advisories {
