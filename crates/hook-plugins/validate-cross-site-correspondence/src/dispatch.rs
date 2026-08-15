@@ -58,31 +58,76 @@ fn is_canonical_bc_filename(filename: &str) -> bool {
             .all(|p| !p.is_empty() && p.bytes().all(|b| b.is_ascii_digit()))
 }
 
+/// Returns `true` if `components` contains `chain` — a sequence of expected
+/// `Component::Normal` path-segment names — as a CONTIGUOUS, correctly-ordered
+/// window that is followed by exactly `gap` further `Component::Normal`
+/// directory segments and then the final component (the file name).
+///
+/// The window's start position is DERIVED from the total component count
+/// (`components.len() - (chain.len() + gap + 1)`), never searched — so the
+/// chain can occupy only the one position immediately (modulo `gap` plain
+/// directory segments) before the file name. Components before that position
+/// are unconstrained, so real absolute/worktree paths (where `.factory` is
+/// not the first component) still classify correctly.
+///
+/// # Why this exists (SEC-001 / CWE-697)
+/// The prior implementation tested for each required component with an
+/// independent `.any()` presence check. That admits a decoy path where the
+/// required names are present but non-contiguous, out of order, or separated
+/// by `..` traversal segments — e.g. `x/.factory/y/specs/z/behavioral-contracts/BC-1.2.3.md`
+/// or `.factory/specs/behavioral-contracts/../../../../tmp/evil/BC-1.2.3.md` —
+/// as a governed path. This function anchors the chain to a fixed position so
+/// only the real governed directory sequence, immediately preceding the file,
+/// classifies as a match.
+///
+/// This is a classification-correctness fix only: `..` sequences cannot lexically
+/// cancel a `Normal` component via `Path::components()`, and the actual
+/// traversal defense (`factory-dispatcher/src/host/path_util.rs::check_path_allowed`,
+/// Kani-proven VP-097) canonicalizes + allow-lists downstream and fails closed
+/// on any real escape. A wrong classification here can at most cause a spurious
+/// read attempt that path_util then blocks — never a bypass.
+fn chain_immediately_precedes_filename(
+    components: &[std::path::Component<'_>],
+    chain: &[&str],
+    gap: usize,
+) -> bool {
+    use std::path::Component;
+    let needed = chain.len() + gap + 1;
+    if components.len() < needed {
+        return false;
+    }
+    let chain_start = components.len() - needed;
+    let chain_matches = components[chain_start..chain_start + chain.len()]
+        .iter()
+        .zip(chain.iter())
+        .all(|(c, name)| matches!(c, Component::Normal(s) if *s == *name));
+    if !chain_matches {
+        return false;
+    }
+    let gap_start = chain_start + chain.len();
+    components[gap_start..gap_start + gap]
+        .iter()
+        .all(|c| matches!(c, Component::Normal(_)))
+}
+
 /// Returns `true` if `file_path` names a BC file under
-/// `.factory/specs/behavioral-contracts/` using path-component-strict matching.
+/// `.factory/specs/behavioral-contracts/` using path-component-strict,
+/// contiguity-anchored matching.
 ///
 /// A BC file has:
-/// - A `.factory` path component AND
-/// - A `specs` path component AND
-/// - A `behavioral-contracts` path component AND
+/// - The `.factory` / `specs` / `behavioral-contracts` chain as a CONTIGUOUS,
+///   correctly-ordered window (SEC-001 / CWE-697 — not independent presence
+///   checks), followed by exactly one further directory component (the
+///   `ss-NN` subdirectory), AND
 /// - A filename matching `BC-*.md`
 ///
 /// # BC trace
 /// BC-5.39.010 precondition 1 (Class A Arm1 trigger condition).
 /// BC-5.39.010 invariant 3 (path-component-strict — NOT `ends_with` / `contains`).
 pub fn is_bc_file(file_path: &str) -> bool {
-    use std::path::{Component, Path};
+    use std::path::Path;
     let path = Path::new(file_path);
     let components: Vec<_> = path.components().collect();
-    let has_factory = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == ".factory"));
-    let has_specs = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == "specs"));
-    let has_bc = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == "behavioral-contracts"));
     // BC-5.39.010 PC1: filename must match ^BC-[0-9]+\.[0-9]+\.[0-9]+\.md$ — three
     // dot-separated numeric groups. This excludes BC-INDEX.md (F-S2107-P1B-005)
     // and any other non-contract files that merely start with "BC-".
@@ -91,7 +136,12 @@ pub fn is_bc_file(file_path: &str) -> bool {
         .and_then(|f| f.to_str())
         .map(is_canonical_bc_filename)
         .unwrap_or(false);
-    has_factory && has_specs && has_bc && filename_ok
+    filename_ok
+        && chain_immediately_precedes_filename(
+            &components,
+            &[".factory", "specs", "behavioral-contracts"],
+            1,
+        )
 }
 
 /// Returns `true` if `filename` is a canonical story basename: `^S-[0-9]+\.[0-9]+`.
@@ -122,11 +172,12 @@ fn is_canonical_story_basename(filename: &str) -> bool {
 }
 
 /// Returns `true` if `file_path` names a story file under `.factory/stories/`
-/// using path-component-strict matching.
+/// using path-component-strict, contiguity-anchored matching.
 ///
 /// A story file has:
-/// - A `.factory` path component AND
-/// - A `stories` path component AND
+/// - The `.factory` / `stories` chain as a CONTIGUOUS, correctly-ordered window
+///   immediately preceding the filename (SEC-001 / CWE-697 — not independent
+///   presence checks) AND
 /// - Filename ending in `.md` (but NOT `STORY-INDEX.md` — that is Arm B2's trigger)
 /// - Basename matching `^S-[0-9]+\.[0-9]+` (canonical story ID, excluding S-README etc.)
 ///
@@ -136,15 +187,9 @@ fn is_canonical_story_basename(filename: &str) -> bool {
 /// BC-5.39.010 invariant 3.
 /// F-P2-011: canonical story basename requires numeric section.subsection.
 pub fn is_story_file(file_path: &str) -> bool {
-    use std::path::{Component, Path};
+    use std::path::Path;
     let path = Path::new(file_path);
     let components: Vec<_> = path.components().collect();
-    let has_factory = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == ".factory"));
-    let has_stories = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == "stories"));
     let filename = path.file_name().and_then(|f| f.to_str()).unwrap_or("");
     let is_md = filename.ends_with(".md");
     // STORY-INDEX.md is Arm B2's trigger, not a story file
@@ -152,33 +197,32 @@ pub fn is_story_file(file_path: &str) -> bool {
     // PC9/PC16+F-P2-011: canonical story basename (^S-[0-9]+\.[0-9]+) excludes
     // epics (E-XX-*), index files, and non-story S-README/S-ARCH etc.
     let is_story_basename = is_canonical_story_basename(filename);
-    has_factory && has_stories && is_md && not_index && is_story_basename
+    is_md
+        && not_index
+        && is_story_basename
+        && chain_immediately_precedes_filename(&components, &[".factory", "stories"], 0)
 }
 
 /// Returns `true` if `file_path` names `STORY-INDEX.md` under `.factory/stories/`.
 ///
-/// Uses path-component-strict matching; `file_name == "STORY-INDEX.md"` AND
-/// a `stories` path component AND a `.factory` path component.
+/// Uses path-component-strict, contiguity-anchored matching:
+/// `file_name == "STORY-INDEX.md"` AND the `.factory` / `stories` chain as a
+/// CONTIGUOUS, correctly-ordered window immediately preceding the filename
+/// (SEC-001 / CWE-697 — not independent presence checks).
 ///
 /// # BC trace
 /// BC-5.39.010 precondition 22 (Class B Arm2 trigger condition).
 /// BC-5.39.010 invariant 3.
 pub fn is_story_index(file_path: &str) -> bool {
-    use std::path::{Component, Path};
+    use std::path::Path;
     let path = Path::new(file_path);
     let components: Vec<_> = path.components().collect();
-    let has_factory = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == ".factory"));
-    let has_stories = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == "stories"));
     let is_story_index = path
         .file_name()
         .and_then(|f| f.to_str())
         .map(|f| f == "STORY-INDEX.md")
         .unwrap_or(false);
-    has_factory && has_stories && is_story_index
+    is_story_index && chain_immediately_precedes_filename(&components, &[".factory", "stories"], 0)
 }
 
 /// Returns `Some(CycleArtifactKind)` if `file_path` names a cycle artifact
@@ -235,7 +279,7 @@ fn is_canonical_vp_filename(filename: &str) -> bool {
 /// # BC trace
 /// BC-5.39.010 precondition 34 (Class E trigger condition).
 pub fn is_frontmatter_parity_target(file_path: &str) -> bool {
-    use std::path::{Component, Path};
+    use std::path::Path;
     // BC files
     if is_bc_file(file_path) {
         return true;
@@ -244,41 +288,38 @@ pub fn is_frontmatter_parity_target(file_path: &str) -> bool {
     if is_story_file(file_path) {
         return true;
     }
-    // VP files under .factory/specs/verification-properties/
+    // VP files under .factory/specs/verification-properties/ — the
+    // `.factory` / `specs` / `verification-properties` chain must be a
+    // CONTIGUOUS, correctly-ordered window immediately preceding the filename
+    // (SEC-001 / CWE-697 — not independent presence checks).
     let path = Path::new(file_path);
     let components: Vec<_> = path.components().collect();
-    let has_factory = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == ".factory"));
-    let has_specs = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == "specs"));
-    let has_vp = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == "verification-properties"));
     let vp_filename_ok = path
         .file_name()
         .and_then(|f| f.to_str())
         .map(is_canonical_vp_filename)
         .unwrap_or(false);
-    if has_factory && has_specs && has_vp && vp_filename_ok {
+    if vp_filename_ok
+        && chain_immediately_precedes_filename(
+            &components,
+            &[".factory", "specs", "verification-properties"],
+            0,
+        )
+    {
         return true;
     }
     // Epic files under .factory/stories/epics/ — PC34 bullet 4 (F-S2107-P3-009):
-    // requires THREE components (`.factory`, `stories`, `epics`) AND basename
-    // matching `^E-[0-9]+-.*\.md$`. Absent either component or wrong basename → false.
-    let has_stories = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == "stories"));
-    let has_epics = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == "epics"));
+    // requires the `.factory` / `stories` / `epics` chain as a CONTIGUOUS,
+    // correctly-ordered window immediately preceding the filename (SEC-001 /
+    // CWE-697), AND basename matching `^E-[0-9]+-.*\.md$`. Absent contiguity
+    // or wrong basename → false.
     let epic_filename_ok = path
         .file_name()
         .and_then(|f| f.to_str())
         .map(is_canonical_epic_basename)
         .unwrap_or(false);
-    has_factory && has_stories && has_epics && epic_filename_ok
+    epic_filename_ok
+        && chain_immediately_precedes_filename(&components, &[".factory", "stories", "epics"], 0)
 }
 
 /// Returns `true` if `filename` is a canonical epic basename: `^E-[0-9]+-.*\.md$`.
@@ -636,6 +677,200 @@ mod tests {
             result,
             "canonical epic path '.factory/stories/epics/E-21-*.md' must be a \
             frontmatter parity target (PC34 bullet 4). GREEN guard test."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // SEC-001 (CWE-697 component-anchoring over-inclusion, security triage
+    // reclassified LOW — real defect is spurious-block, not bypass; the actual
+    // traversal defense is factory-dispatcher/src/host/path_util.rs::check_path_allowed,
+    // Kani-proven VP-097, and is untouched here).
+    //
+    // Root cause: is_bc_file / is_story_file / is_story_index /
+    // is_frontmatter_parity_target tested for required path COMPONENTS with
+    // independent `.any()`-style presence checks that did not require the
+    // components to be CONTIGUOUS and correctly ORDERED immediately before the
+    // matched filename. A decoy path with the required component names present
+    // but non-contiguous / out-of-order / separated by `..` traversal segments
+    // was wrongly classified as a governed path.
+    //
+    // Fix: `chain_immediately_precedes_filename` anchors the required directory
+    // chain to a position derived from the total component count (not searched),
+    // so the chain must appear as a contiguous, ordered window immediately
+    // (modulo an explicit `gap` of plain directory components, e.g. the BC
+    // ss-NN subdirectory) before the file name. Arbitrary prefix components
+    // BEFORE the chain remain unconstrained so real absolute/worktree paths
+    // (where `.factory` is not the first component) still classify correctly.
+    // -----------------------------------------------------------------------
+
+    /// SEC-001 RED GATE: is_bc_file — non-contiguous decoy (no `..`) must be
+    /// rejected. Pre-fix `.any()` logic finds ".factory", "specs",
+    /// "behavioral-contracts" present anywhere (out of order / non-contiguous)
+    /// plus a canonical BC filename, and wrongly returns true.
+    #[test]
+    fn test_SEC_001_dispatch_bc_file_non_contiguous_decoy_rejected() {
+        let result = is_bc_file("x/.factory/y/specs/z/behavioral-contracts/BC-1.2.3.md");
+        assert!(
+            !result,
+            "decoy path with non-contiguous, interspersed governed component names \
+            must NOT classify as a BC file (SEC-001 CWE-697 component-anchoring gap)."
+        );
+    }
+
+    /// SEC-001 RED GATE: is_bc_file — contiguous real chain followed by `..`
+    /// traversal segments before the decoy destination must be rejected. Pre-fix
+    /// `.any()` logic ignores what comes AFTER the required components and
+    /// wrongly returns true because ".factory"/"specs"/"behavioral-contracts"
+    /// are all present (contiguous, even) and the filename matches the BC
+    /// pattern.
+    #[test]
+    fn test_SEC_001_dispatch_bc_file_dotdot_after_chain_decoy_rejected() {
+        let result =
+            is_bc_file(".factory/specs/behavioral-contracts/../../../../tmp/evil/BC-1.2.3.md");
+        assert!(
+            !result,
+            "decoy path where '..' segments follow the real governed chain before \
+            reaching the destination must NOT classify as a BC file \
+            (SEC-001 CWE-697 component-anchoring gap)."
+        );
+    }
+
+    /// SEC-001 POSITIVE control: canonical BC path in ABSOLUTE/worktree form
+    /// (`.factory` is not the first component) must still classify true.
+    #[test]
+    fn test_SEC_001_dispatch_bc_file_absolute_form_accepted() {
+        let result = is_bc_file(
+            "/Users/dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md",
+        );
+        assert!(
+            result,
+            "canonical BC path in absolute/worktree form must still classify as a \
+            BC file — the governed chain need not start at component index 0."
+        );
+    }
+
+    /// SEC-001 RED GATE: is_story_file — non-contiguous decoy (no `..`) must be
+    /// rejected.
+    #[test]
+    fn test_SEC_001_dispatch_story_file_non_contiguous_decoy_rejected() {
+        let result = is_story_file("x/.factory/y/stories/S-21.07-decoy.md");
+        assert!(
+            !result,
+            "decoy path with non-contiguous governed component names must NOT \
+            classify as a story file (SEC-001 CWE-697 component-anchoring gap)."
+        );
+    }
+
+    /// SEC-001 RED GATE: is_story_file — real chain followed by `..` segments
+    /// before the decoy destination must be rejected.
+    #[test]
+    fn test_SEC_001_dispatch_story_file_dotdot_after_chain_decoy_rejected() {
+        let result = is_story_file(".factory/stories/../../../../tmp/evil/S-1.1-decoy.md");
+        assert!(
+            !result,
+            "decoy path where '..' segments follow the real governed chain must \
+            NOT classify as a story file (SEC-001 CWE-697 component-anchoring gap)."
+        );
+    }
+
+    /// SEC-001 POSITIVE control: canonical story path in absolute/worktree form.
+    #[test]
+    fn test_SEC_001_dispatch_story_file_absolute_form_accepted() {
+        let result = is_story_file(
+            "/Users/dev/vsdd-factory/.factory/stories/S-21.07-validate-cross-site-correspondence.md",
+        );
+        assert!(
+            result,
+            "canonical story path in absolute/worktree form must still classify as \
+            a story file."
+        );
+    }
+
+    /// SEC-001 RED GATE: is_story_index — non-contiguous decoy (no `..`) must
+    /// be rejected.
+    #[test]
+    fn test_SEC_001_dispatch_story_index_non_contiguous_decoy_rejected() {
+        let result = is_story_index("a/.factory/b/stories/STORY-INDEX.md");
+        assert!(
+            !result,
+            "decoy path with non-contiguous governed component names must NOT \
+            classify as the story index (SEC-001 CWE-697 component-anchoring gap)."
+        );
+    }
+
+    /// SEC-001 POSITIVE control: STORY-INDEX.md in absolute/worktree form.
+    #[test]
+    fn test_SEC_001_dispatch_story_index_absolute_form_accepted() {
+        let result = is_story_index("/Users/dev/vsdd-factory/.factory/stories/STORY-INDEX.md");
+        assert!(
+            result,
+            "STORY-INDEX.md in absolute/worktree form must still classify as the \
+            story index."
+        );
+    }
+
+    /// SEC-001 RED GATE: is_frontmatter_parity_target (VP arm) — non-contiguous
+    /// decoy (no `..`) must be rejected.
+    #[test]
+    fn test_SEC_001_dispatch_fpm_vp_non_contiguous_decoy_rejected() {
+        let result =
+            is_frontmatter_parity_target("a/.factory/b/specs/c/verification-properties/VP-039.md");
+        assert!(
+            !result,
+            "decoy VP path with non-contiguous governed component names must NOT \
+            classify as a frontmatter parity target (SEC-001 CWE-697 gap)."
+        );
+    }
+
+    /// SEC-001 RED GATE: is_frontmatter_parity_target (VP arm) — real chain
+    /// followed by `..` segments before the decoy destination must be rejected.
+    #[test]
+    fn test_SEC_001_dispatch_fpm_vp_dotdot_after_chain_decoy_rejected() {
+        let result = is_frontmatter_parity_target(
+            ".factory/specs/verification-properties/../../../../tmp/evil/VP-039.md",
+        );
+        assert!(
+            !result,
+            "decoy VP path where '..' segments follow the real governed chain must \
+            NOT classify as a frontmatter parity target (SEC-001 CWE-697 gap)."
+        );
+    }
+
+    /// SEC-001 POSITIVE control: canonical VP path in absolute/worktree form.
+    #[test]
+    fn test_SEC_001_dispatch_fpm_vp_absolute_form_accepted() {
+        let result = is_frontmatter_parity_target(
+            "/Users/dev/vsdd-factory/.factory/specs/verification-properties/VP-039.md",
+        );
+        assert!(
+            result,
+            "canonical VP path in absolute/worktree form must still classify as a \
+            frontmatter parity target."
+        );
+    }
+
+    /// SEC-001 RED GATE: is_frontmatter_parity_target (epic arm) — non-contiguous
+    /// decoy (no `..`) must be rejected.
+    #[test]
+    fn test_SEC_001_dispatch_fpm_epic_non_contiguous_decoy_rejected() {
+        let result = is_frontmatter_parity_target("a/.factory/b/stories/c/epics/E-21-decoy.md");
+        assert!(
+            !result,
+            "decoy epic path with non-contiguous governed component names must NOT \
+            classify as a frontmatter parity target (SEC-001 CWE-697 gap)."
+        );
+    }
+
+    /// SEC-001 POSITIVE control: canonical epic path in absolute/worktree form.
+    #[test]
+    fn test_SEC_001_dispatch_fpm_epic_absolute_form_accepted() {
+        let result = is_frontmatter_parity_target(
+            "/Users/dev/vsdd-factory/.factory/stories/epics/E-21-factory-state-data-loss-hardening.md",
+        );
+        assert!(
+            result,
+            "canonical epic path in absolute/worktree form must still classify as \
+            a frontmatter parity target."
         );
     }
 }
