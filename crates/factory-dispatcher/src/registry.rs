@@ -611,6 +611,70 @@ extra = { key = "value" }
         );
     }
 
+    // Mutation-audit hardening SURV-05 (out-of-gate production accessor,
+    // S-21.09 mutation-hardening burst): cargo-mutants replaced
+    // `RegistryEntry::on_error`'s body (`self.on_error.unwrap_or(defaults.on_error)`)
+    // with `Default::default()` and the mutant survived — no existing test
+    // distinguished the defaults-supplied fallback value from `OnError::Continue`,
+    // which happens to be BOTH the entry's expected eventual value in every prior
+    // fixture AND `OnError::default()`'s value (see `OnError`'s `#[default]`
+    // variant), so `Default::default()` produced an outcome indistinguishable
+    // from the correct one under every prior test.
+    //
+    // This test parses a hook entry that OMITS `on_error` (so
+    // `entry.on_error` is `None`) and pairs it with a `RegistryDefaults` whose
+    // `on_error` is explicitly set to `OnError::Block` — the NON-default variant
+    // (`RegistryDefaults::default().on_error` is `OnError::Continue`) — so the
+    // live accessor and the `Default::default()` mutant diverge observably.
+    //
+    // Under live code: `self.on_error` (`None`) `.unwrap_or(defaults.on_error)`
+    // (`OnError::Block`) → `OnError::Block`.
+    //
+    // Under the `Default::default()` body mutant: the method ignores both `self`
+    // and `defaults` entirely and returns `OnError::default()` → `OnError::Continue`
+    // — `assert_eq!` fails (`Continue` != `Block`) → this test goes RED.
+    //
+    // Mutation-proof (empirically verified, mutation-hardening burst): replacing
+    // `RegistryEntry::on_error`'s body with `Default::default()` locally and
+    // running `cargo test -p factory-dispatcher` turns this test RED while all
+    // other registry.rs tests remain GREEN. Reverting the mutant restores GREEN.
+    #[test]
+    fn on_error_falls_back_to_registry_defaults_when_entry_omits_it() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "no-on-error-override"
+event = "PostToolUse"
+plugin = "hook-plugins/x.wasm"
+"#;
+        let reg = Registry::parse_str(toml).unwrap();
+        assert_eq!(
+            reg.hooks[0].on_error, None,
+            "fixture must omit on_error so the entry-level Option is None, forcing the \
+             fallback-to-defaults code path under test"
+        );
+
+        let mut defaults = RegistryDefaults::default();
+        assert_eq!(
+            defaults.on_error,
+            OnError::Continue,
+            "RegistryDefaults::default().on_error must be OnError::Continue (its #[default] \
+             variant) — this sub-assertion pins the premise that OnError::Block, used below, \
+             is genuinely the NON-default variant"
+        );
+        defaults.on_error = OnError::Block;
+
+        assert_eq!(
+            reg.hooks[0].on_error(&defaults),
+            OnError::Block,
+            "RegistryEntry::on_error must return defaults.on_error (Block) when the entry's \
+             own on_error field is None; under the Default::default() body mutant this would \
+             incorrectly return OnError::Continue (OnError's #[default] variant) regardless \
+             of what `defaults` specifies"
+        );
+    }
+
     #[test]
     fn rejects_unknown_schema_version() {
         // schema_version=3 is unknown — dispatcher expects 2 (REGISTRY_SCHEMA_VERSION).
