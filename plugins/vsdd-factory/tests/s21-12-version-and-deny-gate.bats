@@ -187,22 +187,42 @@ setup() {
 # GREEN-after: deny job added → grep finds the string → test PASSES
 # ---------------------------------------------------------------------------
 @test "AC-007-T1: a workflow file contains a cargo-deny advisories job" {
+  # Strengthened assertion (O-2): checking for the step NAME string
+  # 'cargo deny check advisories' is insufficient — a step can have that name
+  # while running a completely different command (e.g. 'command-arguments: licenses').
+  # Instead, assert the REAL invocation: the workflow must contain BOTH
+  #   (a) EmbarkStudios/cargo-deny-action (SHA-pinned usage), AND
+  #   (b) command-arguments: advisories
+  # so that renaming command-arguments from 'advisories' to anything else causes
+  # this test to FAIL even if the step name is preserved.
   local workflows_dir="$REPO_ROOT/.github/workflows"
   [ -d "$workflows_dir" ] || { echo "FAIL: .github/workflows/ not found at $workflows_dir"; return 1; }
 
-  local found=0
+  # (a) Find the workflow file that uses EmbarkStudios/cargo-deny-action (SHA-pinned).
+  local deny_workflow=""
   while IFS= read -r -d '' wf; do
-    if grep -qF 'cargo deny check advisories' "$wf"; then
-      found=1
+    if grep -qF 'EmbarkStudios/cargo-deny-action@' "$wf"; then
+      deny_workflow="$wf"
       break
     fi
   done < <(find "$workflows_dir" -name '*.yml' -print0 2>/dev/null)
 
-  if [ "$found" -eq 0 ]; then
-    echo "FAIL: no workflow file in $workflows_dir contains 'cargo deny check advisories'"
-    echo "Expected: .github/workflows/ci.yml (or a peer file) to contain a cargo-deny advisories job"
+  if [ -z "$deny_workflow" ]; then
+    echo "FAIL: no workflow file in $workflows_dir uses 'EmbarkStudios/cargo-deny-action@' (SHA-pinned)"
+    echo "Expected: .github/workflows/ci.yml to contain a step using EmbarkStudios/cargo-deny-action@<SHA>"
     echo "Found workflow files:"
     find "$workflows_dir" -name '*.yml' 2>/dev/null | sort
+    return 1
+  fi
+
+  # (b) The same workflow file must also contain 'command-arguments: advisories' —
+  # this is the argument that actually runs 'cargo deny check advisories', not
+  # any other subcommand (e.g. 'licenses', 'bans').
+  if ! grep -qF 'command-arguments: advisories' "$deny_workflow"; then
+    echo "FAIL: $deny_workflow uses EmbarkStudios/cargo-deny-action but does not contain 'command-arguments: advisories'"
+    echo "Expected: the deny job to invoke 'cargo deny check advisories' via command-arguments"
+    echo "Actual command-arguments lines in $deny_workflow:"
+    grep 'command-arguments' "$deny_workflow" || echo "  (none found)"
     return 1
   fi
 }
