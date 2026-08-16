@@ -66,6 +66,7 @@ fn entry_at(path: &std::path::Path, name: &str, priority: u32) -> RegistryEntry 
         // compilation; the implementer updates schema_version to 2 in T-3a.
         async_flag: false,
         needs_context: vec![],
+        failure_policy: Default::default(),
     }
 }
 

@@ -85,6 +85,35 @@ pub enum OnError {
     Block,
 }
 
+/// Resource-exhaustion failure policy for a plugin entry.
+///
+/// Governs dispatcher behavior when a plugin exhausts its WASM fuel budget
+/// (`TimeoutCause::Fuel`) or epoch budget (`TimeoutCause::Epoch`). This axis
+/// is independent of `on_error`, which governs plugin crashes and host-side
+/// invocation errors (ADR-039 §Decision 1 axes-separation requirement;
+/// BC-1.01.016 PC5).
+///
+/// Serializes and deserializes as kebab-case (`"fail-closed"`, `"fail-open"`)
+/// per ADR-039 §Decision 2 value format. Snake-case variants (`"fail_closed"`)
+/// are NOT accepted — serde rejects them at parse time, satisfying
+/// BC-1.01.016 EC-003 (underscored variants must be `Err`).
+///
+/// Defaults to `FailOpen` for backward-compatibility with existing registry
+/// entries that predate this field (ADR-039 §Decision 1 backward-compat clause;
+/// BC-1.01.016 PC4). Phase 1 (S-21.10): schema extension only; enforcement
+/// flip in S-21.11.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum FailurePolicy {
+    /// Plugin resource-exhaustion causes a hard block; the same terminal outcome
+    /// as `OnError::Block` but for the orthogonal fuel/epoch failure class.
+    FailClosed,
+    /// Plugin resource-exhaustion is advisory (fail-open). Default for all
+    /// existing plugins that predate this field (ADR-039 §Decision 1).
+    #[default]
+    FailOpen,
+}
+
 /// Capability declaration for a plugin entry. Deny-by-default — a
 /// missing block means the plugin cannot use the corresponding host
 /// function at all.
@@ -290,6 +319,27 @@ pub struct RegistryEntry {
     /// the absent field deserializes to `[]`, not `None`.
     #[serde(default)]
     pub needs_context: Vec<String>,
+
+    /// Per-plugin resource-exhaustion failure policy (S-21.10; ADR-039 §Decision 1+2).
+    ///
+    /// Governs what happens when this plugin exhausts its WASM fuel budget
+    /// (`TimeoutCause::Fuel`) or epoch budget (`TimeoutCause::Epoch`). Independent
+    /// of `on_error` — the two fields govern distinct failure classes:
+    /// `on_error` handles plugin crashes and host-side invocation errors;
+    /// `failure_policy` handles resource exhaustion (ADR-039 §Decision 1
+    /// axes-separation; BC-1.01.016 PC5).
+    ///
+    /// Absent field defaults to `FailurePolicy::FailOpen` via `#[serde(default)]`
+    /// (ADR-039 §Decision 1 backward-compat clause; BC-1.01.016 PC4). This is
+    /// deliberate per-plugin granularity — NOT a global `RegistryDefaults` key
+    /// (ADR-039 §Decision 2 per-plugin-granularity note; SR-003). Do NOT refactor
+    /// to `Option<FailurePolicy>` — the field-level `#[serde(default)]` is the
+    /// intentional design.
+    ///
+    /// Phase 1 (S-21.10): schema extension only. `plugin_fail_closed` behavior
+    /// is UNCHANGED in this phase; enforcement flip in S-21.11 (AC-006).
+    #[serde(default)]
+    pub failure_policy: FailurePolicy,
 }
 
 fn default_enabled() -> bool {
