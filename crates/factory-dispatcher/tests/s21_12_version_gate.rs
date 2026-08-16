@@ -1,5 +1,10 @@
 // Test files use .expect()/.unwrap()/.panic!() for failure reporting.
-#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic, clippy::collapsible_if)]
+#![allow(
+    clippy::expect_used,
+    clippy::unwrap_used,
+    clippy::panic,
+    clippy::collapsible_if
+)]
 // s21_12_version_gate.rs — RED Gate integration tests for S-21.12.
 //
 // Asserts that the resolved versions of `wasmtime-wasi` and `crossbeam-epoch`
