@@ -4,7 +4,7 @@ level: L3
 adr_id: ADR-039
 version: "1.3"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
-status: proposed
+status: ratified
 date: 2026-08-06
 producer: architect
 timestamp: 2026-08-06T00:00:00Z
@@ -17,7 +17,9 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-16 (v1.3) — Pre-ratification research reconciliation (architect): (1) stale
+  2026-08-16 (v1.3-ratified) — Human ratification via orchestrator (POLICY 22 ratification-channel;
+  D-1022 2026-08-16): status proposed→ratified. ADR-039 v1.3 is the ratified version.
+  [Prior: 2026-08-16 (v1.3) — Pre-ratification research reconciliation (architect): (1) stale
   fuel-default constant corrected — Decision 3 + Decision 4 + Rationale §per-plugin-scope
   updated 10_000_000 → 20_000_000 with ADR-042 §Decision 2 cite (ADR-042 is SoT for
   current fuel-cap value; SHAPE argument fully preserved); (2) Decision 4 Option A
@@ -59,6 +61,7 @@ modified:
   - "2026-08-06 (v1.1)"
   - "2026-08-16 (v1.2)"
   - "2026-08-16 (v1.3)"
+  - "2026-08-16 (v1.3-ratified)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -511,6 +514,8 @@ corpus; p99×1.5 reframed as headroom floor heuristic; hard-block boundary note 
 footgun note — absent-annotation = fail-open residual risk documented in §Consequences
 Negative). Status PROPOSED / ratification-pending; v1.3 incorporates pre-ratification
 research reconciliations; human ratifies next. ADR-039 v1.3.
+RATIFIED 2026-08-16 (v1.3) by human via orchestrator (POLICY 22 ratification-channel; D-1022):
+status proposed→ratified. ADR-039 v1.3 is the ratified version.
 
 Adjudicates F-S2107-P7-010 (HIGH), F-S2107-P7-011 (HIGH), F-S2107-P7-015 (MEDIUM) design
 legs from adversarial pass-7 of S-21.07. Extends ADR-035 §Decision 5 to the enforcement
