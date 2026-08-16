@@ -29168,3 +29168,38 @@ $ grep -c "ADR-040 v1.18" .factory/specs/architecture/ARCH-INDEX.md
 **Closes:** the CRATE/IMPLEMENTATION half of `[D-969]`/`[F-S2107-P10-001]` (crate merged to `develop`, ADR-040 v1.18 ratified-by-amendment). Does NOT close: `[D-969]`'s CI-WIRING half (separate concurrent in-progress PR); the D-1011/D-1012 exhaustive per-decision decision-log.md backfill (still OWED); the 3 newly-anchored Drift Items in (j) above.
 
 **Factory-artifacts commit (this burst — TD-VSDD-053 single-commit-per-burst):** single commit pushed as `git push origin HEAD:factory-artifacts`; SHA per `git -C .factory log -1` after push (per TD-VSDD-053, this burst does not cite its own commit SHA in STATE.md prose — see CLAUDE.md "How to know the current factory-artifacts HEAD SHA").
+
+## D-1015-POLICY15-CI-WIRED-PR778-MERGED — single-commit closure burst (CI-wiring half of [D-969])
+
+**Parent commit:** `3a2af3de` (D-1014-POLICY15-CRATE-MERGED-PR777 milestone-record burst) — the `factory-artifacts` HEAD at burst start, per D-419(b)/D-444(c) parent-commit-SHA convention.
+
+**Adversary verdict:** N/A — this is a closure bookkeeping burst persisting a CI-wiring arc that already ran to completion (PR #778's own CI: `policy-15-attestation-location` PASS-zero, `attestation-gate-non-vacuity-controls` both fixture sub-checks green) earlier in this session. Human-authorized merge, squash-merged to `develop` at `84a441a0` 2026-08-16.
+
+**Files touched this burst:**
+- `.factory/STATE.md` — frontmatter (version/timestamp/phase/last_amended/current_step); SIZE BUDGET banner (new archive row + wc-l claim refreshed); Project Metadata (Last Updated + Current Phase); Phase Progress (+D-1015 row); Current Phase Steps (+D-1015 row); Active Branches (`develop` row SHA `19cb57e6`→`84a441a0`; new `fix/policy15-ci-wiring` MERGED row; `factory-artifacts` row refreshed); Concurrent Cycles (`v1.0-brownfield-backfill` row rewritten); Blocking Issues (P0 row CLOSED — both halves complete; new `[P0-followup]` branch-protection-enforcement row); Drift Items (`[D-969]` row updated to CLOSED, residual routed to the new P0-followup); Decisions Log (note text + new D-1015 row; D-1013 individual row collapsed into the archived range now that D-1015 exists); Session Resume Checkpoint (replaced; old archived to `session-checkpoints.md`).
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — archived the D-1014-dated Session Resume Checkpoint.
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — this D-1015 entry.
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry.
+- Routine dispatcher/telemetry artifacts swept into this single commit (modified at session start, no narrative content): `logs/dispatcher-internal-2026-08-15.jsonl`, `sidecar-learning.md`.
+
+**Codifications:** none new this burst. The branch-protection enforcement gap is recorded as a Blocking Issue (`[P0-followup]`), not a lesson — it is a known, explicit, human-only residual action, not a process defect requiring an L-BB-* codification.
+
+**Dim-2/5/6/7 attestations — literal shell, D-449(a):**
+
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -2
+## D-1014 — D-1014-POLICY15-CRATE-MERGED-PR777
+## D-1015 — D-1015-POLICY15-CI-WIRED-PR778-MERGED
+$ git fetch origin develop 2>&1 | tail -2
+   19cb57e6..84a441a0  develop    -> origin/develop
+$ git log --oneline 19cb57e6..84a441a0
+84a441a0 ci(policy15): wire POLICY 15 attestation-location gate as required-check job (#778)
+$ git show 84a441a0 --stat | tail -2
+ .github/workflows/ci.yml | 124 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 124 insertions(+)
+$ gh api repos/drbothen/vsdd-factory/branches/develop/protection 2>&1 | head -1
+```
+
+**Closes:** the CI-WIRING half of `[D-969]`/`[F-S2107-P10-001]` (job added to `ci.yml`, proven non-vacuous on the PR's own CI, merged to `develop`). `[D-969]`/`[F-S2107-P10-001]` is now fully CLOSED **as a wiring matter** — both crate (#777, D-1014) and CI-wiring (#778, this entry) halves complete. Does NOT close: branch-protection enforcement (new `[P0-followup]` Blocking Issue, human/admin-only action); the D-1011/D-1012 exhaustive per-decision decision-log.md backfill (still OWED); C-1/C-2/C-4/C-5 exec_subprocess security findings (ADR-043 NOT RATIFIED).
+
+**Factory-artifacts commit (this burst — TD-VSDD-053 single-commit-per-burst):** single commit pushed as `git push origin HEAD:factory-artifacts`; SHA per `git -C .factory log -1` after push (per TD-VSDD-053, this burst does not cite its own commit SHA in STATE.md prose — see CLAUDE.md "How to know the current factory-artifacts HEAD SHA").

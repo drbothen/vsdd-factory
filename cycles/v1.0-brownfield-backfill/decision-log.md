@@ -18256,3 +18256,44 @@ D-1014-POLICY15-CRATE-MERGED-PR777
 2026-08-16
 
 ---
+
+## D-1015 — D-1015-POLICY15-CI-WIRED-PR778-MERGED
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → the prior max was `## D-1014`; D-1015 allocated.
+
+**Scope note (single-commit closure burst, human-directed).** This entry records the closure of the CI-WIRING half of `[D-969]`/`[F-S2107-P10-001]` — the half that D-1014 explicitly left open. PR #778 (`fix/policy15-ci-wiring` → `develop`) wired the `policy-15-attestation-location` gate job (per ADR-040 v1.18 Ruling 9(c) item 5) plus a `attestation-gate-non-vacuity-controls` self-test job into `ci.yml`, and both PROVED non-vacuous by running green on the PR's own CI. **This entry closes `[D-969]`/`[F-S2107-P10-001]` as a wiring matter — both the crate/implementation half (D-1014, PR #777) and the CI-wiring half (this entry, PR #778) are now complete. It does NOT close the SEPARATE enforcement gap: `develop` has no branch protection configured, so the two gate jobs run and report but do not yet BLOCK non-conforming merges.**
+
+**(a) CI job additions — `ci.yml`.** Two new jobs added, both dedicated (not folded into an existing job) and unconditional (run on every PR to `develop`, not gated behind a path filter):
+- `policy-15-attestation-location`: checks out with `fetch-depth: 0` (full history, required for the gate's `git diff`/`git diff-tree` invocations) and an explicit `ref: ${{ github.event.pull_request.head.sha }}` per ADR-040 v1.18 Ruling 9(c) item 5 (the exact requirement D-1014/research-agent Q2 identified — not the `pull_request`-trigger default synthetic merge ref, a moving target no attestation ever references); passes `base: ${{ github.event.pull_request.base.ref }}` as the gate's merge-base comparison point; implements four-outcome exit-code gating (Pass/PassWithActivations → exit 0; Fail → exit 2 with the gate's own `FailReason` message surfaced in the job log; the parentless-commit skip path → exit 0 with an explicit WARNING annotation, closing the silent-skip gap D-1014(c) routed to implementer without fixing in the ADR).
+- `attestation-gate-non-vacuity-controls`: runs the gate binary against two synthetic EICAR-style self-test fixtures — one deliberately non-conforming commit (asserts the job FAILS, proving the gate is not a no-op) and one deliberately conforming commit (asserts the job PASSES, proving the gate is not permanently-FAIL-and-ignored). This is the standard non-vacuity control pattern: a gate with no negative-control test can silently degrade to `exit 0` on every input without anyone noticing.
+
+**(b) Non-vacuous execution proof — both jobs ran on PR #778's own CI.** `policy-15-attestation-location` completed in 1m18s as a genuine PASS-zero (zero unattested-obligation activations on the PR's own diff, not a skipped/short-circuited run); `attestation-gate-non-vacuity-controls` completed in 38s with both the FAIL-fixture and PASS-fixture sub-checks green. This satisfies CLAUDE.md's production-grade default (Canonical Principle Rule 4) that a claimed gate-wiring closure must be verified executing, not merely reviewed as code — the same EXECUTION-based discipline D-1014(d) applied to the crate itself now applies to its CI wiring.
+
+**(c) Merge.** PR #778 (`fix(ci): wire POLICY 15 attestation-location gate into CI`, `fix/policy15-ci-wiring` → `develop`) squash-merged 2026-08-16 at commit `84a441a0`, direct child of `19cb57e6` (the D-1014 develop HEAD — no other PR landed between). `develop` HEAD `19cb57e6`→`84a441a0`.
+
+**(d) `[D-969]`/`[F-S2107-P10-001]` — CI-WIRING half CLOSED; BOTH halves now complete.** The Blocking Issues P0 row is updated: the original P0 row is marked CLOSED (both the crate half from D-1014 and the CI-wiring half from this entry are done — the gate is deployed and executes on every PR to `develop`). **This closure is scoped strictly to "the gate is wired and running."** It does NOT claim the gate is enforced: `develop` currently has no branch protection configuration (`gh api repos/.../branches/develop/protection` returns 404), so neither `policy-15-attestation-location` nor `attestation-gate-non-vacuity-controls` is a REQUIRED status check yet. Until branch protection lists both job names as required, a PR can merge to `develop` even if the gate job reports FAIL — the gate is **advisory-in-effect**, not blocking. A new residual Blocking Issue `[P0-followup]` is recorded for this: it is an explicit human/admin-only action (no AI agent holds GitHub admin rights to configure branch protection), so it cannot be closed by any further state-manager or implementer burst — only by a human running the `gh api PUT` (or equivalent UI) call.
+
+**(e) 4-index.** ARCH-INDEX v3.59 UNCHANGED this burst — the CI-wiring job additions implement an ADR-040 ruling already ratified at D-1014 (v1.18 Ruling 9(c) item 5); no new ADR content or ruling was introduced. BC-INDEX v4.63 / VP-INDEX v2.76 / STORY-INDEX v4.338 all UNCHANGED — `ci.yml` is engine-infrastructure CI configuration, not a spec-governed story or BC. `merged_count` 109 UNCHANGED (PR #778 is not a numbered story). policies.yaml v1.4.24 UNCHANGED.
+
+**(f) Discipline note — pre-existing backfill unaffected.** The `[BACKFILL OWED]` D-1011/D-1012 exhaustive per-decision decision-log.md backfill remains separately OWED, unaffected by this burst.
+
+### Agents
+
+- human: authorization for the CI-wiring track; PR #778 merge approval
+- vsdd-factory:devops-engineer: `ci.yml` job authoring (`policy-15-attestation-location` + `attestation-gate-non-vacuity-controls`)
+- vsdd-factory:pr-manager: PR #778 lifecycle coordination and merge execution
+- state-manager (this burst): STATE.md full arc advance; this D-1015 decision-log.md entry; burst-log.md narrative; single atomic commit to `factory-artifacts` per TD-VSDD-053
+
+### 4-INDEX
+
+ARCH-INDEX v3.59 (UNCHANGED) / BC-INDEX v4.63 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.338 (UNCHANGED)
+
+### Phase
+
+D-1015-POLICY15-CI-WIRED-PR778-MERGED
+
+### Date
+
+2026-08-16
+
+---

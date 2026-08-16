@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "83998ec"
+input-hash: "e322ae2"
 traces_to: STATE.md
 ---
 
@@ -1889,3 +1889,52 @@ decision-log.md is missing the exhaustive per-decision backfill for: (a) D-1011'
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1014-POLICY15-CRATE-MERGED-PR777 checkpoint burst (2026-08-16) — pipeline resumed `PAUSED`→`ACTIVE` human-authorized to run the POLICY 15 validate→harden→merge→wire track; the crate merged to `develop` via PR #777 (`19cb57e6`); CI-wiring remains a separate concurrent open PR.**
+
+---
+
+## Session Resume Checkpoint (2026-08-16 — HEAD `19cb57e6` develop / factory-artifacts this commit; D-1014-POLICY15-CRATE-MERGED-PR777 COMPLETE; PIPELINE ACTIVE)
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE ACTIVE** — resumed this session, human-authorized, to run the full POLICY 15 gate validate→harden→merge→wire track on `feature/policy15-gate-rust` (the already-redesigned crate, `d2a3176a`, 16 tests, `GateOutcome` enum, mutation-verified per D-970/ADR-040 v1.12). The crate is now **MERGED**: PR #777 squash-merged to `develop` at `19cb57e6` 2026-08-16, direct child of `e94767bc` (the D-1013 develop HEAD). Remote branch `feature/policy15-gate-rust` auto-deleted on origin; local branch retained. **CRATE/IMPLEMENTATION half of `[D-969]`/`[F-S2107-P10-001]` is CLOSED. The CI-WIRING half (ADR-040 §Decision 9 Ruling 9(c) item 5 — wiring the `policy-15-attestation-location` job into `ci.yml` with an explicit `${{ github.event.pull_request.head.sha }}` checkout) is a SEPARATE, CONCURRENT, still-open PR and is NOT closed.** S-21.07 remains MERGED (PR #776, `e94767bc`, UNCHANGED); `merged_count` 109 UNCHANGED (the crate merge is engine-infra, not a numbered story).
+
+### §2 What This Burst Did
+
+- **Pipeline resume:** `pipeline` frontmatter `PAUSED`→`ACTIVE`; `phase` set to `D-1014-POLICY15-CRATE-MERGED-PR777`.
+- **Persisted uncommitted session artifacts:** ADR-040 v1.17+v1.18 amendments (architect-authored, persisted verbatim); `.factory/research/policy15-gate-ci-semantics.md` (new); `.factory/code-delivery/PR-777/pr-review-round-1-approve-superseded.md` + `pr-review.md` (new).
+- **ARCH-INDEX.md:** ADR-040 row appended v1.17+v1.18 notes per POLICY 9 propagation; version 3.58→3.59.
+- **STATE.md:** frontmatter, banner, Project Metadata, Phase Progress (+row), Current Phase Steps (archived through D-1013, +D-1014 row), Identifier Conventions (ADR row), Active Branches (`develop`→`19cb57e6`, `feature/policy15-gate-rust`→MERGED, `factory-artifacts` refreshed), Concurrent Cycles (`v1.0-brownfield-backfill` rewritten), Decisions Log (+D-1014 row; D-1011 individual row collapsed into archived range), Blocking Issues (P0 row updated to partial closure), Drift Items (+3 new anchored follow-up rows; `[D-969]` row updated), Session Resume Checkpoint (this section, replaced; old archived to `session-checkpoints.md`).
+- **decision-log.md + burst-log.md:** new D-1014 entries recording the full arc.
+- No BC/VP/STORY content changed — the POLICY 15 crate is engine-infrastructure, not a spec-governed story.
+
+### §3 Convergence Counters (unchanged by this burst)
+
+The S-21.07 LOCAL spec-only adversarial cascade CONVERGED 3/3 at D-1009 (trajectory-tail →1→0→0→0, UNCHANGED — unrelated to the POLICY 15 arc). The POLICY 15 crate's own adversary (F-1..F-6) + EXECUTION-based pr-review (H-1/H-2) + code-reviewer (CR-2) cascades all converged to a clean/APPROVE state before merge; not tracked as a live STATE.md counter (crate-scoped, not story-scoped).
+
+### §4 Outstanding Backfill (carried forward, NOT closed by this burst)
+
+decision-log.md is missing the exhaustive per-decision backfill for: (a) D-1011's full reconcile-and-land session, and (b) D-1012's own SEC-001/CWE-697 arc detail (only a CONSOLIDATED entry exists). Remains OWED — anchored to a future state-manager burst with decision-log-backfill scope. This D-1014 arc is unaffected — recorded in its own full entry. Also carried forward: pre-existing `sprint-state.yaml` S-21.09-shows-in-flight drift; STORY-INDEX historical-YAML malformation → S-15.03.
+
+### §5 Next Action
+
+**PIPELINE ACTIVE.** The CI-wiring PR (wiring `policy-15-attestation-location` into `ci.yml` per Ruling 9(c) item 5, plus branch-protection config) is a SEPARATE, CONCURRENT, in-progress PR — continue that track to fully close `[D-969]`. Other standing pending items (unchanged by this burst): C-1/C-2/C-4/C-5 exec_subprocess security findings (ADR-043 NOT RATIFIED), the decision-log.md D-1011/D-1012 backfill above, the 3 newly-anchored Drift Items (validate-pr-review-posted hook, test-tightness, permission-classifier note). E-21 remaining scope entirely draft (S-21.10..S-21.15); next wave dispatch is an open human/orchestrator decision.
+
+### §6 Open Follow-ups (accepted/deferred, non-blocking — Drift Items, carried forward + new this burst)
+
+- `capability: "E-12"` in BC-5.39.010 frontmatter — product-owner to confirm.
+- VP-template `last_amended` scaffold gap — architect-owned.
+- BC-INDEX read-cap ceiling growth — anchored S-21.13.
+- `report.tap` untracked in the MAIN repo — gitignore hygiene (POLICY 20).
+- STORY-INDEX.md `last_amended` field bloat — anchored S-15.03.
+- Frontmatter BOM/leading-line tolerance — accepted (unreachable, fails-closed).
+- **NEW this burst:** `validate-pr-review-posted` hook Check-2 negation-blindness + Checks-3a/3b self-authored-PR unreachability — anchored S-15.03 PRIORITY-A (self-improvement).
+- **NEW this burst:** `test_h1_merge_pass_through_content_is_skipped_not_failed` assertion looseness — non-blocking, anchored next maintenance sweep.
+- **NEW this burst:** session permission-classifier blocked `gh pr review` writes but not `gh pr merge` — audit note only.
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the D-1015-POLICY15-CI-WIRED-PR778-MERGED checkpoint burst (2026-08-16) — CI-wiring PR #778 squash-merged `84a441a0`; both halves of `[D-969]`/`[F-S2107-P10-001]` now CLOSED as a wiring matter; branch-protection enforcement remains a separate open human/admin-only follow-up.**

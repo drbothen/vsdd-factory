@@ -231,3 +231,4 @@
 {"type":"hook.block","hook":"destructive-command-guard","reason":"protected_path_delete","ts":"2026-08-15T18:08:30-0500","ts_epoch":1786835310,"schema_version":1}
 {"type":"hook.block","hook":"destructive-command-guard","reason":"protected_path_delete","ts":"2026-08-15T18:25:55-0500","ts_epoch":1786836355,"schema_version":1}
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-08-15T19:42:05-0500","ts_epoch":1786840925,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-08-15T21:06:03-0500","ts_epoch":1786845963,"schema_version":1}
