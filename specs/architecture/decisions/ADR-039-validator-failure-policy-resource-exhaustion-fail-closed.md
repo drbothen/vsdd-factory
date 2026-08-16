@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.2"
+version: "1.3"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: proposed
 date: 2026-08-06
@@ -17,7 +17,19 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-16 (v1.2) — Ratification prep (architect): internal version inconsistency
+  2026-08-16 (v1.3) — Pre-ratification research reconciliation (architect): (1) stale
+  fuel-default constant corrected — Decision 3 + Decision 4 + Rationale §per-plugin-scope
+  updated 10_000_000 → 20_000_000 with ADR-042 §Decision 2 cite (ADR-042 is SoT for
+  current fuel-cap value; SHAPE argument fully preserved); (2) Decision 4 Option A
+  reworded — load-bearing guarantee is largest-known-live-input sufficiency + production-
+  scale corpus; p99×1.5 reframed as headroom floor heuristic (calibrated risk parameter,
+  not SRE standard); hard-block boundary note added (p99.9/observed-max); (3) CWE
+  taxonomy enriched — CWE-755 (Improper Handling of Exceptional Conditions) lineage added
+  (CWE-755 → CWE-703 → CWE-636) in Context and Source sections; (4) §Consequences
+  (Negative) — absent-annotation = fail-open footgun documented as residual risk; follow-up
+  hardening story S-21.16 cited. Status PROPOSED / ratification-pending; v1.3 incorporates
+  research reconciliations. ADR-039 v1.3.
+  [Prior: 2026-08-16 (v1.2) — Ratification prep (architect): internal version inconsistency
   resolved — §Consequences "Status as of v1.0" heading and §Status "ADR-039 v1.0"
   reference corrected to current v1.1/v1.2 (body had never been updated from initial
   v1.0 draft wording after v1.1 frontmatter bump); implementation status updated —
@@ -46,6 +58,7 @@ modified:
   - "2026-08-06 (v1.0)"
   - "2026-08-06 (v1.1)"
   - "2026-08-16 (v1.2)"
+  - "2026-08-16 (v1.3)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -66,8 +79,11 @@ a clean pass is directionally correct as an *enforcement* claim, not a detection
 **The enforcement defect is real.** `plugin_fail_closed` returns `false` when
 `on_error == OnError::Continue`, regardless of `TimeoutCause`. For approximately 38 validator
 plugins registered with `on_error = "continue"`, fuel exhaustion therefore produces the same
-allow-decision as a clean pass. This is **CWE-636 "Not Failing Securely (Failing Open)"**
-(primary) and **CWE-390 "Detection of Error Condition Without Action"** (secondary).
+allow-decision as a clean pass. This is **CWE-636 "Not Failing Securely (Failing Open)"** (primary; lineage:
+**CWE-755** (Improper Handling of Exceptional Conditions) → **CWE-703** (Improper Check or
+Handling of Exceptional Conditions) → **CWE-636**) and **CWE-390 "Detection of Error
+Condition Without Action"** (secondary). CWE-755 is the root ancestor class; CWE-703 is
+CWE-636's direct parent in the CWE hierarchy.
 
 **The current behavior is deliberate policy, not an oversight.** The test
 `fail_closed_timeout_with_on_error_continue_is_open` (in the `executor` module) explicitly
@@ -194,7 +210,9 @@ provides measurement data for Phase 3.
 
 **Phase 3 — Per-plugin fuel-cap calibration.** For each validator targeted for the
 fail-closed flip: measure `fuel_consumed` over a corpus that includes all live production-scale
-artifacts. Set `fuel_cap` at ≥ p99 × 1.5. Verify sufficiency for the largest known live input.
+artifacts. **The load-bearing requirement is: verify sufficiency for the largest known live
+input.** Use `fuel_cap ≥ p99 × 1.5` as a headroom floor heuristic (see Decision 4 for
+calibration details and the hard-block boundary consideration).
 
 **Phase 4 — The enforcement flip.** Extend `plugin_fail_closed` (or introduce a replacement
 function) to accept `failure_policy`. For
@@ -202,7 +220,8 @@ function) to accept `failure_policy`. For
 `failure_policy = FailClosed`, return `true` regardless of `on_error`. For each validator: set
 `failure_policy = "fail-closed"` in `hooks-registry.toml` **in the same commit** that verifies
 its calibrated `fuel_cap`. No half-state: a plugin MUST NOT carry `failure_policy = "fail-closed"`
-with the factory default `fuel_cap = 10_000_000`.
+with the factory default `fuel_cap = 20_000_000` (per ADR-042 §Decision 2; raised from
+the prior 10M constant).
 
 **Specific self-lock constraint for lessons.md validators:** No validator that reads
 `lessons.md` may receive `failure_policy = "fail-closed"` until its `fuel_cap` is calibrated
@@ -221,19 +240,27 @@ failure mode — and for PreToolUse gates, that would produce a hard uncondition
 large-artifact write. Phase 3 calibration is not a best-practice recommendation; it is a
 prerequisite for preventing the specific failure mode currently observed in production.
 
-### Decision 4 — Fuel budgeting: p99-derived per-plugin caps; fixed `10_000_000` constant is the wrong shape
+### Decision 4 — Fuel budgeting: p99-derived per-plugin caps; fixed `20_000_000` constant (per ADR-042) is the wrong shape
 
 **The problem with the fixed constant.** The `RegistryDefaults` constant
-`fuel_cap = 10_000_000` is a single value applied to all plugins regardless of input size. For
-validators that are linear in input size, this provides no meaningful budget guarantee across
-the 100× input size variation between a synthetic test fixture and a live STATE.md. F-P1-003
-demonstrates this: two `String` allocations per line exhausted the 10M budget on a 426-line
-file — well below the largest live artifacts.
+`fuel_cap = 20_000_000` (raised 10M→20M by ADR-042 §Decision 2) is a single value applied to
+all plugins regardless of input size. For validators that are linear in input size, this
+provides no meaningful budget guarantee across the 100× input size variation between a
+synthetic test fixture and a live STATE.md. F-P1-003 demonstrates this: two `String`
+allocations per line exhausted the pre-ADR-042 10M budget on a 426-line file — well below
+the largest live artifacts. The same shape defect persists at 20M: ADR-042 §Decision 1 Erratum
+(v1.3) confirms production cycle artifacts reach 198–297% of the 20M cap under the
+adapter-class fuel model.
 
 **Correct budgeting — minimum requirement for migration (Option A):**
-Measure `fuel_consumed` on the calibration corpus. Set the per-plugin `fuel_cap` at
-`max(measured_p99 × 1.5, 50_000_000)` where 50M is a recommended floor. Simpler; required
-minimum for Phase 3.
+Measure `fuel_consumed` on the calibration corpus. **The load-bearing guarantee is:
+sufficiency for the largest known live input at the time of calibration.** A `fuel_cap` of
+`max(measured_p99 × 1.5, 50_000_000)` is the headroom floor heuristic beneath that
+guarantee — a calibrated risk parameter, not an SRE standard. For hard-block (fail-closed)
+boundary validators (where exhaustion = unconditional pipeline block), p99 × 1.5 leaves
+~1% of production-representative inputs at exhaustion risk; the practical target for those
+validators should be p99.9 or the observed maximum of the calibration corpus. Simpler;
+required minimum for Phase 3.
 
 **Preferred long-term approach (Option B — size-proportional budget):**
 Expose a registry field `fuel_per_kb: u64` (optional). The dispatcher computes
@@ -323,8 +350,8 @@ obscure the distinction for future reviewers.
 ### Why per-plugin scope is necessary
 
 Activating fail-closed globally on day one triggers the live self-lock: `lessons.md` already
-exhausts the 10M budget, so any validator reading it would immediately hard-block all
-`.factory/` writes. Per-plugin scope with safe migration ordering is the only path that
+exhausts the 20M budget (per ADR-042 §Decision 1 Erratum v1.3), so any validator reading it
+would immediately hard-block all `.factory/` writes. Per-plugin scope with safe migration ordering is the only path that
 (a) achieves the correct steady-state policy, (b) does not cause a P0 self-lock, and
 (c) can be progressively verified through testing.
 
@@ -382,8 +409,17 @@ actual dispatch path with a budget-exhausting input and asserts the block outcom
 - If a validator's production-scale calibration reveals an impractically large required budget
   (e.g., it would need 500M fuel for STATE.md), that validator CANNOT be flipped until a
   structural remedy exists. The migration may be partial at first.
+- **Residual risk — absent-annotation = fail-open footgun (follow-up: S-21.16).** The
+  Phase-1 default (`absent failure_policy` = `fail-open`) is the safe migration choice but
+  creates a latent risk: any future validator-class plugin whose author omits `failure_policy`
+  silently inherits fail-open behavior and reintroduces CWE-636. Secure-by-default would set
+  fail-closed as the global default; this ADR preserves fail-open for migration safety. The
+  hardening path is tracked as **S-21.16** — a follow-up CI lint requiring explicit
+  `failure_policy` on every validator-class plugin entry and/or a global-default flip to
+  fail-closed post-migration. The Phase-1 fail-open default MUST NOT be changed before
+  Phase 3+4 calibration (S-21.11) completes per Decision 3's ordering constraint.
 
-### Implementation Status (as of v1.2 — 2026-08-16)
+### Implementation Status (as of v1.3 — 2026-08-16)
 
 **Phase 1 — Schema extension (ADR-039 §Decision 1+2):** Story S-21.10 delivered;
 `FailurePolicy` enum and `RegistryEntry.failure_policy` field implemented with serde
@@ -443,7 +479,8 @@ dependency. D-442(e) remains as a transitional constraint during the migration w
 - **F-S2107-P7-015 (MEDIUM):** Adversarial pass-7 of S-21.07 — no near-miss warning when fuel
   consumption approaches the cap on a successful pass.
 - **Research basis:** `.factory/research/wasm-fuel-exhaustion-detection.md` (2026-08-06) —
-  CWE-636/CWE-390 classification; Wasmtime 44.0.1 `Trap::OutOfFuel` detection semantics;
+  CWE-755 (root) → CWE-703 → CWE-636 / CWE-390 classification; Wasmtime 44.0.1
+  `Trap::OutOfFuel` detection semantics;
   Envoy `FailurePolicy` FAIL_CLOSED default; Istio `failStrategy` FAIL_CLOSE advisory; Envoy
   #38801 behavioral-divergence lesson; p99×1.5-2.0 calibration recommendation; F-P1-003
   10M-budget exhaustion on 426-line file (documented in `validate-state-structure`).
@@ -464,7 +501,16 @@ dependency. D-442(e) remains as a transitional constraint during the migration w
 PROPOSED 2026-08-06; AMENDED 2026-08-06 (v1.1 — Context + Decision 3 expanded with
 observational evidence; self-lock hazard strengthened to response-to-active-failure);
 FINALIZED FOR RATIFICATION 2026-08-16 (v1.2 — implementation status updated; internal
-v1.0 body reference inconsistency resolved; phase delivery status recorded). ADR-039 v1.2.
+v1.0 body reference inconsistency resolved; phase delivery status recorded);
+PRE-RATIFICATION RESEARCH RECONCILIATION 2026-08-16 (v1.3 — four corrections from
+research-agent validation: (1) fuel-default corrected 10M→20M per ADR-042 §Decision 2
+in Decision 3, Decision 4, and Rationale; SHAPE argument preserved; (2) Decision 4 Option A
+reworded — load-bearing guarantee is largest-live-input sufficiency + production-scale
+corpus; p99×1.5 reframed as headroom floor heuristic; hard-block boundary note added;
+(3) CWE-755 lineage added (CWE-755 → CWE-703 → CWE-636) in Context and Source; (4) S-21.16
+footgun note — absent-annotation = fail-open residual risk documented in §Consequences
+Negative). Status PROPOSED / ratification-pending; v1.3 incorporates pre-ratification
+research reconciliations; human ratifies next. ADR-039 v1.3.
 
 Adjudicates F-S2107-P7-010 (HIGH), F-S2107-P7-011 (HIGH), F-S2107-P7-015 (MEDIUM) design
 legs from adversarial pass-7 of S-21.07. Extends ADR-035 §Decision 5 to the enforcement
