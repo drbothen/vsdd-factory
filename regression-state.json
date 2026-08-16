@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-14T19:20:58Z","command":"cargo test --workspace --all-targets > /tmp/test_out.log 2>&1; echo \"TEST_EXIT=$?\"; tail -60 /tmp/test_out.log"}
+{"status":"pass","timestamp":"2026-08-15T23:28:49Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory\ncargo test -p policy15-attestation-gate 2>&1 | tail -15\necho \"---git status full repo (should show only the pre-existing untracked mutants.out/report.tap + scheduled_tasks.lock)---\"\ngit status --short"}

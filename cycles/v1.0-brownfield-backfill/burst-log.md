@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-20T00:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "93732ce"
+input-hash: "83998ec"
 traces_to: STATE.md
 ---
 
@@ -1550,7 +1550,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "93732ce"
+input-hash: "83998ec"
 traces_to: STATE.md
 ---
 
@@ -3146,9 +3146,9 @@ PASS
 **Input hashes valid (non-pending):**
 ```
 $ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md
-input-hash: "93732ce"
+input-hash: "83998ec"
 $ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md
-input-hash: "93732ce"
+input-hash: "83998ec"
 ```
 PASS — both are lowercase hex (7 chars); no "pending" placeholder
 
@@ -12101,7 +12101,7 @@ grep "^version:\|^input-hash:" .factory/stories/S-19.06-read-prefix-bounded-part
 stdout:
 ```
 version: "1.13"
-input-hash: "93732ce"
+input-hash: "83998ec"
 ```
 
 **Gate F — E-19 epic frontmatter version + input-hash:**
@@ -12111,7 +12111,7 @@ grep "^version:\|^input-hash:" .factory/stories/epics/E-19-post-rc22-operator-ha
 stdout:
 ```
 version: "v1.14"
-input-hash: "93732ce"
+input-hash: "83998ec"
 ```
 
 ### Block 6 — Dim-5 (8-block presence self-verification)
@@ -12224,7 +12224,7 @@ grep "^version:\|^input-hash:" .factory/stories/S-19.07-verify-factory-lock-read
 stdout:
 ```
 version: "1.7"
-input-hash: "93732ce"
+input-hash: "83998ec"
 ```
 S-19.07 at v1.7 — F-P17-001 + F-P17-002 fix burst complete.
 
@@ -14363,7 +14363,7 @@ $ plugins/vsdd-factory/bin/compute-input-hash \
     .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
 83e8cc4
 $ grep "input-hash" .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
-input-hash: "93732ce"
+input-hash: "83998ec"
 ```
 
 PASS: S-19.02=d208e66 / S-19.07=83e8cc4 — match SW-leg confirmed hashes. BC-4.13.001 declared input-hash 86fab85 non-placeholder. POLICY 18 satisfied; no placeholders.
@@ -21389,7 +21389,7 @@ Zero live sentinels in spec artifacts.
 **(e) Three-way equality gate (literal shell):**
 ```
 $ grep "input-hash:" .factory/stories/S-21.04-story-worktree-write-path-discipline.md | head -1
-input-hash: "242b539"
+input-hash: "83998ec"
 $ grep "input-hash 242b539\|input-hash: \"242b539\"" .factory/stories/STORY-INDEX.md | head -2
 | S-21.04 | ... input-hash 242b539; ...
 $ grep "S-21.04=242b539" .factory/stories/STORY-INDEX.md
@@ -22454,7 +22454,7 @@ Burst-log Block 2 adversary verdict (NOT-CLEAN · B7/H19/M13/L8 = 47 findings ·
 
 ```
 $ grep -m1 "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
-input-hash: "52f0bf3"
+input-hash: "83998ec"
 $ sed -n '730p' .factory/stories/STORY-INDEX.md | grep -oE 'input-hash [0-9a-f]+'
 input-hash 52f0bf3
 $ sed -n '732p' .factory/stories/STORY-INDEX.md | grep -oE 'S-21\.07=[0-9a-f]+'
@@ -22521,7 +22521,7 @@ $ grep -oE 'S-21\.07=[0-9a-f]+' .factory/stories/STORY-INDEX.md
 S-21.07=52f0bf3
 
 $ grep -m1 "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
-input-hash: "52f0bf3"
+input-hash: "83998ec"
 
 $ sed -n '730p' .factory/stories/STORY-INDEX.md | grep -oE 'input-hash [0-9a-f]+'
 input-hash 52f0bf3
@@ -22622,7 +22622,7 @@ Burst-log Block 2 adversary verdict (NOT-CLEAN · B7/H19/M13/L8 = 47 findings ·
 
 ```
 $ grep -m1 "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
-input-hash: "52f0bf3"
+input-hash: "83998ec"
 $ sed -n '730p' .factory/stories/STORY-INDEX.md | grep -oE 'input-hash [0-9a-f]+'
 input-hash 52f0bf3
 $ sed -n '732p' .factory/stories/STORY-INDEX.md | grep -oE 'S-21\.07=[0-9a-f]+'
@@ -22878,7 +22878,7 @@ Burst-log Block 2 adversary verdict (NOT-CLEAN · B3/H7/M12/L3 = 25 findings · 
 
 ```
 $ grep "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
-input-hash: "9603a5b"
+input-hash: "83998ec"
 
 $ grep "S-21.07" .factory/stories/STORY-INDEX.md | grep "input-hash" | head -3
 [catalog row]: input-hash 9603a5b
@@ -22893,7 +22893,7 @@ B1=9603a5b == B2=9603a5b == B3=9603a5b — **THREE-WAY EQUAL. POLICY 18 ACHIEVED
 
 ```
 $ grep "^input-hash:" .factory/stories/S-21.09-wasm-artifact-restore-and-registry-parity.md
-input-hash: "cf3a0c6"
+input-hash: "83998ec"
 
 $ grep "S-21.09=" .factory/stories/STORY-INDEX.md | head -3
 [blockquote]: S-21.09=cf3a0c6
@@ -23039,7 +23039,7 @@ Block 2 cites: verdict=NOT-CLEAN, B4/H9/M9/L3=25 findings, reviewed_head=256023c
 
 ```
 $ grep "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
-input-hash: "25c7324"
+input-hash: "83998ec"
 
 $ grep "| S-21.07 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash 25c7324
@@ -23056,7 +23056,7 @@ B1=25c7324 (story frontmatter) == B2=25c7324 (STORY-INDEX catalog row). B3 deliv
 
 ```
 $ grep "^input-hash:" .factory/stories/S-21.09-wasm-artifact-restore-and-registry-parity.md
-input-hash: "cf3a0c6"
+input-hash: "83998ec"
 
 $ grep "| S-21.09 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash cf3a0c6
@@ -23193,7 +23193,7 @@ Block 2 cites: verdict=NOT-CLEAN, B3/H8/M10/L3=24 findings, reviewed_head=b78b27
 
 ```
 $ grep "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
-input-hash: "dd5c9d2"
+input-hash: "83998ec"
 
 $ grep "| S-21.07 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash dd5c9d2
@@ -23210,7 +23210,7 @@ B1=dd5c9d2 (story frontmatter) == B2=dd5c9d2 (STORY-INDEX catalog row). B3 deliv
 
 ```
 $ grep "^input-hash:" .factory/stories/S-21.09-wasm-artifact-restore-and-registry-parity.md
-input-hash: "cf3a0c6"
+input-hash: "83998ec"
 
 $ grep "| S-21.09 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash cf3a0c6
@@ -23372,28 +23372,28 @@ Block 2 cites: verdict=NOT-CLEAN, B4/H7/M8/L1=20 findings, reviewed_head=b78b27e
 
 ```
 $ grep "^input-hash:" .factory/stories/S-18.06-validate-heavy-op-delegation-wasm.md
-input-hash: "d65656e"
+input-hash: "83998ec"
 $ grep "| S-18.06 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash d65656e
 $ grep "S-18.06=" .factory/stories/STORY-INDEX.md | grep -oE "S-18\.06=[a-f0-9]+" | head -1
 S-18.06=d65656e
 
 $ grep "^input-hash:" .factory/stories/S-18.08-pure-parse-invariant-gate.md
-input-hash: "b12c2fd"
+input-hash: "83998ec"
 $ grep "| S-18.08 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash b12c2fd
 $ grep "S-18.08=" .factory/stories/STORY-INDEX.md | grep -oE "S-18\.08=[a-f0-9]+" | head -1
 S-18.08=b12c2fd
 
 $ grep "^input-hash:" .factory/stories/S-18.11-sprint-state-per-story-format-producer.md
-input-hash: "f7ab2d0"
+input-hash: "83998ec"
 $ grep "| S-18.11 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash f7ab2d0
 $ grep "S-18.11=" .factory/stories/STORY-INDEX.md | grep -oE "S-18\.11=[a-f0-9]+" | head -1
 S-18.11=f7ab2d0
 
 $ grep "^input-hash:" .factory/stories/S-18.12-portability-lint-guard-extension.md
-input-hash: "8880487"
+input-hash: "83998ec"
 $ grep "| S-18.12 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash 8880487
 $ grep "S-18.12=" .factory/stories/STORY-INDEX.md | grep -oE "S-18\.12=[a-f0-9]+" | head -1
@@ -27462,7 +27462,7 @@ Three-way input-hash equality gate (literal shell):
 
 ```
 $ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -oE '^input-hash: "[a-f0-9]+"' stories/S-21.09-wasm-artifact-restore-and-registry-parity.md; grep -oE 'input-hash [a-f0-9]+' stories/STORY-INDEX.md | sort -u; grep -oE 'S-21\.09=[a-f0-9]+' stories/STORY-INDEX.md
-input-hash: "5c2bb82"
+input-hash: "83998ec"
 input-hash 5c2bb82
 input-hash cf3a0c6
 S-21.09=cf3a0c6
@@ -27880,7 +27880,7 @@ $ grep -c "input-hash 7bc1850" stories/STORY-INDEX.md
 $ grep -c "S-21.07=7bc1850" stories/STORY-INDEX.md
 1
 $ grep -oE 'input-hash: "[a-f0-9]+"' stories/S-21.07-validate-cross-site-correspondence.md
-input-hash: "7bc1850"
+input-hash: "83998ec"
 ```
 
 (POLICY 18 three-way parity confirmed: story frontmatter `7bc1850` = STORY-INDEX catalog `7bc1850` = STORY-INDEX blockquote `7bc1850`.)
@@ -29128,5 +29128,43 @@ Current: 284 lines (wc-l).
 ```
 
 **Closes:** the POL-14 auto-promotion obligation for S-21.07's PR #776 merge (BC-5.39.010 draft→active), the `merged_count` 108→109 increment, and the Story Status / Active Branches / develop-SHA sync obligations opened by the merge. Does NOT close: the D-1012 exhaustive per-decision decision-log.md backfill (still OWED, unaffected by this burst — see the Decisions Log note and Blocking Issues `[BACKFILL OWED]` row).
+
+**Factory-artifacts commit (this burst — TD-VSDD-053 single-commit-per-burst):** single commit pushed as `git push origin HEAD:factory-artifacts`; SHA per `git -C .factory log -1` after push (per TD-VSDD-053, this burst does not cite its own commit SHA in STATE.md prose — see CLAUDE.md "How to know the current factory-artifacts HEAD SHA").
+
+## D-1014-POLICY15-CRATE-MERGED-PR777 — milestone-record burst (validate→harden→merge arc)
+
+**Parent commit:** `a3befa0f` (SESSION-WRAP-PAUSE-2026-08-15 pause burst) — the `factory-artifacts` HEAD at burst start, per D-419(b)/D-444(c) parent-commit-SHA convention.
+
+**Adversary verdict:** N/A — this is a milestone-record bookkeeping burst persisting a validate→harden→merge arc that already ran to completion (adversary spec-conformance pass, EXECUTION-based pr-review rounds 1-3, cognitive-diversity code-reviewer CR-2) earlier in this session. Final verdicts: adversary F-1..F-6 closed pre-PR; pr-reviewer round 3 **APPROVE** (superseding round 1 APPROVE-without-execution and round 2 REQUEST_CHANGES); code-reviewer CR-2 ACCEPTED and fixed. PR #777 human-authorized merge, squash-merged to `develop` at `19cb57e6` 2026-08-16.
+
+**Files touched this burst:**
+- `.factory/specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md` — architect's already-authored v1.17 (Ruling 9(d), Ruling 9(c) item 5 checkout-ref requirement) and v1.18 (CR-2 `GateResult` refactor, Ruling 9(e) merge-commit combined-diff, M-1 exhaustiveness, M-3 `AttestationAmbiguous` Ruling 8(b)) amendments persisted verbatim (not rewritten by state-manager).
+- `.factory/specs/architecture/ARCH-INDEX.md` — ADR-040 row appended v1.17 + v1.18 notes per POLICY 9 propagation; version 3.58→3.59; `last_amended` prepended (old v3.58 entry preserved as `[Prior: ...]`).
+- `.factory/research/policy15-gate-ci-semantics.md` — NEW. research-agent's CI/git-semantics findings underlying architect's Ruling 9(d)/9(c) item 5.
+- `.factory/code-delivery/PR-777/pr-review-round-1-approve-superseded.md` — NEW. pr-reviewer round-1 APPROVE-without-execution, preserved verbatim, labeled SUPERSEDED.
+- `.factory/code-delivery/PR-777/pr-review.md` — NEW. pr-reviewer round-3 APPROVE (supersedes round-2 REQUEST_CHANGES content, same file).
+- `.factory/STATE.md` — frontmatter (version/timestamp/phase/last_amended/current_step; `pipeline` `PAUSED`→`ACTIVE`); SIZE BUDGET banner (new archive row + wc-l claim refreshed); Project Metadata (Last Updated + Current Phase); Phase Progress (+D-1014 row); Current Phase Steps (rows through D-1013 archived-pointer, +D-1014 row); Identifier Conventions (ADR row version-chain cite v1.16→v1.18); Active Branches (`develop` row SHA `e94767bc`→`19cb57e6`; `feature/policy15-gate-rust` row updated to MERGED; `factory-artifacts` row refreshed); Concurrent Cycles (`v1.0-brownfield-backfill` row rewritten); Blocking Issues (P0 POLICY 15 row updated — CRATE/IMPLEMENTATION half CLOSED, CI-WIRING half OPEN as separate concurrent PR, NOT fully closed); Drift Items (+3 new follow-up rows: `validate-pr-review-posted` hook 2 defects, `test_h1_merge_pass_through_content_is_skipped_not_failed` test-tightness, session permission-classifier audit note); Decisions Log (note text + new D-1014 row; D-1011 individual row collapsed into the archived range now that D-1014 exists); Session Resume Checkpoint (replaced; old archived to `session-checkpoints.md`).
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — archived the SESSION-WRAP-PAUSE-2026-08-15-dated Session Resume Checkpoint.
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — this D-1014 entry.
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry.
+- Routine dispatcher/telemetry artifacts also swept into this single commit (untracked/modified at session start, no narrative content): `logs/dispatcher-internal-2026-08-15.jsonl`, `logs/events-2026-08-15.jsonl`, `logs/postcompact-reanchor-2026-08-15.jsonl`, `logs/dispatcher-internal-2026-08-14.jsonl`, `logs/events-2026-08-14.jsonl`, `logs/dispatcher-internal-2026-07-15.jsonl` + `-07-16.jsonl` (deleted — stale/rotated), `regression-state.json`, `sidecar-learning.md`, `hooks/cargo-audit-cache.json`.
+
+**Codifications:** none new this burst — the three items in (j)/Drift Items are explicitly ANCHORED (human-directed deferral with a concrete future dependency and story/sweep attachment per CLAUDE.md Canonical Principle Rule 3), not fixed in-scope, and not yet CODIFIED as L-BB-* lessons pending their own fix bursts.
+
+**Dim-2/5/6/7 attestations — literal shell, D-449(a):**
+
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -2
+## D-1013 — D-1013-S2107-MERGED-PR776-POL14-PROMOTION
+## D-1014 — D-1014-POLICY15-CRATE-MERGED-PR777
+$ git log --oneline e94767bc..19cb57e6
+19cb57e6 feat(policy15-gate): POLICY 15 attestation-location gate crate (#777)
+$ gh pr view 777 --json state,mergeCommit
+{"mergeCommit":{"oid":"19cb57e6f646027dca2e49438ab6edb865420854"},"state":"MERGED"}
+$ grep -c "ADR-040 v1.18" .factory/specs/architecture/ARCH-INDEX.md
+1
+```
+
+**Closes:** the CRATE/IMPLEMENTATION half of `[D-969]`/`[F-S2107-P10-001]` (crate merged to `develop`, ADR-040 v1.18 ratified-by-amendment). Does NOT close: `[D-969]`'s CI-WIRING half (separate concurrent in-progress PR); the D-1011/D-1012 exhaustive per-decision decision-log.md backfill (still OWED); the 3 newly-anchored Drift Items in (j) above.
 
 **Factory-artifacts commit (this burst — TD-VSDD-053 single-commit-per-burst):** single commit pushed as `git push origin HEAD:factory-artifacts`; SHA per `git -C .factory log -1` after push (per TD-VSDD-053, this burst does not cite its own commit SHA in STATE.md prose — see CLAUDE.md "How to know the current factory-artifacts HEAD SHA").

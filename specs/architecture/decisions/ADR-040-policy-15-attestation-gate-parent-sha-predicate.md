@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-040
-version: "1.16"
+version: "1.18"
 title: "ADR-040: POLICY 15 ATTESTATION-LOCATION GATE — parent-SHA predicate replaces self-referential HEAD-SHA (resolves F-S2107-P8-003 logical impossibility)"
 status: active
 ratified: 2026-08-10
@@ -18,7 +18,102 @@ supersedes: "POLICY 15 ATTESTATION-LOCATION GATE clause codified at D-912 (D-912
 superseded_by: null
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 last_amended: |-
-  2026-08-13 (v1.16) — AMENDED (architect; adversary pass-11 fix cascade, closes
+  2026-08-15 (v1.18) — AMENDED (architect; PR #777 cognitive-diversity code-reviewer
+  finding CR-2 adjudication, different model family): CR-2 (MEDIUM) is ACCEPTED — the v1.17
+  routing item's rationale for an inline `eprintln!` in `run_gate_inner` ("consistent with
+  this crate's existing effectful-throughout style") is REVERSED on re-inspection: it is the
+  ONLY `eprintln!`/`println!` call anywhere in `src/lib.rs` (verified by grep); every other
+  diagnostic in this crate is printed by `main.rs`, keyed off structured data `run_gate`
+  returns — the FAIL detail lines iterate `Vec<FailedCommit>`, the EmptyOrUnreachable detail
+  line matches on `UnreachableCause`. The v1.17 eprintln broke that separation by making
+  `run_gate_inner` do its own stderr I/O, which (a) is invisible to any caller of the public
+  `run_gate`/`run_gate_from_merge_base` API that isn't the compiled binary, and (b) is
+  observable only via a stderr substring check (`stderr.contains("WARNING") &&
+  stderr.contains(root_short)`, `tests/binary_integration_test.rs` F-1), contrary to this
+  crate's own headline design claim (module doc lines 1-10, `GateOutcome` doc lines 86-93)
+  that outcomes are structurally typed specifically so defect class 5 (four outcomes / two
+  exit codes) is impossible to miss via `matches!()`. A mutant changing `"WARNING"`→`"WARN"`
+  or dropping the SHA from the message is not caught by any structural assertion. Disposition:
+  STRUCTURAL REFACTOR directed (not accept-as-designed) — proportionate because (1) no crate
+  outside `policy15-attestation-gate` consumes `run_gate`/`run_gate_from_merge_base` yet (CI
+  wiring is still D-969-outstanding), so the public-API shape change has zero blast radius
+  today and only grows more expensive to make later; (2) the fix is small and contained to
+  one crate; (3) CLAUDE.md's production-grade default treats "mutation-covered today via a
+  coarse check" as insufficient grounds to leave a MEDIUM finding un-fixed when the
+  structurally-correct fix is cheap. New `GateResult { outcome: GateOutcome,
+  skipped_parentless: Vec<String> }` wrapper struct introduced; `run_gate`,
+  `run_gate_from_merge_base`, and (private) `run_gate_inner` all return
+  `Result<GateResult, GateError>` in place of `Result<GateOutcome, GateError>`; the
+  `eprintln!` moves out of `src/lib.rs` entirely and into `main.rs`, printed from
+  `skipped_parentless` alongside the existing FAIL/EmptyOrUnreachable detail-line match. This
+  also completes the still-outstanding v1.17 routing item's test directive
+  (`test_root_commit_is_skipped_not_activating` was specified but never added — no test with
+  that name exists in `src/lib.rs` as of this amendment), folded into a new structural
+  library-level test asserting `result.skipped_parentless` directly instead of only the
+  binary's stderr text. No `GateOutcome` variant, exit code, or predicate semantics changed;
+  §Decision 9 Ruling 9(c) item 4's substantive behavior (skip, don't fail, on a parentless
+  commit) is unchanged — only where and how the WARNING is observable changes. Full
+  implementer/test-writer change spec recorded in §Decision 9 Ruling 9(c) item 4 routing
+  (this amendment supersedes only the v1.17 implementer routing item's eprintln-site rationale
+  and re-issues it below; the devops-engineer CI-wiring item and all other v1.17 items are
+  unaffected).
+
+  SAME AMENDMENT, three further pr-reviewer findings from EXECUTING the gate against PR #777's
+  real HEAD (`010e6140`, a merge commit), folded into this v1.18 bump: **H-1 [HIGH, blocking,
+  ACCEPTED as a genuine gate defect]** — the gate false-FAILs on its own PR because the
+  two-dot endpoint diff (`git diff C^1 C`) re-flags already-attested content pulled in from a
+  merge commit's second parent as if newly unattested. New Ruling 9(e): merge commits
+  (parent-count > 1, detected via `git rev-list --parents -n1`) are evaluated with git's
+  COMBINED diff (`git diff-tree -c --name-only --no-commit-id -r`, which by construction shows
+  only content differing from EVERY parent) instead of the two-dot diff; an inert combined
+  diff (routine sync-merge) is skipped from activation and recorded in a new
+  `GateResult.skipped_merge_inert: Vec<String>` field (no stderr WARNING — this is the
+  expected/routine case, unlike a parentless commit); a non-inert combined diff (genuine
+  merge-authored crate content with no other DAG landing point) remains fully activating,
+  attestation-keyed on `{C}^1` per the existing convention. Bypass analysis included in Ruling
+  9(e): squash-merge landing commits (parent-count 1) are never exempted by this rule, so the
+  obligation's real enforcement point is untouched. **M-1 [MEDIUM, ACCEPTED]** — `main.rs`'s
+  `_ => {}` wildcard arm over `&GateOutcome` defeats the compile-time exhaustiveness
+  `GateOutcome`'s own doc comment says it deliberately omits `#[non_exhaustive]` to guarantee;
+  routed to implementer to replace with explicit `PassWithActivations(_) => {}` and
+  `PassZeroActivations => {}` arms (cheap, restores the guarantee at the one call site that
+  matters). **M-3 [MEDIUM, ACCEPTED]** — a duplicate attestation heading (count ≥ 2) FAILs
+  under the same `FailReason::AttestationMissing` label as a genuinely absent one, misleading
+  triage; new Ruling 8(b) amendment adds `FailReason::AttestationAmbiguous { count: usize }`
+  for `count >= 2`, leaving `count == 0` on `AttestationMissing` and the `count != 1` FAIL
+  boundary itself unchanged. All three: fix-now with full implementer/test-writer specs below
+  (no deferral) — see the CR-2 routing block for GateResult and the new items appended after
+  it for H-1/M-1/M-3.
+  [Prior: 2026-08-15 (v1.17) — AMENDED (architect; research-agent Q2 disposition — ATTESTATION-
+  LOCATION GATE parent-SHA predicate, ruling requested during pre-merge validation of
+  crates/policy15-attestation-gate/ on feature/policy15-gate-rust): two clarifications to
+  §Decision 9, one confirmation, one code-vs-spec gap routed to implementer. (1) New Ruling
+  9(d) — endpoint tree-diff scope (`git diff --name-only C^1 C`) is ruled INTENTIONAL and
+  SUFFICIENT, not a gap: second-parent *files* are never missed (git diffs tree snapshots,
+  not provenance) and second-parent *history* content that nets to zero at the merge point
+  never lands in what is pushed, reviewed, or squash-merged into `develop` (CLAUDE.md Git
+  Workflow) — POLICY 15's contemporaneity obligation binds what lands, not transient
+  side-branch history. No second-parent-history attestation is required or intended. (2)
+  Ruling 9(c) gains item 5: the outstanding devops-engineer CI wiring (STATE.md Drift Item
+  [D-969]) MUST check out `${{ github.event.pull_request.head.sha }}` explicitly — NOT the
+  GitHub Actions `pull_request`-trigger default (`refs/pull/<N>/merge`, a synthetic
+  two-parent merge commit ephemeral to the CI run). Using the default would inject a commit
+  into the `merge_base..HEAD` iteration whose parent is the base-branch tip at checkout time
+  (a moving target no real attestation ever references), corrupting per-commit iteration
+  with a spurious `Fail` or an incorrect commit range. (3) Ruling 9(c) item 4
+  (parentless-commit WARNING-and-skip) is CONFIRMED as the spec-mandated behavior — no
+  semantic change; the existing pre-diff guard (`commit_has_parent` before
+  `git_diff_name_only`, `src/lib.rs` function `run_gate_inner`) already makes the hard-error
+  path structurally unreachable, so no root-safe hardening of the diff call itself
+  (`git show --first-parent`, empty-tree comparison) is warranted — an empty-tree diff would
+  reclassify a root commit as activating, contradicting the deliberate skip semantics. A
+  code-vs-spec gap was found and is routed to implementer (not fixed in this ADR — ADRs are
+  architect scope, crate code is implementer scope per CLAUDE.md Agent Routing Table): the
+  guard currently skips silently with no WARNING emitted, contrary to Ruling 9(c) item 4's
+  own text ("emits a WARNING and skips"). §Decision 9 Ruling 9(c) item 5 added; new Ruling
+  9(d) added. Implementation routing devops-engineer bullet augmented with the checkout-ref
+  requirement. No `GateOutcome` variant, exit code, or predicate semantics changed.
+  [Prior: 2026-08-13 (v1.16) — AMENDED (architect; adversary pass-11 fix cascade, closes
   F-S2107-P11-001 MEDIUM [partial-fix regression]): the v1.13 body-vs-frontmatter
   reconciliation pass superseded only the trailing §Status re-ratification paragraph, leaving
   three sibling sites in this same document carrying live "Do NOT apply / re-ratification
@@ -219,7 +314,7 @@ last_amended: |-
   self-referential SHA predicate in POLICY 15 ATTESTATION-LOCATION GATE (D-912) is logically
   unsatisfiable; parent-SHA predicate preserves all three of D-912's original goals while
   removing the impossibility. policies.yaml NOT yet edited — human ratification required per
-  §Status. ADR-040 PROPOSED 2026-08-07.]]]]
+  §Status. ADR-040 PROPOSED 2026-08-07.]]]]]
 modified:
   - "2026-08-07 (v1.0)"
   - "2026-08-08 (v1.1)"
@@ -238,6 +333,7 @@ modified:
   - "2026-08-13 (v1.14)"
   - "2026-08-13 (v1.15)"
   - "2026-08-13 (v1.16)"
+  - "2026-08-15 (v1.17)"
 ---
 
 # ADR-040: POLICY 15 ATTESTATION-LOCATION GATE — parent-SHA predicate replaces self-referential HEAD-SHA
@@ -774,6 +870,24 @@ MUST be bootstrapped in the same commit that first introduces `*.rs`/`*.bats` fi
 crate. That commit's attestation heading references `git rev-parse HEAD^1` — known before
 staging, no circular dependency (§Decision 3).
 
+**Ruling 8(b) amendment — ADDED (v1.18, PR #777 pr-reviewer M-3 adjudication):
+`AttestationMissing` splits into absence vs. ambiguity.**
+
+M-3 (MEDIUM) observed that an activating commit whose log carries TWO (or more) attestation
+headings for the SAME parent SHA fails with `FailReason::AttestationMissing` — the same
+reason code as a commit with ZERO matching headings. These are different defects with
+different operator remediations (write the missing attestation vs. delete/merge the
+duplicate) and the identical label actively misleads triage. Accepted; `FailReason` gains a
+distinct variant. **Ruling: `count_attestation_headings(...) == 0` remains
+`FailReason::AttestationMissing`; `count_attestation_headings(...) >= 2` becomes a NEW
+`FailReason::AttestationAmbiguous { count: usize }` variant** (the `count` field mirrors the
+existing context-carrying convention already used by
+`UnreachableCause::UnmeasurableDiff { commit }`). The exactly-once upper bound itself is
+UNCHANGED — `count != 1` still FAILs; this amendment only splits FAIL's reason code, not its
+verdict, exit code, or the `GateOutcome::Fail` variant shape (`Vec<FailedCommit>` is
+unaffected; only `FailedCommit.reason`'s enum gains a case). See implementer/test-writer
+routing for the exact match-arm and test change.
+
 **Ruling 8(c) — Four-outcome verdict (defence-in-depth):**
 
 The gate MUST produce exactly one of four outcomes:
@@ -953,6 +1067,153 @@ dependency. §Decision 3's reasoning carries forward unchanged.
    processing each commit. A parentless commit (root commit, or at a shallow boundary in
    edge cases) would cause `git diff ${C}^1 ${C}` to fail. The check emits a WARNING and
    skips the commit rather than crashing the job with an undiagnosed error.
+
+5. **AMENDED (v1.17) — Checkout ref MUST be the PR head SHA, not the default synthetic
+   merge commit:** The CI checkout step MUST explicitly set
+   `ref: ${{ github.event.pull_request.head.sha }}`. The GitHub Actions `pull_request`
+   trigger's default checkout ref (`refs/pull/<N>/merge`, what `actions/checkout@v4`
+   resolves to when no `ref:` is given) is an ephemeral, GitHub-synthesized two-parent merge
+   commit — first parent is the base branch's tip *at the moment the CI run started
+   evaluating the event*, second parent is the PR's real head commit. That first parent is a
+   moving target: no attestation heading in `red-gate-log.md` was ever written against it
+   (real attestations reference the actual prior commit in the PR branch's own history —
+   `67ffbdcc`, `38c70f9e`, `5370db80` in the §Decision 9 case study, not a base-branch tip
+   SHA). If the default ref were used, `HEAD` in `run_gate` would resolve to the synthetic
+   commit, `git log MERGE_BASE..HEAD` would include it as an extra iterated commit (it has a
+   real first parent, so `commit_has_parent` returns true and it is not skipped), and the
+   gate would evaluate the obligation against a commit that will never exist in the PR
+   branch's real history — producing either a spurious `Fail` (no attestation ever written
+   against an ephemeral SHA) or, if the synthetic commit happens to be net-content-identical
+   to the true PR tip, a range mismatch that iterates the wrong commit set entirely.
+   Pinning `ref:` to `pull_request.head.sha` makes `HEAD` the actual, permanent PR-branch tip
+   commit, so `merge_base..HEAD` walks exactly the real commit sequence Decision 9's
+   per-commit design targets. This requirement is additive to — not a replacement for —
+   `fetch-depth: 0` (item 2): both are required together.
+
+**Ruling 9(d) — ADDED (v1.17): endpoint tree-diff scope is intentional and sufficient;
+second-parent HISTORY is out of scope:**
+
+Research raised, and this ruling settles: does POLICY 15 intend to attest content reachable
+only through a merge commit's second-parent *history* (as distinct from the second parent's
+*files*, which already land in the endpoint tree), or is first-parent endpoint-diff scope
+(`git diff --name-only C^1 C`, comparing tree snapshots at C's two immediate neighbors) the
+correct and sufficient contract?
+
+**Ruling: first-parent endpoint-diff scope is correct and sufficient. No second-parent-history
+attestation is required or intended.**
+
+Two independent facts establish this:
+
+1. **Second-parent files are never missed.** `git diff --name-only C^1 C` compares tree
+   snapshots, not provenance graphs. Any file present in C's resulting tree — regardless of
+   which parent contributed it — appears in the diff if it differs from C^1's tree. A file
+   introduced via a real (non-squash) merge's second parent is fully visible to this check.
+   This closes the naive "second-parent smuggling" concern: an attestation-bearing file (or
+   an assertion-site file) cannot be hidden from the gate by routing it through a merge's
+   second parent.
+
+2. **Second-parent history that nets to zero at the merge point never lands.** The only
+   content genuinely invisible to an endpoint diff is a transient add-then-remove confined
+   to a second-parent branch's own commit sequence, where the net effect on the merged tree
+   is null. POLICY 15's obligation text is "a fix wave that adds or strengthens any bats
+   assertion site MUST NOT be pushed until [attestation] EXISTS at that commit" — a
+   contemporaneity requirement bound to what is pushed and reviewed. Content that nets to
+   zero was never pushed as a landing change at the commit under evaluation; there is nothing
+   for POLICY 15 to attest, because nothing shipped. This is consistent with §Decision 9's
+   own design center: the `67ffbdcc`/`38c70f9e`/`5370db80` case study that motivated
+   per-commit iteration was itself a sequence of real, permanently-landing commits on the
+   `feature/S-21.07-...` branch, not transient second-parent-lineage content.
+
+**Why this matters for this repository's squash-merge model (CLAUDE.md Git Workflow):**
+Feature/story PRs are squash-merged to `develop` — the individual commits evaluated by the
+`policy-15-attestation-location` CI job during PR review never survive as separate commits
+in `develop`'s permanent history; only the one squashed commit does. POLICY 15's real
+enforcement window is therefore the PR's pre-squash commit sequence, evaluated during CI on
+the feature branch (exactly what Ruling 9(a)'s per-commit iteration walks via
+`merge_base..HEAD`). A second-parent-history attestation requirement would police content
+that (a) per fact 1 above cannot hide assertion-site changes anyway, and (b) per the
+squash-merge model, would attest to lineage that is discarded at merge time regardless. No
+such requirement is added.
+
+**Disposition of research-agent Q2:** INCONCLUSIVE is resolved. First-parent endpoint-diff
+semantics, as already implemented in `crates/policy15-attestation-gate/src/lib.rs`
+(`git_diff_name_only`, invoked as `{commit_sha}^1` vs `commit_sha`), is the correct and final
+contract. No crate code change is required for this ruling.
+
+**Ruling 9(e) — ADDED (v1.18, PR #777 pr-reviewer H-1 adjudication): merge commits require a
+COMBINED diff for activation, not the two-dot endpoint diff:**
+
+H-1 (HIGH, blocking) surfaced by executing the gate binary against PR #777's real HEAD
+(`010e6140`, a "sync develop into feature branch" merge commit): the endpoint two-dot diff
+(`git diff C^1 C`) that Ruling 9(d) validated for FALSE-NEGATIVE resistance (no file can hide
+from it) has the dual, unaddressed FALSE-POSITIVE failure mode on a real (non-squash) merge
+commit — `git diff C^1 C` shows every file that differs between the pre-merge tip and the
+post-merge tree, which for a routine sync-merge includes files ALREADY changed (and already
+individually attested, on `develop`, against their own true first parents) via the second
+parent. None of that pass-through content was authored "at" the merge commit; nobody attests
+merge commits, they attest real assertion-site commits. Evaluating a merge commit with the
+plain endpoint diff therefore re-flags already-attested history as if it were newly, and
+unattested-ly, introduced at the merge — this is why PR #777's own gate run false-FAILs on
+its own HEAD. Ruling 9(d)'s fact 1 ("no file can hide") remains true and is NOT reversed by
+this ruling; this ruling addresses the opposite direction (content the endpoint diff
+OVER-shows, not under-shows), which Ruling 9(d) did not consider.
+
+**Ruling: a commit with parent-count > 1 (a merge commit) is evaluated with git's COMBINED
+diff (`-c`), not the two-dot endpoint diff, and is activating only if the combined diff
+itself touches the pinned crate's `.rs`/`.bats` surface.**
+
+Mechanism — combined diff (`git diff-tree -c --name-only --no-commit-id -r <C>`, the same
+primitive `git show --cc`/`-c` uses for merge commits) lists ONLY files whose content in `C`
+differs from **every** parent — i.e., content that was NOT simply inherited unchanged from
+either side, which for a merge commit means content actually authored/resolved as part of
+completing that specific merge (typically conflict-resolution edits). Content pulled in from
+a second parent that a trivial recursive merge reproduces exactly is, by git's own combined-
+diff semantics, excluded from this list — this is precisely the "already attested elsewhere,
+merely passing through" content that must NOT re-trigger the obligation.
+
+Handling, precisely, for each commit in the walked range where `commit_has_parent` is `true`
+(parentless commits remain governed by the existing skip guard, unaffected):
+1. Determine parent count via `git rev-list --parents -n1 <C>` (first token is `C` itself;
+   remaining tokens are parent SHAs — `count = tokens.len() - 1`).
+2. **`count == 1` (ordinary commit):** unchanged — two-dot endpoint diff
+   (`git diff C^1 C`), same as today.
+3. **`count > 1` (merge commit):** compute the combined diff. If it is EMPTY with respect to
+   the pinned crate's `.rs`/`.bats` surface (the common case for a routine, non-conflicting
+   sync-merge — including PR #777's own `010e6140`), the merge commit is INERT with respect
+   to the obligation: record it (a new `skipped_merge_inert: Vec<String>` list on
+   `GateResult`, see the CR-2 `GateResult` type introduced in this same amendment;
+   deliberately NOT a stderr WARNING — an inert sync-merge is the expected, routine case for
+   this repository's branch-sync workflow, not an anomaly worth operator attention the way a
+   parentless/shallow-clone boundary is). If the combined diff DOES touch the pinned crate's
+   `.rs`/`.bats` surface, the merge commit carries genuinely merge-authored crate content with
+   no other landing point in the DAG — it is activating exactly like an ordinary commit:
+   `activations += 1`, and the attestation-heading lookup still keys on `{C}^1` (first
+   parent), per Ruling 9(a)'s existing convention and Ruling 9(d)'s settled first-parent
+   scope — FAIL(`LogAbsent`/`AttestationMissing`) exactly as today if the heading is absent.
+4. `UnreachableCause::UnmeasurableDiff` remains scoped to ordinary (`count == 1`) commits only
+   — an empty combined diff on a merge commit is the NORMAL case (step 3) and must never be
+   classified as an unmeasurable-diff CI-setup defect.
+
+**Closing the bypass the finding explicitly asked to be addressed:** could a crate `.rs`
+change exist ONLY inside a merge commit's tree and nowhere else in the DAG, and escape
+attestation under this rule? No — by construction: (a) content genuinely authored during
+conflict resolution is, by definition, exactly what the combined diff surfaces (step 3), so
+it remains activating and attestable; (b) content merely inherited from a second parent was
+necessarily already a real, individually-committed change on that second parent's branch
+(this repository has no mechanism to fabricate file content except via a real commit), and
+that originating commit — reachable in the DAG and, for any branch that itself targets
+`develop`, itself subject to the unconditional per-PR gate (Ruling 9(c)) at the time IT
+landed — already carried its own obligation independent of this merge; (c) for this
+repository's squash-merge model (Ruling 9(d)'s "why this matters" paragraph), the actual
+landing event onto `develop` is the squash commit, which has parent-count 1 and is therefore
+NEVER exempted by this ruling — the full net diff of the PR is evaluated against `develop`'s
+tip exactly as before, with the full obligation intact. The combined-diff exemption applies
+only to genuinely inert INTERMEDIATE merge commits inside a feature branch's own pre-squash
+history (e.g. periodic `develop`-into-feature syncs), never to the final landing commit.
+
+**Disposition of H-1:** ACCEPTED as a genuine gate defect (not a design trade-off to accept
+as-is) — a gate that false-FAILs its own PR is not production-grade and blocks CI adoption
+entirely (D-969). Fix-now, scoped and specified above; see implementer/test-writer routing.
 
 ---
 
@@ -1877,7 +2138,26 @@ replacement text. All three corrected via labeled SUPERSEDED blockquote notes +
 strikethrough of the historical imperative (ADR-041/042 pattern; text preserved, not
 deleted). Literal-shell sweep confirms no remaining live "Do NOT apply" / "MUST NOT be
 edited" / "re-ratification required" directives outside labeled-historical blocks. §Status
-v1.16 added.
+v1.16 added. AMENDED 2026-08-15; ADR-040 v1.17 (architect; research-agent Q2
+disposition, pre-merge validation of `crates/policy15-attestation-gate/` on
+`feature/policy15-gate-rust`): §Decision 9 Ruling 9(d) added — endpoint tree-diff scope
+(`git diff --name-only C^1 C`) ruled intentional and sufficient; second-parent files are
+never missed (tree-snapshot diff, not provenance) and second-parent history that nets to
+zero at the merge point never lands in what is pushed, reviewed, or squash-merged into
+`develop`, so no second-parent-history attestation is required or intended. §Decision 9
+Ruling 9(c) item 5 added — the outstanding devops-engineer CI wiring [D-969] MUST checkout
+`github.event.pull_request.head.sha` explicitly, not the `pull_request`-trigger default
+(`refs/pull/<N>/merge`, an ephemeral synthetic merge commit whose parent is a moving target
+that would corrupt per-commit iteration). Ruling 9(c) item 4 (parentless-commit
+WARNING-and-skip) confirmed unchanged in semantics; the existing pre-diff guard already
+makes the hard-error path structurally unreachable, so no root-safe hardening of the diff
+call itself is warranted (would reclassify root commits as activating). A code-vs-spec gap
+was found — the guard skips silently with no WARNING emitted, contrary to Ruling 9(c) item
+4's own text — and is routed to implementer as a new Implementation routing bullet
+(observability fix only, scoped to `src/lib.rs`; no `GateOutcome` semantics change).
+Implementation routing devops-engineer bullet augmented with the checkout-ref requirement.
+No `GateOutcome` variant, exit code, or predicate semantics changed in this amendment.
+§Status v1.17 added.
 
 **AMENDED 2026-08-13 (v1.13 — architect): stale re-ratification notice corrected.** The
 paragraph immediately below this note previously read "HUMAN RE-RATIFICATION REQUIRED...
@@ -1934,11 +2214,201 @@ neither branch's `red-gate-log.md` contains an "erratum"/"PROCURED"/"F-S2107-P10
 - **devops-engineer — OUTSTANDING (tracked: STATE.md Drift Item [D-969]).** Add two jobs to
   `.github/workflows/ci.yml` (or a dedicated `policy-15-attestation.yml`): (1)
   `policy-15-attestation-location` — required check, unconditional (no `paths:` filter),
-  `fetch-depth: 0`, invokes `policy15-attestation-gate [<base-branch>]` per §Decision 9
-  Ruling 9(a); (2) `attestation-gate-non-vacuity-controls` — unconditional, invokes
+  `fetch-depth: 0`, checkout `ref: ${{ github.event.pull_request.head.sha }}` (v1.17 §Decision
+  9 Ruling 9(c) item 5 — MUST NOT rely on the `pull_request`-trigger default checkout ref,
+  which resolves to an ephemeral synthetic merge commit and would corrupt per-commit
+  iteration), invokes `policy15-attestation-gate [<base-branch>]` per §Decision 9 Ruling 9(a);
+  (2) `attestation-gate-non-vacuity-controls` — unconditional, invokes
   `cargo test -p policy15-attestation-gate` per §Decision 10 Ruling 10(d). Both jobs comply
   with POLICY 21 (no new `.sh` files; Rust binary + cargo test). This is the last step that
   makes the gate demonstrably RUNNING, not merely ratified — closes F-S2107-P10-001 in full.
+- **implementer — NEW (v1.17; routed from this ADR, not fixed here per CLAUDE.md Agent
+  Routing Table — ADRs are architect scope, crate code is implementer scope).**
+  ~~Close the code-vs-spec gap identified by Ruling 9(c) item 4 ... Add an observable warning
+  at the skip site — e.g. `eprintln!(...)` inline in `run_gate_inner` before the `continue`
+  (consistent with this crate's existing effectful-throughout style ... `main.rs` already
+  treats `eprintln!` as this binary's detail/diagnostic channel for `Fail` and
+  `EmptyOrUnreachable`).~~
+
+  > **SUPERSEDED 2026-08-15 (v1.18, PR #777 CR-2 adjudication):** the "effectful-throughout
+  > style" rationale above does not survive inspection — the `eprintln!` this item directed
+  > is the ONLY `eprintln!`/`println!` in `src/lib.rs`; every other diagnostic in this crate
+  > is printed by `main.rs` from structured data `run_gate` returns, not by `lib.rs` itself.
+  > CR-2 (cognitive-diversity code-reviewer, PR #777) correctly identified that this broke
+  > the crate's own separation of concerns and left the WARNING observable only via a coarse
+  > stderr substring check, undermining the crate's headline "structurally typed outcomes"
+  > design claim. Superseded by the v1.18 routing item immediately below. This strikethrough
+  > preserves the v1.17 text verbatim for the historical record per this ADR's established
+  > SUPERSEDED-note convention (§Status, ADR-041/042 pattern) — it is retracted, not deleted.
+
+  **v1.18 replacement routing — implementer:** Introduce a `GateResult` wrapper struct in
+  `src/lib.rs`:
+
+  ```rust
+  /// Result of a gate run: the verdict plus non-verdict-affecting diagnostics.
+  ///
+  /// `skipped_parentless` is orthogonal to `outcome` — it records commits inside the
+  /// evaluated range that were skipped because they lack a first parent (root commit or
+  /// shallow-clone boundary), regardless of which `GateOutcome` variant the run produced.
+  /// Skipping such a commit never causes `Fail` (§Decision 9 Ruling 9(c) item 4). Printing
+  /// an operator-facing WARNING for each entry is `main.rs`'s responsibility, not this
+  /// library's — mirrors the FAIL/EmptyOrUnreachable detail-line convention already used
+  /// there.
+  #[derive(Debug, PartialEq, Eq)]
+  pub struct GateResult {
+      /// The four-way verdict (see `GateOutcome`).
+      pub outcome: GateOutcome,
+      /// Full 40-character SHAs of commits skipped for lacking a first parent. Empty in
+      /// the common case.
+      pub skipped_parentless: Vec<String>,
+  }
+  ```
+
+  Change `run_gate`, `run_gate_from_merge_base` (both `pub`), and the private
+  `run_gate_inner` to return `Result<GateResult, GateError>` in place of
+  `Result<GateOutcome, GateError>`. The two stale-pin early-returns in `run_gate` and
+  `run_gate_from_merge_base` become
+  `Ok(GateResult { outcome: GateOutcome::EmptyOrUnreachable(UnreachableCause::StalePin),
+  skipped_parentless: Vec::new() })`; the `EmptyRange` early-return in `run_gate` follows the
+  same shape. In `run_gate_inner`, add `let mut skipped_parentless: Vec<String> = Vec::new();`
+  alongside the existing `fail_list`/`empty_diff_commit`/`activations` locals; the parentless
+  guard becomes `if !commit_has_parent(repo, commit_sha)? { skipped_parentless.push(commit_sha.clone()); continue; }`
+  — **delete the `eprintln!` call from `src/lib.rs` entirely**; construct the final
+  `GateOutcome` exactly as today (priority order FAIL > EMPTY-or-UNREACHABLE > PASS,
+  unchanged) and return `Ok(GateResult { outcome, skipped_parentless })`. Update the module
+  doc's usage example (top of `src/lib.rs`) to `let result = run_gate(...).expect(...);
+  println!("{}", result.outcome.identifier()); std::process::exit(result.outcome.exit_code());`.
+  In `main.rs`, destructure `Ok(GateResult { outcome, skipped_parentless })` from `run_gate`
+  and, before the existing `match &outcome { ... }` detail-line block, print one WARNING line
+  per entry using the SAME wording and the SAME 12-char short-SHA truncation convention
+  already used for the `Fail`/`UnmeasurableDiff` detail lines: `eprintln!("  WARNING: commit
+  {short} has no first parent (root commit or shallow-clone boundary) — skipping POLICY 15
+  evaluation for this commit");`. No `GateOutcome` variant, exit code, or predicate semantics
+  change — this is a return-type/observability refactor only, scoped to
+  `crates/policy15-attestation-gate/{src/lib.rs,src/main.rs}`. Do NOT harden
+  `git_diff_name_only` itself (e.g. `git show --first-parent` or empty-tree comparison) — per
+  the v1.17 confirmation of Ruling 9(c) item 4 (unchanged by this amendment), the pre-diff
+  guard already makes that code path structurally unreachable, and an empty-tree diff would
+  reclassify a root commit as activating, contradicting the deliberate skip semantics. This
+  refactor has zero blast radius on other crates: `run_gate`/`run_gate_from_merge_base` have
+  no consumers outside `policy15-attestation-gate` as of this amendment (CI wiring is still
+  D-969-outstanding).
+
+  **v1.18 replacement routing — test-writer.** Two test changes, both in
+  `crates/policy15-attestation-gate/`:
+  1. In `src/lib.rs`'s `#[cfg(test)] mod tests`, port `create_range_containing_parentless_commit`
+     (and the `git_stdout` helper it depends on) from `tests/binary_integration_test.rs`'s
+     `Repo` into the module's own `Repo` — this crate already has an established, documented
+     precedent for this exact duplication (`tests/binary_integration_test.rs` lines 64-66:
+     "self-contained duplicate of `src/lib.rs`'s private `#[cfg(test)]` `Repo` — integration
+     test files are a separate compilation unit and cannot reach that private module"). Add a
+     new `#[test]` — this is the still-outstanding v1.17 test directive
+     (`test_root_commit_is_skipped_not_activating`, specified but never implemented; no test
+     with that name exists in `src/lib.rs` as of this amendment) — that calls
+     `run_gate_from_merge_base` directly on the parentless-commit fixture and asserts
+     STRUCTURALLY: `assert_eq!(result.skipped_parentless, vec![root_sha.clone()]);` and
+     `assert_eq!(result.outcome, GateOutcome::PassZeroActivations);`. This closes CR-2's core
+     complaint — a mutant altering the skip-list contents (dropping the push, pushing the
+     wrong SHA, pushing a duplicate) now fails a `matches!()`-equivalent structural
+     `assert_eq!`, independent of any message-text formatting.
+  2. In `tests/binary_integration_test.rs`, rename
+     `test_f1_parentless_commit_in_range_is_skipped_with_warning_expected_red_pending_implementer`
+     to `test_f1_parentless_commit_in_range_is_skipped_with_warning` (drop the
+     `_expected_red_pending_implementer` suffix — the wiring it was pending on has now
+     landed) and rewrite its doc comment to state it is the BINARY-BOUNDARY CLI-contract
+     test (a spawned-process test can only observe stdout/stderr/exit code, so a stderr
+     substring assertion is the correct and sufficient tool at this boundary — it is no
+     longer the ONLY proof of correctness now that test-writer item 1 adds a structural
+     proof at the library boundary). The assertion body (`stderr.contains("WARNING") &&
+     stderr.contains(root_short)`) is unchanged — CR-2's finding is fully addressed by
+     adding the library-level structural test, not by weakening or removing this one.
+
+- **implementer — NEW (v1.18; H-1, HIGH, blocking; pr-reviewer, PR #777, gate executed
+  against real HEAD `010e6140`).** Implements §Decision 9 Ruling 9(e). In `src/lib.rs`'s
+  `run_gate_inner` loop, after the existing `commit_has_parent` guard (unchanged) and before
+  computing `all_changed`: add `fn commit_parent_count(repo: &Path, commit: &str) ->
+  Result<usize, GateError>` (new private helper, same style as the existing `git_*` helpers —
+  run `git rev-list --parents -n1 <commit>`, split stdout on whitespace, return
+  `tokens.len() - 1`) and `fn git_diff_tree_combined_name_only(repo: &Path, commit: &str) ->
+  Result<Vec<String>, GateError>` (new private helper — run `git diff-tree -c --name-only
+  --no-commit-id -r <commit>`, split stdout on newlines, same pattern as
+  `git_diff_name_only`). Branch on `commit_parent_count(repo, commit_sha)? > 1`: if `false`,
+  existing `git_diff_name_only(repo, &format!("{commit_sha}^1"), commit_sha)` unchanged; if
+  `true`, use `git_diff_tree_combined_name_only(repo, commit_sha)` instead, and if THAT result
+  is empty, push `commit_sha.clone()` onto a new `skipped_merge_inert: Vec<String>` local
+  (alongside `fail_list`/`empty_diff_commit`/`activations`/`skipped_parentless`) and
+  `continue` — do NOT fall through to the `empty_diff_commit = Some(...)` branch, which
+  remains reserved for `count == 1` commits only. If the combined diff is non-empty, fall
+  through to the existing crate-prefix activation check, attestation lookup (still keyed on
+  `{commit_sha}^1`), and FAIL logic completely unchanged. Add `skipped_merge_inert` as a
+  second new field on the `GateResult` struct introduced for CR-2 (same shape/visibility as
+  `skipped_parentless`; both are populated by `run_gate_inner` and passed through by
+  `run_gate`/`run_gate_from_merge_base`'s early-return paths as `Vec::new()`, same as
+  `skipped_parentless`). No `main.rs` stderr change for `skipped_merge_inert` — deliberately
+  silent per Ruling 9(e) (routine case, not an anomaly).
+
+- **test-writer — NEW (v1.18; H-1 companion control).** Add a new `#[test]` in `src/lib.rs`'s
+  `#[cfg(test)] mod tests` proving the exact PR #777 shape: construct a fixture with (a) a
+  `base` commit seeding the pinned crate, (b) a second branch/lineage that changes a pinned
+  crate `.rs` file with a COMPLIANT attestation (mirrors `test_negative_compliant_attestation`
+  — this represents "already attested on develop"), (c) a real two-parent merge commit
+  (`git merge`, NOT `--allow-unrelated-histories` — a normal fast-forward-ineligible merge is
+  sufficient here, unlike the CR-2/F-1 fixture) bringing that lineage back onto `base`'s
+  branch, with NO new attestation heading added at the merge commit itself. Assert:
+  `result.outcome` is NOT `GateOutcome::Fail(_)` (`matches!(&result.outcome,
+  GateOutcome::Fail(_))` is `false`) and the merge commit's SHA appears in
+  `result.skipped_merge_inert`. Add a SECOND `#[test]` for the closing-the-bypass direction:
+  same fixture shape, but have the merge commit ITSELF (not either parent) directly modify a
+  pinned crate `.rs` file's content differently from both parents' versions (i.e., an actual
+  conflict-resolution-style edit made only in the merge commit, via `commit-tree`/plumbing —
+  same technique `create_range_containing_parentless_commit` already uses for constructing
+  synthetic commits) with no attestation heading for the merge commit's `^1` parent — assert
+  `result.outcome` IS `GateOutcome::Fail(v) if v.len() == 1 && v[0].commit ==
+  <merge_commit_sha> && v[0].reason == FailReason::LogAbsent` (or `AttestationMissing`,
+  depending on which fixture variant is written) — proving the combined-diff path still
+  catches genuinely merge-authored, unattested crate content. Both tests are required before
+  H-1 is considered closed — the first proves the false-FAIL is fixed, the second proves the
+  fix does not open the bypass H-1 explicitly asked to be addressed.
+
+- **implementer — NEW (v1.18; M-1, MEDIUM; pr-reviewer, PR #777).** In `main.rs`'s `match
+  &outcome { ... }` block, replace the `_ => {}` catch-all arm with two explicit arms:
+  `GateOutcome::PassWithActivations(_) => {}` and `GateOutcome::PassZeroActivations => {}`,
+  each with a one-line comment noting no per-commit detail line is needed for a PASS outcome.
+  This restores compile-time exhaustiveness enforcement at the call site `GateOutcome`'s own
+  doc comment says the missing `#[non_exhaustive]` is FOR (a 5th variant added later without a
+  corresponding `main.rs` arm now fails to compile here, instead of silently falling into the
+  wildcard). No behavior change; no test change required (existing F-6 binary tests already
+  cover both PASS variants' current no-detail-line behavior).
+
+- **implementer — NEW (v1.18; M-3, MEDIUM; pr-reviewer, PR #777).** Implements the Ruling
+  8(b) amendment above. Add `AttestationAmbiguous { count: usize }` as a new case on the
+  `FailReason` enum in `src/lib.rs` (doc comment: "The pinned log was present and contained
+  more than one `^### .*assertion-site attestation (<parent>)` heading for this commit's
+  parent — ambiguous, not absent."). In `run_gate_inner`, change the count check from `if
+  count != 1 { fail_list.push(FailedCommit { ..., reason: FailReason::AttestationMissing }); }`
+  to a `match count { 1 => {} , 0 => fail_list.push(FailedCommit { commit: commit_sha.clone(),
+  reason: FailReason::AttestationMissing }), n => fail_list.push(FailedCommit { commit:
+  commit_sha.clone(), reason: FailReason::AttestationAmbiguous { count: n } }) }`. In
+  `main.rs`'s `FailReason` match (the `reason` local inside the `GateOutcome::Fail(failed)`
+  arm), add a corresponding arm: `FailReason::AttestationAmbiguous { count } =>
+  format!("{count} attestation headings found for commit's parent (expected exactly 1)")`.
+
+- **test-writer — NEW (v1.18; M-3 companion).** In `src/lib.rs`, update
+  `test_f2_two_attestation_headings_same_parent_fails` (currently asserting
+  `GateOutcome::Fail(v) if v.len() == 1 && v[0].reason == FailReason::AttestationMissing` for
+  the count==2 fixture) to assert `v[0].reason == FailReason::AttestationAmbiguous { count: 2
+  }` instead — update the test's doc comment and the `expect`/assertion failure message
+  string accordingly (currently reads "expected Fail(AttestationMissing) for count==2
+  (exactly-once upper bound)"). `test_positive_1_absent_log` and
+  `test_positive_2_no_attestation_heading` (the genuine count==0 cases) are UNCHANGED — they
+  correctly remain on `FailReason::AttestationMissing`.
+
+- **implementer — NEW (v1.18; sibling-site sweep, TD-VSDD-060).** Two source-comment version
+  citations lag this ADR and must be bumped in the SAME commit as the above changes (grep
+  confirms these are the only two `ADR-040 v1.NN` citations in the crate's source):
+  `src/lib.rs` module doc line 1 (`ADR-040 §Decisions 7-10 (v1.17)` → `(v1.18)`) and
+  `src/main.rs` module doc (`The gate is ratified (ADR-040 v1.17, active)` → `v1.18`).
+
 - **state-manager — DONE (D-970).** `policies.yaml` POLICY 15 ATTESTATION-LOCATION GATE
   bullet replaced verbatim per §Proposed `policies.yaml` Replacement Text; version
   v1.4.22 → v1.4.23 applied; ARCH-INDEX v3.53 → v3.54.

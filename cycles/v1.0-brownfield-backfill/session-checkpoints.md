@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "895dcbb"
+input-hash: "83998ec"
 traces_to: STATE.md
 ---
 
@@ -1847,3 +1847,45 @@ Demo-evidence, PR, merge, POST-MERGE burst were NOT started as of this checkpoin
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1012-S2107-SEC001-CWE697-RECONVERGE-PR776-OPEN-BANNER-FIX checkpoint burst (2026-08-15) — the strict 3-CLEAN cascade converged via the SEC-001/CWE-697 arc and PR #776 was opened.**
+
+## Session Resume Checkpoint (2026-08-15 — HEAD `e94767bc` develop / factory-artifacts this commit; SESSION-WRAP-PAUSE-2026-08-15 COMPLETE; PIPELINE PAUSED)
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE PAUSED** at a clean resting state via human-requested `/wrap`, on top of D-1013 (S-21.07 POST-MERGE bookkeeping COMPLETE). S-21.07 (`validate-cross-site-correspondence` WASM hook — six-arm PostToolUse cross-site value-correspondence gate) is **MERGED**: PR #776 squash-merged to `develop` at commit `e94767bc` 2026-08-15. The feature branch `feature/S-21.07-validate-cross-site-correspondence` was auto-deleted on origin. POL-14 BC-5.39.010 v1.24 active; `merged_count` 109; **NO story in-flight**. Pre-merge, the story went through a HUMAN-DIRECTED STRICT BC-5.39.001 3-CLEAN adversarial cascade that RE-CONVERGED after a SEC-001/CWE-697 security-review finding was TRIAGED (CWE-22 REFUTED as bypass; the narrower CWE-697 over-inclusion genuinely fixed on-branch) and the governing BC HUMAN-RATIFIED to v1.23. No active convergence loop — the S-21.07 cascade CONVERGED and landed.
+
+### §2 What This Burst Did
+
+- **Session pause:** `pipeline` frontmatter `ACTIVE`→`PAUSED`; `phase` set to `SESSION-WRAP-PAUSE-2026-08-15`.
+- **Phase Progress / Current Phase Steps:** appended a `SESSION-WRAP-PAUSE-2026-08-15` row to both tables recording the human-requested pause at the clean post-S-21.07-merge resting state.
+- **Session Resume Checkpoint:** refreshed in-place (this section) — heading, §1, §5, §7 updated to reflect PAUSED status and the resume command; §2-§4/§6 content otherwise carried forward from the D-1013 checkpoint since nothing else changed this burst.
+- No spec/index/ADR/BC/VP/STORY content changed — this is a bookkeeping-only pause burst.
+
+### §3 Convergence Counters (unchanged by this burst)
+
+The S-21.07 LOCAL spec-only adversarial cascade CONVERGED 3/3 at D-1009 (trajectory-tail →1→0→0→0, UNCHANGED). The SEPARATE strict-3-CLEAN re-hardening cascade (human-directed, v1.22→v1.23 arc) RE-CONVERGED per the D-1012 burst narrative before PR #776 was opened; not tracked as a live counter post-merge.
+
+### §4 Outstanding Backfill (carried forward, NOT closed by this burst)
+
+decision-log.md is missing the exhaustive per-decision backfill for: (a) D-1011's full reconcile-and-land session (develop-merge `cc0c560d`, 3 BC-5.39.010 amendments v1.20/v1.21/v1.22, ~17 adversary passes), and (b) D-1012's own SEC-001/CWE-697 arc detail (only a CONSOLIDATED entry exists). Per the D-991-precedent gap-tracking discipline (`L-BB-state-manager-delegate-death-requires-decision-log-backfill-not-silent-gap`), this remains OWED — anchored to a future state-manager burst with decision-log-backfill scope. Also carried forward: pre-existing `sprint-state.yaml` S-21.09-shows-in-flight drift; STORY-INDEX historical-YAML malformation → S-15.03; harmless duplicate APPROVE review comment on PR #776.
+
+### §5 Next Action
+
+**PIPELINE PAUSED — no pipeline work should begin until explicit resume.** On resume: no pending decision on S-21.07 — delivery is complete. E-21 remaining scope is entirely draft (S-21.10/S-21.11/S-21.12/S-21.13/S-21.14/S-21.15); next wave dispatch is an open human/orchestrator decision. Other standing pending items (unchanged by this burst): P0 POLICY 15 CI-wiring residual (`feature/policy15-gate-rust`→`develop`), C-1/C-2/C-4/C-5 exec_subprocess security findings (ADR-043 NOT RATIFIED), the decision-log.md backfill above.
+
+### §6 Open Follow-ups (accepted/deferred, non-blocking — Drift Items, carried forward unchanged)
+
+- `capability: "E-12"` in BC-5.39.010 frontmatter — product-owner to confirm.
+- VP-template `last_amended` scaffold gap — architect-owned.
+- BC-INDEX read-cap ceiling growth — anchored S-21.13.
+- `report.tap` untracked in the MAIN repo — gitignore hygiene (POLICY 20).
+- STORY-INDEX.md `last_amended` field bloat — anchored S-15.03.
+- Frontmatter BOM/leading-line tolerance — accepted (unreachable, fails-closed).
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the D-1014-POLICY15-CRATE-MERGED-PR777 checkpoint burst (2026-08-16) — pipeline resumed `PAUSED`→`ACTIVE` human-authorized to run the POLICY 15 validate→harden→merge→wire track; the crate merged to `develop` via PR #777 (`19cb57e6`); CI-wiring remains a separate concurrent open PR.**

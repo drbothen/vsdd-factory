@@ -18203,3 +18203,56 @@ D-1013-S2107-MERGED-PR776-POL14-PROMOTION
 2026-08-15
 
 ---
+
+## D-1014 — D-1014-POLICY15-CRATE-MERGED-PR777
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → the prior max was `## D-1013`; D-1014 allocated.
+
+**Scope note (milestone-record burst, human-directed).** This entry records the FULL POLICY 15 gate validate→harden→merge arc that ran on `feature/policy15-gate-rust` this session: pipeline resume, adversary spec-conformance validation, two HIGH gate-logic defects found by EXECUTION-based pr-review and fixed in-scope, mutation-testing convergence, three-round pr-reviewer cascade to APPROVE, and the crate's merge to `develop` via PR #777. **This entry closes only the CRATE/IMPLEMENTATION half of `[D-969]`/`[F-S2107-P10-001]`. The CI-WIRING half (ADR-040 §Decision 9 Ruling 9(c) item 5 — wiring the `policy-15-attestation-location` job into `ci.yml` with the explicit `${{ github.event.pull_request.head.sha }}` checkout) is a SEPARATE, CONCURRENT, still-open PR and is NOT closed by this burst.**
+
+**(a) Pipeline resume.** `pipeline` frontmatter `PAUSED`→`ACTIVE` this session, human-authorized, to execute the full POLICY 15 track (validate→harden→merge→wire) on the already-redesigned `feature/policy15-gate-rust` crate (`d2a3176a`, 16 tests, `GateOutcome` enum, mutation-verified per D-970/ADR-040 v1.12).
+
+**(b) Adversary spec-conformance validation.** Fresh-context adversarial review against ADR-040's §Decision 9/10 rulings found per-guard mutant gaps F-1..F-6 (coverage gaps in the existing 16-test suite relative to the guard-ordering and stale-pin mutants the ADR's own "Mutation-testing acceptance criterion" section requires be killed). All six closed in-scope by test-writer/implementer before the PR was opened; see the branch's own commit history (`d2a3176a` "kill guard-1 stale-pin mutant + tighten coarse assertions").
+
+**(c) Research-agent Q2 disposition — ADR-040 v1.17.** During pre-merge validation, research-agent surfaced a CI-semantics question (persisted at `.factory/research/policy15-gate-ci-semantics.md`, new this burst): what git ref should the CI-wiring step check out, and is the endpoint two-dot diff (`git diff --name-only C^1 C`) a coverage gap for second-parent content. Architect ruled both: Ruling 9(d) — two-dot scope is INTENTIONAL/SUFFICIENT (POLICY 15 binds what lands, not transient side-branch history); Ruling 9(c) item 5 — CI-wiring MUST check out `${{ github.event.pull_request.head.sha }}` explicitly, not the `pull_request`-trigger default synthetic merge ref (a moving target no real attestation ever references). A code-vs-spec gap (parentless-commit skip is silent, no WARNING emitted, contrary to existing Ruling 9(c) item 4 text) was routed to implementer, not fixed in the ADR. ADR-040 v1.16→v1.17.
+
+**(d) EXECUTION-based pr-review cascade — two HIGH gate-logic defects found and fixed.** pr-reviewer round 1 reasoned about the code and reached APPROVE without executing the gate; round 2 built and ran the gate binary against PR #777's own HEAD (`010e6140`, a merge commit) with base `develop` and got `FAIL: obligation violated` (exit 2) — a false-FAIL on the PR's own merge commit, because the two-dot diff re-flags already-attested second-parent content as newly unattested (**H-1**). Round 2 also found `core.quotePath` false-negative (**H-2**, non-ASCII filename attestation-heading matching). Both HIGH findings fixed in-scope on-branch: H-1 via new Ruling 9(e) (merge commits with parent-count > 1 evaluated via git's COMBINED diff `git diff-tree -c --name-only`, inert combined diffs recorded in `GateResult.skipped_merge_inert` rather than activating; squash-merge landing commits, parent-count 1, never exempted); H-2 fixed at commit `d2a3176a` per the branch log. Round 2 verdict REQUEST_CHANGES → all findings resolved → round 3 verdict **APPROVE**, superseding round 1 and round 2 (round 1 preserved verbatim, labeled SUPERSEDED, for audit trail — `.factory/code-delivery/PR-777/pr-review-round-1-approve-superseded.md`; round 3's content lives in `.factory/code-delivery/PR-777/pr-review.md`, both new this burst). Per CLAUDE.md Standing Rule 3 §1 ("implementer self-disclosure of risk severity is NOT authoritative — adversary independently verifies"): H-1/H-2 were found by EXECUTING the gate, not by the implementer's own characterization, and neither was deferred.
+
+**(e) Cognitive-diversity code-reviewer CR-2 + three further EXECUTION findings — ADR-040 v1.18.** A different-model-family code-reviewer pass raised CR-2 (MEDIUM): an inline `eprintln!` in `run_gate_inner` breaks this crate's structured-outcome design (the sole `eprintln!`/`println!` in `src/lib.rs`, observable only via a stderr substring check, contrary to the crate's own exhaustive-`matches!()` design claim). Architect ACCEPTED CR-2 and directed a STRUCTURAL REFACTOR (proportionate: zero blast radius today since no crate outside `policy15-attestation-gate` consumes the public API yet, and the fix is small/contained) — new `GateResult { outcome, skipped_parentless }` wrapper on `run_gate`/`run_gate_from_merge_base`/`run_gate_inner`; `eprintln!` moves to `main.rs`. Folded into the SAME v1.18 bump: **H-1 promoted from round-2 pr-review to a permanent ADR ruling** (Ruling 9(e), described in (d) above — the ADR amendment is the durable record of the round-2 fix). **M-1 [MEDIUM, ACCEPTED]** — `main.rs`'s `_ => {}` wildcard defeated `GateOutcome`'s deliberate non-`#[non_exhaustive]` exhaustiveness guarantee; fixed with explicit per-variant arms. **M-3 [MEDIUM, ACCEPTED]** — a duplicate attestation heading (count ≥ 2) FAILed under the same `FailReason::AttestationMissing` label as a genuinely-absent one, misleading triage; new `FailReason::AttestationAmbiguous { count }` (Ruling 8(b) amendment) disambiguates; `count == 0`/`count != 1` FAIL boundary unchanged. All fixed in-scope, no deferral, per CLAUDE.md's production-grade default (Canonical Principle Rule 4 — "AI-built defects are the AI's responsibility to fix"). ADR-040 v1.17→v1.18.
+
+**(f) cargo-mutants 0-missed; full-workspace CI green.** Final mutation-testing run against the v1.18 crate state (GateResult wrapper, Ruling 9(e) combined-diff, AttestationAmbiguous) reported 0 missed mutants. `cargo fmt --check --all`, `cargo clippy --workspace --all-targets -- -D warnings`, and `cargo test --workspace --all-targets` all green on the PR branch prior to merge.
+
+**(g) Merge.** PR #777 (`fix(policy15-gate): implement POLICY 15 attestation gate as Rust crate`, `feature/policy15-gate-rust` → `develop`) squash-merged 2026-08-16 at commit `19cb57e6` ("feat(policy15-gate): POLICY 15 attestation-location gate crate (#777)"), direct child of `e94767bc` (the D-1013 develop HEAD — no other PR landed between). `develop` HEAD `e94767bc`→`19cb57e6`. Remote branch `feature/policy15-gate-rust` auto-deleted on origin per the repository's post-merge branch-deletion setting; local branch retained.
+
+**(h) [D-969]/[F-S2107-P10-001] partial closure — explicit non-claim.** The Blocking Issues P0 row is updated to **CRATE/IMPLEMENTATION HALF CLOSED** (this burst) / **CI-WIRING HALF still OPEN**, tracked as a separate concurrent in-progress PR wiring the `policy-15-attestation-location` job into `ci.yml` per Ruling 9(c) item 5 plus branch-protection configuration. This burst does NOT mark `[D-969]` fully resolved and does NOT remove the Blocking Issues row — only its status text is updated to reflect the half that closed.
+
+**(i) 4-index.** ARCH-INDEX **v3.59** (ADR-040 row v1.16→v1.18 note, per POLICY 9 propagation) / BC-INDEX v4.63 UNCHANGED / VP-INDEX v2.76 UNCHANGED / STORY-INDEX v4.338 UNCHANGED. `total_adrs` UNCHANGED (43) — amendment, not a new ADR. policies.yaml v1.4.24 UNCHANGED (no gate-text change this burst — the crate's internal refactor does not alter the policies.yaml verification_steps predicate text).
+
+**(j) Follow-ups anchored (S-7.02 Cycle-Closing Checklist).** Three process-gap/observation items surfaced this session are anchored as Drift Items rather than fixed in-scope, per explicit orchestrator direction (concrete future dependency: each needs a dedicated fix burst, not a bookkeeping-only state-manager commit): (1) `validate-pr-review-posted` hook has two defects — Check 2 is negation-blind (substring-scans assistant prose for the fallback token, so *explaining* the token was avoided reads as *using* it) and Checks 3a/3b assume approve/request-changes verbs are reachable, which is structurally false on a self-authored PR; both actively caused false review-post blocks this session. (2) `test_h1_merge_pass_through_content_is_skipped_not_failed` asserts on `!matches!(Fail(_))` + a `.contains` substring rather than the exact `PassWithActivations(1)` value — non-blocking (cargo-mutants 0-missed means this is not a live coverage gap, just assertion looseness). (3) `gh pr review` writes were blocked by this session's auto-mode permission classifier while `gh pr merge` was not — noted for audit, not a code defect. See Drift Items table for the anchored rows.
+
+**(k) Discipline note — pre-existing backfill unaffected.** The `[BACKFILL OWED]` D-1011/D-1012 exhaustive per-decision decision-log.md backfill remains separately OWED, unaffected by this burst (this entry records the D-1014 arc fully but does not retroactively expand D-1011/D-1012).
+
+### Agents
+
+- human: authorization to run the full POLICY 15 validate→harden→merge→wire track; PR #777 merge approval
+- vsdd-factory:adversary: spec-conformance validation (F-1..F-6 per-guard mutant gaps, closed pre-PR)
+- vsdd-factory:research-agent: CI/git-semantics disposition (`.factory/research/policy15-gate-ci-semantics.md`)
+- vsdd-factory:architect: ADR-040 v1.17 (Ruling 9(d)/9(c) item 5) and v1.18 (CR-2 GateResult refactor, Ruling 9(e), M-1 exhaustiveness, M-3 AttestationAmbiguous) amendments
+- vsdd-factory:pr-reviewer: three-round PR review cascade (round 1 APPROVE-without-execution → superseded; round 2 REQUEST_CHANGES on H-1/H-2 EXECUTION findings; round 3 APPROVE)
+- vsdd-factory:code-reviewer: cognitive-diversity CR-2 finding
+- vsdd-factory:pr-manager: PR #777 lifecycle coordination and merge execution
+- state-manager (this burst): ARCH-INDEX ADR-040 row propagation (v3.59); STATE.md full arc advance; this D-1014 decision-log.md entry; burst-log.md narrative; persist research/PR-777-review/ADR-040 artifacts; single atomic commit to `factory-artifacts` per TD-VSDD-053
+
+### 4-INDEX
+
+ARCH-INDEX v3.59 (was v3.58) / BC-INDEX v4.63 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.338 (UNCHANGED)
+
+### Phase
+
+D-1014-POLICY15-CRATE-MERGED-PR777
+
+### Date
+
+2026-08-16
+
+---
