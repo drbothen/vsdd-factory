@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic, clippy::collapsible_if)]
 // s21_12_version_gate.rs — RED Gate integration tests for S-21.12.
 //
 // Asserts that the resolved versions of `wasmtime-wasi` and `crossbeam-epoch`
@@ -196,9 +198,6 @@ checksum = "abc123"
             parse_cargo_lock_version(lock_fragment, "some-other-crate"),
             Some("1.2.3".to_string())
         );
-        assert_eq!(
-            parse_cargo_lock_version(lock_fragment, "nonexistent"),
-            None
-        );
+        assert_eq!(parse_cargo_lock_version(lock_fragment, "nonexistent"), None);
     }
 }
