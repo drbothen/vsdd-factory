@@ -1217,7 +1217,7 @@ script_path = "bad.sh"
 }
 
 // ---------------------------------------------------------------------------
-// S-21.10 — BC-1.01.016 v1.1: failure_policy schema extension tests
+// S-21.10 — BC-1.01.016 v1.2: failure_policy schema extension tests
 //
 // Tests every postcondition (PC1–PC7) and all BC edge cases (EC-001..EC-006)
 // for the new `failure_policy` field introduced by S-21.10 (ADR-039 §Decision
@@ -1261,7 +1261,7 @@ plugin = "hook-plugins/test.wasm"
 
     // -----------------------------------------------------------------------
     // AC-001 / PC1 — `"fail-closed"` parses to `FailurePolicy::FailClosed`
-    // (BC-1.01.016 v1.1 postcondition 1; ADR-039 §Decision 2 schema leg)
+    // (BC-1.01.016 v1.2 postcondition 1; ADR-039 §Decision 2 schema leg)
     //
     // GREEN-BY-DESIGN: `#[serde(rename_all = "kebab-case")]` on `FailurePolicy`
     // maps the Rust variant `FailClosed` to/from the TOML string `"fail-closed"`.
@@ -1286,7 +1286,7 @@ plugin = "hook-plugins/test.wasm"
 
     // -----------------------------------------------------------------------
     // AC-002 / PC2 — `"fail-open"` parses to `FailurePolicy::FailOpen`
-    // (BC-1.01.016 v1.1 postcondition 2; ADR-039 §Decision 2 schema leg)
+    // (BC-1.01.016 v1.2 postcondition 2; ADR-039 §Decision 2 schema leg)
     //
     // GREEN-BY-DESIGN: same serde derive maps `FailOpen` ↔ `"fail-open"`.
     // -----------------------------------------------------------------------
@@ -1310,7 +1310,7 @@ plugin = "hook-plugins/test.wasm"
 
     // -----------------------------------------------------------------------
     // AC-003 / PC3 — Unknown values rejected at parse time
-    // (BC-1.01.016 v1.1 postcondition 3; no-silent-default invariant)
+    // (BC-1.01.016 v1.2 postcondition 3; no-silent-default invariant)
     //
     // GREEN-BY-DESIGN: serde enum deserialization rejects unknown variant
     // strings by default (no `#[serde(other)]` fallback on `FailurePolicy`).
@@ -1331,7 +1331,7 @@ plugin = "hook-plugins/test.wasm"
 
     // -----------------------------------------------------------------------
     // AC-003 / PC3 + EC-003 — Underscore form `"fail_closed"` must be `Err`
-    // (BC-1.01.016 v1.1 edge case EC-003; the kebab-vs-snake guard)
+    // (BC-1.01.016 v1.2 edge case EC-003; the kebab-vs-snake guard)
     //
     // This is the CRITICAL EC-003 test.  `#[serde(rename_all = "kebab-case")]`
     // maps `FailClosed` to `"fail-closed"` (hyphen).  The snake_case form
@@ -1373,7 +1373,7 @@ plugin = "hook-plugins/test.wasm"
 
     // -----------------------------------------------------------------------
     // EC-001 — Wrong-case form `"FAIL-CLOSED"` must be `Err`
-    // (BC-1.01.016 v1.1 edge case EC-001; serde is case-sensitive)
+    // (BC-1.01.016 v1.2 edge case EC-001; serde is case-sensitive)
     //
     // GREEN-BY-DESIGN: serde enum variant matching is case-sensitive; no
     // case-folding occurs.
@@ -1394,7 +1394,7 @@ plugin = "hook-plugins/test.wasm"
 
     // -----------------------------------------------------------------------
     // EC-002 — Empty string `""` must be `Err`
-    // (BC-1.01.016 v1.1 edge case EC-002)
+    // (BC-1.01.016 v1.2 edge case EC-002)
     //
     // GREEN-BY-DESIGN: empty string is not a recognized variant.
     // -----------------------------------------------------------------------
@@ -1413,7 +1413,7 @@ plugin = "hook-plugins/test.wasm"
 
     // -----------------------------------------------------------------------
     // AC-004 / PC4 — Absent `failure_policy` field defaults to `FailOpen`
-    // (BC-1.01.016 v1.1 postcondition 4; ADR-039 §Decision 1 backward-compat)
+    // (BC-1.01.016 v1.2 postcondition 4; ADR-039 §Decision 1 backward-compat)
     //
     // GREEN-BY-DESIGN: `#[serde(default)]` on `RegistryEntry.failure_policy`
     // combined with `#[default]` on `FailurePolicy::FailOpen` ensures absent-
@@ -1447,7 +1447,7 @@ plugin = "hook-plugins/legacy.wasm"
 
     // -----------------------------------------------------------------------
     // AC-005 / PC5 — `failure_policy` and `on_error` are independent axes
-    // (BC-1.01.016 v1.1 postcondition 5; ADR-039 §Decision 1 axes-separation)
+    // (BC-1.01.016 v1.2 postcondition 5; ADR-039 §Decision 1 axes-separation)
     //
     // `RegistryEntry` MUST hold `on_error: Option<OnError>` and
     // `failure_policy: FailurePolicy` as independent fields simultaneously.
@@ -1520,7 +1520,7 @@ failure_policy = "fail-open"
 
     // -----------------------------------------------------------------------
     // AC-006 / PC7 — Phase 1 no-enforcement gate (registry-side scope guard)
-    // (BC-1.01.016 v1.1 postcondition 7; ADR-039 §Decision 3 Phase 1 boundary)
+    // (BC-1.01.016 v1.2 postcondition 7; ADR-039 §Decision 3 Phase 1 boundary)
     //
     // The canonical AC-006 test is the EXISTING test
     // `fail_closed_timeout_with_on_error_continue_is_open` in `executor.rs`
@@ -1581,7 +1581,7 @@ failure_policy = "fail-closed"
 
     // -----------------------------------------------------------------------
     // AC-007 / PC6 — All production registry entries parse with `FailOpen` default
-    // (BC-1.01.016 v1.1 postcondition 6; ADR-039 §Decision 1 backward-compat)
+    // (BC-1.01.016 v1.2 postcondition 6; ADR-039 §Decision 1 backward-compat)
     //
     // Drives the actual `plugins/vsdd-factory/hooks-registry.toml` through the
     // updated registry loader. All 76 entries (none carry `failure_policy`) must
