@@ -103,7 +103,7 @@ tonic = "0.14"
 tokio-stream = { version = "0.1", features = ["net"] }
 hostname = "0.4"
 reqwest = { version = "0.12", features = ["json"] }
-httpmock = "0.8"
+httpmock = "0.8.3"
 proptest = "1.6"
 wasmparser = "0.248"
 

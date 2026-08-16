@@ -11,7 +11,7 @@
 //!
 //! Oracle:
 //! - Mock HTTP server receives exactly 1 POST with `X-Honeycomb-Team` header
-//!   (enforced via httpmock 0.7 `when.header()` matcher)
+//!   (enforced via httpmock 0.8 `when.header()` matcher)
 //!
 //! Note: Honeycomb payload schema is uncontracted-by-BC in v1.0. AC-14 verifies
 //! behavior shipped via S-4.03 without a formal v1.0 BC anchor.

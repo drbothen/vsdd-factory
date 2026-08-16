@@ -11,7 +11,7 @@
 //!
 //! Oracle:
 //! - Mock HTTP server receives exactly 1 POST request
-//! - `DD-API-KEY` header is present and non-empty (verified via httpmock 0.7 matcher)
+//! - `DD-API-KEY` header is present and non-empty (verified via httpmock 0.8 matcher)
 //! - Request body parses as JSON containing the submitted event
 //!
 //! Note: Datadog payload schema is uncontracted-by-BC in v1.0. AC-13 verifies

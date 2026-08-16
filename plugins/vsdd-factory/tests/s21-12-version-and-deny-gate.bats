@@ -17,7 +17,7 @@
 # | AC-001: Cargo.toml wasmtime dep does not contain 44.0 pin        | AC-001     |
 # | AC-002: Cargo.toml wasmtime-wasi dep does not contain 44.0 pin   | AC-002     |
 # | AC-003: cargo metadata resolves wasmtime-wasi to >= 46.0.2       | AC-003     |
-# | AC-004/AC-009: cargo deny exits 0, three RUSTSEC IDs absent      | AC-004/009 |
+# | AC-004/AC-009: cargo deny exits 0, five RUSTSEC IDs absent       | AC-004/009 |
 # | AC-007-T1: a workflow file contains cargo deny check advisories   | AC-007     |
 # | AC-007-T2: deny workflow has no paths: on workflow-level trigger  | AC-007     |
 
@@ -132,19 +132,21 @@ setup() {
 }
 
 # ---------------------------------------------------------------------------
-# AC-004 + AC-009: cargo deny check advisories exits 0 and all three RUSTSEC
-# advisory IDs (RUSTSEC-2026-0188, RUSTSEC-2026-0222, RUSTSEC-2026-0204) are
-# absent from the output.
+# AC-004 + AC-009: cargo deny check advisories exits 0 and all five RUSTSEC
+# advisory IDs (RUSTSEC-2026-0188, RUSTSEC-2026-0222, RUSTSEC-2026-0204,
+# RUSTSEC-2026-0190, RUSTSEC-2025-0052) are absent from the output.
 #
 # Traces to: deny.toml [advisories] deny-all posture
 # RED-before: advisories present → exit non-zero → test FAILS
-# GREEN-after: all three patched, deny.toml ignore = [] → exit 0 → test PASSES
+# GREEN-after: all five patched/removed, deny.toml ignore = [] → exit 0 → test PASSES
 #
 # AC-009 note: RUSTSEC-2026-0204 (crossbeam-epoch pointer dereference) is
 # cleared by the crossbeam-epoch >= 0.9.20 transitive bump. Without that bump
 # the deny job exits non-zero on 0204, making the exit-0 assertion impossible.
+# RUSTSEC-2026-0190 (anyhow unsoundness) is cleared by anyhow >= 1.0.104.
+# RUSTSEC-2025-0052 (async-std via httpmock 0.7) is cleared by httpmock >= 0.8.
 # ---------------------------------------------------------------------------
-@test "AC-004/AC-009: cargo deny check advisories exits 0 and RUSTSEC-2026-0188/0222/0204 absent" {
+@test "AC-004/AC-009: cargo deny check advisories exits 0 and RUSTSEC-2026-0188/0222/0204/0190/0052 absent" {
   # cargo-deny must be installed; skip if absent so the bats suite does not
   # error-out in environments where cargo-deny is not yet installed.
   cargo deny --version >/dev/null 2>&1 || skip "cargo-deny not installed (cargo deny --version failed)"
@@ -164,7 +166,7 @@ setup() {
   fi
 
   local failed=0
-  for advisory in RUSTSEC-2026-0188 RUSTSEC-2026-0222 RUSTSEC-2026-0204; do
+  for advisory in RUSTSEC-2026-0188 RUSTSEC-2026-0222 RUSTSEC-2026-0204 RUSTSEC-2026-0190 RUSTSEC-2025-0052; do
     if echo "$output" | grep -qF "$advisory"; then
       echo "FAIL: $advisory still present in cargo deny output"
       failed=1

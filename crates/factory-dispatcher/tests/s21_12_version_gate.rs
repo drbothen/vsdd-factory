@@ -159,7 +159,6 @@ fn test_crossbeam_epoch_satisfies_rustsec_2026_0204_patched_range() {
 // Unit tests for the in-file helpers (sanity; do not test production code)
 // ---------------------------------------------------------------------------
 
-#[cfg(test)]
 mod helper_tests {
     use super::*;
 
