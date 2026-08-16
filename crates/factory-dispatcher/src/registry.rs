@@ -1336,8 +1336,10 @@ plugin = "hook-plugins/test.wasm"
     // This is the CRITICAL EC-003 test.  `#[serde(rename_all = "kebab-case")]`
     // maps `FailClosed` to `"fail-closed"` (hyphen).  The snake_case form
     // `"fail_closed"` is an unrecognized variant string — serde MUST reject it.
-    // Without `rename_all = "kebab-case"`, serde's default (`snake_case`) would
-    // silently accept `"fail_closed"`, opening a bypass.
+    // The real hazard: copying the sibling `OnError` enum's
+    // `#[serde(rename_all = "snake_case")]` would map `FailClosed` →
+    // `"fail_closed"`, silently accepting the underscore form and opening a
+    // bypass.  `FailurePolicy` uses `kebab-case` precisely to avoid this.
     //
     // GREEN-BY-DESIGN: the enum uses `rename_all = "kebab-case"`, so the only
     // accepted forms are `"fail-closed"` and `"fail-open"`. The underscore forms
