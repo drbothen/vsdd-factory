@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.1"
+version: "1.2"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: proposed
 date: 2026-08-06
@@ -17,7 +17,16 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-06 (v1.1) — Context + Decision 3 amended (architect; orchestrator observation):
+  2026-08-16 (v1.2) — Ratification prep (architect): internal version inconsistency
+  resolved — §Consequences "Status as of v1.0" heading and §Status "ADR-039 v1.0"
+  reference corrected to current v1.1/v1.2 (body had never been updated from initial
+  v1.0 draft wording after v1.1 frontmatter bump); implementation status updated —
+  Phase 1 (S-21.10) delivered; Phase 2 (fuel-headroom warning, Mitigation 1) in progress
+  on fix/fuel-exhaustion-fail-loud; Decision 5 S-21.07 aspiration note corrected
+  (S-21.07 merged PR #776 without Decision 5 mitigations); Phase 3+4 (S-21.11) authored
+  and queued. Status section updated to record FINALIZED FOR RATIFICATION without
+  self-ratifying. ADR-039 v1.2.
+  [Prior: 2026-08-06 (v1.1) — Context + Decision 3 amended (architect; orchestrator observation):
   PostToolUse blocks on ARCH-INDEX.md during ADR authoring (2026-08-06) confirm the
   self-lock hazard is already live for today's fail-closed validators
   (validate-factory-path-root, validate-input-hash, validate-template-compliance —
@@ -32,10 +41,11 @@ last_amended: |-
   (5) near-term mitigations — headroom warning + ≥574 KB fixture; (6) verification requirement
   — behavioral test must exercise observed outcome, not documented intent.
   fail_closed_timeout_with_on_error_continue_is_open test encodes current policy and MUST be
-  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]
+  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]
 modified:
   - "2026-08-06 (v1.0)"
   - "2026-08-06 (v1.1)"
+  - "2026-08-16 (v1.2)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -373,12 +383,30 @@ actual dispatch path with a budget-exhausting input and asserts the block outcom
   (e.g., it would need 500M fuel for STATE.md), that validator CANNOT be flipped until a
   structural remedy exists. The migration may be partial at first.
 
-### Status as of v1.0
+### Implementation Status (as of v1.2 — 2026-08-16)
 
-PROPOSED 2026-08-06. Not yet implemented. Adjudicates F-S2107-P7-010, F-S2107-P7-011,
-F-S2107-P7-015 design legs from adversarial pass-7 of S-21.07. Decision 5 near-term
-mitigations (fuel-headroom warning + ≥574 KB fixture) are in-scope for S-21.07 immediate
-delivery. Phase 1-4 migration requires a new story.
+**Phase 1 — Schema extension (ADR-039 §Decision 1+2):** Story S-21.10 delivered;
+`FailurePolicy` enum and `RegistryEntry.failure_policy` field implemented with serde
+deserialization and backward-compatible `fail-open` default (BC-1.01.016 v1.2). Phase 1
+no-enforcement gate confirmed: `plugin_fail_closed` behavior is unchanged. S-21.11 (Phase
+3+4) is blocked on S-21.10 merge.
+
+**Phase 2 — Near-term mitigations (ADR-039 §Decision 5):** Fuel-headroom warning
+(Mitigation 1) is in progress on branch `fix/fuel-exhaustion-fail-loud`. The ADR's original
+claim that Decision 5 was "in-scope for S-21.07 immediate delivery" was aspirational;
+S-21.07 (PR #776) shipped without these mitigations. ≥574 KB production-scale fixture
+(Mitigation 2) is included in S-21.11 scope as a calibration corpus prerequisite. CWE-636
+structural defect persists until Phase 4 enforcement flip.
+
+**Phase 3+4 — Calibration + enforcement flip (ADR-039 §Decision 3):** Story S-21.11
+authored and queued; blocked on S-21.10 merge. Phase 3 requires production-scale corpus
+calibration per §Decision 4 (max(p99×1.5, 50M) per-plugin cap). Phase 4 enforcement flip
+is gated behind Phase 3 calibration per §Decision 3 atomicity constraint — no half-state.
+S-21.11 covers all six validator-class plugins listed in §Decision 2.
+
+[Prior v1.0/v1.1 status note: PROPOSED 2026-08-06. Not yet implemented. Decision 5
+near-term mitigations noted as in-scope for S-21.07 immediate delivery. Phase 1-4 migration
+requires a new story.]
 
 ---
 
@@ -433,20 +461,25 @@ dependency. D-442(e) remains as a transitional constraint during the migration w
 
 ## Status
 
-PROPOSED 2026-08-06; ADR-039 v1.0.
+PROPOSED 2026-08-06; AMENDED 2026-08-06 (v1.1 — Context + Decision 3 expanded with
+observational evidence; self-lock hazard strengthened to response-to-active-failure);
+FINALIZED FOR RATIFICATION 2026-08-16 (v1.2 — implementation status updated; internal
+v1.0 body reference inconsistency resolved; phase delivery status recorded). ADR-039 v1.2.
 
 Adjudicates F-S2107-P7-010 (HIGH), F-S2107-P7-011 (HIGH), F-S2107-P7-015 (MEDIUM) design
 legs from adversarial pass-7 of S-21.07. Extends ADR-035 §Decision 5 to the enforcement
 question. Does NOT supersede ADR-035.
 
-Implementation routing:
-- **implementer:** Decision 1+2 (registry schema extension + `plugin_fail_closed` extension
-  for `failure_policy`) + Decision 6 behavioral tests — Phase 1 and Phase 4 stories
-- **implementer:** Decision 5 Mitigation 1 (fuel-headroom warning in invoke module) +
-  Mitigation 2 (≥574 KB fixture) — in-scope for S-21.07 near-term delivery
-- **devops-engineer:** Decision 4 calibration corpus construction + per-plugin `fuel_cap`
-  measurement — prerequisite for Phase 3
-- **story-writer:** New story for Phase 3+4 migration (per-plugin calibration + fail-closed
-  annotation + Option B size-proportional budget)
+Implementation routing (current status):
+- **Phase 1 — DELIVERED (S-21.10):** implementer delivered Decision 1+2 schema leg —
+  `FailurePolicy` enum + `RegistryEntry.failure_policy` field + serde deserialization +
+  backward-compat `fail-open` default (BC-1.01.016 v1.2). No enforcement change.
+- **Phase 2 — IN PROGRESS:** Decision 5 Mitigation 1 (fuel-headroom warning, invoke module)
+  on branch `fix/fuel-exhaustion-fail-loud`. Mitigation 2 (≥574 KB production-scale
+  fixture) included in S-21.11 scope as calibration corpus prerequisite.
+- **Phase 3+4 — QUEUED (S-21.11):** devops-engineer: Decision 4 calibration corpus
+  construction + per-plugin `fuel_cap` measurement (prerequisite for Phase 3). implementer:
+  `plugin_fail_closed` extension for `failure_policy` + Decision 6 behavioral tests (Phase
+  4). Blocked on S-21.10 merge.
 - **product-owner:** Decision 4 Option B `fuel_per_kb` field — new registry schema field
-  requires BC update when adopted
+  requires BC update when adopted.
