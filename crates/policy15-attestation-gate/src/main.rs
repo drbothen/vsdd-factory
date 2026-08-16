@@ -14,6 +14,7 @@
 //! |---------|-----------|
 //! | `PASS-N-activations` | 0 |
 //! | `PASS-zero-activations` | 0 |
+//! | `SKIP: empty or unresolvable commit range — inert (no PR diff to evaluate)` | 0 |
 //! | `FAIL: obligation violated` | 2 |
 //! | `EMPTY-or-UNREACHABLE: *` | 2 |
 //! | Hard error (git not found, I/O) | 1 |
@@ -102,20 +103,17 @@ fn main() {
                     UnreachableCause::StalePin => {
                         eprintln!("  stale pin: \"{PLUGIN_CRATE}\" absent from HEAD git tree")
                     }
-                    UnreachableCause::EmptyRange => {
-                        eprintln!(
-                            "  empty range: no commits between merge-base and HEAD, \
-                            or base branch unresolvable"
-                        );
-                    }
                     UnreachableCause::UnmeasurableDiff { commit } => {
                         let short = short_sha(commit);
                         eprintln!("  unmeasurable diff at commit {short}");
                     }
                 },
+                // ADR-040 v1.19 Ruling 9(f): SkippedEmptyRange is an inert skip (exit 0).
+                // No operator-facing detail line needed — the stdout identifier is sufficient.
+                GateOutcome::SkippedEmptyRange => {}
                 // M-1: explicit arms (not a `_ => {}` wildcard) restore the compile-time
                 // exhaustiveness `GateOutcome`'s own doc comment says the deliberately
-                // absent `#[non_exhaustive]` is FOR — a 5th variant added later without a
+                // absent `#[non_exhaustive]` is FOR — a 6th variant added later without a
                 // corresponding arm here now fails to compile instead of silently falling
                 // into a wildcard. No per-commit detail line is needed for a PASS outcome.
                 GateOutcome::PassWithActivations(_) => {}

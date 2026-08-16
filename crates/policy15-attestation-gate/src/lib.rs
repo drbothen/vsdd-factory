@@ -9,7 +9,7 @@
 //! replacement. Controls are `#[test]` functions, making defect class 5
 //! (four outcomes sharing two exit codes → control matches wrong exit code) impossible.
 //!
-//! # Four outcomes
+//! # Five outcomes (ADR-040 v1.19)
 //!
 //! | Outcome | Exit code |
 //! |---------|-----------|
@@ -17,6 +17,7 @@
 //! | `PassWithActivations(N ≥ 1)` | 0 |
 //! | `PassZeroActivations` | 0 |
 //! | `EmptyOrUnreachable(_)` | 2 |
+//! | `SkippedEmptyRange` | 0 |
 //!
 //! # Usage
 //!
@@ -69,17 +70,16 @@ pub struct FailedCommit {
 }
 
 /// Why the gate could not reach a measurable result.
+///
+/// Note: the empty/unresolvable commit-range case is NOT represented here.
+/// Per ADR-040 v1.19 Ruling 9(f), that case maps to `GateOutcome::SkippedEmptyRange`
+/// (exit 0, inert) rather than `EmptyOrUnreachable` (exit 2, blocking).
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum UnreachableCause {
     /// The pinned crate path is absent from the HEAD git tree (not the filesystem).
     ///
     /// Possible cause: crate renamed or restructured without updating the pin constant.
     StalePin,
-    /// `merge_base(HEAD, base_branch)..HEAD` returned zero commits.
-    ///
-    /// Possible cause: `fetch-depth: 0` not set, wrong MERGE_BASE, or
-    /// the base branch ref could not be resolved.
-    EmptyRange,
     /// A commit in the range produced an empty changed-file set.
     ///
     /// Possible cause: `git commit --allow-empty`, shallow-clone boundary, or
@@ -90,11 +90,11 @@ pub enum UnreachableCause {
     },
 }
 
-/// The four gate outcomes (ADR-040 §Decision 8 Ruling 8(c)).
+/// The five gate outcomes (ADR-040 §Decision 8 Ruling 8(c); fifth outcome added v1.19).
 ///
 /// Mapping to process exit codes happens only in the binary (`src/main.rs`).
 /// Tests assert on the variant, which makes defect class 5
-/// (four outcomes / two exit codes) structurally impossible.
+/// (five outcomes / two exit codes) structurally impossible.
 // NOTE: #[non_exhaustive] is deliberately absent so that exhaustive match at
 // every call site is a compile error when a new outcome is added — the same
 // property that guards PluginResult in the dispatcher crate.
@@ -111,6 +111,15 @@ pub enum GateOutcome {
     PassZeroActivations,
     /// Structural prerequisite failed — CI setup defect or stale pin.
     EmptyOrUnreachable(UnreachableCause),
+    /// The evaluated commit range was empty or the base branch was unresolvable.
+    ///
+    /// Per ADR-040 v1.19 Ruling 9(f): this is an INERT SKIP (exit 0). When there is
+    /// no PR diff to evaluate (post-merge push to develop, or base ref absent), the gate
+    /// has nothing to examine and must not block. Exit code 0 means CI green.
+    ///
+    /// Guard ordering preserved: `EmptyOrUnreachable(StalePin)` still beats this outcome
+    /// (the stale-pin check fires before the commit-range computation).
+    SkippedEmptyRange,
 }
 
 impl GateOutcome {
@@ -118,7 +127,9 @@ impl GateOutcome {
     pub fn is_pass(&self) -> bool {
         matches!(
             self,
-            GateOutcome::PassWithActivations(_) | GateOutcome::PassZeroActivations
+            GateOutcome::PassWithActivations(_)
+                | GateOutcome::PassZeroActivations
+                | GateOutcome::SkippedEmptyRange
         )
     }
 
@@ -130,6 +141,7 @@ impl GateOutcome {
     /// | `PassWithActivations` | 0 |
     /// | `PassZeroActivations` | 0 |
     /// | `EmptyOrUnreachable` | 2 |
+    /// | `SkippedEmptyRange` | 0 |
     pub fn exit_code(&self) -> i32 {
         if self.is_pass() { 0 } else { 2 }
     }
@@ -146,11 +158,13 @@ impl GateOutcome {
             GateOutcome::EmptyOrUnreachable(UnreachableCause::StalePin) => {
                 "EMPTY-or-UNREACHABLE: stale pin".to_string()
             }
-            GateOutcome::EmptyOrUnreachable(UnreachableCause::EmptyRange) => {
-                "EMPTY-or-UNREACHABLE: git range returned no commits".to_string()
-            }
             GateOutcome::EmptyOrUnreachable(UnreachableCause::UnmeasurableDiff { .. }) => {
                 "EMPTY-or-UNREACHABLE: unmeasurable diff".to_string()
+            }
+            // ADR-040 v1.19 Ruling 9(f): inert skip — exit 0, greppable SKIP prefix.
+            GateOutcome::SkippedEmptyRange => {
+                "SKIP: empty or unresolvable commit range — inert (no PR diff to evaluate)"
+                    .to_string()
             }
         }
     }
@@ -214,7 +228,7 @@ pub enum GateError {
 ///
 /// Computes `git merge-base HEAD origin/<base_branch>` as the range start.
 /// If the merge base cannot be resolved (no `origin` remote, unknown branch),
-/// returns `Ok(EmptyOrUnreachable(EmptyRange))` — fail closed.
+/// returns `Ok(SkippedEmptyRange)` — inert skip, exit 0 (ADR-040 v1.19 Ruling 9(f)).
 ///
 /// The stale-pin guard runs **before** the merge-base computation, so when both
 /// the crate is absent *and* the base is unresolvable, `StalePin` is returned.
@@ -224,9 +238,10 @@ pub fn run_gate(repo: &Path, base_branch: &str) -> Result<GateResult, GateError>
     // This guard is intentionally duplicated from the one in `run_gate_from_merge_base`
     // (guard 2). The duplication establishes a documented ordering invariant: when the
     // pinned crate is absent *and* the base branch is unresolvable, the gate reports
-    // `StalePin` (not `EmptyRange`). Without guard 1, a repo where the crate was
-    // renamed/deleted *and* the remote was removed would silently report `EmptyRange`,
-    // masking the more actionable stale-pin diagnosis.
+    // `StalePin` (not `SkippedEmptyRange`). Without guard 1, a repo where the crate was
+    // renamed/deleted *and* the remote was removed would report `SkippedEmptyRange`
+    // (inert, exit 0 per ADR-040 v1.19), masking the more actionable stale-pin diagnosis
+    // with a silent pass instead of a CI-visible `EMPTY-or-UNREACHABLE: stale pin`.
     //
     // Pinned by: `test_run_gate_guard1_stale_pin_beats_unresolvable_base`.
     if !tree_path_exists(repo, "HEAD", PLUGIN_CRATE)? {
@@ -241,9 +256,10 @@ pub fn run_gate(repo: &Path, base_branch: &str) -> Result<GateResult, GateError>
     let merge_base = match git_merge_base(repo, "HEAD", &remote_ref) {
         Ok(sha) => sha,
         Err(_) => {
-            // Unresolvable base → fail closed (not a silent empty range).
+            // Unresolvable base → inert skip per ADR-040 v1.19 Ruling 9(f).
+            // The gate cannot evaluate any PR diff; exit 0 (not a blocking failure).
             return Ok(GateResult {
-                outcome: GateOutcome::EmptyOrUnreachable(UnreachableCause::EmptyRange),
+                outcome: GateOutcome::SkippedEmptyRange,
                 skipped_parentless: Vec::new(),
                 skipped_merge_inert: Vec::new(),
             });
@@ -277,8 +293,11 @@ pub fn run_gate_from_merge_base(repo: &Path, merge_base: &str) -> Result<GateRes
 fn run_gate_inner(repo: &Path, merge_base: &str) -> Result<GateResult, GateError> {
     let commits = git_log_range(repo, merge_base, "HEAD")?;
     if commits.is_empty() {
+        // Empty range → inert skip per ADR-040 v1.19 Ruling 9(f).
+        // Triggered when merge_base == HEAD (post-merge push, base==HEAD, etc.).
+        // The gate has no PR diff to evaluate; exit 0.
         return Ok(GateResult {
-            outcome: GateOutcome::EmptyOrUnreachable(UnreachableCause::EmptyRange),
+            outcome: GateOutcome::SkippedEmptyRange,
             skipped_parentless: Vec::new(),
             skipped_merge_inert: Vec::new(),
         });
@@ -844,7 +863,10 @@ mod tests {
     }
 
     /// Empty-range control — crate in HEAD tree; `MERGE_BASE == HEAD` (no commits in range)
-    /// → `EmptyOrUnreachable(EmptyRange)`.
+    /// → `SkippedEmptyRange` (exit 0, inert) per ADR-040 v1.19 Ruling 9(f).
+    ///
+    /// Updated from old behavior (EmptyOrUnreachable(EmptyRange), exit 2) — ADR-040 v1.19
+    /// rules this an inert skip because there is no PR diff to evaluate.
     ///
     /// The crate placeholder must be committed FIRST so the stale-pin guard passes;
     /// HEAD is then captured AFTER the placeholder commit so `merge_base == HEAD`
@@ -861,22 +883,20 @@ mod tests {
         );
         let head = repo.head_sha(); // captured AFTER seeding
 
-        // MERGE_BASE == HEAD → git log head..HEAD returns zero commits.
+        // MERGE_BASE == HEAD → git log head..HEAD returns zero commits → SkippedEmptyRange.
         let GateResult { outcome, .. } =
             run_gate_from_merge_base(repo.path(), &head).expect("no gate error");
         assert!(
-            matches!(
-                outcome,
-                GateOutcome::EmptyOrUnreachable(UnreachableCause::EmptyRange)
-            ),
-            "expected EmptyOrUnreachable(EmptyRange), got: {:?}",
+            matches!(outcome, GateOutcome::SkippedEmptyRange),
+            "expected SkippedEmptyRange (ADR-040 v1.19 Ruling 9(f)), got: {:?}",
             outcome
         );
         assert_eq!(
             outcome.identifier(),
-            "EMPTY-or-UNREACHABLE: git range returned no commits"
+            "SKIP: empty or unresolvable commit range — inert (no PR diff to evaluate)"
         );
-        assert_eq!(outcome.exit_code(), 2);
+        assert_eq!(outcome.exit_code(), 0);
+        assert!(outcome.is_pass());
     }
 
     /// Stale-pin control — crate path absent from HEAD tree → `EmptyOrUnreachable(StalePin)`.
@@ -971,12 +991,21 @@ mod tests {
         );
     }
 
-    /// Unresolvable-base test — bogus base branch ref → non-`Pass` outcome (fail closed).
+    /// Unresolvable-base test — bogus base branch ref → `SkippedEmptyRange` (exit 0, inert)
+    /// per ADR-040 v1.19 Ruling 9(f).
     ///
-    /// When `git merge-base HEAD origin/<branch>` fails (e.g., no `origin` remote,
-    /// or branch not found), the gate must not silently yield an empty-range pass.
+    /// Updated from old behavior (EmptyOrUnreachable(EmptyRange), exit 2, "fail closed") —
+    /// ADR-040 v1.19 rules that when `git merge-base HEAD origin/<branch>` fails (e.g.,
+    /// no `origin` remote, or branch not found), the gate cannot evaluate any PR diff and
+    /// must exit 0 (inert skip), not block CI.
+    ///
+    /// Guard ordering is preserved: `StalePin` still wins when the crate is ALSO absent
+    /// (see `test_run_gate_guard1_stale_pin_beats_unresolvable_base` — UNCHANGED).
+    ///
+    /// Assert the specific variant, not merely is_pass(): a coarse boolean check would
+    /// survive a mutation that changed the outcome identifier (level-5 defect).
     #[test]
-    fn test_unresolvable_base_fails_closed() {
+    fn test_unresolvable_base_is_skipped_inert() {
         let repo = Repo::new();
 
         // Seed the crate so guard 1 passes (we reach the merge-base step).
@@ -986,22 +1015,23 @@ mod tests {
             "seed: crate in HEAD tree",
         );
 
-        // No `origin` remote — merge-base fails → EmptyOrUnreachable(EmptyRange).
-        // Assert the specific variant, not merely !is_pass(): a coarse boolean check
-        // would survive a mutation that changed the outcome identifier (level-5 defect).
+        // No `origin` remote — merge-base fails → SkippedEmptyRange (inert, exit 0).
         let GateResult { outcome, .. } =
             run_gate(repo.path(), "nonexistent-branch-xyz").expect("no hard I/O error");
         assert!(
-            matches!(
-                outcome,
-                GateOutcome::EmptyOrUnreachable(UnreachableCause::EmptyRange)
-            ),
-            "expected EmptyOrUnreachable(EmptyRange) for unresolvable base, got: {:?}",
+            matches!(outcome, GateOutcome::SkippedEmptyRange),
+            "expected SkippedEmptyRange for unresolvable base (ADR-040 v1.19 Ruling 9(f)), got: {:?}",
             outcome
         );
+        assert_eq!(
+            outcome.identifier(),
+            "SKIP: empty or unresolvable commit range — inert (no PR diff to evaluate)"
+        );
+        assert_eq!(outcome.exit_code(), 0);
+        assert!(outcome.is_pass());
     }
 
-    /// Guard-ordering test — crate absent AND range empty → `StalePin` wins over `EmptyRange`.
+    /// Guard-ordering test — crate absent AND range empty → `StalePin` wins over `SkippedEmptyRange`.
     ///
     /// ADR-040 §Decision 8/9: the stale-pin guard runs BEFORE the commit-range check.
     /// When both preconditions fail, `StalePin` must be the reported cause.
@@ -1011,7 +1041,7 @@ mod tests {
         // HEAD is the initial empty commit; crate was never committed.
         let head = repo.head_sha(); // MERGE_BASE == HEAD → would be empty range
 
-        // Neither condition holds: crate absent (→ StalePin) AND range empty (→ EmptyRange).
+        // Neither condition holds: crate absent (→ StalePin) AND range empty (→ SkippedEmptyRange).
         let GateResult { outcome, .. } =
             run_gate_from_merge_base(repo.path(), &head).expect("no gate error");
         assert!(
@@ -1019,26 +1049,27 @@ mod tests {
                 outcome,
                 GateOutcome::EmptyOrUnreachable(UnreachableCause::StalePin)
             ),
-            "expected StalePin to win over EmptyRange, got: {:?}",
+            "expected StalePin to win over SkippedEmptyRange, got: {:?}",
             outcome
         );
     }
 
     /// Guard-1 ordering test (through `run_gate`) — crate absent AND base unresolvable
-    /// → `StalePin`, not `EmptyRange`.
+    /// → `StalePin`, not `SkippedEmptyRange`.
     ///
     /// This is the mutation-killing companion to `test_guard_ordering_stale_pin_beats_empty_range`.
     /// That test exercises guard ordering through `run_gate_from_merge_base` (guard 2).
     /// This test exercises it through `run_gate` (guard 1), which fires before the
     /// `git merge-base HEAD origin/<branch>` call. Neutralising guard 1 would cause
-    /// the merge-base failure to be reached first, returning `EmptyOrUnreachable(EmptyRange)`
-    /// rather than `StalePin` — failing this assertion.
+    /// the merge-base failure to be reached first, returning `SkippedEmptyRange`
+    /// (inert, exit 0 per ADR-040 v1.19) rather than `StalePin` — failing this assertion
+    /// and silently masking a stale-pin CI setup defect with a false-pass.
     #[test]
     fn test_run_gate_guard1_stale_pin_beats_unresolvable_base() {
         let repo = Repo::new();
         // Crate is NOT seeded — absent from HEAD tree (StalePin trigger).
-        // No origin remote — merge-base would fail (EmptyRange trigger).
-        // Guard 1 must fire first → outcome must be StalePin, not EmptyRange.
+        // No origin remote — merge-base would fail (SkippedEmptyRange per ADR-040 v1.19).
+        // Guard 1 must fire first → outcome must be StalePin, not SkippedEmptyRange.
         let GateResult { outcome, .. } =
             run_gate(repo.path(), "nonexistent-branch-xyz").expect("no hard I/O error");
         assert!(
@@ -1235,11 +1266,11 @@ mod tests {
 
     /// F-5 — `git_merge_base` SUCCESS path, driven through `run_gate()`.
     ///
-    /// Existing `run_gate()`-level controls (`test_unresolvable_base_fails_closed`,
+    /// Existing `run_gate()`-level controls (`test_unresolvable_base_is_skipped_inert`,
     /// `test_run_gate_guard1_stale_pin_beats_unresolvable_base`) only exercise the
     /// ERROR arm of `git_merge_base` (no `origin` remote → merge-base command
-    /// fails → `EmptyOrUnreachable(EmptyRange)`). Neither test proves the SUCCESS
-    /// arm (`Ok(sha)`) is wired correctly.
+    /// fails → `SkippedEmptyRange` per ADR-040 v1.19 Ruling 9(f)). Neither test proves
+    /// the SUCCESS arm (`Ok(sha)`) is wired correctly.
     ///
     /// This test fakes a `refs/remotes/origin/<branch>` ref via `git update-ref`
     /// — no real `origin` remote or network access required; `git merge-base`
@@ -1247,7 +1278,7 @@ mod tests {
     /// so `git merge-base HEAD origin/develop` genuinely succeeds. The downstream
     /// outcome (`Fail(LogAbsent)`) is reachable ONLY if the merge-base SHA was
     /// correctly threaded into `run_gate_inner`; the ERROR arm would instead
-    /// short-circuit to `EmptyOrUnreachable(EmptyRange)` before any commit is
+    /// short-circuit to `SkippedEmptyRange` (exit 0) before any commit is
     /// ever inspected.
     ///
     /// Expected: GREEN.
@@ -1269,7 +1300,8 @@ mod tests {
         // Activating commit with no red-gate-log.md → Fail(LogAbsent). This
         // outcome is reachable only via the merge-base SUCCESS arm: if
         // `git_merge_base` had errored, the gate would report
-        // EmptyOrUnreachable(EmptyRange) instead, before ever inspecting commits.
+        // SkippedEmptyRange (exit 0, inert per ADR-040 v1.19) instead, before
+        // ever inspecting commits.
         repo.write_and_commit(
             &format!("{PC}/src/lib.rs"),
             "// assertion site\n",
@@ -1581,10 +1613,18 @@ mod tests {
                 .identifier()
                 .contains("stale pin")
         );
+        // ADR-040 v1.19 Ruling 9(f): empty/unresolvable range is now SkippedEmptyRange.
+        // The old EmptyOrUnreachable(EmptyRange) variant has been retired; its callsites
+        // now emit SkippedEmptyRange with a SKIP-prefixed identifier (exit 0, inert).
         assert!(
-            GateOutcome::EmptyOrUnreachable(UnreachableCause::EmptyRange)
+            GateOutcome::SkippedEmptyRange
                 .identifier()
-                .contains("git range returned no commits")
+                .contains("SKIP:")
+        );
+        assert!(
+            GateOutcome::SkippedEmptyRange
+                .identifier()
+                .contains("inert")
         );
         assert!(
             GateOutcome::EmptyOrUnreachable(UnreachableCause::UnmeasurableDiff {
@@ -1592,6 +1632,88 @@ mod tests {
             })
             .identifier()
             .contains("unmeasurable diff")
+        );
+    }
+
+    // ── ADR-040 v1.19 Ruling 9(f) — SkippedEmptyRange inert-skip tests ───────
+
+    /// ADR-040 v1.19 Ruling 9(f): empty commit range → `SkippedEmptyRange` (exit 0, inert).
+    ///
+    /// Regression test for the defect: when `merge_base == HEAD` (no commits in range),
+    /// the gate previously returned `GateOutcome::EmptyOrUnreachable(UnreachableCause::EmptyRange)`
+    /// (exit 2), false-failing every post-merge push to develop. ADR-040 v1.19 rules
+    /// this case INERT SKIP — the gate cannot evaluate any PR diff, so it must exit 0.
+    ///
+    /// This is the PRIMARY RED-GATE test for the fix (written first, run red, then green).
+    ///
+    /// Expected: GREEN after implementing `GateOutcome::SkippedEmptyRange`.
+    #[test]
+    fn test_adr040_v119_empty_range_is_skipped_inert() {
+        let repo = Repo::new();
+
+        // Seed the crate so stale-pin guard passes (guard fires before range check).
+        repo.write_and_commit(
+            &format!("{PC}/docs/placeholder.md"),
+            "placeholder\n",
+            "seed: crate in HEAD tree",
+        );
+        let head = repo.head_sha(); // MERGE_BASE == HEAD → empty range
+
+        let GateResult { outcome, .. } =
+            run_gate_from_merge_base(repo.path(), &head).expect("no gate error");
+        assert!(
+            matches!(outcome, GateOutcome::SkippedEmptyRange),
+            "ADR-040 v1.19 Ruling 9(f): empty range must return SkippedEmptyRange (exit 0), got: {:?}",
+            outcome
+        );
+        assert_eq!(
+            outcome.identifier(),
+            "SKIP: empty or unresolvable commit range — inert (no PR diff to evaluate)"
+        );
+        assert_eq!(outcome.exit_code(), 0);
+        assert!(
+            outcome.is_pass(),
+            "SkippedEmptyRange must be a pass (is_pass() == true)"
+        );
+    }
+
+    /// ADR-040 v1.19 Ruling 9(f): unresolvable base → `SkippedEmptyRange` (exit 0, inert).
+    ///
+    /// When `git merge-base HEAD origin/<branch>` fails (no `origin` remote, branch not
+    /// found), the gate can evaluate no PR diff. ADR-040 v1.19 rules this INERT SKIP
+    /// (exit 0), not a hard fail-closed (exit 2).
+    ///
+    /// Guard ordering is preserved: `StalePin` still wins when the crate is ALSO absent
+    /// (see `test_run_gate_guard1_stale_pin_beats_unresolvable_base` — UNCHANGED).
+    ///
+    /// Expected: GREEN after implementing `GateOutcome::SkippedEmptyRange`.
+    #[test]
+    fn test_adr040_v119_unresolvable_base_is_skipped_inert() {
+        let repo = Repo::new();
+
+        // Seed the crate so guard 1 (stale-pin) passes — we want to reach the merge-base step.
+        repo.write_and_commit(
+            &format!("{PC}/docs/placeholder.md"),
+            "placeholder\n",
+            "seed: crate in HEAD tree",
+        );
+
+        // No `origin` remote — merge-base fails → SkippedEmptyRange (inert, exit 0).
+        let GateResult { outcome, .. } =
+            run_gate(repo.path(), "nonexistent-branch-xyz").expect("no hard I/O error");
+        assert!(
+            matches!(outcome, GateOutcome::SkippedEmptyRange),
+            "ADR-040 v1.19 Ruling 9(f): unresolvable base must return SkippedEmptyRange (exit 0), got: {:?}",
+            outcome
+        );
+        assert_eq!(
+            outcome.identifier(),
+            "SKIP: empty or unresolvable commit range — inert (no PR diff to evaluate)"
+        );
+        assert_eq!(outcome.exit_code(), 0);
+        assert!(
+            outcome.is_pass(),
+            "SkippedEmptyRange must be a pass (is_pass() == true)"
         );
     }
 }

@@ -339,20 +339,23 @@ jobs:
     # see below). Required-check job name per ADR-040 §Decision 9 Ruling 9(a): exactly
     # `policy-15-attestation-location` (this job's key).
     #
-    # UNCONDITIONAL — no `paths:` filter at workflow or job level (this workflow's shared
-    # `on:` block above has none, and this job adds none). ADR-040 §Decision 7 Ruling 7(a) /
-    # §Decision 9 Ruling 9(c) item 1: a job skipped via `paths:` reports SUCCESS as a
-    # required check — a vacuous pass, the exact defect class this gate exists to prevent.
-    # The PASS-zero-activations / EMPTY-or-UNREACHABLE outcomes are handled inside the gate
-    # binary itself (ADR-040 §Decision 8 Ruling 8(c)); this job always runs and always
-    # invokes the binary. Triggered by the workflow's existing `pull_request`/`push` `on:`
-    # block (top of file) — `merge_group:` is intentionally NOT added: this repository does
-    # not use a GitHub merge queue (grep of every workflow in .github/workflows/ for
-    # `merge_group` returns no hits; CLAUDE.md's Git Workflow section documents a standard
-    # PR-merge model — squash-merge to develop, `--merge` for release PRs — with no queue),
-    # so there is no merge-queue event for this check to post against.
+    # PR-ONLY — gated to pull_request events via `if: github.event_name == 'pull_request'`
+    # (ADR-040 v1.19 Ruling 9(c) item 1). This gate is a PR-diff gate: on a direct push to
+    # develop/main there is no PR commit range, so the binary exits EMPTY-or-UNREACHABLE
+    # (empty range = false FAIL), reddening the develop status checks on every post-merge push.
+    # The `if:` event-type condition is NOT a paths: filter — a job skipped via paths: reports
+    # SUCCESS as a required check (vacuous pass; ADR-040 §Decision 7 Ruling 7(a)), which is
+    # the exact defect class this gate exists to prevent. Event-type gating instead causes the
+    # job to be SKIPPED on push events; branch protection for this check must be configured
+    # for pull_request contexts only (not push) so skipped-on-push is not treated as a failure.
+    # No `paths:` filter is added at workflow or job level — the gate still runs on every PR
+    # regardless of which files changed. `merge_group:` is intentionally NOT in the workflow
+    # `on:` block — this repository does not use a GitHub merge queue (grep of every workflow
+    # in .github/workflows/ for `merge_group` returns no hits; CLAUDE.md's Git Workflow
+    # section documents a standard PR-merge model with no queue).
     name: policy-15-attestation-location
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v6
         # ADR-040 §Decision 9 Ruling 9(c):
