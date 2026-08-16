@@ -39,7 +39,7 @@ setup() {
 
   # Extract the wasmtime workspace dependency line (not wasmtime-wasi).
   local wasmtime_line
-  wasmtime_line=$(grep -E '^wasmtime\s*=' "$cargo_toml") || {
+  wasmtime_line=$(grep -E '^wasmtime[[:space:]]*=' "$cargo_toml") || {
     echo "FAIL: no wasmtime = ... line found in $cargo_toml"
     return 1
   }
@@ -71,7 +71,7 @@ setup() {
 
   # Extract the wasmtime-wasi workspace dependency line.
   local wasi_line
-  wasi_line=$(grep -E '^wasmtime-wasi\s*=' "$cargo_toml") || {
+  wasi_line=$(grep -E '^wasmtime-wasi[[:space:]]*=' "$cargo_toml") || {
     echo "FAIL: no wasmtime-wasi = ... line found in $cargo_toml"
     return 1
   }
@@ -266,7 +266,7 @@ setup() {
   on_block=$(awk '/^on:/{found=1} found && /^jobs:/{exit} found{print}' "$deny_workflow")
 
   # Assert the on.pull_request trigger does NOT contain a `paths:` key.
-  if echo "$on_block" | grep -qE '^\s+paths:'; then
+  if echo "$on_block" | grep -qE '^[[:space:]]+paths:'; then
     echo "FAIL: workflow-level on.pull_request trigger in $deny_workflow contains a paths: filter"
     echo "A paths: filter would skip the advisory check on non-Cargo PRs — recreating PR-007 gap"
     echo "--- on: block ---"
