@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.1"
+version: "v1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-08-06T00:00:00Z
-last_amended: "2026-08-16 (v1.1) — SR-001 spec-fidelity correction (product-owner): Replaced phantom HookEntry struct name with actual RegistryEntry; corrected on_error field type from OnError to Option<OnError> in PC5 and Architecture Anchors; fixed struct-name references across all sections. Behavioral semantics unchanged. BC-1.01.016 v1.1."
+last_amended: "2026-08-16 (v1.2) — F-1 count-accuracy fix (product-owner): De-hardcoded brittle literal count '52' to 'all existing … (currently 76)' across Description, PC6, EC-007, Canonical Test Vectors, VP Anchors, and Verification Properties. Behavioral semantics (parse-cleanly and default-fail-open guarantees) unchanged. BC-1.01.016 v1.2."
 phase: brownfield-backfill
 inputs:
   - .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
@@ -46,7 +46,7 @@ The `failure_policy` field MUST parse to a `FailurePolicy` enum with two variant
 `"fail-open"`). Any other value MUST cause `Registry::parse_str` to return `Err` at serde
 parse time — the same discipline BC-1.01.011 establishes for `on_error`. When absent from a
 stanza, `failure_policy` MUST default to `FailurePolicy::FailOpen`, preserving backward
-compatibility with all 52 existing plugin entries. The `RegistryEntry` struct MUST hold `on_error`
+compatibility with all existing plugin entries (currently 76). The `RegistryEntry` struct MUST hold `on_error`
 and `failure_policy` as independent fields that never collapse their semantics.
 
 **Phase 1 scope boundary:** This BC governs the **schema extension only**, with NO enforcement
@@ -89,9 +89,9 @@ behavior for exhaustion outcomes in this story is out-of-scope and causes PC7 to
    simultaneously without structural conflict. The fields MUST NOT be collapsed into a single
    enum or combined representation.
 
-6. **PC6 — Existing 52 registry entries parse without change:** All `[[hook]]` entries in the
-   production `plugins/vsdd-factory/hooks-registry.toml` (none of which contain a
-   `failure_policy` field) parse cleanly after this change; all resolve to
+6. **PC6 — All existing registry entries parse without change:** Every `[[hooks]]` entry in the
+   production `plugins/vsdd-factory/hooks-registry.toml` (currently 76 entries, none of which
+   contain a `failure_policy` field) parses cleanly after this change; all resolve to
    `FailurePolicy::FailOpen`. No existing plugin changes enforcement behavior.
 
 7. **PC7 — Phase 1 no-enforcement gate (RED Gate):** The `plugin_fail_closed` function in
@@ -133,7 +133,7 @@ behavior for exhaustion outcomes in this story is out-of-scope and causes PC7 to
 | EC-004 | `failure_policy` field appears twice in the same stanza | TOML parse error (duplicate key); not a registry-layer concern |
 | EC-005 | Plugin with `on_error = "block"` AND `failure_policy = "fail-open"` | Struct holds both values without conflict; crash blocks via `on_error = block`; exhaustion advisory via `failure_policy = fail-open` (enforcement in Phase 4 only) |
 | EC-006 | Plugin with `on_error = "continue"` AND `failure_policy = "fail-closed"` | Both parsed and stored; `RegistryEntry` holds `OnError::Continue` and `FailurePolicy::FailClosed` simultaneously; no parse error; no enforcement change in Phase 1 |
-| EC-007 | All 52 existing `hooks-registry.toml` entries (no `failure_policy` field) | All parse cleanly to `FailurePolicy::FailOpen`; no behavior change; confirmed by spot-check of at least 3 entries |
+| EC-007 | All existing `hooks-registry.toml` entries (no `failure_policy` field; currently 76 entries) | All parse cleanly to `FailurePolicy::FailOpen`; no behavior change; confirmed by spot-check of at least 3 entries |
 
 ## Canonical Test Vectors
 
@@ -145,7 +145,7 @@ behavior for exhaustion outcomes in this story is out-of-scope and causes PC7 to
 | TOML stanza with `failure_policy = "unknown-value"` | `parse_str` returns `Err` | error |
 | TOML stanza with `failure_policy = "FAIL-CLOSED"` | `parse_str` returns `Err` (case-sensitive) | error |
 | TOML stanza with `on_error = "continue"` + `failure_policy = "fail-closed"` | Both fields stored; `RegistryEntry.on_error == OnError::Continue`, `RegistryEntry.failure_policy == FailurePolicy::FailClosed`; no conflict | axes-independence |
-| Full production `hooks-registry.toml` (52 entries, no `failure_policy` fields) | All entries parse successfully; all resolve to `FailurePolicy::FailOpen`; all existing tests pass | regression |
+| Full production `hooks-registry.toml` (all existing entries, no `failure_policy` fields; currently 76) | All entries parse successfully; all resolve to `FailurePolicy::FailOpen`; all existing tests pass | regression |
 
 ## Related BCs
 
@@ -180,14 +180,14 @@ S-21.10 (Phase 1 schema extension; no enforcement change; blocks S-21.11)
 
 - VP-TBD — FailurePolicy enum parse semantics: known values parse to correct variants; unknown
   values produce `Err` at serde parse time; absent field defaults to `FailOpen`; `on_error`
-  and `failure_policy` are independent fields in `RegistryEntry`; 52 existing entries parse without
-  change; `plugin_fail_closed` behavior is unchanged
+  and `failure_policy` are independent fields in `RegistryEntry`; all existing entries parse without
+  change (currently 76); `plugin_fail_closed` behavior is unchanged
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-TBD | For any `failure_policy` TOML value: `"fail-closed"` → `FailurePolicy::FailClosed`; `"fail-open"` → `FailurePolicy::FailOpen`; any other value → `Err` at parse time; absent → `FailurePolicy::FailOpen`. `on_error` and `failure_policy` coexist independently in `RegistryEntry`. All 52 existing registry entries parse without change. `plugin_fail_closed` behavior is unchanged after this story. | unit tests (serde deserialization, 5 test cases: AC-001 through AC-005) + regression (full production hooks-registry.toml parse round-trip) + AC-006 gate (existing `fail_closed_timeout_with_on_error_continue_is_open` passes unmodified) |
+| VP-TBD | For any `failure_policy` TOML value: `"fail-closed"` → `FailurePolicy::FailClosed`; `"fail-open"` → `FailurePolicy::FailOpen`; any other value → `Err` at parse time; absent → `FailurePolicy::FailOpen`. `on_error` and `failure_policy` coexist independently in `RegistryEntry`. All existing registry entries parse without change (currently 76). `plugin_fail_closed` behavior is unchanged after this story. | unit tests (serde deserialization, 5 test cases: AC-001 through AC-005) + regression (full production hooks-registry.toml parse round-trip) + AC-006 gate (existing `fail_closed_timeout_with_on_error_continue_is_open` passes unmodified) |
 
 ## Traceability
 
@@ -204,5 +204,6 @@ S-21.10 (Phase 1 schema extension; no enforcement change; blocks S-21.11)
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.2 | 2026-08-16 | product-owner | F-1 count-accuracy fix: de-hardcoded brittle literal count '52' to 'all existing … (currently 76)' across Description, PC6, EC-007, Canonical Test Vectors, VP Anchors, and Verification Properties. Behavioral semantics (parse-cleanly and default-fail-open guarantees) unchanged. |
 | v1.1 | 2026-08-16 | product-owner | SR-001 spec-fidelity correction: replaced phantom `HookEntry` struct name with actual `RegistryEntry`; corrected `on_error` field type from `OnError` to `Option<OnError>` in PC5 and Architecture Anchors; fixed struct-name references across Description, postconditions, invariants, edge cases, test vectors, VP anchors, and verification properties. Behavioral semantics (postcondition assertions, invariants, independence of on_error and failure_policy axes) unchanged; description-accuracy fix only. |
 | v1.0 | 2026-08-06 | product-owner | Initial creation (S-21.10/S-21.11 BC authoring burst; ADR-039 §Decision 1+2 Phase 1 schema leg; `failure_policy` parse semantics, backward-compat `fail-open` default, unknown-value serde rejection, axes independence in `RegistryEntry`; Phase 1 no-enforcement gate as PC7 RED Gate). |
