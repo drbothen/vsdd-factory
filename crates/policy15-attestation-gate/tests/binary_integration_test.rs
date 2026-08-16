@@ -34,9 +34,9 @@
 //! UNRELATED root commit is synthesized with `git commit-tree <tree> -m ...`
 //! (no `-p` parent flag). A disconnected root cannot simply replace the
 //! branch tip, though: `git merge-base HEAD origin/<branch>` — which `main()`
-//! computes for real — would then have NO common ancestor at all and fail
-//! closed to `EmptyOrUnreachable(EmptyRange)` before any commit is even
-//! inspected, never reaching the skip guard under test.
+//! computes for real — would then have NO common ancestor at all, returning
+//! `SkippedEmptyRange` (exit 0, inert per ADR-040 v1.19 Ruling 9(f)) before
+//! any commit is even inspected, never reaching the skip guard under test.
 //!
 //! Instead the unrelated root chain is merged back into the seeded branch
 //! with `git merge --allow-unrelated-histories`, producing a merge commit
@@ -379,7 +379,7 @@ fn test_f6_binary_pass_n_activations_exit_0() {
 /// reaches `PassZeroActivations` (exit 0). If the env var incorrectly won
 /// (the pre-fix bug — `std::env::var("BASE_BRANCH").unwrap_or(cli.base_branch)`
 /// consulted env FIRST), `origin/env-branch-does-not-exist` fails to resolve
-/// → `EmptyOrUnreachable(EmptyRange)` (exit 2).
+/// → `SkippedEmptyRange` (exit 0, inert per ADR-040 v1.19 Ruling 9(f)).
 ///
 /// Expected: GREEN (post-fix).
 #[test]
@@ -394,9 +394,9 @@ fn test_f3_cli_arg_wins_over_base_branch_env_var() {
     // Faked origin ref ONLY for the branch passed explicitly on the CLI.
     repo.fake_origin_ref("cli-branch", &base);
     // A non-crate commit past `base` so the evaluated range is non-empty
-    // (otherwise `merge_base == HEAD` would yield EmptyRange regardless of
+    // (otherwise `merge_base == HEAD` would yield SkippedEmptyRange regardless of
     // which branch name won precedence, masking the assertion this test
-    // exists to make).
+    // exists to make — per ADR-040 v1.19 both paths now exit 0).
     repo.write_and_commit("docs/README.md", "# README\n", "docs update outside crate");
 
     let output = Command::new(binary_path())
