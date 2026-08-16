@@ -1031,7 +1031,7 @@ mod tests {
         assert!(outcome.is_pass());
     }
 
-    /// Guard-ordering test — crate absent AND range empty → `StalePin` wins over `EmptyRange`.
+    /// Guard-ordering test — crate absent AND range empty → `StalePin` wins over `SkippedEmptyRange`.
     ///
     /// ADR-040 §Decision 8/9: the stale-pin guard runs BEFORE the commit-range check.
     /// When both preconditions fail, `StalePin` must be the reported cause.
@@ -1041,7 +1041,7 @@ mod tests {
         // HEAD is the initial empty commit; crate was never committed.
         let head = repo.head_sha(); // MERGE_BASE == HEAD → would be empty range
 
-        // Neither condition holds: crate absent (→ StalePin) AND range empty (→ EmptyRange).
+        // Neither condition holds: crate absent (→ StalePin) AND range empty (→ SkippedEmptyRange).
         let GateResult { outcome, .. } =
             run_gate_from_merge_base(repo.path(), &head).expect("no gate error");
         assert!(
@@ -1049,13 +1049,13 @@ mod tests {
                 outcome,
                 GateOutcome::EmptyOrUnreachable(UnreachableCause::StalePin)
             ),
-            "expected StalePin to win over EmptyRange, got: {:?}",
+            "expected StalePin to win over SkippedEmptyRange, got: {:?}",
             outcome
         );
     }
 
     /// Guard-1 ordering test (through `run_gate`) — crate absent AND base unresolvable
-    /// → `StalePin`, not `EmptyRange`.
+    /// → `StalePin`, not `SkippedEmptyRange`.
     ///
     /// This is the mutation-killing companion to `test_guard_ordering_stale_pin_beats_empty_range`.
     /// That test exercises guard ordering through `run_gate_from_merge_base` (guard 2).
