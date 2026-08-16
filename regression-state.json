@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-16T02:07:10Z","command":"cargo test --workspace --all-targets 2>&1 | tee /private/tmp/claude-501/-Users-zious-Documents-GITHUB-vsdd-factory/d8e1620c-e703-44a1-a8b9-f5582bf13eea/scratchpad/cargo-test-develop-final.log | tail -30"}
+{"status":"pass","timestamp":"2026-08-16T18:25:50Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.10 && cargo test -p factory-dispatcher 2>&1 | tail -20"}
