@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "e322ae2"
+input-hash: "dfb114e"
 traces_to: STATE.md
 ---
 
@@ -1938,3 +1938,50 @@ decision-log.md is missing the exhaustive per-decision backfill for: (a) D-1011'
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1015-POLICY15-CI-WIRED-PR778-MERGED checkpoint burst (2026-08-16) — CI-wiring PR #778 squash-merged `84a441a0`; both halves of `[D-969]`/`[F-S2107-P10-001]` now CLOSED as a wiring matter; branch-protection enforcement remains a separate open human/admin-only follow-up.**
+
+---
+
+## Session Resume Checkpoint (2026-08-16 — HEAD `84a441a0` develop / factory-artifacts this commit; D-1015-POLICY15-CI-WIRED-PR778-MERGED COMPLETE; PIPELINE ACTIVE)
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE ACTIVE.** The full POLICY 15 gate validate→harden→merge→wire track is now COMPLETE as a wiring matter: the crate (PR #777, `19cb57e6`, D-1014) and the CI-wiring (PR #778, `84a441a0`, this burst) are BOTH merged to `develop`. `.github/workflows/ci.yml` now runs `policy-15-attestation-location` (dedicated, unconditional, `fetch-depth: 0`, explicit `ref: ${{ github.event.pull_request.head.sha }}` per ADR-040 v1.18 Ruling 9(c) item 5, `base: ${{ github.event.pull_request.base.ref }}`, four-outcome exit gating) and `attestation-gate-non-vacuity-controls` (EICAR-style FAIL-fixture + PASS-fixture self-tests) on every PR to `develop`. Both jobs ran green and non-vacuous on PR #778's own CI (policy-15-attestation-location PASS-zero 1m18s; non-vacuity-controls 38s). **`[D-969]`/`[F-S2107-P10-001]` is fully CLOSED as a wiring matter.** **This is NOT full enforcement:** `develop` has no branch protection configured (`gh api repos/.../branches/develop/protection` returns 404), so neither job is a REQUIRED status check yet — the gate is advisory-in-effect (runs + reports, does not block). A new Blocking Issue `[P0-followup]` tracks this, explicitly scoped as human/admin-only (no AI agent holds GitHub admin rights). S-21.07 remains MERGED (PR #776, `e94767bc`, UNCHANGED); `merged_count` 109 UNCHANGED (CI-wiring is engine-infra, not a numbered story).
+
+### §2 What This Burst Did
+
+- **STATE.md:** frontmatter (version 7.89→7.90, timestamp, phase, last_amended, current_step), SIZE BUDGET banner (+D-1015 archive line, wc-l refreshed), Project Metadata (Last Updated + Current Phase, trajectory-tail cell), Phase Progress (+D-1015 row), Current Phase Steps (+D-1015 row), Identifier Conventions (ADR row note UNCHANGED-this-burst), Active Branches (`develop`→`84a441a0`, new `fix/policy15-ci-wiring` MERGED row, `factory-artifacts` refreshed), Concurrent Cycles (`v1.0-brownfield-backfill` rewritten), Decisions Log (+D-1015 row; D-1013 individual row collapsed into archived range; archived-range endpoint bumped to D-1015), Blocking Issues (P0 row CLOSED; new `[P0-followup]` branch-protection row), Drift Items (`[D-969]` row updated to CLOSED), Session Resume Checkpoint (this section, replaced; old archived to `session-checkpoints.md`).
+- **decision-log.md + burst-log.md:** new D-1015 entries recording the CI-wiring closure arc, including literal-shell D-449(a) attestation of the `git log 19cb57e6..84a441a0` range and the `git show 84a441a0 --stat` diffstat.
+- No BC/VP/STORY/ADR content changed — the CI-wiring job implements an already-ratified ADR-040 v1.18 ruling; no new ruling was needed.
+
+### §3 Convergence Counters (unchanged by this burst)
+
+The S-21.07 LOCAL spec-only adversarial cascade CONVERGED 3/3 at D-1009 (trajectory-tail →1→0→0→0, UNCHANGED — unrelated to the POLICY 15 arc). The POLICY 15 gate's crate-side cascades (adversary F-1..F-6, EXECUTION-based pr-review H-1/H-2, code-reviewer CR-2) converged at D-1014; this burst's CI-wiring closure is verified by its own jobs' green/non-vacuous execution on PR #778's CI, not a separate adversarial cascade.
+
+### §4 Outstanding Backfill (carried forward, NOT closed by this burst)
+
+decision-log.md is missing the exhaustive per-decision backfill for: (a) D-1011's full reconcile-and-land session, and (b) D-1012's own SEC-001/CWE-697 arc detail (only a CONSOLIDATED entry exists). Remains OWED — anchored to a future state-manager burst with decision-log-backfill scope. D-1014/D-1015 are unaffected — both recorded in their own full entries. Also carried forward: pre-existing `sprint-state.yaml` S-21.09-shows-in-flight drift; STORY-INDEX historical-YAML malformation → S-15.03.
+
+### §5 Next Action
+
+**PIPELINE ACTIVE.** The remaining POLICY 15 residual is branch-protection configuration on `develop` (Blocking Issue `[P0-followup]`) — an explicit human/admin-only action (`gh api PUT .../branches/develop/protection` or the GitHub UI equivalent), not something any further AI agent burst can close. Other standing pending items (unchanged by this burst): C-1/C-2/C-4/C-5 exec_subprocess security findings (ADR-043 NOT RATIFIED), the decision-log.md D-1011/D-1012 backfill above, the 3 Drift Items anchored at D-1014 (validate-pr-review-posted hook, test-tightness, permission-classifier note). E-21 remaining scope entirely draft (S-21.10..S-21.15); next wave dispatch is an open human/orchestrator decision.
+
+### §6 Open Follow-ups (accepted/deferred, non-blocking — Drift Items, carried forward)
+
+- `capability: "E-12"` in BC-5.39.010 frontmatter — product-owner to confirm.
+- VP-template `last_amended` scaffold gap — architect-owned.
+- BC-INDEX read-cap ceiling growth — anchored S-21.13.
+- `report.tap` untracked in the MAIN repo — gitignore hygiene (POLICY 20).
+- STORY-INDEX.md `last_amended` field bloat — anchored S-15.03.
+- Frontmatter BOM/leading-line tolerance — accepted (unreachable, fails-closed).
+- `validate-pr-review-posted` hook Check-2 negation-blindness + Checks-3a/3b self-authored-PR unreachability — anchored S-15.03 PRIORITY-A (self-improvement).
+- `test_h1_merge_pass_through_content_is_skipped_not_failed` assertion looseness — non-blocking, anchored next maintenance sweep.
+- Session permission-classifier blocked `gh pr review` writes but not `gh pr merge` — audit note only.
+- **NEW this burst:** branch-protection enforcement gap — see `[P0-followup]` Blocking Issue; human/admin-only, not an agent follow-up.
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the SESSION-WRAP-PAUSE-2026-08-16 checkpoint burst (2026-08-16) — human-requested `/wrap`; pipeline `ACTIVE`→`PAUSED` at this D-1015 resting state; no spec/index/ADR content changed by the pause.**
