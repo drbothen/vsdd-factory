@@ -330,6 +330,130 @@ jobs:
           bats plugins/vsdd-factory/tests/resolver-capability-confinement.bats
           bats tests/integration/E-8-hook-plugins/warn-pending-wave-gate.bats
 
+  policy-15-attestation-location:
+    # POLICY 15 ATTESTATION-LOCATION GATE (ADR-040 §Decisions 7-9; closes the D-969 /
+    # [P0] F-S2107-P10-001 CI-WIRING residual — the crate half landed at 19cb57e6 (#777)).
+    #
+    # DEDICATED job, own checkout step — does NOT reuse cargo-host's or any other job's
+    # checkout (they use the default shallow fetch-depth: 1, which this gate cannot use;
+    # see below). Required-check job name per ADR-040 §Decision 9 Ruling 9(a): exactly
+    # `policy-15-attestation-location` (this job's key).
+    #
+    # UNCONDITIONAL — no `paths:` filter at workflow or job level (this workflow's shared
+    # `on:` block above has none, and this job adds none). ADR-040 §Decision 7 Ruling 7(a) /
+    # §Decision 9 Ruling 9(c) item 1: a job skipped via `paths:` reports SUCCESS as a
+    # required check — a vacuous pass, the exact defect class this gate exists to prevent.
+    # The PASS-zero-activations / EMPTY-or-UNREACHABLE outcomes are handled inside the gate
+    # binary itself (ADR-040 §Decision 8 Ruling 8(c)); this job always runs and always
+    # invokes the binary. Triggered by the workflow's existing `pull_request`/`push` `on:`
+    # block (top of file) — `merge_group:` is intentionally NOT added: this repository does
+    # not use a GitHub merge queue (grep of every workflow in .github/workflows/ for
+    # `merge_group` returns no hits; CLAUDE.md's Git Workflow section documents a standard
+    # PR-merge model — squash-merge to develop, `--merge` for release PRs — with no queue),
+    # so there is no merge-queue event for this check to post against.
+    name: policy-15-attestation-location
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        # ADR-040 §Decision 9 Ruling 9(c):
+        #   - fetch-depth: 0 (item 2) — the gate computes `git merge-base HEAD
+        #     origin/<base_branch>` and reads `red-gate-log.md` at arbitrary commits in the
+        #     PR's history via `git show <C>:<path>`. The default shallow (depth: 1) clone
+        #     used by every other job in this workflow breaks both: merge-base fails or
+        #     misreports, and per-commit iteration silently truncates. Full history is
+        #     required. (This is also why fetch-depth: 0 pulls all branches/tags, which is
+        #     what makes `origin/<base_branch>` resolvable without a separate explicit
+        #     `git fetch` step, unlike this workflow's factory-artifacts orphan-branch mounts
+        #     elsewhere, which fetch history unrelated to develop/main.)
+        #   - ref: pull_request.head.sha, NOT the default synthetic `refs/pull/<N>/merge`
+        #     two-parent merge commit (item 5, added v1.17). That synthetic commit's first
+        #     parent is the base branch's tip AT THE MOMENT THE CI RUN STARTED — a moving
+        #     target no real attestation heading in red-gate-log.md was ever written against
+        #     — and would inject a spurious extra commit into `merge_base..HEAD`, producing
+        #     either a false FAIL or a wrong commit range. Falls back to `github.sha` on
+        #     `push` events, where `github.event.pull_request` is absent and no synthetic
+        #     merge commit exists to avoid in the first place.
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Install Rust toolchain
+        # Pinned in rust-toolchain.toml — keep this version in sync with that file.
+        # Native binary only (crates/policy15-attestation-gate has no wasm target);
+        # wasm32-wasip1 is intentionally not requested here.
+        uses: dtolnay/rust-toolchain@1.95.0
+
+      - name: Cache cargo
+        # Pinned to commit SHA for security (TD #74); resolves to v2.9.1.
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4  # v2.9.1
+        with:
+          shared-key: policy-15-attestation-location
+          cache-on-failure: true
+
+      - name: Build policy15-attestation-gate (release)
+        run: cargo build --release -p policy15-attestation-gate
+
+      - name: Run POLICY 15 ATTESTATION-LOCATION GATE
+        # CLI contract (crates/policy15-attestation-gate/src/main.rs): argv[1] is the base
+        # branch name; the gate computes merge-base(HEAD, origin/<base_branch>). Pass the
+        # PR's actual base ref rather than a hardcoded 'develop' (ADR-040 §Decision 9
+        # Ruling 9(a) CI-invocation note: hardcoding is wrong; the crate honors the CLI arg
+        # with CLI > BASE_BRANCH env > 'develop'-default precedence) — falls back to
+        # 'develop' on push events, where `pull_request.base` is absent, matching the
+        # binary's own default.
+        #
+        # Four-outcome verdict / exit codes (ADR-040 §Decision 9 Ruling 9(a)):
+        #   0 = PASS-N-activations or PASS-zero-activations
+        #   2 = FAIL (obligation violated) or EMPTY-or-UNREACHABLE (stale pin / empty commit
+        #       range / unmeasurable diff — a CI setup or scope-staleness defect, never a
+        #       silent clean pass)
+        #   1 = hard error (git not found, repository inaccessible, unexpected I/O)
+        # The binary prints a greppable outcome identifier to stdout (e.g.
+        # "PASS-3-activations", "FAIL: obligation violated",
+        # "EMPTY-or-UNREACHABLE: stale pin") and exits with the matching code above, so a
+        # bare invocation is sufficient to gate the job — no separate `if` check is needed.
+        run: ./target/release/policy15-attestation-gate "${{ github.event.pull_request.base.ref || 'develop' }}"
+
+  attestation-gate-non-vacuity-controls:
+    # ADR-040 §Decision 10 Ruling 10(c)+10(d): the POLICY 15 gate's non-vacuity controls are
+    # the 16 `#[test]` functions in crates/policy15-attestation-gate/src/lib.rs (one per
+    # `GateOutcome`/`UnreachableCause`/`FailReason` variant plus correctness properties —
+    # see Ruling 10(b)'s table). They are EICAR-style synthetic fixtures (`mktemp -d` scratch
+    # repos; ADR-040 Ruling 10(a)) with no dependency on any commit SHA in this repository's
+    # history, so they cannot be orphaned by squash-merge or invalidated by force-push.
+    #
+    # These tests already execute under cargo-host's `cargo test --workspace --all-targets`
+    # step, so this job does not add net coverage. It exists ONLY because ADR-040 Ruling
+    # 10(c) explicitly names `attestation-gate-non-vacuity-controls` as the REQUIRED-CHECK
+    # job name distinct from the general workspace test run, and Ruling 10(d) explicitly
+    # specifies its invocation (`cargo test -p policy15-attestation-gate`) as "the controls
+    # job" for this gate — i.e. the ADR treats "the non-vacuity controls ran, standalone and
+    # identifiably" as itself part of the gate's evidence trail, not merely a byproduct of
+    # the wider test suite. Kept intentionally minimal (single crate, no workspace-wide
+    # build) so it stays fast and cheap alongside the dedicated gate job above.
+    name: attestation-gate-non-vacuity-controls
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Rust toolchain
+        # Pinned in rust-toolchain.toml — keep this version in sync with that file.
+        uses: dtolnay/rust-toolchain@1.95.0
+
+      - name: Cache cargo
+        # Pinned to commit SHA for security (TD #74); resolves to v2.9.1.
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4  # v2.9.1
+        with:
+          shared-key: attestation-gate-non-vacuity-controls
+          cache-on-failure: true
+
+      - name: cargo test -p policy15-attestation-gate
+        # ADR-040 §Decision 10 Ruling 10(d): "No separate inline bash script is needed — the
+        # crate IS the controls job." The 16 `#[test]` functions ARE the non-vacuity controls
+        # for the gate's four-outcome verdict (FAIL / PASS-N-activations /
+        # PASS-zero-activations / EMPTY-or-UNREACHABLE).
+        run: cargo test -p policy15-attestation-gate
+
   platforms-drift:
     # Single source of truth: ci/platforms.yaml. The build-dispatcher
     # matrix below duplicates the same 5 (platform, os, target) tuples
