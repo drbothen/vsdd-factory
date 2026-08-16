@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-040
-version: "1.18"
+version: "1.19"
 title: "ADR-040: POLICY 15 ATTESTATION-LOCATION GATE — parent-SHA predicate replaces self-referential HEAD-SHA (resolves F-S2107-P8-003 logical impossibility)"
 status: active
 ratified: 2026-08-10
@@ -18,7 +18,22 @@ supersedes: "POLICY 15 ATTESTATION-LOCATION GATE clause codified at D-912 (D-912
 superseded_by: null
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 last_amended: |-
-  2026-08-15 (v1.18) — AMENDED (architect; PR #777 cognitive-diversity code-reviewer
+  2026-08-15 (v1.19) — AMENDED (architect; PR #778 post-merge push false-FAIL —
+  defense-in-depth fix, both prongs human-ratified): new Ruling 9(f) —
+  GateOutcome::SkippedEmptyRange (exit 0) replaces EmptyOrUnreachable(EmptyRange) (exit 2)
+  for empty/unresolvable-range case; UnreachableCause::EmptyRange RETIRED; UnreachableCause
+  is now StalePin | UnmeasurableDiff only; CI job MUST include
+  `if: github.event_name == 'pull_request'` (primary defense; SkippedEmptyRange is
+  defense-in-depth second line). §Decision 7 Ruling 7(a) trigger "(or `push:`)" clause
+  REMOVED; Ruling 8(c) five-outcome table updated (new SkippedEmptyRange row; EMPTY-or-
+  UNREACHABLE row removes "commit range empty"); Ruling 9(a) GateOutcome table +
+  UnreachableCause updated; Ruling 9(c) item 1 gains pull_request-event-only constraint;
+  new Ruling 9(f) added; §Decision 10 project-wide rule reconciled (PR-diff-gate exception);
+  Ruling 10(b) test table updated (test_empty_range/test_unresolvable_base_fails_closed now
+  expect SkippedEmptyRange). No attestation-location predicate semantics changed outside
+  the empty/unresolvable-range handling.
+
+  [Prior: 2026-08-15 (v1.18) — AMENDED (architect; PR #777 cognitive-diversity code-reviewer
   finding CR-2 adjudication, different model family): CR-2 (MEDIUM) is ACCEPTED — the v1.17
   routing item's rationale for an inline `eprintln!` in `run_gate_inner` ("consistent with
   this crate's existing effectful-throughout style") is REVERSED on re-inspection: it is the
@@ -334,6 +349,8 @@ modified:
   - "2026-08-13 (v1.15)"
   - "2026-08-13 (v1.16)"
   - "2026-08-15 (v1.17)"
+  - "2026-08-15 (v1.18)"
+  - "2026-08-15 (v1.19)"
 ---
 
 # ADR-040: POLICY 15 ATTESTATION-LOCATION GATE — parent-SHA predicate replaces self-referential HEAD-SHA
@@ -761,10 +778,11 @@ The ATTESTATION-LOCATION GATE MUST run as a required-check step in the code repo
 Actions CI (`.github/workflows/`). It MUST NOT run in the factory-artifacts worktree context.
 
 - **Context:** code-repo CI (GitHub Actions)
-- **Trigger:** `on: pull_request:` (or `push:`) unconditionally — no `paths:` filter. A job
+- **Trigger:** `on: pull_request:` unconditionally — no `paths:` filter, and `if: github.event_name == 'pull_request'` condition MUST be set (AMENDED v1.19; see §Decision 9 Ruling 9(f) — the gate is a PR-diff gate, MUST NOT run on `push:` events). A job
   skipped via `paths:` filter reports SUCCESS as a required check, which is itself a vacuous
   pass. The PASS-zero-activations and EMPTY-or-UNREACHABLE outcomes are handled inside the
-  script (§Decision 8 Ruling 8(c)); the CI job is never conditionally skipped by the harness.
+  script (§Decision 8 Ruling 8(c)); the CI job is never conditionally skipped by the harness
+  for `pull_request` events.
 - **Repository:** code repo, working directory = repository root
 - **Job name (required check):** `policy-15-attestation-location`
 
@@ -890,14 +908,15 @@ routing for the exact match-arm and test change.
 
 **Ruling 8(c) — Four-outcome verdict (defence-in-depth):**
 
-The gate MUST produce exactly one of four outcomes:
+The gate MUST produce exactly one of five outcomes (AMENDED v1.19 — `SkippedEmptyRange` added; previously four outcomes):
 
 | Outcome | Exit code | Condition |
 |---------|-----------|-----------|
 | `FAIL` | 2 | One or more commits violated the obligation |
 | `PASS-N-activations (N ≥ 1)` | 0 | Gate activated for N ≥ 1 commits; all compliant |
 | `PASS-zero-activations` | 0 | Scope target exists; commit range non-empty; all diffs non-empty; no commits touched the pinned crate's `*.rs`/`*.bats` |
-| `EMPTY-or-UNREACHABLE` | 2 | Pinned crate path absent from HEAD tree (stale pin); OR commit range empty; OR any commit produced an empty diff |
+| `EMPTY-or-UNREACHABLE` | 2 | Pinned crate path absent from HEAD tree (stale pin); OR any commit produced an empty diff |
+| `SKIP-empty-range` (`SkippedEmptyRange`) | 0 | Commit range is empty OR base branch unresolvable — inert skip (gate is a PR-diff gate; running outside PR event context) |
 
 **Why PASS-zero-activations is a distinct named outcome:** A docs-only PR legitimately
 produces zero activations — no obligation applies and the gate MUST NOT block it. Naming
@@ -984,8 +1003,9 @@ architectural constants declared in the crate's public API (`src/lib.rs`):
 | `PASS-N-activations (N ≥ 1)` | `GateOutcome::PassWithActivations(usize)` | 0 |
 | `PASS-zero-activations` | `GateOutcome::PassZeroActivations` | 0 |
 | `EMPTY-or-UNREACHABLE` | `GateOutcome::EmptyOrUnreachable(UnreachableCause)` | 2 |
+| `SKIP-empty-range` | `GateOutcome::SkippedEmptyRange` | 0 |
 
-`UnreachableCause` is `StalePin | EmptyRange | UnmeasurableDiff { commit }`.
+`UnreachableCause` is `StalePin | UnmeasurableDiff { commit }`. (`EmptyRange` RETIRED by Ruling 9(f) v1.19 — empty/unresolvable range now returns `GateOutcome::SkippedEmptyRange`, not `EmptyOrUnreachable(EmptyRange)`.)
 `FailReason` is `LogAbsent | AttestationMissing`.
 
 `#[non_exhaustive]` is deliberately absent from `GateOutcome`: adding a new outcome variant
@@ -1004,9 +1024,9 @@ conflate them. The type system enforces Requirement 4 structurally.
 runs **before** the `git merge-base` lookup. This ordering invariant is documented in the
 `run_gate` function body and pinned by test
 `test_run_gate_guard1_stale_pin_beats_unresolvable_base`: when the pinned crate is absent
-AND the base branch is unresolvable, the gate returns `StalePin`, not `EmptyRange`. Without
-guard 1, a crate-absent + remote-removed repo would silently report `EmptyRange`, masking
-the more actionable stale-pin diagnosis.
+AND the base branch is unresolvable, the gate returns `StalePin`, not `SkippedEmptyRange`. Without
+guard 1, a crate-absent + remote-removed repo would silently report `SkippedEmptyRange`
+(exit 0), masking the more actionable stale-pin diagnosis (exit 2).
 
 **CI invocation (for `devops-engineer`):**
 
@@ -1020,9 +1040,9 @@ policy15-attestation-gate [<base-branch>]
 - Unconditional job — no `paths:` filter. A filtered job reports SUCCESS when skipped,
   which is itself a vacuous pass (§Decision 7 Ruling 7(a)).
 - Required-check job name: `policy-15-attestation-location`.
-- Exit codes: 0 for either Pass variant (`PassWithActivations` or `PassZeroActivations`);
-  2 for `Fail` or `EmptyOrUnreachable`; 1 for hard error (`GateError` — git not installed,
-  repository inaccessible, unexpected I/O).
+- Exit codes: 0 for either Pass variant (`PassWithActivations`, `PassZeroActivations`) or
+  `SkippedEmptyRange`; 2 for `Fail` or `EmptyOrUnreachable`; 1 for hard error (`GateError` —
+  git not installed, repository inaccessible, unexpected I/O).
 
 > **Implementation note — `lib.rs` module doc version reference:** The crate's module-level
 > doc comment reads `//! POLICY 15 ATTESTATION-LOCATION GATE — ADR-040 §Decisions 8+9
@@ -1042,12 +1062,19 @@ dependency. §Decision 3's reasoning carries forward unchanged.
 
 **Ruling 9(c) — Checkout requirements (fetch depth, merge-base, unconditional job):**
 
-1. **Unconditional job — no `paths:` filter:** The `policy-15-attestation-location` CI job
-   MUST run on every PR with no `paths:` filter. A job skipped via `paths:` filter reports
-   SUCCESS as a required check — itself a vacuous pass. The EMPTY-or-UNREACHABLE case
-   (stale pin, empty commit range, or empty per-commit diff → exit 2) and the
-   PASS-zero-activations case (scope target exists, all diffs measurable, no crate matches →
-   exit 0) are both handled inside the script. The job is never skipped by the CI harness.
+1. **Unconditional job within `pull_request` events — no `paths:` filter; `pull_request`
+   events only (AMENDED v1.19):** The `policy-15-attestation-location` CI job MUST run on
+   every pull request with no `paths:` filter and with `if: github.event_name ==
+   'pull_request'` condition (see Ruling 9(f) — the gate is a PR-diff gate, MUST NOT run on
+   `push:` events). A job skipped via `paths:` filter reports SUCCESS as a required check —
+   itself a vacuous pass. The `if:` event-type condition is the primary defense against
+   running outside PR context: a direct push to `develop` after squash-merge produces an
+   empty `merge_base..HEAD` range that exits 0 via `GateOutcome::SkippedEmptyRange` (the
+   defense-in-depth second line), but running the gate on push events at all wastes CI
+   capacity and creates confusion. The `PASS-zero-activations` case (scope target exists, all
+   diffs measurable, no crate matches → exit 0) and `SkippedEmptyRange` (empty/unresolvable
+   range → exit 0) are both handled inside the script. The job is never skipped by the CI
+   harness for `pull_request` events via a `paths:` filter.
 
 2. **`fetch-depth: 0`:** The CI checkout action MUST use `fetch-depth: 0` (full history).
    The GitHub Actions default is `fetch-depth: 1` (shallow). A shallow clone causes
@@ -1215,6 +1242,56 @@ history (e.g. periodic `develop`-into-feature syncs), never to the final landing
 as-is) — a gate that false-FAILs its own PR is not production-grade and blocks CI adoption
 entirely (D-969). Fix-now, scoped and specified above; see implementer/test-writer routing.
 
+**Ruling 9(f) — ADDED (v1.19): empty or unresolvable commit range → `GateOutcome::SkippedEmptyRange` (exit 0); CI job restricted to `pull_request` events (defense-in-depth; both prongs human-ratified)**
+
+**Background:** PR #778 wired the `policy-15-attestation-location` CI job with both `on: push:` and `on: pull_request:` triggers. On a post-merge PUSH to `develop`, `HEAD` is already the squash-merge commit on `develop`; `git merge-base HEAD origin/develop` resolves to `HEAD` itself, producing an empty `MERGE_BASE..HEAD` range. The existing `GateOutcome::EmptyOrUnreachable(UnreachableCause::EmptyRange)` (exit 2) permanently blocks every push to `develop` following a PR merge — the same false-FAIL class that Ruling 9(e)'s `skipped_merge_inert` resolved for intermediate sync-merge commits within a PR branch, but never extended to the empty/unresolvable-range-on-push case.
+
+Two coordinated fixes are human-ratified as defense-in-depth (both prongs applied simultaneously).
+
+**Prong 1 — Binary semantics: new `GateOutcome::SkippedEmptyRange` variant (exit 0)**
+
+`UnreachableCause::EmptyRange` is **RETIRED**. A new `GateOutcome` variant is introduced:
+
+| Property | Value |
+|----------|-------|
+| **Rust variant** | `GateOutcome::SkippedEmptyRange` |
+| **Exit code** | 0 |
+| **Identifier string** (output by `GateOutcome::identifier()`) | `"SKIP: empty or unresolvable commit range — inert (no PR diff to evaluate)"` |
+
+**Fires when:** `git merge-base HEAD origin/${BASE_BRANCH}` is unresolvable (base branch absent from fetched history), OR `git log MERGE_BASE..HEAD --format=%H` returns no commits (empty range — HEAD is at or behind the merge-base).
+
+**Semantics:** the gate is a PR-diff gate. When there is no diff range to evaluate, there is nothing to attest against; the correct outcome is an inert skip, not a CI-setup defect. An empty or unresolvable range is the expected outcome when the gate runs outside a PR event context (e.g., a direct push to `develop` after squash-merge). This is structurally parallel to the `skipped_merge_inert` field on `GateResult` from Ruling 9(e): both represent ranges or commits that are inert with respect to the obligation and are recorded rather than failing.
+
+**Distinction from other outcomes:**
+- `GateOutcome::EmptyOrUnreachable(UnreachableCause::StalePin)` — still exits 2 (the pinned crate directory is absent from the tree; a real CI-config defect).
+- `GateOutcome::EmptyOrUnreachable(UnreachableCause::UnmeasurableDiff { commit })` — still exits 2 (a per-commit empty diff in a non-empty range; a measurement failure, not a context-mismatch).
+- `GateOutcome::PassZeroActivations` — requires stale-pin guard passed (scope target confirmed in tree), non-empty commit range, all diffs measurable, zero crate activations. `SkippedEmptyRange` fires BEFORE all those checks complete — either at merge-base resolution failure or at empty-COMMITS check (after stale-pin guard). A `SkippedEmptyRange` run did NOT confirm that the scope target exists in the tree.
+- `GateOutcome::EmptyOrUnreachable(UnreachableCause::EmptyRange)` — **RETIRED**. `UnreachableCause` no longer has an `EmptyRange` variant; `UnreachableCause` is now `StalePin | UnmeasurableDiff { commit }`. All `match` arms on `UnreachableCause` must be updated by the implementer.
+
+**Updated guard ordering with Prong 1:**
+1. Stale-pin guard (is `PLUGIN_CRATE` in the git tree at `HEAD`?) — if absent → `EmptyOrUnreachable(StalePin)` exit 2. **Unchanged.**
+2. Merge-base resolution (`git merge-base HEAD origin/${BASE_BRANCH}`) — if unresolvable → `SkippedEmptyRange` exit 0. **Was:** `EmptyOrUnreachable(EmptyRange)` exit 2.
+3. Commit range (`git log MERGE_BASE..HEAD --format=%H`) — if empty → `SkippedEmptyRange` exit 0. **Was:** `EmptyOrUnreachable(EmptyRange)` exit 2.
+4. Per-commit iteration — empty per-commit diff → `EmptyOrUnreachable(UnmeasurableDiff)` exit 2. **Unchanged.**
+
+The `test_run_gate_guard1_stale_pin_beats_unresolvable_base` ordering invariant is preserved unchanged: guard 1 (stale-pin) fires before step 2 (merge-base resolution), so when the crate is absent AND the base is unresolvable, `StalePin` (exit 2) is returned, not `SkippedEmptyRange` (exit 0).
+
+**Prong 2 — CI wiring: `pull_request`-only event condition**
+
+The `policy-15-attestation-location` CI job MUST include:
+
+```yaml
+if: github.event_name == 'pull_request'
+```
+
+The gate is a PR-diff gate. Its `merge_base..HEAD` computation has no meaningful interpretation outside a PR context. The `if:` condition prevents the gate from running on `push:` events at all — eliminating both the false-FAIL (exit 2 without Prong 1) and the wasted CI capacity (with Prong 1 the gate would exit 0, but still ran unnecessarily). Prong 1 (`SkippedEmptyRange`) is the defense-in-depth second line for any future misconfiguration or direct binary invocation outside a PR context.
+
+**Why both prongs (defense-in-depth):** the `if:` condition (Prong 2) prevents the immediate false-FAIL and correctly scopes CI execution; `SkippedEmptyRange` (Prong 1) makes the binary semantically correct regardless of CI context and closes the underlying "exit 2 on empty range" invariant gap. A CI harness constraint and a binary contract constraint are independent layers; both are applied.
+
+**Reconciliation with §Decision 7 Ruling 7(a):** The "(or `push:`)" clause in Ruling 7(a)'s trigger specification is REMOVED by this ruling. The trigger for the `policy-15-attestation-location` job is `on: pull_request:` exclusively, with `if: github.event_name == 'pull_request'` as an additional harness-level guard. Ruling 7(a)'s trigger bullet is amended above.
+
+**Reconciliation with §Decision 10 project-wide rule:** The project-wide four-outcome gate rule states "empty candidate set → EMPTY-or-UNREACHABLE (non-zero exit)" — written for gates whose empty-candidate-set condition signals a CI-setup defect (e.g., a stale-pin on a non-PR gate). For this PR-diff gate, an empty commit range is the expected outcome when running outside a PR event context; treating it as a CI-setup defect permanently blocks non-PR CI runs. This ruling introduces a PR-diff-gate exception: the "candidate set was empty" sub-case of EMPTY-or-UNREACHABLE is replaced by `SkippedEmptyRange` (exit 0) for this gate. The project-wide rule's "empty candidate set → non-zero exit" claim still holds for non-PR-diff gates where an empty candidate set IS a configuration defect.
+
 ---
 
 ### Decision 10 — AMENDED (v1.11): PROJECT-WIDE four-outcome gate rule with required controls
@@ -1259,8 +1336,12 @@ MUST satisfy all three of the following requirements:
      scope subjects must not be blocked. The activation count (0) must appear in the output
      so it is observable across CI runs.
    - `EMPTY-or-UNREACHABLE` (non-zero exit): the scope target does not exist (stale pin), or
-     the candidate set was empty, or any candidate produced an empty change set (unmeasurable
-     scope). This is a CI setup defect or a scope-staleness defect, not a clean run.
+     any candidate produced an empty change set (unmeasurable scope). This is a CI setup
+     defect or a scope-staleness defect, not a clean run. **Exception for PR-diff gates
+     (v1.19 — see §Decision 9 Ruling 9(f)):** an empty commit range on a PR-diff gate is the
+     expected outcome when running outside a PR event context; `GateOutcome::SkippedEmptyRange`
+     (exit 0) replaces `EmptyOrUnreachable(EmptyRange)` for that sub-case. The project-wide
+     rule's "empty candidate set → non-zero exit" still holds for non-PR-diff gates.
 
    A gate with only two outcomes (FAIL / PASS) cannot distinguish "checked N things and
    found no violations" from "checked zero things and found nothing" — the latter is a
@@ -1309,11 +1390,13 @@ modes and three non-violation outcomes requiring separate reachability proof:
 - **Violation mode (i) — obligation violated:** a commit changes `*.rs`/`*.bats` in the
   pinned crate but the pinned log is absent or has no matching attestation heading → FAIL.
   Two separately-implemented FAIL paths require two controls.
-- **Violation mode (ii) — EMPTY-or-UNREACHABLE:** three distinct trigger paths, each
-  requiring its own control (Requirement 4):
+- **Violation mode (ii) — EMPTY-or-UNREACHABLE:** two distinct trigger paths (AMENDED v1.19;
+  empty-range is now `SkippedEmptyRange` exit 0 per Ruling 9(f)), each requiring its own
+  control (Requirement 4):
   - (a) stale pin — crate absent from HEAD tree;
-  - (b) empty commit range — `git log MERGE_BASE..HEAD` returns no commits;
-  - (c) empty diff — a commit in range produced an empty changed-file set.
+  - (b) empty diff — a commit in range produced an empty changed-file set.
+- **SKIP-empty-range (`SkippedEmptyRange`):** commit range empty or base branch unresolvable
+  → exit 0 (inert skip; expected on post-merge push — see Ruling 9(f)).
 - **PASS-zero-activations:** scope target exists, all diffs measurable, none touch the pinned
   crate → exit 0 (docs-only PRs must not be blocked).
 - **PASS-N-activations:** gate activated, all compliant → exit 0.
@@ -1338,12 +1421,12 @@ against enum variants, not exit-code integer comparisons.
 | `test_positive_2_no_attestation_heading` | `Fail(AttestationMissing)` | Positive control 2 |
 | `test_negative_compliant_attestation` | `PassWithActivations` | Negative control |
 | `test_pass_zero_activations` | `PassZeroActivations` | PASS-zero control |
-| `test_empty_range` | `EmptyOrUnreachable(EmptyRange)` | EMPTY-range control |
+| `test_empty_range` | `SkippedEmptyRange` | SKIP-empty-range control |
 | `test_stale_pin` | `EmptyOrUnreachable(StalePin)` | EMPTY-stale-pin control |
 | `test_unmeasurable_diff` | `EmptyOrUnreachable(UnmeasurableDiff)` | EMPTY-diff control |
 | `test_disk_present_tree_absent_is_stale_pin` | `EmptyOrUnreachable(StalePin)` — disk present, git tree absent | Stale-pin variant |
-| `test_unresolvable_base_fails_closed` | `EmptyOrUnreachable(EmptyRange)` — unresolvable base branch | Unresolvable-base variant |
-| `test_guard_ordering_stale_pin_beats_empty_range` | Guard ordering: `StalePin` before `EmptyRange` | Additional |
+| `test_unresolvable_base_fails_closed` | `SkippedEmptyRange` — unresolvable base branch | SKIP-empty-range variant |
+| `test_guard_ordering_stale_pin_beats_empty_range` | Guard ordering: `StalePin` before `SkippedEmptyRange` | Additional |
 | `test_run_gate_guard1_stale_pin_beats_unresolvable_base` | Guard 1: `StalePin` before unresolvable base at `run_gate` entry | Additional |
 | `test_bats_file_activates_gate` | `*.bats` file changes activate the gate | Additional |
 | `test_rs_outside_crate_does_not_activate` | `*.rs` file outside pinned crate does not activate | Additional |
@@ -1353,12 +1436,17 @@ against enum variants, not exit-code integer comparisons.
 
 Positive controls 1 and 2 cover violation mode (i) via two distinct `FailReason` variants
 (`LogAbsent` vs `AttestationMissing`). The PASS-zero-activations test proves a docs-only
-scenario reaches `PassZeroActivations`, not `PassWithActivations`. The three
-EMPTY-or-UNREACHABLE controls each exercise one `UnreachableCause` variant and assert the
-specific variant via `matches!()` — a test that only asserts `exit_code() == 2` cannot
-distinguish which variant was returned (Requirement 4; this is what the Rust type system
-enforces structurally). The negative control proves the gate does not false-positive on
-compliant attestations.
+scenario reaches `PassZeroActivations`, not `PassWithActivations`. Of the original three
+EMPTY-or-UNREACHABLE controls: `test_stale_pin` and `test_unmeasurable_diff` each exercise
+one `UnreachableCause` variant (both still exit 2) and assert the specific variant via
+`matches!()`; `test_empty_range` now exercises `SkippedEmptyRange` (exit 0, per Ruling 9(f)
+v1.19 — `UnreachableCause::EmptyRange` is retired). `test_unresolvable_base_fails_closed`
+similarly now expects `SkippedEmptyRange`. A test that only asserts `exit_code() == 2` cannot
+distinguish between `Fail` and `EmptyOrUnreachable` variants; a test that only asserts
+`exit_code() == 0` cannot distinguish between `PassWithActivations`, `PassZeroActivations`,
+and `SkippedEmptyRange` — `matches!()` against the specific variant is non-negotiable
+(Requirement 4; Rust type system enforces this structurally). The negative control proves the
+gate does not false-positive on compliant attestations.
 
 Note (bash fixture era, v1.4–v1.10): `mkdir -p` alone was insufficient in the bash controls
 because empty directories are not tracked by git. A committed `.gitkeep` inside
@@ -2158,6 +2246,35 @@ was found — the guard skips silently with no WARNING emitted, contrary to Ruli
 Implementation routing devops-engineer bullet augmented with the checkout-ref requirement.
 No `GateOutcome` variant, exit code, or predicate semantics changed in this amendment.
 §Status v1.17 added.
+AMENDED 2026-08-15; ADR-040 v1.18 (architect; PR #777 cognitive-diversity code-reviewer
+CR-2 adjudication + three EXECUTION-based pr-reviewer findings against PR #777 HEAD
+`010e6140`): new `GateResult { outcome, skipped_parentless }` wrapper struct; `run_gate`,
+`run_gate_from_merge_base`, and `run_gate_inner` return `Result<GateResult, GateError>`;
+sole `eprintln!` moves from `src/lib.rs` to `main.rs`, restoring exhaustive-match
+discoverability. New Ruling 9(e) — merge commits (parent-count > 1) evaluated with git's
+COMBINED diff (`git diff-tree -c`); inert combined diff recorded in new
+`GateResult.skipped_merge_inert` (no WARNING; squash-merge landing commits, parent-count 1,
+never exempted). Ruling 8(b) amendment — `FailReason::AttestationAmbiguous { count }` for
+count ≥ 2 (was: `AttestationMissing` for all `count != 1` cases). `main.rs` wildcard arm
+`_ => {}` replaced with explicit `PassWithActivations(_) => {}` and `PassZeroActivations =>
+{}` arms, restoring compile-time exhaustiveness enforcement (M-1). §Status v1.18 added.
+AMENDED 2026-08-15; ADR-040 v1.19 (architect; PR #778 post-merge push false-FAIL —
+defense-in-depth fix, both prongs human-ratified): new Ruling 9(f) —
+`GateOutcome::SkippedEmptyRange` (exit 0) introduced; `UnreachableCause::EmptyRange` RETIRED;
+`UnreachableCause` is now `StalePin | UnmeasurableDiff { commit }` only; empty/unresolvable
+range → `SkippedEmptyRange` exit 0 (was: `EmptyOrUnreachable(EmptyRange)` exit 2). CI job
+`policy-15-attestation-location` MUST include `if: github.event_name == 'pull_request'`.
+§Decision 7 Ruling 7(a) trigger "(or `push:`)" clause removed; `if:` condition added.
+§Decision 8 Ruling 8(c) updated to five-outcome table (new `SkippedEmptyRange` row;
+EMPTY-or-UNREACHABLE row removes "commit range empty"). §Decision 9 Ruling 9(a) `GateOutcome`
+table + `UnreachableCause` updated; exit codes updated; guard ordering paragraph updated;
+Ruling 9(c) item 1 amended (pull_request-event-only constraint + `if:` requirement); new
+Ruling 9(f) added. §Decision 10 project-wide rule reconciled (PR-diff-gate exception note on
+EMPTY-or-UNREACHABLE bullet); Application to POLICY 15 gate updated; Ruling 10(b) test table
+updated (`test_empty_range` and `test_unresolvable_base_fails_closed` now expect
+`SkippedEmptyRange`; `test_guard_ordering_stale_pin_beats_empty_range` doc updated). No
+existing attestation-location predicate PASS/FAIL boundary semantics changed outside the
+empty/unresolvable-range handling. §Status v1.19 added.
 
 **AMENDED 2026-08-13 (v1.13 — architect): stale re-ratification notice corrected.** The
 paragraph immediately below this note previously read "HUMAN RE-RATIFICATION REQUIRED...
@@ -2211,17 +2328,55 @@ the F-S2107-P10-002 erratum-note item is DONE — commit `96b4be19` on
 v1.12 COMPLETE at D-970; three items below remain genuinely outstanding as of this amendment,
 verified by literal-shell check against `origin/develop` and `origin/feature/S-21.07-...` —
 neither branch's `red-gate-log.md` contains an "erratum"/"PROCURED"/"F-S2107-P10-002" token.]]
-- **devops-engineer — OUTSTANDING (tracked: STATE.md Drift Item [D-969]).** Add two jobs to
+- **devops-engineer — OUTSTANDING (tracked: STATE.md Drift Item [D-969]; AMENDED v1.19 to
+  add `if:` event-type condition per Ruling 9(f) Prong 2).** Add two jobs to
   `.github/workflows/ci.yml` (or a dedicated `policy-15-attestation.yml`): (1)
-  `policy-15-attestation-location` — required check, unconditional (no `paths:` filter),
-  `fetch-depth: 0`, checkout `ref: ${{ github.event.pull_request.head.sha }}` (v1.17 §Decision
-  9 Ruling 9(c) item 5 — MUST NOT rely on the `pull_request`-trigger default checkout ref,
-  which resolves to an ephemeral synthetic merge commit and would corrupt per-commit
-  iteration), invokes `policy15-attestation-gate [<base-branch>]` per §Decision 9 Ruling 9(a);
-  (2) `attestation-gate-non-vacuity-controls` — unconditional, invokes
+  `policy-15-attestation-location` — required check, **`if: github.event_name == 'pull_request'`**
+  (v1.19 Ruling 9(f) Prong 2 — MUST NOT run on `push:` events; gate is a PR-diff gate),
+  unconditional among PR events (no `paths:` filter), `fetch-depth: 0`, checkout
+  `ref: ${{ github.event.pull_request.head.sha }}` (v1.17 §Decision 9 Ruling 9(c) item 5 —
+  MUST NOT rely on the `pull_request`-trigger default checkout ref, which resolves to an
+  ephemeral synthetic merge commit and would corrupt per-commit iteration), invokes
+  `policy15-attestation-gate [<base-branch>]` per §Decision 9 Ruling 9(a); (2)
+  `attestation-gate-non-vacuity-controls` — unconditional, invokes
   `cargo test -p policy15-attestation-gate` per §Decision 10 Ruling 10(d). Both jobs comply
   with POLICY 21 (no new `.sh` files; Rust binary + cargo test). This is the last step that
   makes the gate demonstrably RUNNING, not merely ratified — closes F-S2107-P10-001 in full.
+- **implementer — NEW (v1.19; Ruling 9(f) Prong 1; apply on a separate `develop` fix-PR
+  tracing to ADR-040 v1.19; spec-only this burst).** In `crates/policy15-attestation-gate/`:
+  (1) **`src/lib.rs` — `GateOutcome` enum:** Add `SkippedEmptyRange` variant (doc comment:
+  "Commit range is empty or the base branch is unresolvable — inert skip, not a CI-setup
+  defect. Exit code 0. See ADR-040 §Decision 9 Ruling 9(f) v1.19."). (2) **`GateOutcome::identifier()`:**
+  Add arm `SkippedEmptyRange => "SKIP: empty or unresolvable commit range — inert (no PR diff
+  to evaluate)"`. (3) **`GateOutcome::exit_code()`:** Add arm `SkippedEmptyRange => 0`. (4)
+  **`UnreachableCause` enum:** Remove `EmptyRange` variant; update all `match` arms (no
+  wildcard `_` arm — exhaustiveness required by design). (5) **`run_gate` and
+  `run_gate_from_merge_base`:** Change merge-base resolution failure path from
+  `EmptyOrUnreachable(UnreachableCause::EmptyRange)` to `SkippedEmptyRange` (same `GateResult`
+  shape; `skipped_parentless: Vec::new(), skipped_merge_inert: Vec::new()`). (6) **`run_gate`
+  empty-COMMITS check:** Change from `EmptyOrUnreachable(UnreachableCause::EmptyRange)` to
+  `SkippedEmptyRange`. (7) **`src/main.rs` `match &outcome`:** Add `GateOutcome::SkippedEmptyRange
+  => {}` explicit arm (no detail lines; identifier string printed by existing output path).
+  (8) **Sibling-site sweep (TD-VSDD-060):** Update `src/lib.rs` module doc and `src/main.rs`
+  module doc version citations from `v1.18` → `v1.19`.
+- **test-writer — NEW (v1.19; Ruling 9(f) companion; apply on same `develop` fix-PR as
+  implementer item above).** In `crates/policy15-attestation-gate/src/lib.rs`
+  `#[cfg(test)] mod tests`: (1) Update `test_empty_range` — change assertion from
+  `matches!(result.outcome, GateOutcome::EmptyOrUnreachable(UnreachableCause::EmptyRange))`
+  to `matches!(result.outcome, GateOutcome::SkippedEmptyRange)`. Update doc comment. (2)
+  Update `test_unresolvable_base_fails_closed` — change assertion to
+  `matches!(result.outcome, GateOutcome::SkippedEmptyRange)`. Update doc comment (name
+  "fails_closed" is now "skipped_inert" for this sub-case; the test remains valid as a
+  guard-ordering proof if read with the updated assertion). (3) Update
+  `test_guard_ordering_stale_pin_beats_empty_range` doc comment to say `SkippedEmptyRange`
+  instead of `EmptyRange`; assertion
+  `matches!(result.outcome, GateOutcome::EmptyOrUnreachable(UnreachableCause::StalePin))`
+  is UNCHANGED. (4) Update `test_identifier_strings_are_greppable` to include
+  `GateOutcome::SkippedEmptyRange` and assert its identifier string is
+  `"SKIP: empty or unresolvable commit range — inert (no PR diff to evaluate)"`. (5) Add new
+  test `test_skipped_empty_range_exits_zero` asserting `result.outcome.exit_code() == 0` for
+  the empty-range fixture — ensures the new variant exits 0 (prevents a mutation changing
+  `exit_code()` from surviving a variant-only `matches!()` assertion).
 - **implementer — NEW (v1.17; routed from this ADR, not fixed here per CLAUDE.md Agent
   Routing Table — ADRs are architect scope, crate code is implementer scope).**
   ~~Close the code-vs-spec gap identified by Ruling 9(c) item 4 ... Add an observable warning
