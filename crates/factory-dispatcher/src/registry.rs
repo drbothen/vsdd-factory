@@ -1217,6 +1217,490 @@ script_path = "bad.sh"
 }
 
 // ---------------------------------------------------------------------------
+// S-21.10 — BC-1.01.016 v1.1: failure_policy schema extension tests
+//
+// Tests every postcondition (PC1–PC7) and all BC edge cases (EC-001..EC-006)
+// for the new `failure_policy` field introduced by S-21.10 (ADR-039 §Decision
+// 1+2 Phase 1 schema leg — no enforcement change).
+//
+// All tests in this module are GREEN-BY-DESIGN: the behavior is entirely
+// governed by serde derive macros (`#[serde(rename_all = "kebab-case")]`,
+// `#[serde(default)]`, `#[default]` on `FailurePolicy::FailOpen`) and the
+// struct-layout of `RegistryEntry`. No hand-written parsing logic is required.
+//
+// AC-006 (PC7) gate: the existing test
+// `fail_closed_timeout_with_on_error_continue_is_open` in `executor.rs` covers
+// the Phase 1 no-enforcement constraint. That test is NOT modified. This module
+// includes an independent registry-side Phase 1 scope-boundary guard
+// (`test_BC_1_01_016_phase1_failure_policy_does_not_affect_on_error_accessor`)
+// that verifies `failure_policy` value has zero influence on the `on_error()`
+// accessor — the enforcement path that `plugin_fail_closed` in executor.rs reads.
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod s21_10_bc_1_01_016_failure_policy {
+    use super::*;
+
+    // -----------------------------------------------------------------------
+    // Helper: minimal valid TOML preamble for a single [[hooks]] entry.
+    // Callers append additional fields after the last line.
+    // -----------------------------------------------------------------------
+    fn hook_toml_with_failure_policy(failure_policy_line: &str) -> String {
+        format!(
+            r#"
+schema_version = 2
+
+[[hooks]]
+name = "test-plugin"
+event = "PreToolUse"
+plugin = "hook-plugins/test.wasm"
+{failure_policy_line}
+"#
+        )
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-001 / PC1 — `"fail-closed"` parses to `FailurePolicy::FailClosed`
+    // (BC-1.01.016 v1.1 postcondition 1; ADR-039 §Decision 2 schema leg)
+    //
+    // GREEN-BY-DESIGN: `#[serde(rename_all = "kebab-case")]` on `FailurePolicy`
+    // maps the Rust variant `FailClosed` to/from the TOML string `"fail-closed"`.
+    // -----------------------------------------------------------------------
+    /// BC-1.01.016 PC1: stanza with `failure_policy = "fail-closed"` parses to
+    /// `RegistryEntry.failure_policy == FailurePolicy::FailClosed`.
+    #[test]
+    fn test_BC_1_01_016_parses_failure_policy_fail_closed() {
+        let toml = hook_toml_with_failure_policy(r#"failure_policy = "fail-closed""#);
+        let reg = Registry::parse_str(&toml).expect(
+            "test_BC_1_01_016_parses_failure_policy_fail_closed: \
+             TOML with failure_policy=\"fail-closed\" must parse without error (BC-1.01.016 PC1)",
+        );
+        assert_eq!(
+            reg.hooks[0].failure_policy,
+            FailurePolicy::FailClosed,
+            "test_BC_1_01_016_parses_failure_policy_fail_closed: \
+             RegistryEntry.failure_policy must be FailClosed when TOML has \"fail-closed\" \
+             (BC-1.01.016 PC1; ADR-039 §Decision 2 kebab-case value format)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-002 / PC2 — `"fail-open"` parses to `FailurePolicy::FailOpen`
+    // (BC-1.01.016 v1.1 postcondition 2; ADR-039 §Decision 2 schema leg)
+    //
+    // GREEN-BY-DESIGN: same serde derive maps `FailOpen` ↔ `"fail-open"`.
+    // -----------------------------------------------------------------------
+    /// BC-1.01.016 PC2: stanza with `failure_policy = "fail-open"` parses to
+    /// `RegistryEntry.failure_policy == FailurePolicy::FailOpen`.
+    #[test]
+    fn test_BC_1_01_016_parses_failure_policy_fail_open() {
+        let toml = hook_toml_with_failure_policy(r#"failure_policy = "fail-open""#);
+        let reg = Registry::parse_str(&toml).expect(
+            "test_BC_1_01_016_parses_failure_policy_fail_open: \
+             TOML with failure_policy=\"fail-open\" must parse without error (BC-1.01.016 PC2)",
+        );
+        assert_eq!(
+            reg.hooks[0].failure_policy,
+            FailurePolicy::FailOpen,
+            "test_BC_1_01_016_parses_failure_policy_fail_open: \
+             RegistryEntry.failure_policy must be FailOpen when TOML has \"fail-open\" \
+             (BC-1.01.016 PC2; ADR-039 §Decision 2)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-003 / PC3 — Unknown values rejected at parse time
+    // (BC-1.01.016 v1.1 postcondition 3; no-silent-default invariant)
+    //
+    // GREEN-BY-DESIGN: serde enum deserialization rejects unknown variant
+    // strings by default (no `#[serde(other)]` fallback on `FailurePolicy`).
+    // -----------------------------------------------------------------------
+    /// BC-1.01.016 PC3: unknown value `"unknown-value"` causes `parse_str`
+    /// to return `Err` — no silent default to any variant.
+    #[test]
+    fn test_BC_1_01_016_rejects_unknown_failure_policy() {
+        let toml = hook_toml_with_failure_policy(r#"failure_policy = "unknown-value""#);
+        let result = Registry::parse_str(&toml);
+        assert!(
+            result.is_err(),
+            "test_BC_1_01_016_rejects_unknown_failure_policy: \
+             unknown failure_policy value must produce Err, not a silent default \
+             (BC-1.01.016 PC3; no-silent-default invariant; ADR-039 §Decision 2)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-003 / PC3 + EC-003 — Underscore form `"fail_closed"` must be `Err`
+    // (BC-1.01.016 v1.1 edge case EC-003; the kebab-vs-snake guard)
+    //
+    // This is the CRITICAL EC-003 test.  `#[serde(rename_all = "kebab-case")]`
+    // maps `FailClosed` to `"fail-closed"` (hyphen).  The snake_case form
+    // `"fail_closed"` is an unrecognized variant string — serde MUST reject it.
+    // Without `rename_all = "kebab-case"`, serde's default (`snake_case`) would
+    // silently accept `"fail_closed"`, opening a bypass.
+    //
+    // GREEN-BY-DESIGN: the enum uses `rename_all = "kebab-case"`, so the only
+    // accepted forms are `"fail-closed"` and `"fail-open"`. The underscore forms
+    // are unrecognized and produce `Err`.
+    // -----------------------------------------------------------------------
+    /// BC-1.01.016 EC-003: `failure_policy = "fail_closed"` (underscore) must
+    /// produce `Err` — the canonical value is `"fail-closed"` (hyphen).
+    #[test]
+    fn test_BC_1_01_016_rejects_fail_closed_underscore_ec003() {
+        let toml = hook_toml_with_failure_policy(r#"failure_policy = "fail_closed""#);
+        let result = Registry::parse_str(&toml);
+        assert!(
+            result.is_err(),
+            "test_BC_1_01_016_rejects_fail_closed_underscore_ec003: \
+             underscore form \"fail_closed\" must be Err — canonical form is \"fail-closed\" \
+             (BC-1.01.016 EC-003; #[serde(rename_all = \"kebab-case\")] guard)"
+        );
+    }
+
+    /// BC-1.01.016 EC-003 (symmetric): `failure_policy = "fail_open"` (underscore)
+    /// must produce `Err` — the canonical value is `"fail-open"` (hyphen).
+    #[test]
+    fn test_BC_1_01_016_rejects_fail_open_underscore_ec003_symmetric() {
+        let toml = hook_toml_with_failure_policy(r#"failure_policy = "fail_open""#);
+        let result = Registry::parse_str(&toml);
+        assert!(
+            result.is_err(),
+            "test_BC_1_01_016_rejects_fail_open_underscore_ec003_symmetric: \
+             underscore form \"fail_open\" must be Err — canonical form is \"fail-open\" \
+             (BC-1.01.016 EC-003 symmetric; #[serde(rename_all = \"kebab-case\")] guard)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // EC-001 — Wrong-case form `"FAIL-CLOSED"` must be `Err`
+    // (BC-1.01.016 v1.1 edge case EC-001; serde is case-sensitive)
+    //
+    // GREEN-BY-DESIGN: serde enum variant matching is case-sensitive; no
+    // case-folding occurs.
+    // -----------------------------------------------------------------------
+    /// BC-1.01.016 EC-001: `failure_policy = "FAIL-CLOSED"` (wrong case) must
+    /// produce `Err` — serde enum matching is case-sensitive.
+    #[test]
+    fn test_BC_1_01_016_rejects_fail_closed_wrong_case_ec001() {
+        let toml = hook_toml_with_failure_policy(r#"failure_policy = "FAIL-CLOSED""#);
+        let result = Registry::parse_str(&toml);
+        assert!(
+            result.is_err(),
+            "test_BC_1_01_016_rejects_fail_closed_wrong_case_ec001: \
+             wrong-case \"FAIL-CLOSED\" must produce Err — serde enum matching is \
+             case-sensitive (BC-1.01.016 EC-001)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // EC-002 — Empty string `""` must be `Err`
+    // (BC-1.01.016 v1.1 edge case EC-002)
+    //
+    // GREEN-BY-DESIGN: empty string is not a recognized variant.
+    // -----------------------------------------------------------------------
+    /// BC-1.01.016 EC-002: `failure_policy = ""` (empty string) must produce
+    /// `Err` at parse time.
+    #[test]
+    fn test_BC_1_01_016_rejects_empty_string_failure_policy_ec002() {
+        let toml = hook_toml_with_failure_policy(r#"failure_policy = """#);
+        let result = Registry::parse_str(&toml);
+        assert!(
+            result.is_err(),
+            "test_BC_1_01_016_rejects_empty_string_failure_policy_ec002: \
+             empty string failure_policy must produce Err (BC-1.01.016 EC-002)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-004 / PC4 — Absent `failure_policy` field defaults to `FailOpen`
+    // (BC-1.01.016 v1.1 postcondition 4; ADR-039 §Decision 1 backward-compat)
+    //
+    // GREEN-BY-DESIGN: `#[serde(default)]` on `RegistryEntry.failure_policy`
+    // combined with `#[default]` on `FailurePolicy::FailOpen` ensures absent-
+    // field deserialization produces `FailurePolicy::FailOpen`.
+    // -----------------------------------------------------------------------
+    /// BC-1.01.016 PC4: a [[hooks]] stanza without a `failure_policy` field
+    /// parses successfully; `RegistryEntry.failure_policy` is `FailOpen`.
+    #[test]
+    fn test_BC_1_01_016_absent_failure_policy_defaults_to_fail_open() {
+        // No failure_policy field — current production format for all 76 entries.
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "legacy-plugin"
+event = "PostToolUse"
+plugin = "hook-plugins/legacy.wasm"
+"#;
+        let reg = Registry::parse_str(toml).expect(
+            "test_BC_1_01_016_absent_failure_policy_defaults_to_fail_open: \
+             stanza without failure_policy must parse without error (BC-1.01.016 PC4)",
+        );
+        assert_eq!(
+            reg.hooks[0].failure_policy,
+            FailurePolicy::FailOpen,
+            "test_BC_1_01_016_absent_failure_policy_defaults_to_fail_open: \
+             absent failure_policy must default to FailOpen (BC-1.01.016 PC4; \
+             ADR-039 §Decision 1 backward-compat; #[serde(default)] + #[default] on FailOpen)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-005 / PC5 — `failure_policy` and `on_error` are independent axes
+    // (BC-1.01.016 v1.1 postcondition 5; ADR-039 §Decision 1 axes-separation)
+    //
+    // `RegistryEntry` MUST hold `on_error: Option<OnError>` and
+    // `failure_policy: FailurePolicy` as independent fields simultaneously.
+    // A stanza with `on_error = "continue"` AND `failure_policy = "fail-closed"`
+    // must represent both without structural conflict.
+    //
+    // GREEN-BY-DESIGN: the struct has two distinct fields; serde parses each
+    // independently; no interaction between them.
+    // -----------------------------------------------------------------------
+    /// BC-1.01.016 PC5: stanza with both `on_error = "continue"` and
+    /// `failure_policy = "fail-closed"` — both fields hold their values
+    /// simultaneously without conflict.
+    #[test]
+    fn test_BC_1_01_016_registry_entry_can_hold_continue_and_fail_closed_simultaneously() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "dual-policy-plugin"
+event = "PostToolUse"
+plugin = "hook-plugins/dual.wasm"
+on_error = "continue"
+failure_policy = "fail-closed"
+"#;
+        let reg = Registry::parse_str(toml).expect(
+            "test_BC_1_01_016_registry_entry_can_hold_continue_and_fail_closed_simultaneously: \
+             stanza with on_error=continue + failure_policy=fail-closed must parse (BC-1.01.016 PC5)"
+        );
+        let entry = &reg.hooks[0];
+        assert_eq!(
+            entry.on_error,
+            Some(OnError::Continue),
+            "test_BC_1_01_016_registry_entry_can_hold_continue_and_fail_closed_simultaneously: \
+             on_error must be Some(OnError::Continue) (BC-1.01.016 PC5 axes-independence)"
+        );
+        assert_eq!(
+            entry.failure_policy,
+            FailurePolicy::FailClosed,
+            "test_BC_1_01_016_registry_entry_can_hold_continue_and_fail_closed_simultaneously: \
+             failure_policy must be FailClosed (BC-1.01.016 PC5 axes-independence; \
+             ADR-039 §Decision 1 axes-separation)"
+        );
+    }
+
+    // EC-005 (symmetric to AC-005): `on_error = "block"` + `failure_policy = "fail-open"`
+    // — both fields coexist independently (BC-1.01.016 EC-005).
+    /// BC-1.01.016 EC-005: stanza with `on_error = "block"` + `failure_policy = "fail-open"`
+    /// — both fields coexist; crash blocks via on_error=block; exhaustion advisory via
+    /// failure_policy=fail-open (enforcement in Phase 4 only).
+    #[test]
+    fn test_BC_1_01_016_registry_entry_can_hold_block_and_fail_open_simultaneously() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "block-crash-open-exhaustion"
+event = "PreToolUse"
+plugin = "hook-plugins/hybrid.wasm"
+on_error = "block"
+failure_policy = "fail-open"
+"#;
+        let reg = Registry::parse_str(toml).expect(
+            "test_BC_1_01_016_registry_entry_can_hold_block_and_fail_open_simultaneously: \
+             on_error=block + failure_policy=fail-open must parse (BC-1.01.016 EC-005)",
+        );
+        let entry = &reg.hooks[0];
+        assert_eq!(entry.on_error, Some(OnError::Block));
+        assert_eq!(entry.failure_policy, FailurePolicy::FailOpen);
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-006 / PC7 — Phase 1 no-enforcement gate (registry-side scope guard)
+    // (BC-1.01.016 v1.1 postcondition 7; ADR-039 §Decision 3 Phase 1 boundary)
+    //
+    // The canonical AC-006 test is the EXISTING test
+    // `fail_closed_timeout_with_on_error_continue_is_open` in `executor.rs`
+    // (line ~908). That test is NOT modified by S-21.10. It asserts that
+    // `plugin_fail_closed(&r, OnError::Continue)` returns `false` for a
+    // `Timeout { cause: TimeoutCause::Fuel }` result — the enforcement function
+    // does NOT consult `failure_policy` in Phase 1.
+    //
+    // This registry-side guard is complementary: it verifies that a `RegistryEntry`
+    // with `failure_policy = FailClosed` does NOT alter the `on_error()` accessor
+    // return value — the accessor that `plugin_fail_closed` in executor.rs reads.
+    // Phase 1 is safe because the new field is parsed and stored but consulted by
+    // no enforcement path.
+    //
+    // GREEN-BY-DESIGN: `on_error()` reads only `self.on_error` and the defaults
+    // argument; it has no branch on `self.failure_policy`.
+    // -----------------------------------------------------------------------
+    /// BC-1.01.016 PC7 registry-side scope guard: a `RegistryEntry` with
+    /// `failure_policy = FailClosed` MUST NOT alter the `on_error(defaults)` value.
+    /// Verifies Phase 1 scope boundary — `failure_policy` is stored but NOT
+    /// consulted by the `on_error()` accessor path used by `plugin_fail_closed`.
+    #[test]
+    fn test_BC_1_01_016_phase1_failure_policy_does_not_affect_on_error_accessor() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "fail-closed-plugin"
+event = "PreToolUse"
+plugin = "hook-plugins/fc.wasm"
+on_error = "continue"
+failure_policy = "fail-closed"
+"#;
+        let reg = Registry::parse_str(toml).expect(
+            "test_BC_1_01_016_phase1_failure_policy_does_not_affect_on_error_accessor: must parse",
+        );
+        let entry = &reg.hooks[0];
+        // Verify failure_policy is stored as FailClosed.
+        assert_eq!(
+            entry.failure_policy,
+            FailurePolicy::FailClosed,
+            "fixture sanity: failure_policy must be FailClosed"
+        );
+        // The on_error() accessor must return OnError::Continue (from the entry's own
+        // on_error = Some(Continue)), regardless of failure_policy = FailClosed.
+        // This is the Phase 1 scope boundary: failure_policy does NOT influence the
+        // on_error() code path that plugin_fail_closed in executor.rs reads.
+        assert_eq!(
+            entry.on_error(&RegistryDefaults::default()),
+            OnError::Continue,
+            "test_BC_1_01_016_phase1_failure_policy_does_not_affect_on_error_accessor: \
+             on_error() must return Continue regardless of failure_policy=FailClosed \
+             (BC-1.01.016 PC7; ADR-039 §Decision 3 Phase 1 no-enforcement-change boundary; \
+             the canonical enforcement gate is fail_closed_timeout_with_on_error_continue_is_open \
+             in executor.rs which MUST pass unmodified after S-21.10)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-007 / PC6 — All production registry entries parse with `FailOpen` default
+    // (BC-1.01.016 v1.1 postcondition 6; ADR-039 §Decision 1 backward-compat)
+    //
+    // Drives the actual `plugins/vsdd-factory/hooks-registry.toml` through the
+    // updated registry loader. All 76 entries (none carry `failure_policy`) must
+    // parse cleanly; all must resolve to `FailurePolicy::FailOpen`.
+    //
+    // GREEN-BY-DESIGN: `#[serde(default)]` + `#[default] FailOpen` ensures absent-
+    // field backward-compat holds for every existing entry.
+    // -----------------------------------------------------------------------
+    /// BC-1.01.016 PC6: the full production `plugins/vsdd-factory/hooks-registry.toml`
+    /// parses successfully; every entry resolves to `FailurePolicy::FailOpen`; no
+    /// entry changes its enforcement decision.
+    #[test]
+    fn test_BC_1_01_016_production_registry_all_entries_default_to_fail_open() {
+        // CARGO_MANIFEST_DIR is crates/factory-dispatcher; registry is at
+        // ../../plugins/vsdd-factory/hooks-registry.toml from the crate root.
+        let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let registry_path = manifest_dir
+            .join("../..")
+            .join("plugins/vsdd-factory/hooks-registry.toml");
+        let registry_path = registry_path
+            .canonicalize()
+            .expect("hooks-registry.toml must exist at plugins/vsdd-factory/hooks-registry.toml");
+
+        let reg = Registry::load(&registry_path).expect(
+            "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
+             hooks-registry.toml must parse without error (BC-1.01.016 PC6)",
+        );
+        assert!(
+            !reg.hooks.is_empty(),
+            "production registry must have at least one hook entry"
+        );
+        let fail_closed_count = reg
+            .hooks
+            .iter()
+            .filter(|e| e.failure_policy == FailurePolicy::FailClosed)
+            .count();
+        assert_eq!(
+            fail_closed_count, 0,
+            "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
+             zero production entries must have FailClosed — all absent fields default to \
+             FailOpen (BC-1.01.016 PC6; ADR-039 §Decision 1 backward-compat clause). \
+             Found {} FailClosed entries.",
+            fail_closed_count
+        );
+        for entry in &reg.hooks {
+            assert_eq!(
+                entry.failure_policy,
+                FailurePolicy::FailOpen,
+                "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
+                 entry '{}' must have failure_policy=FailOpen (BC-1.01.016 PC6)",
+                entry.name
+            );
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Round-trip serialize-deserialize: canonical values MUST serialize as
+    // hyphenated strings (ADR-039 §Decision 2 value format)
+    //
+    // GREEN-BY-DESIGN: `#[serde(rename_all = "kebab-case")]` guarantees
+    // `FailClosed` serializes as `"fail-closed"` and `FailOpen` as `"fail-open"`.
+    // -----------------------------------------------------------------------
+    /// `FailurePolicy::FailClosed` must serialize as the JSON string `"fail-closed"`
+    /// (hyphenated, per ADR-039 §Decision 2 value format).
+    #[test]
+    fn test_BC_1_01_016_fail_closed_serializes_as_hyphenated() {
+        let json = serde_json::to_string(&FailurePolicy::FailClosed)
+            .expect("FailurePolicy::FailClosed must serialize");
+        assert_eq!(
+            json, "\"fail-closed\"",
+            "test_BC_1_01_016_fail_closed_serializes_as_hyphenated: \
+             FailClosed must serialize as \"fail-closed\" (hyphenated); \
+             got {json} — verifies ADR-039 §Decision 2 value format and \
+             BC-1.01.016 EC-003 guard (snake_case \"fail_closed\" is rejected at \
+             deserialization because the canonical form is hyphenated)"
+        );
+        // Round-trip: deserialize back to verify symmetry.
+        let back: FailurePolicy = serde_json::from_str(&json)
+            .expect("\"fail-closed\" must deserialize back to FailClosed");
+        assert_eq!(back, FailurePolicy::FailClosed);
+    }
+
+    /// `FailurePolicy::FailOpen` must serialize as the JSON string `"fail-open"`
+    /// (hyphenated, per ADR-039 §Decision 2 value format).
+    #[test]
+    fn test_BC_1_01_016_fail_open_serializes_as_hyphenated() {
+        let json = serde_json::to_string(&FailurePolicy::FailOpen)
+            .expect("FailurePolicy::FailOpen must serialize");
+        assert_eq!(
+            json, "\"fail-open\"",
+            "test_BC_1_01_016_fail_open_serializes_as_hyphenated: \
+             FailOpen must serialize as \"fail-open\" (hyphenated); got {json} \
+             (ADR-039 §Decision 2 value format)"
+        );
+        let back: FailurePolicy =
+            serde_json::from_str(&json).expect("\"fail-open\" must deserialize back to FailOpen");
+        assert_eq!(back, FailurePolicy::FailOpen);
+    }
+
+    // -----------------------------------------------------------------------
+    // Default variant guard: `FailurePolicy::default()` MUST be `FailOpen`
+    // (BC-1.01.016 Invariant 2 absent-field-is-fail-open invariant)
+    // -----------------------------------------------------------------------
+    /// BC-1.01.016 Invariant 2: `FailurePolicy::default()` must be `FailOpen`.
+    /// This is the invariant that `#[serde(default)]` on `RegistryEntry.failure_policy`
+    /// relies on for absent-field backward-compat.
+    #[test]
+    fn test_BC_1_01_016_invariant_failure_policy_default_is_fail_open() {
+        assert_eq!(
+            FailurePolicy::default(),
+            FailurePolicy::FailOpen,
+            "test_BC_1_01_016_invariant_failure_policy_default_is_fail_open: \
+             FailurePolicy::default() must be FailOpen (BC-1.01.016 Invariant 2; \
+             #[default] on FailOpen variant; ADR-039 §Decision 1 backward-compat clause)"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
 // F-P2-011 — BC-7.06.001 Invariant 7: (name, event, tool) tuple uniqueness
 // ---------------------------------------------------------------------------
 
