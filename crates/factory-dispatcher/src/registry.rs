@@ -1219,9 +1219,11 @@ script_path = "bad.sh"
 // ---------------------------------------------------------------------------
 // S-21.10 — BC-1.01.016 v1.3: failure_policy schema extension tests
 //
-// Tests every postcondition (PC1–PC7) and all BC edge cases (EC-001..EC-006)
-// for the new `failure_policy` field introduced by S-21.10 (ADR-039 §Decision
-// 1+2 Phase 1 schema leg — no enforcement change).
+// Tests every postcondition (PC1–PC7) and BC edge cases EC-001..EC-003,
+// EC-005..EC-007 for the new `failure_policy` field introduced by S-21.10
+// (ADR-039 §Decision 1+2 Phase 1 schema leg — no enforcement change).
+// EC-004 (duplicate `failure_policy` key) is a TOML-parser-layer concern and
+// is not covered by registry unit tests.
 //
 // All tests in this module are GREEN-BY-DESIGN: the behavior is entirely
 // governed by serde derive macros (`#[serde(rename_all = "kebab-case")]`,
