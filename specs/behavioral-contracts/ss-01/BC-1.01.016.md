@@ -1,16 +1,16 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.2"
+version: "v1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-08-06T00:00:00Z
-last_amended: "2026-08-16 (v1.2) — F-1 count-accuracy fix (product-owner): De-hardcoded brittle literal count '52' to 'all existing … (currently 76)' across Description, PC6, EC-007, Canonical Test Vectors, VP Anchors, and Verification Properties. Behavioral semantics (parse-cleanly and default-fail-open guarantees) unchanged. BC-1.01.016 v1.2."
+last_amended: "2026-08-16 (v1.3) — modified[]-array parity backfill (product-owner): populated modified[] with v1.1 and v1.2 amendment entries to satisfy POLICY 14/17 leg-3 (kk_n_tripartite_parity_gate / nn_n_frontmatter_parity_full_file_type_scope). No behavioral or spec-content change. [Prior: 2026-08-16 (v1.2) — F-1 count-accuracy fix (product-owner): De-hardcoded brittle literal count '52' to 'all existing … (currently 76)' across Description, PC6, EC-007, Canonical Test Vectors, VP Anchors, and Verification Properties. Behavioral semantics (parse-cleanly and default-fail-open guarantees) unchanged. BC-1.01.016 v1.2.]"
 phase: brownfield-backfill
 inputs:
   - .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
   - .factory/research/wasm-fuel-exhaustion-detection.md
-input-hash: "7a9cdc6"
+input-hash: "37ad7a5"
 traces_to: .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
 origin: greenfield
 extracted_from: null
@@ -18,7 +18,10 @@ subsystem: "SS-01"
 capability: "CAP-TBD"
 lifecycle_status: draft
 introduced: v1.0-brownfield-backfill-E21-W5
-modified: []
+modified:
+  - "2026-08-16 (v1.1)"
+  - "2026-08-16 (v1.2)"
+  - "2026-08-16 (v1.3)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -204,6 +207,7 @@ S-21.10 (Phase 1 schema extension; no enforcement change; blocks S-21.11)
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3 | 2026-08-16 | product-owner | modified[]-array parity backfill: populated modified[] with v1.1 and v1.2 amendment entries (POLICY 14/17 leg-3 fix; no behavioral or spec-content change). |
 | v1.2 | 2026-08-16 | product-owner | F-1 count-accuracy fix: de-hardcoded brittle literal count '52' to 'all existing … (currently 76)' across Description, PC6, EC-007, Canonical Test Vectors, VP Anchors, and Verification Properties. Behavioral semantics (parse-cleanly and default-fail-open guarantees) unchanged. |
 | v1.1 | 2026-08-16 | product-owner | SR-001 spec-fidelity correction: replaced phantom `HookEntry` struct name with actual `RegistryEntry`; corrected `on_error` field type from `OnError` to `Option<OnError>` in PC5 and Architecture Anchors; fixed struct-name references across Description, postconditions, invariants, edge cases, test vectors, VP anchors, and verification properties. Behavioral semantics (postcondition assertions, invariants, independence of on_error and failure_policy axes) unchanged; description-accuracy fix only. |
 | v1.0 | 2026-08-06 | product-owner | Initial creation (S-21.10/S-21.11 BC authoring burst; ADR-039 §Decision 1+2 Phase 1 schema leg; `failure_policy` parse semantics, backward-compat `fail-open` default, unknown-value serde rejection, axes independence in `RegistryEntry`; Phase 1 no-enforcement gate as PC7 RED Gate). |
