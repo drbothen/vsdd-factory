@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.4"
+version: "1.5"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: ratified
 date: 2026-08-06
@@ -10,14 +10,23 @@ producer: architect
 timestamp: 2026-08-06T00:00:00Z
 deciders:
   - architect
-subsystems_affected: [SS-01, SS-05]
+subsystems_affected: [SS-01, SS-07]
 supersedes: null
 superseded_by: null
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-17 (v1.4-erratum) — Non-load-bearing citation erratum (architect; F-S2111-P1-008
+  2026-08-17 (v1.5-erratum) — Non-load-bearing anchor correction (architect; F-S2111-P2-005
+  sibling-sweep from S-21.11 story anchor correction): frontmatter `subsystems_affected`
+  corrected SS-05→SS-07. ADR-039 governs `hooks-registry.toml` (owned by SS-07 "Hook Bash
+  Layer" per ARCH-INDEX §Subsystem Registry) and `executor.rs`/`registry.rs` (SS-01). SS-05
+  "Pipeline Orchestration" owns agents + workflows; ADR-039 touches none of it. The S-21.11
+  story already corrected its own `subsystems: SS-05→SS-07` at v1.3; this ADR frontmatter was
+  the un-swept sibling. No decision, threshold, or normative content altered. Does not require
+  human re-ratification under POLICY 22 (POLICY 22 governs decision changes; this corrects a
+  frontmatter label). Status remains RATIFIED. ADR-039 v1.5. See §Erratum E-002.
+  [Prior: 2026-08-17 (v1.4-erratum) — Non-load-bearing citation erratum (architect; F-S2111-P1-008
   sibling-sweep from S-21.11 spec review): §Decision 5 opening sentence corrected — "S-21.07
   (Task #33)" was a factual citation error; S-21.07 has only 22 tasks (task 12 deferred) and
   no task #33 exists. The ≥574 KB Mitigation 2 fixture was delivered in S-21.07 as the
@@ -75,6 +84,7 @@ modified:
   - "2026-08-16 (v1.3)"
   - "2026-08-17 (v1.4-erratum)"
   - "2026-08-16 (v1.3-ratified)"
+  - "2026-08-17 (v1.5-erratum)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -537,6 +547,11 @@ CITATION ERRATUM 2026-08-17 (v1.4 — architect; F-S2111-P1-008): §Decision 5 "
 corrected — Task #33 does not exist in S-21.07. Mitigation 2 fixture delivery citation updated to
 reference the actual `a1-production-scale` bats scenario fixture (e94767bc). §Implementation Status
 Phase 2 corrected accordingly. No decision semantics altered; status remains RATIFIED. ADR-039 v1.4.
+ANCHOR ERRATUM 2026-08-17 (v1.5 — architect; F-S2111-P2-005): frontmatter `subsystems_affected`
+corrected [SS-01, SS-05] → [SS-01, SS-07]. SS-07 ("Hook Bash Layer") owns `hooks-registry.toml`
+per ARCH-INDEX §Subsystem Registry; SS-05 ("Pipeline Orchestration") owns agents + workflows and
+is not touched by this ADR. Non-load-bearing anchor correction; no decision semantics altered;
+status remains RATIFIED. ADR-039 v1.5. See §Erratum E-002.
 
 Adjudicates F-S2107-P7-010 (HIGH), F-S2107-P7-011 (HIGH), F-S2107-P7-015 (MEDIUM) design
 legs from adversarial pass-7 of S-21.07. Extends ADR-035 §Decision 5 to the enforcement
@@ -560,6 +575,31 @@ Implementation routing (current status):
 ---
 
 ## Erratum
+
+### E-002 — `subsystems_affected` label: SS-05 → SS-07 (v1.5, 2026-08-17)
+
+**Finding:** F-S2111-P2-005 (sibling-sweep during S-21.11 story anchor correction).
+
+**Error:** Frontmatter `subsystems_affected: [SS-01, SS-05]` listed SS-05 ("Pipeline
+Orchestration"). SS-05 owns `plugins/vsdd-factory/agents/` and `workflows/*.lobster`; ADR-039
+touches neither. The config artifact ADR-039 actually governs — `hooks-registry.toml` — is
+owned by SS-07 ("Hook Bash Layer") per ARCH-INDEX §Subsystem Registry. The S-21.11 story
+already corrected its own `subsystems: SS-05→SS-07` at v1.3; this ADR frontmatter was the
+un-swept sibling (TD-VSDD-060 sibling-site sweep obligation).
+
+**Correction:** `subsystems_affected: [SS-01, SS-05]` → `[SS-01, SS-07]`. SS-01 covers
+`executor.rs` and `registry.rs` (Hook Dispatcher Core). SS-07 covers `hooks-registry.toml`
+(the registry TOML file where `failure_policy` is added per Decision 2).
+
+**Scope:** Frontmatter label correction only. No decision, threshold, rule, or normative
+content altered. The six ADR decisions and all rationale are unchanged.
+
+**Ratification note:** This erratum does not require human re-ratification under POLICY 22.
+POLICY 22 governs changes to ADR decisions (rulings, thresholds, normative prescriptions). A
+subsystem label correction that does not alter any decision semantics is outside POLICY 22's
+scope. Status remains RATIFIED. ADR-039 v1.5.
+
+---
 
 ### E-001 — §Decision 5 "Task #33" citation (v1.4, 2026-08-17)
 
