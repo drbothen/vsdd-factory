@@ -961,6 +961,7 @@ mod tests {
             config: toml::Value::Table(toml::Table::new()),
             async_flag: false,
             needs_context: vec![],
+            failure_policy: crate::registry::FailurePolicy::FailOpen,
         };
         let cap: u64 = DEFAULT_FUEL_CAP;
         let consumed: u64 = 12_345_678;

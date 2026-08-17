@@ -111,6 +111,7 @@ fn sync_registry_entry(plugin_path: PathBuf, name: &str, event: &str) -> Registr
         config: toml::Value::Table(toml::Table::new()),
         async_flag: false,
         needs_context: vec![],
+        failure_policy: Default::default(),
     }
 }
 
@@ -130,6 +131,7 @@ fn async_registry_entry(plugin_path: PathBuf, name: &str, event: &str) -> Regist
         config: toml::Value::Table(toml::Table::new()),
         async_flag: true,
         needs_context: vec![],
+        failure_policy: Default::default(),
     }
 }
 
@@ -801,6 +803,7 @@ async fn test_e2e_BC_1_14_001_async_block_verdict_discarded() {
         config: toml::Value::Table(toml::Table::new()),
         async_flag: true, // ASYNC — verdict must NOT gate Claude Code
         needs_context: vec![],
+        failure_policy: Default::default(),
     };
     let registry = registry_from(vec![async_entry.clone()]);
 
@@ -877,6 +880,7 @@ async fn test_e2e_BC_1_14_001_async_block_verdict_discarded() {
         config: toml::Value::Table(toml::Table::new()),
         async_flag: true,
         needs_context: vec![],
+        failure_policy: Default::default(),
     };
     let registry2 = registry_from(vec![async_entry2]);
 
@@ -964,6 +968,7 @@ async fn test_e2e_BC_1_14_001_mixed_sync_async_partition_timing() {
         config: toml::Value::Table(toml::Table::new()),
         async_flag: false, // SYNC
         needs_context: vec![],
+        failure_policy: Default::default(),
     };
     let async_entry = RegistryEntry {
         name: "async-telemetry".to_string(),
@@ -979,6 +984,7 @@ async fn test_e2e_BC_1_14_001_mixed_sync_async_partition_timing() {
         config: toml::Value::Table(toml::Table::new()),
         async_flag: true, // ASYNC
         needs_context: vec![],
+        failure_policy: Default::default(),
     };
     let registry = registry_from(vec![sync_entry.clone(), async_entry.clone()]);
 
@@ -1134,6 +1140,7 @@ async fn test_e2e_BC_7_06_001_sync_hook_crash_fail_closed_on_error_block() {
         config: toml::Value::Table(toml::Table::new()),
         async_flag: false, // sync
         needs_context: vec![],
+        failure_policy: Default::default(),
     };
     let registry = registry_from(vec![crash_entry.clone()]);
 
@@ -1243,6 +1250,7 @@ async fn test_e2e_BC_1_14_001_async_timeout_emits_plugin_timeout_event() {
         config: toml::Value::Table(toml::Table::new()),
         async_flag: true,
         needs_context: vec![],
+        failure_policy: Default::default(),
     };
     let registry = registry_from(vec![async_hang_entry.clone()]);
 
@@ -1573,6 +1581,7 @@ async fn test_e2e_BC_7_06_001_sync_hook_timeout_fail_closed_on_error_block() {
         config: toml::Value::Table(toml::Table::new()),
         async_flag: false, // SYNC — verdict propagates to gate
         needs_context: vec![],
+        failure_policy: Default::default(),
     };
     let registry = registry_from(vec![hang_entry.clone()]);
 

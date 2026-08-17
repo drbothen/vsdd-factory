@@ -8,6 +8,8 @@
 
 ### Added
 
+- **S-21.10 — `failure_policy` dispatcher registry schema extension** (BC-1.01.016 v1.3, E-21 W5, ADR-039 Phase 1): Dispatcher registry: new per-plugin `failure_policy` TOML field (`fail-closed` | `fail-open`); absent field defaults to `fail-open`; unknown values rejected at parse time (ADR-039 Decision 1+2 Phase 1).
+
 - **S-21.07 — validate-cross-site-correspondence WASM hook plugin** (BC-5.39.010 v1.13, E-21 W4): New `validate-cross-site-correspondence` PostToolUse WASM hook plugin enforcing value-equivalence invariants across BC-INDEX.md, STORY-INDEX.md, and BC/story frontmatter after every Edit/Write on a governed file. Three mechanically-gateable classes ship: **Class A Arm1** fires on BC file writes and validates the BC-INDEX version-chain cite matches the BC frontmatter version (directional: primary-newer-than-index → advisory per PC2a; index-newer-than-primary → block per PC2b); **Class A Arm2** fires on story file writes and validates every BC version cite in the story body against the cited BC's current frontmatter; **Class B** fires on STORY-INDEX writes and enforces three-way input-hash equality per POLICY 18 (directional: B2==B3 AND B1≠B2 → advisory per PC13a; B2≠B3 → block per PC13b; half-present → advisory per PC13c); **Class E** fires on BC/story writes and enforces frontmatter version↔last_amended text-prefix parity and modified[] date monotonicity per POLICY 14 leg 4 / POLICY 17. New crate `crates/hook-plugins/validate-cross-site-correspondence`; 51-test bats acceptance suite (`plugins/vsdd-factory/tests/validate-cross-site-correspondence.bats`); `validate-cross-site-correspondence` entry added to `plugins/vsdd-factory/hooks-registry.toml`.
 
 ### Fixed
