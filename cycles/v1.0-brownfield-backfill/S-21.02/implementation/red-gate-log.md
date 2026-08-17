@@ -9,7 +9,7 @@ phase: 3
 inputs:
   - .factory/stories/S-21.02-post-rebase-diff-integrity-gate.md
   - .factory/specs/behavioral-contracts/ss-05/BC-5.44.001.md
-input-hash: "7ae574a"
+input-hash: "ecc6eb3"
 traces_to: "BC-5.44.001 v1.3"
 stub_architect_agent: "N/A — no code stubs (skill-doc only; POLICY 21 satisfied)"
 stub_compile_verified: true

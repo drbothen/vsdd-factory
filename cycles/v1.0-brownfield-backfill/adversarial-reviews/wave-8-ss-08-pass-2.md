@@ -22,7 +22,7 @@ inputs:
   - .factory/stories/S-0.02-release-workflow-prerelease.md
   - .factory/policies.yaml
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/wave-8-ss-08-pass-1.md
-input-hash: "e34d8fb"
+input-hash: "b640b4f"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-8-ss-08-re-anchor

@@ -11,7 +11,7 @@ inputs:
   - specs/architecture/decisions/ADR-031-e21-factory-state-data-loss-hardening.md
   - specs/behavioral-contracts/ss-06/BC-6.26.001.md
   - cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
-input-hash: "1fa6cc2"
+input-hash: "3bc64f0"
 traces_to: "BC-6.26.001 v1.14; story v1.28"
 pass: 26
 verdict: NOT-CLEAN

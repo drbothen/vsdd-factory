@@ -34,7 +34,7 @@ inputs:
   - .factory/stories/S-2.03-ci-cross-platform-matrix.md
   - .factory/stories/S-2.04-release-binary-commit.md
   - .factory/stories/S-2.08-beta1-release-gate.md
-input-hash: "698b0d6"
+input-hash: "42f2800"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-6-ss-09-re-anchor

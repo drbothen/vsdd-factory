@@ -7,7 +7,7 @@ producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
 phase: 1.4b
 inputs: [bc-id-mapping.md, pass-3-behavioral-contracts-deep-r1.md]
-input-hash: "2fece5c"
+input-hash: "a81e729"
 traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md:459"

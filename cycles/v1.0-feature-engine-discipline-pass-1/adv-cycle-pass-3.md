@@ -14,7 +14,7 @@ inputs:
   - crates/vsdd-context-resolvers/tests/capability_confinement_test.rs
   - plugins/vsdd-factory/tests/resolver-integration.bats
   - plugins/vsdd-factory/resolvers-registry.toml
-input-hash: "0b1ad6c"
+input-hash: "086e90d"
 traces_to: prd.md
 pass: 3
 previous_review: adv-cycle-pass-2.md

@@ -20,7 +20,7 @@ inputs:
   - .factory/specs/domain-spec/capabilities.md
   - .factory/policies.yaml
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/wave-9-ss-01-straggler-pass-1.md
-input-hash: "1c91b4f"
+input-hash: "615b1fd"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-9-ss-01-straggler-re-anchor

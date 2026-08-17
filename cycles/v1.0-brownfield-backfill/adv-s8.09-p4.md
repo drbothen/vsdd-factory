@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/stories/S-8.10-sdk-extension-write-file.md
-input-hash: "ad1c47c"
+input-hash: "6d36dde"
 traces_to: prd.md
 pass: p4
 previous_review: adv-s8.09-p3.md

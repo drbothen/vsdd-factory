@@ -18,7 +18,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.094.md
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.095.md
   - .factory/specs/verification-properties/VP-080.md
-input-hash: "c34ea1e"
+input-hash: "d0a0522"
 last_amended: "2026-05-12 (v1.0 — initial authoring)"
 modified:
   - "v1.0 2026-05-12: initial authoring"

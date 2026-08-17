@@ -7,7 +7,7 @@ producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
 phase: 1a
 inputs: [pass-3-deep-hooks.md, pass-3-behavioral-contracts.md, pass-3-behavioral-contracts-deep-r1.md, bc-id-mapping.md]
-input-hash: "118ab49"
+input-hash: "c09076f"
 traces_to: domain-spec/L2-INDEX.md
 origin: brownfield
 extracted_from: "pass-3-behavioral-contracts.md:439"

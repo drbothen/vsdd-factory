@@ -12,7 +12,7 @@ inputs:
   - plugins/vsdd-factory/skills/factory-health/SKILL.md
   - plugins/vsdd-factory/skills/deliver-story/steps/step-f-pr-lifecycle.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.16.001.md
-input-hash: "3327994"
+input-hash: "aa81178"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null

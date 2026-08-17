@@ -9,7 +9,7 @@ timestamp: 2026-04-25T00:00:00
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
-input-hash: "a6c6f62"
+input-hash: "7a51864"
 traces_to: L2-INDEX.md
 ---
 

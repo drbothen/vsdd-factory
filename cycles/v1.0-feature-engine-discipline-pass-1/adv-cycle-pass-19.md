@@ -17,7 +17,7 @@ inputs:
   - .factory/specs/verification-properties/VP-INDEX.md
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "c40dc20"
+input-hash: "bda0cc8"
 traces_to: prd.md
 project: vsdd-factory
 mode: feature

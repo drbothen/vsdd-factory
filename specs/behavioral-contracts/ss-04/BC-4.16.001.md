@@ -13,7 +13,7 @@ inputs:
   - plugins/vsdd-factory/hooks-registry.toml
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "5b1c716"
+input-hash: "3207a61"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null

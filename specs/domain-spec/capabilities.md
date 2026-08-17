@@ -13,7 +13,7 @@ inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "312a4e5"
+input-hash: "67f16dd"
 traces_to: L2-INDEX.md
 ---
 

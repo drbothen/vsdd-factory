@@ -1,45 +1,47 @@
-# PR #779 — Final Fresh-Eyes Review
+# PR #780 — Final Fresh-Eyes Review
 
-- **PR:** #779 `fix(policy15): empty/unresolvable range → SkippedEmptyRange inert-skip (exit 0)`
-- **Branch:** `fix/policy15-empty-range-inert` → `develop`
-- **Reviewed HEAD (covered_sha):** `591d3a0aeb9c32af8bd46e8af928e887b9ffd7ec`
-- **Commits reviewed (3 on top of develop):**
-  - `bc3b689d` — TDD red-gate tests for SkippedEmptyRange (ADR-040 v1.19 Ruling 9(f))
-  - `910eb1b3` — implementation: empty/unresolvable range → SkippedEmptyRange inert-skip (exit 0)
-  - `591d3a0a` — chore: update stale EmptyRange→SkippedEmptyRange doc comments/assertion messages
+- **PR:** #780 `feat(S-21.10): failure_policy registry schema extension (ADR-039 Phase 1 — schema only, no enforcement change)`
+- **Branch:** `feature/S-21.10` → `develop`
+- **Reviewed HEAD:** `58c0435e62894523135d1d9d4ac8374259a20182`
+- **Story:** S-21.10 (E-21 Wave 5) — ADR-039 Phase 1 schema leg
+- **BC:** BC-1.01.016 v1.3 (PC1–PC7, EC-001..EC-007, 15 TDD tests)
 
-## Verdict: APPROVE
+## Verdict: REQUEST_CHANGES
 
-No BLOCKER or REQUEST_CHANGES findings.
+Code content is approved on the merits, but merge is blocked by a red required check caused by an empty tip commit. No `covered_sha` is emitted because the fix changes the HEAD SHA.
 
-## What this PR does
+## Code content — APPROVED
 
-Fixes a false-FAIL in the `policy-15-attestation-location` CI gate per ADR-040 v1.19 Ruling 9(f):
-- New `GateOutcome::SkippedEmptyRange` variant (exit 0) for empty/unresolvable commit ranges.
-- `UnreachableCause::EmptyRange` retired; its two call sites now return `SkippedEmptyRange`.
-- Guard ordering preserved: `StalePin` fires before range computation → stale pin still blocks (exit 2).
-- `ci.yml` job gains `if: github.event_name == 'pull_request'` (PR-only event guard).
-- 3 new TDD unit tests (red-first in `bc3b689d`, green in `910eb1b3`).
+The substantive diff is production-grade and correct:
 
-## Review focus — all verified
+1. **`FailurePolicy` enum** (`registry.rs`) — `#[serde(rename_all = "kebab-case")]`, `#[default]` on `FailOpen`, `Copy`/`Eq` derives. Doc comment correctly flags the kebab-vs-snake hazard: copying the sibling `OnError`'s `snake_case` would have silently accepted `fail_closed` and opened a bypass.
+2. **`RegistryEntry.failure_policy`** — `#[serde(default)]`; doc comment explicitly warns against refactoring to `Option<FailurePolicy>` and documents the per-plugin (not `RegistryDefaults`) design decision per ADR-039 §Decision 2 / SR-003.
+3. **PC7 no-enforcement boundary respected** — `plugin_fail_closed` in `executor.rs` is unchanged; it appears only in doc comments in the diff. The RED-gate test `fail_closed_timeout_with_on_error_continue_is_open` is untouched.
+4. **All `RegistryEntry` struct literals updated** — `executor.rs`, `partition.rs` kani proof, and 5 integration test files (`async_partition_integration.rs`, `executor_integration.rs`, `executor_resolver_integration.rs`, `full_stack_plugin_invocation.rs`, `resolver_error_isolation_test.rs`) all add `failure_policy`. Confirmed by clean `cargo-host` on linux + macos.
+5. **15 TDD tests** in `mod s21_10_bc_1_01_016_failure_policy`, each traced to a BC-1.01.016 PC/EC. Verified coverage: PC1 (fail-closed parse), PC2 (fail-open parse), PC3 (unknown → Err), PC4 (absent → FailOpen), PC5/EC-006 (continue + fail-closed simultaneous), PC6/EC-007 (production registry all-FailOpen), PC7 (registry-side scope guard: `on_error()` accessor unaffected by `failure_policy`), EC-001 (wrong case), EC-002 (empty string), EC-003 (underscore, both variants), EC-005 (block + fail-open), plus round-trip serialize and `default()` invariant. EC-004 (duplicate key) correctly documented as a TOML-parser-layer concern, out of registry-unit scope.
+6. **Prior findings resolved** — FINDING 1 (lib.rs re-export of `FailurePolicy`) and FINDING 2 (module comment EC range "EC-001..EC-003, EC-005..EC-007" with EC-004 note) confirmed fixed; the module-comment coverage claim is accurate against the actual tests.
+7. **CHANGELOG** updated with the S-21.10 Added entry.
 
-1. **Correctness — all call sites updated.** `run_gate()` unresolvable-base arm and `run_gate_inner()` empty-commits arm both return `GateOutcome::SkippedEmptyRange`. `UnreachableCause::EmptyRange` enum variant fully retired; grep across the crate shows zero remaining references to the variant — only doc/comment mentions of the string, all now describing SkippedEmptyRange. TD-VSDD-060 sibling-sweep complete.
-2. **is_pass()/exit_code().** `SkippedEmptyRange` added to the `is_pass()` match arm; `exit_code()` derives from `is_pass()` → returns 0. Correct.
-3. **identifier() exhaustiveness.** Exhaustive over all variants (Fail, PassWithActivations, PassZeroActivations, EmptyOrUnreachable(StalePin), EmptyOrUnreachable(UnmeasurableDiff), SkippedEmptyRange) with NO `_` wildcard — the deliberately-absent `#[non_exhaustive]` compile-safety property is preserved. SKIP prefix ("SKIP: empty or unresolvable commit range — inert...") is distinct from PASS/FAIL/EMPTY. `main.rs` match also uses explicit arms; comment correctly updated 5th→6th variant.
-4. **Guard ordering.** `StalePin` still wins when both crate-absent AND range-empty. `test_run_gate_guard1_stale_pin_beats_unresolvable_base` and `test_guard_ordering_stale_pin_beats_empty_range` UNCHANGED in assertion logic and pass. Guard 1 fires before merge-base computation.
-5. **TDD red evidence.** `bc3b689d` adds the two `test_adr040_v119_*` tests referencing `GateOutcome::SkippedEmptyRange` before the variant exists → legitimate compile-failure red. Variant + logic land green in `910eb1b3`.
-6. **Cleanup commit.** `591d3a0a` updates 4 stale references (lib.rs test docs, main.rs, binary_integration_test.rs module + test docs). All now read SkippedEmptyRange.
-7. **ci.yml `if:` placement.** At JOB level (line 358, under `name:`/`runs-on:`, above `steps:`), not step level. Confirmed.
-8. **No AI attribution.** Commit messages checked; zero `Co-Authored-By`/Claude/robot references.
+## MERGE BLOCKER — empty tip commit trips POLICY 15 gate
 
-## Local verification
+Required check `policy-15-attestation-location` is **RED** (exit 2). Root cause is not the code — it is the empty tip commit:
 
-- `cargo test -p policy15-attestation-gate --all-targets` → 24 lib + 5 integration tests pass, 0 failed.
-- `cargo clippy -p policy15-attestation-gate --all-targets -- -D warnings` → clean.
-- `cargo fmt --check` → clean.
+```
+58c0435e ci(S-21.10): retrigger CI after factory-artifacts corpus-gate fix (D-1023)
+```
 
-## Findings
+`git diff --name-only 58c0435e^1 58c0435e` is empty. The POLICY 15 gate (`crates/policy15-attestation-gate/src/lib.rs:344-350`, introduced in #777) walks every commit in `merge-base..HEAD` and flags any single-parent commit with an empty diff as `EMPTY-or-UNREACHABLE: unmeasurable diff`, unconditionally, before the pinned-crate (`crates/hook-plugins/validate-cross-site-correspondence`) activation check. The gate log reads `unmeasurable diff at commit 58c0435e6289`.
 
-- **INFO (non-blocking).** The ci.yml comment correctly notes that branch protection for the `policy-15-attestation-location` required check must be configured for `pull_request` contexts only, so the job being SKIPPED on push events is not treated as a pending/failed required check. This is a repo-settings action the human must apply after merge; it is properly surfaced inline (not a forbidden defer). Recommend confirming branch-protection config post-merge so post-merge pushes to `develop` aren't blocked waiting on a check that no longer runs on push.
+**Remediation:** drop the empty commit so HEAD becomes `e6e86ba6` (`git rebase` to drop `58c0435e`, or `git reset --soft HEAD~1` then re-push). All remaining commits have non-empty diffs and none touch the pinned crate, so the gate resolves to a clean pass. Re-review at the new HEAD before merge.
 
-covered_sha: 591d3a0aeb9c32af8bd46e8af928e887b9ffd7ec
+## CI status
+
+- `policy-15-attestation-location`: **FAIL** (empty tip commit — see above)
+- `cargo-host` (ubuntu-latest, macos-latest): PASS
+- `bats-full-suite` (linux), `bats-darwin-leg`, `bats-wave-handoff`: PASS
+- `build-dispatcher` (linux-x64, linux-arm64): PASS; darwin/windows legs pending at review time
+- `SAST (Semgrep)`, `validate`, `platforms-drift`, `attestation-gate-non-vacuity-controls`: PASS
+
+## Covered SHA
+
+None — verdict is REQUEST_CHANGES. Will re-verify and approve at the new HEAD once the empty commit is dropped and CI is green.

@@ -10,7 +10,7 @@ phase: brownfield-backfill
 inputs:
   - .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
   - .factory/research/wasm-fuel-exhaustion-detection.md
-input-hash: "7a9cdc6"
+input-hash: "37ad7a5"
 traces_to: .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
 origin: greenfield
 extracted_from: null

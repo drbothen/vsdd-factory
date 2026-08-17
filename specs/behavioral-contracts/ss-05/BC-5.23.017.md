@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
   - .factory/phase-0-ingestion/pass-3-deep-workflows.md
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "ff5c402"
+input-hash: "945d976"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md#ss-05-pipeline-orchestration
 origin: brownfield
 extracted_from: "plugins/vsdd-factory/workflows/phases/phase-3-tdd-implementation.lobster"

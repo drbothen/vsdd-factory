@@ -9,7 +9,7 @@ phase: 3
 inputs:
   - .factory/stories/S-21.03-pr-manager-trunk-assertion.md
   - .factory/specs/behavioral-contracts/ss-06/BC-6.10.002.md
-input-hash: "4c75d87"
+input-hash: "5ff2ede"
 traces_to: "BC-6.10.002 v1.3"
 stub_architect_agent: "N/A — no code stubs (skill-doc + bats story; ADR-031 §Decision 6 class; POLICY 21 satisfied)"
 stub_compile_verified: true

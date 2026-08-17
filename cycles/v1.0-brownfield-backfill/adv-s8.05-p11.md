@@ -16,7 +16,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.04.043.md
   - .factory/specs/behavioral-contracts/ss-07/BC-7.04.044.md
   - crates/hook-sdk/src/payload.rs
-input-hash: "05e8f58"
+input-hash: "b8e5b4f"
 traces_to: prd.md
 pass: p11
 previous_review: adv-s8.05-p10.md

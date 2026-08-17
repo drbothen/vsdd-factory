@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-05/BC-5.41.002.md
   - .factory/stories/sprint-state.yaml
   - .factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md
-input-hash: "7bec9f0"
+input-hash: "2f30126"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null

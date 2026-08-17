@@ -10,7 +10,7 @@ phase: F3
 inputs:
   - .factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "2135855"
+input-hash: "114c429"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null

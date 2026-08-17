@@ -12,7 +12,7 @@ inputs:
   - specs/architecture/decisions/ADR-034-ci-gate-product-branch-operand-isolation-and-runtime-derived-counts.md
   - cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
   - policies.yaml
-input-hash: "ae93f6f"
+input-hash: "4867253"
 traces_to: "BC-6.26.001 v1.18; story v1.33; ADR-034 v1.1"
 pass: 30
 verdict: NOT-CLEAN

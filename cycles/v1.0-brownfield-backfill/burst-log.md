@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-20T00:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 traces_to: STATE.md
 ---
 
@@ -1550,7 +1550,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 traces_to: STATE.md
 ---
 
@@ -3146,9 +3146,9 @@ PASS
 **Input hashes valid (non-pending):**
 ```
 $ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 $ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 ```
 PASS — both are lowercase hex (7 chars); no "pending" placeholder
 
@@ -12101,7 +12101,7 @@ grep "^version:\|^input-hash:" .factory/stories/S-19.06-read-prefix-bounded-part
 stdout:
 ```
 version: "1.13"
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 ```
 
 **Gate F — E-19 epic frontmatter version + input-hash:**
@@ -12111,7 +12111,7 @@ grep "^version:\|^input-hash:" .factory/stories/epics/E-19-post-rc22-operator-ha
 stdout:
 ```
 version: "v1.14"
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 ```
 
 ### Block 6 — Dim-5 (8-block presence self-verification)
@@ -12224,7 +12224,7 @@ grep "^version:\|^input-hash:" .factory/stories/S-19.07-verify-factory-lock-read
 stdout:
 ```
 version: "1.7"
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 ```
 S-19.07 at v1.7 — F-P17-001 + F-P17-002 fix burst complete.
 
@@ -14363,7 +14363,7 @@ $ plugins/vsdd-factory/bin/compute-input-hash \
     .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
 83e8cc4
 $ grep "input-hash" .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 ```
 
 PASS: S-19.02=d208e66 / S-19.07=83e8cc4 — match SW-leg confirmed hashes. BC-4.13.001 declared input-hash 86fab85 non-placeholder. POLICY 18 satisfied; no placeholders.
@@ -21389,7 +21389,7 @@ Zero live sentinels in spec artifacts.
 **(e) Three-way equality gate (literal shell):**
 ```
 $ grep "input-hash:" .factory/stories/S-21.04-story-worktree-write-path-discipline.md | head -1
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 $ grep "input-hash 242b539\|input-hash: \"242b539\"" .factory/stories/STORY-INDEX.md | head -2
 | S-21.04 | ... input-hash 242b539; ...
 $ grep "S-21.04=242b539" .factory/stories/STORY-INDEX.md
@@ -22454,7 +22454,7 @@ Burst-log Block 2 adversary verdict (NOT-CLEAN · B7/H19/M13/L8 = 47 findings ·
 
 ```
 $ grep -m1 "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 $ sed -n '730p' .factory/stories/STORY-INDEX.md | grep -oE 'input-hash [0-9a-f]+'
 input-hash 52f0bf3
 $ sed -n '732p' .factory/stories/STORY-INDEX.md | grep -oE 'S-21\.07=[0-9a-f]+'
@@ -22521,7 +22521,7 @@ $ grep -oE 'S-21\.07=[0-9a-f]+' .factory/stories/STORY-INDEX.md
 S-21.07=52f0bf3
 
 $ grep -m1 "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 
 $ sed -n '730p' .factory/stories/STORY-INDEX.md | grep -oE 'input-hash [0-9a-f]+'
 input-hash 52f0bf3
@@ -22622,7 +22622,7 @@ Burst-log Block 2 adversary verdict (NOT-CLEAN · B7/H19/M13/L8 = 47 findings ·
 
 ```
 $ grep -m1 "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 $ sed -n '730p' .factory/stories/STORY-INDEX.md | grep -oE 'input-hash [0-9a-f]+'
 input-hash 52f0bf3
 $ sed -n '732p' .factory/stories/STORY-INDEX.md | grep -oE 'S-21\.07=[0-9a-f]+'
@@ -22878,7 +22878,7 @@ Burst-log Block 2 adversary verdict (NOT-CLEAN · B3/H7/M12/L3 = 25 findings · 
 
 ```
 $ grep "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 
 $ grep "S-21.07" .factory/stories/STORY-INDEX.md | grep "input-hash" | head -3
 [catalog row]: input-hash 9603a5b
@@ -22893,7 +22893,7 @@ B1=9603a5b == B2=9603a5b == B3=9603a5b — **THREE-WAY EQUAL. POLICY 18 ACHIEVED
 
 ```
 $ grep "^input-hash:" .factory/stories/S-21.09-wasm-artifact-restore-and-registry-parity.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 
 $ grep "S-21.09=" .factory/stories/STORY-INDEX.md | head -3
 [blockquote]: S-21.09=cf3a0c6
@@ -23039,7 +23039,7 @@ Block 2 cites: verdict=NOT-CLEAN, B4/H9/M9/L3=25 findings, reviewed_head=256023c
 
 ```
 $ grep "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 
 $ grep "| S-21.07 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash 25c7324
@@ -23056,7 +23056,7 @@ B1=25c7324 (story frontmatter) == B2=25c7324 (STORY-INDEX catalog row). B3 deliv
 
 ```
 $ grep "^input-hash:" .factory/stories/S-21.09-wasm-artifact-restore-and-registry-parity.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 
 $ grep "| S-21.09 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash cf3a0c6
@@ -23193,7 +23193,7 @@ Block 2 cites: verdict=NOT-CLEAN, B3/H8/M10/L3=24 findings, reviewed_head=b78b27
 
 ```
 $ grep "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 
 $ grep "| S-21.07 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash dd5c9d2
@@ -23210,7 +23210,7 @@ B1=dd5c9d2 (story frontmatter) == B2=dd5c9d2 (STORY-INDEX catalog row). B3 deliv
 
 ```
 $ grep "^input-hash:" .factory/stories/S-21.09-wasm-artifact-restore-and-registry-parity.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 
 $ grep "| S-21.09 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash cf3a0c6
@@ -23372,28 +23372,28 @@ Block 2 cites: verdict=NOT-CLEAN, B4/H7/M8/L1=20 findings, reviewed_head=b78b27e
 
 ```
 $ grep "^input-hash:" .factory/stories/S-18.06-validate-heavy-op-delegation-wasm.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 $ grep "| S-18.06 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash d65656e
 $ grep "S-18.06=" .factory/stories/STORY-INDEX.md | grep -oE "S-18\.06=[a-f0-9]+" | head -1
 S-18.06=d65656e
 
 $ grep "^input-hash:" .factory/stories/S-18.08-pure-parse-invariant-gate.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 $ grep "| S-18.08 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash b12c2fd
 $ grep "S-18.08=" .factory/stories/STORY-INDEX.md | grep -oE "S-18\.08=[a-f0-9]+" | head -1
 S-18.08=b12c2fd
 
 $ grep "^input-hash:" .factory/stories/S-18.11-sprint-state-per-story-format-producer.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 $ grep "| S-18.11 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash f7ab2d0
 $ grep "S-18.11=" .factory/stories/STORY-INDEX.md | grep -oE "S-18\.11=[a-f0-9]+" | head -1
 S-18.11=f7ab2d0
 
 $ grep "^input-hash:" .factory/stories/S-18.12-portability-lint-guard-extension.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 $ grep "| S-18.12 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
 input-hash 8880487
 $ grep "S-18.12=" .factory/stories/STORY-INDEX.md | grep -oE "S-18\.12=[a-f0-9]+" | head -1
@@ -27462,7 +27462,7 @@ Three-way input-hash equality gate (literal shell):
 
 ```
 $ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -oE '^input-hash: "[a-f0-9]+"' stories/S-21.09-wasm-artifact-restore-and-registry-parity.md; grep -oE 'input-hash [a-f0-9]+' stories/STORY-INDEX.md | sort -u; grep -oE 'S-21\.09=[a-f0-9]+' stories/STORY-INDEX.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 input-hash 5c2bb82
 input-hash cf3a0c6
 S-21.09=cf3a0c6
@@ -27880,7 +27880,7 @@ $ grep -c "input-hash 7bc1850" stories/STORY-INDEX.md
 $ grep -c "S-21.07=7bc1850" stories/STORY-INDEX.md
 1
 $ grep -oE 'input-hash: "[a-f0-9]+"' stories/S-21.07-validate-cross-site-correspondence.md
-input-hash: "83998ec"
+input-hash: "9ebcbd1"
 ```
 
 (POLICY 18 three-way parity confirmed: story frontmatter `7bc1850` = STORY-INDEX catalog `7bc1850` = STORY-INDEX blockquote `7bc1850`.)

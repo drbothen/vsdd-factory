@@ -10,7 +10,7 @@ inputs:
   - .factory/stories/S-8.06-native-port-session-learning.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "6c84d46"
+input-hash: "024db9c"
 traces_to: prd.md
 pass: 2
 previous_review: adv-s8.06-p1.md

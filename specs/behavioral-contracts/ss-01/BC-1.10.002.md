@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/specs/architecture/SS-01-hook-dispatcher.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.04.003.md
-input-hash: "e40467b"
+input-hash: "3ad3ea3"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null

@@ -10,7 +10,7 @@ inputs:
   - .factory/stories/S-8.05-native-port-validate-pr-review-posted.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "a9fc671"
+input-hash: "56272ff"
 traces_to: prd.md
 pass: 2
 previous_review: adv-s8.05-p1.md

@@ -8,7 +8,7 @@ timestamp: 2026-05-04T00:00:00Z
 phase: 1.2-rev
 inputs:
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
-input-hash: "6da47b9"
+input-hash: "49982f5"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: spec-revision
 subsystem: "SS-01"

@@ -8,7 +8,7 @@ producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
 phase: 1.4b
 inputs: [.factory/phase-0-ingestion/pass-3-deep-workflows.md]
-input-hash: "99bbe9c"
+input-hash: "099a320"
 traces_to: domain-spec/L2-INDEX.md
 origin: brownfield
 extracted_from: "plugins/vsdd-factory/workflows/code-delivery.lobster"

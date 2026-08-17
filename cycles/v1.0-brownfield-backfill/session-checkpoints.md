@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "dfb114e"
+input-hash: "9ebcbd1"
 traces_to: STATE.md
 ---
 
@@ -1985,3 +1985,61 @@ decision-log.md is missing the exhaustive per-decision backfill for: (a) D-1011'
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the SESSION-WRAP-PAUSE-2026-08-16 checkpoint burst (2026-08-16) — human-requested `/wrap`; pipeline `ACTIVE`→`PAUSED` at this D-1015 resting state; no spec/index/ADR content changed by the pause.**
+
+---
+
+## Session Resume Checkpoint (2026-08-16 — D-1026-STATE-BANNER-WC-L-CORRECTION COMPLETE; PIPELINE ACTIVE)
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE ACTIVE** — D-1026 STATE.md banner wc-l correction burst complete (banner 315→311; unblocks PR #780+#781 CI; validate-state-structure + validate-cross-site-correspondence GREEN). `develop` is `a6a15e1d`, CI-GREEN. **CI-red track CLOSED** (D-1016/D-1017). POLICY 15 **COMPLETE** (D-1014/D-1015). `[D-969]`/`[F-S2107-P10-001]` **fully CLOSED**. `[P0-followup]` branch-protection enforcement OPEN (human/admin-only). ADR-039 v1.3 **RATIFIED** (D-1022; POLICY 22 ratification-channel). S-21.16 **registered** (draft; E-21; 44fdfb8; CWE-636 follow-up per ADR-039 v1.3 §Consequences; depends_on S-21.11). **S-21.10 LOCAL adversary pass-3 NOT-CLEAN** (D-1021; F-1 HIGH File-Structure REMEDIATED, F-2 LOW BC-TBD SANCTIONED-DEFERRAL; story v1.7; BC-1.01.016 v1.3; code 6a9f4e33; BC-5.39.001 streak 0/3; pass-4 pending). **S-21.12 LOCAL adversary pass-2 NOT-CLEAN** (D-1021; F-1 BSD-grep+spec-nit REMEDIATED; story v1.8; code a263055f; BC-5.39.001 streak 0/3; pass-3 pending). S-21.07 MERGED (PR #776, `e94767bc`); S-21.09 MERGED (PR #775, `2e8087af`); `merged_count` 109. 4-index: ARCH v3.63 / BC v4.67 / VP v2.76 / STORY v4.347. trajectory-tail S-21.10 LOCAL →2→2→2→2; S-21.12 LOCAL →2→2→2→2.
+
+### §2 What This Burst Did
+
+**D-1026-STATE-BANNER-WC-L-CORRECTION (state-manager banner-fix burst only)**:
+- STATE.md banner wc-l corrected 315→311 (stale count from D-1024/D-1025 bursts which changed file length without updating banner).
+- Full local gate: `cargo test -p validate-state-structure` all-GREEN; `cargo test -p validate-cross-site-correspondence` all-GREEN. Unblocks PR #780 + PR #781 CI.
+- Indexes, BCs, stories, architecture UNCHANGED.
+- STATE.md v8.01→v8.02; D-1026 allocated.
+- Trajectory-tail and convergence counters UNCHANGED (no story passes in this burst).
+
+### §3 Convergence Counters
+
+S-21.07 LOCAL cascade CONVERGED 3/3 at D-1009 (→1→0→0→0, UNCHANGED).
+S-21.10 LOCAL: pass-1 NOT-CLEAN D-1019 (2 findings); pass-2 NOT-CLEAN D-1020 (2 findings; REMEDIATED); pass-3 NOT-CLEAN D-1021 (F-1 REMEDIATED, F-2 SANCTIONED-DEFERRAL). Trajectory →2→2→2→2 (LENGTH=4). Streak 0/3; pass-4 pending.
+S-21.12 LOCAL: pass-1 NOT-CLEAN D-1020 (2 findings; REMEDIATED); pass-2 NOT-CLEAN D-1021 (2 findings; REMEDIATED). Trajectory →2→2→2→2 (LENGTH=4). Streak 0/3; pass-3 pending.
+
+### §4 Outstanding Backfill (carried forward, NOT closed by this burst)
+
+decision-log.md is missing the exhaustive per-decision backfill for: (a) D-1011's full reconcile-and-land session, and (b) D-1012's own SEC-001/CWE-697 arc detail (only a CONSOLIDATED entry exists). Remains OWED — anchored to a future state-manager burst. D-1014..D-1026 (see decision-log.md for full range; exhaustive) are unaffected — all recorded in their own full entries.
+
+### §5 Next Action
+
+**PIPELINE ACTIVE. CI-GREEN. ADR-039 v1.3 RATIFIED (D-1022). D-1026 banner-fix complete — PR #780+#781 CI unblocked. S-21.10 pass-3 NOT-CLEAN (F-1 REMEDIATED + F-2 SANCTIONED-DEFERRAL); streak 0/3. S-21.12 pass-2 NOT-CLEAN (F-1 REMEDIATED); streak 0/3. D-1025 index sync complete; story versions current (S-21.10 v1.7; S-21.12 v1.8).**
+1. **Dispatch S-21.10 adversary pass-4** (passes 1-3 NOT-CLEAN; streak 0/3 — 3 consecutive CLEAN required before Phase 3 dispatch).
+2. **Dispatch S-21.12 adversary pass-3** (passes 1-2 NOT-CLEAN; streak 0/3).
+3. **`[P0-followup]` branch-protection**: human/admin-only action.
+4. **C-1/C-2/C-4/C-5 exec_subprocess security** (ADR-043 NOT RATIFIED).
+5. **decision-log.md D-1011/D-1012 backfill OWED**.
+
+### §6 Open Follow-ups (accepted/deferred, non-blocking)
+
+- `capability: "E-12"` in BC-5.39.010 frontmatter — product-owner to confirm.
+- VP-template `last_amended` scaffold gap — architect-owned.
+- BC-INDEX read-cap ceiling growth — anchored S-21.13.
+- `report.tap` untracked in MAIN repo — gitignore hygiene (POLICY 20).
+- STORY-INDEX.md `last_amended` field bloat — anchored S-15.03.
+- `validate-pr-review-posted` hook Check-2 negation-blindness + Checks-3a/3b unreachability — anchored S-15.03 PRIORITY-A.
+- `test_h1_merge_pass_through_content_is_skipped_not_failed` assertion looseness — anchored next maintenance sweep.
+- Branch-protection enforcement gap — see `[P0-followup]`; human/admin-only.
+- BC-TBD/CAP-TBD/VP-TBD placeholders — SANCTIONED-DEFERRED per human ruling 2026-08-16; anchor S-15.03 PRIORITY-A.
+- ARCH-INDEX date anomaly (v3.59 2026-08-16, v3.60 2026-08-15) — DRIFT-LOGGED D-1021; non-blocking.
+- S-21.16 (D-1022; draft; CWE-636 fail-open hardening follow-up per ADR-039 v1.3 §Consequences) — queued behind S-21.11.
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the SESSION-WRAP-PAUSE-2026-08-17 checkpoint burst (2026-08-17) — human-requested `/wrap`; pipeline `ACTIVE`→`PAUSED` at E-21 Wave-A PR-review checkpoint; S-21.10 + S-21.12 LOCAL 3/3 CONVERGED.**

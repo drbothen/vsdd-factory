@@ -7,7 +7,7 @@ producer: vsdd-factory:adversary
 timestamp: 2026-08-12T23:45:00Z
 phase: 15
 inputs: [.factory/stories/S-21.09-wasm-artifact-restore-and-registry-parity.md]
-input-hash: "13be9a1"
+input-hash: "48547f6"
 traces_to: S-21.09-wasm-artifact-restore-and-registry-parity.md
 pass: 15
 previous_review: adv-s21.09-local-pass-14.md

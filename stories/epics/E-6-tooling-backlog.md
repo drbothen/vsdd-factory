@@ -12,7 +12,7 @@ phase: 2
 inputs:
   - .factory/STATE.md
   - .factory/stories/S-6.01-create-adr-skill.md
-input-hash: "61f99e2"
+input-hash: "4985bcc"
 traces_to: .factory/STATE.md#D-005
 last_amended: "2026-04-25 (v1.0 — initial authoring)"
 modified:

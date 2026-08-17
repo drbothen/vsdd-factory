@@ -12,7 +12,7 @@ inputs:
   - specs/behavioral-contracts/ss-06/BC-6.26.001.md
   - cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
   - policies.yaml
-input-hash: "2d1d78b"
+input-hash: "d01a100"
 traces_to: "BC-6.26.001 v1.18; story v1.33"
 pass: 29
 verdict: NOT-CLEAN
