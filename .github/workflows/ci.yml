@@ -971,3 +971,28 @@ jobs:
         # setup_file() builds pr-manager-completion-guard.wasm if absent (T-001 gate).
         run: |
           bats plugins/vsdd-factory/tests/pr-manager-hardening.bats
+
+  deny-advisories:
+    # AC-007 (S-21.12): cargo-deny advisories CI gate.
+    # Runs on every pull_request event via the shared top-level on.pull_request trigger
+    # (no paths: filter — this job fires on ALL PRs regardless of which files changed,
+    # closing the PR-007 process gap where RUSTSEC-2026-0188 sat silently on develop).
+    #
+    # AC-007 Test 2 invariant: the top-level on.pull_request trigger block in this file
+    # MUST NOT carry a paths: key. GitHub Actions has no per-job paths: filtering;
+    # a paths: filter at the workflow level would skip the advisory check on PRs that
+    # do not touch Cargo files — recreating the exact gap this job exists to close.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: cargo deny check advisories
+        # AC-007: advisories-only check against the workspace deny.toml at ./Cargo.toml.
+        # Pinned to commit SHA for supply-chain security (TD #74); resolves to v2.1.1.
+        # command: check + command-arguments: advisories → runs `cargo deny check advisories`.
+        # deny.toml [advisories] ignore = [] (deny-all posture); exits non-zero if any
+        # unignored advisory is present in the dependency graph.
+        uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25  # v2.1.1
+        with:
+          command: check
+          command-arguments: advisories
