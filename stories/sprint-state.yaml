@@ -274,7 +274,7 @@ stories:
   - id: S-21.05
     status: ready
   - id: S-21.10
-    status: draft
+    status: merged
   - id: S-21.12
     status: merged
   - id: S-21.14

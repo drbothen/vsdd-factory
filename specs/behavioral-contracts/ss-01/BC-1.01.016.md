@@ -2,10 +2,10 @@
 document_type: behavioral-contract
 level: L3
 version: "v1.3"
-status: draft
+status: active
 producer: product-owner
 timestamp: 2026-08-06T00:00:00Z
-last_amended: "2026-08-16 (v1.3) — modified[]-array parity backfill (product-owner): populated modified[] with v1.1 and v1.2 amendment entries to satisfy POLICY 14/17 leg-3 (kk_n_tripartite_parity_gate / nn_n_frontmatter_parity_full_file_type_scope). No behavioral or spec-content change. [Prior: 2026-08-16 (v1.2) — F-1 count-accuracy fix (product-owner): De-hardcoded brittle literal count '52' to 'all existing … (currently 76)' across Description, PC6, EC-007, Canonical Test Vectors, VP Anchors, and Verification Properties. Behavioral semantics (parse-cleanly and default-fail-open guarantees) unchanged. BC-1.01.016 v1.2.]"
+last_amended: "2026-08-17 (v1.3) — POL-14 promotion draft→active (state-manager): S-21.10 PR #780 squash-merged 27c56c01 2026-08-17; BC-1.01.016 v1.3 auto-promoted draft→active per POLICY 14 at merge. No content change. [Prior: 2026-08-16 (v1.3) — modified[]-array parity backfill (product-owner): populated modified[] with v1.1 and v1.2 amendment entries to satisfy POLICY 14/17 leg-3 (kk_n_tripartite_parity_gate / nn_n_frontmatter_parity_full_file_type_scope). No behavioral or spec-content change. [Prior: 2026-08-16 (v1.2) — F-1 count-accuracy fix (product-owner): De-hardcoded brittle literal count '52' to 'all existing … (currently 76)' across Description, PC6, EC-007, Canonical Test Vectors, VP Anchors, and Verification Properties. Behavioral semantics (parse-cleanly and default-fail-open guarantees) unchanged. BC-1.01.016 v1.2.]]"
 phase: brownfield-backfill
 inputs:
   - .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
@@ -16,12 +16,13 @@ origin: greenfield
 extracted_from: null
 subsystem: "SS-01"
 capability: "CAP-TBD"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-brownfield-backfill-E21-W5
 modified:
   - "2026-08-16 (v1.1)"
   - "2026-08-16 (v1.2)"
   - "2026-08-16 (v1.3)"
+  - "2026-08-17 (v1.3 POL-14 draft→active)"
 deprecated: null
 deprecated_by: null
 replacement: null
