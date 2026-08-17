@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-17T13:23:07Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.12 && cargo test --test s21_12_version_gate 2>&1 | tail -50"}
+{"status":"pass","timestamp":"2026-08-17T21:56:30Z","command":"cargo test -p validate-state-structure -p validate-cross-site-correspondence 2>&1 | tail -20"}

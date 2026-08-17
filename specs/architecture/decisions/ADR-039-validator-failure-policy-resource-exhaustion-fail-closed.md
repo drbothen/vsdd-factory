@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.3"
+version: "1.4"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: ratified
 date: 2026-08-06
@@ -17,7 +17,19 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-16 (v1.3-ratified) — Human ratification via orchestrator (POLICY 22 ratification-channel;
+  2026-08-17 (v1.4-erratum) — Non-load-bearing citation erratum (architect; F-S2111-P1-008
+  sibling-sweep from S-21.11 spec review): §Decision 5 opening sentence corrected — "S-21.07
+  (Task #33)" was a factual citation error; S-21.07 has only 22 tasks (task 12 deferred) and
+  no task #33 exists. The ≥574 KB Mitigation 2 fixture was delivered in S-21.07 as the
+  `a1-production-scale` bats scenario fixture (commit e94767bc; path:
+  `plugins/vsdd-factory/tests/fixtures/validate-cross-site-correspondence/a1-production-scale/factory/specs/behavioral-contracts/BC-INDEX.md`,
+  576,396 bytes). §Decision 5 opening sentence updated to reference the actual fixture. §Implementation
+  Status Phase 2 corrected: prior text stated "S-21.07 shipped without these mitigations" for
+  Mitigation 2 — incorrect; Mitigation 2 fixture IS committed; updated to reflect delivered status.
+  No decision, threshold, or normative content altered. Does not require human re-ratification under
+  POLICY 22 (POLICY 22 governs decision changes; this corrects a factual citation). Status remains
+  RATIFIED. ADR-039 v1.4. See §Erratum at end of document.
+  [Prior: 2026-08-16 (v1.3-ratified) — Human ratification via orchestrator (POLICY 22 ratification-channel;
   D-1022 2026-08-16): status proposed→ratified. ADR-039 v1.3 is the ratified version.
   [Prior: 2026-08-16 (v1.3) — Pre-ratification research reconciliation (architect): (1) stale
   fuel-default constant corrected — Decision 3 + Decision 4 + Rationale §per-plugin-scope
@@ -61,6 +73,7 @@ modified:
   - "2026-08-06 (v1.1)"
   - "2026-08-16 (v1.2)"
   - "2026-08-16 (v1.3)"
+  - "2026-08-17 (v1.4-erratum)"
   - "2026-08-16 (v1.3-ratified)"
 ---
 
@@ -286,8 +299,11 @@ A corpus of only small test fixtures provides no budget signal for multi-hundred
 
 ### Decision 5 — Near-term mitigations: fuel-headroom warning and production-scale fixture
 
-These two mitigations are independent of the fail-closed policy change and are approved for
-immediate delivery within S-21.07 (Task #33):
+These two mitigations are independent of the fail-closed policy change. Both were in-scope for
+S-21.07. Mitigation 2 (≥574 KB production-scale fixture) was delivered in S-21.07 as the
+`a1-production-scale` bats scenario fixture (commit e94767bc; `plugins/vsdd-factory/tests/fixtures/validate-cross-site-correspondence/a1-production-scale/factory/specs/behavioral-contracts/BC-INDEX.md`,
+576,396 bytes). Mitigation 1 (fuel-headroom warning) remained pending at S-21.07 merge (see
+§Implementation Status):
 
 **Mitigation 1 — Fuel-headroom warning:**
 On `PluginResult::Ok`, if `fuel_consumed > 0.9 × cap`, the dispatcher MUST emit a WARN-level
@@ -422,7 +438,7 @@ actual dispatch path with a budget-exhausting input and asserts the block outcom
   fail-closed post-migration. The Phase-1 fail-open default MUST NOT be changed before
   Phase 3+4 calibration (S-21.11) completes per Decision 3's ordering constraint.
 
-### Implementation Status (as of v1.3 — 2026-08-16)
+### Implementation Status (as of v1.4 — 2026-08-17)
 
 **Phase 1 — Schema extension (ADR-039 §Decision 1+2):** Story S-21.10 delivered;
 `FailurePolicy` enum and `RegistryEntry.failure_policy` field implemented with serde
@@ -431,11 +447,12 @@ no-enforcement gate confirmed: `plugin_fail_closed` behavior is unchanged. S-21.
 3+4) is blocked on S-21.10 merge.
 
 **Phase 2 — Near-term mitigations (ADR-039 §Decision 5):** Fuel-headroom warning
-(Mitigation 1) is in progress on branch `fix/fuel-exhaustion-fail-loud`. The ADR's original
-claim that Decision 5 was "in-scope for S-21.07 immediate delivery" was aspirational;
-S-21.07 (PR #776) shipped without these mitigations. ≥574 KB production-scale fixture
-(Mitigation 2) is included in S-21.11 scope as a calibration corpus prerequisite. CWE-636
-structural defect persists until Phase 4 enforcement flip.
+(Mitigation 1) is in progress on branch `fix/fuel-exhaustion-fail-loud`; S-21.07 (PR #776)
+shipped without Mitigation 1. ≥574 KB production-scale fixture (Mitigation 2) was delivered
+in S-21.07 as the `a1-production-scale` bats scenario fixture (commit e94767bc;
+`plugins/vsdd-factory/tests/fixtures/validate-cross-site-correspondence/a1-production-scale/factory/specs/behavioral-contracts/BC-INDEX.md`,
+576,396 bytes) — calibration corpus prerequisite satisfied. CWE-636 structural defect persists
+until Phase 4 enforcement flip.
 
 **Phase 3+4 — Calibration + enforcement flip (ADR-039 §Decision 3):** Story S-21.11
 authored and queued; blocked on S-21.10 merge. Phase 3 requires production-scale corpus
@@ -516,6 +533,10 @@ Negative). Status PROPOSED / ratification-pending; v1.3 incorporates pre-ratific
 research reconciliations; human ratifies next. ADR-039 v1.3.
 RATIFIED 2026-08-16 (v1.3) by human via orchestrator (POLICY 22 ratification-channel; D-1022):
 status proposed→ratified. ADR-039 v1.3 is the ratified version.
+CITATION ERRATUM 2026-08-17 (v1.4 — architect; F-S2111-P1-008): §Decision 5 "S-21.07 (Task #33)"
+corrected — Task #33 does not exist in S-21.07. Mitigation 2 fixture delivery citation updated to
+reference the actual `a1-production-scale` bats scenario fixture (e94767bc). §Implementation Status
+Phase 2 corrected accordingly. No decision semantics altered; status remains RATIFIED. ADR-039 v1.4.
 
 Adjudicates F-S2107-P7-010 (HIGH), F-S2107-P7-011 (HIGH), F-S2107-P7-015 (MEDIUM) design
 legs from adversarial pass-7 of S-21.07. Extends ADR-035 §Decision 5 to the enforcement
@@ -525,12 +546,41 @@ Implementation routing (current status):
 - **Phase 1 — DELIVERED (S-21.10):** implementer delivered Decision 1+2 schema leg —
   `FailurePolicy` enum + `RegistryEntry.failure_policy` field + serde deserialization +
   backward-compat `fail-open` default (BC-1.01.016 v1.2). No enforcement change.
-- **Phase 2 — IN PROGRESS:** Decision 5 Mitigation 1 (fuel-headroom warning, invoke module)
-  on branch `fix/fuel-exhaustion-fail-loud`. Mitigation 2 (≥574 KB production-scale
-  fixture) included in S-21.11 scope as calibration corpus prerequisite.
+- **Phase 2 — IN PROGRESS (Mitigation 1) / DELIVERED (Mitigation 2):** Decision 5 Mitigation 1
+  (fuel-headroom warning, invoke module) on branch `fix/fuel-exhaustion-fail-loud`. Mitigation 2
+  (≥574 KB production-scale fixture) delivered in S-21.07 as `a1-production-scale` bats scenario
+  fixture (commit e94767bc) — calibration corpus prerequisite satisfied.
 - **Phase 3+4 — QUEUED (S-21.11):** devops-engineer: Decision 4 calibration corpus
   construction + per-plugin `fuel_cap` measurement (prerequisite for Phase 3). implementer:
   `plugin_fail_closed` extension for `failure_policy` + Decision 6 behavioral tests (Phase
   4). Blocked on S-21.10 merge.
 - **product-owner:** Decision 4 Option B `fuel_per_kb` field — new registry schema field
   requires BC update when adopted.
+
+---
+
+## Erratum
+
+### E-001 — §Decision 5 "Task #33" citation (v1.4, 2026-08-17)
+
+**Finding:** F-S2111-P1-008 (sibling-sweep during S-21.11 spec review).
+
+**Error:** §Decision 5 opening sentence stated "approved for immediate delivery within S-21.07
+(Task #33)." S-21.07 has only 22 tasks (task 12 deferred); no task #33 exists. The associated
+"S-21.07 shipped without these mitigations" note in §Implementation Status Phase 2 was also
+incorrect with respect to Mitigation 2.
+
+**Correction:** The ≥574 KB Mitigation 2 fixture was in fact delivered in S-21.07 as the
+`a1-production-scale` bats scenario fixture for `validate-cross-site-correspondence` (commit
+e94767bc). Committed path:
+`plugins/vsdd-factory/tests/fixtures/validate-cross-site-correspondence/a1-production-scale/factory/specs/behavioral-contracts/BC-INDEX.md`
+(576,396 bytes). §Decision 5 opening sentence and §Implementation Status Phase 2 updated to
+reference the actual delivered fixture. All three Implementation routing lists updated consistently.
+
+**Scope:** Factual citation correction only. No decision, threshold, rule, or normative content
+altered.
+
+**Ratification note:** This erratum does not require human re-ratification under POLICY 22.
+POLICY 22 governs changes to ADR decisions (rulings, thresholds, normative prescriptions). A
+citation correction that does not alter any decision semantics is outside POLICY 22's scope.
+Status remains RATIFIED. ADR-039 v1.4.
