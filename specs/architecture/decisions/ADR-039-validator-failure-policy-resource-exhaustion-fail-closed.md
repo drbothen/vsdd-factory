@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.6"
+version: "1.7"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: ratified
 date: 2026-08-06
@@ -17,7 +17,18 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-17 (v1.6-erratum) — Non-normative narrative count erratum (architect; F-S2111-P3):
+  2026-08-18 (v1.7-erratum) — Corpus-floor numeric consistency erratum (architect; F-S2111-P12-001):
+  §Decision 4 "Calibration corpus requirements" first bullet read "lessons.md at ≥3000 lines (current
+  soft limit; calibration must cover above it)" — defective on three counts: (1) contradicts §Decision 3
+  (which mandates calibration at/above the D-442(e) HARD limit = 4000 lines); (2) "current soft limit"
+  label is factually wrong — D-442(e) soft limit is 3500, not 3000; (3) downstream-inconsistent with
+  BC-1.03.017 Precondition 2 v1.7 and S-21.11 AC-007 v1.10, which both specify ≥4000 lines. Bullet
+  updated to "lessons.md at ≥4000 lines (D-442(e) hard limit; soft limit is 3500)". No decision
+  semantics, threshold-policy, or normative prescription altered (§Decision 3 already mandated 4000;
+  this aligns §Decision 4 to it). Does not require human re-ratification under POLICY 22 (POLICY 22
+  governs decision changes; this corrects a numeric sub-clause to match its own parent clause). Status
+  remains RATIFIED. ADR-039 v1.7. See §Erratum E-004.
+  [Prior: 2026-08-17 (v1.6-erratum) — Non-normative narrative count erratum (architect; F-S2111-P3):
   §Rationale, §Alternatives A, and §Consequences cited "52 existing plugin entries" / "52 plugins"
   / "52 entries" — stale count from the initial v1.0 draft. Live hooks-registry.toml now contains
   76 [[hooks]] entries. Three occurrences reconciled to "existing plugin entries (currently 76)" to
@@ -95,6 +106,7 @@ modified:
   - "2026-08-16 (v1.3-ratified)"
   - "2026-08-17 (v1.5-erratum)"
   - "2026-08-17 (v1.6-erratum)"
+  - "2026-08-18 (v1.7-erratum)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -310,7 +322,7 @@ Phase 4 migration, provided D-442(e) remains in force until Option B ships.
 **Calibration corpus requirements.** The following are mandatory for any validator that reads
 whole `.factory/` artifacts:
 
-- `lessons.md` at ≥3000 lines (current soft limit; calibration must cover above it)
+- `lessons.md` at ≥4000 lines (D-442(e) hard limit; soft limit is 3500)
 - `STATE.md` at current live size
 - `decision-log.md` at current live size
 - The ≥574 KB synthetic fixture from Decision 5
@@ -567,6 +579,13 @@ and §Consequences cited stale "52" plugin-entry count from initial v1.0 draft. 
 hooks-registry.toml has 76 [[hooks]] entries. Three occurrences updated to "existing plugin
 entries (currently 76)". §Context "~38 on_error=continue validators" unchanged. No decision
 semantics altered; status remains RATIFIED. ADR-039 v1.6. See §Erratum E-003.
+CORPUS-FLOOR ERRATUM 2026-08-18 (v1.7 — architect; F-S2111-P12-001): §Decision 4 calibration
+corpus first bullet corrected — "lessons.md at ≥3000 lines (current soft limit; calibration must
+cover above it)" contradicted §Decision 3 (which mandates calibration at/above D-442(e) hard limit
+= 4000 lines) and mis-labelled the soft limit as 3000 (it is 3500 per D-442(e)); also inconsistent
+with BC-1.03.017 Precondition 2 v1.7 and S-21.11 AC-007 v1.10 (both specify ≥4000). Bullet updated
+to "lessons.md at ≥4000 lines (D-442(e) hard limit; soft limit is 3500)". No decision semantics
+altered; status remains RATIFIED. ADR-039 v1.7. See §Erratum E-004.
 
 Adjudicates F-S2107-P7-010 (HIGH), F-S2107-P7-011 (HIGH), F-S2107-P7-015 (MEDIUM) design
 legs from adversarial pass-7 of S-21.07. Extends ADR-035 §Decision 5 to the enforcement
@@ -639,6 +658,37 @@ altered.
 POLICY 22 governs changes to ADR decisions (rulings, thresholds, normative prescriptions). A
 citation correction that does not alter any decision semantics is outside POLICY 22's scope.
 Status remains RATIFIED. ADR-039 v1.4.
+
+---
+
+### E-004 — §Decision 4 corpus-floor: ≥3000 lines corrected to ≥4000 lines (v1.7, 2026-08-18)
+
+**Finding:** F-S2111-P12-001 (un-swept sibling of the pass-8 corpus-floor fix).
+
+**Error:** §Decision 4 "Calibration corpus requirements" first bullet read:
+`lessons.md at ≥3000 lines (current soft limit; calibration must cover above it)`.
+This was defective on three counts:
+
+1. It contradicted §Decision 3, which specifies calibration against `lessons.md` at or above
+   the D-442(e) HARD limit (4000 lines) — not the soft limit.
+2. The "current soft limit" label was factually wrong — the D-442(e) soft limit is 3500 (not 3000).
+3. It was downstream-inconsistent with BC-1.03.017 Precondition 2 v1.7 and story S-21.11 v1.10
+   AC-007, which both specify ≥4000 lines.
+
+**Correction:** First bullet updated to: `lessons.md at ≥4000 lines (D-442(e) hard limit; soft limit is 3500)`.
+
+| Location | Before | After |
+|----------|--------|-------|
+| §Decision 4 — Calibration corpus requirements, first bullet | `lessons.md at ≥3000 lines (current soft limit; calibration must cover above it)` | `lessons.md at ≥4000 lines (D-442(e) hard limit; soft limit is 3500)` |
+
+**Scope:** Numeric consistency correction only. §Decision 3 already mandated calibration at the
+D-442(e) hard limit (4000 lines); this erratum aligns §Decision 4's corpus bullet to that same
+figure. No decision semantics, threshold-policy, or normative prescription altered.
+
+**Ratification note:** This erratum does not require human re-ratification under POLICY 22.
+POLICY 22 governs changes to ADR decisions (rulings, thresholds, normative prescriptions). A
+numeric consistency correction that aligns one sub-clause of §Decision 4 to the figure already
+mandated by §Decision 3 is outside POLICY 22's scope. Status remains RATIFIED. ADR-039 v1.7.
 
 ---
 
