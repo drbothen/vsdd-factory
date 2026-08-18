@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-18T06:56:52Z","command":"cargo test -p validate-cross-site-correspondence 2>&1 | tail -5"}
+{"status":"pass","timestamp":"2026-08-18T14:04:25Z","command":"cargo test -p validate-state-structure --lib 2>&1 | tail -5 && cargo test -p validate-cross-site-correspondence --lib 2>&1 | tail -5"}
