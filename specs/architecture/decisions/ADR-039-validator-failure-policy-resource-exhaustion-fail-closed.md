@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.5"
+version: "1.6"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: ratified
 date: 2026-08-06
@@ -17,7 +17,16 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-17 (v1.5-erratum) — Non-load-bearing anchor correction (architect; F-S2111-P2-005
+  2026-08-17 (v1.6-erratum) — Non-normative narrative count erratum (architect; F-S2111-P3):
+  §Rationale, §Alternatives A, and §Consequences cited "52 existing plugin entries" / "52 plugins"
+  / "52 entries" — stale count from the initial v1.0 draft. Live hooks-registry.toml now contains
+  76 [[hooks]] entries. Three occurrences reconciled to "existing plugin entries (currently 76)" to
+  avoid future staleness. §Context "approximately 38 on_error=continue validators" unchanged (that
+  figure refers to a subset class, not the total count). No decision, threshold, or policy content
+  altered. Does not require human re-ratification under POLICY 22 (POLICY 22 governs decision
+  changes; this corrects a stale narrative count). Status remains RATIFIED. ADR-039 v1.6.
+  See §Erratum E-003.
+  [Prior: 2026-08-17 (v1.5-erratum) — Non-load-bearing anchor correction (architect; F-S2111-P2-005
   sibling-sweep from S-21.11 story anchor correction): frontmatter `subsystems_affected`
   corrected SS-05→SS-07. ADR-039 governs `hooks-registry.toml` (owned by SS-07 "Hook Bash
   Layer" per ARCH-INDEX §Subsystem Registry) and `executor.rs`/`registry.rs` (SS-01). SS-05
@@ -85,6 +94,7 @@ modified:
   - "2026-08-17 (v1.4-erratum)"
   - "2026-08-16 (v1.3-ratified)"
   - "2026-08-17 (v1.5-erratum)"
+  - "2026-08-17 (v1.6-erratum)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -373,8 +383,8 @@ advisory and continuing is often correct because the write may be semantically v
 exhaustion outcome indicates the plugin ran out of budget before producing any verdict; the
 correct semantic is "unknown — deny" because no verdict was produced, not "no violation found."
 Collapsing the two into a single field (e.g., re-semanticizing `on_error = "block"` to cover
-exhaustion) would require re-auditing all 52 existing plugin entries, introduce ambiguity, and
-obscure the distinction for future reviewers.
+exhaustion) would require re-auditing all existing plugin entries (currently 76), introduce
+ambiguity, and obscure the distinction for future reviewers.
 
 ### Why per-plugin scope is necessary
 
@@ -418,7 +428,7 @@ actual dispatch path with a budget-exhausting input and asserts the block outcom
 - Eliminates CWE-636 for the validator class once Phase 4 migration completes: authorization-
   class plugins no longer silently approve writes when budget-exhausted.
 - The `on_error` / `failure_policy` separation allows fine-grained policy without forcing all
-  52 plugins into a simultaneous migration.
+  existing plugin entries (currently 76) into a simultaneous migration.
 - Fuel-headroom warning provides early signal for budget drift, reducing the probability of
   silent exhaustion accumulating undetected.
 - Option B size-proportional budgeting (future story) removes the D-442(e) line-count
@@ -482,7 +492,7 @@ requires a new story.]
 crash behavior; changing its semantics to also cover exhaustion redefines an existing field
 with different meaning. Existing `on_error = "block"` plugins were annotated for crash
 behavior, not exhaustion; changing the field meaning retroactively would require re-auditing
-all 52 entries.
+all existing entries (currently 76).
 
 **Alternative B — Global `failure_policy = "fail-closed"` default for all plugins.** Rejected.
 Activating fail-closed globally on day one triggers the live self-lock on `lessons.md` and
@@ -552,6 +562,11 @@ corrected [SS-01, SS-05] → [SS-01, SS-07]. SS-07 ("Hook Bash Layer") owns `hoo
 per ARCH-INDEX §Subsystem Registry; SS-05 ("Pipeline Orchestration") owns agents + workflows and
 is not touched by this ADR. Non-load-bearing anchor correction; no decision semantics altered;
 status remains RATIFIED. ADR-039 v1.5. See §Erratum E-002.
+NARRATIVE COUNT ERRATUM 2026-08-17 (v1.6 — architect; F-S2111-P3): §Rationale, §Alternatives A,
+and §Consequences cited stale "52" plugin-entry count from initial v1.0 draft. Live
+hooks-registry.toml has 76 [[hooks]] entries. Three occurrences updated to "existing plugin
+entries (currently 76)". §Context "~38 on_error=continue validators" unchanged. No decision
+semantics altered; status remains RATIFIED. ADR-039 v1.6. See §Erratum E-003.
 
 Adjudicates F-S2107-P7-010 (HIGH), F-S2107-P7-011 (HIGH), F-S2107-P7-015 (MEDIUM) design
 legs from adversarial pass-7 of S-21.07. Extends ADR-035 §Decision 5 to the enforcement
@@ -624,3 +639,36 @@ altered.
 POLICY 22 governs changes to ADR decisions (rulings, thresholds, normative prescriptions). A
 citation correction that does not alter any decision semantics is outside POLICY 22's scope.
 Status remains RATIFIED. ADR-039 v1.4.
+
+---
+
+### E-003 — Stale "52" plugin-count in §Rationale, §Alternatives, §Consequences (v1.6, 2026-08-17)
+
+**Finding:** F-S2111-P3 (LOW observation — narrative count staleness).
+
+**Error:** Three occurrences in non-normative narrative cited "all 52 existing plugin entries"
+(§Rationale "Why `on_error` and `failure_policy` must be separate axes"), "all 52 plugins"
+(§Consequences Positive), and "all 52 entries" (§Alternatives Considered, Alternative A). This
+count of 52 reflected the plugin inventory at the time of the initial v1.0 draft (2026-08-06).
+The live `plugins/vsdd-factory/hooks-registry.toml` now contains 76 `[[hooks]]` entries. The
+ADR-039 §Context paragraph ("approximately 38 validator plugins with `on_error = continue`")
+correctly used an approximation for the validator-class subset and required no change.
+
+**Correction:** Three narrative occurrences updated from the hardcoded count "52" to the
+de-hardcoded phrasing "existing plugin entries (currently 76)" / "existing entries (currently 76)"
+to avoid future staleness as new hook plugins are added.
+
+| Location | Before | After |
+|----------|--------|-------|
+| §Rationale — "Why `on_error` and `failure_policy` must be separate axes" | "re-auditing all 52 existing plugin entries" | "re-auditing all existing plugin entries (currently 76)" |
+| §Consequences — Positive, second bullet | "forcing all 52 plugins into a simultaneous migration" | "forcing all existing plugin entries (currently 76) into a simultaneous migration" |
+| §Alternatives — Alternative A | "require re-auditing all 52 entries" | "require re-auditing all existing entries (currently 76)" |
+
+**Scope:** Non-normative narrative count correction only. No decision, threshold, rule,
+enforcement policy, migration phase, or normative prescription altered. The six ADR decisions
+and all rationale substance are unchanged.
+
+**Ratification note:** This erratum does not require human re-ratification under POLICY 22.
+POLICY 22 governs changes to ADR decisions (rulings, thresholds, normative prescriptions). A
+narrative count correction that does not alter any decision semantics is outside POLICY 22's
+scope. Status remains RATIFIED. ADR-039 v1.6.

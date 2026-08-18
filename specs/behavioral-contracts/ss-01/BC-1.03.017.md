@@ -1,16 +1,16 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.2"
+version: "v1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-08-06T00:00:00Z
-last_amended: "2026-08-17 (v1.2) — adversary pass-2 remediation (product-owner): five F-S2111-P2 findings remediated. F-S2111-P2-001: PC8 extended with symmetric half-state prohibition (no on_error=block targeted plugin may remain at failure_policy=fail-open post-executor-flip); Invariant 7 added codifying migration-ordering atomicity. F-S2111-P2-002: PC10 added requiring fail_closed_timeout_with_on_error_block DELIBERATELY REVISED (not deleted) for axes-independent sub-cases FailOpen→NOT block + FailClosed→block; test vectors + Architecture Anchors updated. F-S2111-P2-003: EC-004 updated — deferral NOT behavior-neutral for on_error=block plugins; two remediation paths enumerated; PC9 note added. F-S2111-P2-004: PC8 extended with NEGATIVE-CONTROL fixture (fuel_cap=75_000_000, >50M → gate must PASS). F-S2111-P2-006: EC-004 names S-21.13 as concrete follow-up anchor; Story Anchors updated. BC-1.03.017 v1.2."
+last_amended: "2026-08-17 (v1.3) — adversary pass-3 remediation (product-owner): two F-S2111-P3 findings remediated. F-S2111-P3-001: reconciled 50M boundary to inclusive floor (>= 50_000_000 ACCEPT, < 50_000_000 REJECT) — sibling sweep across PC8, PC9, Invariant 2, Invariant 7, Architecture Anchors, VP-TBD, and Canonical Test Vectors; POSITIVE-CONTROL fixture updated from fuel_cap=10_000_000 to fuel_cap=20_000_000 (factory default per ADR-042 §Decision 2, clearly below floor and realistic); added boundary-pass test vector asserting fuel_cap=50_000_000 PASSES. F-S2111-P3-005: PC11 added — hard migration-window completeness CI gate (test_no_on_error_block_without_fail_closed_when_3arg_executor) enforcing that if the extended 3-arg plugin_fail_closed signature is present in executor.rs, every on_error=block targeted plugin MUST carry failure_policy=fail-closed (CWE-636 static gate, checkable at any single commit, closes gap left by Invariant 7 ordering rule). PC11 test vector added. BC-1.03.017 v1.3."
 phase: brownfield-backfill
 inputs:
   - .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
   - .factory/research/wasm-fuel-exhaustion-detection.md
-input-hash: "c02ca58"
+input-hash: "d51127e"
 traces_to: .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
 origin: greenfield
 extracted_from: null
@@ -137,17 +137,19 @@ configuration intent rather than behavioral outcomes.
    regression/invariant gate):**
    A Cargo integration test (`test_no_fail_closed_plugin_with_uncalibrated_cap`) MUST assert
    that no `[[hook]]` entry in `hooks-registry.toml` carries both
-   `failure_policy = "fail-closed"` AND `fuel_cap ≤ 50_000_000` (the calibration floor per
-   ADR-039 §Decision 4; the factory default is 20_000_000 per ADR-042 §Decision 2, which is
-   below the calibration floor and therefore insufficient for fail-closed annotation). This gate
+   `failure_policy = "fail-closed"` AND `fuel_cap < 50_000_000` (the calibration floor per
+   ADR-039 §Decision 4 is 50_000_000 inclusive — `fuel_cap >= 50_000_000` is VALID; the
+   factory default of 20_000_000 per ADR-042 §Decision 2 is below this floor and therefore
+   insufficient for fail-closed annotation). This gate
    is a **standing regression/invariant gate**: it is GREEN when the registry contains zero
    fail-closed entries (vacuously satisfied with the empty set), GREEN at final state (all
    targeted plugins annotated with calibrated caps), and RED only when a bad half-state edit
    introduces a fail-closed entry without a sufficient cap. The gate MUST include both:
-   (a) **POSITIVE-CONTROL fixture** (a hard-coded fail-closed entry with `fuel_cap ≤ 50_000_000`
-   injected directly in the test body) that asserts the gate fires RED on that fixture — proving
-   the gate is non-vacuous and not susceptible to false-green behavior when the live registry
-   contains zero fail-closed entries; and
+   (a) **POSITIVE-CONTROL fixture** (a hard-coded fail-closed entry with `fuel_cap = 20_000_000`
+   — the factory default per ADR-042 §Decision 2, strictly below the 50_000_000 inclusive floor
+   and therefore a realistic failing case — injected directly in the test body) that asserts the
+   gate fires RED on that fixture — proving the gate is non-vacuous and not susceptible to
+   false-green behavior when the live registry contains zero fail-closed entries; and
    (b) **NEGATIVE-CONTROL fixture** (a hard-coded fail-closed entry with `fuel_cap = 75_000_000`,
    i.e., above the 50_000_000 floor, injected directly in the test body) that asserts the gate
    does NOT fire on that fixture (result: PASS / no error) — proving the gate correctly
@@ -169,12 +171,13 @@ configuration intent rather than behavioral outcomes.
    decision-function change and the fail-closed annotations for these five plugins MUST be
    co-committed (same commit) or ordered annotate-first-then-flip. A plugin entry MUST NOT
    carry `failure_policy = "fail-closed"` without simultaneously carrying
-   `fuel_cap > 50_000_000`.
+   `fuel_cap >= 50_000_000` (exactly 50_000_000 is the inclusive floor and a VALID calibrated
+   value per ADR-039 §Decision 4).
 
 9. **PC9 — All targeted validator-class plugins carry `failure_policy = "fail-closed"` with
-   calibrated `fuel_cap > 50_000_000` in final state:**
+   calibrated `fuel_cap >= 50_000_000` in final state:**
    After all Phase 4 calibration-and-annotation commits land, `hooks-registry.toml` MUST
-   contain `failure_policy = "fail-closed"` AND `fuel_cap > 50_000_000` for all plugins in
+   contain `failure_policy = "fail-closed"` AND `fuel_cap >= 50_000_000` for all plugins in
    the **post-amendment targeted set**. The default targeted set is all six of:
    `validate-factory-path-root`, `validate-input-hash`, `validate-template-compliance`,
    `validate-wave-gate-prerequisite`, `validate-pr-merge-prerequisites`,
@@ -218,6 +221,30 @@ configuration intent rather than behavioral outcomes.
     revision to accurately reflect the extended decision function's axes-independent
     semantics.
 
+11. **PC11 — Hard migration-window completeness gate: if the extended 3-arg `plugin_fail_closed`
+    is in effect, every `on_error="block"` targeted plugin MUST carry `failure_policy="fail-closed"`
+    (CWE-636 static gate, checkable at any single commit):**
+    A Cargo integration test (`test_no_on_error_block_without_fail_closed_when_3arg_executor`)
+    MUST assert: if `crates/factory-dispatcher/src/executor.rs` contains the extended 3-arg
+    `plugin_fail_closed` signature (detected by pattern — e.g., `fn plugin_fail_closed(` with
+    a `failure_policy` parameter), then every `[[hook]]` entry in `hooks-registry.toml` whose
+    `name` is one of the five targeted `on_error = "block"` plugins (`validate-factory-path-root`,
+    `validate-input-hash`, `validate-template-compliance`, `validate-pr-merge-prerequisites`,
+    `validate-wave-gate-prerequisite`) MUST carry an explicit `failure_policy = "fail-closed"`.
+    Any absence of this annotation while the 3-arg function is present MUST cause the test to
+    FAIL (CI blocks merge). This gate makes the CWE-636 migration-window regression that
+    Invariant 7 prohibits by ordering rule **structurally impossible to merge**: the gate
+    evaluates both conditions (executor signature AND registry annotation) on the same commit
+    tree, with no ordering dependency. The gate is GREEN when the 3-arg function is absent
+    (Phase 1–2 state), and GREEN only when both the 3-arg function is present AND all five
+    plugins carry `failure_policy = "fail-closed"` (Phase 4 complete state). It fires RED on
+    the bad intermediate state (3-arg present + any on_error=block plugin at fail-open), which
+    is precisely the CWE-636 regression window that no prior PC gated mechanically.
+    **Relationship to Invariant 7:** This PC makes Invariant 7's ordering rule machine-checkable.
+    Invariant 7 remains in force as the human-readable policy statement; PC11 is its
+    mechanically-enforced complement. PC11 does NOT replace PC8 or PC9 — those gates address
+    different failure modes (uncalibrated caps and final-state completeness respectively).
+
 ## Invariants
 
 1. **Axes-independence invariant (ADR-039 §Decision 1):** `failure_policy` governs
@@ -228,11 +255,13 @@ configuration intent rather than behavioral outcomes.
    for most validator-class plugins.
 
 2. **No-half-state invariant (ADR-039 §Decision 3):** No `failure_policy = "fail-closed"`
-   annotation MAY coexist with `fuel_cap ≤ 50_000_000` at any CI-passing commit. The
+   annotation MAY coexist with `fuel_cap < 50_000_000` at any CI-passing commit. The
    50_000_000 value is the calibration floor per ADR-039 §Decision 4 (`max(p99×1.5, 50M)`);
-   the factory default of 20_000_000 (ADR-042 §Decision 2) is below this floor and insufficient
-   for fail-closed annotation. The Phase-3-before-Phase-4 ordering constraint is structurally
-   enforced by the `test_no_fail_closed_plugin_with_uncalibrated_cap` CI gate test (PC8).
+   exactly 50_000_000 is the inclusive minimum VALID value (`fuel_cap >= 50_000_000` is
+   required; `fuel_cap < 50_000_000` is prohibited). The factory default of 20_000_000
+   (ADR-042 §Decision 2) is below this floor and insufficient for fail-closed annotation.
+   The Phase-3-before-Phase-4 ordering constraint is structurally enforced by the
+   `test_no_fail_closed_plugin_with_uncalibrated_cap` CI gate test (PC8).
    Fail-closed without a sufficient budget is equivalent to blocking unconditionally — the
    intended function is to block writes that fail validation, not to block all writes.
 
@@ -274,9 +303,11 @@ configuration intent rather than behavioral outcomes.
    The `validate-cross-site-correspondence` plugin (`on_error = "continue"`) does NOT
    contribute this regression risk — it already failed open on exhaustion under the 2-arg
    function and continues to do so until explicitly annotated. The PC8 gate test enforces
-   the calibration constraint (no fail-closed without `fuel_cap > 50M`); this Invariant 7
-   enforces the atomicity/ordering constraint (no fail-open regression for the five
-   on_error=block plugins during the migration window).
+   the calibration constraint (no fail-closed without `fuel_cap >= 50M`). PC11 makes this
+   ordering constraint a static CI gate (checkable at any single commit; the bad intermediate
+   state — 3-arg executor present AND any on_error=block targeted plugin at fail-open — causes
+   PC11's test to FAIL, making it mechanically impossible to merge). This Invariant 7 remains
+   the human-readable policy statement governing the atomicity/ordering constraint.
 
 ## Edge Cases
 
@@ -303,11 +334,14 @@ configuration intent rather than behavioral outcomes.
 | `Timeout { cause: Fuel }` + `on_error=Block` + `FailOpen` | Decision returns `false`; exit 0 — exhaustion not governed by `on_error=block` when `failure_policy=FailOpen` | exhaustion-is-not-crash (PC5) |
 | `Timeout { cause: Epoch }` + `FailClosed` | Decision returns `true`; exit 2 — epoch exhaustion = fuel exhaustion for enforcement | epoch-exhaustion (PC6) |
 | Real dispatch: plugin with `fuel_cap=100` + `failure_policy="fail-closed"` on budget-exhausting payload | Observed dispatcher exit code 2 | integration (PC1 behavioral) |
-| `hooks-registry.toml` entry with `failure_policy="fail-closed"` + `fuel_cap=10_000_000` | `test_no_fail_closed_plugin_with_uncalibrated_cap` FAILS (CI blocks the half-state) | half-state-rejected (PC8) |
+| `hooks-registry.toml` entry with `failure_policy="fail-closed"` + `fuel_cap=20_000_000` (factory default per ADR-042 §Decision 2, strictly below floor) | `test_no_fail_closed_plugin_with_uncalibrated_cap` FAILS (CI blocks the half-state) | half-state-rejected (PC8 POSITIVE-CONTROL, F-S2111-P3-001) |
 | All six targeted plugins with `failure_policy="fail-closed"` + `fuel_cap=75_000_000` (example calibrated) | `test_all_six_validator_class_plugins_are_fail_closed` passes; PC8 gate passes | final-state (PC9) |
-| `hooks-registry.toml` entry with `failure_policy="fail-closed"` + `fuel_cap=75_000_000` (>50M floor) | `test_no_fail_closed_plugin_with_uncalibrated_cap` PASSES / does not fire (gate accepts valid calibrated entry) | negative-control (PC8 NEGATIVE-CONTROL fixture, F-S2111-P2-004) |
+| `hooks-registry.toml` entry with `failure_policy="fail-closed"` + `fuel_cap=75_000_000` (>= 50M floor, calibrated) | `test_no_fail_closed_plugin_with_uncalibrated_cap` PASSES / does not fire (gate accepts valid calibrated entry) | negative-control (PC8 NEGATIVE-CONTROL fixture, F-S2111-P2-004) |
+| `hooks-registry.toml` entry with `failure_policy="fail-closed"` + `fuel_cap=50_000_000` (exactly at inclusive floor) | `test_no_fail_closed_plugin_with_uncalibrated_cap` PASSES / does not fire (inclusive floor: exactly 50_000_000 is a valid calibrated value per ADR-039 §Decision 4) | boundary-pass (PC8, F-S2111-P3-001 inclusive-floor) |
 | `Timeout { cause: Fuel }` + `on_error=Block` + `FailOpen` (revision of `fail_closed_timeout_with_on_error_block` sub-case a) | Decision returns `false`; exit 0 — exhaustion governed by `failure_policy=FailOpen`; `on_error=Block` does not apply to exhaustion | axes-independence-on_error_block-fail-open (PC10a) |
 | `Timeout { cause: Fuel }` + `on_error=Block` + `FailClosed` (revision of `fail_closed_timeout_with_on_error_block` sub-case b) | Decision returns `true`; exit 2 — exhaustion governed by `failure_policy=FailClosed`; block caused by failure_policy, not on_error | axes-independence-on_error_block-fail-closed (PC10b) |
+| executor.rs contains 3-arg `plugin_fail_closed` + one `on_error="block"` targeted plugin lacks `failure_policy="fail-closed"` | `test_no_on_error_block_without_fail_closed_when_3arg_executor` FAILS (CI blocks merge of the bad intermediate CWE-636 state) | migration-window-gate (PC11) |
+| executor.rs contains 3-arg `plugin_fail_closed` + all five `on_error="block"` targeted plugins carry `failure_policy="fail-closed"` | `test_no_on_error_block_without_fail_closed_when_3arg_executor` PASSES (Phase 4 complete state) | migration-window-pass (PC11 NEGATIVE-CONTROL) |
 
 ## Related BCs
 
@@ -336,9 +370,10 @@ configuration intent rather than behavioral outcomes.
   both sibling tests (`on_error_continue` and `on_error_block`) require the same axes-
   independence treatment; TD-VSDD-059 applies to both
 - `plugins/vsdd-factory/hooks-registry.toml` — six targeted plugin entries receive calibrated
-  `fuel_cap > 50M` AND `failure_policy = "fail-closed"` atomically per-plugin; Phase 4
-  annotations land ONLY after Phase 3 calibration completes; PC8 gate test enforces no
-  half-state
+  `fuel_cap >= 50M` AND `failure_policy = "fail-closed"` atomically per-plugin (50_000_000 is
+  the inclusive floor; values below 50M are rejected by PC8); Phase 4 annotations land ONLY
+  after Phase 3 calibration completes; PC8 gate test enforces no half-state; PC11 gate test
+  enforces no on_error=block targeted plugin at fail-open while 3-arg executor is present
 - `crates/factory-dispatcher/src/registry.rs` — `FailurePolicy` enum and
   `RegistryEntry.failure_policy` field (delivered by S-21.10 / BC-1.01.016); executor reads
   `failure_policy` from the dispatched `RegistryEntry`
@@ -358,13 +393,14 @@ configuration intent rather than behavioral outcomes.
 
 - VP-TBD — failure_policy enforcement dispatch: all six postconditions exercised by behavioral
   tests driving the actual dispatch path; half-state structural gate; all six targeted
-  validators carry `failure_policy="fail-closed"` with calibrated `fuel_cap > 50M`
+  validators carry `failure_policy="fail-closed"` with calibrated `fuel_cap >= 50M`
+  (inclusive floor); migration-window completeness gate (PC11)
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-TBD | For resource-exhaustion outcomes (`TimeoutCause::Fuel`, `TimeoutCause::Epoch`): `failure_policy=FailClosed` → block (exit 2); `failure_policy=FailOpen` → advisory (exit 0); `on_error` does not override `failure_policy` for exhaustion; crash (`PluginResult::Crashed`) is governed by `on_error` only; no `failure_policy="fail-closed"` entry in `hooks-registry.toml` without `fuel_cap > 50M` (calibration floor per ADR-039 §Decision 4); all targeted validators carry `failure_policy="fail-closed"` with `fuel_cap > 50M`; `fail_closed_timeout_with_on_error_block` test revised (not deleted) to assert both `on_error=Block + FailOpen → NOT block` and `on_error=Block + FailClosed → block` (PC10; TD-VSDD-059); PC8 gate test includes both POSITIVE-CONTROL (fail-closed + fuel≤50M → RED) and NEGATIVE-CONTROL (fail-closed + fuel=75M → PASS) fixtures (POLICY 15). | unit tests (executor path coverage per PC1–PC6, PC10) + integration/bats test (real dispatch at `fuel_cap=100` → exit 2; PC1 behavioral) + Cargo gate test (hooks-registry.toml parse; PC8 with both controls) |
+| VP-TBD | For resource-exhaustion outcomes (`TimeoutCause::Fuel`, `TimeoutCause::Epoch`): `failure_policy=FailClosed` → block (exit 2); `failure_policy=FailOpen` → advisory (exit 0); `on_error` does not override `failure_policy` for exhaustion; crash (`PluginResult::Crashed`) is governed by `on_error` only; no `failure_policy="fail-closed"` entry in `hooks-registry.toml` without `fuel_cap >= 50M` (inclusive calibration floor per ADR-039 §Decision 4; `fuel_cap < 50M` is prohibited; `fuel_cap = 50M` is VALID); all targeted validators carry `failure_policy="fail-closed"` with `fuel_cap >= 50M`; `fail_closed_timeout_with_on_error_block` test revised (not deleted) to assert both `on_error=Block + FailOpen → NOT block` and `on_error=Block + FailClosed → block` (PC10; TD-VSDD-059); PC8 gate test includes both POSITIVE-CONTROL (fail-closed + fuel_cap=20M < 50M floor → RED) and NEGATIVE-CONTROL (fail-closed + fuel=75M → PASS; and fuel=50M → PASS) fixtures (POLICY 15); PC11 gate test asserts that if 3-arg executor is present, all five on_error=block targeted plugins carry failure_policy=fail-closed (CWE-636 static gate). | unit tests (executor path coverage per PC1–PC6, PC10) + integration/bats test (real dispatch at `fuel_cap=100` → exit 2; PC1 behavioral) + Cargo gate tests (hooks-registry.toml parse; PC8 with both controls; PC11 migration-window gate) |
 
 ## Traceability
 
@@ -382,6 +418,7 @@ configuration intent rather than behavioral outcomes.
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3 | 2026-08-17 | product-owner | Adversary pass-3 remediation (two F-S2111-P3 findings): (1) F-S2111-P3-001 — reconciled 50M boundary to inclusive floor (>= 50_000_000 ACCEPT, < 50_000_000 REJECT) — atomic sibling sweep across PC8, PC9, Invariant 2, Invariant 7, Architecture Anchors, VP-TBD, and Canonical Test Vectors; POSITIVE-CONTROL fixture updated from fuel_cap=10_000_000 to fuel_cap=20_000_000 (factory default per ADR-042 §Decision 2, clearly below floor and realistic); added boundary-pass test vector asserting fuel_cap=50_000_000 PASSES (the calibration-formula minimum is now an inclusive ACCEPT). (2) F-S2111-P3-005 — PC11 added: hard migration-window completeness CI gate (test_no_on_error_block_without_fail_closed_when_3arg_executor) asserting that if the extended 3-arg plugin_fail_closed signature is present in executor.rs, every on_error="block" targeted plugin MUST carry failure_policy="fail-closed"; closes the CWE-636 static-gap left by Invariant 7's ordering rule (which was ordering-based, not commit-checkable); PC11 test vector added. |
 | v1.2 | 2026-08-17 | product-owner | Adversary pass-2 remediation (five F-S2111-P2 findings): (1) F-S2111-P2-001 — PC8 extended with symmetric half-state prohibition: no on_error=block targeted plugin may remain at failure_policy=fail-open once the extended 3-arg plugin_fail_closed is in effect; Invariant 7 added codifying migration-ordering atomicity and naming the five at-risk plugins. (2) F-S2111-P2-002 — PC10 added: fail_closed_timeout_with_on_error_block MUST be deliberately revised (TD-VSDD-059) to assert axes-independent sub-cases (FailOpen→NOT block, FailClosed→block); Canonical Test Vectors and Architecture Anchors updated. (3) F-S2111-P2-003 — EC-004 extended: deferral NOT behavior-neutral for on_error=block plugins (CWE-636 regression if left at fail-open); two remediation paths enumerated (fallback gate OR hard-blocker on follow-up); PC9 annotated with cross-reference to EC-004 on_error=block consequence. (4) F-S2111-P2-004 — PC8 extended with NEGATIVE-CONTROL fixture (fuel_cap=75_000_000, >50M floor → gate must PASS/not fire), closing POLICY 15 single-outcome-control gap; Canonical Test Vectors updated. (5) F-S2111-P2-006 — EC-004 names S-21.13 as concrete follow-up story anchor (Canonical Principle Rule 3); Story Anchors updated. |
 | v1.1 | 2026-08-17 | product-owner | Spec-review remediation (F-S2111 adversary + SR findings): (1) F-S2111-P1-001 — HookEntry→RegistryEntry in Precondition 1, Related BCs BC-1.01.016 bullet, and Architecture Anchors registry.rs bullet (×2); phantom struct — actual is `pub struct RegistryEntry` in registry.rs. (2) F-S2111-P1-003/SR-001 — PC8 reclassified as standing regression/invariant gate (green-when-empty, green-at-final-state, RED on bad half-state); POSITIVE-CONTROL fixture requirement added; red-first framing removed; PC9/AC-009 is the genuine red-first gate. (3) F-S2111-P1-004/SR-008 — PC8 + Invariant-2 + VP gate threshold raised 20M→50M (calibration floor ADR-039 §Decision 4; factory default 20M per ADR-042 §Decision 2 is below the floor). (4) SR-002 — EC-004 vs PC9 deadlock resolved: explicit descoping-to-flippable-subset via orchestrator-approved spec amendment added to EC-004 and PC9; PC9 now conditional on post-amendment set. (5) SR-004 — PluginResult::Error→PluginResult::Crashed in PC4 and Canonical Test Vectors; no Error variant in invoke.rs enum (variants: Ok, Timeout, Crashed). (6) F-S2111-P1-008 — Precondition 2 fixture citation corrected: phantom S-21.07 task #33 replaced with committed path (BC-INDEX.md at 576,396 bytes). |
 | v1.0 | 2026-08-06 | product-owner | Initial creation (S-21.10/S-21.11 BC authoring burst; ADR-039 §Decision 3+6 Phase 4 enforcement leg; four behavioral test scenarios from Decision 6 as PC1–PC6; structural half-state gate PC8; six targeted validators PC9; CWE-636+CWE-390 closure). |
