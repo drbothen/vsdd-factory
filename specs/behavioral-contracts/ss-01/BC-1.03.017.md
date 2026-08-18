@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.5"
+version: "v1.6"
 status: draft
 producer: product-owner
 timestamp: 2026-08-06T00:00:00Z
-last_amended: "2026-08-17 (v1.5) — adversary pass-5 remediation (product-owner): three F-S2111-P5 findings remediated. F-S2111-P5-001: added POSITIVE/NEGATIVE/VACUITY non-vacuity controls to PC11 (pure functions over injectable inputs); Canonical Test Vectors updated. F-S2111-P5-002: broadened PC11 enforcement-active signal to data-flow-independent detection (any block-decision site in execute_tier/execute_tiers/helpers referencing .failure_policy for Timeout, however the data reaches it); softened over-claimed 'structurally impossible to merge' to 'mechanically detectable at any single commit'; Architecture Anchors + VP-TBD updated. F-S2111-P5-005: EC-004 Case A mandates S-21.13 MUST annotate validate-cross-site-correspondence fail-closed once fuel ceiling removed; PC9 annotation-landing obligation clause added. BC-1.03.017 v1.5."
+last_amended: "2026-08-17 (v1.6) — adversary pass-6 remediation (product-owner): three F-S2111-P6 findings remediated. F-S2111-P6-002: added LIVE-TREE-CONTROL (fourth control) to PC11 — at Phase-4-complete the detector MUST run against actual executor.rs and return enforcement_active=true; closes CWE-636 false-green gap where a syntactically-wrong detector could pass synthetic controls yet be inert against real code. F-S2111-P6-003: fixed PC11(c) VACUITY-CONTROL self-contradiction — rewritten to assert enforcement-detection logic ran and returned EnforcementAbsent (tri-state diagnostic), RED-emission skipped as consequence; removed contradictory 'evaluated the annotation-check branch'/'correctly skipped' phrasing. F-S2111-P6-004: corrected PC8 title to remove migration-window on_error=block ordering claim (PC11 mechanically enforces the ordering constraint); added clarifying cross-reference in Symmetric half-state prohibition that PC11 is the authoritative gate. Canonical Test Vectors, VP-TBD, Architecture Anchors updated. BC-1.03.017 v1.6."
 phase: brownfield-backfill
 inputs:
   - .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
@@ -24,6 +24,7 @@ modified:
   - "2026-08-17 (v1.3)"
   - "2026-08-17 (v1.4)"
   - "2026-08-17 (v1.5)"
+  - "2026-08-17 (v1.6)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -137,9 +138,9 @@ configuration intent rather than behavioral outcomes.
    paper-fix violation.
 
 8. **PC8 — Structural half-state gate: no `failure_policy = "fail-closed"` with uncalibrated
-   `fuel_cap`, no `on_error = "block"` targeted plugin left at `failure_policy = fail-open`
-   post-executor-flip, and both positive and negative gate controls present (standing
-   regression/invariant gate):**
+   `fuel_cap`; both positive and negative gate controls present (standing regression/invariant
+   gate; migration-window on_error=block ordering constraint is mechanically enforced by PC11,
+   not by this gate):**
    A Cargo integration test (`test_no_fail_closed_plugin_with_uncalibrated_cap`) MUST assert
    that no `[[hook]]` entry in `hooks-registry.toml` carries both
    `failure_policy = "fail-closed"` AND `fuel_cap < 50_000_000` (the calibration floor per
@@ -174,10 +175,13 @@ configuration intent rather than behavioral outcomes.
    under the extended function exhaustion is governed exclusively by `failure_policy`, so
    failure_policy=fail-open causes them to FAIL OPEN — a CWE-636 regression. The
    decision-function change and the fail-closed annotations for these five plugins MUST be
-   co-committed (same commit) or ordered annotate-first-then-flip. A plugin entry MUST NOT
-   carry `failure_policy = "fail-closed"` without simultaneously carrying
-   `fuel_cap >= 50_000_000` (exactly 50_000_000 is the inclusive floor and a VALID calibrated
-   value per ADR-039 §Decision 4).
+   co-committed (same commit) or ordered annotate-first-then-flip. The mechanical CI gate
+   enforcing this ordering constraint is PC11
+   (`test_no_on_error_block_without_fail_closed_when_3arg_executor`), not this gate; PC8's
+   test asserts only the calibration constraint (no fail-closed without `fuel_cap >= 50M`).
+   A plugin entry MUST NOT carry `failure_policy = "fail-closed"` without simultaneously
+   carrying `fuel_cap >= 50_000_000` (exactly 50_000_000 is the inclusive floor and a VALID
+   calibrated value per ADR-039 §Decision 4).
 
 9. **PC9 — All targeted validator-class plugins carry `failure_policy = "fail-closed"` with
    calibrated `fuel_cap >= 50_000_000` in final state:**
@@ -267,9 +271,9 @@ configuration intent rather than behavioral outcomes.
     enforcement-active AND all five plugins carry `failure_policy = "fail-closed"` (Phase 4
     complete state). It fires RED on the bad intermediate state, which is precisely the CWE-636
     regression window that no prior PC gated mechanically.
-    The gate MUST include three controls structured as PURE FUNCTIONS over INJECTABLE inputs
-    (a synthetic executor-source snippet string + a synthetic registry, NOT a scan bound to
-    the live tree):
+    The gate MUST include four controls — three structured as PURE FUNCTIONS over INJECTABLE
+    inputs (a synthetic executor-source snippet string + a synthetic registry, NOT a scan
+    bound to the live tree) and one live-tree assertion at Phase-4-complete:
     (a) **POSITIVE-CONTROL:** enforcement-active executor-source snippet (any block-decision
         site references `.failure_policy` for `Timeout` outcome) + a synthetic registry MISSING
         one of the five on_error=block `failure_policy="fail-closed"` annotations → assert the
@@ -282,11 +286,24 @@ configuration intent rather than behavioral outcomes.
         configurations.
     (c) **VACUITY-CONTROL:** enforcement-ABSENT executor-source snippet (no `.failure_policy`
         reference in the block-decision chain for `Timeout` outcomes) + any synthetic registry
-        state → assert the gate returns GREEN, AND assert the detector actually reached and
-        evaluated the annotation-check branch before returning GREEN. This distinguishes a
-        genuine Phase-1/2 GREEN (executor not yet enforcement-active; annotation check was
-        reached and correctly skipped) from a vacuous GREEN caused by a detector failure that
-        never evaluates the annotation branch at all.
+        state → assert the gate returns GREEN, AND assert the detector's enforcement-detection
+        logic ran and returned `EnforcementAbsent` (via an explicit `detection_ran` / tri-state
+        diagnostic), and that RED-emission was skipped as a consequence. This distinguishes a
+        genuine Phase-1/2 GREEN (executor not yet enforcement-active; enforcement-detection
+        logic ran, correctly classified the executor as enforcement-absent, and skipped
+        RED-emission) from a vacuous GREEN caused by a detector failure that never ran the
+        enforcement-detection logic at all.
+    (d) **LIVE-TREE-CONTROL:** at Phase-4-complete, the detector MUST be run against the
+        ACTUAL `crates/factory-dispatcher/src/executor.rs` (not a synthetic snippet) and MUST
+        return `enforcement_active = true`. This proves the detector's enforcement-detection
+        logic recognizes the real enforcement code as shipped — a syntactically-wrong live-tree
+        detector whose `.failure_policy` scan matches zero against the actual `execute_tiers`
+        form would pass controls (a), (b), and (c) yet be inert against real code (silent
+        CWE-636 false-green). The live-tree assertion closes this gap by asserting the detector
+        fires in the enforcement-ACTIVE direction against actual source. Acceptable
+        implementation: the POSITIVE-CONTROL synthetic snippet MUST be a verbatim excerpt of
+        the real `execute_tiers` block-decision site, AND the same detector run on the live
+        tree MUST return `enforcement_active = true`.
     **Relationship to Invariant 7:** This PC makes Invariant 7's ordering rule machine-checkable.
     Invariant 7 remains in force as the human-readable policy statement; PC11 is its
     mechanically-enforced complement. PC11 does NOT replace PC8 or PC9 — those gates address
@@ -396,7 +413,8 @@ configuration intent rather than behavioral outcomes.
 | `Timeout { cause: Fuel }` + `on_error=Block` + `FailClosed` (revision of `fail_closed_timeout_with_on_error_block` sub-case b) | Decision returns `true`; exit 2 — exhaustion governed by `failure_policy=FailClosed`; block caused by failure_policy, not on_error | axes-independence-on_error_block-fail-closed (PC10b) |
 | Synthetic enforcement-active executor-source snippet (any block-decision site in `execute_tier`/`execute_tiers`/helpers references `.failure_policy` for `Timeout` outcome, however the data reaches it) + synthetic registry MISSING one of the five on_error=block `failure_policy="fail-closed"` annotations | `test_no_on_error_block_without_fail_closed_when_3arg_executor` FAILS (gate fires RED; POSITIVE-CONTROL: proves non-vacuity — detector fires on bad intermediate CWE-636 state; data-flow-independent detection) | migration-window-gate (PC11 POSITIVE-CONTROL) |
 | Synthetic enforcement-active executor-source snippet (any block-decision site references `.failure_policy` for `Timeout` outcome) + synthetic registry with all five on_error=block plugins annotated `failure_policy="fail-closed"` | `test_no_on_error_block_without_fail_closed_when_3arg_executor` PASSES (Phase 4 complete state; NEGATIVE-CONTROL: gate does not false-positive on valid fully-annotated registry) | migration-window-pass (PC11 NEGATIVE-CONTROL) |
-| Synthetic enforcement-ABSENT executor-source snippet (no `.failure_policy` reference in block-decision chain for `Timeout` outcome) + any synthetic registry state | Gate returns GREEN AND detector confirms it reached and evaluated the annotation-check branch before returning GREEN (VACUITY-CONTROL: distinguishes genuine Phase-1/2 GREEN from vacuous GREEN caused by detector failure that never evaluates the annotation branch) | migration-window-vacuity (PC11 VACUITY-CONTROL) |
+| Synthetic enforcement-ABSENT executor-source snippet (no `.failure_policy` reference in block-decision chain for `Timeout` outcome) + any synthetic registry state | Gate returns GREEN AND detector's enforcement-detection logic ran and returned `EnforcementAbsent` (tri-state diagnostic; RED-emission skipped as consequence; VACUITY-CONTROL: distinguishes genuine Phase-1/2 GREEN from vacuous GREEN caused by detector that never ran enforcement-detection logic) | migration-window-vacuity (PC11 VACUITY-CONTROL) |
+| Live tree: actual `crates/factory-dispatcher/src/executor.rs` at Phase-4-complete (enforcement-active code present) | Detector returns `enforcement_active = true` (LIVE-TREE-CONTROL: proves detector fires against real enforcement code, not only synthetic snippets; closes CWE-636 false-green gap where a wrong detector passes synthetic controls yet is inert on real code per F-S2111-P6-002) | migration-window-live-tree (PC11 LIVE-TREE-CONTROL) |
 
 ## Related BCs
 
@@ -429,11 +447,13 @@ configuration intent rather than behavioral outcomes.
 - `plugins/vsdd-factory/hooks-registry.toml` — six targeted plugin entries receive calibrated
   `fuel_cap >= 50M` AND `failure_policy = "fail-closed"` atomically per-plugin (50_000_000 is
   the inclusive floor; values below 50M are rejected by PC8); Phase 4 annotations land ONLY
-  after Phase 3 calibration completes; PC8 gate test enforces no half-state; PC11 gate test
-  enforces no on_error=block targeted plugin at fail-open while executor is enforcement-active
-  (detected via any block-decision site in `execute_tier`/`execute_tiers`/helpers referencing
-  `.failure_policy` for `Timeout` outcome, however the data reaches it — data-flow-independent
-  per F-S2111-P5-002; gate includes POSITIVE/NEGATIVE/VACUITY controls per F-S2111-P5-001)
+  after Phase 3 calibration completes; PC8 gate test enforces no half-state (calibration only;
+  migration-window ordering enforced by PC11); PC11 gate test enforces no on_error=block
+  targeted plugin at fail-open while executor is enforcement-active (detected via any
+  block-decision site in `execute_tier`/`execute_tiers`/helpers referencing `.failure_policy`
+  for `Timeout` outcome, however the data reaches it — data-flow-independent per
+  F-S2111-P5-002; gate includes POSITIVE/NEGATIVE/VACUITY/LIVE-TREE controls per
+  F-S2111-P5-001 and F-S2111-P6-002)
 - `crates/factory-dispatcher/src/registry.rs` — `FailurePolicy` enum and
   `RegistryEntry.failure_policy` field (delivered by S-21.10 / BC-1.01.016); executor reads
   `failure_policy` from the dispatched `RegistryEntry`
@@ -460,7 +480,7 @@ configuration intent rather than behavioral outcomes.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-TBD | For resource-exhaustion outcomes (`TimeoutCause::Fuel`, `TimeoutCause::Epoch`): `failure_policy=FailClosed` → block (exit 2); `failure_policy=FailOpen` → advisory (exit 0); `on_error` does not override `failure_policy` for exhaustion; crash (`PluginResult::Crashed`) is governed by `on_error` only; no `failure_policy="fail-closed"` entry in `hooks-registry.toml` without `fuel_cap >= 50M` (inclusive calibration floor per ADR-039 §Decision 4; `fuel_cap < 50M` is prohibited; `fuel_cap = 50M` is VALID); all targeted validators carry `failure_policy="fail-closed"` with `fuel_cap >= 50M`; `fail_closed_timeout_with_on_error_block` test revised (not deleted) to assert both `on_error=Block + FailOpen → NOT block` and `on_error=Block + FailClosed → block` (PC10; TD-VSDD-059); PC8 gate test includes both POSITIVE-CONTROL (fail-closed + fuel_cap=20M < 50M floor → RED) and NEGATIVE-CONTROL (fail-closed + fuel=75M → PASS; and fuel=50M → PASS) fixtures (POLICY 15); PC11 gate test asserts that if the executor is enforcement-active (detected via any block-decision site in `execute_tier`/`execute_tiers`/helpers referencing `.failure_policy` for `Timeout` outcome, however the data reaches it — data-flow-independent per F-S2111-P5-002; fires for both extend-in-place and introduce-a-replacement designs), all five on_error=block targeted plugins carry failure_policy=fail-closed (CWE-636 static gate; EC-004 descope does not reduce this assertion set); PC11 gate includes POSITIVE-CONTROL (enforcement-active snippet + registry missing one annotation → RED), NEGATIVE-CONTROL (enforcement-active snippet + all five annotated → PASS), and VACUITY-CONTROL (enforcement-absent snippet + any registry → GREEN AND detector reached annotation-check branch) per F-S2111-P5-001. | unit tests (executor path coverage per PC1–PC6, PC10) + integration/bats test (real dispatch at `fuel_cap=100` → exit 2; PC1 behavioral) + Cargo gate tests (hooks-registry.toml parse; PC8 with both controls; PC11 migration-window gate with three controls) |
+| VP-TBD | For resource-exhaustion outcomes (`TimeoutCause::Fuel`, `TimeoutCause::Epoch`): `failure_policy=FailClosed` → block (exit 2); `failure_policy=FailOpen` → advisory (exit 0); `on_error` does not override `failure_policy` for exhaustion; crash (`PluginResult::Crashed`) is governed by `on_error` only; no `failure_policy="fail-closed"` entry in `hooks-registry.toml` without `fuel_cap >= 50M` (inclusive calibration floor per ADR-039 §Decision 4; `fuel_cap < 50M` is prohibited; `fuel_cap = 50M` is VALID); all targeted validators carry `failure_policy="fail-closed"` with `fuel_cap >= 50M`; `fail_closed_timeout_with_on_error_block` test revised (not deleted) to assert both `on_error=Block + FailOpen → NOT block` and `on_error=Block + FailClosed → block` (PC10; TD-VSDD-059); PC8 gate test includes both POSITIVE-CONTROL (fail-closed + fuel_cap=20M < 50M floor → RED) and NEGATIVE-CONTROL (fail-closed + fuel=75M → PASS; and fuel=50M → PASS) fixtures (POLICY 15); PC11 gate test asserts that if the executor is enforcement-active (detected via any block-decision site in `execute_tier`/`execute_tiers`/helpers referencing `.failure_policy` for `Timeout` outcome, however the data reaches it — data-flow-independent per F-S2111-P5-002; fires for both extend-in-place and introduce-a-replacement designs), all five on_error=block targeted plugins carry failure_policy=fail-closed (CWE-636 static gate; EC-004 descope does not reduce this assertion set); PC11 gate includes POSITIVE-CONTROL (enforcement-active snippet + registry missing one annotation → RED), NEGATIVE-CONTROL (enforcement-active snippet + all five annotated → PASS), VACUITY-CONTROL (enforcement-absent snippet → GREEN AND enforcement-detection logic ran and returned `EnforcementAbsent` with RED-emission skipped as consequence), and LIVE-TREE-CONTROL (detector run against actual `crates/factory-dispatcher/src/executor.rs` at Phase-4-complete → `enforcement_active = true`; closes CWE-636 false-green gap per F-S2111-P6-002) per F-S2111-P5-001 and F-S2111-P6-002. | unit tests (executor path coverage per PC1–PC6, PC10) + integration/bats test (real dispatch at `fuel_cap=100` → exit 2; PC1 behavioral) + Cargo gate tests (hooks-registry.toml parse; PC8 with both controls; PC11 migration-window gate with four controls) |
 
 ## Traceability
 
@@ -478,6 +498,7 @@ configuration intent rather than behavioral outcomes.
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.6 | 2026-08-17 | product-owner | Adversary pass-6 remediation (three F-S2111-P6 findings): (1) F-S2111-P6-002 — added LIVE-TREE-CONTROL (fourth control) to PC11: at Phase-4-complete the detector MUST run against actual `crates/factory-dispatcher/src/executor.rs` and return `enforcement_active = true`; closes CWE-636 false-green gap where a syntactically-wrong detector could pass all three synthetic controls yet be inert against real enforcement code; acceptable implementation mandates the POSITIVE-CONTROL snippet be a verbatim excerpt of the real `execute_tiers` block-decision site AND the detector returns `enforcement_active = true` on the live tree; PC11 controls preamble updated from "three controls" to "four controls"; Canonical Test Vectors LIVE-TREE-CONTROL row added; Architecture Anchors and VP-TBD updated to reference LIVE-TREE control and F-S2111-P6-002. (2) F-S2111-P6-003 — fixed PC11(c) VACUITY-CONTROL self-contradiction: removed "evaluated the annotation-check branch"/"correctly skipped" contradictory phrasing; rewritten to assert the detector's enforcement-detection logic ran and returned `EnforcementAbsent` (via explicit `detection_ran` / tri-state diagnostic), and that RED-emission was skipped as a consequence; Canonical Test Vectors VACUITY-CONTROL row updated to match. (3) F-S2111-P6-004 — corrected PC8 title to remove migration-window on_error=block ordering claim (ordering constraint is mechanically enforced by PC11, not PC8); added clarifying sentence in Symmetric half-state prohibition text cross-referencing PC11 as the authoritative mechanical gate for the ordering constraint; PC8's scope is now unambiguous: calibration gate only (no fail-closed without fuel_cap >= 50M). BC-1.03.017 v1.6. |
 | v1.5 | 2026-08-17 | product-owner | Adversary pass-5 remediation (three F-S2111-P5 findings): (1) F-S2111-P5-001 — added POSITIVE/NEGATIVE/VACUITY non-vacuity controls to PC11 (parallel to PC8); controls structured as pure functions over injectable inputs (synthetic executor-source snippet + synthetic registry, NOT bound to live tree); POSITIVE-CONTROL: enforcement-active snippet + registry missing one of five on_error=block annotations → assert RED; NEGATIVE-CONTROL: enforcement-active snippet + all five annotated → assert PASS; VACUITY-CONTROL: enforcement-absent snippet → assert GREEN AND detector reached annotation-check branch (vacuous-GREEN distinguishable from real-GREEN); Canonical Test Vectors PC11 rows updated from 2 to 3 rows. (2) F-S2111-P5-002 — broadened PC11 enforcement-active detection signal from data-flow-coupled ("PluginOutcome carries failure_policy field AND execute_tiers consults it") to data-flow-independent ("any block-decision site in execute_tier/execute_tiers/helpers references .failure_policy value when deciding to block on Timeout outcome, however the data reaches it"); softened over-claimed "structurally impossible to merge" to "mechanically detectable at any single commit"; Architecture Anchors and VP-TBD updated to match. (3) F-S2111-P5-005 — EC-004 Case A now mandates S-21.13 (or named successor) MUST annotate validate-cross-site-correspondence failure_policy="fail-closed" once its O(n) fuel-ceiling algorithmic fix removes the excessive cap requirement (descope is timing deferral only, not permanent exemption); PC9 annotation-landing obligation clause added. BC-1.03.017 v1.5. |
 | v1.4 | 2026-08-17 | product-owner | Adversary pass-4 remediation (three F-S2111-P4 findings — holistic PC11/AC-012 migration-window-gate axis closure): (1) F-S2111-P4-001 — decoupled PC11 enforcement-active detection from function name; replaced name-based `fn plugin_fail_closed(` pattern with data-anchored signal (`PluginOutcome` carrying `failure_policy: FailurePolicy` field + `execute_tiers` consulting it for block decisions); detection is name-independent and holds for both extend-in-place and introduce-a-replacement implementer paths; Canonical Test Vectors PC11 rows updated to match. (2) F-S2111-P4-002 — resolved EC-004/PC11 deadlock + mis-route: EC-004 now explicitly bifurcates on `on_error` value; for `on_error="block"` plugins EC-004 is NOT a valid descope path (annotate-within-S-21.11 OR block-the-flip are the only options); path (b) "record transient fail-open window" removed for on_error=block case; S-21.13 mis-route for on_error=block removed (S-21.13 is scoped to validate-cross-site-correspondence on_error=continue only); PC9 critical caveat updated to match; PC11 extended with EC-004 non-applicability clause for the five on_error=block plugins; Story Anchors S-21.13 annotation updated. (3) F-S2111-P4-003 — H1 enriched to include migration-window on_error=block completeness gate clause (POLICY 7: enrichment must go into H1, not live only downstream in story BC-table); BC-INDEX title cell must be swept to match (state-manager same-burst per POLICY 14 leg-5). |
 | v1.3 | 2026-08-17 | product-owner | Adversary pass-3 remediation (two F-S2111-P3 findings): (1) F-S2111-P3-001 — reconciled 50M boundary to inclusive floor (>= 50_000_000 ACCEPT, < 50_000_000 REJECT) — atomic sibling sweep across PC8, PC9, Invariant 2, Invariant 7, Architecture Anchors, VP-TBD, and Canonical Test Vectors; POSITIVE-CONTROL fixture updated from fuel_cap=10_000_000 to fuel_cap=20_000_000 (factory default per ADR-042 §Decision 2, clearly below floor and realistic); added boundary-pass test vector asserting fuel_cap=50_000_000 PASSES (the calibration-formula minimum is now an inclusive ACCEPT). (2) F-S2111-P3-005 — PC11 added: hard migration-window completeness CI gate (test_no_on_error_block_without_fail_closed_when_3arg_executor) asserting that if the extended 3-arg plugin_fail_closed signature is present in executor.rs, every on_error="block" targeted plugin MUST carry failure_policy="fail-closed"; closes the CWE-636 static-gap left by Invariant 7's ordering rule (which was ordering-based, not commit-checkable); PC11 test vector added. |
