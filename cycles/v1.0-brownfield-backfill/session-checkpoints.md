@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "9ebcbd1"
+input-hash: "db0d05f"
 traces_to: STATE.md
 ---
 
@@ -1985,6 +1985,80 @@ decision-log.md is missing the exhaustive per-decision backfill for: (a) D-1011'
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the SESSION-WRAP-PAUSE-2026-08-16 checkpoint burst (2026-08-16) — human-requested `/wrap`; pipeline `ACTIVE`→`PAUSED` at this D-1015 resting state; no spec/index/ADR content changed by the pause.**
+
+---
+
+## Session Resume Checkpoint (2026-08-19 — D-1041-S2111V2-PASS1-BLOCKER-REMEDIATION; PIPELINE ACTIVE)
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE ACTIVE** — D-1041-S2111V2-PASS1-BLOCKER-REMEDIATION. `develop` is `27c56c01`, CI-GREEN. **Both E-21 Wave-A PRs MERGED**: S-21.10 PR #780 `27c56c01` + S-21.12 PR #781 `97fb07fa`. S-21.11 v2.0's first adversarial cascade pass (pass-1) ran NOT-CLEAN: BLOCKER F-S2111V2-P1-001 (plugin_fail_closed's `on_error=Block` classification only covers `Crashed`/`Timeout`, never `PluginResult::Ok{exit_code!=0}` — meaning a bash-adapter timeout, which produces a clean `Ok{exit_code:1}` via `HookResult::Error`, silently bypasses fail-closed enforcement even for the two PreToolUse `^Agent$` gates) plus 2 HIGH findings. All remediated across 5 specialist commits this burst-chain: architect filed new ADR-039 §AMD-003 (v1.10→v1.11); product-owner corrected BC-1.03.017 (v1.12→v1.13→v1.14: new PC13/Invariant 10/EC-011 correction, then PC12 POSITIVE-control corrected from the wrong `Timeout{Epoch}` outcome to the actual `Ok{exit:1}` outcome) and BC-1.03.018 (v1.0→v1.1: EC-005 two-tier correction + PC10); story-writer updated S-21.11 (v2.0→v2.1→v2.2: AC-013b/AC-013c/AC-023 + POLICY 8 cite-parity sweep). This state-manager burst (a) RATIFIED §AMD-003 (POLICY 22, human sign-off, D-1041); (b) bumped BC-INDEX v4.77→v4.78 and STORY-INDEX v4.360→v4.361 to reflect the already-authored row content; (c) discovered that its own ADR-039 ratification-annotation edit changed ADR-039's content, which cascaded an input-hash recompute through every artifact that cites ADR-039 as an `inputs:` dependency (S-21.11 story, BC-1.03.017, BC-1.03.018 — the latter also depends on BC-1.03.017 as a sibling input) — reconciled via `compute-input-hash --update`, landing on POLICY 18 three-way-equal `1b2ce0f` (superseding the `abd63a1` value story-writer had computed before this burst's ADR-039 edit). **4-index: ARCH v3.71 / BC v4.78 / VP v2.76 / STORY v4.361.** ADR-039 v1.11 (D-1041, RATIFIED, both §AMD-002 and §AMD-003). BC-1.01.016 v1.3 **ACTIVE** (POL-14 D-1028). BC-1.03.017 v1.14 + BC-1.03.018 v1.1 (both draft; remediated; ready for adversary pass-2). `[P0-followup]` branch-protection enforcement OPEN (human/admin-only). D-1016..D-1041 (see decision-log.md for full range; exhaustive **STATE.md-side**; the separate `cycles/v1.0-brownfield-backfill/decision-log.md` cycle file's per-decision entries currently stop at **D-1015** — D-1016..D-1041 (exhaustive) backfill into that file remains OWED, anchored to a future dedicated backfill burst). **BC-5.39.001 streak 0/3 — remediating a pass's findings does not itself advance the streak; adversary pass-2 against S-21.11 v2.2 is required next.** trajectory-tail →2→0→1→0 (passes 9-12; unchanged this burst — pass-1 of the v2.0/v2.2 cascade is a fresh series, not yet reflected in this legacy tail).
+
+### §2 What This Burst Did
+
+**D-1041-S2111V2-PASS1-BLOCKER-REMEDIATION (state-manager; POLICY 8 index-parity + input-hash reconcile, single-commit TD-VSDD-053)**:
+- **Recovery first.** A prior state-manager burst attempting this exact task crashed mid-STATE.md-edit (API connection drop). HEAD was clean at `4390c333`; five files (STATE.md, ADR-039, BC-INDEX.md, BC-1.03.017.md, BC-1.03.018.md, STORY-INDEX.md, S-21.11 story) had uncommitted partial edits, nothing committed. Recovered via `git stash push -m "crashed-D1041-bookkeeping-recover"` (preserved, not dropped) against clean HEAD `4390c333` — verified `git status --porcelain` clean and STATE.md single-frontmatter (367 lines) before redoing the work fresh from the clean baseline, not reconciled against the stash.
+- **ADR-039 §AMD-003 RATIFIED** (small targeted edits, not a version bump): header tag, ratification-note paragraph, and frontmatter `last_amended` status sentence all flipped from `PROPOSED / RATIFICATION-PENDING` to `RATIFIED 2026-08-19` citing D-1041, POLICY 22, human sign-off. ADR-039 stays v1.11 (content was already authored at v1.11 by the architect's commit `043ab649`; this burst only annotates ratification status).
+- **BC-INDEX**: v4.77→v4.78. BC-1.03.017 + BC-1.03.018 row cells were ALREADY updated in-place by product-owner's commits (`4cd77831`/`97ce21f8`) to the full version chains (...v1.13\|v1.14 and v1.1 respectively) — this burst performed the document-level `version:` frontmatter bump + `last_amended` reconcile that those commits did not touch. `total_bcs` UNCHANGED (1986 — no new BC this round, unlike D-1040 which added BC-1.03.018 net-new).
+- **STORY-INDEX**: v4.360→v4.361. S-21.11 catalog row: story v2.0→v2.2; points UNCHANGED 32; BC cites →`[BC-1.01.016 v1.3, BC-1.03.017 v1.14, BC-1.03.018 v1.1]`. E-21 delivery blockquote: S-21.11 hash updated to match.
+- **Input-hash drift discovered and reconciled.** Ratifying ADR-039 required editing its body text (status flips), which changed ADR-039's byte content. Three artifacts list ADR-039 as an `inputs:` frontmatter dependency: S-21.11 story, BC-1.03.017, BC-1.03.018. `compute-input-hash --check` on all three showed DRIFT immediately after the ADR-039 edit; `compute-input-hash --update` recomputed and stored the new values: S-21.11 story `fbaf702`→`1b2ce0f`; BC-1.03.017 `4ba4e32`→`5747146`; BC-1.03.018 `615e7f0`→`a6b37fb` (BC-1.03.018 also lists BC-1.03.017 as a sibling input, so its hash changed twice — once from ADR-039, once from BC-1.03.017's own updated frontmatter). Confirmed no other `.factory/` artifact cites either BC file as an input (grep swept `stories/*.md` and `specs/**/*.md`). Re-ran `--check` on all three post-update: clean, zero residual drift.
+- POLICY 18 three-way input-hash reconcile: story frontmatter = STORY-INDEX catalog row = E-21 blockquote, all `1b2ce0f`.
+- ARCH-INDEX v3.71: verified already applied by architect (still narrates §AMD-003 as PROPOSED in its own last_amended prose, since that entry was written before this burst's ratification) — NOT re-bumped, per task instruction; the staleness is a known, non-blocking cosmetic gap, not tracked as a new drift item this burst (out of the requested scope).
+- `[F-S2111V2-P1-001]` Blocking Issue: REMEDIATED — spec content fixed and ratified; the `plugin_fail_closed` code extension itself remains S-21.11 Phase 4 implementer scope (unimplemented, as expected for a spec-only burst).
+- Two new Drift Items logged: F-007 (VP-TBD on both touched BCs; anchor future VP-authoring pass) and F-008 [process-gap] (PluginResult-variant-construction-site trace gap; anchor S-15.03 PRIORITY-A).
+- STATE.md v8.17→v8.18. Pipeline stays ACTIVE (was already ACTIVE from D-1040). D-1041 allocated.
+- **Discovered timestamp-refresh guard behavior (non-blocking process note):** the `verify-state-timestamp-refresh` WASM guard blocks any STATE.md write whose specific diff does not itself advance the `timestamp:` field — not merely a comparison against the last git-committed value; every individual Edit/Write call touching STATE.md in this burst had to include a fresh `timestamp:` bump in its own diff. One large contiguous Edit attempting to touch two far-apart regions in a single call caused a splice error (banner text got interleaved with frontmatter fields) — recovered immediately via a clean full-file `Write` rewrite rather than attempting a smaller patch on top of the corruption, per the "recover via clean rewrite, don't reconcile against a bad intermediate state" discipline.
+
+### §3 Convergence Counters
+
+S-21.07 LOCAL cascade CONVERGED 3/3 at D-1009 (→1→0→0→0, UNCHANGED).
+S-21.10 LOCAL: passes 1-4 complete; **3/3 CONVERGED** (strict 3-CLEAN). Trajectory →2→2→2→2 (LENGTH=4). PR #780 **MERGED** `27c56c01` 2026-08-17. POL-14 BC-1.01.016 v1.3 draft→active.
+S-21.12 LOCAL: passes 1-3 complete; **3/3 CONVERGED** (strict 3-CLEAN). Trajectory →2→2→2→2 (LENGTH=4). PR #781 **MERGED** `97fb07fa` 2026-08-17. 5 RUSTSEC cleared.
+S-21.11 LOCAL: 15 passes against v1.x scope PAUSED at pass-13 (D-1039), spec EXPANDED to v2.0 (D-1040), then pass-1 of the v2.0 cascade ran NOT-CLEAN (BLOCKER F-S2111V2-P1-001 + 2 HIGH, this burst) — **all remediated; BC-5.39.001 streak remains 0/3** (a remediated pass does not itself count toward the streak; only a CLEAN pass does). Adversary pass-2 against S-21.11 v2.2 is the required next step. Trajectory tail →2→0→1→0 (LENGTH=4; passes 9-12; unchanged — the v2.0/v2.2 cascade's own pass-1 is not yet folded into this legacy tail).
+
+### §4 Outstanding Backfill (carried forward, NOT closed by this burst)
+
+(a) `decision-log.md` is missing the exhaustive per-decision backfill for D-1011's full reconcile-and-land session and D-1012's own SEC-001/CWE-697 arc detail (only a CONSOLIDATED entry exists). Remains OWED — anchored to a future state-manager burst.
+(b) `cycles/v1.0-brownfield-backfill/decision-log.md`'s per-decision cycle-file entries stop at **D-1015** — D-1016 through D-1041 (26 decisions, extended by one this burst) each have a STATE.md table row but no corresponding decision-log.md entry. Separate from (a); anchored to a future dedicated backfill burst. `burst-log.md` has the same gap and should be backfilled in the same pass.
+(c) ARCH-INDEX.md's own `last_amended` prose for v3.71 still narrates §AMD-003 as `PROPOSED / RATIFICATION-PENDING` (written before this burst's ratification) — cosmetic staleness, non-blocking, not newly tracked as a drift item per this task's explicit "do NOT re-bump ARCH-INDEX" instruction; will self-correct at the next architect touch of ARCH-INDEX.
+
+### §5 Next Action
+
+**PIPELINE ACTIVE. S-21.11 v2.2 (pass-1 remediated) is ready for adversary pass-2.**
+1. **Adversary pass-2** against S-21.11 v2.2 + BC-1.03.017 v1.14 + BC-1.03.018 v1.1 + ADR-039 v1.11 — streak target 3-CLEAN from 0/3.
+2. **`[P0-followup]`** branch-protection enforcement: human/admin-only action.
+3. **C-1/C-2/C-4/C-5 exec_subprocess security** (ADR-043 NOT RATIFIED) + **decision-log.md D-1011/D-1012 backfill OWED** + **D-1016..D-1041 (exhaustive) decision-log.md/burst-log.md backfill OWED** (§4b).
+4. **PENDING-POST-ADVERSARY:** S-21.11 sizing review (32 pts vs 13-pt ceiling) — human decides split-vs-unified after the pass-2 cascade lands.
+5. **F-007** (VP-TBD on BC-1.03.017/018) and **F-008** [process-gap] (PluginResult-variant trace gap) — both anchored, non-blocking.
+6. Two carried-forward non-blocking Drift Items (ARCH-INDEX YAML-escaping; hooks-registry.toml header count) — anchor next maintenance sweep.
+
+### §6 Open Follow-ups (accepted/deferred, non-blocking)
+
+- `capability: "E-12"` in BC-5.39.010 frontmatter — product-owner to confirm.
+- VP-template `last_amended` scaffold gap — architect-owned.
+- BC-INDEX read-cap ceiling growth — anchored S-21.13.
+- `report.tap` untracked in MAIN repo — gitignore hygiene (POLICY 20).
+- STORY-INDEX.md `last_amended` field bloat — anchored S-15.03.
+- `validate-pr-review-posted` hook Check-2 negation-blindness + Checks-3a/3b unreachability — anchored S-15.03 PRIORITY-A.
+- Branch-protection enforcement gap — see `[P0-followup]`; human/admin-only.
+- ARCH-INDEX date anomaly (v3.59/v3.60) — DRIFT-LOGGED D-1021; non-blocking.
+- S-21.16 (D-1022; draft; CWE-636 fail-open hardening follow-up per ADR-039 v1.3 §Consequences) — queued behind S-21.11.
+- OPTIONAL: harden POLICY 15 gate to inert-skip empty-diff commits within a range (human undecided).
+- S-21.13 template compliance — 9 mandatory sections missing from v1.0; must resolve before S-21.13 advances to ready (D-1036 drift item).
+- ARCH-INDEX.md `last_amended` YAML-escaping defect (unescaped `\'`) — D-1040; non-blocking.
+- hooks-registry.toml header count drift (35 stated vs 37 actual) — D-1040; non-blocking.
+- S-21.11 sizing review (32 pts vs 13-pt ceiling) — PENDING-POST-ADVERSARY, human undecided.
+- F-007 (VP-TBD on BC-1.03.017/018) — D-1041; anchored future VP-authoring pass.
+- F-008 [process-gap] (PluginResult-variant-construction-site trace gap) — D-1041; anchored S-15.03 PRIORITY-A.
+- ARCH-INDEX v3.71 last_amended prose still says §AMD-003 PROPOSED (cosmetic, pre-ratification wording) — will self-correct at next architect touch.
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the SESSION-WRAP-PAUSE-2026-08-19 checkpoint burst (2026-08-19) — human-requested `/wrap`; pipeline `ACTIVE`→`PAUSED`; S-21.11 v2.2 adversary pass-2 ran NOT-CLEAN (3 HIGH: F-S2111V2-P2-001/002/003, streak-resetting) plus F-004 MEDIUM (non-resetting, human decided to enumerate+test all 18 plugins) plus F-005 LOW (non-resetting); NONE remediated yet — remediation is the resume work. No spec/story/BC/ADR content changed by the pause itself.**
 
 ---
 
