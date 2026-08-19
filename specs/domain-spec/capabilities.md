@@ -2,18 +2,18 @@
 document_type: domain-spec-section
 level: L2
 section: capabilities
-version: "1.10"
+version: "1.11"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: 2026-07-19
+last_amended: 2026-08-19
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "67f16dd"
+input-hash: "38547ae"
 traces_to: L2-INDEX.md
 ---
 
@@ -257,10 +257,47 @@ Source: ADR-031 Decision 8; E-21 INV-E21-006; BC-6.10.002 (amendment); S-21.03.
 Justification: CAP-033 does not cover the baseRefName post-create check or the
 post-merge ancestry assertion; append-only P1 addition at next free ID.
 
+**CAP-039 — Break-glass operator override for self-locking PreToolUse `^Agent$` gates**
+An environment-variable override, `VSDD_BREAK_GLASS_GATE_BYPASS`, read directly by the
+dispatcher's gate-evaluation path (`crates/factory-dispatcher/src/executor.rs::execute_tiers`)
+for exactly two named `legacy-bash-adapter.wasm`-hosted validator plugins registered on
+`event = "PreToolUse"`, `tool = "^Agent$"` — `validate-wave-gate-prerequisite` and
+`validate-pr-merge-prerequisites`. A fail-closed validator gate on the `Agent` tool is a
+self-lock hazard class (Kubernetes/GKE/OPA Gatekeeper admission-webhook precedent): if either
+gate wedges (miscalibrated `timeout_ms`, hang, unmodeled failure mode), no subsequent `Agent`
+dispatch can occur — including the dispatch needed to fix the miscalibration. Setting the
+variable does not require a working `Agent` dispatch (it is read from process environment, a
+path that never routes through the dispatcher's own `Agent`-tool gate), satisfying the
+self-lock-prevention property. Authentication is by-possession of shell/process-environment
+access to the machine running the session — this factory has no separate credential layer for
+hook bypass. The override is per-invocation only: it does not mutate `hooks-registry.toml` and
+does not disable the plugin's own validation logic. Every activation is mandatorily audited via
+a structured `break_glass.activated` event to the dispatcher-internal JSONL log (gate name(s),
+timestamp, dispatch trace UUID) — an unaudited bypass would reintroduce the same "silent
+approval" failure mode (CWE-636 lineage) that CAP-011's fail-closed enforcement exists to close,
+at a different layer.
+Subsystems: SS-01. Outcome: an operator whose `Agent` dispatch is wedged by a fail-closed
+`validate-wave-gate-prerequisite` or `validate-pr-merge-prerequisites` block can set
+`VSDD_BREAK_GLASS_GATE_BYPASS` in their shell and immediately dispatch again, with the bypass
+event durably recorded in the audit log; an unset (or non-matching) variable leaves normal
+fail-closed behavior fully intact.
+Source: ADR-039 §Decision 3 v1.10 amendment (break-glass minimum-viable definition); BC-1.03.018;
+S-21.11. Justification: no existing capability covers an operator escape hatch for a
+self-locking PreToolUse `Agent`-dispatch gate. CAP-002 covers the dispatcher's normal
+block/allow hook-routing decision (this capability overrides that decision, not a member of
+it); CAP-008 covers Bash-tool PreToolUse gating specifically (destructive commands, secrets,
+AI attribution) — a distinct tool and distinct check class from the two named `^Agent$` gates;
+CAP-011 covers fuel/epoch budget enforcement itself (the mechanism this capability provides an
+escape hatch FROM, not a restatement of it); CAP-031 already uses "break-glass" terminology for
+`/factory-unlock --force` but governs a distinct concern (single-writer lock/lease exclusivity
+on `factory-artifacts`, ADR-025), not validator-gate self-lock escape. Append-only P1 addition
+at next free ID.
+
 ## CHANGELOG
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.11 | 2026-08-19 | S-21.11 expanded-scope BC coverage burst (product-owner, orchestrator-directed): authored CAP-039 (P1 — break-glass operator override for the two self-locking PreToolUse `^Agent$` validator gates; SS-01; ADR-039 §Decision 3 v1.10 amendment; BC-1.03.018; S-21.11). Distinguished from CAP-002 (normal hook block/allow decision), CAP-008 (Bash-tool PreToolUse gating), CAP-011 (the fuel/epoch enforcement this capability bypasses), and CAP-031 (factory-lock break-glass — same term, distinct concern). CAP count advance 38→39. |
 | v1.10 | 2026-07-19 | F-P6-001 (architect): CAP-034 Layer-2 sentence corrected from pre-F-P2-001 framing (named orchestrator/pr-manager/state-manager as Layer-2 hosts — retracted at ADR-031 v1.3) to current framing: live surface = undocumented ad-hoc orchestrator/operator git pull/merge Bash on the main product checkout; enforcement site = per-story-delivery.md §Main-Checkout Sync Protocol (S-21.01 Layer-2 deliverable); pr-manager explicitly excluded (merges server-side via gh pr merge — BC-5.43.001 PC3); state-manager explicitly excluded (operates via git -C .factory only, never touches main checkout); server-side origination documented as primary threat vector. TD-VSDD-060 sweep: one hit at CAP-034 line 220 (fixed this burst); CAP-035..038 and all other E-21 text clean. |
 | v1.9 | 2026-07-19 | E-21 factory state data-loss hardening: authored CAP-034 (P1 — nested-worktree path exclusivity, two-layer defense; SS-04+SS-05; ADR-031; BC-4.16.001+BC-5.43.001; S-21.01), CAP-035 (P1 — post-rebase diff-integrity gate; SS-05; ADR-031; BC-5.44.001; S-21.02), CAP-036 (P1 — story-worktree write-path discipline+teardown preflight; SS-06; ADR-031; BC-6.26.001; S-21.04), CAP-037 (P1 — factory worktree branch integrity; SS-06; ADR-031; BC-6.27.001; S-21.05), CAP-038 (P1 — factory PR trunk ancestry integrity, post-create baseRefName + post-merge ancestry guard; SS-05; ADR-031; BC-6.10.002 amendment; S-21.03) [added v1.9 via F-P1 adjudication]. CAP count advance 33→38. |
 | v1.8 | 2026-07-06 | F-P3-015/F-P3-016 capability-mapping: authored CAP-033 (P1 — pr-manager merge-operation integrity; READY-verdict SHA pinning + stale-verdict detection + release-branch merge-strategy guard; SS-05+SS-07; D-749+D-750; BC-5.42.001; S-19.01). CAP count advance 32→33. |
