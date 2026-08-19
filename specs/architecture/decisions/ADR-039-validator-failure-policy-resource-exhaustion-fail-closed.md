@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.9"
+version: "1.10"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: ratified
 date: 2026-08-06
@@ -17,7 +17,51 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-18 (v1.9-ratification+corrections) — F-S2111-P13-001 research validation folded in;
+  2026-08-19 (v1.10-AMD-002-ratification+no-split) — Two human decisions applied this session
+  (POLICY 22 ratification-channel), both scoped to this ADR only: (A) §AMD-002 RATIFIED
+  (architect; independent code-review verification against live source confirmed claims 1-3 —
+  `crates/hook-plugins/legacy-bash-adapter/src/lib.rs` has `BASH_TIMEOUT_MS = 60_000` consumed
+  in `run_bash_via_host`; registry `timeout_ms` only sets the wasm Store epoch deadline in
+  `invoke.rs`, never bounds the bash child; epoch in sync mode cannot preempt the blocking
+  native `execute_bounded` loop, so the 60s constant is the real backstop — and corrected
+  claim 4's citation: the "ADR-025 §Decision 18" corroboration was WRONG (ADR-025 concerns the
+  factory-artifacts lock/lease decision, an unrelated topic, and contains no §Decision 18 on
+  this subject); the genuine corroboration is ADR-039's OWN document history — §AMD-001 (v1.8)
+  originally framed the resource-exhaustion axis in terms that did not yet distinguish "epoch
+  bounds the guest WASM" from "epoch bounds the host-blocking subprocess call"; the v1.9
+  "Mechanism precision" paragraph in §Decision 4 self-corrected this, identifying
+  `exec_subprocess.rs::run()`'s `Instant`-based poll+kill loop as the actual host enforcement
+  point, distinct from wasmtime epoch interruption; §AMD-002 extends that same v1.9
+  self-correction one step further, showing the value fed into that correct enforcement point
+  is a hardcoded constant, not the registry's calibrated `timeout_ms`). Blast radius reframed:
+  the global-constant / no-registry-read defect applies to ALL `hook-plugins/legacy-bash-adapter.wasm`-routed
+  `hooks-registry.toml` entries — confirmed via live grep at ~37 entries, not only the five
+  named in §Decision 2 (those five remain the calibration-and-flip subset targeted by S-21.11;
+  the other ~32 legacy-bash-adapter-routed entries share the same unwired-constant defect but
+  are out of S-21.11's fail-closed-flip scope). A registry header-comment drift is noted for a
+  future maintenance sweep (comment at the top of `hooks-registry.toml` states "35
+  legacy-bash-adapter entries"; live count is 37) — NOT corrected in this burst; the registry
+  file itself is out of architect scope for this ADR-only burst. (B) Human decided S-21.11 is
+  NOT split — it delivers all six targeted plugins as one unified story, absorbing (a) the
+  AMD-002 `exec_subprocess` wiring fix, (b) per-plugin `timeout_ms` calibration, (c) the
+  break-glass mechanism, and (d) the gated fail-closed flip, as a single story scope. Named
+  follow-ups **S-21.17** (break-glass) and **S-21.18** (AMD-002 wiring) are RETIRED as
+  separate not-yet-authored stories; every reference to either in this ADR's live (non-history)
+  content is redirected to S-21.11. §Decision 3's break-glass paragraph is amended: the ordering
+  constraint is restated as an INTRA-story sequencing rule (the break-glass commit MUST land
+  before, or atomically with, the fail-closed-flip commit for the two PreToolUse `^Agent$`
+  gates within S-21.11) rather than a cross-story landing dependency. A new break-glass
+  minimum-viable-definition paragraph is added to §Decision 3 — concrete enough for
+  story-writer to derive ACs directly (environment-variable override consulted before the
+  gate's block decision is computed; human-operator-only; every activation audited via a
+  structured `break_glass.activated` event in the dispatcher-internal JSONL log); no further
+  design pass is required. §AMD-002's own text is updated to RATIFIED status and to redirect
+  its S-21.18 reference to S-21.11. BC-1.03.017's Traceability row citations of S-21.17/S-21.18
+  are swept to reflect S-21.11 absorption (architect-applied, same burst, per the established
+  v1.9→v1.10 precedent already recorded below — citation-only, no PC/Precondition content
+  altered; BC-1.03.017 v1.10→v1.11). ARCH-INDEX row + version co-updated (architect-applied).
+  ADR-039 v1.10.
+  [Prior: 2026-08-18 (v1.9-ratification+corrections) — F-S2111-P13-001 research validation folded in;
   AMD-001 RATIFIED (architect; human sign-off this session; independent Perplexity
   sonar-deep-research + docs.rs/wasmtime/46.0.2 version-pinned verification CONFIRMED the v1.8
   fuel-vs-epoch technical premise verbatim, with four advisory corrections): (1) terminology
@@ -149,7 +193,7 @@ last_amended: |-
   (5) near-term mitigations — headroom warning + ≥574 KB fixture; (6) verification requirement
   — behavioral test must exercise observed outcome, not documented intent.
   fail_closed_timeout_with_on_error_continue_is_open test encodes current policy and MUST be
-  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]]]
+  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]]]]
 modified:
   - "2026-08-06 (v1.0)"
   - "2026-08-06 (v1.1)"
@@ -162,6 +206,7 @@ modified:
   - "2026-08-18 (v1.7-erratum)"
   - "2026-08-18 (v1.8-amendment)"
   - "2026-08-18 (v1.9-ratification+corrections)"
+  - "2026-08-19 (v1.10-AMD-002-ratification+no-split)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -418,16 +463,71 @@ dispatcher's `Agent`-tool gate, or an explicit environment-variable/CLI override
 before the gate's block decision is evaluated). This is a NEW architectural requirement, not
 yet implemented: it MUST be designed and delivered as part of the Phase 4 enforcement work for
 these two plugins, and MUST NOT be treated as satisfied by the calibrated `timeout_ms` alone.
-**Named follow-up: S-21.17** (new; not yet authored) — "Authenticated break-glass bypass for
-the two PreToolUse `^Agent$` dispatch-guarding gates." S-21.11's Phase 4 fail-closed flip for
-`validate-wave-gate-prerequisite` and `validate-pr-merge-prerequisites` specifically MUST NOT
-ship without either (a) S-21.17 landing first, or (b) an explicit orchestrator-approved
-decision to accept the self-lock residual risk pending S-21.17, recorded at the time of that
-Phase 4 commit. This requirement does not apply to the other three `legacy-bash-adapter.wasm`-
-hosted plugins (`validate-factory-path-root`, `validate-input-hash`,
-`validate-template-compliance`) or to the native-WASM plugin — their `on_error`/`event`
-registration (PostToolUse, or non-`^Agent$` tool) does not carry the dispatch-prevention
-hazard: a PostToolUse block cannot retroactively undo a completed write (§Decision 3 above).
+**Delivery scope (v1.10 amendment — no-split human decision, 2026-08-19).** Break-glass is
+delivered WITHIN **S-21.11** as part of its unified scope — it is NOT a separate follow-up
+story. (Prior versions of this ADR named a separate follow-up S-21.17; that framing is retired
+per the human's explicit no-split decision this session — S-21.11 absorbs break-glass alongside
+the AMD-002 `exec_subprocess` wiring fix, per-plugin `timeout_ms` calibration, and the gated
+fail-closed flip, as one story.) The ordering constraint is now an INTRA-story sequencing rule,
+not a cross-story landing dependency: S-21.11's break-glass mechanism (see the minimum-viable
+definition immediately below) MUST be implemented, tested, and committed BEFORE — or atomically
+with, in the same PR's commit sequence — the commit that sets
+`failure_policy = "fail-closed"` for `validate-wave-gate-prerequisite` and
+`validate-pr-merge-prerequisites` specifically. The fail-closed-flip commit for these two gates
+MUST NOT land in S-21.11 ahead of the break-glass commit; if S-21.11's own sequencing cannot
+satisfy this (e.g., an implementation blocker on break-glass), the fail-closed flip for these
+two gates specifically is deferred to a later commit within the same story, not shipped early.
+This requirement does not apply to the other three `legacy-bash-adapter.wasm`-hosted plugins
+(`validate-factory-path-root`, `validate-input-hash`, `validate-template-compliance`) or to the
+native-WASM plugin — their `on_error`/`event` registration (PostToolUse, or non-`^Agent$` tool)
+does not carry the dispatch-prevention hazard: a PostToolUse block cannot retroactively undo a
+completed write (§Decision 3 above).
+
+**Break-glass minimum-viable definition (v1.10 amendment; concrete enough for story-writer to
+derive ACs directly — no further design pass required).** The mechanism is an
+**environment-variable override**, `VSDD_BREAK_GLASS_GATE_BYPASS`, read by the dispatcher's
+gate-evaluation path for the two named PreToolUse `^Agent$` gates ONLY, consulted BEFORE the
+gate's block decision is computed (i.e., checked ahead of the `plugin_fail_closed`-equivalent
+decision point for these two plugin entries specifically). Its value is a comma-separated list
+of plugin `name`s to bypass, or the literal `all` to bypass both. Concrete specification:
+
+- **What it is:** an authenticated-by-possession bypass — possession of shell/process-environment
+  access to the machine running the Claude Code session IS the authentication (this factory has
+  no separate credential/token layer for hook bypass; requiring one would be new infrastructure
+  out of proportion to a break-glass escape hatch). Setting the variable does not require a
+  working `Agent` tool dispatch, satisfying the self-lock-prevention property: it is set directly
+  in the operator's shell environment, a path that does not route through the dispatcher's
+  `Agent`-tool gate at all.
+- **Who may invoke:** any human operator with direct shell access to the environment running the
+  Claude Code session. It is intentionally NOT exposed to any agent-invoked tool — agents are
+  exactly what the two gates in question block, so an agent-triggerable bypass would defeat the
+  gate's purpose.
+- **Scope of effect:** when set for a given gate name (or `all`), the dispatcher treats that
+  gate's outcome as allow regardless of the plugin's own result for that invocation only — it
+  does not disable the plugin's underlying validation logic or mutate `hooks-registry.toml`; it
+  is a per-invocation override, not a persistent configuration change.
+- **Audit (mandatory, non-optional):** every time the dispatcher observes the override active for
+  a gated invocation, it MUST emit a structured `break_glass.activated` event to the
+  dispatcher-internal JSONL log (`.factory/logs/dispatcher-internal-YYYY-MM-DD.jsonl`; same
+  event-sink family already documented for `VSDD_SINK_FILE` diagnostics) carrying at minimum:
+  the bypassed gate name(s), a timestamp, and the trace UUID of the dispatch it applied to.
+  Silent bypass (no audit event) is not an acceptable implementation — an unaudited break-glass
+  reintroduces exactly the "silent approval" failure mode (CWE-636 lineage) this ADR exists to
+  close, just at a different layer.
+- **Minimum ACs this definition supports directly:** (a) unit/integration test asserting the
+  override, when set, allows an `Agent` dispatch that the named gate would otherwise block; (b)
+  unit/integration test asserting the override, when unset or set to an unrelated name, does NOT
+  suppress the gate's normal block behavior; (c) test asserting the `break_glass.activated`
+  event is emitted with the required fields on activation; (d) a short operator-facing note (in
+  this ADR or a dedicated runbook — S-21.11's choice) documenting the variable name, accepted
+  values, and the audit-log location, so an operator under a live self-lock can find and use it
+  without needing to read source code.
+
+This is the minimum viable definition and is judged sufficient for story-writer to derive S-21.11
+ACs without a separate design pass. If implementation surfaces a reason the env-var mechanism is
+insufficient (e.g., the dispatcher process does not have visibility into a shell-set variable in
+some execution context), that is a devops-engineer/implementer-level finding to surface to the
+orchestrator during S-21.11, not a gap in this specification.
 
 ### Decision 4 — Fuel budgeting: p99-derived per-plugin caps; fixed `20_000_000` constant (per ADR-042) is the wrong shape
 
@@ -825,6 +925,28 @@ its residual risk explicitly accepted by the orchestrator) before Phase 4's fail
 for the five `legacy-bash-adapter.wasm`-hosted plugins is treated as fully protective. Status:
 v1.8 delta (AMD-001) is now RATIFIED; §AMD-002 is PROPOSED / NOT RATIFIED. ADR-039 v1.9. See
 §AMD-001 and §AMD-002.
+AMD-002 RATIFICATION + NO-SPLIT DECISION 2026-08-19 (v1.10 — architect; human decisions this
+session, POLICY 22 ratification-channel): (A) §AMD-002 RATIFIED by human, corroborated by
+independent code-review verification against live source confirming claims 1-3 and correcting
+claim 4's citation (the "ADR-025 §Decision 18" corroboration was wrong and is retracted; the
+real corroboration is ADR-039's own v1.8 §AMD-001 → v1.9 §Decision 4 mechanism-precision
+self-correction history — see the revised §AMD-002 "Corroborating precedent" paragraph). Blast
+radius reframed: the defect applies to all ~37 `legacy-bash-adapter.wasm`-routed registry
+entries, not only the five named in §Decision 2 (those five remain the correct
+calibration-and-flip subset); a registry header-comment drift (35 documented vs. 37 live) is
+flagged for a future maintenance sweep, not corrected here. (B) Human decided S-21.11 is NOT
+split: it delivers all six §Decision 2 plugins as one unified story, absorbing the break-glass
+mechanism (previously named follow-up S-21.17, now retired as a separate story) and the AMD-002
+`exec_subprocess` wiring fix (previously named follow-up S-21.18, now retired as a separate
+story). §Decision 3's break-glass requirement is restated as an intra-story ordering constraint:
+the break-glass commit MUST land before, or atomically with, the fail-closed-flip commit for
+`validate-wave-gate-prerequisite` and `validate-pr-merge-prerequisites` within S-21.11. A
+concrete break-glass minimum-viable definition (environment-variable override, human-operator-
+only, audited via dispatcher-internal JSONL) is added to §Decision 3 — sufficient for
+story-writer to derive ACs without a further design pass. BC-1.03.017's Traceability citations
+of S-21.17/S-21.18 are swept to reflect S-21.11 absorption (architect-applied, same burst;
+BC-1.03.017 v1.10→v1.11). Status: §AMD-001 remains RATIFIED (2026-08-18, v1.9); §AMD-002 is now
+RATIFIED (2026-08-19, v1.10). ADR-039 v1.10.
 
 Adjudicates F-S2107-P7-010 (HIGH), F-S2107-P7-011 (HIGH), F-S2107-P7-015 (MEDIUM) design
 legs from adversarial pass-7 of S-21.07. Extends ADR-035 §Decision 5 to the enforcement
@@ -838,24 +960,32 @@ Implementation routing (current status):
   (fuel-headroom warning, invoke module) on branch `fix/fuel-exhaustion-fail-loud`. Mitigation 2
   (≥574 KB production-scale fixture) delivered in S-21.07 as `a1-production-scale` bats scenario
   fixture (commit e94767bc) — calibration corpus prerequisite satisfied.
-- **Phase 3+4 — AMD-001 RATIFIED (v1.9); calibration may resume; Phase 4 flip additionally
-  gated on §AMD-002 (F-S2111-P13-001; v1.9 self-verification finding, PROPOSED/NOT RATIFIED):**
+- **Phase 3+4 — AMD-001 RATIFIED (v1.9) AND AMD-002 RATIFIED (v1.10); calibration may
+  resume; Phase 4 flip additionally gated on the AMD-002 wiring fix landing within S-21.11:**
   devops-engineer's Decision 4 calibration work is bifurcated by adapter class — `fuel_cap`
   measurement for the native-WASM plugin (`validate-cross-site-correspondence`) per the
   original formula; `timeout_ms` (host wall-clock) measurement for the five
   `legacy-bash-adapter.wasm`-hosted plugins per the §Decision 4 host-wall-clock-timeout-axis
   formula. Blocked on S-21.10 merge (delivered — no longer blocking). AMD-001 ratification
-  (this session) lifts the Phase-3-calibration blocker. **However, per §AMD-002, the
+  (2026-08-18) lifted the Phase-3-calibration blocker. **Per the now-RATIFIED §AMD-002, the
   calibrated `timeout_ms` value does not yet reach the live subprocess-kill deadline in
   `legacy-bash-adapter`** (fixed at `BASH_TIMEOUT_MS = 60_000`) — S-21.11's Phase 4 fail-closed
   flip for the five `legacy-bash-adapter.wasm`-hosted plugins MUST NOT be treated as fully
-  protective until S-21.18 lands or the orchestrator explicitly accepts the residual gap.
+  protective until the AMD-002 wiring fix lands (within S-21.11, per the no-split decision) or
+  the orchestrator explicitly accepts the residual gap.
   implementer: `plugin_fail_closed` extension for `failure_policy` + Decision 6 behavioral
   tests (Phase 4) — unaffected by AMD-001/AMD-002 (the extension is calibration-axis-agnostic).
-  New: implementer/devops-engineer routing for **S-21.17** (break-glass for the two PreToolUse
-  `^Agent$` gates) and **S-21.18** (wire calibrated `timeout_ms` into `legacy-bash-adapter`'s
-  `exec_subprocess` deadline) — both new, not yet authored; surfaced to orchestrator for
-  scoping.
+  **AMD-002 RATIFIED (v1.10, 2026-08-19):** the calibrated `timeout_ms` value does not yet reach
+  the live subprocess-kill deadline in `legacy-bash-adapter` (fixed at
+  `BASH_TIMEOUT_MS = 60_000`); this affects all ~37 `legacy-bash-adapter.wasm`-routed registry
+  entries structurally, though only the five §Decision 2 plugins are in S-21.11's fail-closed-
+  flip scope. Per the human's no-split decision this session, implementer/devops-engineer
+  routing for the break-glass mechanism and the AMD-002 wiring fix is **WITHIN S-21.11** — both
+  are delivered as part of that story's unified scope, not as separate follow-up stories. (The
+  prior S-21.17/S-21.18 follow-up names are retired; do not create those stories.) S-21.11's
+  Phase 4 fail-closed flip for `validate-wave-gate-prerequisite` and
+  `validate-pr-merge-prerequisites` specifically MUST NOT land ahead of that story's own
+  break-glass commit (§Decision 3 intra-story ordering constraint).
 - **product-owner:** Decision 4 Option B `fuel_per_kb` field — new registry schema field
   requires BC update when adopted.
 
@@ -939,7 +1069,7 @@ Status: v1.7 base RATIFIED; v1.8 delta (AMD-001) RATIFIED 2026-08-18 (v1.9). ADR
 
 ---
 
-### AMD-002 — `legacy-bash-adapter`'s bash-subprocess kill deadline is a fixed 60,000 ms constant, independent of the registry's calibrated `timeout_ms` (v1.9, 2026-08-18; architect self-verification during F-S2111-P13-001 corrections fold-in — PROPOSED / NOT RATIFIED)
+### AMD-002 — `legacy-bash-adapter`'s bash-subprocess kill deadline is a fixed 60,000 ms constant, independent of the registry's calibrated `timeout_ms` (v1.9, 2026-08-18; architect self-verification during F-S2111-P13-001 corrections fold-in — RATIFIED v1.10, 2026-08-19)
 
 **Finding:** While folding the four F-S2111-P13-001 research corrections into this ADR, direct
 verification of the shipped implementation (`crates/hook-plugins/legacy-bash-adapter/src/lib.rs`,
@@ -968,13 +1098,22 @@ wasmtime documentation, not this codebase's control flow) did not check.
    deadline didn't fire" — which does not hold given point 1 above: the epoch deadline cannot
    preempt a blocking host call, so it cannot be "the source of truth" for a hang.
 
-**Corroborating precedent:** This is not a novel claim. ADR-025 §Decision 18 (2026-07-15, an
-unrelated context — the `read_prefix` host function's `timeout_ms` field) already established
-the identical fact: "epoch interruption cannot preempt blocking `func_wrap` host calls
-executing on dispatcher thread; `timeout_ms` is ABI-forward-reserved." That ADR independently
-reached the same conclusion this AMD-002 relies on, for a different host function on the same
-dispatcher thread model — strengthening confidence that the finding here is a structural
-property of the dispatcher's `func_wrap`/epoch architecture, not an isolated misreading.
+**Corroborating precedent (CORRECTED v1.10 — F-S2111-P13-001 independent code-review, this
+session).** The v1.9 text cited "ADR-025 §Decision 18" as corroboration. That citation is
+WRONG and is retracted: ADR-025 is the factory-artifacts lock/lease decision — an unrelated
+topic that contains no ruling on host function timeout semantics, `read_prefix`, or
+epoch-vs-subprocess behavior. The genuine corroboration is internal to ADR-039 itself: this
+ADR's own v1.8 §AMD-001 amendment introduced the epoch/`timeout_ms` axis without yet
+distinguishing "epoch bounds the guest WASM's own instructions" from "epoch bounds a
+host-blocking call the guest is waiting on" — the v1.9 "Mechanism precision" paragraph in
+§Decision 4 self-corrected exactly this, establishing that the genuine host enforcement point
+is `exec_subprocess.rs::run()`'s `Instant`-based poll+kill loop, not wasmtime epoch
+interruption. §AMD-002 is a direct continuation of that same v1.9 self-correction: having
+established WHERE the real subprocess deadline is enforced, this finding establishes WHAT VALUE
+is fed into that enforcement point — and shows it is the hardcoded `BASH_TIMEOUT_MS` constant,
+not the registry's calibrated `timeout_ms`. No external ADR is required or claimed as
+corroboration; the chain of reasoning is ADR-039 v1.8 → v1.9 → v1.9 §AMD-002, each step
+correcting or extending the one before it.
 
 **Consequence:** As currently coded, calibrating and raising the registry's per-plugin
 `timeout_ms` (per this ADR's §Decision 4 host-wall-clock-timeout-axis formula) has NO EFFECT
@@ -985,19 +1124,43 @@ dangerous for the two PreToolUse `^Agent$` gates) — if anything it sharpens th
 concern, since today's real backstop is a fixed constant that the calibration procedure cannot
 tighten or verify.
 
-**Scope:** This is a material technical finding beyond the four F-S2111-P13-001 corrections
-this burst was authorized to fold in as ratified content. It is filed as **PROPOSED / NOT
-RATIFIED**. Resolution requires either (a) human ratification of a further Decision-4
-amendment re-scoping the calibration target, or (b) routing to devops-engineer/implementer to
-thread the registry-calibrated `timeout_ms` into `legacy-bash-adapter`'s `exec_subprocess`
-call (replacing or bounding the fixed `BASH_TIMEOUT_MS` constant) before Phase 4's fail-closed
-flip can be considered actually protective for the five `legacy-bash-adapter.wasm`-hosted
-plugins. **Named follow-up: S-21.18** (new; not yet authored) — "Wire registry-calibrated
-`timeout_ms` into `legacy-bash-adapter`'s `exec_subprocess` deadline, replacing the fixed
-`BASH_TIMEOUT_MS` constant." S-21.11's Phase 4 enforcement flip for the five
-`legacy-bash-adapter.wasm`-hosted plugins MUST NOT be treated as fully protective until S-21.18
-lands or an orchestrator-approved decision explicitly accepts the residual gap. Surfaced to
-orchestrator for scoping; not implemented in this burst (architect scope is spec-only).
+**Blast radius (v1.10 reframing — independent code-review, this session).** The defect
+described above (global `BASH_TIMEOUT_MS` constant; the adapter never reads the registry's
+per-plugin `timeout_ms`) is a property of `legacy-bash-adapter`'s implementation, not of any
+individual plugin entry. It therefore applies to **every** `hooks-registry.toml` `[[hook]]`
+entry whose `plugin = "hook-plugins/legacy-bash-adapter.wasm"` — confirmed via live grep at
+**37 entries**, not only the five named in §Decision 2 (`validate-factory-path-root`,
+`validate-input-hash`, `validate-template-compliance`, `validate-wave-gate-prerequisite`,
+`validate-pr-merge-prerequisites`). Those five remain the correct and complete calibration-and-
+fail-closed-flip subset for S-21.11 — §Decision 2's scope is unchanged — but the AMD-002 defect
+itself is not limited to them: the other ~32 `legacy-bash-adapter.wasm`-routed entries share the
+identical unwired-constant exposure (their subprocess kill deadline is likewise fixed at 60,000
+ms regardless of whatever `timeout_ms` their own registry entry carries); they are simply
+outside S-21.11's fail-closed-flip scope because they are not being moved to
+`failure_policy = "fail-closed"` in this story. **Registry documentation drift noted (not
+corrected in this burst):** `hooks-registry.toml`'s header comment states "35 legacy-bash-adapter
+entries"; the live, grep-confirmed count is 37. This is flagged here as a candidate for a future
+maintenance sweep (`vsdd-factory:maintenance-sweep` or a dedicated fix burst) — the registry file
+itself is out of scope for this ADR-only architect burst and is NOT edited here.
+
+**Scope and ratification.** This is a material technical finding beyond the four
+F-S2111-P13-001 research corrections the v1.9 burst was authorized to fold in as ratified
+content; it was correctly filed v1.9 as PROPOSED / NOT RATIFIED pending explicit human review.
+**RATIFIED 2026-08-19 (v1.10) by human, this session (POLICY 22 ratification-channel),
+corroborated by independent code-review verification against live source** (see the frontmatter
+`last_amended` v1.10 entry and the corrected "Corroborating precedent" paragraph above for the
+verification basis). Resolution routes to devops-engineer/implementer to thread the
+registry-calibrated `timeout_ms` into `legacy-bash-adapter`'s `exec_subprocess` call (replacing
+or bounding the fixed `BASH_TIMEOUT_MS` constant) before Phase 4's fail-closed flip can be
+considered actually protective for the five `legacy-bash-adapter.wasm`-hosted plugins named in
+§Decision 2. **Delivery scope (v1.10 amendment — no-split human decision, 2026-08-19):** this
+wiring fix is delivered WITHIN **S-21.11** as part of its unified scope, NOT as a separate
+follow-up story. (Prior versions of this ADR named a separate follow-up S-21.18; that framing
+is retired per the human's explicit no-split decision this session.) S-21.11's Phase 4
+enforcement flip for the five `legacy-bash-adapter.wasm`-hosted plugins MUST NOT be treated as
+fully protective until the wiring fix lands within S-21.11, or an orchestrator-approved decision
+explicitly accepts the residual gap and records it at the time of the Phase 4 commit. Not
+implemented in this burst — architect scope for this burst is spec-only.
 
 ---
 
