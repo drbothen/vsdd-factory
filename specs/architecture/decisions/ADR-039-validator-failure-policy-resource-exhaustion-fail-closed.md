@@ -52,8 +52,9 @@ last_amended: |-
   evaluated. Full design rationale, rejected alternatives, and the precise BC/AC change directive
   for product-owner and story-writer are recorded in
   `.factory/cycles/v1.0-brownfield-backfill/F-S2111V2-P1-001-mechanism-adjudication.md`. Status:
-  v1.10 base remains RATIFIED; v1.11 delta (§AMD-003) is PROPOSED / RATIFICATION-PENDING pending
-  human review — does not self-ratify. ADR-039 v1.11.
+  v1.10 base remains RATIFIED; v1.11 delta (§AMD-003) RATIFIED 2026-08-19 by human, this session
+  (POLICY 22 ratification-channel; D-1041), following the adversarial pass-1 remediation round
+  (state-manager bookkeeping burst). ADR-039 v1.11.
   [Prior: 2026-08-19 (v1.10-AMD-002-ratification+no-split) — Two human decisions applied this session
   (POLICY 22 ratification-channel), both scoped to this ADR only: (A) §AMD-002 RATIFIED
   (architect; independent code-review verification against live source confirmed claims 1-3 —
@@ -1243,7 +1244,7 @@ implemented in this burst — architect scope for this burst is spec-only.
 
 ---
 
-### AMD-003 — `on_error = "block"` does not fail-closed on a plugin's own reported `HookResult::Error` (`PluginResult::Ok { exit_code: 1 }`); `plugin_fail_closed` classifies only `Crashed`/`Timeout`, leaving a bash-adapter timeout — and any plugin-reported error — fail-open (v1.11, 2026-08-19; architect, S-21.11 v2.0 adversarial pass-1 BLOCKER F-S2111V2-P1-001 — PROPOSED / RATIFICATION-PENDING)
+### AMD-003 — `on_error = "block"` does not fail-closed on a plugin's own reported `HookResult::Error` (`PluginResult::Ok { exit_code: 1 }`); `plugin_fail_closed` classifies only `Crashed`/`Timeout`, leaving a bash-adapter timeout — and any plugin-reported error — fail-open (v1.11, 2026-08-19; architect, S-21.11 v2.0 adversarial pass-1 BLOCKER F-S2111V2-P1-001 — RATIFIED 2026-08-19, D-1041)
 
 **Finding:** F-S2111V2-P1-001 (BLOCKER; adversarial pass-1 of S-21.11 v2.0). §Decision 1's
 `on_error` row states this field "MUST retain its current semantics: `continue` = fail-open on
@@ -1356,16 +1357,20 @@ to product-owner.
 **Ratification note.** Per POLICY 22, this is a substantive Decision-content amendment (it
 changes what `plugin_fail_closed`'s implementation must do for the `on_error = "block"` class,
 and it rules F-005 in-scope for a story whose AC set is about to be finalized) and REQUIRES human
-ratification before S-21.11's Phase 4 implementer work proceeds on this leg. **Status: PROPOSED /
-RATIFICATION-PENDING.** Filed by architect during a scoped mechanism-adjudication burst
-dispatched in response to S-21.11 v2.0 adversarial pass-1's BLOCKER finding F-S2111V2-P1-001.
-Does not by itself block S-21.11's OTHER, already-ratified legs (native-WASM fuel calibration,
-break-glass mechanism, AMD-002 wiring fix) — those may proceed in parallel — but the Phase 4
-enforcement-flip commit for the two PreToolUse `^Agent$` gates specifically MUST NOT be treated
-as complete until this amendment is ratified and its `plugin_fail_closed` extension lands. Full
-design rationale and the precise BC/AC change directive for product-owner and story-writer are
-recorded in `.factory/cycles/v1.0-brownfield-backfill/F-S2111V2-P1-001-mechanism-adjudication.md`.
-Not implemented in this burst — architect scope for this burst is spec-only.
+ratification before S-21.11's Phase 4 implementer work proceeds on this leg. Filed by architect
+during a scoped mechanism-adjudication burst dispatched in response to S-21.11 v2.0 adversarial
+pass-1's BLOCKER finding F-S2111V2-P1-001. **RATIFIED 2026-08-19 by human, this session (POLICY
+22 ratification-channel; D-1041), via orchestrator-dispatched state-manager bookkeeping burst**
+following the adversarial pass-1 remediation round (BLOCKER F-001 + 2 HIGH all remediated across
+architect/product-owner/story-writer commits `043ab649`/`4cd77831`/`97ce21f8`/`55b7323c`/`4390c333`).
+S-21.11's OTHER, already-ratified legs (native-WASM fuel calibration, break-glass mechanism,
+AMD-002 wiring fix) were never blocked by this amendment's pendency. With this ratification, the
+Phase 4 enforcement-flip commit for the two PreToolUse `^Agent$` gates may now be treated as
+covered once its `plugin_fail_closed` extension per the Precise Rule above lands. Full design
+rationale and the precise BC/AC change directive for product-owner and story-writer are recorded
+in `.factory/cycles/v1.0-brownfield-backfill/F-S2111V2-P1-001-mechanism-adjudication.md`.
+Not implemented in this burst — architect scope for this burst was spec-only; the
+`plugin_fail_closed` extension itself is S-21.11 Phase 4 implementer scope.
 
 ---
 

@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.03.017.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "615e7f0"
+input-hash: "a6b37fb"
 traces_to: .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
 origin: greenfield
 extracted_from: null
