@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "db0d05f"
+input-hash: "d070043"
 traces_to: STATE.md
 ---
 
@@ -2117,3 +2117,53 @@ decision-log.md is missing the exhaustive per-decision backfill for: (a) D-1011'
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the SESSION-WRAP-PAUSE-2026-08-17 checkpoint burst (2026-08-17) — human-requested `/wrap`; pipeline `ACTIVE`→`PAUSED` at E-21 Wave-A PR-review checkpoint; S-21.10 + S-21.12 LOCAL 3/3 CONVERGED.**
+
+## Session Resume Checkpoint (2026-08-19 — SESSION-WRAP-PAUSE-2026-08-19; PIPELINE PAUSED)
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE PAUSED** at a clean pushed checkpoint (this commit; `git -C .factory log -1` for the HEAD SHA). `develop` is `27c56c01` (unchanged), CI-GREEN. **Both E-21 Wave-A PRs MERGED**: S-21.10 PR #780 `27c56c01` + S-21.12 PR #781 `97fb07fa`. S-21.11 v2.2 is mid-cascade: pass-1 (BLOCKER + 2 HIGH) was FULLY REMEDIATED at D-1041 (ADR-039 v1.11 §AMD-003 RATIFIED — executor treats `on_error=Block` + `PluginResult::Ok{exit_code!=0}` as fail-closed block, not only `Crashed`/`Timeout`). Pass-2 ran NOT-CLEAN (3 HIGH resetting + 1 MEDIUM/1 LOW non-resetting) and is **NOT yet remediated — this is the resume work.** BC-5.39.001 streak is **0/3**. Human-invoked `/wrap` paused the pipeline here rather than continuing remediation, due to seven API-connection crashes this session (all recovered zero-corruption via git-stash + clean re-dispatch from a committed baseline).
+
+### §2 Pass-2 Findings To Remediate (F-S2111V2-P2-001..005)
+
+- **F-001 HIGH (streak-resetting)** — Story Task #19b's block predicate is written too BROADLY: it fires on "NOT `Ok{exit_code:0}`", which also fires on `Timeout`/`Crashed` outcomes, contradicting PC5/AC-005(b)/AC-011/TC-12 (which require `Timeout`+`Block`+`FailOpen` → exit 0, i.e. timeouts must NOT be caught by this predicate). Fix: story-writer narrows Task #19b to `on_error==Block && matches!(result, Ok{exit_code} if exit_code!=0)`. Owner: **story-writer**.
+- **F-002 HIGH (streak-resetting)** — §AMD-003 ratification-status contradiction: ADR-039 §Status body + frontmatter `last_amended` line + ARCH-INDEX ADR-039 row all still say "PROPOSED / RATIFICATION-PENDING" while the §AMD-003 section body + D-1041 say RATIFIED. Fix: sweep all 3 locations to RATIFIED. Owner: **architect** (ADR-039 §Status + frontmatter) + **state-manager** (ARCH-INDEX row).
+- **F-003 HIGH (streak-resetting)** — BC-INDEX title cells stale vs each BC's own H1: BC-1.03.017's BC-INDEX title cell is missing "+ §AMD-003 on_error=Block plugin-error fail-closed leg; PC13"; BC-1.03.018's is missing "human-operator-only Agent-tool-cannot-arm threat-boundary control; PC10". POLICY 7 violation. Fix: sweep each title cell to match its BC's own H1. Owner: **state-manager**.
+- **F-004 MEDIUM (non-resetting)** — PC13's predicate changes fail-closed-on-error behavior for ALL 18 `on_error=block` registry plugins, but only the 6 originally-targeted plugins are enumerated/tested in the spec. **HUMAN DECISION THIS SESSION: enumerate + test all 18** (production-grade default) — execute in the remediation round. Owner: **product-owner** (enumerate coverage contract in BC PC/Invariant) + **story-writer** (ACs/tests for all 18).
+- **F-005 LOW (non-resetting)** — Token Budget figures inconsistent within the story: the table states ~56,000 tokens / 28.0%, while the Routing-Proposals prose states ~53,300 / 26.7%. Fix: story-writer sweeps the stale prose figure to match the table. Owner: **story-writer**.
+
+### §3 Resume Order (next action)
+
+Run the pass-2 remediation round in this order:
+1. **product-owner** — F-004 enumerate-18 coverage contract (BC PC/Invariant amendment).
+2. **architect** — F-002 ADR-039 §Status + frontmatter → RATIFIED (sweep both locations).
+3. **story-writer** — F-001 Task #19b narrow predicate + F-004 ACs/tests (after PO's contract lands) + F-005 token-budget prose sweep.
+4. **state-manager LAST** — F-003 BC-INDEX title-cell sweep + F-002 ARCH-INDEX row + index/hash reconcile + decision-log entry — then dispatch **adversary pass-3**.
+
+**Standing rule (prior human decision, still binding):** keep S-21.11 as ONE unified story — do NOT split it, even though it is 32 points against the typical ~13-pt story ceiling (that sizing question is separately PENDING-POST-ADVERSARY per D-1040 drift item, decided AFTER convergence).
+
+### §4 Session Note (crash recovery)
+
+Seven API-connection-drop crashes occurred this session across multiple specialist bursts (2 architect, 1 product-owner, plus others), every one recovered via `git stash push` preservation against the last clean committed HEAD, followed by a clean re-dispatch from that baseline. **Zero committed corruption resulted from any of the seven crashes.** Recovery stashes from this session (prefixed `crashed-*`) are superseded by committed work and safe to ignore; the destructive-command-guard hook blocks dropping them, so they remain in the stash list as inert history — no action needed.
+
+### §5 Minor Residuals (already logged, non-blocking, carried forward unchanged)
+
+- ARCH-INDEX `last_amended` prose lag re: §AMD-003 status — folded into F-002 above (same fix will close it).
+- F-007 — BC-1.03.017 v1.14 + BC-1.03.018 v1.1 carry VP-TBD; anchored future VP-authoring pass (POLICY 9).
+- F-008 [process-gap] — adversary/spec-review must trace any PC asserting a specific `PluginResult` variant to its construction site in code; anchored S-15.03 PRIORITY-A.
+- `[P0-followup]` branch-protection enforcement: human/admin-only action, unrelated to S-21.11.
+- C-1/C-2/C-4/C-5 exec_subprocess security findings: OPEN, ADR-043 NOT RATIFIED, unrelated to S-21.11.
+- decision-log.md D-1011/D-1012 + D-1016..D-1041 (exhaustive) per-decision backfill: still OWED, anchored to a future dedicated backfill burst.
+- S-21.11 sizing review (32 pts vs 13-pt ceiling): PENDING-POST-ADVERSARY, human undecided — decide AFTER pass-3 (or later) converges, not before.
+
+### §6 Convergence Counters
+
+S-21.07 LOCAL cascade CONVERGED 3/3 at D-1009 (UNCHANGED). S-21.10 LOCAL 3/3 CONVERGED, PR #780 MERGED. S-21.12 LOCAL 3/3 CONVERGED, PR #781 MERGED. S-21.11 LOCAL: v2.2 cascade pass-1 REMEDIATED (D-1041), pass-2 NOT-CLEAN this session (5 findings above) — **BC-5.39.001 streak 0/3**; adversary pass-3 is the target after remediation. trajectory-tail →2→0→1→0 (LENGTH=4; passes 9-12 of the legacy v1.x series; the v2.0/v2.2 cascade's own pass-1/pass-2 counts are not yet folded into this tail — that fold-in is part of the state-manager's F-003 remediation step above).
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the D-1042-S2111V2-PASS2-REMEDIATION checkpoint burst (2026-08-19) — S-21.11 v2.2 pass-2 (3 HIGH + 1 MEDIUM + 1 LOW) fully remediated across product-owner/architect/story-writer/state-manager commits; BC-1.03.017 v1.15, ADR-039 v1.12 RATIFIED, S-21.11 v2.3; BC-5.39.001 streak remains 0/3; adversary pass-3 is the next action.**

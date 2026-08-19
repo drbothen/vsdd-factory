@@ -103,3 +103,4 @@
 {"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-08-19T12:55:21-0500","ts_epoch":1787162121,"schema_version":1}
 {"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-08-19T12:57:24-0500","ts_epoch":1787162244,"schema_version":1}
 {"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-08-19T13:13:56-0500","ts_epoch":1787163236,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-08-19T16:48:37-0500","ts_epoch":1787176117,"schema_version":1}
