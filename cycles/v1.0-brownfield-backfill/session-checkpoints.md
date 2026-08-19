@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "d070043"
+input-hash: "4af1078"
 traces_to: STATE.md
 ---
 
@@ -2167,3 +2167,47 @@ S-21.07 LOCAL cascade CONVERGED 3/3 at D-1009 (UNCHANGED). S-21.10 LOCAL 3/3 CON
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1042-S2111V2-PASS2-REMEDIATION checkpoint burst (2026-08-19) — S-21.11 v2.2 pass-2 (3 HIGH + 1 MEDIUM + 1 LOW) fully remediated across product-owner/architect/story-writer/state-manager commits; BC-1.03.017 v1.15, ADR-039 v1.12 RATIFIED, S-21.11 v2.3; BC-5.39.001 streak remains 0/3; adversary pass-3 is the next action.**
+
+## Session Resume Checkpoint (2026-08-19 — D-1042-S2111V2-PASS2-REMEDIATION; PIPELINE ACTIVE)
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE ACTIVE** at a clean pushed checkpoint (this commit; `git -C .factory log -1` for the HEAD SHA). `develop` is `27c56c01` (unchanged), CI-GREEN. **Both E-21 Wave-A PRs MERGED**: S-21.10 PR #780 `27c56c01` + S-21.12 PR #781 `97fb07fa`. S-21.11 v2.2 adversary pass-2 (3 HIGH F-S2111V2-P2-001/002/003, streak-resetting, + 1 MEDIUM F-004 + 1 LOW F-005, both non-resetting) is now **FULLY REMEDIATED** across product-owner (`d1b53367`), architect (`d9211e88`), story-writer (`02d5a062`), and this closing state-manager burst. S-21.11 is now **v2.3**. BC-5.39.001 streak is **0/3** (remediation does not itself advance the streak — a clean adversary pass is required). **Next action: dispatch adversary pass-3 against S-21.11 v2.3 (fresh context, Part A only, per the Iron Law).**
+
+### §2 What Changed This Round (pass-2 findings, all closed)
+
+- **F-001 HIGH (was streak-resetting)** — story-writer narrowed Task #19b's block predicate from the overbroad "NOT `Ok{exit_code:0}`" (which also fired on `Timeout`/`Crashed`) to the exact `on_error==Block && matches!(result, Ok{exit_code} if exit_code!=0)` form, with an explicit anti-negation warning and a third NEGATIVE control guarding against the PC5/AC-005(b)/AC-011/TC-12 regression. **CLOSED.**
+- **F-002 HIGH (was streak-resetting)** — architect swept ADR-039 §Status body + frontmatter `last_amended` to RATIFIED; state-manager swept the ARCH-INDEX ADR-039 row's own Status sentence to match (this row was outside architect's own ADR-body/frontmatter scope). All 3 sites now agree: RATIFIED. **CLOSED.**
+- **F-003 HIGH (was streak-resetting)** — state-manager swept both BC-INDEX title cells (BC-1.03.017, BC-1.03.018) to verbatim subsets of each BC's own current H1, per POLICY 7. **CLOSED.**
+- **F-004 MEDIUM (non-resetting)** — product-owner added BC-1.03.017 v1.15's new Invariant 11 + PC13 "Coverage Set" table (all 18 `on_error="block"` registry entries, not a 6-plugin sample); story-writer added 18 new ACs (AC-024–AC-041), one per entry, plus Task #19c. **CLOSED.**
+- **F-005 LOW (non-resetting)** — story-writer reconciled the Token Budget table/prose mismatch to a single consistent ~60,000 tokens / 30.0% figure. **CLOSED.**
+
+### §3 This Closing Burst's Own Work (state-manager)
+
+BC-INDEX v4.78→v4.79; STORY-INDEX v4.361→v4.362; ARCH-INDEX v3.71→v3.72; VP-INDEX v2.76 UNCHANGED. POLICY 18 three-way equal `3f97013` for S-21.11 (story frontmatter + STORY-INDEX catalog row + E-21 delivery blockquote), reconciled via the **operator-authoritative marketplace `compute-input-hash` binary (rc.23; L-EDP1-073)** invoked per-file against exactly the three artifacts ADR-039 v1.12 cascades to (S-21.11 story, BC-1.03.017, BC-1.03.018) — **not** the development-source binary's full-tree `--scan --update`, which surfaced an unrelated, pre-existing, [D-952]-tracked, rc.24-deferred hash-algorithm divergence across 773 files corpus-wide; that mass diff was discarded via `git stash`, never committed. Pipeline PAUSED→ACTIVE.
+
+### §4 Session Note (crash recovery)
+
+This burst itself experienced multiple mid-flight API-connection-drop crashes (recovered via `git stash push` + clean re-dispatch each time), consistent with the seven-crash pattern already logged for this session prior to this burst. **Zero committed corruption resulted from any crash in this burst or prior ones.** Recovery stashes (prefixed `crashed-*`) are superseded by committed work and safe to ignore; the destructive-command-guard hook blocks dropping them, so they remain in the stash list as inert history — no action needed.
+
+### §5 Minor Residuals (already logged, non-blocking, carried forward unchanged)
+
+- F-007 — BC-1.03.017 v1.15 + BC-1.03.018 v1.1 carry VP-TBD; anchored future VP-authoring pass (POLICY 9).
+- F-008 [process-gap] — adversary/spec-review must trace any PC asserting a specific `PluginResult` variant to its construction site in code; anchored S-15.03 PRIORITY-A.
+- `[P0-followup]` branch-protection enforcement: human/admin-only action, unrelated to S-21.11.
+- C-1/C-2/C-4/C-5 exec_subprocess security findings: OPEN, ADR-043 NOT RATIFIED, unrelated to S-21.11.
+- decision-log.md D-1011/D-1012 + D-1016..D-1042 (exhaustive) per-decision backfill: still OWED, anchored to a future dedicated backfill burst.
+- S-21.11 sizing review (32 pts vs 13-pt ceiling): PENDING-POST-ADVERSARY, human undecided — decide AFTER pass-3 (or later) converges, not before.
+- [D-952] compute-input-hash operator-cache-vs-dev-source hash-algorithm divergence: reconfirmed live this burst (773-file corpus-wide mass staleness on dev-binary full-tree scan); remains deferred to rc.24. Per-file operator-binary invocation is the correct workaround until then.
+
+### §6 Convergence Counters
+
+S-21.07 LOCAL cascade CONVERGED 3/3 at D-1009 (UNCHANGED). S-21.10 LOCAL 3/3 CONVERGED, PR #780 MERGED. S-21.12 LOCAL 3/3 CONVERGED, PR #781 MERGED. S-21.11 LOCAL: v2.2 cascade pass-1 REMEDIATED (D-1041), pass-2 REMEDIATED (D-1042, this burst) — **BC-5.39.001 streak 0/3**; adversary pass-3 against v2.3 is the target. trajectory-tail →1→0→3→5 (LENGTH=4; passes 11,12 of the legacy v1.x series folded with the v2.0/v2.2 cascade's own pass-1 finding-count (3) and pass-2 finding-count (5)).
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the SESSION-WRAP-PAUSE-2026-08-19 (second same-day pause) checkpoint burst (2026-08-19) — human-invoked `/wrap`; D-1042 remediation confirmed committed + pushed `4308b6a5`; adversary pass-3 dispatched but stopped by /wrap before returning a verdict (read-only, nothing persisted); pipeline ACTIVE→PAUSED; BC-5.39.001 streak unchanged 0/3.**
