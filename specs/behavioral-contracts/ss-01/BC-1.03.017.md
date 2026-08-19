@@ -1,16 +1,17 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.8"
+version: "v1.9"
 status: draft
 producer: product-owner
 timestamp: 2026-08-06T00:00:00Z
-last_amended: "2026-08-18 (v1.8) — F-S2111-P11-001 remediation (product-owner): extended PC10 to require deliberate revision (TD-VSDD-059) of BOTH the unit test fail_closed_timeout_with_on_error_block AND its integration-level mirror test_e2e_BC_7_06_001_sync_hook_timeout_fail_closed_on_error_block (TC-12, full_stack_plugin_invocation.rs); TC-12 currently asserts exit_code==2 for on_error=Block+failure_policy=FailOpen+Timeout{Epoch} — false under axes-independent semantics (PC5/EC-009); must be revised to assert exit 0, with a SHOULD arm for failure_policy=FailClosed→exit 2 (Invariant 6 / Envoy #38801 symmetric coverage); two TC-12 Canonical Test Vector rows added; Architecture Anchors updated to cite TC-12; VP-TBD updated. BC-1.03.017 v1.8."
+last_amended: "2026-08-18 (v1.9) — F-S2111-P13-001 remediation (architect; scoped architectural precondition/PC correction; ADR-039 §Decision 1/2/3/4 v1.8 amendment): Precondition 2/3 bifurcated by plugin adapter class — the native-WASM plugin (validate-cross-site-correspondence) calibrates fuel_cap per the original formula; the five legacy-bash-adapter.wasm-hosted plugins (validate-factory-path-root, validate-input-hash, validate-template-compliance, validate-wave-gate-prerequisite, validate-pr-merge-prerequisites) additionally calibrate timeout_ms per the new epoch-axis formula (timeout_ms >= max(measured_p99_ms x 2.0, 30_000)) because their bash subprocess execution is invisible to the WASM fuel counter (ADR-042 §Decision 3 class (b)). PC8 extended with a parallel timeout_ms structural half-state assertion (POSITIVE/NEGATIVE controls added) for legacy-bash-adapter.wasm entries — fuel_cap sufficiency alone is no longer treated as complete calibration evidence for these five plugins. PC9 final-state criterion updated to require both axes per plugin's adapter class. New Invariant 8 codifies the axis-bifurcation principle. Two new Canonical Test Vector rows added (PC8 timeout_ms POSITIVE/NEGATIVE controls). Architecture Anchors + VP-TBD + Traceability updated to cite ADR-039 v1.8 §AMD-001. PC count unchanged at PC1..PC11 (no renumbering); this is additive-only within existing PCs plus one new Invariant. Residual product-owner BC-body edit noted: this burst does NOT touch AC-to-PC narrative mapping in the S-21.11 story body (deferred to post-ratification resume burst per orchestrator scoping) and does NOT alter PC1-PC7/PC10/PC11's axes-independence or migration-window substance, which remain product-owner's domain if further narrative refinement is needed. BC-1.03.017 v1.9. [Prior: 2026-08-18 (v1.8) — F-S2111-P11-001 remediation (product-owner): extended PC10 to require deliberate revision (TD-VSDD-059) of BOTH the unit test fail_closed_timeout_with_on_error_block AND its integration-level mirror test_e2e_BC_7_06_001_sync_hook_timeout_fail_closed_on_error_block (TC-12, full_stack_plugin_invocation.rs); TC-12 currently asserts exit_code==2 for on_error=Block+failure_policy=FailOpen+Timeout{Epoch} — false under axes-independent semantics (PC5/EC-009); must be revised to assert exit 0, with a SHOULD arm for failure_policy=FailClosed→exit 2 (Invariant 6 / Envoy #38801 symmetric coverage); two TC-12 Canonical Test Vector rows added; Architecture Anchors updated to cite TC-12; VP-TBD updated. BC-1.03.017 v1.8.]"
 phase: brownfield-backfill
 inputs:
   - .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
+  - .factory/specs/architecture/decisions/ADR-042-validate-cross-site-correspondence-fuel-budget-raise-and-loud-exhaustion-signaling.md
   - .factory/research/wasm-fuel-exhaustion-detection.md
-input-hash: "4bf6342"
+input-hash: "5f43bc0"
 traces_to: .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
 origin: greenfield
 extracted_from: null
@@ -27,6 +28,7 @@ modified:
   - "2026-08-17 (v1.6)"
   - "2026-08-18 (v1.7)"
   - "2026-08-18 (v1.8)"
+  - "2026-08-18 (v1.9)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -75,15 +77,36 @@ configuration intent rather than behavioral outcomes.
 
 1. S-21.10 has shipped: `FailurePolicy` enum and `RegistryEntry.failure_policy` field are present
    in `crates/factory-dispatcher/src/registry.rs` (BC-1.01.016 postconditions hold).
-2. Per-plugin fuel-cap calibration (devops-engineer role) has been executed for each of the
-   six targeted validator-class plugins: `validate-factory-path-root`, `validate-input-hash`,
-   `validate-template-compliance`, `validate-wave-gate-prerequisite`,
-   `validate-pr-merge-prerequisites`, `validate-cross-site-correspondence`. Calibration corpus
-   MUST include: `lessons.md` at ≥4000 lines; `STATE.md` at current live size;
-   `decision-log.md` at current live size; and the 576,396-byte production-scale fixture at
+2. Per-plugin calibration (devops-engineer role) has been executed for each of the six
+   targeted validator-class plugins, bifurcated by plugin adapter class per ADR-039 §Decision
+   1/3/4 (v1.8 amendment; §AMD-001):
+   - **Native-WASM plugin — fuel-axis calibration:** `validate-cross-site-correspondence`
+     (hosted by its own `hook-plugins/validate-cross-site-correspondence.wasm` binary).
+     `fuel_consumed` is measured against the calibration corpus below.
+   - **`legacy-bash-adapter.wasm`-hosted plugins — epoch-axis calibration ADDITIONALLY
+     required (fuel-axis calibration alone is insufficient):** `validate-factory-path-root`,
+     `validate-input-hash`, `validate-template-compliance`, `validate-wave-gate-prerequisite`,
+     `validate-pr-merge-prerequisites`. Their bash subprocess execution is invisible to the
+     WASM fuel counter (fuel exhaustion, if any, occurs before the WASI `exec_subprocess`
+     call per ADR-042 §Decision 3 class (b)); their actual resource-exhaustion axis is the
+     host-enforced wall-clock deadline. `time_consumed_ms` (bash subprocess wall-clock
+     duration) is measured against the same calibration corpus, in ADDITION to (not instead
+     of) `fuel_consumed` for the adapter's own marshaling step.
+
+   Calibration corpus MUST include: `lessons.md` at ≥4000 lines; `STATE.md` at current live
+   size; `decision-log.md` at current live size; and the 576,396-byte production-scale
+   fixture at
    `plugins/vsdd-factory/tests/fixtures/validate-cross-site-correspondence/a1-production-scale/factory/specs/behavioral-contracts/BC-INDEX.md`.
-3. For each targeted plugin, `fuel_cap` has been set to
-   `max(measured_p99 × 1.5, 50_000_000)` from precondition 2 measurements.
+   The same corpus backs both the fuel-axis and epoch-axis measurements — only the metric
+   collected differs by adapter class.
+3. For each targeted plugin, the calibrated value has been set per its adapter class from
+   precondition 2 measurements:
+   - Native-WASM plugin: `fuel_cap` set to `max(measured_p99 × 1.5, 50_000_000)`.
+   - `legacy-bash-adapter.wasm`-hosted plugins: `fuel_cap` set to
+     `max(measured_p99 × 1.5, 50_000_000)` for the adapter's marshaling step AND `timeout_ms`
+     set to `max(measured_p99_ms × 2.0, 30_000)` for the bash subprocess wall-clock budget
+     (ADR-039 §Decision 4 epoch-axis formula, v1.8). Both fields MUST be set; neither
+     substitutes for the other.
 4. The calibration results (plugin name, p99 measured, chosen `fuel_cap`) are recorded in the
    PR description or a calibration log artifact before Phase 4 annotations land.
 
@@ -164,6 +187,27 @@ configuration intent rather than behavioral outcomes.
    distinguishes valid calibrated fail-closed entries from bad half-state entries (POLICY 15:
    every gate outcome requires a control; the positive-control-only version leaves the
    "gate accepts valid entry" path unverified).
+
+   **Parallel epoch-axis assertion for `legacy-bash-adapter.wasm`-hosted entries (F-S2111-P13-001;
+   ADR-039 §Decision 1/4 v1.8 amendment — fuel-axis calibration is necessary but NOT sufficient
+   for these entries):** The same test MUST ALSO assert that no `[[hook]]` entry whose
+   `plugin = "hook-plugins/legacy-bash-adapter.wasm"` carries both `failure_policy = "fail-closed"`
+   AND `timeout_ms < 30_000` (the epoch-axis calibration floor per ADR-039 §Decision 4 v1.8
+   formula: `max(measured_p99_ms × 2.0, 30_000)`; exactly `30_000` is the inclusive minimum).
+   This assertion is IN ADDITION to the `fuel_cap` assertion above, not a replacement — a
+   `legacy-bash-adapter.wasm`-hosted entry satisfying `fuel_cap ≥ 50_000_000` alone remains
+   half-state and MUST still fail this gate if `timeout_ms < 30_000`, because `fuel_cap` gives
+   no protection against that adapter class's actual exhaustion axis (the bash subprocess is
+   invisible to the WASM fuel counter). The epoch-axis assertion likewise requires both
+   controls:
+   (c) **TIMEOUT-POSITIVE-CONTROL fixture** (a hard-coded `legacy-bash-adapter.wasm` entry with
+   `failure_policy = "fail-closed"` and `timeout_ms = 10_000`, i.e., the current live default
+   for four of the five targeted bash-adapter plugins and strictly below the 30_000 floor,
+   injected directly in the test body) that asserts the gate fires RED on that fixture.
+   (d) **TIMEOUT-NEGATIVE-CONTROL fixture** (a hard-coded `legacy-bash-adapter.wasm` entry with
+   `failure_policy = "fail-closed"` and `timeout_ms = 45_000`, i.e., above the 30_000 floor,
+   injected directly in the test body) that asserts the gate does NOT fire on that fixture
+   (result: PASS / no error).
    The genuine red-first TDD gate is PC9
    (AC-009: `test_all_six_validator_class_plugins_are_fail_closed`), which is RED before Phase
    4 annotations land and GREEN only after all targeted plugins carry fail-closed with calibrated
@@ -186,10 +230,18 @@ configuration intent rather than behavioral outcomes.
    calibrated value per ADR-039 §Decision 4).
 
 9. **PC9 — All targeted validator-class plugins carry `failure_policy = "fail-closed"` with
-   calibrated `fuel_cap >= 50_000_000` in final state:**
+   calibration sufficient for their adapter class's actual exhaustion axis in final state
+   (bifurcated per ADR-039 §Decision 1/4 v1.8 amendment; F-S2111-P13-001):**
    After all Phase 4 calibration-and-annotation commits land, `hooks-registry.toml` MUST
-   contain `failure_policy = "fail-closed"` AND `fuel_cap >= 50_000_000` for all plugins in
-   the **post-amendment targeted set**. The default targeted set is all six of:
+   contain `failure_policy = "fail-closed"` for all plugins in the **post-amendment targeted
+   set**, AND each plugin's calibrated field(s) MUST satisfy its adapter class's requirement:
+   the native-WASM plugin (`validate-cross-site-correspondence`) MUST carry
+   `fuel_cap >= 50_000_000`; each `legacy-bash-adapter.wasm`-hosted plugin
+   (`validate-factory-path-root`, `validate-input-hash`, `validate-template-compliance`,
+   `validate-wave-gate-prerequisite`, `validate-pr-merge-prerequisites`) MUST carry BOTH
+   `fuel_cap >= 50_000_000` AND `timeout_ms >= 30_000` — `fuel_cap` sufficiency alone does
+   NOT satisfy PC9 for these five (their real exhaustion axis is epoch/`timeout_ms`, per
+   Invariant 8). The default targeted set is all six of:
    `validate-factory-path-root`, `validate-input-hash`, `validate-template-compliance`,
    `validate-wave-gate-prerequisite`, `validate-pr-merge-prerequisites`,
    `validate-cross-site-correspondence`. If EC-004 fires for any plugin in this set
@@ -401,6 +453,28 @@ configuration intent rather than behavioral outcomes.
    PC11's test to FAIL, making it mechanically impossible to merge). This Invariant 7 remains
    the human-readable policy statement governing the atomicity/ordering constraint.
 
+8. **Fuel-axis calibration is necessary but not sufficient for `legacy-bash-adapter.wasm`-hosted
+   plugins (ADR-039 §Decision 1/4 v1.8 amendment; F-S2111-P13-001, architect-CONFIRMED HIGH):**
+   Because a `legacy-bash-adapter.wasm`-hosted plugin's bash subprocess execution occurs after
+   — and is invisible to — the adapter's own WASM fuel-metered marshaling step (ADR-042
+   §Decision 3 class (b): fuel exhaustion, if any, occurs before the WASI `exec_subprocess`
+   call), `fuel_cap` sufficiency provides no protection against a bash subprocess wall-clock
+   hang. `validate-factory-path-root`, `validate-input-hash`, `validate-template-compliance`,
+   `validate-wave-gate-prerequisite`, and `validate-pr-merge-prerequisites` are all hosted by
+   `hook-plugins/legacy-bash-adapter.wasm` and are therefore all subject to this invariant.
+   These five plugins additionally require calibrated `timeout_ms` sufficiency
+   (`timeout_ms >= max(measured_p99_ms × 2.0, 30_000)`, ADR-039 §Decision 4 epoch-axis formula)
+   before receiving `failure_policy = "fail-closed"`. `validate-cross-site-correspondence`
+   (native `hook-plugins/validate-cross-site-correspondence.wasm`) is NOT subject to this
+   invariant — its validation logic executes directly as WASM instructions, so `fuel_cap`
+   genuinely bounds its execution end-to-end. **Self-lock consequence for the PreToolUse
+   `^Agent$` gates:** `validate-wave-gate-prerequisite` and `validate-pr-merge-prerequisites`
+   are two of the five `legacy-bash-adapter.wasm`-hosted plugins AND are registered on
+   `event = "PreToolUse"`, `tool = "^Agent$"`. Flipping either to `failure_policy = "fail-closed"`
+   on `fuel_cap` sufficiency alone, without demonstrated `timeout_ms` sufficiency, risks a
+   hard, unconditional block on every future `Agent` tool dispatch — including the dispatches
+   needed to fix the miscalibration (ADR-039 §Decision 3 v1.8 amendment).
+
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
@@ -430,6 +504,8 @@ configuration intent rather than behavioral outcomes.
 | All six targeted plugins with `failure_policy="fail-closed"` + `fuel_cap=75_000_000` (example calibrated) | `test_all_six_validator_class_plugins_are_fail_closed` passes; PC8 gate passes | final-state (PC9) |
 | `hooks-registry.toml` entry with `failure_policy="fail-closed"` + `fuel_cap=75_000_000` (>= 50M floor, calibrated) | `test_no_fail_closed_plugin_with_uncalibrated_cap` PASSES / does not fire (gate accepts valid calibrated entry) | negative-control (PC8 NEGATIVE-CONTROL fixture, F-S2111-P2-004) |
 | `hooks-registry.toml` entry with `failure_policy="fail-closed"` + `fuel_cap=50_000_000` (exactly at inclusive floor) | `test_no_fail_closed_plugin_with_uncalibrated_cap` PASSES / does not fire (inclusive floor: exactly 50_000_000 is a valid calibrated value per ADR-039 §Decision 4) | boundary-pass (PC8, F-S2111-P3-001 inclusive-floor) |
+| `hooks-registry.toml` entry with `plugin="hook-plugins/legacy-bash-adapter.wasm"` + `failure_policy="fail-closed"` + `timeout_ms=10_000` (current live default for four of the five targeted bash-adapter plugins, strictly below the 30_000 epoch-axis floor) | `test_no_fail_closed_plugin_with_uncalibrated_cap` FAILS (CI blocks the half-state — fuel_cap alone does not calibrate the bash subprocess's actual exhaustion axis) | half-state-rejected (PC8 TIMEOUT-POSITIVE-CONTROL, F-S2111-P13-001, ADR-039 §Decision 4 v1.8) |
+| `hooks-registry.toml` entry with `plugin="hook-plugins/legacy-bash-adapter.wasm"` + `failure_policy="fail-closed"` + `timeout_ms=45_000` (>= 30_000 epoch-axis floor, calibrated) | `test_no_fail_closed_plugin_with_uncalibrated_cap` PASSES / does not fire (gate accepts valid calibrated entry) | negative-control (PC8 TIMEOUT-NEGATIVE-CONTROL, F-S2111-P13-001, ADR-039 §Decision 4 v1.8) |
 | `Timeout { cause: Fuel\|Epoch }` + `on_error=Block` + `FailOpen` (revision of `fail_closed_timeout_with_on_error_block` sub-case a) | Decision returns `false`; exit 0 — exhaustion governed by `failure_policy=FailOpen`; `on_error=Block` does not apply to exhaustion | axes-independence-on_error_block-fail-open (PC10a) |
 | `Timeout { cause: Fuel\|Epoch }` + `on_error=Block` + `FailClosed` (revision of `fail_closed_timeout_with_on_error_block` sub-case b) | Decision returns `true`; exit 2 — exhaustion governed by `failure_policy=FailClosed`; block caused by failure_policy, not on_error | axes-independence-on_error_block-fail-closed (PC10b) |
 | TC-12 revised: `test_e2e_BC_7_06_001_sync_hook_timeout_fail_closed_on_error_block` (`full_stack_plugin_invocation.rs`) — `on_error=Block` + `failure_policy=FailOpen` (registry default) + `Timeout{Epoch}` (integration dispatch) | Observed dispatcher exit code 0 — axes-independent semantics: exhaustion governed by `failure_policy=FailOpen`; `on_error=Block` does not apply to exhaustion outcomes (revision of TC-12 per PC10 / F-S2111-P11-001; TD-VSDD-059 deliberate revision) | integration-mirror-fail-open (PC10 TC-12 revision) |
@@ -475,23 +551,43 @@ configuration intent rather than behavioral outcomes.
   exit 2 for symmetric behavioral coverage (Invariant 6 / Envoy #38801); both revisions MUST
   appear in the PR diff
 - `plugins/vsdd-factory/hooks-registry.toml` — six targeted plugin entries receive calibrated
-  `fuel_cap >= 50M` AND `failure_policy = "fail-closed"` atomically per-plugin (50_000_000 is
-  the inclusive floor; values below 50M are rejected by PC8); Phase 4 annotations land ONLY
-  after Phase 3 calibration completes; PC8 gate test enforces no half-state (calibration only;
-  migration-window ordering enforced by PC11); PC11 gate test enforces no on_error=block
-  targeted plugin at fail-open while executor is enforcement-active (detected via any
-  block-decision site in `execute_tier`/`execute_tiers`/helpers referencing `.failure_policy`
-  for `Timeout` outcome, however the data reaches it — data-flow-independent per
-  F-S2111-P5-002; gate includes POSITIVE/NEGATIVE/VACUITY/LIVE-TREE controls per
-  F-S2111-P5-001 and F-S2111-P6-002)
+  `failure_policy = "fail-closed"` atomically per-plugin, with the calibrated field(s)
+  determined by adapter class (ADR-039 §Decision 1/4 v1.8 amendment; F-S2111-P13-001): the
+  native-WASM plugin (`validate-cross-site-correspondence`) needs `fuel_cap >= 50M`; the five
+  `legacy-bash-adapter.wasm`-hosted plugins (`validate-factory-path-root`,
+  `validate-input-hash`, `validate-template-compliance`, `validate-wave-gate-prerequisite`,
+  `validate-pr-merge-prerequisites`) need BOTH `fuel_cap >= 50M` AND `timeout_ms >= 30_000`
+  (the epoch-axis floor — `fuel_cap` alone does not calibrate their actual exhaustion axis,
+  since the bash subprocess is invisible to the WASM fuel counter per ADR-042 §Decision 3
+  class (b)). 50_000_000 / 30_000 are the inclusive floors; values below are rejected by PC8;
+  Phase 4 annotations land ONLY after Phase 3 calibration completes for every axis a plugin's
+  adapter class is subject to; PC8 gate test enforces no half-state on EITHER axis
+  (fuel_cap-only calibration is standing regression/invariant gate; timeout_ms calibration for
+  `legacy-bash-adapter.wasm` entries added F-S2111-P13-001; migration-window ordering enforced
+  by PC11); PC11 gate test enforces no on_error=block targeted plugin at fail-open while
+  executor is enforcement-active (detected via any block-decision site in
+  `execute_tier`/`execute_tiers`/helpers referencing `.failure_policy` for `Timeout` outcome,
+  however the data reaches it — data-flow-independent per F-S2111-P5-002; gate includes
+  POSITIVE/NEGATIVE/VACUITY/LIVE-TREE controls per F-S2111-P5-001 and F-S2111-P6-002)
 - `crates/factory-dispatcher/src/registry.rs` — `FailurePolicy` enum and
   `RegistryEntry.failure_policy` field (delivered by S-21.10 / BC-1.01.016); executor reads
   `failure_policy` from the dispatched `RegistryEntry`
 - ADR-039 §Decision 3 — safe migration ordering: Phase 1 (schema) → Phase 2 (mitigations) →
-  Phase 3 (calibration) → Phase 4 (enforcement flip); no half-state at any CI-passing commit
+  Phase 3 (calibration, bifurcated by adapter class per v1.8 amendment) → Phase 4 (enforcement
+  flip); no half-state at any CI-passing commit on EITHER calibration axis
 - ADR-039 §Decision 6 — four required behavioral test scenarios: Timeout+FailClosed→block
   (PC1); Timeout+FailOpen→advisory (PC2); on_error independence (PC3); crash≠exhaustion
   distinct paths (PC4+PC5)
+- ADR-039 §Decision 1/2/4 v1.8 amendment (§AMD-001; F-S2111-P13-001) — fuel-vs-epoch axis
+  bifurcation: `fuel_cap` calibration is genuinely sufficient only for the native-WASM plugin
+  (`validate-cross-site-correspondence`); the five `legacy-bash-adapter.wasm`-hosted plugins
+  additionally require `timeout_ms` calibration per the new epoch-axis formula
+  (`timeout_ms >= max(measured_p99_ms × 2.0, 30_000)`), because their bash subprocess is
+  invisible to the WASM fuel counter
+- ADR-042 §Decision 3 class (b) — evidentiary basis for the v1.8 amendment: "fuel exhaustion
+  occurs before the WASI `exec_subprocess` call, the bash script body never executes when the
+  adapter is fuel-starved"; confirms `fuel_cap` cannot meter bash subprocess execution time
+  for `legacy-bash-adapter.wasm`-hosted plugins
 
 ## Story Anchors
 
@@ -510,7 +606,7 @@ configuration intent rather than behavioral outcomes.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-TBD | For resource-exhaustion outcomes (`TimeoutCause::Fuel`, `TimeoutCause::Epoch`): `failure_policy=FailClosed` → block (exit 2); `failure_policy=FailOpen` → advisory (exit 0); `on_error` does not override `failure_policy` for exhaustion; crash (`PluginResult::Crashed`) is governed by `on_error` only; no `failure_policy="fail-closed"` entry in `hooks-registry.toml` without `fuel_cap >= 50M` (inclusive calibration floor per ADR-039 §Decision 4; `fuel_cap < 50M` is prohibited; `fuel_cap = 50M` is VALID); all targeted validators carry `failure_policy="fail-closed"` with `fuel_cap >= 50M`; `fail_closed_timeout_with_on_error_block` test revised (not deleted) to assert both `on_error=Block + FailOpen → NOT block` and `on_error=Block + FailClosed → block` (PC10; TD-VSDD-059); integration-level mirror `test_e2e_BC_7_06_001_sync_hook_timeout_fail_closed_on_error_block` (TC-12, `full_stack_plugin_invocation.rs`) ALSO revised (not deleted) to assert `on_error=Block + failure_policy=FailOpen + Timeout{Epoch} → exit 0`, with SHOULD arm for `failure_policy=FailClosed → exit 2` (symmetric behavioral coverage per Invariant 6 / Envoy #38801; both revisions MUST appear in PR diff; F-S2111-P11-001); PC8 gate test includes both POSITIVE-CONTROL (fail-closed + fuel_cap=20M < 50M floor → RED) and NEGATIVE-CONTROL (fail-closed + fuel=75M → PASS; and fuel=50M → PASS) fixtures (POLICY 15); PC11 gate test asserts that if the executor is enforcement-active (detected via any block-decision site in `execute_tier`/`execute_tiers`/helpers referencing `.failure_policy` for `Timeout` outcome, however the data reaches it — data-flow-independent per F-S2111-P5-002; fires for both extend-in-place and introduce-a-replacement designs), all five on_error=block targeted plugins carry failure_policy=fail-closed (CWE-636 static gate; EC-004 descope does not reduce this assertion set); PC11 gate includes POSITIVE-CONTROL (enforcement-active snippet + registry missing one annotation → RED), NEGATIVE-CONTROL (enforcement-active snippet + all five annotated → PASS), VACUITY-CONTROL (enforcement-absent snippet → GREEN AND enforcement-detection logic ran and returned `EnforcementAbsent` with RED-emission skipped as consequence), and LIVE-TREE-CONTROL (detector run against actual `crates/factory-dispatcher/src/executor.rs` at Phase-4-complete → `enforcement_active = true`; closes CWE-636 false-green gap per F-S2111-P6-002) per F-S2111-P5-001 and F-S2111-P6-002. | unit tests (executor path coverage per PC1–PC6, PC10) + integration/bats test (real dispatch at `fuel_cap=100` → exit 2; PC1 behavioral) + Cargo gate tests (hooks-registry.toml parse; PC8 with both controls; PC11 migration-window gate with four controls) |
+| VP-TBD | For resource-exhaustion outcomes (`TimeoutCause::Fuel`, `TimeoutCause::Epoch`): `failure_policy=FailClosed` → block (exit 2); `failure_policy=FailOpen` → advisory (exit 0); `on_error` does not override `failure_policy` for exhaustion; crash (`PluginResult::Crashed`) is governed by `on_error` only; no `failure_policy="fail-closed"` entry in `hooks-registry.toml` without `fuel_cap >= 50M` (inclusive calibration floor per ADR-039 §Decision 4; `fuel_cap < 50M` is prohibited; `fuel_cap = 50M` is VALID); no `legacy-bash-adapter.wasm`-hosted entry with `failure_policy="fail-closed"` without ALSO `timeout_ms >= 30_000` (inclusive epoch-axis calibration floor per ADR-039 §Decision 4 v1.8 amendment / §AMD-001; F-S2111-P13-001 — `fuel_cap` sufficiency alone does not calibrate this adapter class's actual exhaustion axis, since the bash subprocess is invisible to the WASM fuel counter); all targeted validators carry `failure_policy="fail-closed"` with calibration sufficient for their adapter class (native-WASM: `fuel_cap >= 50M`; `legacy-bash-adapter.wasm`-hosted: `fuel_cap >= 50M` AND `timeout_ms >= 30_000`); `fail_closed_timeout_with_on_error_block` test revised (not deleted) to assert both `on_error=Block + FailOpen → NOT block` and `on_error=Block + FailClosed → block` (PC10; TD-VSDD-059); integration-level mirror `test_e2e_BC_7_06_001_sync_hook_timeout_fail_closed_on_error_block` (TC-12, `full_stack_plugin_invocation.rs`) ALSO revised (not deleted) to assert `on_error=Block + failure_policy=FailOpen + Timeout{Epoch} → exit 0`, with SHOULD arm for `failure_policy=FailClosed → exit 2` (symmetric behavioral coverage per Invariant 6 / Envoy #38801; both revisions MUST appear in PR diff; F-S2111-P11-001); PC8 gate test includes both POSITIVE-CONTROL (fail-closed + fuel_cap=20M < 50M floor → RED) and NEGATIVE-CONTROL (fail-closed + fuel=75M → PASS; and fuel=50M → PASS) fixtures (POLICY 15); PC11 gate test asserts that if the executor is enforcement-active (detected via any block-decision site in `execute_tier`/`execute_tiers`/helpers referencing `.failure_policy` for `Timeout` outcome, however the data reaches it — data-flow-independent per F-S2111-P5-002; fires for both extend-in-place and introduce-a-replacement designs), all five on_error=block targeted plugins carry failure_policy=fail-closed (CWE-636 static gate; EC-004 descope does not reduce this assertion set); PC11 gate includes POSITIVE-CONTROL (enforcement-active snippet + registry missing one annotation → RED), NEGATIVE-CONTROL (enforcement-active snippet + all five annotated → PASS), VACUITY-CONTROL (enforcement-absent snippet → GREEN AND enforcement-detection logic ran and returned `EnforcementAbsent` with RED-emission skipped as consequence), and LIVE-TREE-CONTROL (detector run against actual `crates/factory-dispatcher/src/executor.rs` at Phase-4-complete → `enforcement_active = true`; closes CWE-636 false-green gap per F-S2111-P6-002) per F-S2111-P5-001 and F-S2111-P6-002. | unit tests (executor path coverage per PC1–PC6, PC10) + integration/bats test (real dispatch at `fuel_cap=100` → exit 2; PC1 behavioral) + Cargo gate tests (hooks-registry.toml parse; PC8 with both controls; PC11 migration-window gate with four controls) |
 
 ## Traceability
 
@@ -519,7 +615,7 @@ configuration intent rather than behavioral outcomes.
 | L2 Capability | CAP-TBD |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01 (Hook Dispatcher Core) — `crates/factory-dispatcher/src/executor.rs`; enforcement dispatch for resource-exhaustion outcomes |
-| ADR | ADR-039 §Decision 1 (axes separation: exhaustion vs crash); ADR-039 §Decision 2 (validator-class plugins use `fail-closed` after calibration); ADR-039 §Decision 3 (safe migration ordering; Phase-3-before-Phase-4 atomicity; half-state forbidden); ADR-039 §Decision 4 (p99×1.5 fuel-cap calibration; Option A minimum requirement; 50M floor); ADR-039 §Decision 6 (four behavioral test scenarios; Envoy #38801 lesson — behavioral tests not configuration tests) |
+| ADR | ADR-039 §Decision 1 (axes separation: exhaustion vs crash; v1.8 amendment: fuel-vs-epoch signal bifurcation by adapter class); ADR-039 §Decision 2 (validator-class plugins use `fail-closed` after calibration; v1.8 amendment: native-WASM vs `legacy-bash-adapter.wasm` scope split); ADR-039 §Decision 3 (safe migration ordering; Phase-3-before-Phase-4 atomicity; half-state forbidden on both axes; v1.8 amendment: explicit self-lock statement for the two PreToolUse `^Agent$` gates); ADR-039 §Decision 4 (p99×1.5 fuel-cap calibration, Option A minimum requirement, 50M floor for native-WASM plugins; v1.8 amendment: parallel p99_ms×2.0 `timeout_ms` epoch-axis formula, 30_000ms floor, for `legacy-bash-adapter.wasm`-hosted plugins); ADR-039 §Decision 6 (four behavioral test scenarios; Envoy #38801 lesson — behavioral tests not configuration tests); ADR-039 §AMD-001 (v1.8; F-S2111-P13-001 amendment record; PENDING HUMAN RATIFICATION under POLICY 22); ADR-042 §Decision 3 class (b) (evidentiary basis: bash subprocess execution is invisible to the WASM fuel counter) |
 | Security | CWE-636 (Not Failing Securely — closed for six validator-class WASM plugins after Phase 4); CWE-390 (Detection of Error Condition Without Action — closed for enforcement path). Research basis: `.factory/research/wasm-fuel-exhaustion-detection.md` |
 | Stories | S-21.10 (prerequisite), S-21.11, S-21.13 (EC-004 follow-up for `validate-cross-site-correspondence` only; on_error=block plugins are NOT routed here per EC-004 amendment v1.4; MUST annotate `validate-cross-site-correspondence` fail-closed once O(n) fuel ceiling removed per F-S2111-P5-005) |
 | Cycle | v1.0-brownfield-backfill (E-21 Wave 6) |
@@ -528,6 +624,7 @@ configuration intent rather than behavioral outcomes.
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.9 | 2026-08-18 | architect | F-S2111-P13-001 remediation (scoped architectural precondition/PC correction; ADR-039 §Decision 1/2/3/4 v1.8 amendment): Precondition 2/3 bifurcated by plugin adapter class — native-WASM plugin (`validate-cross-site-correspondence`) calibrates `fuel_cap` per the original formula; the five `legacy-bash-adapter.wasm`-hosted plugins (`validate-factory-path-root`, `validate-input-hash`, `validate-template-compliance`, `validate-wave-gate-prerequisite`, `validate-pr-merge-prerequisites`) additionally calibrate `timeout_ms` per the new epoch-axis formula (`timeout_ms >= max(measured_p99_ms × 2.0, 30_000)`) because their bash subprocess execution is invisible to the WASM fuel counter (ADR-042 §Decision 3 class (b)). PC8 extended with a parallel `timeout_ms` structural half-state assertion (TIMEOUT-POSITIVE-CONTROL / TIMEOUT-NEGATIVE-CONTROL added) for `legacy-bash-adapter.wasm` entries — `fuel_cap` sufficiency alone is no longer treated as complete calibration evidence for these five plugins. PC9 final-state criterion updated to require both axes per plugin's adapter class. New Invariant 8 codifies the axis-bifurcation principle and the self-lock consequence for the two PreToolUse `^Agent$` gates. Two new Canonical Test Vector rows added (PC8 `timeout_ms` POSITIVE/NEGATIVE controls). Architecture Anchors + VP-TBD + Traceability updated to cite ADR-039 v1.8 §AMD-001. PC count unchanged at PC1–PC11 (additive-only; no renumbering). **Residual product-owner BC-body edit noted:** this burst is scoped to the architectural precondition/PC correction only; it does NOT touch AC-to-PC narrative mapping in the S-21.11 story body (deferred to a post-ratification resume burst) and does NOT alter PC1–PC7/PC10/PC11's axes-independence or migration-window substance, which remain product-owner's domain for any further narrative refinement. BC-1.03.017 v1.9. |
 | v1.8 | 2026-08-18 | product-owner | F-S2111-P11-001 remediation: extended PC10 to require deliberate revision (TD-VSDD-059) of BOTH the unit test `fail_closed_timeout_with_on_error_block` AND its integration-level mirror `test_e2e_BC_7_06_001_sync_hook_timeout_fail_closed_on_error_block` (TC-12, `crates/factory-dispatcher/tests/full_stack_plugin_invocation.rs`). TC-12 currently constructs `on_error=Block + failure_policy=FailOpen (registry default) + Timeout{Epoch}` and asserts `exit_code==2`; under the axes-independent semantics mandated by this BC (PC5/EC-009), that assertion is FALSE and must be revised to assert exit 0. TC-12 SHOULD additionally carry a `failure_policy=FailClosed → exit 2` arm for symmetric behavioral coverage (Invariant 6 / Envoy #38801 discipline). Both revisions MUST appear in the PR diff; deletion of either without an equivalent replacement is a TD-VSDD-059 paper-fix violation. Two TC-12 Canonical Test Vector rows added (`integration-mirror-fail-open`, `integration-mirror-fail-closed-symmetric`). Architecture Anchors updated to cite TC-12 and `full_stack_plugin_invocation.rs`. VP-TBD property updated to reference TC-12 integration mirror obligation and F-S2111-P11-001. PC count unchanged: PC1..PC11. PC10↔AC-011 mapping unchanged. |
 | v1.7 | 2026-08-18 | product-owner | Adversary pass-8 remediation (two F-S2111-P8 findings): (1) F-S2111-P8-002 — raised Precondition 2 calibration corpus floor for `lessons.md` from ≥3000 to ≥4000 lines; aligns with D-442(e) hard limit (4000 lines) so Invariant 5's exit condition (calibration confirms `fuel_cap` sufficient for the hard limit) is structurally achievable; a 3000-line corpus structurally cannot confirm 4000-line sufficiency; framing at 3000 was numerically wrong given D-442(e) soft=3500/hard=4000. (2) F-S2111-P8-003 — updated PC10 sub-cases (a) and (b) from `cause: Fuel` to `cause: Fuel\|Epoch` for self-consistency with the PC10 header (which already states `Fuel\|Epoch`) and with epoch-parity requirement in PC6/AC-010; Canonical Test Vectors PC10a and PC10b rows updated to match. BC-1.03.017 v1.7. |
 | v1.6 | 2026-08-17 | product-owner | Adversary pass-6 remediation (three F-S2111-P6 findings): (1) F-S2111-P6-002 — added LIVE-TREE-CONTROL (fourth control) to PC11: at Phase-4-complete the detector MUST run against actual `crates/factory-dispatcher/src/executor.rs` and return `enforcement_active = true`; closes CWE-636 false-green gap where a syntactically-wrong detector could pass all three synthetic controls yet be inert against real enforcement code; acceptable implementation mandates the POSITIVE-CONTROL snippet be a verbatim excerpt of the real `execute_tiers` block-decision site AND the detector returns `enforcement_active = true` on the live tree; PC11 controls preamble updated from "three controls" to "four controls"; Canonical Test Vectors LIVE-TREE-CONTROL row added; Architecture Anchors and VP-TBD updated to reference LIVE-TREE control and F-S2111-P6-002. (2) F-S2111-P6-003 — fixed PC11(c) VACUITY-CONTROL self-contradiction: removed "evaluated the annotation-check branch"/"correctly skipped" contradictory phrasing; rewritten to assert the detector's enforcement-detection logic ran and returned `EnforcementAbsent` (via explicit `detection_ran` / tri-state diagnostic), and that RED-emission was skipped as a consequence; Canonical Test Vectors VACUITY-CONTROL row updated to match. (3) F-S2111-P6-004 — corrected PC8 title to remove migration-window on_error=block ordering claim (ordering constraint is mechanically enforced by PC11, not PC8); added clarifying sentence in Symmetric half-state prohibition text cross-referencing PC11 as the authoritative mechanical gate for the ordering constraint; PC8's scope is now unambiguous: calibration gate only (no fail-closed without fuel_cap >= 50M). BC-1.03.017 v1.6. |

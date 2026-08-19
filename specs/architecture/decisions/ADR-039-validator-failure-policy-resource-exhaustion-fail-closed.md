@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.7"
+version: "1.8"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: ratified
 date: 2026-08-06
@@ -17,7 +17,37 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-18 (v1.7-erratum) — Corpus-floor numeric consistency erratum (architect; F-S2111-P12-001):
+  2026-08-18 (v1.8-amendment) — Fuel-vs-epoch axis bifurcation for legacy-bash-adapter.wasm
+  plugins (architect; F-S2111-P13-001, architect-CONFIRMED HIGH, S-21.11 pass-13): §Decision
+  1/2/3/4 amended. Prior text treated calibrated `fuel_cap` (§Decision 3 Phase 3, §Decision 4
+  formula) as the uniform calibration mechanism for all six §Decision 2 named plugins. This
+  mislabels the resource-exhaustion axis for five of the six: `validate-factory-path-root`,
+  `validate-input-hash`, `validate-template-compliance`, `validate-wave-gate-prerequisite`, and
+  `validate-pr-merge-prerequisites` are all hosted by `hook-plugins/legacy-bash-adapter.wasm`
+  (confirmed via `plugin =` field, live `plugins/vsdd-factory/hooks-registry.toml`). Per
+  ADR-042 §Decision 3 class (b): "fuel exhaustion occurs before the WASI `exec_subprocess`
+  call, the bash script body never executes when the adapter is fuel-starved" — the WASM
+  `fuel_cap` meters ONLY the adapter's own marshaling logic, never the bash subprocess it
+  shells out to. The subprocess's wall-clock execution is bounded exclusively by the
+  already-live per-plugin `timeout_ms` field (no schema change required), enforced via the
+  epoch mechanism (`TimeoutCause::Epoch`). Only `validate-cross-site-correspondence` (native
+  `hook-plugins/validate-cross-site-correspondence.wasm`, confirmed via the same registry
+  grep) executes its validation logic directly as WASM instructions and is genuinely
+  fuel-metered end-to-end. §Decision 2's per-plugin scope list, §Decision 3's Phase 3
+  calibration procedure, and §Decision 4's calibration formula are amended to bifurcate by
+  adapter class — see new §AMD-001. Self-lock hazard restated for the two PreToolUse
+  `^Agent$` gates (`validate-wave-gate-prerequisite`, `validate-pr-merge-prerequisites`): a
+  fail-closed flip calibrated only against `fuel_cap` gives no protection against an
+  epoch/`timeout_ms` hang on these two gates and risks a hard, unconditional block on every
+  future `Agent` tool dispatch — including the dispatches needed to fix the miscalibration.
+  **This is a substantive amendment to Decision 2/3/4 normative content, not a
+  citation/numeric/label erratum — it therefore REQUIRES human ratification under POLICY 22
+  before Phase 3/4 work resumes for the five `legacy-bash-adapter.wasm`-hosted plugins.**
+  Status: v1.7 base content remains RATIFIED; the v1.8 delta (§AMD-001, §Decision 2/3/4
+  bifurcation) is PROPOSED / RATIFICATION-PENDING pending human review. See §AMD-001. Does
+  NOT rescope S-21.11's story body or create the bash-adapter follow-up story — those are
+  deferred to a separate burst after human sign-off per orchestrator scoping. ADR-039 v1.8.
+  [Prior: 2026-08-18 (v1.7-erratum) — Corpus-floor numeric consistency erratum (architect; F-S2111-P12-001):
   §Decision 4 "Calibration corpus requirements" first bullet read "lessons.md at ≥3000 lines (current
   soft limit; calibration must cover above it)" — defective on three counts: (1) contradicts §Decision 3
   (which mandates calibration at/above the D-442(e) HARD limit = 4000 lines); (2) "current soft limit"
@@ -96,7 +126,7 @@ last_amended: |-
   (5) near-term mitigations — headroom warning + ≥574 KB fixture; (6) verification requirement
   — behavioral test must exercise observed outcome, not documented intent.
   fail_closed_timeout_with_on_error_continue_is_open test encodes current policy and MUST be
-  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]
+  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]]
 modified:
   - "2026-08-06 (v1.0)"
   - "2026-08-06 (v1.1)"
@@ -107,6 +137,7 @@ modified:
   - "2026-08-17 (v1.5-erratum)"
   - "2026-08-17 (v1.6-erratum)"
   - "2026-08-18 (v1.7-erratum)"
+  - "2026-08-18 (v1.8-amendment)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -213,6 +244,22 @@ A new `failure_policy` TOML field is introduced per plugin entry:
 If the `failure_policy` field is absent from an entry, the dispatcher MUST treat it as
 `"fail-open"` for backward compatibility during the migration window.
 
+**Amendment (v1.8, §AMD-001): `failure_policy` is uniform at the decision level (block vs.
+allow); the resource-exhaustion SIGNAL it consumes is NOT uniform across plugin adapter
+classes.** `TimeoutCause::Fuel` fires when the Wasmtime fuel counter for a plugin's OWN
+executing WASM code reaches zero. `TimeoutCause::Epoch` fires when the host-enforced
+wall-clock deadline (`timeout_ms`) elapses. For a plugin whose validation logic executes
+directly as WASM instructions (a native-WASM plugin), both signals reflect that plugin's own
+work and both are meaningful calibration targets. For a plugin hosted by
+`hook-plugins/legacy-bash-adapter.wasm` — a shim that marshals input and shells out to a bash
+script via WASI `exec_subprocess` — the fuel counter meters ONLY the adapter's own marshaling
+code; it never ticks during the bash subprocess's execution (ADR-042 §Decision 3 class (b):
+"fuel exhaustion occurs before the WASI `exec_subprocess` call, the bash script body never
+executes when the adapter is fuel-starved"). For these plugins, `TimeoutCause::Epoch`/
+`timeout_ms` is the ONLY signal that reflects the bash script's actual running time;
+`fuel_cap` calibration provides zero protection against a slow or hanging bash script.
+§Decision 2, §Decision 3, and §Decision 4 are amended accordingly — see §AMD-001.
+
 ### Decision 2 — Scope: per-plugin `failure_policy` field; validator-class plugins use `fail-closed` after migration
 
 **Per-plugin scope is the correct granularity** (not a global default). Advisory-only plugins
@@ -221,9 +268,19 @@ exhaustion — their job is to record state, not to gate writes. Validator-class
 whose purpose is write-gating) MUST be `fail-closed` after calibration per Decision 3+4.
 
 Examples of validator-class plugins that MUST receive `failure_policy = "fail-closed"` after
-their calibrated `fuel_cap` is verified: `validate-factory-path-root`, `validate-input-hash`,
-`validate-template-compliance`, `validate-wave-gate-prerequisite`,
-`validate-pr-merge-prerequisites`, `validate-cross-site-correspondence`.
+calibration (§Decision 3/4; amended v1.8 — see §AMD-001 for the adapter-class bifurcation):
+
+- **Native-WASM (fuel-axis calibration applies and is sufficient):**
+  `validate-cross-site-correspondence` — the only one of the six hosted by its own dedicated
+  WASM binary (`hook-plugins/validate-cross-site-correspondence.wasm`); its `fuel_cap`
+  genuinely bounds its execution end-to-end.
+- **`legacy-bash-adapter.wasm`-hosted (fuel-axis calibration is necessary but NOT sufficient;
+  epoch/`timeout_ms`-axis calibration is additionally required):** `validate-factory-path-root`,
+  `validate-input-hash`, `validate-template-compliance`, `validate-wave-gate-prerequisite`,
+  `validate-pr-merge-prerequisites`. These five share one adapter binary; their `fuel_cap`
+  bounds only the adapter's marshaling step, never the bash script it invokes. Calibration for
+  these plugins MUST additionally verify `timeout_ms` sufficiency per the epoch-axis formula
+  in §Decision 4 before either receives `failure_policy = "fail-closed"`.
 
 **Registry TOML schema extension.** Each `[[hook]]` entry in `hooks-registry.toml` MAY include:
 
@@ -256,11 +313,23 @@ dispatcher registry loader. If present and equals `"fail-closed"`, the value is 
 production-scale fixtures. This makes exhaustion observable before any policy change and
 provides measurement data for Phase 3.
 
-**Phase 3 — Per-plugin fuel-cap calibration.** For each validator targeted for the
-fail-closed flip: measure `fuel_consumed` over a corpus that includes all live production-scale
-artifacts. **The load-bearing requirement is: verify sufficiency for the largest known live
-input.** Use `fuel_cap ≥ p99 × 1.5` as a headroom floor heuristic (see Decision 4 for
-calibration details and the hard-block boundary consideration).
+**Phase 3 — Per-plugin calibration, bifurcated by adapter class (v1.8 amendment; see
+§AMD-001).** For each validator targeted for the fail-closed flip, the calibrated resource
+axis depends on which WASM binary hosts it:
+
+- **Native-WASM plugins** (`validate-cross-site-correspondence`): measure `fuel_consumed`
+  over a corpus that includes all live production-scale artifacts. **The load-bearing
+  requirement is: verify sufficiency for the largest known live input.** Use
+  `fuel_cap ≥ p99 × 1.5` as a headroom floor heuristic (see Decision 4).
+- **`legacy-bash-adapter.wasm`-hosted plugins** (`validate-factory-path-root`,
+  `validate-input-hash`, `validate-template-compliance`, `validate-wave-gate-prerequisite`,
+  `validate-pr-merge-prerequisites`): fuel-cap calibration alone is NOT sufficient — the bash
+  subprocess is invisible to the fuel counter (§Decision 1 amendment). These plugins
+  additionally require measuring wall-clock `time_consumed_ms` over the same production-scale
+  corpus and calibrating `timeout_ms ≥ p99_ms × 2.0` (headroom floor: see Decision 4
+  epoch-axis formula). `fuel_cap ≥ 50_000_000` is NOT evidence of calibration sufficiency for
+  these five plugins — it must be treated as an independent, additional requirement, not a
+  substitute.
 
 **Phase 4 — The enforcement flip.** Extend `plugin_fail_closed` (or introduce a replacement
 function) to accept `failure_policy`. For
@@ -287,6 +356,24 @@ receives `failure_policy = "fail-closed"` without a recalibrated cap will exhibi
 failure mode — and for PreToolUse gates, that would produce a hard unconditional block on every
 large-artifact write. Phase 3 calibration is not a best-practice recommendation; it is a
 prerequisite for preventing the specific failure mode currently observed in production.
+
+**Self-lock hazard specific to the two PreToolUse `^Agent$` gates (v1.8 amendment;
+F-S2111-P13-001).** Two of the five `legacy-bash-adapter.wasm`-hosted plugins —
+`validate-wave-gate-prerequisite` and `validate-pr-merge-prerequisites` — are registered on
+`event = "PreToolUse"`, `tool = "^Agent$"` (confirmed: live
+`plugins/vsdd-factory/hooks-registry.toml`). A PreToolUse block on the `Agent` tool prevents
+the dispatch from happening at all — unlike the already-documented PostToolUse self-lock
+(which cannot retroactively undo a completed write), a PreToolUse `^Agent$` block prevents ANY
+subsequent agent dispatch, including the dispatches that would be needed to remediate the
+miscalibration. If either of these two plugins receives `failure_policy = "fail-closed"` on
+the strength of a `fuel_cap ≥ 50_000_000` predicate alone — which, per §Decision 1's
+amendment, provides no protection against the plugin's actual exhaustion axis (`timeout_ms`)
+— a bash script that runs long on a production-scale `.factory/` corpus (large `STATE.md`,
+`lessons.md`, `decision-log.md`) can epoch-timeout and hard-block every future `Agent`
+dispatch. **Safe posture: `failure_policy = "fail-closed"` MUST NOT be applied to any
+`legacy-bash-adapter.wasm`-hosted plugin — and MUST NOT be applied to either PreToolUse
+`^Agent$` gate in particular — on the basis of `fuel_cap` sufficiency alone. It requires
+demonstrated `timeout_ms` sufficiency per the epoch-axis calibration formula (§Decision 4).**
 
 ### Decision 4 — Fuel budgeting: p99-derived per-plugin caps; fixed `20_000_000` constant (per ADR-042) is the wrong shape
 
@@ -319,8 +406,34 @@ D-442(e) size constraint as a root fix rather than a workaround.
 Option B is architecturally preferable but may be deferred to the wave immediately following
 Phase 4 migration, provided D-442(e) remains in force until Option B ships.
 
+**Epoch/`timeout_ms` budgeting for `legacy-bash-adapter.wasm`-hosted plugins (v1.8 amendment;
+§AMD-001).** The `fuel_cap` formula above bounds ONLY the adapter's marshaling fuel; it
+provides no protection for the bash subprocess's wall-clock execution (§Decision 1
+amendment). For the five `legacy-bash-adapter.wasm`-hosted plugins named in §Decision 2,
+calibration MUST additionally measure `time_consumed_ms` (bash subprocess wall-clock
+duration) over the same production-scale corpus below, and set:
+
+`timeout_ms ≥ max(measured_p99_ms × 2.0, 30_000)`
+
+The `2.0` safety multiplier (vs. `1.5` for the fuel formula) and the `30_000` ms (30 s) floor
+are deliberately more conservative than the fuel-axis formula: wall-clock duration is NOT
+deterministic across CI runners or developer machines — unlike fuel, which counts WASM
+instructions and is invariant to machine speed — and is additionally subject to disk I/O and
+process-scheduling variance. The `30_000` ms floor is chosen proportionally to the fuel
+floor's relationship to its own pre-calibration baseline: `50_000_000` fuel is ~2.5× the
+`20_000_000` global fuel default (ADR-042 §Decision 2); `30_000` ms is ~3× the current
+per-plugin `timeout_ms` defaults for the five targeted plugins (`5_000` ms for
+`validate-factory-path-root`; `10_000` ms for the other four, per live
+`hooks-registry.toml`). As with the fuel formula, the calibration corpus requirements below
+apply identically to the epoch axis — the difference is which metric is measured
+(`fuel_consumed` vs. wall-clock `time_consumed_ms`) and which registry field the calibrated
+value is written to (`fuel_cap` vs. `timeout_ms`; both fields are already live in the
+registry schema — no schema change is required for this amendment).
+
 **Calibration corpus requirements.** The following are mandatory for any validator that reads
-whole `.factory/` artifacts:
+whole `.factory/` artifacts — the same corpus is used for BOTH the fuel-axis measurement
+(native-WASM plugins) and the epoch-axis measurement (`legacy-bash-adapter.wasm`-hosted
+plugins); only the measured metric differs by adapter class:
 
 - `lessons.md` at ≥4000 lines (D-442(e) hard limit; soft limit is 3500)
 - `STATE.md` at current live size
@@ -586,6 +699,20 @@ cover above it)" contradicted §Decision 3 (which mandates calibration at/above 
 with BC-1.03.017 Precondition 2 v1.7 and S-21.11 AC-007 v1.10 (both specify ≥4000). Bullet updated
 to "lessons.md at ≥4000 lines (D-442(e) hard limit; soft limit is 3500)". No decision semantics
 altered; status remains RATIFIED. ADR-039 v1.7. See §Erratum E-004.
+FUEL-VS-EPOCH AXIS BIFURCATION AMENDMENT 2026-08-18 (v1.8 — architect; F-S2111-P13-001,
+architect-CONFIRMED HIGH): §Decision 1/2/3/4 amended — fuel-cap calibration (§Decision 3
+Phase 3, §Decision 4 formula) is genuinely sufficient for only one of the six §Decision 2
+named plugins (`validate-cross-site-correspondence`, native-WASM); the other five are hosted
+by `hook-plugins/legacy-bash-adapter.wasm`, whose bash subprocess execution is invisible to
+the WASM fuel counter (ADR-042 §Decision 3 class (b)) — their real exhaustion axis is
+epoch/`timeout_ms`. New epoch-axis calibration formula added to §Decision 4
+(`timeout_ms ≥ max(measured_p99_ms × 2.0, 30_000)`); explicit self-lock statement added to
+§Decision 3 for the two PreToolUse `^Agent$` gates (`validate-wave-gate-prerequisite`,
+`validate-pr-merge-prerequisites`). See §AMD-001 for the full before/after table. **This IS a
+substantive Decision-content amendment and REQUIRES human ratification under POLICY 22 before
+Phase 3/4 proceeds for the five `legacy-bash-adapter.wasm`-hosted plugins under the corrected
+model.** Status: v1.7 base content remains RATIFIED; v1.8 delta is PROPOSED /
+RATIFICATION-PENDING. ADR-039 v1.8. See §AMD-001.
 
 Adjudicates F-S2107-P7-010 (HIGH), F-S2107-P7-011 (HIGH), F-S2107-P7-015 (MEDIUM) design
 legs from adversarial pass-7 of S-21.07. Extends ADR-035 §Decision 5 to the enforcement
@@ -599,12 +726,89 @@ Implementation routing (current status):
   (fuel-headroom warning, invoke module) on branch `fix/fuel-exhaustion-fail-loud`. Mitigation 2
   (≥574 KB production-scale fixture) delivered in S-21.07 as `a1-production-scale` bats scenario
   fixture (commit e94767bc) — calibration corpus prerequisite satisfied.
-- **Phase 3+4 — QUEUED (S-21.11):** devops-engineer: Decision 4 calibration corpus
-  construction + per-plugin `fuel_cap` measurement (prerequisite for Phase 3). implementer:
-  `plugin_fail_closed` extension for `failure_policy` + Decision 6 behavioral tests (Phase
-  4). Blocked on S-21.10 merge.
+- **Phase 3+4 — PAUSED, PENDING RATIFICATION (v1.8 amendment; F-S2111-P13-001):**
+  devops-engineer's Decision 4 calibration work is now bifurcated by adapter class —
+  `fuel_cap` measurement for the native-WASM plugin (`validate-cross-site-correspondence`) per
+  the original formula; `timeout_ms` (wall-clock) measurement for the five
+  `legacy-bash-adapter.wasm`-hosted plugins per the new §Decision 4 epoch-axis formula.
+  implementer: `plugin_fail_closed` extension for `failure_policy` + Decision 6 behavioral
+  tests (Phase 4) — unaffected by this amendment (the extension is calibration-axis-agnostic).
+  Blocked on S-21.10 merge (delivered) AND on human ratification of the v1.8 AMD-001 delta.
 - **product-owner:** Decision 4 Option B `fuel_per_kb` field — new registry schema field
   requires BC update when adopted.
+
+---
+
+## Amendments
+
+Unlike the `## Erratum` entries below (non-normative corrections that explicitly state "no
+decision semantics altered"), an entry in this section changes Decision content and therefore
+requires human ratification under POLICY 22 before the affected Decision(s) take effect for
+implementation purposes.
+
+### AMD-001 — Fuel-vs-epoch axis bifurcation for `legacy-bash-adapter.wasm`-hosted plugins (v1.8, 2026-08-18)
+
+**Finding:** F-S2111-P13-001 (HIGH; adversarial pass-13 of story S-21.11; architect-CONFIRMED).
+
+**Error:** §Decision 2 named six plugins as receiving `failure_policy = "fail-closed"` "after
+their calibrated `fuel_cap` is verified." §Decision 3 Phase 3 and §Decision 4's calibration
+formula (`fuel_cap ≥ max(p99 × 1.5, 50_000_000)`) were written as the uniform calibration
+mechanism for all six. This is correct for exactly one of the six
+(`validate-cross-site-correspondence`, a native-WASM plugin) and incorrect for the other five
+(`validate-factory-path-root`, `validate-input-hash`, `validate-template-compliance`,
+`validate-wave-gate-prerequisite`, `validate-pr-merge-prerequisites`), all of which are hosted
+by the shared `hook-plugins/legacy-bash-adapter.wasm` shim. Per ADR-042 §Decision 3 class (b),
+fuel exhaustion for these plugins occurs (if at all) BEFORE the WASI `exec_subprocess` call —
+the bash script body's execution is invisible to the WASM fuel counter entirely. Their actual
+resource-exhaustion axis is the host-enforced wall-clock deadline
+(`timeout_ms` → `TimeoutCause::Epoch`), a mechanism `fuel_cap` calibration does not touch. A
+plugin satisfying `fuel_cap ≥ 50_000_000` (trivial for these five, since adapter-marshaling
+fuel consumption is small and roughly proportional to input bytes — ADR-042 §Decision 1
+measured model: `fuel ≈ 29,452 + 27.514 × payload_bytes`) provides no evidence that its bash
+subprocess will not hang or run long on a production-scale artifact.
+
+**Downstream consequence:** BC-1.03.017's PC8/PC9/PC11 gates, as originally drafted, treat
+`fuel_cap ≥ 50_000_000` as the sole structural calibration proof required before a plugin may
+carry `failure_policy = "fail-closed"`. For the five `legacy-bash-adapter.wasm`-hosted
+plugins, satisfying that predicate is calibration theater — it certifies a resource axis that
+was never at risk while leaving the axis that IS at risk (`timeout_ms`) completely
+uncalibrated. Two of the five (`validate-wave-gate-prerequisite`,
+`validate-pr-merge-prerequisites`) additionally gate the `PreToolUse` `^Agent$` event — a
+false "calibrated" fail-closed flip on either risks a hard, unconditional block on all future
+`Agent` tool dispatch (see §Decision 3 self-lock paragraph above).
+
+**Correction:** §Decision 1 amended with an explanatory paragraph distinguishing the
+fuel-metering signal from the epoch/`timeout_ms`-metering signal per adapter class. §Decision
+2's plugin list is bifurcated into a native-WASM group (fuel-axis calibration sufficient) and
+a `legacy-bash-adapter.wasm` group (fuel-axis calibration necessary but NOT sufficient;
+epoch/`timeout_ms`-axis calibration additionally required). §Decision 3 Phase 3 is bifurcated
+by adapter class, and a new explicit self-lock paragraph names the two PreToolUse `^Agent$`
+gates and states the safe posture. §Decision 4 gains a parallel epoch-axis calibration formula
+(`timeout_ms ≥ max(measured_p99_ms × 2.0, 30_000)`) alongside the existing fuel-axis formula.
+
+| Location | Before | After |
+|----------|--------|-------|
+| §Decision 1 | No distinction between fuel-signal and epoch-signal scope per adapter class | New paragraph: fuel meters adapter-owned WASM instructions only; epoch/`timeout_ms` meters the bash subprocess for `legacy-bash-adapter.wasm`-hosted plugins; fuel_cap gives zero protection for the latter |
+| §Decision 2 | Single flat list of six plugins, uniform "calibrated `fuel_cap`" gate | Bifurcated: native-WASM (fuel-axis sufficient) vs. `legacy-bash-adapter.wasm`-hosted (fuel-axis necessary, epoch-axis additionally required) |
+| §Decision 3 Phase 3 | "Per-plugin fuel-cap calibration" uniform across all six | Bifurcated Phase 3 procedure by adapter class; new explicit self-lock paragraph naming the two PreToolUse `^Agent$` gates and stating the safe posture |
+| §Decision 4 | Only the fuel-axis formula (`fuel_cap ≥ max(p99 × 1.5, 50_000_000)`) | Fuel-axis formula retained (scoped to native-WASM); new epoch-axis formula added (`timeout_ms ≥ max(measured_p99_ms × 2.0, 30_000)`) for `legacy-bash-adapter.wasm`-hosted plugins |
+
+**Scope:** This IS a normative content change — it adds a previously-absent calibration
+requirement (epoch/`timeout_ms` sufficiency) as a precondition for five of the six named
+plugins to receive `failure_policy = "fail-closed"`, and narrows the claim that
+`fuel_cap`-only calibration is sufficient for those five. It does not reverse any of the six
+original Decisions' core rulings (axes separation, per-plugin scope, ordering constraint,
+p99-derived budgeting, near-term mitigations, behavioral-test requirement) — it corrects which
+registry field each Decision's calibration procedure must target for a given plugin's adapter
+class.
+
+**Ratification note:** Per POLICY 22 (governs changes to ADR decisions — rulings, thresholds,
+normative prescriptions), this amendment DOES require human re-ratification before Phase 3/4
+work proceeds for the five `legacy-bash-adapter.wasm`-hosted plugins under the corrected
+model. Unlike E-001 through E-004 below, this is not filed as an Erratum precisely because it
+changes what Decision 3/4 require devops-engineer to measure and what BC-1.03.017's structural
+gates must assert. Status: v1.7 base RATIFIED; v1.8 delta (this AMD-001) PROPOSED /
+RATIFICATION-PENDING. ADR-039 v1.8.
 
 ---
 
