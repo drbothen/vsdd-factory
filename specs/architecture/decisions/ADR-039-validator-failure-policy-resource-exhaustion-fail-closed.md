@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.11"
+version: "1.12"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: ratified
 date: 2026-08-06
@@ -17,7 +17,30 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-19 (v1.11-mechanism-adjudication-AMD-003) — Scoped mechanism-adjudication burst
+  2026-08-19 (v1.12-status-sync-AMD-003-ratification) — Scoped ratification-status propagation
+  burst (architect; S-21.11 v2.2 adversarial pass-2 HIGH F-S2111V2-P2-002, orchestrator-
+  dispatched): §AMD-003 (below) was already RATIFIED 2026-08-19 by human, this session (POLICY
+  22 ratification-channel; D-1041) — see §AMD-003's own H3 heading and Ratification note, both
+  already correctly stating RATIFIED at the time of that ratification. Two other in-file sites
+  had never been swept to match and still asserted `PROPOSED / RATIFICATION-PENDING` for the
+  §AMD-003 delta after ratification had already occurred, producing an internal
+  PROPOSED-vs-RATIFIED contradiction against §AMD-003's own already-RATIFIED body text:
+  (1) the `## Status` section's v1.11 MECHANISM-ADJUDICATION AMENDMENT paragraph's closing
+  sentence ("v1.11 delta (§AMD-003) is PROPOSED / RATIFICATION-PENDING") — corrected by
+  appending a new v1.12 status paragraph immediately below it (the v1.11 paragraph's own
+  wording is left unedited as the accurate historical record of what was true at the moment
+  that paragraph was authored, consistent with how the v1.9→v1.10 AMD-002 ratification was
+  recorded); (2) this frontmatter `last_amended` field, whose top (most-recent) entry is now
+  this v1.12 entry rather than the v1.11 entry, so a reader consulting only the top-of-file
+  frontmatter sees the current RATIFIED status immediately rather than having to read into the
+  nested `[Prior: ...]` history to find it. No Decision content, threshold, or normative
+  prescription is altered by this burst — this is a pure ratification-status propagation sweep,
+  consistent with the E-001..E-004 erratum precedent (does not require separate POLICY 22
+  re-ratification, since it propagates an already-ratified status rather than changing decision
+  content). Status: v1.10 base RATIFIED; v1.11 delta (§AMD-003) RATIFIED 2026-08-19 (D-1041,
+  POLICY 22 ratification-channel) — no residual PROPOSED/RATIFICATION-PENDING language for
+  §AMD-003 remains anywhere in this document. ADR-039 v1.12.
+  [Prior: 2026-08-19 (v1.11-mechanism-adjudication-AMD-003) — Scoped mechanism-adjudication burst
   (architect; S-21.11 v2.0 adversarial pass-1 BLOCKER F-S2111V2-P1-001, orchestrator-dispatched):
   (1) §Decision 1's on_error/failure_policy amendment corrected — the sentence claiming
   `TimeoutCause::Epoch`/`timeout_ms` is the signal that reflects a bash script's actual running
@@ -231,7 +254,7 @@ last_amended: |-
   (5) near-term mitigations — headroom warning + ≥574 KB fixture; (6) verification requirement
   — behavioral test must exercise observed outcome, not documented intent.
   fail_closed_timeout_with_on_error_continue_is_open test encodes current policy and MUST be
-  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]]]]]
+  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]]]]]]
 modified:
   - "2026-08-06 (v1.0)"
   - "2026-08-06 (v1.1)"
@@ -246,6 +269,7 @@ modified:
   - "2026-08-18 (v1.9-ratification+corrections)"
   - "2026-08-19 (v1.10-AMD-002-ratification+no-split)"
   - "2026-08-19 (v1.11-mechanism-adjudication-AMD-003)"
+  - "2026-08-19 (v1.12-status-sync-AMD-003-ratification)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -1027,6 +1051,23 @@ recorded in
 `.factory/cycles/v1.0-brownfield-backfill/F-S2111V2-P1-001-mechanism-adjudication.md` for
 product-owner and story-writer to execute after ratification. Status: v1.10 base RATIFIED; v1.11
 delta (§AMD-003) is PROPOSED / RATIFICATION-PENDING. ADR-039 v1.11.
+STATUS-SYNC RATIFICATION PROPAGATION 2026-08-19 (v1.12 — architect; S-21.11 v2.2 adversarial
+pass-2 HIGH F-S2111V2-P2-002): §AMD-003 was RATIFIED 2026-08-19 by human, this session (POLICY
+22 ratification-channel; D-1041), immediately following the v1.11 MECHANISM-ADJUDICATION
+AMENDMENT paragraph above — see §AMD-003's own H3 heading and Ratification note, both already
+correctly stating RATIFIED. The v1.11 paragraph's closing sentence above ("v1.11 delta
+(§AMD-003) is PROPOSED / RATIFICATION-PENDING") was never swept forward to reflect that
+same-session ratification, producing an internal PROPOSED-vs-RATIFIED contradiction against
+§AMD-003's own already-RATIFIED body text and against Decision 1's §AMD-003 correction
+paragraph (also already correct) — flagged as F-S2111V2-P2-002 (HIGH) during S-21.11 v2.2
+adversarial pass-2. That v1.11 sentence is left unedited above as the accurate historical record
+of what was true at the moment it was authored (the ratification landed in the same session but
+after that sentence was written); this paragraph supersedes it as the current, live status. No
+Decision content, threshold, or normative prescription is altered by this burst — pure
+ratification-status propagation, consistent with the E-001..E-004 erratum precedent (does not
+require separate POLICY 22 re-ratification, since it propagates an already-ratified status
+rather than changing decision content). Status: v1.10 base RATIFIED; v1.11 delta (§AMD-003)
+RATIFIED 2026-08-19 (D-1041, POLICY 22 ratification-channel). ADR-039 v1.12.
 
 Adjudicates F-S2107-P7-010 (HIGH), F-S2107-P7-011 (HIGH), F-S2107-P7-015 (MEDIUM) design
 legs from adversarial pass-7 of S-21.07. Extends ADR-035 §Decision 5 to the enforcement
