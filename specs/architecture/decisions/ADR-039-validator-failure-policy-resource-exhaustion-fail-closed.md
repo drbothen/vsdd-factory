@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.10"
+version: "1.11"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: ratified
 date: 2026-08-06
@@ -17,7 +17,44 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-19 (v1.10-AMD-002-ratification+no-split) — Two human decisions applied this session
+  2026-08-19 (v1.11-mechanism-adjudication-AMD-003) — Scoped mechanism-adjudication burst
+  (architect; S-21.11 v2.0 adversarial pass-1 BLOCKER F-S2111V2-P1-001, orchestrator-dispatched):
+  (1) §Decision 1's on_error/failure_policy amendment corrected — the sentence claiming
+  `TimeoutCause::Epoch`/`timeout_ms` is the signal that reflects a bash script's actual running
+  time was an internal contradiction with this ADR's own v1.9 §Decision 4 mechanism-precision
+  correction (which had already established that a synchronous host call such as
+  `exec_subprocess` cannot be preempted by wasmtime epoch interruption). `TimeoutCause::Epoch`
+  is a GUEST-side wasmtime trap (`Trap::Interrupt`) that fires only while the guest is executing
+  its OWN WASM instructions; it structurally cannot fire while the guest is blocked inside
+  `exec_subprocess`. A `legacy-bash-adapter.wasm`-hosted plugin's bash-subprocess timeout
+  therefore never produces `PluginResult::Timeout { cause: TimeoutCause::Epoch }` — it produces
+  a clean `PluginResult::Ok { exit_code: 1 }` via `HookResult::Error`
+  (`legacy-bash-adapter/src/lib.rs::run_bash_via_host` → `adapter_logic`). (2) New §AMD-003
+  (PROPOSED / RATIFICATION-PENDING, POLICY 22): `crates/factory-dispatcher/src/executor.rs`'s
+  `plugin_fail_closed` classifies only `Crashed`/`Timeout` as fail-closed for `on_error = Block`
+  — `PluginResult::Ok`, regardless of `exit_code`, is never fail-closed. This means a bash-adapter
+  timeout (and any `HookResult::Error` from `adapter_logic`, e.g. a non-2/non-0 bash exit code)
+  bypasses fail-closed enforcement entirely, even for the two PreToolUse `^Agent$` gates
+  (`validate-wave-gate-prerequisite`, `validate-pr-merge-prerequisites`), even after S-21.11
+  AC-013's AMD-002 wiring fix lands. Chosen mechanism (option (b) of three evaluated): extend
+  `plugin_fail_closed` so `on_error = Block` fail-closes on ANY `PluginResult::Ok` outcome with
+  `exit_code != 0`, not only `Crashed`/`Timeout` — a strict superset requiring no new
+  `PluginResult` variant. This closes both the timeout-specific leg (F-001) and the generic
+  `HookResult::Error` fail-open leg (F-005) in one mechanism; F-005 is ruled IN SCOPE for
+  S-21.11 under the production-grade-default principle (same function, same finding class, same
+  two gates — no separable future-dependency exists). (3) F-004 correction routed via the
+  adjudication memo (not edited directly — BC content is product-owner's domain): BC-1.03.018
+  EC-005's "Both named gates dispatched in the SAME tier" premise is false per live
+  `hooks-registry.toml` (`validate-wave-gate-prerequisite` priority 130,
+  `validate-pr-merge-prerequisites` priority 120 — `routing.rs::group_by_priority` places
+  distinct priority values in distinct tiers); EC-005's two-separate-audit-events conclusion is
+  unaffected because `execute_tiers` has no early-return between tiers — both gates are always
+  evaluated. Full design rationale, rejected alternatives, and the precise BC/AC change directive
+  for product-owner and story-writer are recorded in
+  `.factory/cycles/v1.0-brownfield-backfill/F-S2111V2-P1-001-mechanism-adjudication.md`. Status:
+  v1.10 base remains RATIFIED; v1.11 delta (§AMD-003) is PROPOSED / RATIFICATION-PENDING pending
+  human review — does not self-ratify. ADR-039 v1.11.
+  [Prior: 2026-08-19 (v1.10-AMD-002-ratification+no-split) — Two human decisions applied this session
   (POLICY 22 ratification-channel), both scoped to this ADR only: (A) §AMD-002 RATIFIED
   (architect; independent code-review verification against live source confirmed claims 1-3 —
   `crates/hook-plugins/legacy-bash-adapter/src/lib.rs` has `BASH_TIMEOUT_MS = 60_000` consumed
@@ -193,7 +230,7 @@ last_amended: |-
   (5) near-term mitigations — headroom warning + ≥574 KB fixture; (6) verification requirement
   — behavioral test must exercise observed outcome, not documented intent.
   fail_closed_timeout_with_on_error_continue_is_open test encodes current policy and MUST be
-  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]]]]
+  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]]]]]
 modified:
   - "2026-08-06 (v1.0)"
   - "2026-08-06 (v1.1)"
@@ -207,6 +244,7 @@ modified:
   - "2026-08-18 (v1.8-amendment)"
   - "2026-08-18 (v1.9-ratification+corrections)"
   - "2026-08-19 (v1.10-AMD-002-ratification+no-split)"
+  - "2026-08-19 (v1.11-mechanism-adjudication-AMD-003)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -324,10 +362,30 @@ work and both are meaningful calibration targets. For a plugin hosted by
 script via WASI `exec_subprocess` — the fuel counter meters ONLY the adapter's own marshaling
 code; it never ticks during the bash subprocess's execution (ADR-042 §Decision 3 class (b):
 "fuel exhaustion occurs before the WASI `exec_subprocess` call, the bash script body never
-executes when the adapter is fuel-starved"). For these plugins, `TimeoutCause::Epoch`/
-`timeout_ms` is the ONLY signal that reflects the bash script's actual running time;
-`fuel_cap` calibration provides zero protection against a slow or hanging bash script.
-§Decision 2, §Decision 3, and §Decision 4 are amended accordingly — see §AMD-001.
+executes when the adapter is fuel-starved"). For these plugins, the registry's `timeout_ms` field — via the host-enforced wall-clock
+deadline enforced independently inside `exec_subprocess.rs::run()` — is the ONLY calibration
+target that reflects the bash script's actual running time; `fuel_cap` calibration provides zero
+protection against a slow or hanging bash script. §Decision 2, §Decision 3, and §Decision 4 are
+amended accordingly — see §AMD-001.
+
+**Correction (v1.11, §AMD-003).** The preceding paragraph's original v1.8 wording named
+`TimeoutCause::Epoch` specifically as the signal reflecting the bash script's running time. This
+was already superseded by §Decision 4's own v1.9 "Mechanism precision" amendment (below) but was
+never swept back to this paragraph — an internal contradiction identified during S-21.11 v2.0
+adversarial pass-1 (F-S2111V2-P1-001). `TimeoutCause::Epoch` is exclusively a GUEST-side
+wasmtime trap (`Trap::Interrupt`, classified in `invoke.rs::classify_trap`) that fires only while
+the guest is actively executing its OWN WASM instructions and checks the store's epoch deadline
+at a yield point. It is structurally incapable of firing while the guest is blocked inside a
+synchronous host call such as `exec_subprocess` — per wasmtime's own documented behavior, epochs
+(and fuel) "do not assist in handling WebAssembly code blocked in a call to the host." For
+`legacy-bash-adapter.wasm`-hosted plugins specifically, a `timeout_ms` overrun during the bash
+subprocess's execution therefore NEVER produces `PluginResult::Timeout { cause: TimeoutCause::Epoch }`.
+It is caught by a structurally different, non-trapping mechanism — `exec_subprocess.rs::run()`'s
+`Instant`-based poll+kill loop, which returns an ordinary host-function i32 return code
+(`codes::TIMEOUT`) to the guest — and surfaces at the `invoke_plugin`/`classify_trap` layer as an
+ordinary `I32Exit`, i.e. `PluginResult::Ok { exit_code: 1, .. }`, once the guest's own Rust code
+(`legacy-bash-adapter::adapter_logic`) converts the resulting `Err` into `HookResult::Error` and
+returns normally. See §AMD-003 for the enforcement consequence this correction exposes.
 
 ### Decision 2 — Scope: per-plugin `failure_policy` field; validator-class plugins use `fail-closed` after migration
 
@@ -947,6 +1005,27 @@ story-writer to derive ACs without a further design pass. BC-1.03.017's Traceabi
 of S-21.17/S-21.18 are swept to reflect S-21.11 absorption (architect-applied, same burst;
 BC-1.03.017 v1.10→v1.11). Status: §AMD-001 remains RATIFIED (2026-08-18, v1.9); §AMD-002 is now
 RATIFIED (2026-08-19, v1.10). ADR-039 v1.10.
+MECHANISM-ADJUDICATION AMENDMENT 2026-08-19 (v1.11 — architect; S-21.11 v2.0 adversarial pass-1
+BLOCKER F-S2111V2-P1-001): §Decision 1's on_error/failure_policy amendment corrected —
+`TimeoutCause::Epoch` is a GUEST-side wasmtime trap only and cannot fire while the guest is
+blocked inside `exec_subprocess`, so a `legacy-bash-adapter.wasm`-hosted plugin's bash-subprocess
+timeout never produces `Timeout { cause: Epoch }`; it produces a clean
+`PluginResult::Ok { exit_code: 1 }` (`HookResult::Error`) that `plugin_fail_closed`'s
+`Crashed | Timeout` match never catches, even under `on_error = "block"` — reconciling an
+internal contradiction with §Decision 4's own v1.9 mechanism-precision correction. New §AMD-003
+(architect adjudication, three options evaluated): `plugin_fail_closed` (or its replacement)
+MUST additionally return `true` for `on_error = Block` + `PluginResult::Ok { exit_code != 0 }` —
+a strict superset of the current `Crashed | Timeout` rule, requiring no new `PluginResult`
+variant, closing both the bash-adapter-timeout leg (F-001) and the generic `HookResult::Error`
+fail-open leg (F-005, ruled IN SCOPE for S-21.11 under the production-grade-default principle) in
+one mechanism. F-004 (BC-1.03.018 EC-005's "same tier" premise) corrected: the two PreToolUse
+`^Agent$` gates are `priority = 130` vs `120` — different `execute_tiers` tiers per
+`routing.rs::group_by_priority`, not the same tier; EC-005's two-audit-event conclusion is
+unaffected (`execute_tiers` has no early-return between tiers). Precise BC/AC change directive
+recorded in
+`.factory/cycles/v1.0-brownfield-backfill/F-S2111V2-P1-001-mechanism-adjudication.md` for
+product-owner and story-writer to execute after ratification. Status: v1.10 base RATIFIED; v1.11
+delta (§AMD-003) is PROPOSED / RATIFICATION-PENDING. ADR-039 v1.11.
 
 Adjudicates F-S2107-P7-010 (HIGH), F-S2107-P7-011 (HIGH), F-S2107-P7-015 (MEDIUM) design
 legs from adversarial pass-7 of S-21.07. Extends ADR-035 §Decision 5 to the enforcement
@@ -1161,6 +1240,132 @@ enforcement flip for the five `legacy-bash-adapter.wasm`-hosted plugins MUST NOT
 fully protective until the wiring fix lands within S-21.11, or an orchestrator-approved decision
 explicitly accepts the residual gap and records it at the time of the Phase 4 commit. Not
 implemented in this burst — architect scope for this burst is spec-only.
+
+---
+
+### AMD-003 — `on_error = "block"` does not fail-closed on a plugin's own reported `HookResult::Error` (`PluginResult::Ok { exit_code: 1 }`); `plugin_fail_closed` classifies only `Crashed`/`Timeout`, leaving a bash-adapter timeout — and any plugin-reported error — fail-open (v1.11, 2026-08-19; architect, S-21.11 v2.0 adversarial pass-1 BLOCKER F-S2111V2-P1-001 — PROPOSED / RATIFICATION-PENDING)
+
+**Finding:** F-S2111V2-P1-001 (BLOCKER; adversarial pass-1 of S-21.11 v2.0). §Decision 1's
+`on_error` row states this field "MUST retain its current semantics: `continue` = fail-open on
+crash; `block` = fail-closed on crash," with examples "`Trap::UnreachableCodeReached`;
+`Trap::MemoryOutOfBounds`; deserialization failure." AMD-001 and AMD-002 correctly diagnosed
+that a `legacy-bash-adapter.wasm`-hosted plugin's bash-subprocess timeout is invisible to the
+fuel axis and — per the §Decision 1 correction above — invisible to `TimeoutCause::Epoch` as
+well. Neither amendment traced the consequence for the `on_error` axis itself: the bash-subprocess
+timeout does not produce a wasmtime trap or an epoch interrupt at all. It produces a clean
+`PluginResult::Ok { exit_code: 1, .. }`, via `legacy-bash-adapter`'s own `HookResult::Error`
+mapping (`legacy-bash-adapter/src/lib.rs::run_bash_via_host` → `adapter_logic`; exit code 1 per
+`hook-sdk/src/result.rs::HookResult::exit_code`).
+`crates/factory-dispatcher/src/executor.rs::plugin_fail_closed` returns `true` only for
+`PluginResult::Crashed { .. } | PluginResult::Timeout { .. }` — `PluginResult::Ok`, regardless of
+its `exit_code`, is never fail-closed by this function. `plugin_requests_block` (the other half
+of `execute_tiers`'s block-intent decision) fires only on a stdout substring match for
+`"outcome":"block"` — an `HookResult::Error`'s stdout is `{"outcome":"error","message":"..."}`,
+which does not match.
+
+**Net effect:** for a `legacy-bash-adapter.wasm`-hosted plugin registered `on_error = "block"`, a
+bash-subprocess timeout — and, more generally, ANY error path inside `adapter_logic` that returns
+`HookResult::Error` (missing `script_path`, a non-2/non-0 bash exit code, or the
+`exec_subprocess` host call itself returning any error) — currently bypasses fail-closed
+enforcement entirely. `on_error = "block"` does not, in fact, make these failures hard stops,
+contradicting both this ADR's §Decision 1 prose and the `HookResult::Error` variant's own doc
+comment (`hook-sdk/src/result.rs`: "operators set `on_error = \"block\"` ... if they want plugin
+failures to be hard stops").
+
+**Consequence for AMD-002 / AC-013.** Wiring the registry's calibrated `timeout_ms` into
+`exec_subprocess`'s kill deadline (the AMD-002 fix, S-21.11 AC-013) is necessary but NOT
+sufficient to make the two PreToolUse `^Agent$` gates (`validate-wave-gate-prerequisite`,
+`validate-pr-merge-prerequisites`) — or any of the five `legacy-bash-adapter.wasm`-hosted
+§Decision 2 plugins — genuinely fail-closed on a bash-subprocess timeout. Even after AC-013
+lands, a calibrated-`timeout_ms` overrun still produces `PluginResult::Ok { exit_code: 1 }`, not
+`Timeout { .. }`, and `plugin_fail_closed` still returns `false` for it. Both fixes are required
+together: AC-013 ensures the kill fires at the CORRECT time; this amendment's fix ensures that
+firing actually reaches a block decision.
+
+**Enforcement mechanism decision (architect adjudication).** Three options were evaluated:
+
+(a) *Adapter-side remap* — have `legacy-bash-adapter::adapter_logic` map a subprocess timeout
+specifically (and/or any host/script error generally) to an explicit `{"outcome":"block", ...}`
+stdout, or to a distinct signal the executor treats as blockable, instead of `HookResult::Error`.
+Rejected as the primary mechanism: it is adapter-local (fixes only `legacy-bash-adapter`, not any
+future or existing native-WASM plugin that legitimately returns `HookResult::Error` under
+`on_error = "block"`), and it repurposes a `Block` outcome (semantically "the validation found a
+violation") to mean "the plugin could not run" — conflating two verdicts `HookResult` was
+deliberately designed to keep distinct.
+
+(b) *Executor-side generalization* — extend `plugin_fail_closed` (or its replacement) so that, for
+`on_error = Block`, ANY `PluginResult::Ok` outcome with `exit_code != 0` is treated as
+fail-closed, in addition to the existing `Crashed`/`Timeout` cases. **CHOSEN.** This is a single,
+general fix at the aggregation layer (`execute_tiers`'s block-decision loop) that applies
+uniformly to every plugin — `legacy-bash-adapter`-hosted or native-WASM, existing or future —
+without requiring each plugin author to remember to remap timeouts to a synthetic block signal.
+It matches the plain-English contract `on_error = "block"` already claims to provide (per
+`HookResult::Error`'s own doc comment) and requires no new `PluginResult` variant, so no
+downstream match site (`emit_lifecycle`, telemetry, tests) needs updating beyond the one function
+this ADR already governs. `exit_code == 2` (the `HookResult::Block` mapping) remains additionally,
+independently caught by `plugin_requests_block`'s stdout-substring check (unconditional on
+`on_error`, per the CRIT-PR59-001 fix) — this amendment's rule is a strict superset that also
+protects against a NON-compliant plugin exiting 2 without a parseable `outcome:block` JSON line,
+and closes the previously-unprotected `exit_code == 1` (`HookResult::Error`) case.
+
+(c) *New `PluginResult` variant* (e.g. a distinct error outcome separate from `Ok`) to make the
+crash-vs-clean-exit distinction structurally explicit at the type level. Rejected for this ADR's
+scope as unnecessary complexity: option (b) achieves the identical decision-table outcome without
+touching the `PluginResult` enum's shape (`Serialize`/`Deserialize`, consumed by
+`emit_lifecycle`'s JSONL telemetry, multiple existing tests, and `TierExecutionSummary`
+aggregation) — the marginal type-safety benefit of (c) does not justify the larger blast radius
+for a decision shipping as part of S-21.11's already-large (32-point) unified scope. (c) remains
+available as a future refactor if a later story finds `exit_code`-sniffing insufficiently
+precise; it is not required to close this BLOCKER.
+
+**Precise rule (normative).** `plugin_fail_closed(result, on_error)` — or its replacement in the
+executor's block-decision chain — MUST return `true` when ALL of: `on_error == OnError::Block`,
+AND `result` is NOT `PluginResult::Ok { exit_code: 0, .. }`. This is a strict superset of the
+current rule (`Crashed | Timeout`): it additionally covers `PluginResult::Ok { exit_code: n, .. }`
+for any `n != 0`, including `exit_code == 1` (the `HookResult::Error` mapping — the case this
+finding closes) and, redundantly-but-harmlessly, `exit_code == 2` (already independently caught
+by `plugin_requests_block`).
+
+**F-005 scope ruling (generic-error fail-open path, beyond the timeout-specific F-001 leg).**
+F-005 — ANY `HookResult::Error` from an `on_error = "block"` plugin bypassing fail-closed, not
+only a subprocess timeout — is ruled **IN SCOPE for S-21.11**, not deferred to a separate story.
+Per the project's production-grade-default principle (tech-debt deferral requires explicit human
+direction, a concrete future dependency, and a named future story/wave anchor — none of which
+apply here): the fix is the SAME function (`plugin_fail_closed`), the SAME finding class (the
+`on_error` axis's enforcement gap), and the SAME two gates whose fail-closed claim this story
+exists to make true. Splitting F-001 (timeout-specific) from F-005 (general-error) into separate
+stories would require touching `plugin_fail_closed` twice for the identical root cause. There is
+no future-dependency that makes F-005 separable: it requires no additional research, no
+additional ratification, and no work outside S-21.11's already-declared subsystems (SS-01
+`executor.rs`). Story-writer MUST fold this rule into S-21.11 AC-013's scope (or an adjacent new
+AC in the same story) rather than filing a follow-up.
+
+**F-004 correction (routed, not self-applied — BC content is product-owner's domain).**
+BC-1.03.018 EC-005's premise "Both named gates dispatched in the SAME tier" is false per live
+`hooks-registry.toml`: `validate-wave-gate-prerequisite` is `priority = 130`,
+`validate-pr-merge-prerequisites` is `priority = 120` — `routing.rs::group_by_priority` sorts
+matched entries by `(priority, original index)` and starts a new tier on every distinct priority
+value, so these two gates are dispatched in two DIFFERENT sequential tiers, not the same tier.
+EC-005's stated conclusion (two separate `break_glass.activated` events, per-gate audit
+granularity preserved) remains correct — but for a different reason than stated: `execute_tiers`
+loops over every tier unconditionally (no early return on a block-producing tier), so both gates
+are always invoked and their outcomes always folded into `block_intent` regardless of which tier
+each is in. See the adjudication memo for the exact BC-1.03.018 EC-005 wording correction routed
+to product-owner.
+
+**Ratification note.** Per POLICY 22, this is a substantive Decision-content amendment (it
+changes what `plugin_fail_closed`'s implementation must do for the `on_error = "block"` class,
+and it rules F-005 in-scope for a story whose AC set is about to be finalized) and REQUIRES human
+ratification before S-21.11's Phase 4 implementer work proceeds on this leg. **Status: PROPOSED /
+RATIFICATION-PENDING.** Filed by architect during a scoped mechanism-adjudication burst
+dispatched in response to S-21.11 v2.0 adversarial pass-1's BLOCKER finding F-S2111V2-P1-001.
+Does not by itself block S-21.11's OTHER, already-ratified legs (native-WASM fuel calibration,
+break-glass mechanism, AMD-002 wiring fix) — those may proceed in parallel — but the Phase 4
+enforcement-flip commit for the two PreToolUse `^Agent$` gates specifically MUST NOT be treated
+as complete until this amendment is ratified and its `plugin_fail_closed` extension lands. Full
+design rationale and the precise BC/AC change directive for product-owner and story-writer are
+recorded in `.factory/cycles/v1.0-brownfield-backfill/F-S2111V2-P1-001-mechanism-adjudication.md`.
+Not implemented in this burst — architect scope for this burst is spec-only.
 
 ---
 
