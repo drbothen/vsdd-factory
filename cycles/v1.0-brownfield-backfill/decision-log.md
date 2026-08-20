@@ -18423,3 +18423,130 @@ D-1043-S2111V2-PASS3-REMEDIATION
 2026-08-19
 
 ---
+
+## D-1044 — D-1044-S2111V2-PASS4-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → the prior recorded max
+in this file is `## D-1043`. This entry is D-1044, the next decision allocated after D-1043. The
+pre-existing `decision-log.md D-1016..D-1042 (exhaustive) per-decision backfill OWED` obligation
+(STATE.md Blocking Issues) is unrelated to this entry and remains carried forward unchanged; this
+entry does not attempt that backfill.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053).** Adversary pass-4 of
+the S-21.11 v2 cascade (dispatched fresh-context against the `041446a4` bundle — story v2.3 +
+BC-1.03.017 v1.16 + BC-1.03.018 v1.1 + ADR-039 v1.13, i.e. the D-1043-remediated bundle) returned
+**NOT-CLEAN**: 1 MEDIUM finding (F-S2111V2-P4-001, streak-resetting) + 1 non-resetting LOW/
+advisory observation + 2 grounding confirmations. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-s21.11-v2-local-pass-4.md`.
+
+**(a) F-S2111V2-P4-001 (MEDIUM) — BC-1.03.017 v1.15→v1.16 propagation residue.** D-1043's
+remediation bumped BC-1.03.017 v1.15→v1.16 (the §AMD-003 fail-closed narrow-predicate
+correction), landing correctly in `BC-1.03.017.md` itself, in `BC-INDEX.md`, and in the
+`STORY-INDEX.md` S-21.11 catalog row — but the version bump was never swept into the S-21.11
+story file that actually cites BC-1.03.017 throughout its body: the story remained pinned at
+`BC-1.03.017 v1.15` in its frontmatter `behavioral_contracts:` array and across every body
+citation site, a POLICY 8 (`bc_array_changes_propagate_to_body_and_acs`) + POLICY 3
+(citation-staleness parity) break. Severity MEDIUM (not HIGH) because BC-1.03.017 v1.16 was a
+corrective-only wording change — the story's own Task #19b already implemented the correct
+semantics (pass-3 Part A re-verified this); only the version-pin citations were stale. This is
+the FOURTH instance in the S-21.11 v2 cascade of the version-cite-propagates/algorithm-content-
+does-not defect class first codified for the S-21.07 cascade
+(`L-BB-version-cite-propagation-must-include-algorithm-content-not-just-version-numbers`, D-1006)
+— pass-3 closed the story→BC direction of this gap; pass-4 closes the mirror-image BC→story
+direction, confirming the class recurs bidirectionally within a single cascade.
+
+**Routed and RESOLVED this burst:**
+- **Story-writer** — S-21.11 v2.3→v2.4: swept every LIVE cite of `BC-1.03.017 v1.15` →
+  `BC-1.03.017 v1.16` — the frontmatter `behavioral_contracts:` array; the body `## Behavioral
+  Contracts` table's BC-1.03.017 Version cell (a split-cell form not caught by a naive
+  contiguous-string sweep, found and corrected separately); and 56 body narrative/AC/Task/EC
+  sites (AC-001, AC-007, AC-008, AC-009, AC-011, AC-012, AC-013, AC-013b, AC-013c, AC-024 through
+  AC-041, EC-004, the Scope Elements DAG hard-edges note, the "PC13 Full-Registry Coverage"
+  section header, Tasks #6/#10b/#19/#19b/#19c, both Architecture Compliance Rules hazard rows,
+  the Token Budget BC-files line, and the Routing Proposals "BC authoring routing — RESOLVED"
+  paragraph). Exempted per POLICY 5 v1.3.5: 7 occurrences of `BC-1.03.017 v1.15` inside the
+  story's OWN historical `## Changelog` table (6 in the v2.3 row, 1 in the v2.1 row) —
+  historical-by-construction, correctly left unswept. Also backfilled a `modified:` frontmatter
+  array (v2.0 through v2.4) per POLICY 17/14 parity — this story had not previously carried one.
+
+**(b) LOW/ADVISORY — Token Budget Context Source line.** The story's Token Budget "Context
+Source" line describing ADR-039 omitted §AMD-003 and Erratum E-005, both now present in ADR-039
+v1.13. **FIXED this burst (production-grade default, in-scope):** `| ADR-039 (full text, 6
+decisions + §AMD-001 + §AMD-002 amendments) | 7,500 |` → `| ADR-039 (full text, 6 decisions +
+§AMD-001 + §AMD-002 + §AMD-003 amendments + Erratum E-005) | 7,500 |`. Description-completeness
+fix only; no ADR-039 version-pin citation existed on this line to sweep, token estimate
+unchanged.
+
+**(c) Grounding confirmations (non-findings).** The adversary independently re-derived: the
+fail-closed narrow predicate is stated identically across ADR-039 §AMD-003 (Precise rule
+leg-1/leg-2 + Erratum E-005), BC-1.03.017 (PC13 body + §Architecture Anchors PC13-extension +
+§Traceability), and the story (AC-013b, Task #19b), with `Timeout{Fuel|Epoch}+Block+FailOpen→
+exit 0/NOT block` consistent at every site (PC5, PC10(a), EC-009, Invariant 1); the 18-entry
+`on_error="block"` registry set remains exact against the live `hooks-registry.toml`, matching
+AC-024..AC-041 and PC13's Coverage Set table row-for-row, no drift since pass-3.
+
+**(d) Indexes.** STORY-INDEX v4.363→v4.364 (S-21.11 catalog row: story cite v2.3→v2.4; BC-array
+cite already v1.16, correct, no change needed). BC-INDEX v4.80 / ARCH-INDEX v3.73 / VP-INDEX
+v2.76 all **UNCHANGED this burst** — no BC, ADR, or VP content changed (only the story changed).
+POLICY 18 three-way parity: story frontmatter `input-hash` (`97029a5`) = STORY-INDEX catalog row
+cite (`97029a5`) = STORY-INDEX E-21 delivery blockquote cite (`97029a5`), reconciled via the
+**operator-authoritative marketplace `compute-input-hash` binary (rc.23; L-EDP1-073)** invoked
+per-file against the S-21.11 story — UNCHANGED this burst (the story's own declared input files —
+ADR-039, BC-1.03.017, hooks-registry.toml — did not change in this burst; only the story's own
+body content changed, which does not affect its own input-hash by definition).
+
+**(e) Sibling-sweep (TD-VSDD-060).** Corpus-wide grep for `BC-1\.03\.017 v1\.15` across
+`.factory` (excluding `logs/`) confirms no live artifact outside this story's 2 exempt historical
+Changelog rows (7 occurrences) still cites BC-1.03.017 as currently at v1.15. All other matches
+(`STATE.md`, `INDEX.md`, `decision-log.md`, `session-checkpoints.md`, `BC-INDEX.md`,
+`BC-1.03.017.md`, `STORY-INDEX.md`, `adv-s21.11-v2-local-pass-3.md`) are correctly-scoped
+`v1.15→v1.16` historical narration of the version-bump event itself (D-1043), which remains
+accurate for all time and requires no edit.
+
+**(f) Streak.** BC-5.39.001 streak **REMAINS 0/3** — remediation does not itself advance the
+streak. A fresh-context adversary **pass-5** against the S-21.11 v2.4 + ADR-039 v1.13 +
+BC-1.03.017 v1.16 + BC-1.03.018 v1.1 + 4-index bundle is required next.
+
+**(g) Orchestration lesson (process gap, anchored S-15.03 PRIORITY-A).** When a BC version bumps
+mid-cascade, the SAME burst that bumps it must dispatch story-writer to propagate the new
+BC-version cite into every citing story (frontmatter `behavioral_contracts:` array + body
+BC-table + narrative/AC sites) per POLICY 8 (`bc_array_changes_propagate_to_body_and_acs`), not
+only into the index rows. The D-1043 burst updated STORY-INDEX's BC cite but omitted the
+story-body sweep, which surfaced one pass later as F-S2111V2-P4-001. This is the mirror-image of
+the discipline that already governs the opposite direction (story-body predicate fixes must
+propagate to BC-body citation sites, per D-1006/pass-3) — both directions now require the
+same-burst propagation discipline.
+
+**(h) Telemetry fold-in.** Already-modified tracked dispatcher-telemetry files
+(`logs/dispatcher-internal-2026-08-19.jsonl`, `logs/events-2026-08-19.jsonl`,
+`sidecar-learning.md`) are included in this single commit as ordinary accumulation — no separate
+commit, per the Single-Commit Burst Protocol.
+
+**(i) Backfill obligation, unchanged.** The pre-existing `decision-log.md D-1011/D-1012 +
+D-1016..D-1042 (exhaustive)` per-decision backfill remains OWED, anchored to a future dedicated
+backfill burst; not attempted this burst per explicit dispatch scoping.
+
+### Agents
+
+- vsdd-factory:adversary: fresh-context pass-4 review (orchestrator-transcribed per POLICY 22)
+- vsdd-factory:story-writer: S-21.11 v2.3→v2.4 BC-1.03.017 v1.16 cite-parity sweep + Token
+  Budget fix
+- state-manager (this burst): pass-4 report persistence; INDEX.md pass-4 row + Convergence
+  Status advance; STORY-INDEX v4.364 catalog-row bump; sibling-sweep verification; this D-1044
+  decision-log.md entry; STATE.md advance; single atomic commit to `factory-artifacts` per
+  TD-VSDD-053
+
+### 4-INDEX
+
+ARCH-INDEX v3.73 (UNCHANGED) / BC-INDEX v4.80 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) /
+STORY-INDEX v4.364 (was v4.363)
+
+### Phase
+
+D-1044-S2111V2-PASS4-REMEDIATION
+
+### Date
+
+2026-08-19
+
+---

@@ -387,20 +387,25 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 |------|------|------|---------|----------|--------|------------------|--------|
 | 1 | 2026-08-19 | *(decision-log.md D-1041 only — no standalone file)* | NOT-CLEAN | 3 (1 BLOCKER F-S2111V2-P1-001 + 2 HIGH) | 0/3 | story v2.0 | REMEDIATED D-1041 — ADR-039 v1.10→v1.11 new §AMD-003 RATIFIED; BC-1.03.017 v1.12→v1.14; BC-1.03.018 v1.0→v1.1; story v2.0→v2.2; pass-2 NEXT |
 | 2 | 2026-08-19 | *(decision-log.md D-1042 only — no standalone file)* | NOT-CLEAN | 5 (3 HIGH F-S2111V2-P2-001/002/003 + 1 MEDIUM F-004 + 1 LOW F-005) | 0/3 | story v2.2, factory HEAD `4308b6a5` | REMEDIATED D-1042 — BC-1.03.017 v1.14→v1.15 (new Invariant 11, PC13 full-18-entry coverage); ADR-039 v1.11→v1.12 (§Status swept RATIFIED); story v2.2→v2.3; BC-INDEX title-cell sweep; pass-3 NEXT |
-| 3 | 2026-08-19 | `adv-s21.11-v2-local-pass-3.md` | **NOT-CLEAN** | 1 (1 HIGH F-S2111V2-P3-001, streak-resetting) + 2 grounding confirmations + 2 non-resetting observations (1 carry-forward = F-007, 1 LOW STORY-INDEX attribution) | **0/3** | story v2.3, factory HEAD `4308b6a5` | **REMEDIATED THIS BURST (D-1043)** — ADR-039 v1.12→v1.13 (architect; new §Erratum E-005, "Precise rule (normative)" narrowed to the two-leg form; `status: ratified` preserved, POLICY-22-exempt erratum category); BC-1.03.017 v1.15→v1.16 (product-owner; §Architecture Anchors PC13-extension clause + §Traceability ADR row swept to the narrow form); LOW STORY-INDEX §AMD-003 version-attribution corrected (state-manager); **pass-4 NEXT (fresh-context) — a fresh CLEAN pass-4 is required to begin the streak; this remediation does not itself advance it** |
+| 3 | 2026-08-19 | `adv-s21.11-v2-local-pass-3.md` | **NOT-CLEAN** | 1 (1 HIGH F-S2111V2-P3-001, streak-resetting) + 2 grounding confirmations + 2 non-resetting observations (1 carry-forward = F-007, 1 LOW STORY-INDEX attribution) | **0/3** | story v2.3, factory HEAD `4308b6a5` | **REMEDIATED (D-1043)** — ADR-039 v1.12→v1.13 (architect; new §Erratum E-005, "Precise rule (normative)" narrowed to the two-leg form; `status: ratified` preserved, POLICY-22-exempt erratum category); BC-1.03.017 v1.15→v1.16 (product-owner; §Architecture Anchors PC13-extension clause + §Traceability ADR row swept to the narrow form); LOW STORY-INDEX §AMD-003 version-attribution corrected (state-manager); pass-4 NEXT |
+| 4 | 2026-08-19 | `adv-s21.11-v2-local-pass-4.md` | **NOT-CLEAN** | 1 (1 MEDIUM F-S2111V2-P4-001, streak-resetting) + 1 non-resetting LOW/ADVISORY + 2 grounding confirmations | **0/3** | story v2.3, factory HEAD `041446a4` | **REMEDIATED THIS BURST (D-1044)** — story-writer swept BC-1.03.017 v1.15→v1.16 propagation residue (58 live cites: frontmatter `behavioral_contracts:` array + body BC-table split-cell + 56 narrative/AC/Task/EC sites; 7 historical changelog occurrences correctly left at v1.15 per POLICY 5 v1.3.5); story v2.3→v2.4; LOW Token Budget ADR-039 §AMD-003/Erratum E-005 description fix (in-scope); **pass-5 NEXT (fresh-context) — a fresh CLEAN pass-5 is required to begin the streak; this remediation does not itself advance it** |
 
-**Convergence Status (S-21.11 v2 LOCAL cascade): NOT-CONVERGED — streak 0/3.** Three passes of the
+**Convergence Status (S-21.11 v2 LOCAL cascade): NOT-CONVERGED — streak 0/3.** Four passes of the
 v2 (unified no-split) cascade to date, all NOT-CLEAN, all remediated same-burst: pass-1 (BLOCKER +
 2 HIGH, mechanism-adjudication class — §AMD-003 authored + RATIFIED), pass-2 (3 HIGH + 1 MEDIUM +
 1 LOW, index-parity + full-coverage class), pass-3 (1 HIGH, authoritative-layer-predicate
 un-propagation class — the story body's own F-001 fix at pass-1/pass-2 narrowed the operative
-predicate but the narrowing did not cascade to BC-1.03.017's own citation sites, closing a
-version-cite-propagates/algorithm-content-does-not gap of the same shape first codified for the
-S-21.07 cascade at D-1006). Per BC-5.39.001, three FRESH CONSECUTIVE CLEAN passes are required
-from pass-4 onward; this remediation burst does not itself advance the streak. Total v1+v2
-pre-TDD cascade to date: 15 (v1) + 3 (v2) = 18 passes against the S-21.11 spec bundle. 4-index at
-this burst: ARCH-INDEX v3.73 / BC-INDEX v4.80 / VP-INDEX v2.76 (unchanged) / STORY-INDEX v4.363.
-**NEXT: fresh-context adversary pass-4 against the S-21.11 v2.3 + ADR-039 v1.13 + BC-1.03.017
+predicate but the narrowing did not cascade to BC-1.03.017's own citation sites), pass-4 (1
+MEDIUM, the mirror-image propagation gap — the BC-1.03.017 v1.16 bump D-1043 itself produced was
+never swept into the story's own citation sites), both pass-3 and pass-4 closing
+version-cite-propagates/algorithm-content-does-not gaps of the same shape first codified for the
+S-21.07 cascade at D-1006, now confirmed bidirectional (story→BC at pass-3; BC→story at pass-4)
+within a single cascade. Per BC-5.39.001, three FRESH CONSECUTIVE CLEAN passes are required from
+pass-5 onward; this remediation burst does not itself advance the streak. Total v1+v2 pre-TDD
+cascade to date: 15 (v1) + 4 (v2) = 19 passes against the S-21.11 spec bundle. 4-index at this
+burst: ARCH-INDEX v3.73 / BC-INDEX v4.80 / VP-INDEX v2.76 (all UNCHANGED — no BC/ADR/VP content
+changed this burst) / STORY-INDEX v4.364.
+**NEXT: fresh-context adversary pass-5 against the S-21.11 v2.4 + ADR-039 v1.13 + BC-1.03.017
 v1.16 + BC-1.03.018 v1.1 + indexes bundle.**
 
 ## Artifact Size Budgets (IP-003 / D-835)
