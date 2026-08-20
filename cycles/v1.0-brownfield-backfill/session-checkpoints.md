@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "9653d21"
+input-hash: "f3b7b98"
 traces_to: STATE.md
 ---
 
@@ -2510,3 +2510,50 @@ No new standing rule this burst (D-1052(g) — novelty LOW, only cosmetic residu
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1053-S2111V2-PASS13-REMEDIATION checkpoint burst (2026-08-20) — S-21.11 v2.10 adversary pass-13 NOT-CLEAN (1 HIGH F-S2111V2-P13-001, streak-resetting — AC-012's CWE-636 migration-window gate authored twelve tasks after the extension it exists to gate; the un-swept structural sibling of pass-11's AC-009 red-first defect), remediated same-burst via story-writer S-21.11 v2.10→v2.11 (Task #16a pre-flip authoring + exhaustive AC-001..AC-041 task-ordering sibling-sweep confirming no third sibling) plus folded F-S2111V2-P12-001 (LOW); BC-5.39.001 streak RESETS 1/3→0/3; pipeline stays ACTIVE.**
+
+## Session Resume Checkpoint (2026-08-20 — D-1053-S2111V2-PASS13-REMEDIATION; PIPELINE ACTIVE)
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE ACTIVE** at a clean checkpoint (this commit; `git -C .factory log -1` for the HEAD SHA). This is a S-21.11 v2.11 PRE-TDD spec-convergence cascade under E-21. **D-1053 (pass-13 remediation) is committed this burst** — adversary pass-13 returned **NOT-CLEAN**: 1 HIGH streak-resetting finding (F-S2111V2-P13-001 — AC-012's CWE-636 migration-window gate authored at Task #29, twelve tasks AFTER Task #19's Node (D) extension and the Phase-4c flip commits it exists to gate, making Task #19's own ATOMICITY GATE note FALSE at execution time — the un-swept structural sibling of pass-11's F-S2111V2-P11-002 AC-009 red-first defect, which the v2.10 burst fixed for AC-009 alone without an exhaustive class-level sweep). BC-5.39.001 streak **RESETS 1/3 → 0/3**. Remediated same-burst by story-writer (S-21.11 v2.10→v2.11): AC-012 relocated to new Task #16a (Node (D), pre-flip, mirroring Task #20a's insertion pattern) authoring the three pure-function controls (POSITIVE/NEGATIVE/VACUITY); Task #29 rewritten to confirm ONLY the fourth control (LIVE-TREE-CONTROL) post-flip; Task #19's ATOMICITY GATE note reconciled; Task #25's cross-reference updated. MANDATORY class-level fix this burst: built the complete AC-001 through AC-041 authoring-task/referencing-task ordering table (all 41 ACs, no sampling) — AC-012 was the ONLY violation; no third sibling survives to reset pass-14. Folded F-S2111V2-P12-001 (LOW, Task #22 "nine"→"eight") and the DAG node-(D) box scope note. NO BC/ADR/index changes this burst beyond STORY-INDEX: BC-1.03.017 stays v1.18, BC-1.03.018 stays v1.1, ADR-039 stays v1.13 §Erratum E-005, BC-INDEX/ARCH-INDEX/VP-INDEX all UNCHANGED; STORY-INDEX v4.370→v4.371; story input-hash `97029a5` UNCHANGED, re-confirmed three-way parity. `develop` `27c56c01` unchanged, CI-GREEN. **Paper-fix correction this burst (TD-VSDD-059):** verified `session-checkpoints.md` directly and found D-1052's claim "D-1051's checkpoint archived THIS burst" FALSE (last archived entry there was D-1049) — corrected; D-1052's checkpoint archived this burst instead.
+
+### §2 Convergence Counter
+
+BC-5.39.001 streak **0/3** (RESET at pass-13 by F-S2111V2-P13-001).
+
+### §3 In-Flight / NEXT ACTION
+
+**RESUME = dispatch a fresh-context adversary pass-14** against the D-1053-remediated bundle: story `S-21.11-validator-exhaustion-fail-closed-calibration-and-enforcement.md` v2.11 + BC-1.03.017 v1.18 + BC-1.03.018 v1.1 + ADR-039 v1.13 + BC-INDEX/STORY-INDEX/ARCH-INDEX/VP-INDEX, applying the full `.factory/policies.yaml` rubric, per the Iron Law (fresh context, reads only `adv-s21.11-v2-local-pass-13.md` Part A). Pass-14 must be CLEAN to advance the streak to 1/3; two further fresh clean passes (15, 16) against the SAME STABLE bundle would then be required for 3-CLEAN convergence. If pass-14 is NOT-CLEAN, route findings to the owning specialists, remediate, and the streak resets to 0/3 again.
+
+### §4 Pending Human Decision
+
+S-21.11 sizing (32 points vs the typical ~13-point story ceiling) is **PENDING-POST-ADVERSARY** per the D-1040 drift item — decide split-vs-keep-unified **AFTER** convergence, not before. **Keep S-21.11 as ONE unified story** — this is a standing human decision; do NOT split it. (Unchanged from prior checkpoints.)
+
+### §5 Session Note
+
+New standing rule D-1053(i) codified this burst (extends D-1047(h)/D-1051(j), anchored S-15.03 PRIORITY-A): task-ordering/red-first/authored-after-referenced remediations MUST include an exhaustive same-class sibling sweep of ALL artifacts, not just the flagged instance — TD-VSDD-060 is extended from string-cite sweeps to task-ordering sweeps. This is the third distinct sibling-sweep-scope lesson (line-wrap D-1047, backtick D-1051, now task-ordering D-1053). The existing D-1044(g), D-1045(h), D-1046(h), D-1046(b), and D-1047(h)/D-1051(j) lessons remain logged in the Drift Items table, unchanged, carried forward. **Data-integrity note (this burst, TD-VSDD-059 paper-fix class):** while attempting to archive the outgoing D-1052 checkpoint to `session-checkpoints.md`, state-manager discovered D-1052's own claim that "D-1051's checkpoint archived THIS burst" was FALSE — the file's last archived entry was D-1049, meaning both D-1050's and D-1051's checkpoints were never actually archived. Corrected: the false claim is retracted; D-1052's checkpoint (the most recent one genuinely available) is archived this burst instead; D-1050's and D-1051's content remain OWED.
+
+### §6 Carry-Forward Blockers (unchanged, reference not re-list)
+
+- `[P0-followup]` POLICY 15 gate wired + running but NOT enforcing — branch protection (human/admin-only action required).
+- `[C-1]`..`[C-5]` exec_subprocess security findings (ADR-043 NOT RATIFIED) — see Blocking Issues table.
+- `[D-952]` compute-input-hash operator-cache-vs-dev-source hash-algorithm divergence — deferred to rc.24; per-file operator-binary invocation is the workaround until then.
+- decision-log.md D-1011/D-1012 + D-1016..D-1042 (exhaustive) per-decision backfill — still OWED, anchored to a future dedicated backfill burst.
+- `session-checkpoints.md` D-1043/D-1044/D-1045/D-1050/D-1051 checkpoint-archival gap — still OWED (D-1046/D-1047/D-1048/D-1049/D-1052's checkpoints ARE archived; D-1043/D-1044/D-1045/D-1050/D-1051's are NOT — D-1051's is newly corrected this burst, having been falsely claimed archived at D-1052), anchored to a future dedicated backfill burst.
+- `[F-007]` BC-1.03.017 v1.18 + BC-1.03.018 v1.1 carry VP-TBD — anchored a future VP-authoring pass (POLICY 9).
+- `[F-008]` [process-gap] PluginResult-variant-construction-site trace gap — anchored S-15.03 PRIORITY-A.
+- `[D-1044(g)]` BC-version-bump-mid-cascade lacks same-burst story-propagation-dispatch discipline — anchored S-15.03 PRIORITY-A.
+- `[D-1045(h)]` Predicate/semantic sweeps must be SEMANTIC (enumerate every site stating the concept), not literal-string grep — anchored S-15.03 PRIORITY-A.
+- `[D-1046(h)]` D-1045(h)'s discipline generalizes ACROSS artifact boundaries — a defensive-check pattern list anchored to one artifact's pre-fix wording will miss a sibling artifact restating the concept differently — anchored S-15.03 PRIORITY-A.
+- `[D-1046(b)]` ADR-039 §AMD-003 option-(b) "strict superset" wording-hygiene deferral (non-blocking, no content defect) — touch when ADR-039 is next legitimately edited.
+- `[D-1047(h)/D-1051(j)]` Cite-parity/version-propagation sweeps must use a whitespace-normalized/multiline predicate AND a backtick-tolerant predicate, and attest by captured residual-set stdout, never a task-number/site-name list — anchored S-15.03 PRIORITY-A.
+- `[D-1053(i)]` Task-ordering/red-first/authored-after-referenced remediations must include an exhaustive same-class sibling sweep — anchored S-15.03 PRIORITY-A.
+- `[D-1053-drift]` STORY-INDEX `last_amended` frontmatter field lagging `version:` by 2 entries + unbounded nested-chain growth (~275KB) — anchored a future dedicated compaction burst.
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the D-1054-S2111V2-PASS14-CLEAN checkpoint burst (2026-08-20) — S-21.11 v2.11 adversary pass-14 CLEAN (zero streak-resetting findings, first clean pass since the pass-13 reset), fix-verification confirmed F-S2111V2-P13-001 and folded F-S2111V2-P12-001 both RESOLVED and stable via an independent from-scratch re-derivation of the full 41-AC task-ordering table; 2 new non-resetting ADVISORY observations (F-S2111V2-P14-001/002) DOCUMENTED, deferred to convergence-close; BC-5.39.001 streak ADVANCES 0/3→1/3; pipeline stays ACTIVE.**
