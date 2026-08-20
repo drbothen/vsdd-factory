@@ -19401,3 +19401,154 @@ D-1049-S2111V2-PASS9-REMEDIATION
 2026-08-20
 
 ---
+
+## D-1051 — D-1051-S2111V2-PASS11-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → the prior recorded max
+in this file is `## D-1050`. This entry is D-1051, the next decision allocated after D-1050. The
+pre-existing `decision-log.md D-1011/D-1012 + D-1016..D-1042 (exhaustive)` per-decision backfill
+obligation (STATE.md Blocking Issues) is unrelated to this entry and remains carried forward
+unchanged; this entry does not attempt that backfill. Likewise the `cycles/v1.0-brownfield-backfill/
+session-checkpoints.md` D-1043..D-1045 checkpoint-archival backfill gap remains OWED, carried
+forward unchanged; not attempted this burst.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053).** Adversary pass-11 of
+the S-21.11 v2 cascade (dispatched fresh-context against the `2ff524ab` bundle — story v2.9 +
+BC-1.03.017 v1.18 + BC-1.03.018 v1.1 + ADR-039 v1.13, the SAME bundle pass-10 reviewed) returned
+**NOT-CLEAN**: 3 MEDIUM streak-resetting findings, plus independent re-confirmation of pass-10's 3
+non-resetting LOW/ADVISORY cosmetic observations (still present, unremediated). Persisted verbatim
+as `cycles/v1.0-brownfield-backfill/adv-s21.11-v2-local-pass-11.md`.
+
+**(a) Verdict and streak.** Per BC-5.39.001, three streak-resetting MEDIUM findings RESET the
+streak **1/3 → 0/3**. A fresh-context adversary **pass-12** against the D-1051-remediated bundle
+(story v2.10) must be CLEAN to begin a new streak.
+
+**(b) F-S2111V2-P11-001 (MEDIUM, backtick-tolerant stale cite).** The story's Routing Proposals
+"BC authoring routing — RESOLVED" opening sentence read `BC-1.03.017 (\`factory-dispatcher::
+executor::failure_policy enforcement\`, v1.17)` — stale, and self-contradictory against the SAME
+paragraph's own correct "BC-1.03.017 v1.18's new Invariant 11" two lines later. A backtick-quoted
+title intervenes between the BC ID and its version token, a form the story's existing
+whitespace-normalized contiguous detector (`BC-1\.03\.017 +v1\.[0-9]+`) structurally cannot match
+— the third distinct detector-blind-spot sub-mechanism found in this cascade (after pass-7's
+line-wrap intervention, D-1047(h)). Remediated by story-writer: fixed to v1.18; adopted a
+BACKTICK-TOLERANT detector (`BC-1\.03\.017[^v]{0,120}v1\.[0-9]+`) for this burst's sweep, run
+BEFORE and AFTER in addition to the existing contiguous detector, confirming ZERO non-v1.18 live
+residue.
+
+**(c) F-S2111V2-P11-002 (MEDIUM, structural red-first-gate defect — NEW class for this cascade).**
+AC-009's genuine red-first TDD gate (`test_all_six_validator_class_plugins_are_fail_closed`) was
+mis-pointed by Task #16's note as "(Task #21)" — the unrelated Node-E BC-1.03.018-reading task —
+and was actually authored at Task #29, sequenced AFTER the Phase-4c fail-closed-flip Tasks #26–#28
+that create the very registry annotations the test asserts, making a genuine first-run RED
+observation structurally impossible (the test would already be GREEN), violating AC-009's own
+"RED before Phase 4 annotations land" postcondition and `tdd_mode: strict`'s Red Gate density
+requirement. Remediated by story-writer: inserted new **Task #20a** (Node (D) region, immediately
+after Task #20, strictly before Node (E)/Phase 4c) authoring `test_all_six_validator_class_plugins
+_are_fail_closed` with an explicit CONFIRM-RED instruction; Task #29 rewritten to CONFIRM the test
+is GREEN post-flip rather than author it; Task #16's pointer corrected to "(Task #20a below)".
+Task #25's "(Task #29 below)" pointer for AC-012's test (a standing/regression gate, unaffected)
+verified still correct, left unchanged.
+
+**(d) F-S2111V2-P11-003 (MEDIUM, coverage-enumeration gap — NEW class for this cascade).** AC-010
+(epoch exhaustion + `FailurePolicy::FailClosed` → block; BC PC6 / ADR-039 §Decision 1
+epoch-parity) had no explicit authoring task anywhere in the story and was absent from Task #20's
+RED-gate verification enumeration, unlike its fuel-axis siblings (AC-002/003 at Task #17;
+AC-004/005 at Task #18). Remediated by story-writer: added AC-010's test authoring to **Task #18**
+alongside its sibling exhaustion ACs, with the same RED-first discipline; Task #20's enumeration
+extended from "AC-002 through AC-005" to "AC-002 through AC-005 and AC-010".
+
+**(e) Pass-10's 3 folded-in cosmetic findings — CLOSED this burst.** F-S2111V2-P10-001 (story DAG
+node-(D) box caption enumerated only a subset of Node (D)'s authoritative Tasks) — box annotation
+now includes AC-013b and AC-024..AC-041. F-S2111V2-P10-002 (DAG/AC-011 label "Executor Extension"
+non-verbatim against the Tasks heading) — both references now read the verbatim heading text
+"Node (D) — Executor decision-function extension." F-S2111V2-P10-003 (break-glass ACs cite
+BC-1.03.018's own internal EC numbering, conflating with the story's own same-numbered EC rows) —
+all three citations now read "BC-1.03.018 EC-00X," each with an explicit inline note distinguishing
+it from this story's own same-numbered EC row (disambiguation-by-prefix, not an asserted
+equivalence — only EC-013's content plausibly matches BC-1.03.018's own EC-005 content; asserting
+an unverified equivalence for the other two would itself be a fabrication risk). Closing these 3
+alongside the 3 MEDIUM findings avoids a second re-versioning churn cycle, since the bundle is
+being touched regardless this burst; this closes the convergence-close deferred sweep early.
+
+**(f) Story version and index state.** S-21.11 story v2.9→v2.10 (`modified:` array appended;
+`behavioral_contracts:` array UNCHANGED — `["BC-1.01.016 v1.3", "BC-1.03.017 v1.18",
+"BC-1.03.018 v1.1"]`, no BC content or version change this burst). `input-hash` (`97029a5`)
+INTENTIONALLY LEFT UNCHANGED — none of the story's declared `inputs:` (ADR-039,
+hooks-registry.toml, wasm-fuel-exhaustion-detection.md) changed this burst; re-confirmed
+three-way parity (STORY-INDEX cite, story frontmatter, story body content). STORY-INDEX
+v4.369→v4.370 (S-21.11 catalog row: story cite v2.9→v2.10; BC-array cite UNCHANGED). BC-INDEX
+v4.82 / ARCH-INDEX v3.73 / VP-INDEX v2.76 all UNCHANGED — no BC/ADR/VP content changed; all 6
+fixes this burst are confined to the story's own task/DAG/routing/edge-case layers.
+
+**(g) Sibling-sweep (TD-VSDD-060) — extended corpus-wide this burst.** Beyond the story's own
+internal backtick-tolerant re-sweep (confirming zero residue), state-manager ran a corpus-wide
+backtick-tolerant grep (`BC-1\.03\.017[^v]{0,120}v1\.[0-9]+`) across every `.md` file under
+`.factory/`, excluding this burst's own edited/historical files (INDEX.md, decision-log.md,
+session-checkpoints.md, STORY-INDEX.md, BC-INDEX.md, and the frozen `adv-*.md`/`burst-log.md`
+historical pass records). Candidate live artifacts with a loose 120-char-gap match
+(`BC-1.03.018.md`, `BC-1.03.017.md`, `ARCH-INDEX.md`, `ADR-039`, `S-21.13`) were individually
+re-checked against the STRICT backtick-title form (`` BC-1\.03\.017 \(`[^`]*`, v1\.[0-9]+\) ``) —
+zero matches in any of the five; every loose-pattern hit in those files was a historical
+changelog/version-history/amendment-ratification citation, not a live stale cite. **Confirmed
+CLEAN — no other live artifact in `.factory` carries the backtick-title-intervening stale
+BC-1.03.017 cite pattern.**
+
+**(h) Streak.** BC-5.39.001 streak **RESETS 1/3 → 0/3** — three streak-resetting MEDIUM findings.
+A fresh-context adversary **pass-12** against the S-21.11 v2.10 + ADR-039 v1.13 + BC-1.03.017
+v1.18 + BC-1.03.018 v1.1 + 4-index bundle (the D-1051-remediated bundle) is required next; it must
+be CLEAN to begin a new streak (1/3), followed by two further clean passes for 3-CLEAN
+convergence.
+
+**(i) Novelty note.** Novelty MEDIUM. F-S2111V2-P11-001 is a further recurrence of the D-1006
+version-cite-propagates/algorithm-content-does-not family, via a THIRD distinct detector-blind-spot
+sub-mechanism (backtick-title-intervening, alongside pass-7's line-wrap-intervening) — the
+detector itself is upgraded again, per the "fix the tooling, not just the instance" discipline
+D-1047(h) established. F-S2111V2-P11-002 (structural red-first-gate ordering) and F-S2111V2-P11-003
+(missing authoring task) are BOTH genuinely NEW defect classes for this cascade, unrelated to the
+D-1006 family and unrelated to each other — neither a version-cite defect nor a numeric-magnitude
+defect, but task-DAG-ordering and task-DAG-coverage defects respectively. **New standing rule
+codified (D-1051(j)):** the D-1047(h) cite-parity detector rule is EXTENDED — sweeps MUST also use
+a backtick-tolerant form (`BC-N\.NN\.NNN[^v]{0,120}v1\.[0-9]+`, tolerating arbitrary
+non-version-token characters, not just whitespace, between the ID and version) in addition to the
+whitespace-normalized contiguous form, and MUST attest both by captured residual-set stdout. The
+existing S-15.03 PRIORITY-A cite-parity-automation Drift Items row (anchored at D-1047) is updated
+to include this requirement (see STATE.md Drift Items).
+
+**(j) Telemetry fold-in.** Already-modified tracked dispatcher-telemetry files
+(`logs/dispatcher-internal-2026-08-20.jsonl`, `logs/events-2026-08-20.jsonl`,
+`sidecar-learning.md`) are included in this single commit as ordinary accumulation — no separate
+commit, per the Single-Commit Burst Protocol.
+
+**(k) Backfill obligations, unchanged.** The pre-existing `decision-log.md D-1011/D-1012 +
+D-1016..D-1050 (exhaustive)` per-decision backfill remains OWED, anchored to a future dedicated
+backfill burst; not attempted this burst per explicit dispatch scoping. The
+`session-checkpoints.md` D-1043..D-1045 checkpoint-archival gap also remains OWED, carried forward
+unchanged.
+
+### Agents
+
+- vsdd-factory:adversary: fresh-context pass-11 review (orchestrator-transcribed per POLICY 22) —
+  NOT-CLEAN, 3 MEDIUM streak-resetting findings + re-confirmation of pass-10's 3 cosmetic
+  observations
+- vsdd-factory:story-writer: S-21.11 v2.9→v2.10 — F-S2111V2-P11-001/002/003 remediation (Task #20a
+  insertion, Task #18/#20/#29 revisions, backtick-tolerant cite fix) + F-S2111V2-P10-001/002/003
+  folded-in cosmetic sweep (DAG caption, verbatim label, EC cross-numbering disambiguation)
+- state-manager (this burst): pass-11 report persistence; INDEX.md pass-11 row + Convergence
+  Status advance (streak reset 0/3); STORY-INDEX v4.370 bump; corpus-wide backtick-tolerant
+  sibling-sweep; this D-1051 decision-log.md entry; STATE.md advance; single atomic commit to
+  `factory-artifacts` per TD-VSDD-053
+
+### 4-INDEX
+
+ARCH-INDEX v3.73 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / BC-INDEX v4.82 (UNCHANGED) /
+STORY-INDEX v4.370 (was v4.369)
+
+### Phase
+
+D-1051-S2111V2-PASS11-REMEDIATION
+
+### Date
+
+2026-08-20
+
+---
