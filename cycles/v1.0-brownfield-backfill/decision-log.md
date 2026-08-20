@@ -20202,3 +20202,182 @@ D-1056-S2111V2-PASS16-CLEAN-3CLEAN-CONVERGENCE
 2026-08-20
 
 ---
+
+## D-1057 — D-1057-S2111-SIZING-OVERRIDE-AND-DECOMPOSITION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` -> the prior recorded max
+in this file is `## D-1056`. This entry is D-1057, the next decision allocated after D-1056. The
+pre-existing `decision-log.md D-1011/D-1012 + D-1016..D-1052 (exhaustive)` per-decision backfill
+obligation (STATE.md Blocking Issues) is unrelated to this entry and remains carried forward
+unchanged; this entry does not attempt that backfill.
+
+**Scope note (single-commit registration + decomposition burst, state-manager, TD-VSDD-053).**
+At the HUMAN CONVERGENCE + SIZING-DECISION gate presented at D-1056 (§3 of the Session Resume
+Checkpoint), the operator **OVERRODE the standing keep-unified sizing decision** — S-21.11 (32
+pts, converged v2.11, BC-5.39.001 3-CLEAN as of D-1056) is **SPLIT** into six sub-stories, taken
+**AFTER** the story reached full 3-CLEAN convergence (D-1056), not before — the split decomposes
+an already-converged, stable spec bundle rather than an in-flux one.
+
+**(a) Sizing override.** The standing decision recorded at D-1040 and re-surfaced at every pass
+since (most recently D-1056 §4, "Keep S-21.11 as ONE unified story remains the standing human
+decision; do NOT split it without explicit human direction") was **keep-unified**. At the D-1056
+gate, the operator explicitly directed a split, superseding that standing decision. This is a
+human-directed sizing override, not an AI-initiated deferral — Canonical Principle Rule 3's
+human-direction requirement is satisfied.
+
+**(b) Decomposition — six sub-stories from the converged v2.11 body.** Architect authored the
+DAG-node seam boundaries and story-writer implemented them into six sub-story spec files, per
+`.factory/planning/S-21.11-decomposition-plan.md`:
+
+- **S-21.19** — Executor decision-function core (3-arg `failure_policy` extension +
+  axes-independence; ADR-039 Phase 4a; split seam 1 of 6). Owns AC-001, AC-002-006, AC-009-012,
+  AC-013b unit leg. 9 pts. Wave 6, `depends_on [S-21.10]`. Conceptual heart of the split — gates
+  all four parallel downstream seams and transitively S-21.24.
+- **S-21.20** — PC13 full-registry coverage (`on_error=Block` fail-closed across all 18 registry
+  entries; BC-1.03.017 v1.18 Invariant 11; split seam 2 of 6). Owns AC-024-041 (18 ACs). 3 pts.
+  Wave 7, `depends_on [S-21.19]`. Cleanest/most self-contained seam.
+- **S-21.21** — AMD-002 `legacy-bash-adapter` runtime-timeout wiring fix + bifurcated bash-adapter
+  calibration (ADR-039 Phase 3b+3c; split seam 3 of 6). Owns the AC-007 bash-adapter leg, AC-013,
+  AC-013b e2e leg, AC-013c. 9 pts. Wave 7, `depends_on [S-21.10, S-21.19]`. Widest blast radius —
+  affects all 37 `legacy-bash-adapter.wasm`-routed registry entries.
+- **S-21.22** — Native-WASM fuel-axis calibration and fail-closed flip for
+  `validate-cross-site-correspondence` (ADR-039 Phase 3a+4d; split seam 4 of 6). Owns the AC-007
+  native-WASM leg and AC-008 in full. 4 pts. Wave 7, `depends_on [S-21.10, S-21.19]`. Owns and
+  executes its own flip commit (Task #26), independent of the bash-adapter and break-glass seams.
+- **S-21.23** — Break-glass override mechanism (`VSDD_BREAK_GLASS_GATE_BYPASS` for self-locking
+  `PreToolUse` `^Agent$` gates; ADR-039 Phase 4b; split seam 5 of 6). Owns AC-014-023 (10 ACs, all
+  of BC-1.03.018 PC1-PC10). 7 pts. Wave 7, `depends_on [S-21.10, S-21.19]`. Cleanest BC boundary —
+  entirely BC-1.03.018's own sibling BC.
+- **S-21.24** — Validator exhaustion fail-closed capstone: gated flip completion + full regression
+  + CHANGELOG (ADR-039 Phase 4c completion + Phase 5; split seam 6 of 6, STRICTLY LAST). Owns zero
+  ACs exclusively — confirms AC-009/AC-012 (S-21.19) and AC-022 (S-21.23) reach final GREEN/
+  LIVE-TREE state. 3 pts. Wave 8, `depends_on [S-21.19, S-21.20, S-21.21, S-21.22, S-21.23]`. The
+  DAG's Phase 5 convergence point.
+
+AC partition: the 41 numbered ACs of S-21.11 v2.11 plus the AC-013b/AC-013c legs = **43/43**,
+zero drops, zero duplicates, verified per the decomposition plan's §3 partition table.
+
+**(c) New independent story — S-21.25 (previously-orphaned ADR-039 §Decision 5 Mitigation 1).**
+S-21.25 (Fuel-headroom WARN event; 5 pts; `depends_on []`, wave 6, parallel/independent track —
+no dependency edge to the S-21.19..S-21.24 `failure_policy` seams) is a **genuinely new** story,
+not a seventh split seam of S-21.11 — it owns the >90% fuel-consumption early-warning signal from
+ADR-039 §Decision 5 Mitigation 1, which had no owning story prior to this burst. Governed by new
+**BC-1.03.019 v1.0** (product-owner; SS-01 shard; CAP-011; PC1-PC10).
+
+**(d) DAG verified acyclic.** `S-21.10 -> S-21.19 -> {S-21.20, S-21.21, S-21.22, S-21.23} ->
+S-21.24`; `S-21.25` has no incoming or outgoing edges to any other E-21 node. Waves 6 -> 7 -> 8,
+replacing S-21.11's retired 32-pt W6 delivery slot with 35 pts across the six seams (S-21.25's 5
+pts is additive, not a replacement — 40 pts total for the 7 new stories). STORY-INDEX's E-21
+delivery blockquote and DAG wave-schedule intro blockquote both updated to reflect the split
+(the `> **D-1057 S-21.11 split sub-schedule` blockquote is the authoritative post-split schedule;
+the pre-split `> DAG wave schedule (8 waves...)` blockquote's W6 slot is annotated
+**SUPERSEDED D-1057, see below**, not deleted — POLICY 1 append-only).
+
+**(e) S-21.11 disposition — SUPERSEDED, POLICY 1 append-only.** `status: draft` ->
+`status: superseded`; new `superseded_by: [S-21.19, S-21.20, S-21.21, S-21.22, S-21.23, S-21.24]`
+frontmatter field. The v2.11 body (all 41 ACs + AC-013b/AC-013c, all Tasks, the DAG, Edge Cases,
+and every other section) is **FROZEN as the historical source-of-truth** the six sub-stories
+decompose from — no AC text, BC trace, task ordering, or test predicate in the body was altered,
+weakened, or reinterpreted by this burst. The S-21.11 ID remains permanently allocated per
+POLICY 1 — never reused, deleted, or blanked. `input-hash` recomputed `97029a5` -> `c694c6b` to
+reconcile the operator-authoritative-binary drift the v2.5/v2.9 bursts flagged as owed to
+state-manager; no declared `inputs:` file content was edited this burst — the drift was
+pre-existing.
+
+**(f) Index registration.** BC-INDEX v4.82 -> **v4.83**: new BC-1.03.019 v1.0 row registered
+(`total_bcs` 1986 -> **1987**); BC-1.03.017 Stories cell swept `S-21.10, S-21.11` ->
+`S-21.10, S-21.19, S-21.20, S-21.21, S-21.22, S-21.23, S-21.24`; BC-1.03.018 Stories cell swept
+`S-21.11` -> `S-21.23`. BC-1.03.017/BC-1.03.018 input-hash reconciled (`dec3278` / `2663f9b`
+respectively) via the operator-authoritative rc.23 `compute-input-hash --update`; no BC body
+content altered — index-row registration + cross-reference sweep only. ARCH-INDEX v3.73 ->
+**v3.74**: ADR-039 v1.14 row updated. STORY-INDEX v4.371 -> **v4.372**: S-21.11 row updated
+(status/superseded_by/input-hash/frozen-body annotation); seven new rows (S-21.19..S-21.25)
+registered; E-21 delivery blockquote + DAG wave-schedule intro blockquote both updated per (d).
+All 11 new/modified files' `input-hash` values independently re-confirmed via the
+operator-authoritative rc.23 `compute-input-hash --check` binary (exit 0 for all): S-21.11
+`c694c6b`; BC-1.03.017 `dec3278`; BC-1.03.018 `2663f9b`; S-21.19 `a2dca8e`; S-21.20 `cbbc8dd`;
+S-21.21 `c694c6b`; S-21.22 `a2dca8e`; S-21.23 `cbbc8dd`; S-21.24 `cbbc8dd`; S-21.25 `775050b`;
+BC-1.03.019 `57262cf`.
+
+**(g) ADR-039 v1.13 -> v1.14 (architect, subsystems sweep, audit finding 1.3).** The `subsystems_
+affected` field was swept to reflect AMD-002's actual blast radius (all 37 `legacy-bash-adapter.
+wasm`-routed registry entries, surfaced by the decomposition plan's S-21.21 seam analysis) — a
+scope-correctness finding from the architect's fresh decomposition audit, not a new decision.
+ADR-042 added to S-21.19/S-21.22 inputs per the audit's finding 1.4 (both seams' fuel-axis work
+is governed by ADR-042's 20M fuel-budget raise). ADR-039 status remains `ratified`.
+
+**(h) Owed carry-forward — NOT this burst.** Two depends_on redirects are anchored to a future
+story-writer touch per the decomposition plan §4, deliberately NOT performed this burst (scope
+discipline — the dispatch explicitly excluded touching S-21.13/S-21.16 bodies):
+
+- S-21.13 `depends_on [S-21.10, S-21.11]` -> `[S-21.10, S-21.22]` (S-21.13's read_file_range/
+  BC-INDEX-sidecar work targets `validate-cross-site-correspondence`, which S-21.22 now owns).
+- S-21.16 `depends_on [S-21.11]` -> `[S-21.24]` (S-21.16's CI-lint hardening logically gates on
+  the capstone's completed flip, not the now-superseded unified story).
+
+Both redirects are recorded as STORY-INDEX row annotations (`**[D-1057 carry-forward] ... OWED,
+NOT this burst**`) at the citing rows (S-21.16's own row, and S-21.22's `blocks:` note) so the
+obligation is anchored and cannot be lost. Also owed and explicitly out of this burst's scope:
+VP-authoring for BC-1.03.017/BC-1.03.018/BC-1.03.019 (Phase-6 formal-verifier, POLICY 9
+sanctioned VP-TBD deferral convention); hooks-registry.toml header plugin-count 35->37 (next
+maintenance sweep); `artifact-path-registry.yaml` develop-side edit (a follow-up develop-branch
+PR, not a `.factory/` artifact); the 7 S-21.11 cosmetic ADVISORY/LOW nits from the D-1056
+convergence-close sweep are **RESOLVED-BY-SUPERSESSION** — the sub-stories were authored clean
+against the frozen v2.11 body, so the deferred cosmetic sweep against S-21.11 itself is now moot
+(S-21.11 is frozen/historical, not a live editing target).
+
+**(i) No new standing rule this burst.** This is a human-directed sizing override + mechanical
+decomposition-registration burst, not an adversarial-finding remediation — no new [process-gap]
+or META-LEVEL class surfaces. The existing D-1044(g)/D-1045(h)/D-1046(h)/D-1047(h)/D-1051(j)/
+D-1053(i) lessons remain logged, unchanged, carried forward; they apply to the seven new stories'
+OWN future pre-TDD adversarial cascades exactly as they applied to S-21.11's.
+
+**(j) Backfill obligations, unchanged.** The pre-existing `decision-log.md D-1011/D-1012 +
+D-1016..D-1042 (exhaustive)` per-decision backfill remains OWED, anchored to a future dedicated
+backfill burst; not attempted this burst. The `session-checkpoints.md` D-1043/D-1044/D-1045/
+D-1050/D-1051 checkpoint-archival gap also remains OWED, carried forward unchanged. This burst
+archives D-1056's Session Resume Checkpoint to `session-checkpoints.md` (closing that leg for
+D-1056; the pre-existing D-1043/D-1044/D-1045/D-1050/D-1051 gap, and the D-1055 full-text gap
+noted below, remain OWED). **New observation this burst (not remediated, recorded for
+transparency):** D-1056(j)'s claim that "this burst archives D-1055's Session Resume Checkpoint
+... together with D-1054's" is only half true — `session-checkpoints.md` contains D-1054's full
+checkpoint text but only a one-line "superseded by D-1055" pointer for D-1055 itself, not
+D-1055's full checkpoint body. This is a pre-existing gap (D-1056's own claim, not this burst's),
+out of this burst's explicit scope (registration + decomposition only); folded into the existing
+OWED checkpoint-archival backfill row rather than fixed ad hoc.
+
+**(k) Each of the seven new stories requires its own pre-TDD adversarial convergence.** Per
+Canonical Principle Rule 3, splitting a converged spec does not inherit convergence for the
+split parts — S-21.19, S-21.20, S-21.21, S-21.22, S-21.23, S-21.24, and S-21.25 each require
+their own independent BC-5.39.001 3-CLEAN LOCAL pre-TDD adversarial cascade before Phase-3 TDD
+entry, starting with Wave 6 (S-21.19 + S-21.25, parallel — no dependency edge between them).
+
+### Agents
+
+- architect: DAG-node seam boundary design (`.factory/planning/S-21.11-decomposition-plan.md`);
+  ADR-039 v1.13 -> v1.14 (subsystems_affected sweep, ADR-042 input addition)
+- product-owner: new BC-1.03.019 v1.0 authored (fuel-headroom WARN event, ADR-039 §Decision 5
+  Mitigation 1); BC-1.03.017/BC-1.03.018 index-row Stories-cell sweep (content-neutral)
+- story-writer: six sub-story spec files (S-21.19..S-21.24) implemented from the architect's seam
+  plan against the frozen v2.11 body; S-21.25 authored against BC-1.03.019; S-21.11 disposition
+  edit (status/superseded_by, body frozen)
+- state-manager (this burst): BC-INDEX/ARCH-INDEX/STORY-INDEX registration; input-hash
+  reconciliation and independent `--check` re-confirmation across all 11 touched files; this
+  D-1057 decision-log.md entry; STATE.md advance; session-checkpoints.md D-1056 archival; single
+  atomic commit to `factory-artifacts` per TD-VSDD-053
+
+### 4-INDEX
+
+ARCH-INDEX v3.74 (ADR-039 v1.14 row) / VP-INDEX v2.76 (UNCHANGED — VP-authoring for the new/
+amended BCs OWED, POLICY 9 sanctioned deferral) / BC-INDEX v4.83 (new BC-1.03.019 v1.0;
+total_bcs 1986->1987) / STORY-INDEX v4.372 (S-21.11 superseded; 7 new rows S-21.19..S-21.25).
+
+### Phase
+
+D-1057-S2111-SIZING-OVERRIDE-AND-DECOMPOSITION
+
+### Date
+
+2026-08-20
+
+---

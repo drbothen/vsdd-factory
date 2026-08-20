@@ -129,7 +129,7 @@ inputs:
   - .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
   - .factory/specs/architecture/decisions/ADR-042-validate-cross-site-correspondence-fuel-budget-raise-and-loud-exhaustion-signaling.md
   - .factory/research/wasm-fuel-exhaustion-detection.md
-input-hash: "3950027"
+input-hash: "dec3278"
 traces_to: .factory/specs/architecture/decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md
 origin: greenfield
 extracted_from: null

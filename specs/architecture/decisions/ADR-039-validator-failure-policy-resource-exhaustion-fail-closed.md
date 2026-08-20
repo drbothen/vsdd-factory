@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.13"
+version: "1.14"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: ratified
 date: 2026-08-06
@@ -10,14 +10,29 @@ producer: architect
 timestamp: 2026-08-06T00:00:00Z
 deciders:
   - architect
-subsystems_affected: [SS-01, SS-07]
+subsystems_affected: [SS-01, SS-02, SS-04, SS-07]
 supersedes: null
 superseded_by: null
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-19 (v1.13-AMD-003-rule-narrowing-correction) — Scoped normative-rule wording
+  2026-08-20 (v1.14-subsystems-affected-sweep) — `subsystems_affected` frontmatter sweep
+  (architect; S-21.11 Phase-2 re-decomposition finding 1.3, orchestrator-dispatched
+  consistency audit): `subsystems_affected` was `[SS-01, SS-07]`, under-scoped against this
+  ADR's own §AMD-002 amendment (RATIFIED v1.10), which mandates a host-to-guest wiring change
+  spanning `crates/hook-sdk/src/payload.rs`'s `HookPayload` (SS-02, hook-sdk) and
+  `crates/hook-plugins/legacy-bash-adapter/src/lib.rs` (SS-04, legacy-bash-adapter) in
+  addition to the `factory-dispatcher` executor/registry surface (SS-01) and the validator
+  plugin corpus SS-07 already listed. The delivering story's own frontmatter
+  (`S-21.11`, and its Phase-2 split successors) already correctly lists
+  `subsystems: [SS-01, SS-02, SS-04, SS-07]` — this ADR's `subsystems_affected` field had
+  drifted out of parity with its own delivery vehicle's scope declaration. Corrected to
+  `[SS-01, SS-02, SS-04, SS-07]`. No Decision/Context/Consequences prose changed — this is a
+  frontmatter-only parity fix, made in the same burst as the operator-directed S-21.11 Phase-2
+  6-seam re-decomposition (see `.factory/planning/S-21.11-decomposition-plan.md`). ADR-039
+  v1.14.
+  [Prior: 2026-08-19 (v1.13-AMD-003-rule-narrowing-correction) — Scoped normative-rule wording
   correction (architect; S-21.11 v2.3 PRE-TDD spec-convergence cascade HIGH F-S2111V2-P3-001,
   orchestrator-dispatched, brownfield cycle v1.0-brownfield-backfill): §AMD-003's "Precise rule
   (normative)" paragraph stated the extension as "`result` is NOT `PluginResult::Ok
@@ -284,7 +299,7 @@ last_amended: |-
   (5) near-term mitigations — headroom warning + ≥574 KB fixture; (6) verification requirement
   — behavioral test must exercise observed outcome, not documented intent.
   fail_closed_timeout_with_on_error_continue_is_open test encodes current policy and MUST be
-  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]]]]]]
+  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]]]]]]]
 modified:
   - "2026-08-06 (v1.0)"
   - "2026-08-06 (v1.1)"
@@ -301,6 +316,7 @@ modified:
   - "2026-08-19 (v1.11-mechanism-adjudication-AMD-003)"
   - "2026-08-19 (v1.12-status-sync-AMD-003-ratification)"
   - "2026-08-19 (v1.13-AMD-003-rule-narrowing-correction)"
+  - "2026-08-20 (v1.14-subsystems-affected-sweep)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -1125,6 +1141,20 @@ ratified elsewhere in this same document, not a change to decision content). See
 for the full before/after diff. Status: v1.10 base RATIFIED; v1.11 delta (§AMD-003) RATIFIED
 2026-08-19 (D-1041, POLICY 22 ratification-channel) — unchanged by this wording correction.
 ADR-039 v1.13.
+
+SUBSYSTEMS_AFFECTED PARITY SWEEP 2026-08-20 (v1.14 — architect; S-21.11 Phase-2
+re-decomposition finding 1.3, orchestrator-dispatched consistency audit, brownfield cycle
+v1.0-brownfield-backfill): frontmatter `subsystems_affected` was `[SS-01, SS-07]`,
+under-scoped against §AMD-002 (RATIFIED v1.10), which mandates a host-to-guest wiring change
+spanning `crates/hook-sdk/src/payload.rs` (SS-02) and
+`crates/hook-plugins/legacy-bash-adapter/src/lib.rs` (SS-04) in addition to the
+`factory-dispatcher` executor/registry surface (SS-01) and the validator plugin corpus (SS-07)
+already listed — the delivering story's own frontmatter already correctly lists
+`subsystems: [SS-01, SS-02, SS-04, SS-07]`. Corrected `subsystems_affected` to
+`[SS-01, SS-02, SS-04, SS-07]`. No Decision/Context/Consequences prose changed; this is a
+frontmatter-only parity fix, made in the same burst as the operator-directed S-21.11 Phase-2
+6-seam re-decomposition (see `.factory/planning/S-21.11-decomposition-plan.md`). Status
+unchanged: RATIFIED. ADR-039 v1.14.
 
 Adjudicates F-S2107-P7-010 (HIGH), F-S2107-P7-011 (HIGH), F-S2107-P7-015 (MEDIUM) design
 legs from adversarial pass-7 of S-21.07. Extends ADR-035 §Decision 5 to the enforcement

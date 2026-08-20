@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "8b895c0"
+input-hash: "a86f909"
 traces_to: STATE.md
 ---
 
@@ -2605,3 +2605,56 @@ No new standing rule this burst (D-1054(h) — novelty LOW, only cosmetic residu
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1055-S2111V2-PASS15-CLEAN checkpoint burst (2026-08-20) — S-21.11 v2.11 adversary pass-15 CLEAN (zero streak-resetting findings, second consecutive clean pass since the pass-13 reset), no streak-resetting finding to re-verify (pass-14 was itself CLEAN), independently re-derived the full 41-AC task-ordering table AND every previously-converged axis; 2 new non-resetting ADVISORY observations (F-S2111V2-P15-001/002) DOCUMENTED, deferred to convergence-close; BC-5.39.001 streak ADVANCES 1/3→2/3; pipeline stays ACTIVE.**
+
+## Session Resume Checkpoint (2026-08-20 — D-1056-S2111V2-PASS16-CLEAN-3CLEAN-CONVERGENCE; PIPELINE ACTIVE)
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE ACTIVE** at a clean checkpoint (this commit; `git -C .factory log -1` for the HEAD SHA). This is a S-21.11 v2.11 PRE-TDD spec-convergence cascade under E-21. **D-1056 (pass-16 CLEAN, BOOKKEEPING-ONLY) is committed this burst** — adversary pass-16 returned **CLEAN**: zero BLOCKER/HIGH/MEDIUM streak-resetting findings, the THIRD consecutive clean pass since the pass-13 reset. Fix-verification (Part A) confirmed nothing to re-verify since pass-15 was itself CLEAN; pass-15's 2 non-resetting ADVISORY observations (F-S2111V2-P15-001/002) re-observed present, unchanged, non-actionable. BC-5.39.001 streak **ADVANCES 2/3 → 3/3 = 3-CLEAN CONVERGENCE ACHIEVED** — passes 14, 15, and 16 are three consecutive CLEAN passes against the SAME UNCHANGED v2.11 bundle (story `S-21.11-validator-exhaustion-fail-closed-calibration-and-enforcement.md` v2.11 + BC-1.03.017 v1.18 + BC-1.03.018 v1.1 + ADR-039 v1.13 + BC-INDEX v4.82 / STORY-INDEX v4.371 / ARCH-INDEX v3.73 / VP-INDEX v2.76). MANDATORY independent re-derivation this pass (the convergence-completing pass): rebuilt the complete AC-001 through AC-041 authoring-task/referencing-task ordering table from the live story text — not from the prior burst's changelog claim — AND independently re-confirmed every axis converged across the entire 16-pass v2 cascade (PC13 coverage, predicate coherence, E-005, numeric magnitudes, version-cite parity under both detector forms, BC↔INDEX title sync, subsystem cites, depth counts, POLICY 8/9/18) — no third sibling, no regression, zero drift. 2 new non-resetting observations this pass (F-S2111V2-P16-001, F-S2111V2-P16-002) DOCUMENTED, deliberately NOT remediated this burst — routed to the post-gate convergence-close consolidated cosmetic sweep alongside the 5 prior accumulated nits (7 total). NO BC/ADR/index changes this burst: input-hashes UNCHANGED, bundle stays CONVERGED and byte-identical. `develop` `27c56c01` unchanged, CI-GREEN. **This burst also archived D-1054's AND D-1055's Session Resume Checkpoints to `session-checkpoints.md`** (D-1054's full text archived above; D-1055 recorded via the superseded-by pointer immediately above this entry — see the D-1057 decision-log.md entry (j) for the transparency note on this gap), closing that leg of the archival routine for D-1054/D-1055 (D-1043/D-1044/D-1045/D-1050/D-1051 remain the genuinely OWED gap, unchanged). **No further LOCAL adversary dispatch is required for the S-21.11 v2 cascade.**
+
+### §2 Convergence Counter
+
+BC-5.39.001 streak **3/3 = CONVERGED** (achieved at pass-16; third consecutive clean pass since the pass-13 reset, against the SAME unchanged v2.11 bundle throughout passes 14-16).
+
+### §3 In-Flight / NEXT ACTION
+
+**RESUME = present the HUMAN CONVERGENCE + SIZING-DECISION gate to the operator.** There is no further LOCAL adversary pass to dispatch — the S-21.11 v2 cascade is CONVERGED. Three items require explicit human sign-off before Phase-3 TDD entry:
+
+1. **Confirm sizing.** S-21.11 is 32 points against the typical ~13-point story ceiling. The standing decision (unchanged since D-1040) is **keep-unified** — do NOT split. Ask the human to re-confirm this now that the spec is converged and the point count is final.
+2. **Approve the convergence-close consolidated cosmetic sweep.** 7 accumulated ADVISORY/LOW nits (F-S2111V2-P12-002/003, F-S2111V2-P14-001/002, F-S2111V2-P15-001/002, F-S2111V2-P16-001/002) are documented and deliberately unremediated to preserve bundle stability through the 3-CLEAN protocol. None is a defect. Route to story-writer for a single consolidated sweep once approved.
+3. **Approve Phase-3 TDD entry.** Once (1) and (2) are resolved, dispatch stubs → Red Gate → implementation against the CONVERGED S-21.11 v2.11 + BC-1.03.017 v1.18 + BC-1.03.018 v1.1 + ADR-039 v1.13 bundle (post-sweep version, if the sweep bumps the story).
+
+### §4 Pending Human Decision
+
+S-21.11 sizing (32 points vs the typical ~13-point story ceiling) **surfaces NOW** — the D-1040 drift item's "decide AFTER convergence" condition is satisfied. **Keep S-21.11 as ONE unified story** remains the standing human decision; do NOT split it without explicit human direction. Present this at the gate in §3 for final confirmation.
+
+### §5 Session Note
+
+No new standing rule this burst (D-1056(h) — novelty LOW, only cosmetic residue and a third independent re-verification/re-derivation of the full 41-AC ordering table and every converged axis). The existing D-1044(g), D-1045(h), D-1046(h), D-1046(b), D-1047(h), D-1051(j), and D-1053(i) lessons remain logged in the Drift Items table, unchanged, carried forward. **Verification-discipline note (this burst, TD-VSDD-059 application):** rather than accept D-1055(c)'s claim on the prior burst's say-so, this convergence-completing pass independently rebuilt the full 41-AC ordering table from the live story text and re-confirmed every axis converged across all 16 passes — this is the load-bearing act that makes the 3-CLEAN CONVERGENCE verdict trustworthy under the self-disclosure-is-not-authoritative discipline.
+
+### §6 Carry-Forward Blockers (unchanged, reference not re-list)
+
+- `[D-1056]` HUMAN CONVERGENCE + SIZING-DECISION gate — see §3, this checkpoint, and the Blocking Issues table.
+- `[P0-followup]` POLICY 15 gate wired + running but NOT enforcing — branch protection (human/admin-only action required).
+- `[C-1]`..`[C-5]` exec_subprocess security findings (ADR-043 NOT RATIFIED) — see Blocking Issues table.
+- `[D-952]` compute-input-hash operator-cache-vs-dev-source hash-algorithm divergence — deferred to rc.24; per-file operator-binary invocation is the workaround until then.
+- decision-log.md D-1011/D-1012 + D-1016..D-1042 (exhaustive) per-decision backfill — still OWED, anchored to a future dedicated backfill burst.
+- `session-checkpoints.md` D-1043/D-1044/D-1045/D-1050/D-1051 checkpoint-archival gap — still OWED (D-1046/D-1047/D-1048/D-1049/D-1052/D-1053/D-1054/D-1055's checkpoints ARE archived; D-1043/D-1044/D-1045/D-1050/D-1051's are NOT), anchored to a future dedicated backfill burst.
+- `[F-007]` BC-1.03.017 v1.18 + BC-1.03.018 v1.1 carry VP-TBD — anchored a future VP-authoring pass (POLICY 9).
+- `[F-008]` [process-gap] PluginResult-variant-construction-site trace gap — anchored S-15.03 PRIORITY-A.
+- `[D-1044(g)]` BC-version-bump-mid-cascade lacks same-burst story-propagation-dispatch discipline — anchored S-15.03 PRIORITY-A.
+- `[D-1045(h)]` Predicate/semantic sweeps must be SEMANTIC (enumerate every site stating the concept), not literal-string grep — anchored S-15.03 PRIORITY-A.
+- `[D-1046(h)]` D-1045(h)'s discipline generalizes ACROSS artifact boundaries — a defensive-check pattern list anchored to one artifact's pre-fix wording will miss a sibling artifact restating the concept differently — anchored S-15.03 PRIORITY-A.
+- `[D-1046(b)]` ADR-039 §AMD-003 option-(b) "strict superset" wording-hygiene deferral (non-blocking, no content defect) — touch when ADR-039 is next legitimately edited.
+- `[D-1047(h)/D-1051(j)]` Cite-parity/version-propagation sweeps must use a whitespace-normalized/multiline predicate AND a backtick-tolerant predicate, and attest by captured residual-set stdout, never a task-number/site-name list — anchored S-15.03 PRIORITY-A.
+- `[D-1053(i)]` Task-ordering/red-first/authored-after-referenced remediations must include an exhaustive same-class sibling sweep — anchored S-15.03 PRIORITY-A.
+- `[D-1053-drift]` STORY-INDEX `last_amended` frontmatter field lagging `version:` by 2 entries + unbounded nested-chain growth (~275KB) — anchored a future dedicated compaction burst.
+- `[D-1056-drift]` 7 accumulated ADVISORY/LOW nits from passes 12/14/15/16 — RESOLVED-BY-SUPERSESSION at D-1057 (S-21.11 frozen/historical; sub-stories authored clean against the frozen body).
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the D-1057-S2111-SIZING-OVERRIDE-AND-DECOMPOSITION checkpoint burst (2026-08-20) — operator OVERRODE the standing keep-unified sizing decision at the HUMAN CONVERGENCE + SIZING-DECISION gate → S-21.11 (32 pts, CONVERGED v2.11) SPLIT into six sub-stories (S-21.19..S-21.24, 35 pts) + new independent S-21.25 (5 pts, BC-1.03.019 v1.0); AC partition 43/43, zero drops/dups, DAG verified acyclic; ADR-039 v1.13→v1.14 (subsystems sweep); BC-INDEX v4.83/STORY-INDEX v4.372/ARCH-INDEX v3.74; S-21.11 SUPERSEDED (POLICY 1 append-only, body frozen); each of the 7 new stories requires its own pre-TDD adversarial convergence starting Wave 6 (S-21.19 + S-21.25 parallel); pipeline stays ACTIVE.**
