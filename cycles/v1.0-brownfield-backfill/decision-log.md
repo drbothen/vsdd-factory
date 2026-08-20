@@ -19141,3 +19141,155 @@ D-1048-S2111V2-PASS8-REMEDIATION
 2026-08-20
 
 ---
+
+## D-1049 — D-1049-S2111V2-PASS9-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → the prior recorded max
+in this file is `## D-1048`. This entry is D-1049, the next decision allocated after D-1048. The
+pre-existing `decision-log.md D-1011/D-1012 + D-1016..D-1042 (exhaustive)` per-decision backfill
+obligation (STATE.md Blocking Issues) is unrelated to this entry and remains carried forward
+unchanged; this entry does not attempt that backfill. Likewise the `cycles/v1.0-brownfield-backfill/
+session-checkpoints.md` D-1043..D-1045 checkpoint-archival backfill gap (only D-1046/D-1047/D-1048
+are archived there — D-1043/D-1044/D-1045's checkpoints were never individually archived) remains
+OWED, carried forward unchanged; not attempted this burst.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053).** Adversary pass-9 of
+the S-21.11 v2 cascade (dispatched fresh-context against the `f0d95b79` bundle — story v2.8 +
+BC-1.03.017 v1.17 + BC-1.03.018 v1.1 + ADR-039 v1.13, i.e. the D-1048-remediated bundle) returned
+**NOT-CLEAN**: 1 MEDIUM finding (F-S2111V2-P9-001, streak-resetting) + 1 non-resetting observation
++ multiple grounding confirmations. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-s21.11-v2-local-pass-9.md`.
+
+**(a) F-S2111V2-P9-001 (MEDIUM) — a live retired-ID citation contradicting its own cell's
+corrected clause.** BC-1.03.017's live `## Traceability` table, ADR row, §Decision 3 sub-clause,
+cited the break-glass amendment's delivery vehicle two contradictory ways **in the same table
+cell**: it opened with "...v1.9 amendment: mandatory authenticated break-glass companion,
+S-21.17" — citing **S-21.17**, a retired, never-authored story ID absent from STORY-INDEX
+(retired per BC-1.03.018's own Stories row, which already carries the correct "the prior
+follow-up name S-21.17 is retired" annotation) — and then, later in that same cell, stated
+"...delivered WITHIN S-21.11...governed by sibling BC-1.03.018...". This BC's own v1.11 changelog
+entry (architect, sibling-sweep citation update, same burst as ADR-039 v1.9→v1.10) claimed the
+S-21.17→S-21.11 citation redirect was complete across BC-1.03.017, but this one occurrence in the
+live Traceability row was missed by that sweep — a partial-sweep residual that survived four
+intervening bursts (v1.11 through v1.17, i.e. D-1043 through D-1048, none of which touched this
+specific sub-clause) before finally surfacing at pass-9.
+
+**Routed and RESOLVED this burst:**
+- **product-owner** — BC-1.03.017 v1.17→v1.18: rewrote the live §Decision 3 cite to "...mandatory
+  authenticated break-glass companion, delivered within S-21.11 (prior follow-up name S-21.17
+  retired))" — matching the same cell's "delivered WITHIN S-21.11" clause and BC-1.03.018's
+  Stories-row retirement-annotation convention verbatim. Ran a **literal grep sweep**
+  (`grep -no "S-21\.17"`) of both BC-1.03.017 and BC-1.03.018 and classified every occurrence by
+  captured evidence, not assertion: BC-1.03.017 had 4 line-hits — line 99 (frontmatter
+  `last_amended`, describing v1.11's own historical S-21.17→S-21.11 redirect: HISTORICAL, left
+  as-is), line 1016 (the live `## Traceability` ADR row, the F-S2111V2-P9-001 site: LIVE, fixed),
+  line 1031 and line 1060 (v1.11 changelog rows narrating the S-21.17 amendment as it stood at
+  v1.10: HISTORICAL, left as-is). BC-1.03.018 had 1 line-hit — its Stories row: already correctly
+  annotated, no edit needed. 1 live site fixed; 3 historical sites correctly left unchanged
+  (POLICY 5 historical-narrative exemption). POLICY 8 parity preserved (no PC/Precondition/
+  Invariant/AC content altered — citation-only fix within the Traceability row).
+- **story-writer** — S-21.11 v2.8→v2.9: swept 60 live `BC-1.03.017 v1.17`→`v1.18` cites via the
+  D-1047-codified whitespace-normalized/multiline detector (`tr '\n' ' ' < file |
+  grep -oE 'BC-1\.03\.017 +v1\.[0-9]+' | sort | uniq -c`) — zero non-v1.18 live residue confirmed
+  by captured stdout. Ran a defensive `grep -no "S-21\.17"` of the entire story — zero occurrences
+  found anywhere, live or historical; the story correctly self-identifies as S-21.11 throughout.
+  `input-hash` (`97029a5`) intentionally left UNCHANGED — the story's declared `inputs:` (ADR-039,
+  `wasm-fuel-exhaustion-detection.md`, `hooks-registry.toml`) do NOT include BC-1.03.017 and none
+  changed this burst.
+- **state-manager (this burst)** — pass-9 report persisted verbatim; INDEX.md pass-9 row +
+  Convergence Status advance; BC-INDEX v4.81→v4.82 (BC-1.03.017 row +v1.18; title cell UNCHANGED
+  — verbatim H1 subset confirmed; `total_bcs` UNCHANGED 1986); STORY-INDEX v4.368→v4.369 (S-21.11
+  catalog row: story cite v2.8→v2.9; BC-array cite v1.17→v1.18); BC-1.03.018 input-hash
+  reconciled `43d1e13`→`ff9c2d5` (its own declared inputs include BC-1.03.017, which changed
+  content this burst); S-21.11 story input-hash `97029a5` content-currency re-confirmed via
+  `compute-input-hash --check` (exit 0); ARCH-INDEX v3.73 / VP-INDEX v2.76 all UNCHANGED (no
+  ADR/VP content changed this burst); this D-1049 decision-log.md entry; STATE.md advance; single
+  atomic commit to `factory-artifacts` per TD-VSDD-053.
+
+**(b) POLICY 18 — input-hash three-way parity + content-currency.** `compute-input-hash`
+(operator-authoritative marketplace rc.23 binary, per-file, per L-EDP1-073) against the S-21.11
+story returns `97029a5` via plain invocation, matching the frontmatter `input-hash` and the
+STORY-INDEX catalog row — UNCHANGED. A `--check` invocation exits 0, confirming `97029a5` is
+CONTENT-CURRENT against the story's declared `inputs:` (ADR-039, `wasm-fuel-exhaustion-
+detection.md`, `hooks-registry.toml`), not merely cite-consistent — this closes the pass-9
+adversary's non-resetting `[POLICY 18]` observation (the adversary, read-only, could not itself
+invoke the mechanical check). Against BC-1.03.018, `--check` returned DRIFT (`43d1e13` ≠
+computed `ff9c2d5`) prior to this burst's fix, because BC-1.03.017 (a declared input) changed
+content at v1.18; `--update` reconciled it to `ff9c2d5`, and a subsequent `--check` returns 0.
+
+**(c) 4-index.** BC-INDEX v4.81→v4.82 (BC-1.03.017 row +v1.18; title cell UNCHANGED; `total_bcs`
+UNCHANGED 1986). ARCH-INDEX v3.73 / VP-INDEX v2.76 both UNCHANGED (no ADR/VP content changed this
+burst). STORY-INDEX v4.368→v4.369 (S-21.11 catalog row: story cite v2.8→v2.9; BC-array cite
+v1.17→v1.18).
+
+**(d) STORY-INDEX v4.369.** S-21.11 catalog row: story cite v2.8→v2.9; BC-array cite v1.17→v1.18.
+`input-hash` UNCHANGED `97029a5` (content-currency re-confirmed via `--check`).
+
+**(e) Grounding confirmations (converged, re-verified).** Version-cite parity CLEAN including
+line-wrapped sites, post-remediation (all live `BC-1.03.017 v1.18` / `BC-1.03.018 v1.1` /
+`BC-1.01.016 v1.3` citations agree). Numeric-magnitude parity CLEAN — no regression from pass-8's
+fix. Predicate-coherence / axes-independence remain CLEAN across BC and story. 18-entry
+`on_error="block"` `hooks-registry.toml` plugin enum remains EXACT against AC-024–AC-041 and
+PC13's Coverage Set table; `agent-gate` priorities 120/130 and `timeout_ms=10000` confirmed
+consistent. POLICY 7/8 parity hold. Erratum E-005's re-ratification-not-required disposition
+remains SOUND. `[F-007]` VP-TBD re-observed unchanged, not a new finding.
+
+**(f) Sibling-sweep (TD-VSDD-060, this burst's discipline applied to the retired-ID class).**
+Corpus-wide normalized grep for both a live BC-1.03.017 v1.17-or-earlier cite and a live retired
+`S-21.17` cite, outside the files this burst itself edits (INDEX.md, session-checkpoints.md,
+BC-INDEX.md, STORY-INDEX.md, decision-log.md, STATE.md, historical ADR-039 narrative describing
+the retirement) — no other live artifact carries either stale pattern. Confirmed CLEAN.
+
+**(g) Streak.** BC-5.39.001 streak **REMAINS 0/3** — remediation does not itself advance the
+streak. A fresh-context adversary **pass-10** against the S-21.11 v2.9 + ADR-039 v1.13 +
+BC-1.03.017 v1.18 + BC-1.03.018 v1.1 + 4-index bundle is required next.
+
+**(h) Novelty note.** Not a NEW defect class for this cascade — this is a further recurrence of
+the D-1006 version-cite-propagates/algorithm-content-does-not family (passes 3/4/5/6), with a
+refinement of the existing D-1045(h)/D-1046(h) lesson: a sweep that DOES find and fix ONE
+occurrence in a table cell can still leave a contradictory OTHER occurrence in the SAME cell
+unaddressed, if the sweep's re-check is satisfied by matching only the corrected half of the
+cell rather than re-reading the cell's full semantic content. No new standing rule codified
+beyond the existing D-1045(h)/D-1046(h)/D-1047(h) family — this is treated as a further
+confirmatory instance of "sweeps must be semantic, and must re-read the FULL scope of the edited
+unit," not a distinct new class requiring separate codification.
+
+**(i) Telemetry fold-in.** Already-modified tracked dispatcher-telemetry files
+(`logs/dispatcher-internal-2026-08-20.jsonl`, `logs/events-2026-08-20.jsonl`,
+`sidecar-learning.md`) are included in this single commit as ordinary accumulation — no separate
+commit, per the Single-Commit Burst Protocol.
+
+**(j) Backfill obligations, unchanged.** The pre-existing `decision-log.md D-1011/D-1012 +
+D-1016..D-1048 (exhaustive)` per-decision backfill remains OWED, anchored to a future dedicated
+backfill burst; not attempted this burst per explicit dispatch scoping. The
+`session-checkpoints.md` D-1043..D-1045 checkpoint-archival gap (D-1046/D-1047/D-1048's
+checkpoints ARE archived; D-1043/D-1044/D-1045's are not) also remains OWED, carried forward
+unchanged.
+
+### Agents
+
+- vsdd-factory:adversary: fresh-context pass-9 review (orchestrator-transcribed per POLICY 22)
+- vsdd-factory:product-owner: BC-1.03.017 v1.17→v1.18 live retired-ID cite fix + TD-VSDD-060
+  literal grep classification of both BC-1.03.017 and BC-1.03.018
+- vsdd-factory:story-writer: S-21.11 v2.8→v2.9 60-cite propagation sweep + defensive S-21.17 grep
+  (zero occurrences)
+- state-manager (this burst): pass-9 report persistence; INDEX.md pass-9 row + Convergence Status
+  advance; BC-INDEX v4.82 bump; STORY-INDEX v4.369 bump; BC-1.03.018 input-hash reconciled;
+  S-21.11 story input-hash content-currency re-confirmed via `--check`; this D-1049
+  decision-log.md entry; STATE.md advance; single atomic commit to `factory-artifacts` per
+  TD-VSDD-053
+
+### 4-INDEX
+
+ARCH-INDEX v3.73 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / BC-INDEX v4.82 (was v4.81) /
+STORY-INDEX v4.369 (was v4.368)
+
+### Phase
+
+D-1049-S2111V2-PASS9-REMEDIATION
+
+### Date
+
+2026-08-20
+
+---
