@@ -18297,3 +18297,129 @@ D-1015-POLICY15-CI-WIRED-PR778-MERGED
 2026-08-16
 
 ---
+
+## D-1043 — D-1043-S2111V2-PASS3-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → the prior recorded max
+in this file is `## D-1015`; per the D-1040/D-1041/D-1042 correction note above (STATE.md
+Decisions Log header), decision-log.md's own per-decision entries stop at D-1015 while STATE.md
+carries dedicated table rows through D-1042 without a matching decision-log.md entry — a
+SEPARATE, already-tracked backfill obligation (`decision-log.md D-1016..D-1042 exhaustive
+per-decision backfill OWED`, STATE.md Blocking Issues). **This entry does NOT attempt that
+backfill** — it is scoped strictly to D-1043, the next decision allocated after D-1042 (the last
+decision STATE.md records as allocated). The D-1016..D-1042 gap remains carried forward unchanged,
+anchored to a future dedicated backfill burst.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053).** Adversary pass-3 of
+the S-21.11 v2 cascade (dispatched fresh-context against the `4308b6a5` bundle — story v2.3 +
+BC-1.03.017 v1.15 + BC-1.03.018 v1.1 + ADR-039 v1.12) returned **NOT-CLEAN**: 1 HIGH finding
+(F-S2111V2-P3-001, streak-resetting) + 2 grounding confirmations + 2 non-resetting observations
+(1 carry-forward = F-007 VP-TBD, 1 LOW STORY-INDEX §AMD-003 version-attribution). Persisted
+verbatim as `cycles/v1.0-brownfield-backfill/adv-s21.11-v2-local-pass-3.md` — the FIRST
+standalone-persisted review file for the S-21.11 v2 cascade (passes 1 and 2 were recorded only in
+D-1041/D-1042 and STATE.md, with no dedicated `INDEX.md` section or file convention until this
+burst; see the persistence note at the top of the pass-3 file and the new `## S-21.11 v2 LOCAL
+Adversary Reviews` section this burst adds to `INDEX.md`).
+
+**(a) F-S2111V2-P3-001 (HIGH) — authoritative-layer-predicate un-propagation.** ADR-039
+§AMD-003's "Precise rule (normative)" paragraph, as ratified at v1.12, carried an overbroad
+negation predicate (`on_error == Block AND result is NOT PluginResult::Ok { exit_code: 0, .. }`).
+The D-1041/D-1042 remediation chain had already narrowed the OPERATIVE predicate inside the
+S-21.11 story body (Task #19b, F-001) to the correct `on_error == Block AND result is
+Ok { exit_code != 0, .. }` form, but the narrowing did not propagate to two sibling citation
+sites in BC-1.03.017 (§Architecture Anchors PC13-extension clause, §Traceability ADR-039
+citation), which continued to describe the broad `NOT Ok{exit_code:0}` form as governing. The
+broad form, implemented literally, would force `Timeout{cause: Fuel|Epoch} + on_error = Block +
+failure_policy = FailOpen → block`, contradicting §Decision 1's axes-independence invariant and
+§Decision 6 test #4, and reintroducing the CWE-636 self-lock class S-21.11 exists to close; it
+would also turn TC-12 arm (a) — a Phase-5 green-gate prerequisite — RED. This is the THIRD
+instance in the S-21.11 v2 cascade of the same version-cite-propagates/algorithm-content-does-not
+defect class first codified for the S-21.07 cascade
+(`L-BB-version-cite-propagation-must-include-algorithm-content-not-just-version-numbers`, D-1006)
+— confirming the class recurs across independently-cascading spec artifacts, not just within one.
+
+**Routed and RESOLVED this burst:**
+- **Architect** — ADR-039 v1.12→v1.13, new **§Erratum E-005**: §AMD-003's "Precise rule
+  (normative)" paragraph rewritten to an explicit two-condition form — (1) the existing
+  `Crashed | Timeout` leg, UNCHANGED, governed solely by `on_error`; (2) the new leg AMD-003
+  itself adds, scoped exclusively to `on_error == Block AND Ok { exit_code != 0, .. }`. `status:
+  ratified` is PRESERVED — per §Erratum E-005's own "Ratification note," this erratum does NOT
+  require separate human re-ratification under POLICY 22: the decision itself (option (b), the
+  narrow Ok-only extension) was already ratified at v1.11/D-1041 exactly as option (b) states it;
+  the defect was confined to one paragraph's own formalization of an already-ratified decision,
+  not the decision itself. This is a POLICY-22-exempt erratum category, consistent with the
+  E-001..E-004 precedent already established in this same ADR.
+- **Product-owner** — BC-1.03.017 v1.15→v1.16: §Architecture Anchors PC13-extension clause and
+  §Traceability ADR-039 citation both swept to the narrow form, with explicit MUST-NOT-be-a-
+  negation guidance and a restatement that the base `Crashed | Timeout` rule remains governed
+  solely by `on_error`, unaffected. PC13's own body prose already asserted the correct narrow
+  form and required no edit. Sibling-swept BC-1.03.018 (TD-VSDD-060): no occurrence of the
+  broad-negation pattern found; no edit needed. No AC in BC-1.03.017 restates the broad
+  predicate.
+
+**(b) LOW finding — STORY-INDEX §AMD-003 version-attribution.** The S-21.11 catalog row narrated
+"§AMD-003 v1.12 RATIFIED," imprecisely implying v1.12 was the substantive ratification event.
+§AMD-003's substantive ratification actually landed at ADR-039 **v1.11** (D-1041, POLICY 22,
+human sign-off); v1.12 was a pure status-consistency sweep (ARCH-INDEX/STORY-INDEX row wording
+corrected to match the already-RATIFIED v1.11 body, no new ratification event), and v1.13 (this
+burst's fix) is a wording-narrowing erratum, not a ratification event either. **CORRECTED this
+burst** — STORY-INDEX row now reads "§AMD-003 v1.11 substantively RATIFIED (D-1041; v1.12
+status-sync sweep; v1.13 wording-narrowing erratum, not a ratification event)."
+
+**(c) Grounding confirmations (non-findings).** The adversary independently re-derived: the
+18-entry `on_error="block"` registry set exact (`grep -c` against live `hooks-registry.toml` = 18,
+matching AC-024..AC-041 and PC13's Coverage Set table row-for-row); `timeout_ms` calibration
+accurate for 4 of 5 legacy-bash-adapter.wasm-hosted plugins (the 5th carries a distinct, correctly
+-cited value — a genuine per-plugin difference, not a defect); `validate-wave-gate-prerequisite`
+(priority 130) and `validate-pr-merge-prerequisites` (priority 120) confirmed as DIFFERENT
+`execute_tiers` tiers (the F-006/pass-1 EC-005 mechanism correction holds). POLICY 8 parity and
+POLICY 7 title-cell verbatim-subset both re-confirmed intact through the v1.16 edit. F-005's
+prior token-budget reconciliation (~60,000/30.0%) re-verified consistent.
+
+**(d) 4-index + POLICY 18.** ARCH-INDEX v3.72→v3.73 (ADR-039 row Status/version sentence swept to
+v1.13, index-row-only sweep, no Decision content altered). BC-INDEX v4.79→v4.80 (BC-1.03.017 row
+version chain +v1.16; title cell UNCHANGED — verified verbatim subset of the BC's own current H1;
+total_bcs UNCHANGED 1986). STORY-INDEX v4.362→v4.363 (S-21.11 catalog row: BC-array cite
+v1.15→v1.16, §AMD-003 attribution corrected per (b) above, input-hash 3f97013→97029a5; E-21
+delivery blockquote hash swept to match). VP-INDEX v2.76 UNCHANGED (F-007 VP-TBD carry-forward,
+no VPs authored this burst). POLICY 18 three-way parity reconciled via the
+**operator-authoritative marketplace `compute-input-hash` binary (rc.23; L-EDP1-073)** invoked
+per-file — NOT the development-source binary's full-tree `--scan --update` path, which surfaces
+the unrelated, pre-existing, [D-952]-tracked hash-algorithm divergence deferred to rc.24, out of
+scope for this S-21.11-only burst — against exactly the three artifacts ADR-039 v1.13's content
+edit cascades to: S-21.11 story (`3f97013`→`97029a5`), BC-1.03.017 (`20b2b02`→`3950027`),
+BC-1.03.018 (`9896582`→`5ab5eab`).
+
+**(e) Streak.** BC-5.39.001 streak **REMAINS 0/3** — remediation does not itself advance the
+streak. A fresh-context adversary **pass-4** against the S-21.11 v2.3 + ADR-039 v1.13 +
+BC-1.03.017 v1.16 + BC-1.03.018 v1.1 + 4-index bundle is required next.
+
+**(f) Telemetry fold-in.** Three already-modified tracked dispatcher-telemetry files
+(`logs/dispatcher-internal-2026-08-19.jsonl`, `logs/events-2026-08-19.jsonl`,
+`sidecar-learning.md`) are included in this single commit as ordinary accumulation — no separate
+commit, per the Single-Commit Burst Protocol.
+
+### Agents
+
+- vsdd-factory:adversary: fresh-context pass-3 review (orchestrator-transcribed per POLICY 22)
+- vsdd-factory:architect: ADR-039 v1.12→v1.13, §Erratum E-005
+- vsdd-factory:product-owner: BC-1.03.017 v1.15→v1.16
+- state-manager (this burst): pass-3 report persistence; INDEX.md new S-21.11 v2 section +
+  Convergence Status; STORY-INDEX §AMD-003 attribution LOW-finding fix; 4-index sync; POLICY 18
+  hash reconcile; this D-1043 decision-log.md entry; STATE.md advance; single atomic commit to
+  `factory-artifacts` per TD-VSDD-053
+
+### 4-INDEX
+
+ARCH-INDEX v3.73 (was v3.72) / BC-INDEX v4.80 (was v4.79) / VP-INDEX v2.76 (UNCHANGED) /
+STORY-INDEX v4.363 (was v4.362)
+
+### Phase
+
+D-1043-S2111V2-PASS3-REMEDIATION
+
+### Date
+
+2026-08-19
+
+---

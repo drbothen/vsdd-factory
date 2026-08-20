@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.12"
+version: "1.13"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: ratified
 date: 2026-08-06
@@ -17,7 +17,37 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-19 (v1.12-status-sync-AMD-003-ratification) — Scoped ratification-status propagation
+  2026-08-19 (v1.13-AMD-003-rule-narrowing-correction) — Scoped normative-rule wording
+  correction (architect; S-21.11 v2.3 PRE-TDD spec-convergence cascade HIGH F-S2111V2-P3-001,
+  orchestrator-dispatched, brownfield cycle v1.0-brownfield-backfill): §AMD-003's "Precise rule
+  (normative)" paragraph stated the extension as "`result` is NOT `PluginResult::Ok
+  { exit_code: 0, .. }`", framed as "a strict superset of the current rule (`Crashed |
+  Timeout`)". That broad phrasing ALSO matches `Timeout { .. }` and `Crashed { .. }`, and,
+  combined with `on_error == OnError::Block` alone as a return-`true` condition, would force
+  `Timeout { cause: Fuel | Epoch } + on_error = Block + failure_policy = FailOpen` to block —
+  directly contradicting §Decision 1's axes-independence invariant ("The axes are orthogonal")
+  and §Decision 6 test #4 ("A fuel-exhausted plugin with `failure_policy = "fail-open"` and
+  `on_error = "block"` MUST NOT block — exhaustion is not a crash"), and reintroducing exactly
+  the CWE-636 self-lock class S-21.11 exists to close. The "Executor-side generalization"
+  option-(b) bullet immediately above the Precise Rule paragraph already stated the correct
+  NARROW form ("ANY `PluginResult::Ok` outcome with `exit_code != 0`") — only the Precise Rule
+  paragraph's own formalization of that already-chosen option had drifted broad. Corrected the
+  Precise Rule paragraph in place to an explicit two-condition form: (1) the existing
+  `Crashed`/`Timeout` leg, governed solely by `on_error`, UNCHANGED and NOT reinterpreted by this
+  amendment — whether a `Timeout` blocks under `failure_policy = FailOpen` remains governed
+  exclusively by the `failure_policy` axis, never by `on_error` alone; (2) the NEW leg this
+  amendment adds, scoped exclusively to `on_error == Block` AND `PluginResult::Ok { exit_code,
+  .. }` with `exit_code != 0`. This is what §Decision 1's axes-independence invariant, §Decision
+  6 test #4, and the already-CHOSEN option (b) always required; §AMD-003's RATIFIED status and
+  ratified INTENT are unchanged — only the Precise Rule paragraph's WORDING is corrected to say
+  what was always intended, so this correction does NOT require separate POLICY 22
+  re-ratification (same category as the E-001..E-004 erratum precedent: a wording fix that
+  makes normative text match content already ratified elsewhere in this same document, not a
+  change to decision content). See §Erratum E-005 for the full before/after diff and the
+  ratification-scope reasoning. Status: v1.10 base RATIFIED; v1.11 delta (§AMD-003) RATIFIED
+  2026-08-19 (D-1041, POLICY 22 ratification-channel) — unchanged by this wording correction.
+  ADR-039 v1.13.
+  [Prior: 2026-08-19 (v1.12-status-sync-AMD-003-ratification) — Scoped ratification-status propagation
   burst (architect; S-21.11 v2.2 adversarial pass-2 HIGH F-S2111V2-P2-002, orchestrator-
   dispatched): §AMD-003 (below) was already RATIFIED 2026-08-19 by human, this session (POLICY
   22 ratification-channel; D-1041) — see §AMD-003's own H3 heading and Ratification note, both
@@ -270,6 +300,7 @@ modified:
   - "2026-08-19 (v1.10-AMD-002-ratification+no-split)"
   - "2026-08-19 (v1.11-mechanism-adjudication-AMD-003)"
   - "2026-08-19 (v1.12-status-sync-AMD-003-ratification)"
+  - "2026-08-19 (v1.13-AMD-003-rule-narrowing-correction)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -1068,6 +1099,32 @@ ratification-status propagation, consistent with the E-001..E-004 erratum preced
 require separate POLICY 22 re-ratification, since it propagates an already-ratified status
 rather than changing decision content). Status: v1.10 base RATIFIED; v1.11 delta (§AMD-003)
 RATIFIED 2026-08-19 (D-1041, POLICY 22 ratification-channel). ADR-039 v1.12.
+NORMATIVE-RULE NARROWING CORRECTION 2026-08-19 (v1.13 — architect; S-21.11 v2.3 PRE-TDD
+spec-convergence cascade HIGH F-S2111V2-P3-001, brownfield cycle v1.0-brownfield-backfill):
+§AMD-003's own "Precise rule (normative)" paragraph stated the extension as "`result` is NOT
+`PluginResult::Ok { exit_code: 0, .. }`", framed as "a strict superset of the current rule
+(`Crashed | Timeout`)" — that broad phrasing also matches `Timeout { .. }` and `Crashed { .. }`,
+and combined with `on_error == Block` alone as a return-`true` condition, would force
+`Timeout { cause: Fuel | Epoch } + on_error = Block + failure_policy = FailOpen` to block,
+directly contradicting §Decision 1's axes-independence invariant ("The axes are orthogonal") and
+§Decision 6 test #4 ("A fuel-exhausted plugin with `failure_policy = "fail-open"` and
+`on_error = "block"` MUST NOT block — exhaustion is not a crash"), and reintroducing the CWE-636
+self-lock class this story exists to prevent. The "Executor-side generalization" option-(b)
+bullet immediately above the Precise Rule paragraph already stated the correct NARROW form ("ANY
+`PluginResult::Ok` outcome with `exit_code != 0`") — only the Precise Rule paragraph's own
+formalization of that already-CHOSEN option had drifted broad. §AMD-003's "Precise rule
+(normative)" paragraph is corrected in place to an explicit two-condition form: the existing
+`Crashed`/`Timeout` leg (governed solely by `on_error`, UNCHANGED) and the new leg this amendment
+adds (scoped exclusively to `on_error = Block` + `Ok { exit_code != 0 }`). This is what
+§Decision 1's axes-independence invariant, §Decision 6 test #4, and the already-ratified option
+(b) always required; §AMD-003's RATIFIED status and normative INTENT are unchanged — only the
+Precise Rule paragraph's WORDING is corrected to match that already-ratified intent, so this
+correction does NOT require separate POLICY 22 re-ratification (same category as the
+E-001..E-004 erratum precedent: a wording fix that makes normative text match content already
+ratified elsewhere in this same document, not a change to decision content). See §Erratum E-005
+for the full before/after diff. Status: v1.10 base RATIFIED; v1.11 delta (§AMD-003) RATIFIED
+2026-08-19 (D-1041, POLICY 22 ratification-channel) — unchanged by this wording correction.
+ADR-039 v1.13.
 
 Adjudicates F-S2107-P7-010 (HIGH), F-S2107-P7-011 (HIGH), F-S2107-P7-015 (MEDIUM) design
 legs from adversarial pass-7 of S-21.07. Extends ADR-035 §Decision 5 to the enforcement
@@ -1360,11 +1417,30 @@ for a decision shipping as part of S-21.11's already-large (32-point) unified sc
 available as a future refactor if a later story finds `exit_code`-sniffing insufficiently
 precise; it is not required to close this BLOCKER.
 
-**Precise rule (normative).** `plugin_fail_closed(result, on_error)` — or its replacement in the
-executor's block-decision chain — MUST return `true` when ALL of: `on_error == OnError::Block`,
-AND `result` is NOT `PluginResult::Ok { exit_code: 0, .. }`. This is a strict superset of the
-current rule (`Crashed | Timeout`): it additionally covers `PluginResult::Ok { exit_code: n, .. }`
-for any `n != 0`, including `exit_code == 1` (the `HookResult::Error` mapping — the case this
+**Precise rule (normative; corrected v1.13 — see Erratum E-005).**
+`plugin_fail_closed(result, on_error)` — or its replacement in the executor's block-decision
+chain — MUST return `true` when EITHER of the following two independently-evaluated conditions
+holds:
+
+1. **Existing crash/timeout leg — UNCHANGED by this amendment.** `on_error == OnError::Block` AND
+   `result` is `PluginResult::Crashed { .. }` or `PluginResult::Timeout { .. }`. This leg remains
+   governed exclusively by the `on_error` axis, exactly as before AMD-003. In particular,
+   `on_error == Block` alone MUST NOT force a `Timeout { cause: Fuel | Epoch }` outcome to block
+   when `failure_policy == FailOpen` — per §Decision 1's axes-independence invariant ("The axes
+   are orthogonal") and §Decision 6 test #4 ("A fuel-exhausted plugin with
+   `failure_policy = "fail-open"` and `on_error = "block"` MUST NOT block — exhaustion is not a
+   crash"), whether a `Timeout` blocks is decided by the `failure_policy` axis (§Decision 1/
+   §Decision 4/§Decision 6), never by `on_error` in isolation.
+2. **New leg added by this amendment (AMD-003).** `on_error == OnError::Block` AND `result` is
+   `PluginResult::Ok { exit_code, .. }` where `exit_code != 0`.
+
+Condition 2 is an ADDITIONAL, narrow trigger scoped exclusively to non-zero-exit `Ok` outcomes —
+it is NOT a superset of `Crashed | Timeout` and MUST NOT be implemented as "`result` is NOT
+`PluginResult::Ok { exit_code: 0, .. }`" evaluated together with `on_error == Block` alone: that
+broader phrasing also matches `Timeout { .. }` and `Crashed { .. }`, which would incorrectly
+force `Timeout { cause: Fuel | Epoch } + on_error = Block + failure_policy = FailOpen` to block,
+contradicting condition 1 above and reintroducing a CWE-636 self-lock on the FailOpen exhaustion
+path. Condition 2 closes `exit_code == 1` (the `HookResult::Error` mapping — the case this
 finding closes) and, redundantly-but-harmlessly, `exit_code == 2` (already independently caught
 by `plugin_requests_block`).
 
@@ -1413,9 +1489,84 @@ in `.factory/cycles/v1.0-brownfield-backfill/F-S2111V2-P1-001-mechanism-adjudica
 Not implemented in this burst — architect scope for this burst was spec-only; the
 `plugin_fail_closed` extension itself is S-21.11 Phase 4 implementer scope.
 
+**v1.13 wording-correction note.** The Precise Rule paragraph above was corrected (S-21.11 v2.3
+PRE-TDD spec-convergence cascade HIGH F-S2111V2-P3-001) from a broad "`result` is NOT
+`PluginResult::Ok { exit_code: 0, .. }`" formalization to the narrow two-condition form. This
+RATIFIED status is unaffected: the correction restores consistency between the Precise Rule
+paragraph and (i) option-(b) immediately above it, which was chosen at v1.11 and already stated
+the narrow form, and (ii) §Decision 1's axes-independence invariant and §Decision 6 test #4,
+both already-ratified base content this ADR's own amendment must not contradict. No new
+decision-content is introduced. See §Erratum E-005.
+
 ---
 
 ## Erratum
+
+### E-005 — §AMD-003 "Precise rule (normative)" paragraph broadened beyond its own chosen option, reintroducing a CWE-636 self-lock on the FailOpen exhaustion path (v1.13, 2026-08-19)
+
+**Finding:** F-S2111V2-P3-001 (HIGH; S-21.11 v2.3 PRE-TDD spec-convergence cascade,
+brownfield cycle `v1.0-brownfield-backfill`).
+
+**Error:** §AMD-003's "Precise rule (normative)" paragraph formalized the amendment's chosen
+enforcement mechanism (option (b), "Executor-side generalization") as: `plugin_fail_closed`
+MUST return `true` when ALL of `on_error == OnError::Block` AND `result` is NOT
+`PluginResult::Ok { exit_code: 0, .. }` — explicitly framed as "a strict superset of the current
+rule (`Crashed | Timeout`)". This negation also matches `PluginResult::Timeout { .. }` and
+`PluginResult::Crashed { .. }`. Combined with `on_error == Block` alone as a standalone
+return-`true` condition, it forces `Timeout { cause: Fuel | Epoch } + on_error = Block +
+failure_policy = FailOpen → block`, which directly contradicts:
+
+- §Decision 1's axes-independence invariant ("The axes are orthogonal"; `on_error` and
+  `failure_policy` govern different failure classes and MUST NOT be collapsed);
+- §Decision 6 test #4 ("A fuel-exhausted plugin with `failure_policy = "fail-open"` and
+  `on_error = "block"` MUST NOT block — exhaustion is not a crash");
+- option (b) itself, stated one paragraph above the Precise Rule paragraph it purports to
+  formalize, which already used the correct NARROW scope ("ANY `PluginResult::Ok` outcome with
+  `exit_code != 0`" — `Ok`-only, not "NOT `Ok{0}`").
+
+The "strict superset of `Crashed | Timeout`" framing was the root error: it silently broadened
+option (b)'s Ok-only trigger into a trigger that also swallows the `Timeout`/`Crashed` ×
+`FailOpen` path — precisely the CWE-636 fail-open-vs-fail-closed self-lock hazard S-21.11 exists
+to close, reintroduced via the closing leg's own drafting.
+
+**Correction:** §AMD-003's "Precise rule (normative)" paragraph rewritten to an explicit
+two-condition form:
+
+| Condition | Scope | Status |
+|-----------|-------|--------|
+| 1. `on_error == Block` AND `result` is `Crashed \| Timeout` | Existing crash/timeout leg | UNCHANGED — governed solely by `on_error`; whether a `Timeout` blocks under `failure_policy = FailOpen` remains decided exclusively by the `failure_policy` axis |
+| 2. `on_error == Block` AND `result` is `Ok { exit_code != 0, .. }` | New leg added by AMD-003 | Narrow, Ok-only — matches option (b) as chosen |
+
+| Location | Before | After |
+|----------|--------|-------|
+| §AMD-003 "Precise rule (normative)" | `MUST return true when ALL of: on_error == OnError::Block, AND result is NOT PluginResult::Ok { exit_code: 0, .. }` (+ "strict superset of Crashed \| Timeout" framing) | Two independently-evaluated conditions as above; the "strict superset" framing removed and replaced with an explicit statement that condition 2 is additive-only and MUST NOT be implemented as a negation of `Ok{0}` |
+
+The `## Status` section's v1.11 paragraph is left unedited as the accurate historical record of
+what was authored at that time (consistent with the E-001..E-004 / v1.12 precedent for this
+document); a new v1.13 Status paragraph supersedes it as the current, live status. The
+frontmatter `last_amended` field records the same correction as its new top entry.
+
+**Scope:** Wording/formalization correction only, confined to §AMD-003's own Precise Rule
+paragraph (plus its Status-section and frontmatter mirrors). No new decision is introduced:
+option (b) — the actually-CHOSEN enforcement mechanism — is unchanged; §Decision 1 and
+§Decision 6 (both pre-existing, already-ratified base content) are unchanged; the corrected
+predicate is exactly what those already-ratified provisions, together with option (b) as
+originally chosen, already required. The defect was confined to one paragraph's own
+formalization of an already-correct decision, not the decision itself.
+
+**Ratification note:** This erratum does NOT require separate human re-ratification under
+POLICY 22. POLICY 22 governs changes to ADR decisions (rulings, thresholds, normative
+prescriptions actually being decided). Here, the decision — option (b), narrow Ok-only
+extension — was already ratified at v1.11/D-1041 exactly as option (b) states it; this erratum
+corrects a formalization of that decision that had drifted broader than the decision it purports
+to restate, back into agreement with (i) the decision as chosen, and (ii) other already-ratified
+ADR content (§Decision 1, §Decision 6) the broadened formalization would otherwise have
+contradicted. Per the project's production-grade-default principle, this is fixed in-scope now
+rather than deferred or flagged as "pending re-ratification": the correction makes the ratified
+text match the ratified intent, it does not change what was ratified. Status remains RATIFIED.
+ADR-039 v1.13.
+
+---
 
 ### E-002 — `subsystems_affected` label: SS-05 → SS-07 (v1.5, 2026-08-17)
 

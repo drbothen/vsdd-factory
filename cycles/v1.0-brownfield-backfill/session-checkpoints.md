@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "4af1078"
+input-hash: "75d46f6"
 traces_to: STATE.md
 ---
 
@@ -2211,3 +2211,42 @@ S-21.07 LOCAL cascade CONVERGED 3/3 at D-1009 (UNCHANGED). S-21.10 LOCAL 3/3 CON
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the SESSION-WRAP-PAUSE-2026-08-19 (second same-day pause) checkpoint burst (2026-08-19) — human-invoked `/wrap`; D-1042 remediation confirmed committed + pushed `4308b6a5`; adversary pass-3 dispatched but stopped by /wrap before returning a verdict (read-only, nothing persisted); pipeline ACTIVE→PAUSED; BC-5.39.001 streak unchanged 0/3.**
+
+## Session Resume Checkpoint (2026-08-19 — SESSION-WRAP-PAUSE-2026-08-19-B; PIPELINE PAUSED)
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE PAUSED** (human-invoked `/wrap`) at a clean, fully-pushed checkpoint (this commit; `git -C .factory log -1` for the HEAD SHA). This is a S-21.11 v2.3 PRE-TDD spec-convergence cascade under E-21. **D-1042 (pass-2 remediation) is CONFIRMED committed + pushed at `4308b6a5`** — all 5 pass-2 findings (3 HIGH F-001/002/003 + 1 MEDIUM F-004 + 1 LOW F-005) remediated across commits `d1b53367` (product-owner), `d9211e88` (architect), `02d5a062` (story-writer), `4308b6a5` (state-manager closing burst). `develop` `27c56c01` unchanged, CI-GREEN. 4-index: ARCH v3.72 / BC v4.79 / VP v2.76 / STORY v4.362. BC-1.03.017 v1.15 / BC-1.03.018 v1.1 / ADR-039 v1.12 §AMD-003 RATIFIED. **No new D-number allocated this pause burst** — D-1042 remains the last-allocated decision.
+
+### §2 Convergence Counter
+
+BC-5.39.001 streak **0/3**.
+
+### §3 In-Flight / NEXT ACTION
+
+Adversary **pass-3** against S-21.11 v2.3 was dispatched this session but **STOPPED by `/wrap` before returning a verdict** (it is a read-only agent; nothing was persisted from it — no partial findings exist anywhere). **RESUME = re-dispatch a fresh-context adversary pass-3** against the `4308b6a5` bundle: story `S-21.11-validator-exhaustion-fail-closed-calibration-and-enforcement.md` v2.3 + BC-1.03.017 v1.15 + BC-1.03.018 v1.1 + ADR-039 v1.12 + BC-INDEX/STORY-INDEX/ARCH-INDEX, applying the full `.factory/policies.yaml` rubric. If pass-3 is CLEAN → streak advances to 1/3 (then passes 4 and 5 are needed for 3-clean convergence, per BC-5.39.001). If pass-3 is NOT-CLEAN → route findings to the owning specialists, remediate, and the streak resets to 0/3.
+
+### §4 Pending Human Decision
+
+S-21.11 sizing (32 points vs the typical ~13-point story ceiling) is **PENDING-POST-ADVERSARY** per the D-1040 drift item — decide split-vs-keep-unified **AFTER** convergence, not before. **Keep S-21.11 as ONE unified story** — this is a standing human decision; do NOT split it.
+
+### §5 Session Note — Process Lesson (record it)
+
+This session had a self-inflicted concurrency incident. The **FIRST** state-manager delegate dispatched for D-1042 did **NOT** die when it appeared to stall ("waiting on a background hash-update job"); it kept running for roughly 38 minutes in the background and became an unrecognized **SELF-competing writer** — it clobbered later recovery delegates' `git stash` refs and ran the **DEV-source** `compute-input-hash --scan --update` (development-source binary, not the operator-authoritative one), producing a spurious ~773-file hash sweep across the whole `.factory` corpus ([D-952] dev/operator binary divergence recurrence; this sweep was stashed, never committed). It ultimately produced the **correct** D-1042 commit `4308b6a5` itself. Three extra state-manager re-dispatches were triggered by mis-reading the stall as death. **LESSON:** do NOT re-dispatch a specialist on an apparent stall without confirming the prior process has actually exited; and use the **OPERATOR-authoritative rc.23** `compute-input-hash` binary **per-file** — NEVER the dev-source global `--scan --update` (per [D-952]). This lesson is anchored to **S-15.03 PRIORITY-A**, and is also recorded as a new Drift Items row (`[SESSION-WRAP-PAUSE-2026-08-19-B] state-manager delegate stall-vs-death misdiagnosis`).
+
+### §6 Carry-Forward Blockers (unchanged, reference not re-list)
+
+- `[P0-followup]` POLICY 15 gate wired + running but NOT enforcing — branch protection (human/admin-only action required).
+- `[C-1]`..`[C-5]` exec_subprocess security findings (ADR-043 NOT RATIFIED) — see Blocking Issues table.
+- `[D-952]` compute-input-hash operator-cache-vs-dev-source hash-algorithm divergence — deferred to rc.24; per-file operator-binary invocation is the workaround until then.
+- decision-log.md D-1011/D-1012 + D-1016..D-1042 (exhaustive) per-decision backfill — still OWED, anchored to a future dedicated backfill burst.
+- `[F-007]` BC-1.03.017 v1.15 + BC-1.03.018 v1.1 carry VP-TBD — anchored a future VP-authoring pass (POLICY 9).
+- `[F-008]` [process-gap] PluginResult-variant-construction-site trace gap — anchored S-15.03 PRIORITY-A.
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the D-1043-S2111V2-PASS3-REMEDIATION checkpoint burst (2026-08-19) — S-21.11 v2.3 adversary pass-3 (1 HIGH F-S2111V2-P3-001) remediated across architect (ADR-039 v1.13, §Erratum E-005) + product-owner (BC-1.03.017 v1.16) commits, plus this closing state-manager burst (pass-3 report persisted as the FIRST standalone S-21.11 v2 review file; STORY-INDEX §AMD-003 attribution LOW finding fixed; 4-index synced); BC-5.39.001 streak unchanged 0/3; adversary pass-4 is the next action; pipeline PAUSED→ACTIVE (resumed mid-cascade).**
