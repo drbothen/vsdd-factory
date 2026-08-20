@@ -18860,3 +18860,156 @@ D-1046-S2111V2-PASS6-REMEDIATION
 2026-08-20
 
 ---
+
+## D-1047 — D-1047-S2111V2-PASS7-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → the prior recorded max
+in this file is `## D-1046`. This entry is D-1047, the next decision allocated after D-1046. The
+pre-existing `decision-log.md D-1016..D-1042 (exhaustive) per-decision backfill OWED` obligation
+(STATE.md Blocking Issues) is unrelated to this entry and remains carried forward unchanged; this
+entry does not attempt that backfill.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053).** Adversary pass-7 of
+the S-21.11 v2 cascade (dispatched fresh-context against the `5fcdc851` bundle — story v2.6 +
+BC-1.03.017 v1.17 + BC-1.03.018 v1.1 + ADR-039 v1.13, i.e. the D-1046-remediated bundle) returned
+**NOT-CLEAN**: 1 MEDIUM finding (F-S2111V2-P7-001, streak-resetting, `[process-gap]`) + multiple
+grounding confirmations. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-s21.11-v2-local-pass-7.md`.
+
+**(a) F-S2111V2-P7-001 (MEDIUM, `[process-gap]`) — a line-wrapped stale version cite that survived
+4 prior sweeps.** Task #29's directive for `test_all_six_validator_class_plugins_are_fail_closed`
+(AC-009) and `test_no_on_error_block_without_fail_closed_when_3arg_executor` (AC-012) pinned
+`BC-1.03.017 v1.14 PC11` in a LIVE task line, while the story pins BC-1.03.017 at v1.17 everywhere
+else. The cite is LINE-WRAPPED — `…(AC-012, BC-1.03.017` ended one physical line and `v1.14
+PC11)…` began the next — so every prior cite-parity sweep this cascade ran against this story
+(v2.2/pass-2, v2.3→v2.4/pass-4, v2.4→v2.5/pass-5, v2.5→v2.6/pass-6), each of which used a
+contiguous-string grep, structurally could not see it: the pattern's own literal single-space
+join between `BC-1.03.017` and `v1.1x` does not exist at this site — a newline sits there instead.
+Worse, the v2.2 and v2.3 changelog rows FALSELY ATTESTED sweeping Task #29, because their sweep
+matched Task #29's OTHER, non-wrapped `BC-1.03.017` occurrences on adjacent lines, not this one —
+a task-number-list attestation proves the task number appeared somewhere in the match set, not that
+every cite WITHIN that task was inspected. PC11's content is byte-identical v1.14→v1.17 (no
+algorithm/predicate drift touched PC11 across those version bumps), so this occurrence carried
+ZERO semantic misdirection risk — but the version-cite parity break was real and, per this
+cascade's own standing discipline, required closure on citation-hygiene grounds alone. This is a
+NEW defect class for this cascade, distinct from the version-cite-propagates/algorithm-content-
+does-not CONTENT family (D-1006) that drove passes 3-6 (predicate/concept residues correctly
+narrowed in one site but not propagated to a sibling stating the same CONCEPT in different
+WORDING): this is a sweep-METHODOLOGY gap — the correct version number was never in dispute, but
+the detection mechanism itself (contiguous-string grep) is structurally blind to a whitespace/
+line-wrap variant of the exact literal string it was built to find.
+
+**Routed and RESOLVED this burst:**
+- **story-writer** — S-21.11 v2.6→v2.7: fixed `BC-1.03.017 v1.14 PC11` → `BC-1.03.017 v1.17 PC11`
+  at the wrapped site (line 1546-1547). Ran a **definitive whitespace-normalized/multiline
+  detector** (`tr '\n' ' ' < file | grep -oE 'BC-1\.03\.017 +v1\.[0-9]+' | sort | uniq -c`) —
+  NOT a contiguous-string grep — plus a body-only re-scan restricted to the story's live-content
+  line range (excluding the `modified:` frontmatter array, the burst-summary blockquote, and the
+  `## Changelog` table, the four established-exempt historical zones per POLICY 5 v1.3.5 and this
+  cascade's own precedent). Captured before-fix body-only residual: exactly 1 wrapped `v1.14` hit
+  (Task #29) + 1 `BC-1.03.017 | v1.17` (BC table split-cell) + 2 `v1.12` (historical Previous
+  Story Intelligence row, exempt) + 57 `v1.17` — confirming the wrapped Task #29 cite was the ONLY
+  live non-v1.17 site. Captured after-fix body-only residual (same command, re-run): 1 wrapped
+  `v1.17` (Task #29, now corrected) + 1 `BC-1.03.017 | v1.17` (BC table) + 2 `v1.12` (historical,
+  unchanged) + 57 `v1.17` — ZERO non-v1.17 LIVE cites remain. Also verified, full-file normalized:
+  `BC-1.01.016` (10× `v1.3` live-correct + 1× `v1.0` historical) and `BC-1.03.018` (15× `v1.1`
+  live-correct + 6× `v1.0` historical) both clean; `ADR-039` cites are all dated `§AMD-002/§AMD-003
+  RATIFIED vX.Y` amendment-ratification citations, not a live document-version pin, so nothing was
+  stale there either. Attested with the ACTUAL captured residual-set stdout, not a task-number
+  list. `input-hash` (`97029a5`) intentionally left UNCHANGED — no declared `inputs:` file changed
+  this burst; state-manager re-verifies below.
+- **state-manager (this burst)** — pass-7 report persisted verbatim; INDEX.md pass-7 row +
+  Convergence Status advance; STORY-INDEX v4.366→v4.367 (S-21.11 catalog row: story cite v2.6→v2.7;
+  BC-array cite v1.17 UNCHANGED); BC-INDEX/ARCH-INDEX/VP-INDEX all UNCHANGED (no BC/ADR/VP content
+  changed this burst — only the story changed); POLICY 18 input-hash three-way re-verification
+  (unchanged `97029a5`); TD-VSDD-060 sibling-sweep confirmed clean; `[process-gap]` methodology
+  lesson codified below.
+
+**(b) POLICY 18 — input-hash three-way parity.** `compute-input-hash` (operator-authoritative
+marketplace rc.23 binary, per-file, per L-EDP1-073) against the S-21.11 story returns `97029a5`,
+matching the frontmatter `input-hash`, the STORY-INDEX catalog row, and the STORY-INDEX E-21
+delivery blockquote — all four agree, UNCHANGED. None of the story's declared `inputs:` files
+(ADR-039, `wasm-fuel-exhaustion-detection.md`, `hooks-registry.toml`) changed this burst.
+
+**(c) 4-index.** BC-INDEX v4.81 / ARCH-INDEX v3.73 / VP-INDEX v2.76 all UNCHANGED (no BC/ADR/VP
+content changed this burst — only the story changed). STORY-INDEX v4.366→v4.367 (S-21.11 catalog
+row: story cite v2.6→v2.7; BC-array cite v1.17 UNCHANGED).
+
+**(d) STORY-INDEX v4.367.** S-21.11 catalog row: story cite v2.6→v2.7. `input-hash` UNCHANGED
+`97029a5`.
+
+**(e) Grounding confirmations (converged, re-verified).** PC11 content byte-identical across
+v1.14→v1.17 — the parity break carried no semantic misdirection. Predicate-coherence / axes-
+independence remain CLEAN across both artifacts (no regression from pass-6): BC-1.03.017 all
+Invariants incl. Invariant 10, all PCs incl. PC13, Architecture Anchors, Traceability, EC-011;
+story EC-009/EC-011/AC-005/AC-011/AC-013/AC-013b/Task #19b all consistent with the single narrow
+additive-only axes-independent predicate. `Timeout{Fuel|Epoch}+on_error=Block+failure_policy=
+FailOpen → exit 0/NOT block` holds. 18-entry `on_error="block"` `hooks-registry.toml` plugin enum
+remains EXACT against AC-024–AC-041 and PC13's Coverage Set table. POLICY 7/8 parity hold. Erratum
+E-005's re-ratification-not-required disposition remains SOUND. `[F-007]` VP-TBD re-observed
+unchanged, not a new finding.
+
+**(f) Sibling-sweep (TD-VSDD-060).** A corpus-wide whitespace-normalized grep for
+`BC-1.03.017 +v1\.1[0-6]` (any non-v1.17 live cite) across `.factory` (excluding `logs/`) confirms
+no LIVE artifact outside this story's own historical Changelog rows carries a stale or
+line-wrapped BC-1.03.017 cite. No further residual site found — the wrapped Task #29 cite was the
+only such site in the entire corpus.
+
+**(g) Streak.** BC-5.39.001 streak **REMAINS 0/3** — remediation does not itself advance the
+streak. A fresh-context adversary **pass-8** against the S-21.11 v2.7 + ADR-039 v1.13 +
+BC-1.03.017 v1.17 + BC-1.03.018 v1.1 + 4-index bundle is required next.
+
+**(h) Process lesson (`[process-gap]`, whitespace-normalized sweep methodology, anchored S-15.03
+PRIORITY-A — MANDATORY codification per the Cycle-Closing Checklist S-7.02).** The contiguous-
+string grep methodology used by every cite-parity sweep this cascade has run is structurally
+blind to a version cite whose two halves are split across a physical line-wrap boundary — a
+whitespace variant of the exact literal string the grep pattern was built to find. Worse, 4
+consecutive sweeps (v2.2 through v2.5) each attested completeness by listing swept task/site
+NUMBERS rather than the actual captured match set, which let a false-positive "swept" claim stand
+for a task that in fact still carried a stale cite the sweep's own pattern could not see. **Lesson,
+codified: cite-parity / version-propagation sweeps MUST use a whitespace-normalized/multiline
+predicate (e.g. `tr '\n' ' ' | grep -oE 'BC-N\.NN\.NNN +v1\.[0-9]+'`), and MUST attest completeness
+by CAPTURED residual-set stdout, NEVER by a task-number/site-name list.** Disposition (per S-7.02's
+required follow-up-or-deferral choice): **(b) STATE.md Drift Items row** — `[D-1047(h)]` — anchored
+**S-15.03 PRIORITY-A**, the standing methodology-improvement anchor for this cascade's process
+lessons (D-1044(g), D-1045(h), D-1046(h)). Justification for deferral-to-anchor rather than an
+immediate follow-up story: this is a sweep-METHODOLOGY discipline (a "how to grep" convention),
+not a code or spec defect requiring its own story; it is folded into the same standing
+S-15.03 PRIORITY-A cycle-wide methodology-hardening sweep the three prior process lessons from
+this exact cascade are already anchored to, so a fifth near-identical anchor entry is the correct
+consolidation rather than a fifth freestanding follow-up story.
+
+**(i) Telemetry fold-in.** Already-modified tracked dispatcher-telemetry files
+(`logs/dispatcher-internal-2026-08-20.jsonl`, `logs/events-2026-08-20.jsonl`,
+`sidecar-learning.md`) are included in this single commit as ordinary accumulation — no separate
+commit, per the Single-Commit Burst Protocol.
+
+**(j) Backfill obligation, unchanged.** The pre-existing `decision-log.md D-1011/D-1012 +
+D-1016..D-1042 (exhaustive)` per-decision backfill remains OWED, anchored to a future dedicated
+backfill burst; not attempted this burst per explicit dispatch scoping.
+
+### Agents
+
+- vsdd-factory:adversary: fresh-context pass-7 review (orchestrator-transcribed per POLICY 22)
+- vsdd-factory:story-writer: S-21.11 v2.6→v2.7 Task #29 line-wrapped cite fix + definitive
+  whitespace-normalized/multiline sweep (zero residual confirmed)
+- state-manager (this burst): pass-7 report persistence; INDEX.md pass-7 row + Convergence Status
+  advance; STORY-INDEX v4.367 bump; POLICY 18 input-hash three-way re-verification (unchanged);
+  `[process-gap]` methodology lesson codified (D-1047(h)) + STATE.md Drift Items row; sibling-sweep
+  verification; this D-1047 decision-log.md entry; STATE.md advance; single atomic commit to
+  `factory-artifacts` per TD-VSDD-053
+
+### 4-INDEX
+
+ARCH-INDEX v3.73 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / BC-INDEX v4.81 (UNCHANGED) /
+STORY-INDEX v4.367 (was v4.366)
+
+### Phase
+
+D-1047-S2111V2-PASS7-REMEDIATION
+
+### Date
+
+2026-08-20
+
+---

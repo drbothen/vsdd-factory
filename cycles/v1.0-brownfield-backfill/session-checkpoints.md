@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "75d46f6"
+input-hash: "0402a9d"
 traces_to: STATE.md
 ---
 
@@ -2250,3 +2250,52 @@ This session had a self-inflicted concurrency incident. The **FIRST** state-mana
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1043-S2111V2-PASS3-REMEDIATION checkpoint burst (2026-08-19) — S-21.11 v2.3 adversary pass-3 (1 HIGH F-S2111V2-P3-001) remediated across architect (ADR-039 v1.13, §Erratum E-005) + product-owner (BC-1.03.017 v1.16) commits, plus this closing state-manager burst (pass-3 report persisted as the FIRST standalone S-21.11 v2 review file; STORY-INDEX §AMD-003 attribution LOW finding fixed; 4-index synced); BC-5.39.001 streak unchanged 0/3; adversary pass-4 is the next action; pipeline PAUSED→ACTIVE (resumed mid-cascade).**
+
+> **NOTE (D-1047 burst, state-manager):** the D-1043/D-1044/D-1045 intermediate checkpoints were
+> not individually archived here (a pre-existing gap, unrelated to this burst, not attempted here
+> per explicit dispatch scoping — carried forward same as the decision-log.md D-1016..D-1042
+> backfill obligation). The checkpoint immediately below (D-1046) is archived now, as it is the one
+> being superseded by this burst's STATE.md refresh.
+
+## Session Resume Checkpoint (2026-08-20 — D-1046-S2111V2-PASS6-REMEDIATION; PIPELINE ACTIVE)
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE ACTIVE** at a clean checkpoint (this commit; `git -C .factory log -1` for the HEAD SHA). This is a S-21.11 v2.6 PRE-TDD spec-convergence cascade under E-21. **D-1046 (pass-6 remediation) is committed this burst** — the 1 HIGH finding (F-S2111V2-P6-001, story EC-011 axes-conflation — a cross-artifact sibling-propagation gap: BC-1.03.017 v1.17 had already fixed its own EC-011 at D-1045, but the fix was never propagated into this story's sibling EC-011 because D-1045's own defensive semantic check was pattern-anchored to the BC's pre-fix wording, not the story's distinct phrasing) is remediated by story-writer (S-21.11 v2.5→v2.6: EC-011 rewritten to the axes-independent per-outcome form mirroring BC-1.03.017 v1.17 EC-011, plus 2 further residual sites swept via exhaustive story-wide semantic sweep — AC-013's embedded EC-011 paragraph, AC-013b's on_error-vs-Crashed grouping label), plus this closing state-manager burst (pass-6 report persisted, INDEX.md updated, STORY-INDEX bumped, story input-hash re-confirmed, sibling-sweep confirmed clean, 2 non-resetting advisories recorded not churned). `develop` `27c56c01` unchanged, CI-GREEN. 4-index: ARCH v3.73 / VP v2.76 / BC v4.81 (all UNCHANGED) / STORY v4.366. BC-1.03.017 v1.17 / BC-1.03.018 v1.1 / ADR-039 v1.13 §Erratum E-005 (all UNCHANGED this burst), `status: ratified` preserved.
+
+### §2 Convergence Counter
+
+BC-5.39.001 streak **0/3**.
+
+### §3 In-Flight / NEXT ACTION
+
+**RESUME = dispatch a fresh-context adversary pass-7** against the current bundle: story `S-21.11-validator-exhaustion-fail-closed-calibration-and-enforcement.md` v2.6 + BC-1.03.017 v1.17 + BC-1.03.018 v1.1 + ADR-039 v1.13 + BC-INDEX/STORY-INDEX/ARCH-INDEX, applying the full `.factory/policies.yaml` rubric, per the Iron Law (fresh context, reads only `adv-s21.11-v2-local-pass-6.md` Part A). If pass-7 is CLEAN → streak advances to 1/3 (then passes 8 and 9 are needed for 3-clean convergence, per BC-5.39.001). If pass-7 is NOT-CLEAN → route findings to the owning specialists, remediate, and the streak stays at 0/3.
+
+### §4 Pending Human Decision
+
+S-21.11 sizing (32 points vs the typical ~13-point story ceiling) is **PENDING-POST-ADVERSARY** per the D-1040 drift item — decide split-vs-keep-unified **AFTER** convergence, not before. **Keep S-21.11 as ONE unified story** — this is a standing human decision; do NOT split it. (Unchanged from prior checkpoints.)
+
+### §5 Session Note
+
+**New process lesson this burst (D-1046(h), anchored S-15.03 PRIORITY-A):** D-1045(h) established that predicate/semantic sweeps must be SEMANTIC (enumerate every site that STATES the concept), not literal-string grep, WITHIN one artifact. This burst generalizes that lesson ACROSS artifact boundaries: BC-1.03.017's own EC-011 was fixed at D-1045, but that fix was never propagated into this story's own sibling EC-011, because D-1045's defensive semantic check pattern list was anchored to the BC's specific pre-fix wording and could not anticipate the story's distinct phrasing of the identical concept. **Lesson: whenever a predicate/invariant is narrowed or corrected in ANY ONE of two or more artifacts that jointly state the same concept, the remediating burst must dispatch an independent semantic sweep of EVERY sibling artifact stating the same concept — not rely on a defensive-check pattern list built from the fixed artifact's own wording.** Also recorded this burst (non-resetting ADVISORY, RECORDED not churned per D-1046(b)): ADR-039 §AMD-003 option-(b) "strict superset" wording verified semantically correct (describes a different, narrower relationship than the E-005-rejected framing) — deliberately not churned to avoid re-triggering the input-hash-churn/propagation-residue cycle that reset the streak at passes 4/5; disposition: touch when ADR-039 is next legitimately edited. The D-1044(g) and D-1045(h) lessons remain logged in the Drift Items table, unchanged, carried forward.
+
+### §6 Carry-Forward Blockers (unchanged, reference not re-list)
+
+- `[P0-followup]` POLICY 15 gate wired + running but NOT enforcing — branch protection (human/admin-only action required).
+- `[C-1]`..`[C-5]` exec_subprocess security findings (ADR-043 NOT RATIFIED) — see Blocking Issues table.
+- `[D-952]` compute-input-hash operator-cache-vs-dev-source hash-algorithm divergence — deferred to rc.24; per-file operator-binary invocation is the workaround until then.
+- decision-log.md D-1011/D-1012 + D-1016..D-1042 (exhaustive) per-decision backfill — still OWED, anchored to a future dedicated backfill burst.
+- `[F-007]` BC-1.03.017 v1.17 + BC-1.03.018 v1.1 carry VP-TBD — anchored a future VP-authoring pass (POLICY 9).
+- `[F-008]` [process-gap] PluginResult-variant-construction-site trace gap — anchored S-15.03 PRIORITY-A.
+- `[D-1044(g)]` BC-version-bump-mid-cascade lacks same-burst story-propagation-dispatch discipline — anchored S-15.03 PRIORITY-A.
+- `[D-1045(h)]` Predicate/semantic sweeps must be SEMANTIC (enumerate every site stating the concept), not literal-string grep — anchored S-15.03 PRIORITY-A.
+- `[D-1046(h)]` D-1045(h)'s discipline generalizes ACROSS artifact boundaries — a defensive-check pattern list anchored to one artifact's pre-fix wording will miss a sibling artifact restating the concept differently — anchored S-15.03 PRIORITY-A (new this burst).
+- `[D-1046(b)]` ADR-039 §AMD-003 option-(b) "strict superset" wording-hygiene deferral (non-blocking, no content defect) — touch when ADR-039 is next legitimately edited (new this burst).
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the D-1047-S2111V2-PASS7-REMEDIATION checkpoint burst (2026-08-20) — S-21.11 v2.6 adversary pass-7 (1 MEDIUM F-S2111V2-P7-001, `[process-gap]`) remediated by story-writer (S-21.11 v2.6→v2.7: Task #29 line-wrapped cite fix + definitive whitespace-normalized/multiline sweep), plus this closing state-manager burst (pass-7 report persisted; STORY-INDEX v4.367 bumped; input-hash re-confirmed; `[process-gap]` methodology lesson D-1047(h) codified); BC-5.39.001 streak unchanged 0/3; adversary pass-8 is the next action; pipeline stays ACTIVE.**
