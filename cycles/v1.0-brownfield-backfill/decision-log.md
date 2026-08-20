@@ -19013,3 +19013,131 @@ D-1047-S2111V2-PASS7-REMEDIATION
 2026-08-20
 
 ---
+
+## D-1048 — D-1048-S2111V2-PASS8-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → the prior recorded max
+in this file is `## D-1047`. This entry is D-1048, the next decision allocated after D-1047. The
+pre-existing `decision-log.md D-1016..D-1047 (exhaustive) per-decision backfill OWED` obligation
+(STATE.md Blocking Issues) is unrelated to this entry and remains carried forward unchanged; this
+entry does not attempt that backfill. Likewise the `cycles/v1.0-brownfield-backfill/session-
+checkpoints.md` D-1043..D-1046 checkpoint-archival backfill gap (only D-1041/D-1042/D-1046 are
+archived there — D-1043/D-1044/D-1045's checkpoints were never individually archived) remains OWED,
+carried forward unchanged; not attempted this burst.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053).** Adversary pass-8 of
+the S-21.11 v2 cascade (dispatched fresh-context against the `3e6cbcf5` bundle — story v2.7 +
+BC-1.03.017 v1.17 + BC-1.03.018 v1.1 + ADR-039 v1.13, i.e. the D-1047-remediated bundle) returned
+**NOT-CLEAN**: 1 MEDIUM finding (F-S2111V2-P8-001, streak-resetting) + multiple grounding
+confirmations. Persisted verbatim as `cycles/v1.0-brownfield-backfill/adv-s21.11-v2-local-pass-8.md`.
+
+**(a) F-S2111V2-P8-001 (MEDIUM) — a 1000×-wrong numeric magnitude in a live CHANGELOG directive.**
+Task #32 (Phase 5, the CHANGELOG-entry directive for the `[Unreleased] > Security` note) stated the
+host-wall-clock-timeout floor as `timeout_ms >= 30M` (30 million ms ≈ 8.3 hours) — the `M` suffix
+is a pattern-copy artifact from the immediately adjacent, CORRECT `fuel_cap >= 50M` (`fuel_cap`
+legitimately uses the M/millions scale; `timeout_ms` does not). The authoritative floor is
+`timeout_ms >= 30_000` (30,000 ms = 30 s), asserted consistently by AC-001, AC-009, PC8, PC9, and
+Invariant 8. If shipped as written, this CHANGELOG entry would have published a security-
+calibration figure to the public record that was wrong by three orders of magnitude — an 8.3-hour
+"fail-closed" timeout floor reads as effectively no timeout at all, the opposite of the calibration
+this story exists to enforce (ADR-039 Decisions 2/3/4/6, CWE-636 closure).
+
+**Routed and RESOLVED this burst:**
+- **story-writer** — S-21.11 v2.7→v2.8: fixed `timeout_ms >= 30M` → `timeout_ms >= 30_000` in
+  Task #32's directive text (the adjacent `fuel_cap >= 50M` left unchanged — it is correct). Ran a
+  **defensive story-wide numeric-magnitude scan** per dispatch instruction
+  (`grep -noE 'timeout_ms[^,.;)]{0,40}'` filtered for stray `M`-suffix hits;
+  `grep -noE 'fuel_cap[^,.;)]{0,40}'` filtered for non-M/non-`_000_000`-scale hits) — zero further
+  sites found. Every other `timeout_ms` citation in the story (AC-001/AC-007/AC-009/AC-013/EC-010/
+  EC-011/Tasks #7/#9/#12/#13/#28/#32 and the TIMEOUT-POSITIVE/NEGATIVE-CONTROL fixtures) is already
+  in the `_000`-ms scale; every `fuel_cap` citation is already in the M/`_000_000` scale, except the
+  deliberately-tiny `fuel_cap = 100` AC-002 bats-integration fixture, documented in its own
+  surrounding prose as a low-fuel test case (not a calibration-floor claim). Cross-checked the
+  "four of the five targeted bash-adapter plugins currently default to `timeout_ms = 10_000`" claim
+  (line 270) against the other `timeout_ms = 10_000` TIMEOUT-POSITIVE-CONTROL fixture citations
+  (AC-001 body, Task #28) — internally consistent, no conflict. `input-hash` (`97029a5`)
+  intentionally left UNCHANGED — no declared `inputs:` file changed this burst; state-manager
+  re-verifies below.
+- **state-manager (this burst)** — pass-8 report persisted verbatim; INDEX.md pass-8 row +
+  Convergence Status advance; STORY-INDEX v4.367→v4.368 (S-21.11 catalog row: story cite
+  v2.7→v2.8; BC-array cite v1.17 UNCHANGED); BC-INDEX/ARCH-INDEX/VP-INDEX all UNCHANGED (no
+  BC/ADR/VP content changed this burst — only the story changed); POLICY 18 input-hash three-way
+  re-verification (unchanged `97029a5`); this D-1048 decision-log.md entry; STATE.md advance;
+  single atomic commit to `factory-artifacts` per TD-VSDD-053.
+
+**(b) POLICY 18 — input-hash three-way parity.** `compute-input-hash` (operator-authoritative
+marketplace rc.23 binary, per-file, per L-EDP1-073) against the S-21.11 story returns `97029a5`,
+matching the frontmatter `input-hash` and the STORY-INDEX catalog row — UNCHANGED. None of the
+story's declared `inputs:` files (ADR-039, `wasm-fuel-exhaustion-detection.md`,
+`hooks-registry.toml`) changed this burst.
+
+**(c) 4-index.** BC-INDEX v4.81 / ARCH-INDEX v3.73 / VP-INDEX v2.76 all UNCHANGED (no BC/ADR/VP
+content changed this burst — only the story changed). STORY-INDEX v4.367→v4.368 (S-21.11 catalog
+row: story cite v2.7→v2.8; BC-array cite v1.17 UNCHANGED).
+
+**(d) STORY-INDEX v4.368.** S-21.11 catalog row: story cite v2.7→v2.8. `input-hash` UNCHANGED
+`97029a5`.
+
+**(e) Grounding confirmations (converged, re-verified).** Task #29's pass-7 wrapped-cite fix
+re-verified stable (`v1.17 PC11`, no regression). Version-cite parity CLEAN including line-wrapped
+sites. Predicate-coherence / axes-independence remain CLEAN across BC and story. 18-entry
+`on_error="block"` `hooks-registry.toml` plugin enum remains EXACT against AC-024–AC-041 and
+PC13's Coverage Set table; `agent-gate` priorities 120/130 and `timeout_ms=10000` confirmed
+consistent. POLICY 7/8 parity hold. Erratum E-005's re-ratification-not-required disposition
+remains SOUND. `[F-007]` VP-TBD re-observed unchanged, not a new finding.
+
+**(f) Defensive numeric-magnitude sweep (this burst's sibling-sweep discipline, TD-VSDD-060
+applied to a new defect class).** Confirmed no further `timeout_ms` site carries a stray `M`
+suffix, and no `fuel_cap` site is mis-scaled outside the documented AC-002 low-fuel test fixture.
+The error was confined to Task #32's single citation.
+
+**(g) Streak.** BC-5.39.001 streak **REMAINS 0/3** — remediation does not itself advance the
+streak. A fresh-context adversary **pass-9** against the S-21.11 v2.8 + ADR-039 v1.13 +
+BC-1.03.017 v1.17 + BC-1.03.018 v1.1 + 4-index bundle is required next.
+
+**(h) Novelty note.** This is a NEW defect class for this cascade — a numeric-magnitude
+pattern-copy error, distinct from both the D-1006 CONTENT family (passes 3-6) and the pass-7
+sweep-METHODOLOGY gap (D-1047(h)). No new process lesson is codified this burst: the defensive
+numeric-magnitude scan run this burst (per dispatch instruction) is treated as a one-off
+confirmatory check for this specific finding, not (yet) elevated to a standing MANDATORY
+methodology rule — unlike D-1047(h)'s whitespace-normalized-sweep rule, which was codified because
+it replaced a structurally-blind detection method used across 4 prior sweeps, a single numeric-
+magnitude scan finding zero further sites this burst does not by itself establish a recurring
+defect class requiring a standing rule. If a second occurrence of an `M`/`_000`-scale suffix
+mix-up surfaces in a future pass, it should be codified as a standing lesson at that point.
+
+**(i) Telemetry fold-in.** Already-modified tracked dispatcher-telemetry files
+(`logs/dispatcher-internal-2026-08-20.jsonl`, `logs/events-2026-08-20.jsonl`,
+`sidecar-learning.md`) are included in this single commit as ordinary accumulation — no separate
+commit, per the Single-Commit Burst Protocol.
+
+**(j) Backfill obligations, unchanged.** The pre-existing `decision-log.md D-1011/D-1012 +
+D-1016..D-1047 (exhaustive)` per-decision backfill remains OWED, anchored to a future dedicated
+backfill burst; not attempted this burst per explicit dispatch scoping. The
+`session-checkpoints.md` D-1043..D-1045 checkpoint-archival gap (D-1046's checkpoint IS archived;
+D-1043/D-1044/D-1045's are not) also remains OWED, carried forward unchanged.
+
+### Agents
+
+- vsdd-factory:adversary: fresh-context pass-8 review (orchestrator-transcribed per POLICY 22)
+- vsdd-factory:story-writer: S-21.11 v2.7→v2.8 Task #32 numeric-magnitude fix + defensive
+  story-wide numeric-magnitude scan (zero further sites confirmed)
+- state-manager (this burst): pass-8 report persistence; INDEX.md pass-8 row + Convergence Status
+  advance; STORY-INDEX v4.368 bump; POLICY 18 input-hash three-way re-verification (unchanged);
+  this D-1048 decision-log.md entry; STATE.md advance; single atomic commit to `factory-artifacts`
+  per TD-VSDD-053
+
+### 4-INDEX
+
+ARCH-INDEX v3.73 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / BC-INDEX v4.81 (UNCHANGED) /
+STORY-INDEX v4.368 (was v4.367)
+
+### Phase
+
+D-1048-S2111V2-PASS8-REMEDIATION
+
+### Date
+
+2026-08-20
+
+---

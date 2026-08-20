@@ -2299,3 +2299,47 @@ S-21.11 sizing (32 points vs the typical ~13-point story ceiling) is **PENDING-P
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1047-S2111V2-PASS7-REMEDIATION checkpoint burst (2026-08-20) — S-21.11 v2.6 adversary pass-7 (1 MEDIUM F-S2111V2-P7-001, `[process-gap]`) remediated by story-writer (S-21.11 v2.6→v2.7: Task #29 line-wrapped cite fix + definitive whitespace-normalized/multiline sweep), plus this closing state-manager burst (pass-7 report persisted; STORY-INDEX v4.367 bumped; input-hash re-confirmed; `[process-gap]` methodology lesson D-1047(h) codified); BC-5.39.001 streak unchanged 0/3; adversary pass-8 is the next action; pipeline stays ACTIVE.**
+
+## Session Resume Checkpoint (2026-08-20 — D-1047-S2111V2-PASS7-REMEDIATION; PIPELINE ACTIVE)
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE ACTIVE** at a clean checkpoint (this commit; `git -C .factory log -1` for the HEAD SHA). This is a S-21.11 v2.7 PRE-TDD spec-convergence cascade under E-21. **D-1047 (pass-7 remediation) is committed this burst** — the 1 MEDIUM finding (F-S2111V2-P7-001, `[process-gap]` — a line-wrapped stale `BC-1.03.017 v1.14 PC11` cite in Task #29 that survived 4 prior contiguous-string-grep sweeps, 2 of which falsely attested sweeping it by task-number list) is remediated by story-writer (S-21.11 v2.6→v2.7: Task #29's wrapped cite fixed to `v1.17 PC11` via a definitive whitespace-normalized/multiline detector confirming ZERO live non-v1.17 BC-1.03.017 residue, attested by captured residual-set stdout), plus this closing state-manager burst (pass-7 report persisted, INDEX.md updated, STORY-INDEX bumped, story input-hash re-confirmed, sibling-sweep confirmed clean, `[process-gap]` methodology lesson D-1047(h) codified). `develop` `27c56c01` unchanged, CI-GREEN. 4-index: ARCH v3.73 / VP v2.76 / BC v4.81 (all UNCHANGED) / STORY v4.367. BC-1.03.017 v1.17 / BC-1.03.018 v1.1 / ADR-039 v1.13 §Erratum E-005 (all UNCHANGED this burst), `status: ratified` preserved.
+
+### §2 Convergence Counter
+
+BC-5.39.001 streak **0/3**.
+
+### §3 In-Flight / NEXT ACTION
+
+**RESUME = dispatch a fresh-context adversary pass-8** against the current bundle: story `S-21.11-validator-exhaustion-fail-closed-calibration-and-enforcement.md` v2.7 + BC-1.03.017 v1.17 + BC-1.03.018 v1.1 + ADR-039 v1.13 + BC-INDEX/STORY-INDEX/ARCH-INDEX, applying the full `.factory/policies.yaml` rubric, per the Iron Law (fresh context, reads only `adv-s21.11-v2-local-pass-7.md` Part A). If pass-8 is CLEAN → streak advances to 1/3 (then passes 9 and 10 are needed for 3-clean convergence, per BC-5.39.001). If pass-8 is NOT-CLEAN → route findings to the owning specialists, remediate, and the streak stays at 0/3.
+
+### §4 Pending Human Decision
+
+S-21.11 sizing (32 points vs the typical ~13-point story ceiling) is **PENDING-POST-ADVERSARY** per the D-1040 drift item — decide split-vs-keep-unified **AFTER** convergence, not before. **Keep S-21.11 as ONE unified story** — this is a standing human decision; do NOT split it. (Unchanged from prior checkpoints.)
+
+### §5 Session Note
+
+**New process lesson this burst (D-1047(h), `[process-gap]`, anchored S-15.03 PRIORITY-A, MANDATORY codified per S-7.02):** the contiguous-string grep methodology used by every cite-parity sweep this cascade has run is structurally blind to a version cite whose two halves are split across a physical line-wrap boundary — Task #29's `BC-1.03.017 v1.14 PC11` cite survived 4 consecutive sweeps (v2.2 through v2.5) for exactly this reason, and 2 of those sweeps' changelog rows falsely attested completeness by listing swept task NUMBERS rather than the actual captured match set. **Lesson, codified: cite-parity / version-propagation sweeps MUST use a whitespace-normalized/multiline predicate (e.g. `tr '\n' ' ' | grep -oE 'BC-N\.NN\.NNN +v1\.[0-9]+'`), and MUST attest completeness by CAPTURED residual-set stdout, NEVER by a task-number/site-name list.** This is a NEW defect class for this cascade (sweep-METHODOLOGY), distinct from the D-1006 version-cite-propagates/algorithm-content-does-not CONTENT family that drove passes 3-6. The D-1044(g), D-1045(h), and D-1046(h) lessons remain logged in the Drift Items table, unchanged, carried forward.
+
+### §6 Carry-Forward Blockers (unchanged, reference not re-list)
+
+- `[P0-followup]` POLICY 15 gate wired + running but NOT enforcing — branch protection (human/admin-only action required).
+- `[C-1]`..`[C-5]` exec_subprocess security findings (ADR-043 NOT RATIFIED) — see Blocking Issues table.
+- `[D-952]` compute-input-hash operator-cache-vs-dev-source hash-algorithm divergence — deferred to rc.24; per-file operator-binary invocation is the workaround until then.
+- decision-log.md D-1011/D-1012 + D-1016..D-1042 (exhaustive) per-decision backfill — still OWED, anchored to a future dedicated backfill burst.
+- `[F-007]` BC-1.03.017 v1.17 + BC-1.03.018 v1.1 carry VP-TBD — anchored a future VP-authoring pass (POLICY 9).
+- `[F-008]` [process-gap] PluginResult-variant-construction-site trace gap — anchored S-15.03 PRIORITY-A.
+- `[D-1044(g)]` BC-version-bump-mid-cascade lacks same-burst story-propagation-dispatch discipline — anchored S-15.03 PRIORITY-A.
+- `[D-1045(h)]` Predicate/semantic sweeps must be SEMANTIC (enumerate every site stating the concept), not literal-string grep — anchored S-15.03 PRIORITY-A.
+- `[D-1046(h)]` D-1045(h)'s discipline generalizes ACROSS artifact boundaries — a defensive-check pattern list anchored to one artifact's pre-fix wording will miss a sibling artifact restating the concept differently — anchored S-15.03 PRIORITY-A.
+- `[D-1046(b)]` ADR-039 §AMD-003 option-(b) "strict superset" wording-hygiene deferral (non-blocking, no content defect) — touch when ADR-039 is next legitimately edited.
+- `[D-1047(h)]` Cite-parity/version-propagation sweeps must use a whitespace-normalized/multiline predicate and attest by captured residual-set stdout, never a task-number/site-name list — anchored S-15.03 PRIORITY-A (new this burst).
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the D-1048-S2111V2-PASS8-REMEDIATION checkpoint burst (2026-08-20) — S-21.11 v2.7 adversary pass-8 (1 MEDIUM F-S2111V2-P8-001) remediated by story-writer (S-21.11 v2.7→v2.8: Task #32 numeric-magnitude fix `timeout_ms >= 30M` → `timeout_ms >= 30_000` + defensive numeric-magnitude scan), plus this closing state-manager burst (pass-8 report persisted; STORY-INDEX v4.368 bumped; input-hash re-confirmed); BC-5.39.001 streak unchanged 0/3; adversary pass-9 is the next action; pipeline stays ACTIVE.**
