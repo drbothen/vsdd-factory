@@ -18550,3 +18550,159 @@ D-1044-S2111V2-PASS4-REMEDIATION
 2026-08-19
 
 ---
+
+## D-1045 — D-1045-S2111V2-PASS5-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → the prior recorded max
+in this file is `## D-1044`. This entry is D-1045, the next decision allocated after D-1044. The
+pre-existing `decision-log.md D-1016..D-1042 (exhaustive) per-decision backfill OWED` obligation
+(STATE.md Blocking Issues) is unrelated to this entry and remains carried forward unchanged; this
+entry does not attempt that backfill.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053).** Adversary pass-5 of
+the S-21.11 v2 cascade (dispatched fresh-context against the `677d3da9` bundle — story v2.4 +
+BC-1.03.017 v1.16 + BC-1.03.018 v1.1 + ADR-039 v1.13, i.e. the D-1044-remediated bundle) returned
+**NOT-CLEAN**: 1 HIGH finding (F-S2111V2-P5-001, streak-resetting) + 1 non-resetting LOW/advisory
+observation + multiple grounding confirmations. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-s21.11-v2-local-pass-5.md`.
+
+**(a) F-S2111V2-P5-001 (HIGH) — un-swept predicate-coherence contradiction in BC-1.03.017
+Invariant 10 + 4 residual sibling sites.** D-1043's remediation (BC-1.03.017 v1.15→v1.16) narrowed
+the §AMD-003 fail-closed predicate at the Architecture Anchors and Traceability citation sites via
+a targeted grep-driven sweep, not an exhaustive semantic sweep — it missed `## Invariants` →
+Invariant 10 ("PC13 strict-superset invariant"), which still (a) reused the STRICT-SUPERSET-of-
+`Crashed | Timeout` framing that ADR-039 Erratum E-005 identified as the root error and removed
+from the authoritative "Precise rule (normative)" paragraph, and (b) literally contradicted this
+BC's own axes-independence semantics (PC5/PC10(a)/EC-009/Invariant 1) by asserting `Crashed` and
+`Timeout` "continue to block under `on_error=Block` exactly as before," wrongly implying
+`on_error` alone governs `Timeout` blocking and mis-labeling PC10 as part of an
+"`on_error`-governs-crash path" (PC10 governs `Timeout`/`failure_policy`, not crash). This is the
+FIFTH instance of the version-cite-propagates/algorithm-content-does-not class in this cascade
+(D-1006), but the FIRST that is a content-level residue within a single artifact/burst rather than
+a cross-artifact version-citation staleness gap — confirming a narrower sub-class: a
+targeted-string-pattern sweep systematically misses sibling sites that restate the identical
+*concept* in different wording. TD-VSDD-060 sibling-sweep discipline therefore extends to
+CONCEPTS, not only literal string patterns.
+
+**Routed and RESOLVED this burst:**
+- **product-owner** — BC-1.03.017 v1.16→v1.17: rewrote and retitled Invariant 10 ("PC13
+  additive-only invariant — NOT a `Crashed | Timeout` superset") to state the three outcome shapes
+  under `on_error=Block` as three separate, axes-independent rules (`Crashed`→`on_error`/PC4;
+  `Timeout`→`failure_policy`/PC1/PC5/PC6/PC10, never `on_error` alone; `Ok{exit_code != 0}` the
+  one new PC13 leg, not a negation of `Ok{exit_code: 0}`). Ran an exhaustive semantic sweep of
+  every predicate-stating location (all PCs, Invariants, Edge Cases, Architecture Anchors,
+  Verification Properties, Traceability) and found the same residual contradiction surviving in 4
+  further sites the D-1043 sweep missed: Architecture Anchors `executor.rs` bullet's closing
+  sentence; Traceability ADR row's §AMD-003 citation closing clause; EC-011's "Post-wiring-fix"
+  clause (rewritten to condition each outcome on its own governing axis, with an explicit note
+  the scenario assumes `failure_policy=FailClosed`/PC9, not `on_error=Block` alone); and PC13's
+  own header (split into "PC4's `on_error`-governs-crash coverage" and "PC5/PC10's
+  `failure_policy`-governs-`Timeout` axes-independence coverage").
+- **story-writer** — S-21.11 v2.4→v2.5: swept every LIVE cite of `BC-1.03.017 v1.16` →
+  `BC-1.03.017 v1.17` — the frontmatter `behavioral_contracts:` array; the body `## Behavioral
+  Contracts` table's BC-1.03.017 Version cell (split-cell form); the Routing Proposals
+  parenthetical narrative (not caught by a contiguous sweep because a backtick-quoted title
+  intervenes); and 55 further body narrative/AC/Task/EC/Routing-Proposals sites. Exempted per
+  POLICY 5 v1.3.5: 2 occurrences of `BC-1.03.017 v1.16` inside the story's OWN historical
+  `## Changelog` table (both in the v2.4 row) — historical-by-construction, correctly left
+  unswept. Ran a defensive semantic check (`strict superset`, `superset of`, `continue to block`,
+  `exactly as before`, `NOT Ok{exit_code`, `regardless of failure_policy`) across the story body —
+  confirmed clean, no in-scope fix required.
+
+**(b) LOW/ADVISORY — Traceability ADR-ratification-provenance tokens.** BC-1.03.017/BC-1.03.018
+Traceability rows carry inline ADR ratification-provenance version tokens (e.g. "§AMD-003 v1.11
+substantively RATIFIED") paired with stable §AMD-00N/§Decision-N anchors — historical facts, not
+POLICY 19 volatile-pin violations. No action; recorded so a future pass doesn't misread these.
+
+**(c) Grounding confirmations (non-findings).** Version-cite parity held pre-fix (BC-1.03.017
+v1.16 consistent across story/BC-INDEX/STORY-INDEX prior to this pass); the 18-entry
+`on_error="block"` registry set remains exact against the live `hooks-registry.toml`, matching
+AC-024..AC-041 and PC13's Coverage Set table row-for-row, no drift since pass-3; Token Budget
+POLICY 8 parity held; BC H1 ↔ BC-INDEX title cell POLICY 7 parity held (the v1.17 edit touched
+only Invariants/Architecture Anchors/Traceability/EC-011/PC13-header body content, not H1/
+Description); the story does not echo the broad `Crashed | Timeout` superset framing anywhere —
+only the BC's own Invariant 10 carried the residual contradiction.
+
+**(d) Indexes.** BC-INDEX v4.80→v4.81 (BC-1.03.017 row version-chain cell +v1.17; title cell
+UNCHANGED, verbatim H1 subset confirmed; `changelog:` list entry appended; `last_amended` chain
+prepended). STORY-INDEX v4.364→v4.365 (S-21.11 catalog row: story cite v2.4→v2.5; BC-array cite
+v1.16→v1.17; `last_amended` chain prepended). ARCH-INDEX v3.73 / VP-INDEX v2.76 both **UNCHANGED
+this burst** — no ADR or VP content changed (only the BC and the story changed). total_bcs
+UNCHANGED (1986).
+
+**(e) POLICY 18 input-hash reconcile (per-file, operator-authoritative binary).** S-21.11 story:
+`compute-input-hash --check` returns clean (computed `97029a5` = stored `97029a5`) — the story's
+own declared `inputs:` (ADR-039, `wasm-fuel-exhaustion-detection.md`, `hooks-registry.toml`) do
+**NOT** include BC-1.03.017.md, so BC-1.03.017's content change does not affect the story's own
+input-hash; three-way parity (frontmatter = STORY-INDEX catalog row = STORY-INDEX E-21 delivery
+blockquote, all `97029a5`) confirmed UNCHANGED. BC-1.03.018.md: `compute-input-hash --check`
+returned DRIFT (stored `5ab5eab` ≠ computed `43d1e13`) — BC-1.03.018's own declared `inputs:` DO
+include BC-1.03.017.md, so BC-1.03.017's content change cascades; reconciled via
+`compute-input-hash --update` → `43d1e13`; no downstream artifact cites this hash as a live
+version-pin (BC-INDEX does not track BC input-hashes), so no further propagation needed.
+BC-1.03.017.md's own input-hash (`3950027`, tracking ADR-039 etc.) is UNCHANGED — its own declared
+`inputs:` did not change this burst; verified via `--check`, not touched. All reconciled via the
+**operator-authoritative marketplace `compute-input-hash` binary (rc.23; L-EDP1-073)** invoked
+per-file — the development-source binary's full-tree `--scan --update` explicitly NOT used, per
+the pre-existing [D-952] rc.24-deferred divergence.
+
+**(f) Sibling-sweep (TD-VSDD-060).** Corpus-wide grep for `BC-1\.03\.017 v1\.16` across `.factory`
+(excluding `logs/`) confirms no live artifact outside this story's 2 exempt historical Changelog
+rows still cites BC-1.03.017 as currently at v1.16. All other matches (`STATE.md`, `INDEX.md`,
+`decision-log.md`, `session-checkpoints.md`, `ARCH-INDEX.md`, `BC-1.03.017.md`'s own
+`last_amended` history, `adv-s21.11-v2-local-pass-4.md`) are correctly-scoped historical narration
+of the version-bump events themselves (D-1043/D-1044), which remain accurate for all time and
+require no edit.
+
+**(g) Streak.** BC-5.39.001 streak **REMAINS 0/3** — remediation does not itself advance the
+streak. A fresh-context adversary **pass-6** against the S-21.11 v2.5 + ADR-039 v1.13 +
+BC-1.03.017 v1.17 + BC-1.03.018 v1.1 + 4-index bundle is required next.
+
+**(h) Process lesson (semantic-sweep discipline, anchored S-15.03 PRIORITY-A).** Three consecutive
+passes (pass-3, pass-4, pass-5) each surfaced the same predicate-coherence class at a progressively
+deeper site the prior sweep missed. Pass-3/pass-4 were pure version-*citation* staleness (fixed by
+a contiguous-string sweep); pass-5 revealed that even a CONTENT-level predicate fix can itself be
+incomplete if performed via a targeted-string-pattern sweep ("grep for the exact phrase that was
+wrong") instead of a SEMANTIC sweep ("enumerate every location that STATES the concept, regardless
+of wording"). This burst's exhaustive semantic sweep found and fixed 5 sites in one pass (versus
+one residual site per pass at passes 3/4), which should terminate this specific treadmill.
+**Lesson: TD-VSDD-060 sibling-sweep discipline extends to CONCEPTS, not only string patterns** —
+whenever a predicate/invariant is narrowed or corrected, the remediating specialist must enumerate
+every site that states the concept (via re-reading the whole document's semantic content, not via
+a single grep pattern derived from the original defect's exact wording), not just the sites a
+literal-string search happens to surface.
+
+**(i) Telemetry fold-in.** Already-modified tracked dispatcher-telemetry files
+(`logs/dispatcher-internal-2026-08-19.jsonl`, `logs/events-2026-08-19.jsonl`,
+`sidecar-learning.md`) are included in this single commit as ordinary accumulation — no separate
+commit, per the Single-Commit Burst Protocol.
+
+**(j) Backfill obligation, unchanged.** The pre-existing `decision-log.md D-1011/D-1012 +
+D-1016..D-1042 (exhaustive)` per-decision backfill remains OWED, anchored to a future dedicated
+backfill burst; not attempted this burst per explicit dispatch scoping.
+
+### Agents
+
+- vsdd-factory:adversary: fresh-context pass-5 review (orchestrator-transcribed per POLICY 22)
+- vsdd-factory:product-owner: BC-1.03.017 v1.16→v1.17 Invariant 10 rewrite + 4-site
+  predicate-coherence sweep
+- vsdd-factory:story-writer: S-21.11 v2.4→v2.5 BC-1.03.017 v1.17 cite-parity sweep
+- state-manager (this burst): pass-5 report persistence; INDEX.md pass-5 row + Convergence
+  Status advance; BC-INDEX v4.81 + STORY-INDEX v4.365 bumps; POLICY 18 input-hash reconcile
+  (BC-1.03.018); sibling-sweep verification; this D-1045 decision-log.md entry; STATE.md advance;
+  single atomic commit to `factory-artifacts` per TD-VSDD-053
+
+### 4-INDEX
+
+ARCH-INDEX v3.73 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / BC-INDEX v4.81 (was v4.80) /
+STORY-INDEX v4.365 (was v4.364)
+
+### Phase
+
+D-1045-S2111V2-PASS5-REMEDIATION
+
+### Date
+
+2026-08-19
+
+---
