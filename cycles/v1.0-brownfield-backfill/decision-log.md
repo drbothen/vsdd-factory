@@ -19217,6 +19217,114 @@ invoke the mechanical check). Against BC-1.03.018, `--check` returned DRIFT (`43
 computed `ff9c2d5`) prior to this burst's fix, because BC-1.03.017 (a declared input) changed
 content at v1.18; `--update` reconciled it to `ff9c2d5`, and a subsequent `--check` returns 0.
 
+---
+
+## D-1050 — D-1050-S2111V2-PASS10-CLEAN
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → the prior recorded max
+in this file is `## D-1049`. This entry is D-1050, the next decision allocated after D-1049. The
+pre-existing `decision-log.md D-1011/D-1012 + D-1016..D-1042 (exhaustive)` per-decision backfill
+obligation (STATE.md Blocking Issues) is unrelated to this entry and remains carried forward
+unchanged; this entry does not attempt that backfill. Likewise the `cycles/v1.0-brownfield-backfill/
+session-checkpoints.md` D-1043..D-1045 checkpoint-archival backfill gap remains OWED, carried
+forward unchanged; not attempted this burst.
+
+**Scope note (single-commit BOOKKEEPING-ONLY burst, state-manager, TD-VSDD-053).** Adversary
+pass-10 of the S-21.11 v2 cascade (dispatched fresh-context against the `4e084433` bundle — story
+v2.9 + BC-1.03.017 v1.18 + BC-1.03.018 v1.1 + ADR-039 v1.13, i.e. the D-1049-remediated bundle)
+returned **CLEAN**: zero BLOCKER/HIGH/MEDIUM streak-resetting findings, plus 3 non-resetting
+LOW/ADVISORY observations and multiple grounding confirmations. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-s21.11-v2-local-pass-10.md`.
+
+**(a) Verdict and streak.** This is the FIRST clean pass of the v2 (unified no-split) cascade.
+Per BC-5.39.001, the streak ADVANCES **0/3 → 1/3**. Two further FRESH CONSECUTIVE CLEAN passes
+(pass-11, pass-12) against the SAME UNCHANGED bundle are required for 3-CLEAN convergence.
+
+**(b) Fix verification (Part A).** F-S2111V2-P9-001 (MEDIUM, the retired `S-21.17` live-cite
+contradiction) re-verified RESOLVED and stable: BC-1.03.017's `## Traceability` ADR row now
+carries a single, non-contradictory delivery-vehicle citation; a fresh grep confirms the 3
+remaining `S-21.17` occurrences in BC-1.03.017 are all HISTORICAL (frontmatter `last_amended` +
+v1.11 changelog rows, POLICY 5 exempt) and BC-1.03.018's Stories row remains correctly annotated.
+
+**(c) 3 non-resetting LOW/ADVISORY observations — DOCUMENTED, deliberately NOT remediated this
+burst.** All three are cosmetic (caption/label staleness in the story's illustrative DAG diagram;
+a cross-BC EC-numbering readability nit disambiguated by an existing "BC-1.03.018 PCn" prefix) and
+none touch predicate content, index parity, numeric magnitudes, or cite propagation:
+
+- **F-S2111V2-P10-001 (LOW):** story §"Scope Elements and Task Ordering (DAG)" node-(D) box
+  caption enumerates only "AC-002..AC-006, AC-010, AC-011" but Node (D) also authoritatively owns
+  Task #19b (AC-013b) and Task #19c (AC-024..AC-041) per the authoritative Tasks section, which is
+  itself complete and correct. Caption-only staleness, not a coverage gap.
+- **F-S2111V2-P10-002 (LOW):** DAG/AC-011 reference label "Executor Extension" is not verbatim
+  against the Tasks heading "Node (D) — Executor decision-function extension." Resolves
+  unambiguously; readability nit only.
+- **F-S2111V2-P10-003 (ADVISORY):** break-glass ACs (AC-015/AC-016/AC-019) cite EC-004/EC-005/
+  EC-006 in BC-1.03.018's own internal EC numbering, while the story's renumbered edge-case list
+  uses EC-012/EC-013/EC-014 for the identical concepts; the existing "BC-1.03.018 PCn"-style
+  prefix at each site disambiguates unambiguously.
+
+**Disposition (explicit, this burst):** all 3 routed to a **single consolidated cosmetic sweep at
+convergence-close** (after pass-12 confirms 3-CLEAN, before TDD handoff) rather than remediated
+individually now — three separate one-line touches this burst would each re-version the story
+and, per the BC-5.39.001 3-CLEAN protocol, would force passes 11 and 12 to review a churned
+(non-identical) bundle, defeating the purpose of a stable 3-consecutive-pass artifact. This is a
+deliberate, disclosed deferral (not a silent drop): STATE.md Drift Items carries a dedicated row
+anchored to the convergence-close sweep, and this decision-log entry is the authoritative record
+of the 3 finding IDs and their rationale.
+
+**(d) No spec/index/input-hash changes this burst.** Story `S-21.11-validator-exhaustion-fail-
+closed-calibration-and-enforcement.md` stays **v2.9** (input-hash `97029a5`, UNCHANGED);
+`BC-1.03.017.md` stays **v1.18**; `BC-1.03.018.md` stays **v1.1**; `ADR-039` stays **v1.13**.
+BC-INDEX stays **v4.82**; STORY-INDEX stays **v4.369**; ARCH-INDEX stays **v3.73**; VP-INDEX stays
+**v2.76**. Nothing in the reviewed bundle changed — this is the intended state for passes 11-12 to
+review an identical artifact per the 3-CLEAN protocol.
+
+**(e) Sibling-sweep (TD-VSDD-060) — not applicable this burst.** No content was edited, so no
+sibling-sweep is required. The pass-9 sibling-sweep (confirmed CLEAN, D-1049) remains valid and
+unchanged.
+
+**(f) Streak.** BC-5.39.001 streak **ADVANCES 0/3 → 1/3** (first clean pass). A fresh-context
+adversary **pass-11** against the SAME S-21.11 v2.9 + ADR-039 v1.13 + BC-1.03.017 v1.18 +
+BC-1.03.018 v1.1 + 4-index bundle (unchanged) is required next.
+
+**(g) Novelty note.** Novelty LOW — a clean pass with only cosmetic LOW/ADVISORY residue. No new
+defect class; no new standing rule codified. The existing D-1044(g)/D-1045(h)/D-1046(h)/
+D-1046(b)/D-1047(h) lessons remain logged in the Drift Items table, unchanged, carried forward.
+
+**(h) Telemetry fold-in.** Already-modified tracked dispatcher-telemetry files
+(`logs/dispatcher-internal-2026-08-20.jsonl`, `sidecar-learning.md`) are included in this single
+commit as ordinary accumulation — no separate commit, per the Single-Commit Burst Protocol.
+
+**(i) Backfill obligations, unchanged.** The pre-existing `decision-log.md D-1011/D-1012 +
+D-1016..D-1042 (exhaustive)` per-decision backfill remains OWED, anchored to a future dedicated
+backfill burst; not attempted this burst per explicit dispatch scoping. The
+`session-checkpoints.md` D-1043..D-1045 checkpoint-archival gap also remains OWED, carried forward
+unchanged.
+
+### Agents
+
+- vsdd-factory:adversary: fresh-context pass-10 review (orchestrator-transcribed per POLICY 22) —
+  CLEAN, first clean pass of the v2 cascade
+- state-manager (this burst): pass-10 report persistence; INDEX.md pass-10 row + Convergence
+  Status advance (streak 1/3); this D-1050 decision-log.md entry; STATE.md advance; single atomic
+  commit to `factory-artifacts` per TD-VSDD-053. NO spec/index files touched — nothing in the
+  reviewed bundle changed.
+
+### 4-INDEX
+
+ARCH-INDEX v3.73 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / BC-INDEX v4.82 (UNCHANGED) /
+STORY-INDEX v4.369 (UNCHANGED) — all four UNCHANGED this burst.
+
+### Phase
+
+D-1050-S2111V2-PASS10-CLEAN
+
+### Date
+
+2026-08-20
+
+---
+
 **(c) 4-index.** BC-INDEX v4.81→v4.82 (BC-1.03.017 row +v1.18; title cell UNCHANGED; `total_bcs`
 UNCHANGED 1986). ARCH-INDEX v3.73 / VP-INDEX v2.76 both UNCHANGED (no ADR/VP content changed this
 burst). STORY-INDEX v4.368→v4.369 (S-21.11 catalog row: story cite v2.8→v2.9; BC-array cite
