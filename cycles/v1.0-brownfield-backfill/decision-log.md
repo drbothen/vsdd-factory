@@ -18706,3 +18706,157 @@ D-1045-S2111V2-PASS5-REMEDIATION
 2026-08-19
 
 ---
+
+## D-1046 — D-1046-S2111V2-PASS6-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → the prior recorded max
+in this file is `## D-1045`. This entry is D-1046, the next decision allocated after D-1045. The
+pre-existing `decision-log.md D-1016..D-1042 (exhaustive) per-decision backfill OWED` obligation
+(STATE.md Blocking Issues) is unrelated to this entry and remains carried forward unchanged; this
+entry does not attempt that backfill.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053).** Adversary pass-6 of
+the S-21.11 v2 cascade (dispatched fresh-context against the `64460671` bundle — story v2.5 +
+BC-1.03.017 v1.17 + BC-1.03.018 v1.1 + ADR-039 v1.13, i.e. the D-1045-remediated bundle) returned
+**NOT-CLEAN**: 1 HIGH finding (F-S2111V2-P6-001, streak-resetting) + 2 non-resetting ADVISORY
+observations + multiple grounding confirmations. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-s21.11-v2-local-pass-6.md`.
+
+**(a) F-S2111V2-P6-001 (HIGH) — story EC-011 axes-conflation, a cross-artifact sibling-propagation
+gap.** BC-1.03.017 v1.17 (D-1045, the immediately-prior remediation in this same cascade) already
+rewrote its OWN EC-011 to the axes-independent per-outcome form, but that fix was never propagated
+into this story's OWN sibling EC-011 row — the story's EC-011 still (1) attributed
+`Timeout{Fuel|Epoch}` blocking to `on_error=Block` alone, omitting the load-bearing
+`failure_policy=FailClosed`/PC9 condition; (2) inverted AC-005(b)'s NOT-block semantics; and (3)
+contradicted the story's own EC-009 row (`on_error=block` does not apply to exhaustion outcomes,
+PC5). D-1045's own remediation burst ran a defensive semantic check for this exact
+predicate-coherence theme, but the check's pattern list (`strict superset`/`superset of`/`continue
+to block`/`exactly as before`/`NOT Ok{exit_code`/`regardless of failure_policy`) was anchored to
+BC-1.03.017's own pre-fix wording; the story's EC-011 used distinct phrasing ("MUST produce a block
+under `on_error=Block`" + "AC-005/AC-011 already close the `Timeout`/`Crashed` case") the pattern
+list did not anticipate, so the check reported clean while the identical defect class survived
+un-swept in the sibling artifact. This is the SIXTH instance of the version-cite-propagates/
+algorithm-content-does-not class in this cascade (D-1006) and, like pass-5, a CONTENT-level
+residue — but unlike pass-5 (intra-artifact, BC-body→BC-body within the SAME burst), this instance
+is cross-artifact and cross-burst (BC-body fixed at D-1045; story-body sibling un-swept until this
+burst). This generalizes D-1045(h)'s "sweeps must be SEMANTIC" lesson: a defensive-check pattern
+list derived from one artifact's specific pre-fix wording will systematically miss a sibling
+artifact restating the identical concept in different words — a cross-artifact sibling-sweep
+dispatch, not just a same-artifact defensive check, is required whenever a predicate/invariant is
+narrowed or corrected in one of two or more artifacts that jointly state the same concept.
+
+**Routed and RESOLVED this burst:**
+- **story-writer** — S-21.11 v2.5→v2.6: rewrote the Edge Cases table's EC-011 row to condition
+  each sub-outcome on its own governing axis, mirroring BC-1.03.017 v1.17 EC-011's corrected
+  structure (`Ok{exit_code != 0}` → PC13/AC-013b under `on_error=Block`, `failure_policy`-
+  independent; `Timeout` → PC1/PC6/PC10(b)/AC-011(b) under `failure_policy=FailClosed`,
+  `on_error`-independent for the exhaustion decision, with the steady-state `failure_policy=
+  FailClosed`/PC9/AC-008 assumption stated explicitly and an inline cross-reference confirming
+  consistency with EC-009). Ran an exhaustive story-wide semantic sweep (all Edge Cases EC-001–
+  EC-014, all Acceptance Criteria AC-001–AC-041, all 32 Tasks, the Behavioral Contracts table,
+  Architecture Mapping, Purity Classification, Architecture Compliance Rules, Previous Story
+  Intelligence, Library & Framework Requirements, File Structure Requirements, and Routing
+  Proposals) — not a narrow phrase list — and found 2 further residual sites the table-row fix
+  alone would have left behind: AC-013's own embedded "EC-011" paragraph (rewritten to the same
+  per-axis breakdown), and AC-013b's opening paragraph, which grouped AC-005/AC-011 together as
+  "`on_error`-vs-`Crashed` coverage" — imprecise, since AC-011 is `Timeout`/`failure_policy`
+  axes-independence coverage, not `Crashed` coverage (the identical PC4/PC5/PC10-grouping
+  imprecision BC-1.03.017 v1.17 already corrected in its own PC13 header) — split into "AC-005(a)'s
+  `on_error`-governs-crash coverage" and "AC-011's `failure_policy`-governs-`Timeout`
+  axes-independence coverage." All other examined sites verified already correctly
+  axes-independent; the legitimate AC-022⊃AC-012 "strict superset" gate-coverage relationship (an
+  unrelated concept — mechanical CI-gate ordering coverage, not the predicate) correctly left
+  untouched.
+
+**(b) ADVISORY — ADR-039 §AMD-003 option-(b) "strict superset" wording, deliberately not
+churned.** Verified SEMANTICALLY CORRECT: this occurrence describes a superset of the pre-existing
+exit-code-2 stdout protection, NOT the E-005-rejected "superset of `Crashed | Timeout`" framing —
+no content defect, no implementer builds the wrong thing from it. Deliberately NOT churned this
+burst: bumping ADR-039 to reword a non-defect wording nit would re-trigger the input-hash-churn/
+propagation-residue cycle that reset the streak at passes 4 and 5, trading a demonstrated
+residue-risk cost for a cosmetic clarity gain with zero safety impact. Disposition: touch when
+ADR-039 is next legitimately edited for a substantive reason. Also recorded (non-load-bearing,
+not churned): BC-1.03.017 v1.17's own changelog `last_amended` narrative imprecisely says "the
+story declares this BC as an input" — the story's `inputs:` frontmatter array does NOT include
+BC-1.03.017.md.
+
+**(c) ADVISORY — S-21.11 story input-hash `97029a5` re-verified, not stale.** Prior passes flagged
+this hash as possibly stale relative to ADR-039 v1.13 without being able to run
+`compute-input-hash`. This burst definitively CLOSES it: ADR-039 v1.13's content was already
+absorbed into `97029a5` at D-1043; ADR-039 has not changed since; `compute-input-hash --check`
+(operator-authoritative rc.23 binary, per-file) confirms computed `97029a5` = stored `97029a5`, and
+`--resolve` confirms all 3 declared inputs resolve.
+
+**(d) Indexes.** STORY-INDEX v4.365→v4.366 (S-21.11 catalog row: story cite v2.5→v2.6; BC-array
+cite v1.17 UNCHANGED — no BC content changed this burst; `last_amended` chain prepended). BC-INDEX
+v4.81 / ARCH-INDEX v3.73 / VP-INDEX v2.76 all **UNCHANGED this burst** — no BC, ADR, or VP content
+changed (only the story changed). total_bcs UNCHANGED (1986).
+
+**(e) POLICY 18 input-hash reconcile (per-file, operator-authoritative binary).** S-21.11 story:
+`compute-input-hash --check` returns clean (computed `97029a5` = stored `97029a5`) — the story's
+own declared `inputs:` (ADR-039, `wasm-fuel-exhaustion-detection.md`, `hooks-registry.toml`) did
+NOT change this burst (only the story's own body changed, which is not self-referential in its
+`inputs:` list); three-way parity (frontmatter = STORY-INDEX catalog row = STORY-INDEX E-21
+delivery blockquote, all `97029a5`) CONFIRMED UNCHANGED. `--resolve` confirms all 3 inputs
+resolved. No other artifact's input-hash requires reconcile this burst (BC-1.03.017.md and
+BC-1.03.018.md content both UNCHANGED). All reconciled via the **operator-authoritative
+marketplace `compute-input-hash` binary (rc.23; L-EDP1-073)** invoked per-file — the
+development-source binary's full-tree `--scan --update` explicitly NOT used, per the pre-existing
+[D-952] rc.24-deferred divergence.
+
+**(f) Sibling-sweep (TD-VSDD-060).** Corpus-wide grep for the axes-conflation phrase pattern
+(`block under \`on_error=Block\`` / `MUST produce a block under` / `regardless of failure_policy`
+/ `on_error=Block alone`) across `.factory` (excluding `logs/`) confirms no LIVE artifact outside
+this story's own historical Changelog rows (v2.5/v2.6, correctly documenting the defect and its
+fix as past events) and BC-1.03.017.md's own v1.17 changelog row (historical narration of D-1045's
+fix) still states the conflated form. No further residual site found.
+
+**(g) Streak.** BC-5.39.001 streak **REMAINS 0/3** — remediation does not itself advance the
+streak. A fresh-context adversary **pass-7** against the S-21.11 v2.6 + ADR-039 v1.13 +
+BC-1.03.017 v1.17 + BC-1.03.018 v1.1 + 4-index bundle is required next.
+
+**(h) Process lesson (cross-artifact semantic-sweep discipline, anchored S-15.03 PRIORITY-A).**
+D-1045(h) established that predicate/semantic sweeps must be SEMANTIC (enumerate every site that
+STATES the concept), not literal-string grep, WITHIN one artifact. This burst generalizes that
+lesson ACROSS artifact boundaries: when a predicate/invariant fix in artifact A produces a
+defensive-check pattern list, that list is anchored to artifact A's specific pre-fix wording and
+will systematically miss artifact B restating the identical concept in different words. **Lesson:
+whenever a predicate/invariant is narrowed or corrected in ANY ONE of two or more artifacts that
+jointly state the same concept (e.g. a BC and the story that cites it), the remediating burst must
+dispatch an independent semantic sweep of EVERY sibling artifact stating the same concept — not
+rely on a defensive-check pattern list built from the fixed artifact's own wording.**
+
+**(i) Telemetry fold-in.** Already-modified tracked dispatcher-telemetry files
+(`logs/dispatcher-internal-2026-08-19.jsonl`, `logs/dispatcher-internal-2026-08-20.jsonl`,
+`logs/events-2026-08-20.jsonl`, `sidecar-learning.md`) are included in this single commit as
+ordinary accumulation — no separate commit, per the Single-Commit Burst Protocol.
+
+**(j) Backfill obligation, unchanged.** The pre-existing `decision-log.md D-1011/D-1012 +
+D-1016..D-1042 (exhaustive)` per-decision backfill remains OWED, anchored to a future dedicated
+backfill burst; not attempted this burst per explicit dispatch scoping.
+
+### Agents
+
+- vsdd-factory:adversary: fresh-context pass-6 review (orchestrator-transcribed per POLICY 22)
+- vsdd-factory:story-writer: S-21.11 v2.5→v2.6 EC-011 axes-de-conflation + exhaustive semantic
+  sweep (2 further residual sites)
+- state-manager (this burst): pass-6 report persistence; INDEX.md pass-6 row + Convergence Status
+  advance; STORY-INDEX v4.366 bump; POLICY 18 input-hash three-way re-verification (unchanged);
+  2 non-resetting advisories recorded not churned; sibling-sweep verification; this D-1046
+  decision-log.md entry; STATE.md advance; single atomic commit to `factory-artifacts` per
+  TD-VSDD-053
+
+### 4-INDEX
+
+ARCH-INDEX v3.73 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / BC-INDEX v4.81 (UNCHANGED) /
+STORY-INDEX v4.366 (was v4.365)
+
+### Phase
+
+D-1046-S2111V2-PASS6-REMEDIATION
+
+### Date
+
+2026-08-20
+
+---

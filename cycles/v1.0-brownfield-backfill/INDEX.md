@@ -389,9 +389,10 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 | 2 | 2026-08-19 | *(decision-log.md D-1042 only — no standalone file)* | NOT-CLEAN | 5 (3 HIGH F-S2111V2-P2-001/002/003 + 1 MEDIUM F-004 + 1 LOW F-005) | 0/3 | story v2.2, factory HEAD `4308b6a5` | REMEDIATED D-1042 — BC-1.03.017 v1.14→v1.15 (new Invariant 11, PC13 full-18-entry coverage); ADR-039 v1.11→v1.12 (§Status swept RATIFIED); story v2.2→v2.3; BC-INDEX title-cell sweep; pass-3 NEXT |
 | 3 | 2026-08-19 | `adv-s21.11-v2-local-pass-3.md` | **NOT-CLEAN** | 1 (1 HIGH F-S2111V2-P3-001, streak-resetting) + 2 grounding confirmations + 2 non-resetting observations (1 carry-forward = F-007, 1 LOW STORY-INDEX attribution) | **0/3** | story v2.3, factory HEAD `4308b6a5` | **REMEDIATED (D-1043)** — ADR-039 v1.12→v1.13 (architect; new §Erratum E-005, "Precise rule (normative)" narrowed to the two-leg form; `status: ratified` preserved, POLICY-22-exempt erratum category); BC-1.03.017 v1.15→v1.16 (product-owner; §Architecture Anchors PC13-extension clause + §Traceability ADR row swept to the narrow form); LOW STORY-INDEX §AMD-003 version-attribution corrected (state-manager); pass-4 NEXT |
 | 4 | 2026-08-19 | `adv-s21.11-v2-local-pass-4.md` | **NOT-CLEAN** | 1 (1 MEDIUM F-S2111V2-P4-001, streak-resetting) + 1 non-resetting LOW/ADVISORY + 2 grounding confirmations | **0/3** | story v2.3, factory HEAD `041446a4` | **REMEDIATED (D-1044)** — story-writer swept BC-1.03.017 v1.15→v1.16 propagation residue (58 live cites: frontmatter `behavioral_contracts:` array + body BC-table split-cell + 56 narrative/AC/Task/EC sites; 7 historical changelog occurrences correctly left at v1.15 per POLICY 5 v1.3.5); story v2.3→v2.4; LOW Token Budget ADR-039 §AMD-003/Erratum E-005 description fix (in-scope); pass-5 NEXT |
-| 5 | 2026-08-19 | `adv-s21.11-v2-local-pass-5.md` | **NOT-CLEAN** | 1 (1 HIGH F-S2111V2-P5-001, streak-resetting) + 1 non-resetting LOW/ADVISORY + multiple grounding confirmations | **0/3** | story v2.4, factory HEAD `677d3da9` | **REMEDIATED THIS BURST (D-1045)** — product-owner rewrote/retitled BC-1.03.017 Invariant 10 ("PC13 additive-only invariant — NOT a `Crashed \| Timeout` superset") to the axes-independent additive-only form, plus swept 4 further residual predicate-coherence sites (Architecture Anchors, Traceability, EC-011, PC13 header) via exhaustive semantic sweep, not a single-string grep — BC-1.03.017 v1.16→v1.17; story-writer swept 58 live `BC-1.03.017 v1.16`→`v1.17` cites — story v2.4→v2.5; state-manager reconciled BC-1.03.018's own input-hash (5ab5eab→43d1e13, since it declares BC-1.03.017 as an input); **pass-6 NEXT (fresh-context) — a fresh CLEAN pass-6 is required to begin the streak; this remediation does not itself advance it** |
+| 5 | 2026-08-19 | `adv-s21.11-v2-local-pass-5.md` | **NOT-CLEAN** | 1 (1 HIGH F-S2111V2-P5-001, streak-resetting) + 1 non-resetting LOW/ADVISORY + multiple grounding confirmations | **0/3** | story v2.4, factory HEAD `677d3da9` | **REMEDIATED (D-1045)** — product-owner rewrote/retitled BC-1.03.017 Invariant 10 ("PC13 additive-only invariant — NOT a `Crashed \| Timeout` superset") to the axes-independent additive-only form, plus swept 4 further residual predicate-coherence sites (Architecture Anchors, Traceability, EC-011, PC13 header) via exhaustive semantic sweep, not a single-string grep — BC-1.03.017 v1.16→v1.17; story-writer swept 58 live `BC-1.03.017 v1.16`→`v1.17` cites — story v2.4→v2.5; state-manager reconciled BC-1.03.018's own input-hash (5ab5eab→43d1e13, since it declares BC-1.03.017 as an input); pass-6 NEXT |
+| 6 | 2026-08-20 | `adv-s21.11-v2-local-pass-6.md` | **NOT-CLEAN** | 1 (1 HIGH F-S2111V2-P6-001, streak-resetting) + 2 non-resetting ADVISORY observations + multiple grounding confirmations | **0/3** | story v2.5, factory HEAD `64460671` | **REMEDIATED THIS BURST (D-1046)** — story-writer rewrote the story's OWN sibling EC-011 (BC-1.03.017 v1.17 had already fixed the identical concept in its own EC-011 at D-1045, but the fix was never propagated into the story's copy — D-1045's defensive semantic check was pattern-anchored to the BC's pre-fix wording and missed the story's distinct phrasing) to the axes-independent per-outcome form mirroring BC-1.03.017 v1.17 EC-011, plus swept 2 further residual sites (AC-013's embedded EC-011 paragraph, AC-013b's on_error-vs-Crashed grouping label) via exhaustive story-wide semantic sweep, not a narrow phrase list — story v2.5→v2.6; state-manager re-confirmed story input-hash `97029a5` three-way parity (operator-authoritative rc.23 binary) and RECORDED 2 non-resetting advisories (ADR-039 "strict superset" wording — verified semantically correct, deliberately not churned to avoid re-triggering the input-hash-churn/propagation-residue cycle; BC-1.03.017 changelog imprecision) without churning either; only STORY-INDEX bumped, BC-INDEX/ARCH-INDEX/VP-INDEX and the governing ADR/BC UNCHANGED; **pass-7 NEXT (fresh-context) — a fresh CLEAN pass-7 is required to begin the streak; this remediation does not itself advance it** |
 
-**Convergence Status (S-21.11 v2 LOCAL cascade): NOT-CONVERGED — streak 0/3.** Five passes of the
+**Convergence Status (S-21.11 v2 LOCAL cascade): NOT-CONVERGED — streak 0/3.** Six passes of the
 v2 (unified no-split) cascade to date, all NOT-CLEAN, all remediated same-burst: pass-1 (BLOCKER +
 2 HIGH, mechanism-adjudication class — §AMD-003 authored + RATIFIED), pass-2 (3 HIGH + 1 MEDIUM +
 1 LOW, index-parity + full-coverage class), pass-3 (1 HIGH, authoritative-layer-predicate
@@ -402,16 +403,20 @@ never swept into the story's own citation sites), pass-5 (1 HIGH, a CONTENT-leve
 coherence residue within BC-1.03.017 itself — the D-1043 remediation narrowed the predicate at
 SOME sites but not ALL sites stating the identical concept in different wording; a targeted-grep
 sweep systematically under-covers a predicate-coherence defect class, confirming TD-VSDD-060
-sibling-sweep discipline must extend to CONCEPTS, not only literal string patterns). Passes 3, 4,
-and 5 all close instances of the version-cite-propagates/algorithm-content-does-not gap first
+sibling-sweep discipline must extend to CONCEPTS, not only literal string patterns), pass-6 (1
+HIGH, a further generalization of the pass-5 lesson ACROSS an artifact boundary — BC-1.03.017's
+own EC-011 was fixed at D-1045, but the fix was never propagated into the story's own sibling
+EC-011, because D-1045's defensive semantic check was pattern-anchored to the BC's specific pre-fix
+wording and could not anticipate the story's distinct phrasing of the identical concept). Passes 3,
+4, 5, and 6 all close instances of the version-cite-propagates/algorithm-content-does-not gap first
 codified for the S-21.07 cascade at D-1006, now confirmed to recur bidirectionally (story→BC at
-pass-3; BC→story at pass-4) and intra-artifact (BC-body→BC-body at pass-5) within a single
-cascade. Per BC-5.39.001, three FRESH CONSECUTIVE CLEAN passes are required from pass-6 onward;
-this remediation burst does not itself advance the streak. Total v1+v2 pre-TDD cascade to date: 15
-(v1) + 5 (v2) = 20 passes against the S-21.11 spec bundle. 4-index at this burst: ARCH-INDEX
-v3.73 / VP-INDEX v2.76 (UNCHANGED — no ADR/VP content changed this burst) / BC-INDEX v4.80→v4.81 /
-STORY-INDEX v4.364→v4.365.
-**NEXT: fresh-context adversary pass-6 against the S-21.11 v2.5 + ADR-039 v1.13 + BC-1.03.017
+pass-3; BC→story at pass-4 AND pass-6) and intra-artifact (BC-body→BC-body at pass-5) within a
+single cascade. Per BC-5.39.001, three FRESH CONSECUTIVE CLEAN passes are required from pass-7
+onward; this remediation burst does not itself advance the streak. Total v1+v2 pre-TDD cascade to
+date: 15 (v1) + 6 (v2) = 21 passes against the S-21.11 spec bundle. 4-index at this burst:
+ARCH-INDEX v3.73 / VP-INDEX v2.76 / BC-INDEX v4.81 (all UNCHANGED — no ADR/VP/BC content changed
+this burst) / STORY-INDEX v4.365→v4.366.
+**NEXT: fresh-context adversary pass-7 against the S-21.11 v2.6 + ADR-039 v1.13 + BC-1.03.017
 v1.17 + BC-1.03.018 v1.1 + indexes bundle.**
 
 ## Artifact Size Budgets (IP-003 / D-835)
