@@ -7,11 +7,29 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "e92da6a"
+input-hash: "7698526"
 traces_to: STATE.md
 ---
 
 # Session Checkpoints — v1.0-brownfield-backfill
+
+---
+
+## Session Resume Checkpoint (2026-08-20 — D-1051-S2111V2-PASS11-REMEDIATION; PIPELINE ACTIVE; pass-12 dispatch NEXT; streak reset 0/3, 11 passes v2 cascade)
+
+Archived from STATE.md by the D-1052 pass-12 CLEAN burst (2026-08-20). Full content preserved in git: `git show 06bdde56:.factory/STATE.md` (factory-artifacts HEAD at archive time, D-1051 commit).
+
+Key state at D-1051 archive:
+- Pipeline ACTIVE; S-21.11 v2.10 PRE-TDD spec-convergence cascade under E-21. D-1051 pass-11 remediation committed — adversary pass-11 returned NOT-CLEAN: 3 MEDIUM streak-resetting findings (F-S2111V2-P11-001 backtick-title-intervening stale BC-1.03.017 cite; F-S2111V2-P11-002 AC-009 red-first TDD gate mis-pointed/authored post-flip; F-S2111V2-P11-003 AC-010 missing an authoring task entirely), plus re-confirmation of pass-10's 3 non-resetting LOW/ADVISORY cosmetic observations. BC-5.39.001 streak RESETS 1/3 → 0/3.
+- All 6 findings remediated same-burst by story-writer: S-21.11 v2.9→v2.10 (backtick-tolerant detector fix to v1.18; new Task #20a red-first authoring for AC-009 + Task #29 rewritten to confirm GREEN post-flip; AC-010 authoring added to Task #18 + Task #20 enumeration extended; pass-10's 3 folded-in cosmetic findings closed).
+- New standing rule D-1051(j) codified (extends D-1047(h)): cite-parity sweeps MUST also use a backtick-tolerant detector form.
+- Next action (at archive time): dispatch fresh-context adversary pass-12 against the D-1051-remediated bundle (S-21.11 v2.10 + BC-1.03.017 v1.18 + BC-1.03.018 v1.1 + ADR-039 v1.13 + 4-index).
+- 4-INDEX at archive: BC-INDEX v4.82 / STORY-INDEX v4.370 / ARCH-INDEX v3.73 / VP-INDEX v2.76.
+- Story input-hash `97029a5` UNCHANGED, re-confirmed three-way parity.
+- develop: `27c56c01`; main: `80e5cd7b`.
+- factory-artifacts HEAD at archive: `06bdde56` (D-1051 commit).
+
+**This checkpoint superseded by the D-1052-S2111V2-PASS12-CLEAN burst 2026-08-20 (pass-12 returned CLEAN; streak advanced 0/3→1/3).**
 
 ---
 

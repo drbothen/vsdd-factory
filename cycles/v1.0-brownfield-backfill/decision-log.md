@@ -19552,3 +19552,120 @@ D-1051-S2111V2-PASS11-REMEDIATION
 2026-08-20
 
 ---
+
+## D-1052 — D-1052-S2111V2-PASS12-CLEAN
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → the prior recorded max
+in this file is `## D-1051`. This entry is D-1052, the next decision allocated after D-1051. The
+pre-existing `decision-log.md D-1011/D-1012 + D-1016..D-1042 (exhaustive)` per-decision backfill
+obligation (STATE.md Blocking Issues) is unrelated to this entry and remains carried forward
+unchanged; this entry does not attempt that backfill. Likewise the `cycles/v1.0-brownfield-backfill/
+session-checkpoints.md` D-1043..D-1045 checkpoint-archival backfill gap remains OWED, carried
+forward unchanged; not attempted this burst.
+
+**Scope note (single-commit BOOKKEEPING-ONLY burst, state-manager, TD-VSDD-053).** Adversary
+pass-12 of the S-21.11 v2 cascade (dispatched fresh-context against the `06bdde56` bundle — story
+v2.10 + BC-1.03.017 v1.18 + BC-1.03.018 v1.1 + ADR-039 v1.13, i.e. the D-1051-remediated bundle,
+the SAME bundle pass-11's post-remediation state left in place) returned **CLEAN**: zero
+BLOCKER/HIGH/MEDIUM streak-resetting findings, plus 3 non-resetting LOW/ADVISORY observations and
+multiple grounding confirmations. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-s21.11-v2-local-pass-12.md`.
+
+**(a) Verdict and streak.** This is the FIRST clean pass since the pass-11 reset. Per BC-5.39.001,
+the streak ADVANCES **0/3 → 1/3**. Two further FRESH CONSECUTIVE CLEAN passes (pass-13, pass-14)
+against the SAME UNCHANGED bundle are required for 3-CLEAN convergence.
+
+**(b) Fix verification (Part A).** All 3 of pass-11's MEDIUM streak-resetting findings re-verified
+RESOLVED and stable:
+
+- F-S2111V2-P11-001 (backtick-title-intervening stale BC-1.03.017 v1.17 cite) — the Routing
+  Proposals opening sentence now reads v1.18, consistent with the same paragraph's own later cite;
+  a fresh backtick-tolerant sweep confirms zero non-v1.18 live residue.
+- F-S2111V2-P11-002 (AC-009 red-first gate mis-pointed + authored post-flip) — Task #20a
+  independently re-derived to precede Tasks #26–#28 (the Phase-4c flip) in the DAG, restoring a
+  genuine first-run RED observation; Task #16's pointer and Task #29's CONFIRM-GREEN role both
+  re-verified correct.
+- F-S2111V2-P11-003 (AC-010 missing an authoring task) — authoring re-verified present at Task
+  #18; Task #20's verification enumeration re-verified to name AC-010 explicitly.
+
+**(c) 3 non-resetting LOW/ADVISORY observations — DOCUMENTED, deliberately NOT remediated this
+burst.** None touch predicate content, index parity, numeric magnitudes, cite propagation, or
+task-DAG structure:
+
+- **F-S2111V2-P12-001 (LOW):** Task #22 (Node E) reads "AC-014 through AC-021 (all **nine**
+  break-glass/hardening ACs)" — an off-by-one adjectival count (AC-014..AC-021 is 8 ACs, matching
+  BC-1.03.018 PC1–PC8). The explicit enumeration itself is correct and complete; only the
+  parenthetical adjective is wrong — no implementer misdirection or coverage gap.
+- **F-S2111V2-P12-002 (ADVISORY):** the story's Node (D) header describes itself as "independent
+  of B/C," slightly loose given Task #20a's soft Node-B prerequisite (AC-013 GREEN); task SEQUENCE
+  itself is correct (Node B Tasks #6–10 precede Node D) — a label-scope precision nit, not a
+  sequencing defect.
+- **F-S2111V2-P12-003 (ADVISORY):** the story's DAG Node-(D) illustrative box omits AC-009 from
+  its caption — independently re-derived as CONFIRMED INTENTIONAL: the box deliberately scopes to
+  decision-function-behavior ACs and excludes the registry-scan gate ACs (AC-001 and AC-009 both
+  absent from the box on the same basis; AC-001 was never listed either, before or after any prior
+  remediation). No change needed.
+
+**Disposition (explicit, this burst):** F-S2111V2-P12-001 is routed to the **same single
+consolidated cosmetic sweep at convergence-close** (after pass-14 confirms 3-CLEAN, before TDD
+handoff) already anchoring the Drift Items row established at D-1047/D-1051 — a one-line touch now
+would re-version the story and force passes 13/14 to review a churned bundle, defeating the
+BC-5.39.001 3-CLEAN protocol's stable-artifact requirement. F-S2111V2-P12-002 requires no action
+(label-precision nit, non-blocking). F-S2111V2-P12-003 requires no action (confirmed intentional
+scoping, not a defect). STATE.md Drift Items carries the updated anchor row; this decision-log
+entry is the authoritative record of the 3 finding IDs and their rationale.
+
+**(d) No spec/index/input-hash changes this burst.** Story `S-21.11-validator-exhaustion-fail-
+closed-calibration-and-enforcement.md` stays **v2.10** (input-hash `97029a5`, UNCHANGED);
+`BC-1.03.017.md` stays **v1.18**; `BC-1.03.018.md` stays **v1.1**; `ADR-039` stays **v1.13**.
+BC-INDEX stays **v4.82**; STORY-INDEX stays **v4.370**; ARCH-INDEX stays **v3.73**; VP-INDEX stays
+**v2.76**. Nothing in the reviewed bundle changed — this is the intended state for passes 13-14 to
+review an identical artifact per the 3-CLEAN protocol.
+
+**(e) Sibling-sweep (TD-VSDD-060) — not applicable this burst.** No content was edited, so no
+sibling-sweep is required. The pass-11 corpus-wide backtick-tolerant sibling-sweep (confirmed
+CLEAN, D-1051) remains valid and unchanged.
+
+**(f) Streak.** BC-5.39.001 streak **ADVANCES 0/3 → 1/3** (first clean pass since the pass-11
+reset). A fresh-context adversary **pass-13** against the SAME S-21.11 v2.10 + ADR-039 v1.13 +
+BC-1.03.017 v1.18 + BC-1.03.018 v1.1 + 4-index bundle (unchanged) is required next.
+
+**(g) Novelty note.** Novelty LOW — a clean pass with only cosmetic LOW/ADVISORY residue (one
+off-by-one adjectival count, one label-scope nit, one confirmed-intentional scoping question). No
+new defect class; no new standing rule codified. The existing D-1044(g)/D-1045(h)/D-1046(h)/
+D-1046(b)/D-1047(h)/D-1051(j) lessons remain logged in the Drift Items table, unchanged, carried
+forward.
+
+**(h) Telemetry fold-in.** Already-modified tracked dispatcher-telemetry files
+(`logs/dispatcher-internal-2026-08-20.jsonl`, `sidecar-learning.md`) are included in this single
+commit as ordinary accumulation — no separate commit, per the Single-Commit Burst Protocol.
+
+**(i) Backfill obligations, unchanged.** The pre-existing `decision-log.md D-1011/D-1012 +
+D-1016..D-1042 (exhaustive)` per-decision backfill remains OWED, anchored to a future dedicated
+backfill burst; not attempted this burst per explicit dispatch scoping. The
+`session-checkpoints.md` D-1043..D-1045 checkpoint-archival gap also remains OWED, carried forward
+unchanged.
+
+### Agents
+
+- vsdd-factory:adversary: fresh-context pass-12 review (orchestrator-transcribed per POLICY 22) —
+  CLEAN, first clean pass since the pass-11 reset
+- state-manager (this burst): pass-12 report persistence; INDEX.md pass-12 row + Convergence
+  Status advance (streak 1/3); this D-1052 decision-log.md entry; STATE.md advance; single atomic
+  commit to `factory-artifacts` per TD-VSDD-053. NO spec/index files touched — nothing in the
+  reviewed bundle changed.
+
+### 4-INDEX
+
+ARCH-INDEX v3.73 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / BC-INDEX v4.82 (UNCHANGED) /
+STORY-INDEX v4.370 (UNCHANGED) — all four UNCHANGED this burst.
+
+### Phase
+
+D-1052-S2111V2-PASS12-CLEAN
+
+### Date
+
+2026-08-20
+
+---

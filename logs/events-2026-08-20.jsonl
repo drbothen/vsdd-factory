@@ -135,3 +135,5 @@
 {"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-08-20T12:05:22-0500","ts_epoch":1787245522,"schema_version":1}
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-08-20T12:05:36-0500","ts_epoch":1787245536,"schema_version":1}
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-08-20T12:11:50-0500","ts_epoch":1787245910,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-08-20T12:46:44-0500","ts_epoch":1787248004,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-08-20T13:08:12-0500","ts_epoch":1787249292,"schema_version":1}
