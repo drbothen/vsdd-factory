@@ -21001,3 +21001,134 @@ D-1062-WAVE6-PASS4-REMEDIATION
 2026-08-20
 
 ---
+
+## D-1063 — D-1063-WAVE6-PASS5-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` -> the prior recorded max
+in this file is `## D-1062`. This entry is D-1063, the next decision allocated after D-1062.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053; atomic across BOTH
+S-21.19 and S-21.25 clusters).** Per D-1057(k), each split seam requires its own independent
+BC-5.39.001 3-CLEAN LOCAL pre-TDD adversarial cascade before Phase-3 TDD entry. This entry records
+pass-5 outcomes for BOTH the S-21.19 cluster (D-1062's remediated v1.3 bundle) and the S-21.25
+cluster (D-1062's remediated v1.4 bundle), and their same-burst remediations, as one atomic
+Wave-6 burst.
+
+**(a) S-21.19 pre-TDD adversary pass-5 verdict.** **CLEAN — first clean pass.** The adversary
+re-derived every anchor in the S-21.19 v1.3 bundle fresh-context (BC-1.03.017 v1.19, BC-1.01.016
+v1.3, ADR-044, ADR-039 v1.15, sibling S-21.24 v1.2, source-grounded against
+`crates/factory-dispatcher/src/executor.rs`) and found zero streak-resetting findings localized to
+S-21.19's own perimeter. LOCAL BC-5.39.001 streak **ADVANCES 0/3→1/3**; pass-6 next. Novelty LOW.
+Full verbatim review: `.factory/cycles/v1.0-brownfield-backfill/adv-s21.19-local-pass-5.md`.
+
+**(b) S-21.19 cross-story finding — fixed in scope, does not reset S-21.19's own streak.**
+**F-S2119-P5-001** (MEDIUM, POLICY 4 / partial-fix-regression S-7.01(c)):
+`.factory/planning/S-21.11-decomposition-plan.md` §3 intro (~line 424) read "…every AC has exactly
+one owning story, except the two explicitly noted cross-seam splits (AC-007, AC-013b)…" — stale
+since the F-S2119-P1-001 remediation (D-1058) made AC-002 and AC-011 cross-seam splits too. The
+partition table (~L429/L438) and verification arithmetic (~L479-480: "AC-002 (2 legs) + AC-007 (2
+legs) + AC-011 (2 legs) + AC-013b (2 legs) = 4 ACs, 8 legs") already correctly enumerated FOUR
+splits — only the intro prose lagged.
+- `vsdd-factory:state-manager` (this burst): changed "the two explicitly noted cross-seam splits
+  (AC-007, AC-013b)" → "the four explicitly noted cross-seam splits (AC-002, AC-007, AC-011,
+  AC-013b)", preserving the "two legs, one owner apiece" mechanic clause. Literal-shell
+  verification (D-449(a)):
+  ```
+  $ grep -n "cross-seam split" .factory/planning/S-21.11-decomposition-plan.md
+  424:duplications** — every AC has exactly one owning story, except the four explicitly noted
+  424:cross-seam splits (AC-002, AC-007, AC-011, AC-013b), each of which has exactly two legs with one owner apiece.
+  ```
+  Zero occurrences of the stale "the two … cross-seam splits" phrasing remain. Input-hash
+  reconciled via operator-authoritative rc.23 `compute-input-hash --update` (POLICY 18):
+  `937a3a9`→`bc7c141`.
+- Three non-resetting observations documented (O-S2119-P5-001 ADVISORY cosmetic version-token
+  inconsistency; O-S2119-P5-002 not-a-finding, POLICY 7 editorial-abbreviation exception applies;
+  O-S2119-P5-003 LOW out-of-perimeter, BC-1.01.016's `CAP-TBD` already covered by the sanctioned
+  D-1021 deferral) — no action required.
+
+**(c) S-21.25 pre-TDD adversary pass-5 verdict.** **NOT-CLEAN — 2 MEDIUM, streak REMAINS 0/3.**
+The S-21.25 v1.4 story body itself is CLEAN — the adversary independently re-derived all 7
+previously-named risk areas (emitter-name parity, AC-005 self-match/RED-GREEN, test-distribution
+14/3/1=18, threshold-predicate testability, BC-3.08.001 Event-7 field-set, message-text parity,
+three-way input-hash parity `4af3ec2`) and confirmed all 7 sound. Both findings are index-
+propagation residue from the Event-7 registration cluster (concurrency-residue, split across
+agents at prior bursts) — NOT a story defect, and resolving them does NOT advance S-21.19's or
+S-21.25's own streaks. Full verbatim review:
+`.factory/cycles/v1.0-brownfield-backfill/adv-s21.25-local-pass-5.md`.
+
+**(d) S-21.25 resolution — both findings fixed in scope, no BLOCKER, no deferral.**
+- **F-S2125-P5-001** (MEDIUM, POLICY 4 DESCRIPTION-BEARING ANCHOR-PROSE PARITY / POLICY 9):
+  `.factory/specs/verification-properties/VP-INDEX.md` (~line 527), the VP-079 §Story Anchors row
+  read "…all six async-semantics event types (…) per BC-3.08.001 v1.19." VP-079 is now v1.21 and
+  its own §Full Index row already correctly enumerates seven event types (adds
+  `plugin.fuel_headroom_warning`, swept at v1.20/D-1059); BC-3.08.001 is now v1.26. `state-manager`
+  (this burst): swept six→seven, added `plugin.fuel_headroom_warning` to the enumeration, and
+  replaced the trailing load-bearing `v1.19` version pin with the stable unpinned form
+  `per BC-3.08.001` (POLICY 19 spirit — anchor-prose rows should not carry a version token that
+  goes stale on every subsequent BC amendment). VP-INDEX v2.78→v2.79.
+- **F-S2125-P5-002** (MEDIUM, BC-INDEX-mirrors-BC-file / anchor-back propagation):
+  `.factory/specs/behavioral-contracts/BC-INDEX.md` (~line 769) BC-3.08.001 Stories column read
+  "S-15.01, S-19.05" but BC-3.08.001's own §Traceability Stories row (line 394) and §Story Anchor
+  (line 335) name S-21.25 as the Event-7 anchor story — precedent: S-19.05 (Event 6) IS in the
+  column. `state-manager` (this burst): appended `, S-21.25` to the BC-3.08.001 Stories column.
+  BC-INDEX v4.86→v4.87. `total_bcs` UNCHANGED 1987 (column-cell fix only, no new BC, no BC prose
+  change).
+- One non-resetting observation: VP-079's own frontmatter carries `modified: []` and no
+  `last_amended` field despite 21 body `## Amendment` sections (POLICY 17 gap spanning VP-079's
+  whole history — architect-owned, out of S-21.25's scope). Recorded as a NEW drift item anchored
+  to the architect's next VP-079 touch, alongside the existing D-1062 VP-079 BC-3.08.001
+  v1.25→v1.26 stale-cite drift item (a distinct, still-open item, NOT re-fixed this burst).
+
+**(e) Process-gap recurrence (recorded, not a new codification).** Both S-21.25 findings confirm a
+recurrence of the existing anchored class D-1044(g)/D-995 (governing-BC-bump lacks same-burst
+story-propagation-dispatch discipline) one layer further out: the v1.25 Event-7 registration burst
+(D-1059) self-deferred the BC-INDEX Stories-column leg and the VP-INDEX §Story Anchors leg of its
+own propagation. Per explicit dispatch instruction, no new follow-up story is opened; recorded as a
+recurrence anchored to the existing S-15.03 PRIORITY-A candidate (a POLICY-14-leg-5 same-burst
+index-Stories-column sweep gate). See `lessons.md` recurrence note appended this burst.
+
+**(f) Streak discipline.** BC-5.39.001: S-21.19's LOCAL cascade streak **ADVANCES 0/3→1/3** (first
+clean pass); S-21.25's LOCAL cascade streak **REMAINS 0/3** (resolving index-propagation residue
+does not itself advance the streak). Fresh-context adversary pass-6 is the next action for each:
+S-21.19 against S-21.19 v1.3 (UNCHANGED) + STORY-INDEX v4.378 + BC-INDEX v4.87; S-21.25 against
+S-21.25 v1.4 (UNCHANGED) + BC-1.03.019 v1.2 + VP-079 v1.21 + VP-INDEX v2.79 + BC-INDEX v4.87.
+
+**(g) Scope boundary (explicit).** This burst registers/reconciles/records only for the
+S-21.19-cluster (decomposition-plan.md, STORY-INDEX/BC-INDEX cross-reference cells already
+identified by the pass-5 finding sets) and S-21.25-cluster (VP-INDEX, BC-INDEX cross-reference
+cells). It does NOT touch S-21.19, S-21.24, S-21.25, BC-1.03.017, BC-1.03.018, BC-1.03.019,
+BC-3.08.001, VP-079, or ADR-039/ADR-044 body content themselves — no BC/ADR/VP/story prose changed
+this pass-5 round on either cluster; the VP-079 POLICY 17 frontmatter gap and the pre-existing
+D-1062 VP-079 BC-3.08.001 stale-cite item are recorded, not fixed, per this scope boundary.
+
+### Agents
+
+- state-manager (this burst): `.factory/planning/S-21.11-decomposition-plan.md` §3 intro fixed
+  (two→four cross-seam splits) + input-hash reconciled (`937a3a9`→`bc7c141` via operator rc.23
+  binary); `VP-INDEX.md` §Story Anchors VP-079 row fixed (six→seven + version pin removed);
+  `BC-INDEX.md` BC-3.08.001 Stories column fixed (`, S-21.25` appended); `STORY-INDEX.md` S-21.19
+  and S-21.25 catalog rows annotated with D-1063 outcomes. New
+  `adv-s21.19-local-pass-5.md` (CLEAN) and `adv-s21.25-local-pass-5.md` (NOT-CLEAN) persisted
+  (input-hash reconciled via operator rc.23 binary: `3314959`, `11f321d`). INDEX.md both LOCAL
+  Adversary Reviews sections gained a pass-5 row + Convergence Status advance. This D-1063
+  decision-log.md entry. lessons.md process-gap recurrence note appended. burst-log.md 8-block
+  entry appended. STATE.md advance (un-pause ACTIVE, Phase Progress row, Story Status, Blocking
+  Issues, Drift Items, Session Resume Checkpoint). Single atomic commit to `factory-artifacts` per
+  TD-VSDD-053.
+
+### 4-INDEX
+
+BC-INDEX v4.86→v4.87 (BC-3.08.001 Stories column correction) / ARCH-INDEX v3.76 UNCHANGED (no ADR
+content changed this burst) / VP-INDEX v2.78→v2.79 (VP-079 §Story Anchors row six→seven + version
+pin removed) / STORY-INDEX v4.377→v4.378 (S-21.19 pass-5 CLEAN annotation; S-21.25 pass-5
+NOT-CLEAN-remediated annotation; both story files themselves unchanged).
+
+### Phase
+
+D-1063-WAVE6-PASS5-REMEDIATION
+
+### Date
+
+2026-08-21
+
+---

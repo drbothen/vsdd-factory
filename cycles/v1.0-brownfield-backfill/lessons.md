@@ -11169,3 +11169,44 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Codified obligation (D-1006):** Whenever a story-body site embeds copied ALGORITHM or CONTENT (a regex, a pseudocode block, an enumerated procedural rule, a message-text template) from a governing BC clause — not merely a bare version-number citation of that clause — a version-cite propagation sweep (POLICY 8) MUST diff the embedded content against the BC's CURRENT text for that clause, not merely regex-match the version token or confirm the citation reads the current version number. A propagation sweep that checks only "does this site say vX.Y" without also checking "does this site's CONTENT match what vX.Y's clause currently specifies" can silently carry a stale algorithm forward across an unbounded number of story-versions while its version cite reads perfectly current at every single sweep — the citation-token check and the content-correctness check are orthogonal properties, and passing the former proves nothing about the latter. Concretely: (a) any site with a fenced code block, regex literal, or step-numbered procedure attributed to a BC clause MUST be identified during a POLICY 8 sweep as a content-bearing site, not merely a citation-bearing site; (b) the sweep MUST re-read the BC's current clause text and confirm the embedded content is byte-for-byte (or algorithmically) equivalent to what the clause currently specifies, not merely confirm the version number matches; (c) where the BC's own text explicitly names a PRIOR form as NON-CONFORMING (as BC-5.39.010 v1.19 PC13 does), the sweep MUST grep the downstream story for literal occurrences of that named-non-conforming form as an independent verification step, since a stale copy is by definition a copy of exactly the form the BC now prohibits.
 
 **Cites:** distinct in kind from [[L-BB-attestation-predicate-must-be-whitespace-tolerant-and-line-wrap-aware]] (D-1004) and the D-996/D-998/D-1000 fix-scoped-to-named-site family — those lessons concern sibling-site SCOPE or verification-PREDICATE ADEQUACY *after* a defect is already known to exist somewhere in a document; this lesson concerns a build directive's own CONTENT never having been re-derived from its cited source across six consecutive successful-looking propagation sweeps, each of which correctly advanced the version number and therefore reported no drift. Extends POLICY 8 (BC-version propagation) and TD-VSDD-060 (sibling-sweep on value changes) with a specific sub-discipline: version-NUMBER currency and embedded-CONTENT currency are orthogonal properties, and a sweep that verifies only the former can pass indefinitely while the latter silently rots. `[process-gap; POLICY-4; POLICY-8; TD-VSDD-060; version-cite-propagation; algorithm-content; content-vs-number; spec-implementation-contradiction; story-writer; state-manager; F-S2107-P21-001; D-1006; S-21.07; codified; S-15.03-PRIORITY-A-anchor]`
+
+## RECURRENCE NOTE (D-1063) — D-1044(g)/D-995 class recurs one layer further out: BC-INDEX Stories-column + VP-INDEX Story-Anchors-row propagation legs
+
+**Category:** process-gap (recurrence, not a new class)
+
+**Session evidence** (2026-08-21, S-21.25 pre-TDD pass-5, F-S2125-P5-001/002): the D-1059 burst
+that registered BC-3.08.001's Event 7 (`plugin.fuel_headroom_warning`) and bumped VP-079 to v1.20
+correctly propagated the version-cite legs and the §Full Index row's six→seven event-type
+enumeration, but self-deferred two further propagation legs that surfaced two clean-looking bursts
+later (D-1060 through D-1062, three intervening passes, before the wider cross-index audit at pass
+5 caught it): (1) BC-INDEX's own BC-3.08.001 Stories column never gained `S-21.25`, even though the
+BC file's own §Traceability Stories row and §Story Anchor section were updated at the time Event 7
+was registered to name S-21.25 as the anchor; (2) VP-INDEX's §Story Anchors VP-079 row (a
+DIFFERENT row than the already-correctly-swept §Full Index row) retained the pre-registration
+"six event types" enumeration and a now-doubly-stale `per BC-3.08.001 v1.19` version pin. Both are
+the SAME underlying failure shape already codified at D-1044(g) (BC-version-bump-mid-cascade lacks
+same-burst story-propagation-dispatch discipline) and D-995
+([[L-BB-story-propagation-obligation-on-governing-bc-normative-prose-amendment]]) — a governing
+artifact's version bump obligates a sweep of every downstream/sibling site citing it, and no
+existing convention enumerates ALL such sites in one pass. This recurrence demonstrates the class
+extends one layer further than either prior instance covered: D-995 was BC→story propagation;
+D-1044(g) was BC-bump→story-frontmatter-and-body propagation; this recurrence is
+BC-event-registration→INDEX-file-Stories-column-and-Story-Anchors-row propagation — a THIRD
+distinct sweep-target surface within the same underlying obligation.
+
+**Disposition (per explicit dispatch instruction):** NOT a new codification, NOT a new follow-up
+story. Recorded as a recurrence anchored to the existing S-15.03 PRIORITY-A candidate — a
+POLICY-14-leg-5 same-burst index-Stories-column sweep gate: whenever a BC-registration burst adds
+a new anchor story to a BC's §Traceability/§Story Anchor sections, the SAME burst must sweep (a)
+that BC's own BC-INDEX Stories column, and (b) every VP-INDEX row (both §Full Index AND
+§Story Anchors, which are DISTINCT rows that can independently drift) whose event/property
+enumeration references the same BC clause. Both findings (F-S2125-P5-001, F-S2125-P5-002) fixed
+in scope at D-1063; no story-body defect — the S-21.25 story itself independently re-derived CLEAN
+across all 7 previously-named risk areas at the same pass.
+
+**Cites:** recurrence of [[L-BB-story-propagation-obligation-on-governing-bc-normative-prose-amendment]]
+(D-995) and D-1044(g); companion to the D-996/D-998/D-1000/D-1004/D-1006 "fix/attest scoped to the
+named site, not the class" family — this is the fourth generation of that family's underlying
+insight applied to a NEW surface (cross-index Stories-column/Story-Anchors-row propagation, as
+distinct from BC-body prose, story-body prose, index-aggregation-cell arithmetic, or
+attestation-predicate adequacy). `[process-gap; recurrence; POLICY-8; POLICY-9; POLICY-14; BC-INDEX; VP-INDEX; Stories-column; Story-Anchors-row; story-propagation; state-manager; F-S2125-P5-001; F-S2125-P5-002; D-1044; D-995; D-1063; S-21.25; S-15.03-PRIORITY-A-anchor]`

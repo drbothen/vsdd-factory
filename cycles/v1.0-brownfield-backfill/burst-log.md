@@ -29203,3 +29203,155 @@ $ gh api repos/drbothen/vsdd-factory/branches/develop/protection 2>&1 | head -1
 **Closes:** the CI-WIRING half of `[D-969]`/`[F-S2107-P10-001]` (job added to `ci.yml`, proven non-vacuous on the PR's own CI, merged to `develop`). `[D-969]`/`[F-S2107-P10-001]` is now fully CLOSED **as a wiring matter** — both crate (#777, D-1014) and CI-wiring (#778, this entry) halves complete. Does NOT close: branch-protection enforcement (new `[P0-followup]` Blocking Issue, human/admin-only action); the D-1011/D-1012 exhaustive per-decision decision-log.md backfill (still OWED); C-1/C-2/C-4/C-5 exec_subprocess security findings (ADR-043 NOT RATIFIED).
 
 **Factory-artifacts commit (this burst — TD-VSDD-053 single-commit-per-burst):** single commit pushed as `git push origin HEAD:factory-artifacts`; SHA per `git -C .factory log -1` after push (per TD-VSDD-053, this burst does not cite its own commit SHA in STATE.md prose — see CLAUDE.md "How to know the current factory-artifacts HEAD SHA").
+
+## D-1063-WAVE6-PASS5-REMEDIATION
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1062 < D-9000 ceiling
+```
+
+D-1063 allocated. **Parent-commit:** `68579b9b` — `factory(pause): session wrap — Wave-6 per-story
+convergence PAUSED, S-21.19 v1.3 + S-21.25 v1.4 both 0/3, pass-5 next` (factory-artifacts HEAD at
+burst start; SESSION-WRAP-PAUSE-2026-08-20 bookkeeping-only pause commit).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` pass-5 dispatched in parallel against BOTH Wave-6 seams.
+**S-21.19 bundle** (story v1.3 + BC-1.03.017 v1.19 + BC-1.01.016 v1.3 + ADR-044 + ADR-039 v1.15 +
+sibling S-21.24 v1.2, source-grounded against `crates/factory-dispatcher/src/executor.rs`):
+**verdict CLEAN — first clean pass.** Zero streak-resetting findings localized to S-21.19's own
+perimeter; LOCAL BC-5.39.001 streak **ADVANCES 0/3→1/3**. One cross-story MEDIUM
+(F-S2119-P5-001, decomposition-plan.md stale prose) fixed in scope, does not reset the streak.
+**S-21.25 bundle** (story v1.4 + BC-1.03.019 v1.2 + BC-3.08.001 v1.26 + VP-079 v1.21):
+**verdict NOT-CLEAN — 2 MEDIUM (F-S2125-P5-001/002), streak REMAINS 0/3.** The S-21.25 story body
+itself independently re-derived CLEAN across all 7 previously-named risk areas; both findings are
+index-propagation residue (VP-INDEX §Story Anchors row, BC-INDEX Stories column), not story
+defects. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-s21.19-local-pass-5.md` and
+`cycles/v1.0-brownfield-backfill/adv-s21.25-local-pass-5.md`.
+
+**Block 3: Files touched**
+
+- `.factory/cycles/v1.0-brownfield-backfill/adv-s21.19-local-pass-5.md` — new (pass-5 CLEAN record)
+- `.factory/cycles/v1.0-brownfield-backfill/adv-s21.25-local-pass-5.md` — new (pass-5 NOT-CLEAN record)
+- `.factory/planning/S-21.11-decomposition-plan.md` — §3 intro fixed (two→four cross-seam splits); input-hash `937a3a9`→`bc7c141`
+- `.factory/specs/verification-properties/VP-INDEX.md` — §Story Anchors VP-079 row fixed (six→seven + version pin removed); version v2.78→v2.79; last_amended chain
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — BC-3.08.001 Stories column gained `, S-21.25`; version v4.86→v4.87; last_amended chain
+- `.factory/stories/STORY-INDEX.md` — S-21.19 and S-21.25 catalog rows annotated with D-1063 outcomes; version v4.377→v4.378; last_amended chain
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — both LOCAL Adversary Reviews sections gained a pass-5 row; both Convergence Status paragraphs advanced
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1063 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — process-gap recurrence note appended
+- `.factory/STATE.md` — full advance (frontmatter un-pause ACTIVE, Phase Progress row, Current Phase Steps, Decisions Log, Story Status, Active Branches, Blocking Issues, Drift Items, Session Resume Checkpoint)
+- `.factory/logs/dispatcher-internal-2026-08-20.jsonl`, `.factory/logs/dispatcher-internal-2026-08-21.jsonl`, `.factory/sidecar-learning.md` — folded-in telemetry accumulation (pre-existing modifications at burst start, log rotation per state-manager discipline: `logs/dispatcher-internal-2026-07-21.jsonl` deleted)
+
+No `S-21.19-executor-decision-function-core.md`, `S-21.25-fuel-headroom-warn-event.md`,
+`BC-1.03.017.md`, `BC-1.03.019.md`, `BC-3.08.001.md`, `VP-079.md`, `ADR-039`, or `ADR-044` touched
+this burst — both story bodies re-derived CLEAN/CONFIRMED-HELD with nothing to fix in either story
+file; both MEDIUM findings on the S-21.25 side and the one cross-story MEDIUM on the S-21.19 side
+were all located in index/planning artifacts, not the BC/ADR/VP/story bodies themselves.
+
+**Block 4: Codifications**
+
+No new `[process-gap]` lesson class this burst. The two S-21.25 findings (F-S2125-P5-001/002) are a
+**recurrence** of the existing anchored class D-1044(g)/D-995 (governing-BC-bump lacks same-burst
+story-propagation-dispatch discipline), recorded as a recurrence note in `lessons.md` and anchored
+to the existing S-15.03 PRIORITY-A candidate (POLICY-14-leg-5 same-burst index-Stories-column sweep
+gate) — no new codification, no new follow-up story, per explicit dispatch instruction. One new
+Drift Item added: VP-079's own frontmatter `modified: []` / missing `last_amended` despite 21 body
+Amendment sections (POLICY 17 gap), anchored the architect's next VP-079 touch, alongside the
+existing D-1062 VP-079 BC-3.08.001 v1.25→v1.26 stale-cite drift item.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+Decomposition-plan.md cross-seam-split sweep gate (literal shell, D-449(a)):
+
+```
+$ grep -n "cross-seam split" .factory/planning/S-21.11-decomposition-plan.md
+424:duplications** — every AC has exactly one owning story, except the four explicitly noted
+424:cross-seam splits (AC-002, AC-007, AC-011, AC-013b), each of which has exactly two legs with one owner apiece.
+```
+
+VP-INDEX six→seven sweep verification gate:
+
+```
+$ grep -n "VP-079 | S-15.01 | v1.0-feature-plugin-async-semantics-pass-1 F3" .factory/specs/verification-properties/VP-INDEX.md
+527:| VP-079 | S-15.01 | v1.0-feature-plugin-async-semantics-pass-1 F3 | S-15.01 is the anchor story; VP-079 integration harness verifies payload schema conformance for all seven async-semantics event types (plugin.async_block_discarded, dispatcher.schema_mismatch, dispatcher.registry_invalid, plugin.timeout, plugin.abandoned, plugin.completed (async path), plugin.fuel_headroom_warning) per BC-3.08.001 |
+```
+
+BC-INDEX Stories-column sweep verification gate:
+
+```
+$ grep -n "S-15.01, S-19.05, S-21.25" .factory/specs/behavioral-contracts/BC-INDEX.md
+769:| [BC-3.08.001](ss-03/BC-3.08.001.md) | ... | active | CAP-003 | S-15.01, S-19.05, S-21.25 | v1.15 | ...
+```
+
+Independent story-unchanged-verification gate (defense-in-depth, run BEFORE trusting the
+"nothing to fix on the story bodies" claim):
+
+```
+$ ~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.23/bin/compute-input-hash .factory/stories/S-21.19-executor-decision-function-core.md --check
+(exit 0 -- MATCH; hash e6f82f2 UNCHANGED)
+$ ~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.23/bin/compute-input-hash .factory/stories/S-21.25-fuel-headroom-warn-event.md --check
+(exit 0 -- MATCH; hash 4af3ec2 UNCHANGED)
+```
+
+**Block 6 (Dim-5): Closes**
+
+- F-S2119-P5-001 CLOSED (decomposition-plan.md §3 intro swept, verified zero residual stale
+  phrasing).
+- F-S2125-P5-001 CLOSED (VP-INDEX §Story Anchors VP-079 row swept six→seven + version pin removed).
+- F-S2125-P5-002 CLOSED (BC-INDEX BC-3.08.001 Stories column gained S-21.25).
+- O-S2119-P5-001/002/003 (non-findings/cosmetic, S-21.19) — recorded, not actioned.
+- O-S2125-P5-001 (VP-079 POLICY 17 frontmatter gap) — recorded as a NEW Drift Item, not actioned
+  (architect-owned, out of this burst's scope).
+- **S-21.19 LOCAL BC-5.39.001 streak ADVANCES 0/3→1/3 — first clean pass.**
+- **S-21.25 LOCAL BC-5.39.001 streak REMAINS 0/3 — story body independently CONFIRMED CLEAN.**
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1063-WAVE6-PASS5-REMEDIATION` present. D-446(a) own-burst-log
+8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: the S-21.19 and
+S-21.25 disposition paragraphs in decision-log.md D-1063 faithfully describe
+`adv-s21.19-local-pass-5.md` Part A/B and `adv-s21.25-local-pass-5.md` Part A/B finding sets —
+verified by direct comparison against both persisted pass-5 files at burst time. D-449(a)
+literal-shell-execution SELF-APPLICATION: POLICY 16 gate + decomposition-plan.md sweep gate +
+VP-INDEX sweep gate + BC-INDEX sweep gate + story-unchanged-verification gate all use actual shell
+with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts, no trusted-but-
+unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered LOCAL adversary pass (pass-5, both cascades) — trajectory entries
+  updated: S-21.19 trajectory (5 true adversary passes, 1 CLEAN) tail `→2→2→1→0` (D-433(e)+D-439(c)
+  LENGTH=4); S-21.25 trajectory (5 true adversary passes, 0 CLEAN) tail `→2→1→2→2` (LENGTH=4) —
+  note: pass-5's 2 findings are index-propagation residue, not story-body findings; the axis-count
+  reflects total findings recorded against the pass, per the established convention.
+- Streaks: S-21.19 **1/3** (ADVANCES); S-21.25 **0/3** (REMAINS).
+- 4-INDEX: BC v4.87 (Stories column) / VP v2.79 (Story Anchors row) / STORY v4.378 (row
+  annotations) / ARCH v3.76 (UNCHANGED)
+- policies.yaml v1.4.24 UNCHANGED — no `policies.yaml` text change this burst.
+- `feature/S-21.19`/`feature/S-21.25` — no code-repo commit this burst (spec/index-only fix).
+- `pipeline: PAUSED→ACTIVE` — un-pause per this burst (resuming from SESSION-WRAP-PAUSE-2026-08-20).
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed via `factory-cas-push.sh` (BC-5.40.001 PC5 / S-17.01 D6 fetch-then-`--force-with-lease` CAS sequence)
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `68579b9b` — `factory(pause): session wrap — Wave-6 per-story convergence PAUSED, S-21.19 v1.3 + S-21.25 v1.4 both 0/3, pass-5 next`
+
+**Closes:** F-S2119-P5-001, F-S2125-P5-001, F-S2125-P5-002 all CLOSED same burst. S-21.19 LOCAL
+streak ADVANCES 0/3→1/3 (first clean pass). S-21.25 LOCAL streak REMAINS 0/3 (story body
+independently CONFIRMED CLEAN; index-propagation residue does not advance a streak). Process-gap
+recurrence (D-1044(g)/D-995 class) recorded, anchored S-15.03 PRIORITY-A, no new codification. NEW
+drift item: VP-079 POLICY 17 frontmatter gap, anchored architect's next VP-079 touch. **NEXT ACTION:
+fresh-context adversary pass-6 against S-21.19 v1.3 (UNCHANGED) + STORY-INDEX v4.378 + BC-INDEX
+v4.87 bundle AND S-21.25 v1.4 (UNCHANGED) + BC-1.03.019 v1.2 + VP-079 v1.21 + VP-INDEX v2.79 +
+BC-INDEX v4.87 bundle.**
