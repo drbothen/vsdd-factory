@@ -1555,3 +1555,118 @@ D-1066-WAVE6-COMPLETE
 2026-08-21
 
 ---
+
+## D-1067 — D-1067-CYCLE-LOG-TRIM
+
+POLICY 16 GLOBAL-MAX GATE (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1066 < D-9000 ceiling
+```
+
+D-1067 allocated. **Parent-commit:** `2b287dfe` — `chore(cycle): trim cycle logs — archive
+pre-D-1057 history (burst-perf / S-15.03)` (factory-artifacts HEAD at burst start). **Scope note
+(single-commit BOOKKEEPING-ONLY burst, state-manager, TD-VSDD-053):** the mechanical archival
+itself was already performed and committed at `2b287dfe` (a prior burst, no dedicated
+decision-log.md/STATE.md record of its own at the time). This entry is the deferred bookkeeping
+record for that already-landed commit — no new file split is performed here.
+
+**(a) What was done (already committed at `2b287dfe`).** The three cycle-wide bookkeeping logs for
+`v1.0-brownfield-backfill` — `decision-log.md`, `burst-log.md`, `lessons.md` — had grown to 21,539 /
+29,806 / 11,330 lines respectively (spanning the entire brownfield-onboarding history, D-001
+through D-1056/equivalent). These three files were section-aware split at the **D-1057 boundary**:
+everything from D-1057 forward (the current S-21.11-split cascade / Wave 6-7 in-flight work) was
+**kept active**; everything before D-1057 (completed epics E-17..E-20, early E-21, S-15.x
+maintenance history) was **moved verbatim** to three new archive files:
+- `decision-log-archive-through-D1056.md` (19,990 lines)
+- `burst-log-archive-through-D1056.md` (29,201 lines)
+- `lessons-archive-pre-D1057.md` (11,165 lines)
+
+Resulting active-file sizes: `decision-log.md` 21,539→1,557; `burst-log.md` 29,806→613;
+`lessons.md` 11,330→173. The split was **section-aware** (by `## D-NNN` heading boundary for
+decision-log/burst-log; by top-level heading boundary for lessons.md), not a blind line-count
+truncation.
+
+**(b) Byte-conservation proof (re-verified independently this burst, literal shell, D-449(a)).**
+Heading-count conservation across active+archive, for all three files:
+
+```
+$ grep -c '^## D-' cycles/v1.0-brownfield-backfill/decision-log.md
+10
+$ grep -c '^## D-' cycles/v1.0-brownfield-backfill/decision-log-archive-through-D1056.md
+404
+(10 + 404 = 414 -- matches the split's own "414 headings conserved" claim)
+
+$ grep -c '^## D-' cycles/v1.0-brownfield-backfill/burst-log.md
+4
+$ grep -c '^## D-' cycles/v1.0-brownfield-backfill/burst-log-archive-through-D1056.md
+308
+(4 + 308 = 312 -- matches the split's own "312 headings conserved" claim)
+
+$ grep -c '^## ' cycles/v1.0-brownfield-backfill/lessons.md
+4
+$ grep -c '^## ' cycles/v1.0-brownfield-backfill/lessons-archive-pre-D1057.md
+338
+(4 + 338 = 342 -- matches the split's own "342 headings conserved" claim)
+```
+
+All three active-file D-NNN-heading ranges independently confirmed to start at **D-1057** and run
+through **D-1066** (10 headings: D-1057..D-1066) in `decision-log.md`; the archive file's highest
+heading is **D-1056**. Zero overlap, zero gap, zero loss — the split boundary is exactly where the
+commit message claims it is.
+
+**(c) Root cause this fixes.** The 20,000-30,000-line active logs caused the WASM-sandboxed
+PostToolUse validators to fuel-exhaust on every Edit/Write/MultiEdit against them (per the
+`DEFAULT_FUEL_CAP` ceiling documented in CLAUDE.md's Factory Hook Diagnostics table), which in turn
+made every state-manager burst touching these files run to roughly 40 minutes of wall-clock time.
+This directly caused **six consecutive D-1066 seal-burst dispatch attempts to die to "API
+connection lost mid-response" before any commit landed** — D-1066 was ultimately only landed via a
+fourth-attempt direct commit of the completed-but-uncommitted work (see the D-1066 entry above,
+"fourth dispatch attempt"). This trim is the overdue **S-15.03 PRIORITY-A** cycle-log-bloat
+remediation: keeping only the current cascade's D-NNN range active (roughly 10 headings / ~600-1600
+lines per file at any time) keeps every future burst's file-touch well under the WASM fuel budget.
+
+**(d) Drift-item closures.** This trim RESOLVES two previously-OPEN STATE.md Drift Items:
+- **`[D-954]` `decision-log.md` >18,000 lines — WASM validators time out on every edit**: RESOLVED.
+  Active `decision-log.md` is now 1,557 lines (was 21,539); full history preserved verbatim in
+  `decision-log-archive-through-D1056.md`.
+- **`[D-442(e)]` `lessons.md` size budget ≤3,500 soft / ≤4,000 hard — was 11,330 lines**: RESOLVED.
+  Active `lessons.md` is now 173 lines (well under budget); full history preserved verbatim in
+  `lessons-archive-pre-D1057.md`.
+
+Section-aware archival (keep-current-cascade-active, move-completed-history-to-a-named-archive-file
+at a named D-NNN cutoff boundary) is established as the going-forward remediation pattern for this
+class of drift item — anchored **S-15.03 PRIORITY-A** for automation of the trim trigger (see
+`lessons.md` entry this burst).
+
+**(e) Scope boundary (explicit).** This burst is bookkeeping-only: it records the already-committed
+`2b287dfe` split in decision-log.md (this entry), burst-log.md, lessons.md, and STATE.md (Historical
+Content pointers, Decisions Log row, Current Phase Steps row, Drift Items closures, banner/version
+advance). It does **NOT** touch any BC, VP, ADR, or story BODY content, and it does **NOT** touch
+the Wave-6-COMPLETE / Wave-7-next substantive pipeline state (Phase Progress, Story Status, Session
+Resume Checkpoint) — that state is unchanged and out of scope for this orthogonal maintenance
+action. BC-INDEX, VP-INDEX, ARCH-INDEX, STORY-INDEX all UNCHANGED this burst.
+
+### Agents
+
+- state-manager (sole agent this burst, last and only agent, POLICY 3): recorded the already-landed
+  `2b287dfe` cycle-log trim — this D-1067 decision-log.md entry; burst-log.md 8-block entry;
+  lessons.md process-gap entry (no automated trim cadence); STATE.md advance (Historical Content,
+  Decisions Log D-1067 row, Current Phase Steps row, Drift Items `[D-954]`/`[D-442(e)]` closures,
+  banner + version 8.46→8.47). Single atomic commit to `factory-artifacts` per TD-VSDD-053.
+
+### 4-INDEX
+
+BC-INDEX v4.88 UNCHANGED / ARCH-INDEX v3.76 UNCHANGED / VP-INDEX v2.79 UNCHANGED / STORY-INDEX
+v4.381 UNCHANGED (no BC, VP, ADR, or story content changed this burst).
+
+### Phase
+
+D-1067-CYCLE-LOG-TRIM
+
+### Date
+
+2026-08-21
+
+---

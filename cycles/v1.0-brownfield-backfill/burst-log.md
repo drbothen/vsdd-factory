@@ -611,3 +611,126 @@ ACTION: Wave 7** — for S-21.20/S-21.21/S-21.22, dispatch story-writer to re-an
 v1.18→v1.19 FIRST (D-1060 deferral; also sweep decomposition-plan §1 detail + STORY-INDEX sibling
 rows), then each story's own pre-TDD adversary cascade pass-1; S-21.23 (cites BC-1.03.018 only)
 begins pass-1 directly. **Wave 8** (S-21.24 capstone) follows once Wave 7 converges.
+
+## D-1067-CYCLE-LOG-TRIM
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1066 < D-9000 ceiling
+```
+
+D-1067 allocated. **Parent-commit:** `2b287dfe` — `chore(cycle): trim cycle logs — archive
+pre-D-1057 history (burst-perf / S-15.03)` (factory-artifacts HEAD at burst start; this is the
+commit whose mechanical work this burst records). **Note:** this is a bookkeeping-only burst —
+the file-split itself was already performed and committed at `2b287dfe`; no adversary pass is
+dispatched or applicable this burst.
+
+**Block 2: Adversary verdict**
+
+Not applicable this burst — no spec/story/BC/VP content reviewed or changed. This burst records an
+already-landed mechanical cycle-log archival (`2b287dfe`), independently re-verifies its
+byte-conservation claim (Block 5), and closes two Drift Items it resolves.
+
+**Block 3: Files touched**
+
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1067 entry appended (no re-split; the split itself already landed at `2b287dfe`)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — process-gap lesson appended (no automated trim cadence; `/compact-state` feeds STATE.md into cycle logs but does not trim the cycle logs themselves)
+- `.factory/STATE.md` — Historical Content (3 new archive-file pointers), Decisions Log D-1067 row, Current Phase Steps row, Drift Items `[D-954]`/`[D-442(e)]` closures, banner + version 8.46→8.47
+
+No BC, VP, ADR, or story BODY content touched this burst. No re-split performed — `decision-log-archive-through-D1056.md` (19,990 lines), `burst-log-archive-through-D1056.md` (29,201 lines), and `lessons-archive-pre-D1057.md` (11,165 lines) were all created at `2b287dfe`, prior to this burst.
+
+**Block 4: Codifications**
+
+New `[process-gap]` lesson this burst: cycle-wide logs (decision-log.md/burst-log.md/lessons.md)
+have no automated trim cadence, and the only existing related tool (`/compact-state`) *feeds*
+STATE.md content INTO these cycle logs rather than trimming the cycle logs themselves — so they
+grew unbounded (21,539/29,806/11,330 lines) across the continuous F5-adjacent brownfield cascade
+until they broke state-manager burst reliability (six consecutive D-1066 dispatch deaths). See
+`lessons.md` entry this burst; anchored **S-15.03 PRIORITY-A** (automate the trim trigger).
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+Byte-conservation re-verification (independent, literal shell, D-449(a)):
+
+```
+$ grep -c '^## D-' cycles/v1.0-brownfield-backfill/decision-log.md
+10
+$ grep -c '^## D-' cycles/v1.0-brownfield-backfill/decision-log-archive-through-D1056.md
+404
+(10 + 404 = 414 headings conserved)
+
+$ grep -c '^## D-' cycles/v1.0-brownfield-backfill/burst-log.md
+4
+$ grep -c '^## D-' cycles/v1.0-brownfield-backfill/burst-log-archive-through-D1056.md
+308
+(4 + 308 = 312 headings conserved)
+
+$ grep -c '^## ' cycles/v1.0-brownfield-backfill/lessons.md
+4
+$ grep -c '^## ' cycles/v1.0-brownfield-backfill/lessons-archive-pre-D1057.md
+338
+(4 + 338 = 342 headings conserved)
+```
+
+Active-file size re-verification (literal shell, D-449(a)):
+
+```
+$ wc -l cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-brownfield-backfill/burst-log.md cycles/v1.0-brownfield-backfill/lessons.md
+    1557 cycles/v1.0-brownfield-backfill/decision-log.md
+     613 cycles/v1.0-brownfield-backfill/burst-log.md
+     173 cycles/v1.0-brownfield-backfill/lessons.md
+(sizes as of burst start, pre-D-1067-entry; matches the 2b287dfe commit message exactly)
+```
+
+**Block 6 (Dim-5): Closes**
+
+- **`[D-954]`** decision-log.md >18,000 lines / WASM validators time out — **RESOLVED**. Active file
+  now 1,557 lines (was 21,539); full history in `decision-log-archive-through-D1056.md`.
+- **`[D-442(e)]`** lessons.md size budget ≤3,500 soft/≤4,000 hard, was 11,330 — **RESOLVED**. Active
+  file now 173 lines; full history in `lessons-archive-pre-D1057.md`.
+- Root-cause closure: the six consecutive D-1066 dispatch deaths (API-connection-loss-mid-response,
+  caused by ~40-minute bursts against 20-30k-line files hitting WASM fuel exhaustion) are addressed
+  going forward — future bursts touch files of ~600-1600 lines, well under the fuel budget.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1067-CYCLE-LOG-TRIM` present. D-446(a) own-burst-log 8-block
+gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: not applicable this burst
+(no adversary pass to attest against — Block 2 explicitly records "not applicable"). D-449(a)
+literal-shell-execution SELF-APPLICATION: POLICY 16 gate + heading-conservation re-verification +
+active-file-size re-verification all use actual shell with verbatim stdout captured (Block 5) — no
+pseudocode, no estimated counts, no trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst is NOT a numbered adversary pass — bookkeeping-only, recording an already-landed
+  commit (`2b287dfe`).
+- Streak: unaffected — no adversary pass ran, no story/BC/VP content touched.
+- 4-INDEX: BC v4.88 (UNCHANGED) / VP v2.79 (UNCHANGED) / STORY v4.381 (UNCHANGED) / ARCH v3.76
+  (UNCHANGED).
+- policies.yaml UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline: ACTIVE` — unchanged this burst. Wave-6-COMPLETE / Wave-7-next substantive state
+  UNCHANGED — this burst is an orthogonal maintenance action (cycle-log-trim bookkeeping only).
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed via `factory-cas-push.sh` (BC-5.40.001 PC5 / S-17.01 D6 fetch-then-`--force-with-lease` CAS sequence)
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `2b287dfe` — `chore(cycle): trim cycle logs — archive pre-D-1057 history (burst-perf / S-15.03)`
+
+**Closes:** `[D-954]` decision-log.md >18,000-line WASM-timeout drift item RESOLVED.
+`[D-442(e)]` lessons.md size-budget drift item RESOLVED. Both closed via the already-landed
+`2b287dfe` section-aware archival, independently re-verified byte-conserving this burst
+(414/312/342 headings). Root cause of the six D-1066 dispatch deaths (WASM fuel exhaustion on
+20-30k-line files) addressed going forward. New `[process-gap]` lesson codified: cycle logs need a
+trim cadence at wave/epic boundaries, anchored S-15.03 PRIORITY-A. **NEXT ACTION:** unchanged from
+D-1066 — dispatch fresh-context adversary pass-8 against S-21.25 v1.5 (Wave 6 already CLOSED per
+D-1066 frontmatter); Wave 7 (S-21.20/S-21.21/S-21.22/S-21.23) pending. This burst does not alter
+that sequencing.

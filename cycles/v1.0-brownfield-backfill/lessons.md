@@ -171,3 +171,45 @@ the completion of Wave 6 and validating that the per-seam independent-convergenc
 (D-1057(k)) produces correct, if asymmetric, outcomes. Recorded as context for Wave 7's dispatch
 planning — front-load the known BC-1.03.017 re-anchor rather than letting it surface as a
 mid-cascade finding. `[positive-signal; methodology; milestone; BC-5.39.001; 3-CLEAN-convergence; wave-6-complete; S-21.19; S-21.25; split-seam; D-1057; D-1065; D-1066; asymmetric-pass-counts; wave-7-planning; wave-sequencing]`
+
+## LESSON (D-1067) — Cycle-wide logs have no automated trim cadence, and the only related tool (`/compact-state`) feeds them rather than trimming them, so they grew unbounded until they broke state-manager burst reliability
+
+**Category:** process-gap
+
+**Session evidence** (2026-08-21, cycle-log-trim burst, root-caused from the six consecutive
+D-1066 dispatch deaths): `decision-log.md`, `burst-log.md`, and `lessons.md` for
+`v1.0-brownfield-backfill` grew to 21,539 / 29,806 / 11,330 lines respectively across the
+continuous brownfield-onboarding cascade with no trim ever applied. The only existing tool with
+"compact" in its name — the `/compact-state` skill (`plugins/vsdd-factory/skills/compact-state/`)
+— does the OPPOSITE of what these files needed: it extracts historical content OUT OF STATE.md
+and FEEDS it INTO these same cycle files (burst logs, adversary passes, session checkpoints,
+lessons) to keep STATE.md itself under its own 200-line/415-line budget. There has never been a
+tool or scheduled discipline that trims the cycle-file destination once content lands there. As a
+direct consequence, the three files eventually exceeded the WASM-sandboxed PostToolUse validators'
+`DEFAULT_FUEL_CAP` on nearly every Edit/Write/MultiEdit against them, each state-manager burst
+touching them ballooned to roughly 40 minutes of wall-clock time, and six consecutive D-1066
+seal-burst dispatch attempts died to "API connection lost mid-response" before any commit could
+land — D-1066 was only rescued via a fourth-attempt direct commit of already-completed work.
+
+**Root cause:** growth is asymmetric and directional. `/compact-state` (STATE.md → cycle files)
+has an explicit trigger (STATE.md approaching its own size budget) and a well-defined target
+(<200 lines). The cycle files themselves (decision-log.md, burst-log.md, lessons.md) have no
+matching trigger or target — they are treated as unbounded historical logs by every existing
+skill and hook, and nothing in the pipeline ever asks "is THIS file now too big to safely edit?"
+until a validator starts failing closed on it (as `[D-954]` and `[D-442(e)]` both independently
+recorded, months apart, without either resulting in a fix at the time).
+
+**Disposition:** Section-aware archival at a named D-NNN cutoff boundary (active file retains the
+current cascade forward from the boundary; everything before moves verbatim to a
+`<log>-archive-through-D<NNN>.md` sibling file, with heading-count conservation independently
+re-verified) is now the established remediation pattern for this class of drift item — see
+`[D-954]`/`[D-442(e)]` RESOLVED this cycle via `decision-log-archive-through-D1056.md` /
+`burst-log-archive-through-D1056.md` / `lessons-archive-pre-D1057.md`. This is anchored
+**S-15.03 PRIORITY-A**: cycle logs must be trimmed at wave/epic boundaries, or proactively when a
+file approaches the WASM validators' effective line-count budget (empirically, low thousands of
+lines per file), not reactively after bursts start dying. A future S-15.03 PRIORITY-A story should
+automate the trim trigger (e.g., a maintenance-sweep check that flags any cycle file above a
+threshold) rather than relying on an AI agent noticing the file is large during an unrelated burst.
+`[process-gap; cycle-log-bloat; wasm-fuel-exhaustion; burst-fragility; state-manager;
+D-954; D-442(e); D-1057; D-1066; D-1067; S-15.03-PRIORITY-A; compact-state-asymmetry;
+section-aware-archival]`
