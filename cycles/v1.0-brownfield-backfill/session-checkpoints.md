@@ -2845,3 +2845,70 @@ Unchanged in substance from the list already recorded above for the D-1060 check
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1062-WAVE6-PASS4-REMEDIATION checkpoint burst (2026-08-20) — S-21.19 pre-TDD adversary pass-4 NOT-CLEAN (1 MEDIUM F-S2119-P4-001 STORY-INDEX D-1057 blockquote stale points 9/3→7/5, STORY-INDEX-domain, story itself unchanged v1.3) remediated via state-manager; S-21.25 pre-TDD adversary pass-4 NOT-CLEAN (1 MEDIUM F-S2125-P4-001 concurrency-residue VP-079 v1.20→v1.21 cite/quotation) remediated via story-writer S-21.25 v1.4; comprehensive STORY/BC-INDEX cross-reference hygiene sweep also performed (BC-INDEX BC-1.03.017 Stories column corrected); both LOCAL streaks REMAIN 0/3, pass-5 next for both.**
+
+## Session Resume Checkpoint (2026-08-20 — D-1062-WAVE6-PASS4-REMEDIATION; PIPELINE ACTIVE) — ARCHIVED FULL TEXT
+
+> Archived verbatim from STATE.md at the SESSION-WRAP-PAUSE-2026-08-20 burst (this checkpoint was
+> superseded there by the new self-sufficient SESSION-WRAP-PAUSE-2026-08-20 checkpoint).
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE ACTIVE** at a clean checkpoint (this commit; `git -C .factory log -1` for the HEAD SHA). Per D-1057(k), each of the 7 stories split from CONVERGED S-21.11 requires its own independent BC-5.39.001 3-CLEAN LOCAL pre-TDD adversarial convergence before Phase-3 TDD entry. The two Wave 6 seams (S-21.19 and S-21.25, no dependency edge between them) have now BOTH completed their pre-TDD adversary pass-4:
+
+- **S-21.19** (D-1062): pass-4 **NOT-CLEAN** (1 MEDIUM — F-S2119-P4-001: the STORY-INDEX D-1057 sub-schedule blockquote's mid-list points still read `S-21.19 (9 pts)`/`S-21.24 (3 pts)`, stale since D-1058's ADR-044 capstone-owned-flip redistribution 9→7/3→5 — catalog rows and both stories' frontmatter were already correct, only the blockquote prose had drifted, masked by the points-neutral 35-pt aggregate total; STORY-INDEX-domain, S-21.19 story file itself UNCHANGED this round, stays v1.3; plus 2 non-resetting cross-story observations). Fixed: state-manager (this burst) swept the blockquote's mid-list points 9→7/3→5; cross-story audit also found and fixed BC-INDEX's BC-1.03.017 Stories column incorrectly listing S-21.23 (its frontmatter cites only BC-1.03.018, never BC-1.03.017) — removed. S-21.20/S-21.21/S-21.22's own stale `BC-1.03.017 v1.18` cites confirmed as real, pre-existing drift, explicitly NOT swept this burst (deferred to their own Wave-7 convergence). LOCAL streak **REMAINS 0/3**.
+- **S-21.25** (D-1062): pass-4 **NOT-CLEAN** (1 MEDIUM — F-S2125-P4-001: concurrency residue — pass-3's F-S2125-P3-002 remediation was split across two concurrent same-burst agents: story-writer authored S-21.25's VP-079 SITE_7 acknowledgment paragraph citing `VP-079 v1.20` [current at the instant written], while architect concurrently bumped VP-079 itself v1.20→v1.21 [retargeting the same SITE_7 scope note]. Both edits were individually correct when written, but the combination left S-21.25 v1.3 citing/quoting a superseded VP-079 version at all 5 live sites by the time the D-1061 burst closed). Fixed: story-writer (S-21.25 v1.3→v1.4, input-hash `4af3ec2` unchanged — body-only, VP-079 is not in S-21.25's own `inputs:` list) swept `VP-079 v1.20`→`v1.21` at all 5 live sites; reframed the SITE_7 quotation as a paraphrase of v1.21's actual current text, explicitly naming v1.20's superseded text as historical carry-forward rather than quoting it as present tense. LOCAL streak **REMAINS 0/3**.
+
+Both prior structural-fix sets independently re-verified CONFIRMED HELD at pass-4, no recurrence: S-21.19's ADR-044 capstone-owned-flip split (D-1058) + BC-1.03.017 Invariant 7 wiring re-key + AC-009 `#[ignore]` gate (D-1060) + Task 2 cite/blocks parity (D-1061); S-21.25's AC-005 SINGLE-EMIT-SITE `concat!`-needle self-match/RED-GREEN-inversion guard (D-1060) + Task 7/11 test-distribution fix (D-1061).
+
+State-manager (D-1062, this burst): input-hash reconciliation via the per-file operator `compute-input-hash` binary (POLICY 18; never dev-source `--scan --update` per D-952) — `adv-s21.19-local-pass-4.md` (`c1bae4e`) and `adv-s21.25-local-pass-4.md` (`622af2b`) computed; S-21.25 verified already current (`4af3ec2`, no update needed). 4-index: BC-INDEX v4.85→v4.86 (BC-1.03.017 Stories column correction) / ARCH-INDEX v3.76 UNCHANGED / VP-INDEX v2.78 UNCHANGED / STORY-INDEX v4.376→v4.377 (S-21.25 v1.4 row; S-21.19 row D-1062 note appended; D-1057 blockquote points correction). `adv-s21.19-local-pass-4.md` and `adv-s21.25-local-pass-4.md` both persisted; INDEX.md carries both pass-4 rows with per-story Convergence Status advance. Drift item recorded (carried forward, unchanged): BC-1.03.017 v1.19 re-anchor DEFERRED for S-21.20/S-21.21/S-21.22 (still cite v1.18) — anchored each story's own Wave-7 pre-TDD convergence burst. New drift item (this burst): VP-079's own `BC-3.08.001 v1.25` cite is one version behind (BC-3.08.001 now v1.26) — flagged for the architect's next VP-079 touch, not this burst's scope (VP-079's own v1.20→v1.21 Amendment entry, added at D-1061, already correctly cites v1.26 — a within-file inconsistency).
+
+### §2 Convergence Counter
+
+S-21.11's own BC-5.39.001 streak remains **3/3 = CONVERGED** (frozen at pass-16, D-1056) — a HISTORICAL fact about the superseded story, not a live gate. Of the seven new stories: **S-21.19** and **S-21.25** have each had FOUR passes (pass-1 through pass-4, all NOT-CLEAN, all REMEDIATED same-burst each time) — both at **0/3**. **S-21.20, S-21.21, S-21.22, S-21.23, S-21.24** have had **zero** passes — each starts at **0/3**, no pass-1 yet.
+
+### §3 In-Flight / NEXT ACTION
+
+**RESUME = dispatch fresh-context adversary pass-5 against BOTH remediated bundles in parallel** (both are independently reviewable, no dependency edge):
+1. **S-21.19 v1.3 + STORY-INDEX v4.377 + BC-INDEX v4.86** bundle (verify F-S2119-P4-001's remediation: the D-1057 sub-schedule blockquote's mid-list points now read `(7 pts)`/`(5 pts)` and match every catalog row + frontmatter; verify the BC-INDEX BC-1.03.017 Stories column no longer lists S-21.23; verify S-21.19's own body v1.3 remains unchanged and its pass-3 fixes still hold).
+2. **S-21.25 v1.4 + BC-1.03.019 v1.2 + VP-079 v1.21** bundle (verify F-S2125-P4-001's remediation: all 5 live `VP-079` cites now read v1.21, the SITE_7 quotation is an accurate paraphrase of v1.21's current text, and no other version-cite drift exists between S-21.25 and any of its cited artifacts).
+
+Applying the full `.factory/policies.yaml` rubric per the Iron Law (fresh context; reads only the target story + its cited BCs/ADRs/VPs, not sibling cascades' history). After both reach pass-5 (or further remediation if either is NOT-CLEAN again), continue per the wave schedule: Wave 7 (S-21.20, S-21.21, S-21.22, S-21.23, once S-21.19 converges) → Wave 8 (S-21.24, once all five prior seams converge).
+
+### §4 Pending Human Decision
+
+None outstanding from this burst. The next steps are mechanical (adversarial cascades) until a NOT-CLEAN finding requires a routing decision, or until 3-CLEAN convergence is reached for a story (which would then need a human Phase-3 TDD-entry decision per the D-1057 gate structure).
+
+### §5 Session Note
+
+No new standing rule this burst — adversarial-finding remediation split between state-manager (STORY-INDEX-domain blockquote fix, BC-INDEX cross-reference fix) and story-writer (S-21.25 v1.4), mechanical in nature; the existing D-1044(g), D-1045(h), D-1046(h), D-1046(b), D-1047(h), D-1051(j), and D-1053(i) lessons remain logged in the Drift Items table, unchanged, carried forward. **Notable pattern this burst (not yet a new codified lesson — single occurrence):** F-S2125-P4-001 is a genuine concurrency-residue class distinct from every prior finding class in this cascade — two agents editing related artifacts (a story and the VP it cites) in the SAME burst, each individually correct when written, jointly stale once both land. This is structurally similar to but distinct from D-1044(g)'s "BC-version-bump-mid-cascade lacks same-burst propagation" lesson (that lesson is about a BC bump not propagating to CITING stories in the same burst; this finding is about a VP bump not being anticipated by a story authored concurrently with it). If this pattern recurs, it should be codified as its own lesson at that point. **Drift item (recorded, not silently left bare, carried forward unchanged):** BC-1.03.017 v1.19 re-anchor DEFERRED for S-21.20/S-21.21/S-21.22 (still cite v1.18) — anchored each story's own Wave-7 pre-TDD convergence burst. **New drift item (this burst):** VP-079's own `BC-3.08.001 v1.25` cite is one version behind (now v1.26) — architect's next VP-079 touch. Carried forward: BC-1.03.019's `VP-TBD` placeholder remains open — a real triggering-condition VP is still owed; VP-079 covers only Event 7's wire-shape, not the `>90%` semantics. Anchored to a Phase-6 formal-verifier / named VP-authoring pass — not this burst's scope.
+
+### §6 Carry-Forward Blockers (unchanged, reference not re-list)
+
+- `[D-1057]` Each of the 7 new split stories requires its own independent BC-5.39.001 3-CLEAN pre-TDD convergence — S-21.19 and S-21.25 (Wave 6) both at pass-4/streak 0/3; S-21.20/S-21.21/S-21.22/S-21.23/S-21.24 not yet started — see §3, this checkpoint, and the Blocking Issues table.
+- `[D-1057]` S-21.13 depends_on redirect `[S-21.10,S-21.11]`→`[S-21.10,S-21.22]` OWED — anchored a future story-writer touch.
+- `[D-1057]` S-21.16 depends_on redirect `[S-21.11]`→`[S-21.24]` OWED — anchored a future story-writer touch.
+- `[D-1057/D-1059]` VP-authoring for BC-1.03.017/BC-1.03.018/BC-1.03.019 OWED — anchored Phase-6 formal-verifier (POLICY 9 sanctioned VP-TBD deferral). BC-1.03.019's VP-TBD specifically needs the triggering-condition/semantics VP; VP-079 (now v1.21) covers only Event 7's wire-shape.
+- `[D-1057]` hooks-registry.toml header plugin-count 35→37 OWED — anchored next maintenance sweep.
+- `[D-1057]` `artifact-path-registry.yaml` develop-side edit OWED — anchored a develop-branch PR follow-up.
+- `[D-1060]` BC-1.03.017 v1.19 re-anchor DEFERRED for S-21.20/S-21.21/S-21.22 OWED — anchored each story's own Wave-7 pre-TDD convergence burst; reconfirmed accurate D-1062.
+- `[D-1062]` VP-079's own `BC-3.08.001 v1.25` cite one version behind (now v1.26) OWED — anchored the architect's next VP-079 touch.
+- `[P0-followup]` POLICY 15 gate wired + running but NOT enforcing — branch protection (human/admin-only action required).
+- `[C-1]`..`[C-5]` exec_subprocess security findings (ADR-043 NOT RATIFIED) — see Blocking Issues table.
+- `[D-952]` compute-input-hash operator-cache-vs-dev-source hash-algorithm divergence — deferred to rc.24; per-file operator-binary invocation is the workaround until then (used throughout this D-1062 burst).
+- decision-log.md D-1011/D-1012 + D-1016..D-1042 (exhaustive) per-decision backfill — still OWED, anchored to a future dedicated backfill burst.
+- `session-checkpoints.md` D-1043/D-1044/D-1045/D-1050/D-1051 checkpoint-archival gap (full text) — still OWED, anchored to a future dedicated backfill burst. D-1060's and D-1061's full checkpoint text were archived at D-1061/D-1062 respectively; D-1055's and D-1057's full checkpoint text remain OWED as part of that future backfill.
+- `[F-007]` BC-1.03.017 v1.19 + BC-1.03.018 v1.1 + BC-1.03.019 v1.2 carry VP-TBD — anchored a future VP-authoring pass (POLICY 9).
+- `[F-008]` [process-gap] PluginResult-variant-construction-site trace gap — anchored S-15.03 PRIORITY-A.
+- `[D-1044(g)]` BC-version-bump-mid-cascade lacks same-burst story-propagation-dispatch discipline — anchored S-15.03 PRIORITY-A.
+- `[D-1045(h)]` Predicate/semantic sweeps must be SEMANTIC (enumerate every site stating the concept), not literal-string grep — anchored S-15.03 PRIORITY-A.
+- `[D-1046(h)]` D-1045(h)'s discipline generalizes ACROSS artifact boundaries — anchored S-15.03 PRIORITY-A.
+- `[D-1046(b)]` ADR-039 §AMD-003 option-(b) "strict superset" wording-hygiene deferral (non-blocking, no content defect) — touch when ADR-039 is next legitimately edited.
+- `[D-1047(h)/D-1051(j)]` Cite-parity/version-propagation sweeps must use a whitespace-normalized/multiline predicate AND a backtick-tolerant predicate, and attest by captured residual-set stdout, never a task-number/site-name list — anchored S-15.03 PRIORITY-A.
+- `[D-1053(i)]` Task-ordering/red-first/authored-after-referenced remediations must include an exhaustive same-class sibling sweep — anchored S-15.03 PRIORITY-A.
+- `[D-1053-drift]` STORY-INDEX `last_amended` frontmatter field lagging `version:` + unbounded nested-chain growth (~275KB) — anchored a future dedicated compaction burst.
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the SESSION-WRAP-PAUSE-2026-08-20 checkpoint burst (human-invoked `/wrap`, state-manager single-commit pause burst, TD-VSDD-053) — pipeline set to PAUSED at a clean pushed HEAD atop this same D-1062-WAVE6-PASS4-REMEDIATION content (unchanged, last content decision); bookkeeping-only pause, no spec/story/index content touched, no new D-NNN allocated; a new self-sufficient §1-§7 Session Resume Checkpoint was written in its place. See STATE.md for the live checkpoint.**
