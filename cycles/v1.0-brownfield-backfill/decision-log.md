@@ -21132,3 +21132,141 @@ D-1063-WAVE6-PASS5-REMEDIATION
 2026-08-21
 
 ---
+
+## D-1064 — D-1064-WAVE6-PASS6-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` -> the prior recorded max
+in this file is `## D-1063`. This entry is D-1064, the next decision allocated after D-1063.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053; atomic across BOTH
+S-21.19 and S-21.25 clusters).** Per D-1057(k), each split seam requires its own independent
+BC-5.39.001 3-CLEAN LOCAL pre-TDD adversarial cascade before Phase-3 TDD entry. This entry records
+pass-6 outcomes for BOTH the S-21.19 cluster (D-1063's remediated v1.3 bundle) and the S-21.25
+cluster (D-1063's remediated v1.4 bundle), and their same-burst remediations (two specialist legs —
+product-owner and story-writer — plus this state-manager close-out), as one atomic Wave-6 burst.
+
+**(a) S-21.19 pre-TDD adversary pass-6 verdict.** **CLEAN — second consecutive clean pass.** The
+adversary re-derived every anchor in the S-21.19 v1.3 bundle fresh-context (BC-1.03.017 v1.19,
+BC-1.01.016 v1.3, ADR-044, ADR-039 v1.15, sibling S-21.24 v1.2, decomposition plan §3 four-splits
+confirmed, 19→24 DAG edge confirmed) and found zero streak-resetting findings localized to
+S-21.19's own perimeter. Novelty LOW. LOCAL BC-5.39.001 streak **ADVANCES 1/3→2/3**; pass-7 next —
+one more CLEAN pass converges 3/3. S-21.19 story file itself UNCHANGED this burst, stays v1.3.
+Full verbatim review: `.factory/cycles/v1.0-brownfield-backfill/adv-s21.19-local-pass-6.md`.
+
+**(b) S-21.19 non-resetting cross-artifact drift (recorded, not fixed this burst — cross-perimeter,
+covered by/extending existing sanctioned deferrals).**
+- **F-S2119-P6-001** (LOW): residual `BC-1.03.017 v1.18` cites in
+  `.factory/planning/S-21.11-decomposition-plan.md` §1 per-story detail (~lines 104, 128, 138, 167,
+  201, 294) AND in STORY-INDEX sibling rows for S-21.20/S-21.21/S-21.22/S-21.23. This EXTENDS the
+  existing D-1060 deferral (BC-1.03.017 v1.19 re-anchor for S-21.20/21/22, anchored each story's own
+  Wave-7 pre-TDD convergence) to explicitly also cover these decomposition-plan §1 sites and the
+  S-21.23 row. Not fixed this burst per scope discipline — cross-perimeter, does not touch S-21.19's
+  own body or streak.
+- **F-S2119-P6-002** (LOW): `ADR-044` body cites `BC-1.03.017 v1.18` at approximately lines 35, 104,
+  190. New drift item, anchored the architect's next ADR-044 touch. Not load-bearing for S-21.19's
+  own implementability.
+- **O-S2119-P6-003** (observation, no action this burst): BC-1.03.017 PC10 prose (~lines 513-515)
+  uses pre-split single-PR phrasing ("Both the unit test revision and the TC-12 integration revision
+  MUST appear in the PR diff") not updated for the S-21.19-unit / S-21.24-TC-12 two-PR split under
+  ADR-044. Product-owner's domain; drift item anchored next BC-1.03.017 touch.
+- **O-S2119-P6-001/002** (observations, no action): AC-trace version-token cosmetic inconsistency;
+  ADR ratification-version pins are immutable historical provenance (not stale). Documented as
+  documented/non-actionable.
+
+**(c) S-21.25 pre-TDD adversary pass-6 verdict.** **NOT-CLEAN — 1 HIGH streak-resetting finding,
+remediated same burst.** The adversary independently re-derived the story BODY as CLEAN across all
+7 named risk areas (emitter-name parity, AC-005 self-match/RED-GREEN, test-distribution 14/3/1=18,
+threshold-predicate testability, BC-3.08.001 Event-7 field-set, message-text parity, three-way
+input-hash parity). One HIGH finding was located entirely in the governing BC's own Traceability
+row, surfaced by a corpus-wide grep sweep for POLICY 19 compliance:
+**F-S2125-P6-001** (HIGH, POLICY 19 `adr_version_cite_volatile_pin_prohibition`): BC-1.03.019's
+Traceability ADR row carried a load-bearing `ADR-039 v1.15 §Decision 5 Mitigation 1` version pin —
+the sole outlier in the entire BC corpus per adversary corpus-grep (every other BC Traceability ADR
+row uses the stable `ADR-NNN §Decision N` section-anchor form). Sibling BC-3.08.001's Traceability
+ADR row carried the same pattern for its Event-7 provenance clause.
+- `vsdd-factory:product-owner` (this burst): rewrote BC-1.03.019's Traceability row to the stable
+  form `ADR-039 §Decision 5 Mitigation 1 (WARN message per §Erratum E-006)`, relocating the
+  v1.14→v1.15 version-delta provenance narrative into BC-1.03.019's own Changelog (BC-1.03.019
+  v1.2→v1.3, `7368f5a`→`a350ee0` operator-binary-computed). Swept sibling BC-3.08.001's Traceability
+  ADR row to `ADR-039 §Decision 5 Mitigation 1 (E-006)` in the same burst (BC-3.08.001 v1.26→v1.27,
+  `9cc52d3`→`b64ffb3` operator-binary-computed).
+- `vsdd-factory:story-writer` (this burst): swept all 13 live `BC-1.03.019 v1.2` citations in S-21.25
+  to `v1.3` (`behavioral_contracts` frontmatter, Context/Finding-Summary governing-BC parenthetical,
+  AC-006/AC-008 header trace tags + inline PC6/PC8 body cites, body BC table Version column, Token
+  Budget governing-BC row, Task 1, Task 5, Architecture Compliance Rules table x3). BC-3.08.001
+  v1.26→v1.27 citations in this story were all bare/unversioned — nothing to sweep. S-21.25
+  v1.4→v1.5, `4af3ec2`→`eefe28b` operator-binary-computed (D-952 workaround). Resolving a HIGH does
+  NOT advance the streak — S-21.25 LOCAL streak **REMAINS 0/3**; pass-7 next.
+
+**(d) S-21.25 LOW findings.**
+- **F-S2125-P6-002** (LOW): live §VP-Anchors closure bullet in BC-3.08.001 (~line 342) cited a bare
+  `VP-079 v1.20` (now v1.21), even though the bullet is a historical closure record, not a live
+  re-verification claim. `vsdd-factory:product-owner` (this burst): annotated the bullet
+  `(VP-079 v1.20 at closure; now v1.21 — this bullet is a historical closure record and is not
+  re-verified against the current VP-079 version; see v1.27 Changelog, F-S2125-P6-002)` — chose
+  annotation over silent carry-forward or silent update, per the production-grade default that the
+  bullet must accurately document what was true at closure time.
+- **F-S2125-P6-003** (LOW, DEFERRED): VP-079 internal inconsistency — Proof-Harness-Skeleton header
+  comments (~lines 149/482) still say "six" event types though the v1.21 Property Statement says
+  "seven". Architect-owned, VP-079-internal, out of S-21.25's perimeter. New drift item anchored the
+  architect's next VP-079 touch, folded alongside the existing D-1062 VP-079 BC-3.08.001-cite drift
+  item and the VP-079 frontmatter `modified: []`/missing `last_amended` gap (O-S2125-P5-001).
+
+**(e) Process-gap recurrence (recorded, not a new codification).** POLICY 19
+(`adr_version_cite_volatile_pin_prohibition`) was never applied to BC-1.03.019's own Traceability
+row across its v1.0→v1.2 authoring and 5 prior adversary passes — a governance-discipline gap that
+only fresh-context corpus-grep surfaced at pass 6. Per explicit dispatch instruction, no new
+follow-up story is opened; recorded as a recurrence-class candidate anchored to the existing
+S-15.03 PRIORITY-A candidate (a tree-wide POLICY-19 Traceability-row sweep gate at BC-authoring
+time). See `lessons.md` recurrence note appended this burst.
+
+**(f) Streak discipline.** BC-5.39.001: S-21.19's LOCAL cascade streak **ADVANCES 1/3→2/3** (second
+consecutive clean pass); S-21.25's LOCAL cascade streak **REMAINS 0/3** (resolving a HIGH does not
+advance the streak). Fresh-context adversary pass-7 is the next action for each: S-21.19 against
+S-21.19 v1.3 (UNCHANGED) + STORY-INDEX v4.379 + BC-INDEX v4.88; S-21.25 against S-21.25 v1.5 +
+BC-1.03.019 v1.3 + BC-3.08.001 v1.27.
+
+**(g) Scope boundary (explicit).** This burst registers/reconciles/records for the S-21.19-cluster
+(cross-artifact drift items only, no story/BC content touched) and the S-21.25-cluster
+(BC-1.03.019, BC-3.08.001 Traceability rows + S-21.25 cite-propagation). It does NOT touch VP-079
+body content, ADR-039/ADR-044 body content, or S-21.19/S-21.24 story content themselves this burst.
+
+### Agents
+
+- `vsdd-factory:product-owner` (concurrent leg, this burst): BC-1.03.019 v1.2→v1.3 (Traceability
+  row POLICY 19 fix, provenance relocated to Changelog); BC-3.08.001 v1.26→v1.27 (sibling
+  Traceability row sweep + §VP-Anchors closure-bullet dated annotation).
+- `vsdd-factory:story-writer` (concurrent leg, this burst): S-21.25 v1.4→v1.5 (13-site BC-1.03.019
+  v1.2→v1.3 cite propagation sweep, literal-shell grep verified zero residual live cites).
+- state-manager (this burst, last agent, POLICY 3): input-hash reconciled for all three edited
+  content files via the per-file operator rc.23 binary (D-952 workaround) — BC-1.03.019.md
+  `7368f5a`→`a350ee0`, BC-3.08.001.md `9cc52d3`→`b64ffb3`, S-21.25 story `4af3ec2`→`eefe28b`;
+  three-way POLICY 18 parity verified for S-21.25 (frontmatter = STORY-INDEX catalog row =
+  STORY-INDEX blockquote, all `eefe28b`). New `adv-s21.19-local-pass-6.md` (CLEAN) and
+  `adv-s21.25-local-pass-6.md` (NOT-CLEAN, 1 HIGH remediated) persisted (input-hash
+  operator-reconciled: `83062a7`, `d590a59`). BC-INDEX v4.87→v4.88 (BC-1.03.019 row v1.3,
+  BC-3.08.001 row v1.27 version-chain cells, total_bcs UNCHANGED 1987). STORY-INDEX v4.378→v4.379
+  (S-21.25 catalog row + blockquote bumped to v1.5/eefe28b; S-21.19 pass-6 CLEAN streak 2/3
+  annotation; S-21.25 pass-6 remediated streak 0/3 annotation). INDEX.md both LOCAL Adversary
+  Reviews sections gained a pass-6 row + Convergence Status advance. This D-1064 decision-log.md
+  entry. lessons.md POLICY 19 process-gap note appended. burst-log.md 8-block entry appended.
+  STATE.md advance (Phase Progress row, Current Phase Steps, Story Status, trajectory-tail append,
+  Session Resume Checkpoint). Single atomic commit to `factory-artifacts` per TD-VSDD-053.
+
+### 4-INDEX
+
+BC-INDEX v4.87→v4.88 (BC-1.03.019 row v1.3, BC-3.08.001 row v1.27; total_bcs UNCHANGED 1987) /
+ARCH-INDEX v3.76 UNCHANGED (no ADR content changed this burst) / VP-INDEX v2.79 UNCHANGED (VP-079
+body not touched this burst) / STORY-INDEX v4.378→v4.379 (S-21.25 catalog row + blockquote v1.4→v1.5
++ input-hash eefe28b; S-21.19 pass-6 CLEAN streak 2/3 annotation; S-21.25 pass-6 remediated streak
+0/3 annotation).
+
+### Phase
+
+D-1064-WAVE6-PASS6-REMEDIATION
+
+### Date
+
+2026-08-21
+
+---

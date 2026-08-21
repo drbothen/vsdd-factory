@@ -11210,3 +11210,42 @@ named site, not the class" family — this is the fourth generation of that fami
 insight applied to a NEW surface (cross-index Stories-column/Story-Anchors-row propagation, as
 distinct from BC-body prose, story-body prose, index-aggregation-cell arithmetic, or
 attestation-predicate adequacy). `[process-gap; recurrence; POLICY-8; POLICY-9; POLICY-14; BC-INDEX; VP-INDEX; Stories-column; Story-Anchors-row; story-propagation; state-manager; F-S2125-P5-001; F-S2125-P5-002; D-1044; D-995; D-1063; S-21.25; S-15.03-PRIORITY-A-anchor]`
+
+## RECURRENCE NOTE (D-1064) — POLICY 19 (adr_version_cite_volatile_pin_prohibition) never applied to BC-1.03.019's own Traceability row across v1.0-v1.2 authoring + 5 prior adversary passes
+
+**Category:** process-gap (recurrence-class candidate, not a new codification)
+
+**Session evidence** (2026-08-21, S-21.25 pre-TDD pass-6, F-S2125-P6-001): a corpus-wide grep sweep
+for POLICY 19 compliance (every BC Traceability row citing an ADR) found BC-1.03.019's own
+Traceability ADR row was the SOLE outlier in the entire BC corpus, carrying a load-bearing
+`ADR-039 v1.15 §Decision 5 Mitigation 1` version pin since its v1.1 authoring (D-1059) — a pattern
+POLICY 19 explicitly prohibits precisely because ADR-039 continues amending (it already had, twice,
+through §AMD-003 and multiple Erratum entries, by the time this pin went stale). The pin survived
+five prior adversary passes (pass-1 through pass-5) of the S-21.25 LOCAL cascade, none of which
+caught it, because each pass's rubric review focused on the story's own 7 named risk areas plus
+whatever finding classes the immediately-prior pass had surfaced — no pass before pass-6 ran a
+corpus-wide POLICY-19-specific grep against BC-1.03.019's own file. Sibling BC-3.08.001 carried the
+identical pattern in its own Traceability ADR row for the same Event-7 provenance clause, introduced
+at the same v1.25 registration burst (D-1059) and also un-caught through 5 subsequent bursts
+(D-1060..D-1063).
+
+**Disposition (per explicit dispatch instruction):** NOT a new codification, NOT a new follow-up
+story. Recorded as a recurrence-class candidate anchored to S-15.03 PRIORITY-A — a tree-wide
+POLICY-19 Traceability-row sweep gate applied at BC-authoring time (i.e., a lint/validator that
+greps every new or amended BC's Traceability ADR row for a bare `ADR-NNN vX.Y` token and fails
+closed if found, rather than relying on adversarial cascades to eventually catch it via corpus-grep).
+This is a DIFFERENT failure shape than the D-1044(g)/D-995/D-1063 family (which concerns
+propagation of a version bump OUTWARD to sibling sites) — this is a gap in APPLYING an existing
+POLICY to a site AT AUTHORING TIME, only caught by a much-later corpus-wide audit. Both findings
+(F-S2125-P6-001 HIGH, F-S2125-P6-002 LOW) fixed in scope at D-1064 by product-owner (BC-1.03.019
+v1.2→v1.3, BC-3.08.001 v1.26→v1.27) with story-writer downstream cite-propagation (S-21.25
+v1.4→v1.5); no story-body defect — the S-21.25 story itself independently re-derived CLEAN across
+all 7 previously-named risk areas at the same pass.
+
+**Cites:** distinct governance-discipline gap from the D-995/D-1044(g)/D-1063 propagation-sweep
+family — this is a POLICY-application-at-authoring-time gap, not a propagation-sweep gap. Companion
+observation: F-S2125-P6-003 (VP-079 internal six/seven event-type inconsistency, deferred to
+architect) is itself a further instance of the SAME general shape (a correction applied at one site
+— the Property Statement — not swept to a sibling site — the header comments — within the same
+file), reinforcing that within-file sibling-sweep discipline (TD-VSDD-060) remains incompletely
+internalized even at single-document scope. `[process-gap; recurrence-class-candidate; POLICY-19; adr_version_cite_volatile_pin_prohibition; BC-1.03.019; BC-3.08.001; Traceability-row; corpus-grep; state-manager; product-owner; story-writer; F-S2125-P6-001; F-S2125-P6-002; F-S2125-P6-003; D-1064; S-21.25; S-15.03-PRIORITY-A-anchor]`

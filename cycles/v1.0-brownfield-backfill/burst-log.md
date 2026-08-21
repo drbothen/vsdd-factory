@@ -29355,3 +29355,159 @@ drift item: VP-079 POLICY 17 frontmatter gap, anchored architect's next VP-079 t
 fresh-context adversary pass-6 against S-21.19 v1.3 (UNCHANGED) + STORY-INDEX v4.378 + BC-INDEX
 v4.87 bundle AND S-21.25 v1.4 (UNCHANGED) + BC-1.03.019 v1.2 + VP-079 v1.21 + VP-INDEX v2.79 +
 BC-INDEX v4.87 bundle.**
+
+## D-1064-WAVE6-PASS6-REMEDIATION
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1063 < D-9000 ceiling
+```
+
+D-1064 allocated. **Parent-commit:** `383c452a` — `fix(wave6): D-1063 pass-5 remediation —
+S-21.19 CLEAN (streak 1/3), S-21.25 index-propagation fix (streak 0/3)` (factory-artifacts HEAD at
+burst start).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` pass-6 dispatched in parallel against BOTH Wave-6 seams.
+**S-21.19 bundle** (story v1.3 UNCHANGED + BC-1.03.017 v1.19 + BC-1.01.016 v1.3 + ADR-044 +
+ADR-039 v1.15 + sibling S-21.24 v1.2 + decomposition plan §3 four-splits confirmed + 19→24 DAG edge
+confirmed): **verdict CLEAN — second consecutive clean pass.** Zero streak-resetting findings
+localized to S-21.19's own perimeter; novelty LOW; LOCAL BC-5.39.001 streak **ADVANCES 1/3→2/3**;
+pass-7 next (one more clean pass converges). Two LOW non-resetting cross-artifact drift items
+recorded (F-S2119-P6-001 decomposition-plan §1/STORY-INDEX sibling rows, F-S2119-P6-002 ADR-044
+body cite), neither fixed this burst (cross-perimeter).
+**S-21.25 bundle** (story v1.4 + BC-1.03.019 v1.2 + BC-3.08.001 v1.26 + VP-079 v1.21): **verdict
+NOT-CLEAN — 1 HIGH (F-S2125-P6-001, POLICY 19) + 2 LOW (F-S2125-P6-002 remediated, F-S2125-P6-003
+deferred), streak REMAINS 0/3.** The S-21.25 story body itself independently re-derived CLEAN
+across all 7 previously-named risk areas; the HIGH finding is located entirely in the governing
+BC's own Traceability row (BC-1.03.019, sibling BC-3.08.001), surfaced by a corpus-wide POLICY-19
+grep sweep, not a story-body defect. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-s21.19-local-pass-6.md` and
+`cycles/v1.0-brownfield-backfill/adv-s21.25-local-pass-6.md`.
+
+**Block 3: Files touched**
+
+- `.factory/cycles/v1.0-brownfield-backfill/adv-s21.19-local-pass-6.md` — new (pass-6 CLEAN record)
+- `.factory/cycles/v1.0-brownfield-backfill/adv-s21.25-local-pass-6.md` — new (pass-6 NOT-CLEAN record, 1 HIGH remediated)
+- `.factory/specs/behavioral-contracts/ss-01/BC-1.03.019.md` — product-owner leg: Traceability ADR row POLICY 19 fix (stable-anchor form), provenance relocated to Changelog; version v1.2→v1.3; input-hash `7368f5a`→`a350ee0` (operator-binary-reconciled, this burst)
+- `.factory/specs/behavioral-contracts/ss-03/BC-3.08.001.md` — product-owner leg: sibling Traceability ADR row sweep + §VP-Anchors closure-bullet dated annotation; version v1.26→v1.27; input-hash `9cc52d3`→`b64ffb3` (operator-binary-reconciled, this burst)
+- `.factory/stories/S-21.25-fuel-headroom-warn-event.md` — story-writer leg: 13-site BC-1.03.019 v1.2→v1.3 cite propagation; version v1.4→v1.5; input-hash `4af3ec2`→`eefe28b` (operator-binary-reconciled, this burst)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — BC-1.03.019 row version-chain cell +v1.3; BC-3.08.001 row version-chain cell +v1.27; total_bcs UNCHANGED 1987; version v4.87→v4.88; last_amended chain
+- `.factory/stories/STORY-INDEX.md` — S-21.25 catalog row (BC-1.03.019 v1.3 cite, input-hash eefe28b) + D-1057 blockquote enumeration (S-21.25 input-hash eefe28b) + D-1064 outcome annotations for both S-21.19 and S-21.25; version v4.378→v4.379; last_amended chain
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — both LOCAL Adversary Reviews sections gained a pass-6 row; both Convergence Status paragraphs advanced
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1064 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — POLICY 19 process-gap recurrence note appended
+- `.factory/STATE.md` — full advance (frontmatter, Phase Progress row, Current Phase Steps, Decisions Log, Story Status, Blocking Issues, trajectory-tail append, Session Resume Checkpoint)
+
+No `S-21.19-executor-decision-function-core.md`, `S-21.24-capstone-gated-flip-completion-regression.md`,
+`VP-079.md`, `ADR-039`, or `ADR-044` touched this burst — S-21.19's own body re-derived
+CLEAN/CONFIRMED-HELD with nothing to fix; VP-079's internal six/seven inconsistency (F-S2125-P6-003)
+is deferred to the architect, not fixed this burst.
+
+**Block 4: Codifications**
+
+No new `[process-gap]` lesson class this burst. F-S2125-P6-001/002/003 confirm a recurrence-class
+candidate (POLICY 19 never applied to BC-1.03.019's own Traceability row across its authoring + 5
+prior adversary passes), recorded as a recurrence note in `lessons.md` and anchored to S-15.03
+PRIORITY-A (a tree-wide POLICY-19 Traceability-row sweep gate at BC-authoring time) — no new
+codification, no new follow-up story, per explicit dispatch instruction. Two new Drift Items added:
+F-S2119-P6-001 (extends the existing D-1060 deferral to explicitly cover decomposition-plan.md §1
+sites + the S-21.23 STORY-INDEX row) and F-S2119-P6-002 (ADR-044 body BC-1.03.017 v1.18 cites,
+anchored architect's next ADR-044 touch); F-S2125-P6-003 (VP-079 internal six/seven inconsistency,
+anchored architect's next VP-079 touch, alongside the existing D-1062 VP-079 BC-3.08.001-cite drift
+item).
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+BC-1.03.019 Traceability-row POLICY 19 fix verification gate (literal shell, D-449(a)):
+
+```
+$ grep -n "ADR-039 v1\.[0-9]* §Decision 5" .factory/specs/behavioral-contracts/ss-01/BC-1.03.019.md .factory/specs/behavioral-contracts/ss-03/BC-3.08.001.md
+(no output — zero remaining load-bearing version-pinned ADR-039 §Decision 5 cites in either live Traceability row)
+```
+
+Story-writer's own S-21.25 cite-propagation sweep verification gate:
+
+```
+$ grep -n "BC-1.03.019 v1\.2" .factory/stories/S-21.25-fuel-headroom-warn-event.md
+36:  - "2026-08-20 (v1.2) ..." (exempt modified[] historical row)
+608:| 1.2 | 2026-08-20 | ... (exempt Changelog historical row)
+(zero live cites remain outside the two exempt historical rows)
+```
+
+Three-way POLICY 18 input-hash parity verification gate for S-21.25:
+
+```
+$ grep -n 'input-hash' .factory/stories/S-21.25-fuel-headroom-warn-event.md | head -1
+17:input-hash: "eefe28b"
+$ grep -o "S-21.25=eefe28b" .factory/stories/STORY-INDEX.md | sort -u
+S-21.25=eefe28b
+(frontmatter = catalog row = D-1057 blockquote enumeration — all three agree)
+```
+
+Independent story-unchanged-verification gate (defense-in-depth) for S-21.19:
+
+```
+$ ~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.23/bin/compute-input-hash .factory/stories/S-21.19-executor-decision-function-core.md --check
+(exit 0 -- MATCH; hash e6f82f2 UNCHANGED)
+```
+
+**Block 6 (Dim-5): Closes**
+
+- F-S2125-P6-001 CLOSED (BC-1.03.019 + BC-3.08.001 Traceability rows swept to stable form; S-21.25's
+  13 live cites propagated to v1.3).
+- F-S2125-P6-002 CLOSED (BC-3.08.001 §VP-Anchors closure bullet dated-historical annotation added).
+- F-S2119-P6-001/002 recorded as Drift Items, NOT closed this burst (cross-perimeter).
+- F-S2125-P6-003 recorded as a Drift Item, NOT closed this burst (architect-owned, VP-079-internal).
+- O-S2119-P6-001/002/003 (non-findings/observations, S-21.19) — recorded, not actioned.
+- O-S2125-P6-001/002 (non-findings, S-21.25) — recorded, not actioned.
+- **S-21.19 LOCAL BC-5.39.001 streak ADVANCES 1/3→2/3 — second consecutive clean pass.**
+- **S-21.25 LOCAL BC-5.39.001 streak REMAINS 0/3 — resolving a HIGH does not advance the streak.**
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1064-WAVE6-PASS6-REMEDIATION` present. D-446(a) own-burst-log
+8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: the S-21.19 and
+S-21.25 disposition paragraphs in decision-log.md D-1064 faithfully describe
+`adv-s21.19-local-pass-6.md` Part A/B and `adv-s21.25-local-pass-6.md` Part A/B finding sets —
+verified by direct comparison against both persisted pass-6 files at burst time. D-449(a)
+literal-shell-execution SELF-APPLICATION: POLICY 16 gate + BC-1.03.019/BC-3.08.001 Traceability-row
+sweep gate + S-21.25 cite-propagation sweep gate + three-way input-hash parity gate + independent
+story-unchanged-verification gate all use actual shell with verbatim stdout captured (Block 5) — no
+pseudocode, no estimated counts, no trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered LOCAL adversary pass (pass-6, both cascades) — trajectory entries
+  updated: S-21.19 trajectory (6 true adversary passes, 2 CLEAN) tail `→2→1→0→0` (D-433(e)+D-439(c)
+  LENGTH=4); S-21.25 trajectory (6 true adversary passes, 0 CLEAN) tail `→2→1→2→1` (LENGTH=4).
+- Streaks: S-21.19 **2/3** (ADVANCES); S-21.25 **0/3** (REMAINS).
+- 4-INDEX: BC v4.88 (BC-1.03.019 + BC-3.08.001 rows) / VP v2.79 (UNCHANGED) / STORY v4.379 (S-21.25
+  row + blockquote + annotations) / ARCH v3.76 (UNCHANGED)
+- policies.yaml v1.4.24 UNCHANGED — no `policies.yaml` text change this burst.
+- `feature/S-21.19`/`feature/S-21.25` — no code-repo commit this burst (spec/index-only fix).
+- `pipeline: ACTIVE` — unchanged this burst.
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed via `factory-cas-push.sh` (BC-5.40.001 PC5 / S-17.01 D6 fetch-then-`--force-with-lease` CAS sequence)
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `383c452a` — `fix(wave6): D-1063 pass-5 remediation — S-21.19 CLEAN (streak 1/3), S-21.25 index-propagation fix (streak 0/3)`
+
+**Closes:** F-S2125-P6-001, F-S2125-P6-002 CLOSED same burst. S-21.19 LOCAL streak ADVANCES
+1/3→2/3 (second consecutive clean pass). S-21.25 LOCAL streak REMAINS 0/3 (resolving a HIGH does
+not advance the streak; story body independently CONFIRMED CLEAN). Process-gap recurrence
+(POLICY 19 never-applied-at-authoring class) recorded, anchored S-15.03 PRIORITY-A, no new
+codification. NEW drift items: F-S2119-P6-001 (extends D-1060 deferral), F-S2119-P6-002 (ADR-044
+body cite), F-S2125-P6-003 (VP-079 internal inconsistency) — all anchored to their respective next
+owner touch. **NEXT ACTION: fresh-context adversary pass-7 against S-21.19 v1.3 (UNCHANGED) +
+STORY-INDEX v4.379 + BC-INDEX v4.88 bundle AND S-21.25 v1.5 + BC-1.03.019 v1.3 + BC-3.08.001 v1.27
+bundle.**
