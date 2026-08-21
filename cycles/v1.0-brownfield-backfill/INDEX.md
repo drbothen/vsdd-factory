@@ -550,11 +550,12 @@ independent convergence tracking below, starting with S-21.19.
 | Pass | Date | File | Verdict | Findings | Streak | Reviewed Bundle | Status |
 |------|------|------|---------|----------|--------|------------------|--------|
 | 1 | 2026-08-20 | `adv-s21.19-local-pass-1.md` | **NOT-CLEAN** | 1 (1 BLOCKER F-S2119-P1-001, streak-resetting) | **0/3** | story v1.0, `.factory/planning/S-21.11-decomposition-plan.md` §1/§3 | **REMEDIATED THIS BURST (D-1058)** — split severs the enforcement-flip↔annotation atomic unit (BC-1.03.017 v1.18 Invariant 7/PC8/PC11); resolved via architect ADR-044 (capstone-owned flip, extends ADR-039 §Decision 3) + story-writer S-21.19 v1.0→v1.1 (9→7 pts, `a2dca8e`→`e6f82f2`) / S-21.24 v1.0→v1.1 (3→5 pts, `cbbc8dd`→`e3c75a4`); AC-002/AC-011 integration legs relocated S-21.19→S-21.24; 43/43 preserved; zero DAG/wave change. **NEXT: fresh-context adversary pass-2 against S-21.19 v1.1 + S-21.24 v1.1 + ADR-044 v1.0 bundle.** |
+| 2 | 2026-08-20 | `adv-s21.19-local-pass-2.md` | **NOT-CLEAN** | 2 (2 MEDIUM F-S2119-P2-001/002) | **0/3** | story v1.1, BC-1.03.017 v1.18, ADR-044 | **REMEDIATED THIS BURST (D-1060)** — BC-1.03.017 Invariant 7 literally contradicted ADR-044's own compliant state (F-S2119-P2-001); AC-009 red-first vs green-trunk CI conflict given the deferred flip (F-S2119-P2-002). Resolved via product-owner BC-1.03.017 v1.18→v1.19 (Invariant 7 re-keyed on WIRING not "contains"; ADR-044 added to inputs/Traceability; PC11 unchanged, `86a7e19`) + story-writer S-21.19 v1.1→v1.2 (AC-009 `#[ignore]`-until-S-21.24 + compile-safe fs-source-scan cross-assertion) / S-21.24 v1.1→v1.2 (Task 5 un-ignore step). **NEXT: fresh-context adversary pass-3 against S-21.19 v1.2 + S-21.24 v1.2 + BC-1.03.017 v1.19 bundle.** |
 
-**Convergence Status (S-21.19 LOCAL cascade): NOT CONVERGED — streak 0/3.** Pass-1 BLOCKER
-F-S2119-P1-001 remediated same-burst (D-1058); remediation does not itself advance the streak
-per BC-5.39.001 (a resolved BLOCKER still holds the counter at 0). Pass-2 is the next action,
-reviewing the v1.1 bundle (S-21.19 v1.1 + S-21.24 v1.1 + ADR-044 v1.0) fresh-context.
+**Convergence Status (S-21.19 LOCAL cascade): NOT CONVERGED — streak 0/3.** Pass-2's 2 MEDIUM
+findings remediated same-burst (D-1060); remediation does not itself advance the streak per
+BC-5.39.001. Pass-3 is the next action, reviewing the v1.2 bundle (S-21.19 v1.2 + S-21.24 v1.2 +
+BC-1.03.017 v1.19) fresh-context.
 
 ## S-21.25 LOCAL Adversary Reviews (BC-5.39.001 cascade)
 
@@ -567,10 +568,11 @@ reviewing the v1.1 bundle (S-21.19 v1.1 + S-21.24 v1.1 + ADR-044 v1.0) fresh-con
 | Pass | Date | File | Verdict | Findings | Streak | Reviewed Bundle | Status |
 |------|------|------|---------|----------|--------|------------------|--------|
 | 1 | 2026-08-20 | `adv-s21.25-local-pass-1.md` | **NOT-CLEAN** | 7 (2 HIGH F-S2125-P1-001/002, 2 MEDIUM F-S2125-P1-003/004, 3 LOW F-S2125-P1-005/006/007) | **0/3** | story v1.0, BC-1.03.019 v1.0, ADR-039 v1.14 | **REMEDIATED THIS BURST (D-1059)** — story-writer extracted named pure helpers (`fuel_headroom_exceeded`/`fuel_headroom_ratio` + `check_and_emit_fuel_headroom_warning` shell) + satisfiable `// SINGLE-EMIT-SITE` regression guard + AC-006/AC-008 field-set/message corrections (S-21.25 v1.0→v1.1, `775050b`→`558a5a3`); product-owner BC-1.03.019 v1.0→v1.1 (PC6 field set +`timestamp`/`message`, PC8 strict `>90%`, `7368f5a`) + BC-3.08.001 v1.24→v1.25 (Event 7 `plugin.fuel_headroom_warning` registered, `fe4436a`); architect ADR-039 v1.14→v1.15 (§Erratum E-006, `≥90%`→`>90%`) + `capabilities.md` v1.11→v1.12 (CAP-011 10M→20M) + VP-079 v1.19→v1.20 (Event 7 schema row + SITE_7, `704a8ca`). **NEXT: fresh-context adversary pass-2 against S-21.25 v1.1 + BC-1.03.019 v1.1 + BC-3.08.001 v1.25 + ADR-039 v1.15 + VP-079 v1.20 + `capabilities.md` v1.12 bundle.** |
+| 2 | 2026-08-20 | `adv-s21.25-local-pass-2.md` | **NOT-CLEAN** | 3 (1 HIGH F-S2125-P2-001, 2 MEDIUM F-S2125-P2-002/003) | **0/3** | story v1.1, BC-1.03.019 v1.1, BC-3.08.001 v1.25 | **REMEDIATED THIS BURST (D-1060)** — AC-005 regression guard recurred the self-match trap via co-location + RED/GREEN inversion (F-S2125-P2-001 HIGH); emitter name diverged from sibling/VP-079 convention (F-S2125-P2-002 MEDIUM); BC-3.08.001 carried a stale already-closed VP-079-staleness flag at 3 sites (F-S2125-P2-003 MEDIUM). Resolved via story-writer S-21.25 v1.1→v1.2 (AC-005 relocated to `tests/` file + `concat!` needle; emitter renamed `emit_fuel_headroom_warning`→`emit_plugin_fuel_headroom_warning`, `4af3ec2`) + product-owner BC-1.03.019 v1.1→v1.2 (emitter rename sweep, `7368f5a` unchanged) + BC-3.08.001 v1.25→v1.26 (3-site flag closure + emitter rename sweep, `9cc52d3`). **NEXT: fresh-context adversary pass-3 against S-21.25 v1.2 + BC-1.03.019 v1.2 + BC-3.08.001 v1.26 bundle.** |
 
-**Convergence Status (S-21.25 LOCAL cascade): NOT CONVERGED — streak 0/3.** Pass-1's 7 findings
-(2 HIGH, 2 MEDIUM, 3 LOW) remediated same-burst (D-1059); remediation does not itself advance the
-streak per BC-5.39.001. Pass-2 is the next action, reviewing the v1.1 bundle fresh-context.
+**Convergence Status (S-21.25 LOCAL cascade): NOT CONVERGED — streak 0/3.** Pass-2's 3 findings
+(1 HIGH, 2 MEDIUM) remediated same-burst (D-1060); remediation does not itself advance the streak
+per BC-5.39.001. Pass-3 is the next action, reviewing the v1.2 bundle fresh-context.
 **Drift item:** BC-1.03.019's `VP-TBD` placeholder remains open — a real triggering-condition VP
 is still owed (VP-079 covers only Event 7's wire-shape, not the `>90%` semantics); anchored to a
 Phase-6 formal-verifier / named VP-authoring pass follow-up.

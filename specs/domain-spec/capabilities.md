@@ -2,7 +2,7 @@
 document_type: domain-spec-section
 level: L2
 section: capabilities
-version: "1.12"
+version: "1.13"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
@@ -123,7 +123,7 @@ Subsystems: SS-05, SS-06. Outcome: the orchestrator produces a wave plan where s
 Source: pass-2 §Story tier mapping; pass-8 §story coverage rollup.
 
 **CAP-011 — Enforce fuel and epoch budgets on plugin execution**
-Every plugin invocation has a bounded fuel cap (default 20M operations, per ADR-042 §Decision 2) and epoch deadline (derived from `timeout_ms`). Exceeded limits produce `Timeout{Epoch}` or `Timeout{Fuel}` outcomes, never hung processes.
+Every plugin invocation has a bounded fuel cap (default 20M operations, per ADR-042 §Decision 1) and epoch deadline (derived from `timeout_ms`). Exceeded limits produce `Timeout{Epoch}` or `Timeout{Fuel}` outcomes, never hung processes.
 Subsystems: SS-01. Outcome: a runaway plugin is killed within `timeout_ms + EPOCH_TICK_MS (10ms)`.
 Source: pass-2 §Engine + EpochTicker; `invoke.rs`. Source: design doc §WASM plugin ABI.
 
@@ -297,6 +297,7 @@ at next free ID.
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.13 | 2026-08-20 | S-21.25 adversarial pass-2 fix (LOW; brownfield cycle v1.0-brownfield-backfill, product-owner, orchestrator-dispatched): CAP-011 body's ADR-042 section cite corrected "§Decision 2" → "§Decision 1". ADR-042 §Decision 1 ("New fuel budget value: 20,000,000 (20M), derivation from measured data") is the section that actually sets the 20M default; §Decision 2 covers a different concern ("Raise is global … not per-plugin"). The v1.12 fix (immediately below) introduced the wrong section number while correcting the stale "10M" figure; this row aligns the cite with `crates/factory-dispatcher/src/invoke.rs`'s `DEFAULT_FUEL_CAP` doc comment and BC-1.03.019 Precondition 2/Architecture Anchors, both of which already cite "§Decision 1" correctly. No capability semantics, subsystem mapping, or outcome statement altered — precision fix only. |
 | v1.12 | 2026-08-20 | F-S2125-P1-007 fix (LOW, pre-existing; S-21.25 adversarial review, brownfield cycle v1.0-brownfield-backfill, architect, orchestrator-dispatched): CAP-011 body corrected "default 10M operations" → "default 20M operations (per ADR-042 §Decision 2)". The 10M figure predated ADR-042's fuel-cap raise and had gone stale; BC-1.03.019 anchors to CAP-011, making the staleness load-bearing. No capability semantics, subsystem mapping, or outcome statement altered — precision fix only. |
 | v1.11 | 2026-08-19 | S-21.11 expanded-scope BC coverage burst (product-owner, orchestrator-directed): authored CAP-039 (P1 — break-glass operator override for the two self-locking PreToolUse `^Agent$` validator gates; SS-01; ADR-039 §Decision 3 v1.10 amendment; BC-1.03.018; S-21.11). Distinguished from CAP-002 (normal hook block/allow decision), CAP-008 (Bash-tool PreToolUse gating), CAP-011 (the fuel/epoch enforcement this capability bypasses), and CAP-031 (factory-lock break-glass — same term, distinct concern). CAP count advance 38→39. |
 | v1.10 | 2026-07-19 | F-P6-001 (architect): CAP-034 Layer-2 sentence corrected from pre-F-P2-001 framing (named orchestrator/pr-manager/state-manager as Layer-2 hosts — retracted at ADR-031 v1.3) to current framing: live surface = undocumented ad-hoc orchestrator/operator git pull/merge Bash on the main product checkout; enforcement site = per-story-delivery.md §Main-Checkout Sync Protocol (S-21.01 Layer-2 deliverable); pr-manager explicitly excluded (merges server-side via gh pr merge — BC-5.43.001 PC3); state-manager explicitly excluded (operates via git -C .factory only, never touches main checkout); server-side origination documented as primary threat vector. TD-VSDD-060 sweep: one hit at CAP-034 line 220 (fixed this burst); CAP-035..038 and all other E-21 text clean. |

@@ -20614,3 +20614,138 @@ D-1059-S2125-PASS1-REMEDIATION
 2026-08-20
 
 ---
+
+## D-1060 — D-1060-WAVE6-PASS2-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` -> the prior recorded max
+in this file is `## D-1059`. This entry is D-1060, the next decision allocated after D-1059.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053; atomic across BOTH
+S-21.19 and S-21.25 clusters).** Per D-1057(k), each split seam requires its own independent
+BC-5.39.001 3-CLEAN LOCAL pre-TDD adversarial cascade before Phase-3 TDD entry. This entry records
+pass-2 outcomes for BOTH the S-21.19 cluster (D-1058's remediated bundle) and the S-21.25 cluster
+(D-1059's remediated bundle), and their same-burst remediations, as one atomic Wave-6 burst.
+
+**(a) S-21.19 pre-TDD adversary pass-2 verdict.** NOT-CLEAN. 2 MEDIUM findings, no BLOCKER/HIGH.
+Pass-1's BLOCKER F-S2119-P1-001 (ADR-044 capstone-owned flip) independently re-verified FIXED —
+not reopened. **F-S2119-P2-001** (MEDIUM): BC-1.03.017 v1.18 Invariant 7's atomicity policy
+literally contradicted ADR-044's own declared-safe compliant state — Invariant 7's "contains the
+extended function" trigger conflated authoring (S-21.19, inert) with wiring (S-21.24 Task 0,
+enforcement-active), tripping on S-21.19's OWN compliant merge; PC11 had already been corrected to
+the wiring-keyed form (v1.3-v1.5) but Invariant 7 was an un-swept sibling site. **F-S2119-P2-002**
+(MEDIUM): AC-009's enforcement-behavior assertion cannot be simultaneously red-first-authored and
+green-on-`develop` at S-21.19's own merge point, because the behavior it asserts genuinely does
+not exist until S-21.24's deferred Task 0 flip (wave 8) — a structural red-first/green-trunk
+conflict introduced by ADR-044's own (correct) deferred-flip topology. Full verbatim review:
+`.factory/cycles/v1.0-brownfield-backfill/adv-s21.19-local-pass-2.md`.
+
+**(b) S-21.19 resolution — both findings fixed in scope, no BLOCKER, no deferral.**
+- `vsdd-factory:product-owner` (BC-1.03.017 v1.18→v1.19, input-hash `dec3278`→`86a7e19`): rewrote
+  Invariant 7 to key the CWE-636 regression trigger on the function being WIRED INTO / IN EFFECT
+  in the block-decision chain (enforcement-active per PC11's static-scan signal), explicitly
+  disambiguating authoring (3-arg function + `PluginOutcome.failure_policy` population — inert,
+  S-21.19, NOT the flip, NOT prohibited) from wiring (the `execute_tiers`/`execute_tier` 2-arg→
+  3-arg call-site replacement — the enforcement-active flip, S-21.24 Task 0); added ADR-044 to
+  `inputs:` and the Traceability ADR row (new citation naming S-21.19 as authoring leg and S-21.24
+  as wiring leg); verified consistency with PC11 (same wiring/enforcement-active signal), ADR-044
+  (same authoring-vs-wiring split), and PC5/PC10/Invariant 1's pre-existing axes-independence
+  (untouched). PC11 itself unchanged (closes F-S2119-P2-001).
+- `vsdd-factory:story-writer` (S-21.19 v1.1→v1.2, input-hash `e6f82f2` unchanged; S-21.24
+  v1.1→v1.2, input-hash `e3c75a4` unchanged): S-21.19 AC-009 marked
+  `#[ignore = "enforcement gate; enabled at S-21.24 Task 0 flip"]`, with a compile-safe
+  fs-source-scan cross-assertion added that verifies the dormant extension/field exist and are NOT
+  yet referenced at the real block-decision call site — giving AC-009 real assertion content at
+  S-21.19's own merge point without red-trunk violation or premature wiring; S-21.24 Task 5 gained
+  the matching un-ignore step that removes the gate once its own Task 0 performs the wiring (closes
+  F-S2119-P2-002). Both stories re-anchored to BC-1.03.017 v1.18→v1.19. Zero points/depends_on/
+  blocks/wave change on either story.
+
+**(c) S-21.25 pre-TDD adversary pass-2 verdict.** NOT-CLEAN. 1 HIGH + 2 MEDIUM findings, no
+BLOCKER. Pass-1's F-S2125-P1-001/002 independently re-verified FIXED as designed (named pure
+helpers + SINGLE-EMIT-SITE marker-scan guard both present) — not reopened; reviewing the fix's own
+placement surfaced a fresh, distinct defect (below). **F-S2125-P2-001** (HIGH): the AC-005
+SINGLE-EMIT-SITE marker-scan guard was co-located in the same source file as the call site it
+scans, so the scan matched the test's own source (containing a textual reference to the marker
+string) in addition to the production call site — recurring the self-match failure class
+F-S2125-P1-001 was written to close, via a different mechanism (co-location, not literal-count
+semantics); this also produced a RED/GREEN inversion (the guard passes even when the real call
+site is mutated away, giving zero regression protection). **F-S2125-P2-002** (MEDIUM): the emitter
+function name `emit_fuel_headroom_warning` omitted the `plugin_` qualifier carried by both
+BC-3.08.001's Event 7 wire name (`plugin.fuel_headroom_warning`, registered v1.25) and sibling
+emitters' naming convention. **F-S2125-P2-003** (MEDIUM): BC-3.08.001 v1.25 carried a stale
+VP-079-staleness flag at 3 sites (§VP Anchors bullet, Amendment changes-made item 11, standalone
+Amendment paragraph) — VP-079 v1.20 already registered Event 7 in a prior burst, the flagged
+architect follow-up was already done, the flag was simply never cleared. Full verbatim review:
+`.factory/cycles/v1.0-brownfield-backfill/adv-s21.25-local-pass-2.md`.
+
+**(d) S-21.25 resolution — all 3 findings fixed in scope, no BLOCKER, no deferral.**
+- `vsdd-factory:story-writer` (S-21.25 v1.1→v1.2, input-hash `558a5a3`→`4af3ec2`): relocated the
+  AC-005 regression guard to a dedicated file under `tests/` (outside the source tree it scans)
+  with a `concat!`-built needle (`concat!("check_and_emit_", "plugin_fuel_headroom_warning")`-class
+  construction) so the needle never appears as literal source text the scan could self-match
+  against; RED/GREEN correctness re-verified (mutation-removal of the real call site now correctly
+  fails the test) (closes F-S2125-P2-001). Emitter renamed
+  `emit_fuel_headroom_warning`→`emit_plugin_fuel_headroom_warning` throughout the story body
+  (contributes to closing F-S2125-P2-002).
+- `vsdd-factory:product-owner` (BC-1.03.019 v1.1→v1.2, input-hash `7368f5a` unchanged; BC-3.08.001
+  v1.24→v1.25→v1.26, input-hash `fe4436a`→`9cc52d3`): swept the `emit_fuel_headroom_warning`→
+  `emit_plugin_fuel_headroom_warning` rename into both BCs' Amendment sections (closes
+  F-S2125-P2-002 in full). Closed the false VP-079-staleness flag at all 3 BC-3.08.001 sites — VP-079
+  v1.20 already registers Event 7, no further architect action owed (closes F-S2125-P2-003).
+
+**(e) Streak discipline.** BC-5.39.001: resolving findings does not itself advance the streak —
+BOTH S-21.19 and S-21.25 LOCAL cascade streaks remain **0/3**. Fresh-context adversary pass-3 is
+the next action for each: S-21.19 against S-21.19 v1.2 + S-21.24 v1.2 + BC-1.03.017 v1.19; S-21.25
+against S-21.25 v1.2 + BC-1.03.019 v1.2 + BC-3.08.001 v1.26.
+
+**(f) Drift item (recorded, not silently left bare).** BC-1.03.017 v1.18→v1.19's Invariant 7
+re-anchor is **DEFERRED** for the not-yet-converging split-seam stories S-21.20/S-21.21/S-21.22 —
+they still cite BC-1.03.017 v1.18 in their own `behavioral_contracts` frontmatter and BC-INDEX
+Stories cell. Anchor: swept during each story's own Wave-7 pre-TDD convergence burst (avoids
+re-sweeping all three siblings on every BC-1.03.017 amendment while S-21.19/S-21.20/S-21.21/
+S-21.22/S-21.23 are still independently converging in Wave 6-7). Carried forward from D-1059(e):
+BC-1.03.019's `VP-TBD` placeholder remains open — a real triggering-condition VP is still owed
+(VP-079 covers only Event 7's wire-shape, not the `>90%` semantics); anchored to a Phase-6
+formal-verifier / named VP-authoring pass follow-up, not this burst's scope.
+
+**(g) Scope boundary (explicit).** This burst registers/reconciles/records only for the
+S-21.19-cluster (BC-1.03.017, S-21.19, S-21.24) and S-21.25-cluster (BC-1.03.019, BC-3.08.001,
+`capabilities.md` verified unchanged, S-21.25) files already authored in the worktree at burst
+start. It does NOT touch S-21.20, S-21.21, S-21.22, or S-21.23 — their BC-1.03.017 re-anchor is the
+explicit drift item in (f), NOT this burst's scope.
+
+### Agents
+
+- product-owner: BC-1.03.017 v1.18→v1.19, BC-1.03.019 v1.1→v1.2, BC-3.08.001 v1.25→v1.26 — all
+  three already present in the worktree at burst start, registered/reconciled (not re-authored)
+  this burst
+- story-writer: S-21.19 v1.1→v1.2, S-21.24 v1.1→v1.2, S-21.25 v1.1→v1.2 — all three already
+  present in the worktree at burst start
+- state-manager (this burst): input-hash reconciliation via the per-file operator
+  `compute-input-hash` binary (POLICY 18; never dev-source `--scan --update` per D-952) —
+  BC-1.03.017 (`dec3278`→`86a7e19`), BC-3.08.001 (`fe4436a`→`9cc52d3`), S-21.25
+  (`558a5a3`→`4af3ec2`); BC-1.03.019/`capabilities.md`/S-21.19/S-21.24 verified already current
+  (`--check` exit 0, no update needed). New `adv-s21.19-local-pass-2.md` and
+  `adv-s21.25-local-pass-2.md` persisted (Part A/B + Disposition + Summary + Novelty Assessment
+  sections each). BC-3.08.001's BC-INDEX row backfilled to include the v1.25 cell that was omitted
+  at D-1059 registration time (index-row omission fixed in-scope, not perpetuated). INDEX.md
+  per-story cascade sections + both Convergence Status blocks. This D-1060 decision-log.md entry.
+  STATE.md advance. Single atomic commit to `factory-artifacts` per TD-VSDD-053.
+
+### 4-INDEX
+
+BC-INDEX v4.84→v4.85 (BC-1.03.017 v1.18→v1.19 row; BC-1.03.019 v1.1→v1.2 row; BC-3.08.001
+v1.24→v1.25→v1.26 row, v1.25 cell backfilled + v1.26 cell added, title cell synced) / ARCH-INDEX
+v3.76 UNCHANGED (no ADR content changed this burst) / VP-INDEX v2.77 UNCHANGED (no VP content
+changed this burst) / STORY-INDEX v4.374→v4.375 (S-21.19 v1.1→v1.2, S-21.24 v1.1→v1.2, S-21.25
+v1.1→v1.2 rows).
+
+### Phase
+
+D-1060-WAVE6-PASS2-REMEDIATION
+
+### Date
+
+2026-08-20
+
+---
