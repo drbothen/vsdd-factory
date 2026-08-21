@@ -2658,3 +2658,56 @@ No new standing rule this burst (D-1056(h) — novelty LOW, only cosmetic residu
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1057-S2111-SIZING-OVERRIDE-AND-DECOMPOSITION checkpoint burst (2026-08-20) — operator OVERRODE the standing keep-unified sizing decision at the HUMAN CONVERGENCE + SIZING-DECISION gate → S-21.11 (32 pts, CONVERGED v2.11) SPLIT into six sub-stories (S-21.19..S-21.24, 35 pts) + new independent S-21.25 (5 pts, BC-1.03.019 v1.0); AC partition 43/43, zero drops/dups, DAG verified acyclic; ADR-039 v1.13→v1.14 (subsystems sweep); BC-INDEX v4.83/STORY-INDEX v4.372/ARCH-INDEX v3.74; S-21.11 SUPERSEDED (POLICY 1 append-only, body frozen); each of the 7 new stories requires its own pre-TDD adversarial convergence starting Wave 6 (S-21.19 + S-21.25 parallel); pipeline stays ACTIVE.**
+
+## Session Resume Checkpoint (2026-08-20 — D-1057-S2111-SIZING-OVERRIDE-AND-DECOMPOSITION; PIPELINE ACTIVE)
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE ACTIVE** at a clean checkpoint (this commit; `git -C .factory log -1` for the HEAD SHA). At the HUMAN CONVERGENCE + SIZING-DECISION gate presented at D-1056 (S-21.11 v2.11, CONVERGED, BC-5.39.001 3-CLEAN achieved passes 14/15/16), the operator **OVERRODE** the standing keep-unified sizing decision — S-21.11 (32 pts) is **SPLIT** into six sub-stories: **S-21.19** (executor decision-function core, 9 pts, wave 6, `depends_on [S-21.10]`, conceptual heart of the split gating all four downstream seams and transitively S-21.24), **S-21.20** (PC13 full-registry coverage, 3 pts, wave 7, `depends_on [S-21.19]`), **S-21.21** (AMD-002 bash-adapter wiring, 9 pts, wave 7, `depends_on [S-21.10, S-21.19]`, widest blast radius across all 37 legacy-bash-adapter.wasm-routed registry entries), **S-21.22** (native-WASM fuel-axis calibration + flip, 4 pts, wave 7, `depends_on [S-21.10, S-21.19]`, owns its own flip commit Task #26), **S-21.23** (break-glass override mechanism, 7 pts, wave 7, `depends_on [S-21.10, S-21.19]`, cleanest BC boundary — entirely BC-1.03.018's own sibling BC), **S-21.24** (capstone gated-flip completion + full regression + CHANGELOG, 3 pts, wave 8, `depends_on [S-21.19, S-21.20, S-21.21, S-21.22, S-21.23]`, STRICTLY LAST). AC-001 through AC-041 plus the AC-013b/AC-013c legs partition **43/43**, zero drops, zero duplicates. A genuinely new independent story **S-21.25** (fuel-headroom WARN event, 5 pts, wave 6, `depends_on []`, parallel — no edge to the failure_policy seams) owns the previously-orphaned ADR-039 §Decision 5 Mitigation 1, governed by new BC-1.03.019 v1.0. DAG verified acyclic: `S-21.10→S-21.19→{S-21.20,S-21.21,S-21.22,S-21.23}→S-21.24`; S-21.25 independent. S-21.11 itself: `status` draft→superseded, `superseded_by: [S-21.19, S-21.20, S-21.21, S-21.22, S-21.23, S-21.24]`, v2.11 body FROZEN as historical source-of-truth per POLICY 1 (append-only, ID never reused). ADR-039 v1.13→v1.14 (subsystems_affected sweep). BC-INDEX v4.82→v4.83 (new BC-1.03.019 v1.0; total_bcs 1986→1987); ARCH-INDEX v3.73→v3.74; STORY-INDEX v4.371→v4.372 (S-21.11 row updated + 7 new rows; delivery+DAG blockquotes updated). All 11 touched files' input-hash independently re-confirmed via the operator-authoritative rc.23 `compute-input-hash --check` binary (exit 0 all). **This burst also archived D-1056's Session Resume Checkpoint to `session-checkpoints.md`.** No further LOCAL adversary dispatch is required for the RETIRED S-21.11 v2 cascade — but each of the SEVEN NEW stories requires its OWN fresh BC-5.39.001 3-CLEAN pre-TDD adversarial cascade before it can proceed to Phase-3 TDD.
+
+### §2 Convergence Counter
+
+S-21.11's own BC-5.39.001 streak remains **3/3 = CONVERGED** (frozen at pass-16, D-1056) — but this is now a HISTORICAL fact about the superseded story, not a live gate. Each of the seven new stories starts its OWN convergence counter at **0/3**; none has had a pass-1 yet.
+
+### §3 In-Flight / NEXT ACTION
+
+**RESUME = dispatch fresh-context adversary against S-21.19 and S-21.25 in parallel** (Wave 6, no dependency edge between them — both are independently reviewable), applying the full `.factory/policies.yaml` rubric per the Iron Law (fresh context; reads only the target story + its cited BCs/ADR, not S-21.11's history). Each of the seven new stories (S-21.19, S-21.20, S-21.21, S-21.22, S-21.23, S-21.24, S-21.25) requires its own independent BC-5.39.001 3-CLEAN LOCAL pre-TDD adversarial convergence before Phase-3 TDD entry can begin for that story — splitting a converged spec does not inherit convergence for the split parts (D-1057(k)). Recommended dispatch order follows the wave schedule: Wave 6 (S-21.19 + S-21.25, parallel) → Wave 7 (S-21.20, S-21.21, S-21.22, S-21.23, once S-21.19 converges — each depends on S-21.19 landing, though the ADVERSARIAL SPEC review itself can proceed in parallel with S-21.19's own cascade since it is a spec-level review, not an implementation dependency) → Wave 8 (S-21.24, once all five prior seams converge).
+
+### §4 Pending Human Decision
+
+None outstanding from this burst — the D-1056 HUMAN CONVERGENCE + SIZING-DECISION gate is RESOLVED (operator overrode to split). No new human decision is pending; the next steps are mechanical (adversarial cascades) until a NOT-CLEAN finding requires a routing decision.
+
+### §5 Session Note
+
+No new standing rule this burst (D-1057(i) — human-directed sizing override + mechanical decomposition-registration, not an adversarial-finding remediation). The existing D-1044(g), D-1045(h), D-1046(h), D-1046(b), D-1047(h), D-1051(j), and D-1053(i) lessons remain logged in the Drift Items table, unchanged, carried forward — they apply to each of the seven new stories' OWN future pre-TDD cascades exactly as they applied to S-21.11's (line-wrap-tolerant AND backtick-tolerant cite sweeps, exhaustive task-ordering sibling sweeps, semantic not literal-string sweeps, cross-artifact sweep generalization). **Transparency note (this burst, TD-VSDD-059 application):** D-1056(j)'s claim that its burst "archives D-1055's Session Resume Checkpoint ... together with D-1054's" is only half true — `session-checkpoints.md` contains D-1054's full checkpoint text but only a one-line "superseded by D-1055" pointer for D-1055 itself. This is a pre-existing gap (D-1056's own claim, not this burst's), out of this burst's explicit scope (registration + decomposition only); recorded at decision-log.md D-1057(j) and folded into the existing OWED checkpoint-archival backfill row rather than fixed ad hoc.
+
+### §6 Carry-Forward Blockers (unchanged, reference not re-list)
+
+- `[D-1057]` Each of the 7 new split stories requires its own independent BC-5.39.001 3-CLEAN pre-TDD convergence — see §3, this checkpoint, and the Blocking Issues table.
+- `[D-1057]` S-21.13 depends_on redirect `[S-21.10,S-21.11]`→`[S-21.10,S-21.22]` OWED — anchored a future story-writer touch.
+- `[D-1057]` S-21.16 depends_on redirect `[S-21.11]`→`[S-21.24]` OWED — anchored a future story-writer touch.
+- `[D-1057]` VP-authoring for BC-1.03.017/BC-1.03.018/BC-1.03.019 OWED — anchored Phase-6 formal-verifier (POLICY 9 sanctioned VP-TBD deferral).
+- `[D-1057]` hooks-registry.toml header plugin-count 35→37 OWED — anchored next maintenance sweep.
+- `[D-1057]` `artifact-path-registry.yaml` develop-side edit OWED — anchored a develop-branch PR follow-up.
+- `[P0-followup]` POLICY 15 gate wired + running but NOT enforcing — branch protection (human/admin-only action required).
+- `[C-1]`..`[C-5]` exec_subprocess security findings (ADR-043 NOT RATIFIED) — see Blocking Issues table.
+- `[D-952]` compute-input-hash operator-cache-vs-dev-source hash-algorithm divergence — deferred to rc.24; per-file operator-binary invocation is the workaround until then.
+- decision-log.md D-1011/D-1012 + D-1016..D-1042 (exhaustive) per-decision backfill — still OWED, anchored to a future dedicated backfill burst.
+- `session-checkpoints.md` D-1043/D-1044/D-1045/D-1050/D-1051 checkpoint-archival gap (full text) — still OWED, anchored to a future dedicated backfill burst. D-1055's full checkpoint text is ALSO missing (only a pointer note exists) per the §5 transparency note this burst.
+- `[F-007]` BC-1.03.017 v1.18 + BC-1.03.018 v1.1 + BC-1.03.019 v1.0 carry VP-TBD — anchored a future VP-authoring pass (POLICY 9).
+- `[F-008]` [process-gap] PluginResult-variant-construction-site trace gap — anchored S-15.03 PRIORITY-A.
+- `[D-1044(g)]` BC-version-bump-mid-cascade lacks same-burst story-propagation-dispatch discipline — anchored S-15.03 PRIORITY-A.
+- `[D-1045(h)]` Predicate/semantic sweeps must be SEMANTIC (enumerate every site stating the concept), not literal-string grep — anchored S-15.03 PRIORITY-A.
+- `[D-1046(h)]` D-1045(h)'s discipline generalizes ACROSS artifact boundaries — anchored S-15.03 PRIORITY-A.
+- `[D-1046(b)]` ADR-039 §AMD-003 option-(b) "strict superset" wording-hygiene deferral (non-blocking, no content defect) — touch when ADR-039 is next legitimately edited.
+- `[D-1047(h)/D-1051(j)]` Cite-parity/version-propagation sweeps must use a whitespace-normalized/multiline predicate AND a backtick-tolerant predicate, and attest by captured residual-set stdout, never a task-number/site-name list — anchored S-15.03 PRIORITY-A.
+- `[D-1053(i)]` Task-ordering/red-first/authored-after-referenced remediations must include an exhaustive same-class sibling sweep — anchored S-15.03 PRIORITY-A.
+- `[D-1053-drift]` STORY-INDEX `last_amended` frontmatter field lagging `version:` + unbounded nested-chain growth (~275KB) — anchored a future dedicated compaction burst.
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the D-1058-S2119-PASS1-REMEDIATION checkpoint burst (2026-08-20) — S-21.19 pre-TDD adversary pass-1 NOT-CLEAN (1 BLOCKER F-S2119-P1-001, split-severed enforcement-flip↔annotation atomicity) remediated via architect ADR-044 (capstone-owned flip) + story-writer S-21.19 v1.1 (9→7 pts) / S-21.24 v1.1 (3→5 pts); AC-002/AC-011 integration legs relocated S-21.19→S-21.24; 43/43 preserved; S-21.19 LOCAL streak 0/3, pass-2 next; S-21.25 close pending (D-1059).**

@@ -530,7 +530,31 @@ content changed; all four fixes confined to the story's own Tasks/DAG layer).
 **NEXT: fresh-context adversary pass-14 against the SAME S-21.11 v2.11 + ADR-039 v1.13 +
 BC-1.03.017 v1.18 + BC-1.03.018 v1.1 + indexes bundle (unchanged since D-1053).**
 
+**Superseded by D-1057 split:** the operator-directed split (D-1057) took S-21.11 v2.11 as its
+frozen source (status draft→superseded, story v2.11→v2.12), decomposing it into six independently
+convergent seams (S-21.19, S-21.20, S-21.21, S-21.22, S-21.23, S-21.24). The S-21.11 v2 LOCAL
+cascade above is CLOSED at 28 passes / 0-streak-at-split (no fresh pass-14 will run against the
+now-superseded unified story). Per-story LOCAL cascades for each split seam begin their own
+independent convergence tracking below, starting with S-21.19.
+
 </details>
+
+## S-21.19 LOCAL Adversary Reviews (BC-5.39.001 cascade)
+
+> **Split-seam cascade note:** S-21.19 is split seam 1 of 6 from CONVERGED S-21.11 v2.11 (D-1057).
+> This is a pre-TDD spec-level cascade against the story artifact itself (mirroring the
+> S-21.11/S-21.11-v2 pre-TDD pattern), distinct from post-TDD implementation cascades like
+> S-21.09's. File convention: `adv-s21.19-local-pass-N.md`, matching the sibling per-story
+> pattern (`adv-s21.NN-local-pass-N.md` / `adv-s21.11-v2-local-pass-N.md`).
+
+| Pass | Date | File | Verdict | Findings | Streak | Reviewed Bundle | Status |
+|------|------|------|---------|----------|--------|------------------|--------|
+| 1 | 2026-08-20 | `adv-s21.19-local-pass-1.md` | **NOT-CLEAN** | 1 (1 BLOCKER F-S2119-P1-001, streak-resetting) | **0/3** | story v1.0, `.factory/planning/S-21.11-decomposition-plan.md` §1/§3 | **REMEDIATED THIS BURST (D-1058)** — split severs the enforcement-flip↔annotation atomic unit (BC-1.03.017 v1.18 Invariant 7/PC8/PC11); resolved via architect ADR-044 (capstone-owned flip, extends ADR-039 §Decision 3) + story-writer S-21.19 v1.0→v1.1 (9→7 pts, `a2dca8e`→`e6f82f2`) / S-21.24 v1.0→v1.1 (3→5 pts, `cbbc8dd`→`e3c75a4`); AC-002/AC-011 integration legs relocated S-21.19→S-21.24; 43/43 preserved; zero DAG/wave change. **NEXT: fresh-context adversary pass-2 against S-21.19 v1.1 + S-21.24 v1.1 + ADR-044 v1.0 bundle.** |
+
+**Convergence Status (S-21.19 LOCAL cascade): NOT CONVERGED — streak 0/3.** Pass-1 BLOCKER
+F-S2119-P1-001 remediated same-burst (D-1058); remediation does not itself advance the streak
+per BC-5.39.001 (a resolved BLOCKER still holds the counter at 0). Pass-2 is the next action,
+reviewing the v1.1 bundle (S-21.19 v1.1 + S-21.24 v1.1 + ADR-044 v1.0) fresh-context.
 
 ## Artifact Size Budgets (IP-003 / D-835)
 

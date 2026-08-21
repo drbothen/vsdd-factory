@@ -20381,3 +20381,108 @@ D-1057-S2111-SIZING-OVERRIDE-AND-DECOMPOSITION
 2026-08-20
 
 ---
+
+## D-1058 — D-1058-S2119-PASS1-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` -> the prior recorded max
+in this file is `## D-1057`. This entry is D-1058, the next decision allocated after D-1057.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053).** Per D-1057(k), each
+of the six D-1057 split seams requires its own independent BC-5.39.001 3-CLEAN LOCAL pre-TDD
+adversarial cascade before Phase-3 TDD entry, starting with Wave 6 (S-21.19 + S-21.25, parallel).
+This entry records S-21.19's pass-1 outcome and its same-burst remediation.
+
+**(a) S-21.19 pre-TDD adversary pass-1 verdict.** NOT-CLEAN. 1 BLOCKER finding,
+**F-S2119-P1-001**: the D-1057 6-seam split of CONVERGED S-21.11 v2.11 severs an
+atomicity-critical unit. As authored (S-21.19 v1.0), Task 5 wires the extended 3-arg
+`plugin_fail_closed` function directly into `execute_tiers`/`execute_tier`'s real block-decision
+call site at wave 6, while the five `on_error=block` plugins that must be annotated first are
+owned by downstream seams landing at waves 7-8 (S-21.21/S-21.23/S-21.24). This creates a
+merged-`develop` state — spanning every commit between S-21.19's merge and S-21.24's merge —
+in which enforcement is active AND all five targeted plugins remain unannotated: a live CWE-636
+fail-open window, directly contradicting BC-1.03.017 v1.18 Invariant 7 and PC8/PC11's mechanical
+un-mergeability guarantee. S-21.19 v1.0's own Task 5 "ATOMICITY GATE" note claimed this hazard
+was "vacuously satisfied" by the split; that claim was independently FALSE — vacuous
+satisfaction requires the wiring to never exist without the annotations already present, and the
+split as authored inverts that ordering. Full verbatim review:
+`.factory/cycles/v1.0-brownfield-backfill/adv-s21.19-local-pass-1.md`.
+
+**(b) Resolution — architect ADR-044 (capstone-owned enforcement flip).** Routed to
+`vsdd-factory:architect` per the Agent Routing Table (cross-story architecture defect, not a
+story-writer-fixable local gap). Architect authored **ADR-044** ("Split-topology flip-sequencing
+— the enforcement-active wiring commit is capstone-owned, not core-decision-story-owned, when an
+atomicity-critical story is partitioned across independently-mergeable sub-stories"; extends
+ADR-039 §Decision 3; RATIFIED 2026-08-20; `subsystems_affected: [SS-01]`). The ruling: the
+enforcement-active wiring commit is owned by the LAST-landing story in the split (S-21.24), not
+by the story authoring the underlying decision-function logic (S-21.19). S-21.19 authors and
+unit-tests the 3-arg `plugin_fail_closed` extension and `PluginOutcome.failure_policy` field as a
+standalone, never-wired-into-`execute_tiers`/`execute_tier` pure function within this story;
+S-21.24's new Task 0 performs the actual wiring, strictly after all five plugins are already
+annotated (S-21.24 `depends_on` all five sibling seams by construction, so it cannot land first).
+This makes "annotate before flip" hold by wave-schedule construction alone — no same-commit
+choreography required, and no commit in `develop`'s merged history can ever observe
+"enforcement-active AND any of the five plugins unannotated."
+
+**(c) Downstream story-writer application (same burst).** Per ADR-044's per-story change-list
+(`.factory/planning/S-21.11-decomposition-plan.md` §8.4, added this burst as §8):
+- **S-21.19** v1.0→v1.1 (points 9→7, input-hash `a2dca8e`→`e6f82f2`). Task 5 sheds the
+  live-wiring clause and the false "vacuously satisfied" note, retaining only the dormant 3-arg
+  extension + `failure_policy` field. AC-002 and AC-011 SPLIT: unit legs retained, bats/TC-12
+  integration legs relocated to S-21.24.
+- **S-21.24** v1.0→v1.1 (points 3→5, input-hash `cbbc8dd`→`e3c75a4`). New Task 0 wires the
+  executor enforcement-active flip strictly after the five-plugin annotation tasks; receives
+  AC-002 (bats leg) and AC-011 (TC-12 leg) as new owned ACs via new Tasks 3-4.
+- Combined S-21.19+S-21.24 point total unchanged at 12 (7+5) — a redistribution, not a scope
+  increase. Zero `depends_on`/`blocks`/wave-assignment change (topology-preserving per plan
+  §8.3). AC partition remains **43/43** — a leg-ownership move (AC-002/AC-011 integration legs
+  S-21.19→S-21.24), not an AC add or drop.
+
+**(d) State-manager registration (this burst).** ARCH-INDEX v3.74→v3.75 (new ADR-044 row,
+ratified, extends ADR-039 §Decision 3). STORY-INDEX v4.372→v4.373 (S-21.19 row: 9pts/`a2dca8e`/
+v1.0 → 7pts/`e6f82f2`/v1.1; S-21.24 row: 3pts/`cbbc8dd`/v1.0 → 5pts/`e3c75a4`/v1.1). Both
+input-hashes independently re-verified via `compute-input-hash` against the current story files
+(exit 0, no drift). New `adv-s21.19-local-pass-1.md` persisted (verbatim Part A/B + Summary +
+Novelty Assessment sections per `adversarial-review-template.md`). INDEX.md: new
+`## S-21.19 LOCAL Adversary Reviews` section (pass-1 row + Convergence Status: streak 0/3,
+pass-2 next) plus a closing note on the now-superseded S-21.11 v2 cascade section (28 passes,
+closed at split, no further passes against the frozen v2.11 body).
+
+**(e) Streak discipline.** BC-5.39.001: resolving a BLOCKER does not itself advance the streak —
+S-21.19 LOCAL cascade streak remains **0/3**. Fresh-context adversary pass-2 against the v1.1
+bundle (S-21.19 v1.1 + S-21.24 v1.1 + ADR-044 v1.0) is the next action. S-21.25's independent
+pass-1 (parallel Wave 6 seam per D-1057(k)) is tracked separately and is **NOT** touched by this
+entry — its own remediation burst is D-1059, scoped independently.
+
+**(f) Scope boundary (explicit).** This burst registers/reconciles/records only. It does NOT
+author story or ADR body content (architect wrote ADR-044; story-writer wrote the S-21.19/S-21.24
+diffs — both already present in the worktree at burst start). It does NOT touch S-21.25,
+BC-1.03.019, BC-3.08.001, ADR-039, `capabilities.md`, or VP-079 — those five files remain
+uncommitted in the worktree, reserved for the separate D-1059 burst (S-21.25 close).
+
+### Agents
+
+- architect: ADR-044 (new file, ratified) — capstone-owned enforcement-flip ruling, extends
+  ADR-039 §Decision 3; `.factory/planning/S-21.11-decomposition-plan.md` §8 atomicity-resolution
+  addendum
+- story-writer: S-21.19 v1.0→v1.1 (9→7 pts), S-21.24 v1.0→v1.1 (3→5 pts) — both already present
+  in the worktree at burst start, registered/reconciled (not re-authored) this burst
+- state-manager (this burst): ARCH-INDEX/STORY-INDEX registration; independent input-hash
+  `--check` re-confirmation (S-21.19, S-21.24); `adv-s21.19-local-pass-1.md` persistence;
+  INDEX.md per-story cascade section + Convergence Status; this D-1058 decision-log.md entry;
+  STATE.md advance; single atomic commit to `factory-artifacts` per TD-VSDD-053
+
+### 4-INDEX
+
+ARCH-INDEX v3.74→v3.75 (new ADR-044 row) / VP-INDEX v2.76 (UNCHANGED — no VP touched this burst)
+/ BC-INDEX v4.83 (UNCHANGED — no BC touched this burst) / STORY-INDEX v4.372→v4.373 (S-21.19 row:
+9→7 pts; S-21.24 row: 3→5 pts).
+
+### Phase
+
+D-1058-S2119-PASS1-REMEDIATION
+
+### Date
+
+2026-08-20
+
+---
