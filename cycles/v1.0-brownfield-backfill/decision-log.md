@@ -20486,3 +20486,131 @@ D-1058-S2119-PASS1-REMEDIATION
 2026-08-20
 
 ---
+
+## D-1059 — D-1059-S2125-PASS1-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` -> the prior recorded max
+in this file is `## D-1058`. This entry is D-1059, the next decision allocated after D-1058.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053).** Per D-1057(k), each
+of the six D-1057 split seams requires its own independent BC-5.39.001 3-CLEAN LOCAL pre-TDD
+adversarial cascade before Phase-3 TDD entry. S-21.25 is Wave 6's parallel/independent seam
+(fuel-headroom WARN event, ADR-039 §Decision 5 Mitigation 1 — no dependency edges to the
+S-21.19-S-21.24 `failure_policy` seams). This entry records S-21.25's pass-1 outcome and its
+same-burst remediation, and also reconciles the STATE.md body sections D-1058 disclosed-deferred
+(correctness-over-completeness; D-1058 chose to defer rather than risk STATE.md corruption).
+
+**(a) S-21.25 pre-TDD adversary pass-1 verdict.** NOT-CLEAN. 2 HIGH + 2 MEDIUM + 3 LOW findings,
+no BLOCKER. **F-S2125-P1-001** (HIGH): AC-005's regression guard specified an impossible literal
+occurrence-count scan (`emit_fuel_headroom_warning(`) that cannot discriminate "one call site"
+from refactor-legal restructurings, and cannot verify PC5's multi-branch-uniformity guarantee.
+**F-S2125-P1-002** (HIGH): the threshold predicate (PC1: `fuel_consumed > 0.9 × fuel_cap`) and
+`headroom_ratio` formula (PC7) were left inline inside the effectful post-invocation match arm
+with no pure-function extraction, making them untestable in isolation. **F-S2125-P1-003**
+(MEDIUM): BC-1.03.019 PC6's required-fields enumeration omitted `timestamp` — a field every
+sibling `plugin.*` emitter already carries (S-19.09 T-013/F-WG-003 precedent) — and Event 7 was
+unregistered in BC-3.08.001's SS-03 catalog. **F-S2125-P1-004** (MEDIUM): BC-1.03.019 v1.0's
+Changelog row narrated `input-hash: "PENDING"` while the frontmatter already carried a real
+computed value (`57262cf`); separately, S-21.25's own input-hash goes stale the instant
+BC-1.03.019 is amended. **F-S2125-P1-005** (LOW): PC6's "exactly these fields" wording falsely
+excluded `message`, contradicting PC8. **F-S2125-P1-006** (LOW): ADR-039 §Decision 5 Mitigation
+1's WARN message read "...≥90% of budget..." while its own trigger predicate is strict
+(`fuel_consumed > 0.9 × cap`) — exactly 90% does not fire, per BC-1.03.019 PC2's boundary control;
+the message misdescribed its own trigger. **F-S2125-P1-007** (LOW, pre-existing but load-bearing):
+`capabilities.md` CAP-011 body still cited "default 10M operations," stale against ADR-042
+§Decision 2's 10M→20M raise; BC-1.03.019 anchors to CAP-011, making the staleness load-bearing
+for this story. Full verbatim review:
+`.factory/cycles/v1.0-brownfield-backfill/adv-s21.25-local-pass-1.md`.
+
+**(b) Resolution — all 7 findings fixed in scope, no BLOCKER, no deferral.**
+- `vsdd-factory:story-writer` (S-21.25 v1.0→v1.1, input-hash `775050b`→`558a5a3`): extracted named
+  pure helpers `fuel_headroom_exceeded`/`fuel_headroom_ratio` + a thin
+  `check_and_emit_fuel_headroom_warning` orchestration shell (closes F-S2125-P1-002); redesigned
+  AC-005 around a `// SINGLE-EMIT-SITE` marker-scan, satisfiable and refactor-tolerant (closes
+  F-S2125-P1-001); AC-006 field enumeration corrected (+`message`/`timestamp`, closes
+  F-S2125-P1-005); AC-008 message string corrected to strict `>90%` (cascade of F-S2125-P1-006);
+  BC-1.03.019 v1.0→v1.1 and ADR-039 v1.14→v1.15 re-anchor swept throughout.
+- `vsdd-factory:product-owner` (BC-1.03.019 v1.0→v1.1, input-hash `57262cf`→`7368f5a`;
+  BC-3.08.001 v1.24→v1.25, input-hash `35c30eb`→`fe4436a`): PC6 field set corrected (+`timestamp`
+  with S-19.09 sibling-parity cross-reference, closes F-S2125-P1-003 in part); PC6
+  false-exclusivity wording corrected (closes F-S2125-P1-005); PC8 message string corrected to
+  strict `>90%` (cascade of F-S2125-P1-006); BC-3.08.001 Event 7 `plugin.fuel_headroom_warning`
+  registered in the SS-03 catalog, H1 title updated, six→seven count-phrase sweep (closes
+  F-S2125-P1-003 in full); BC-1.03.019 v1.0 Changelog row "PENDING" narrative corrected in place
+  to the actual `57262cf` value (closes F-S2125-P1-004 narrative half).
+- `vsdd-factory:architect` (ADR-039 v1.14→v1.15; `capabilities.md` v1.11→v1.12, input-hash
+  `c54ab65`; VP-079 v1.19→v1.20, input-hash `704a8ca`): §Decision 5 Mitigation 1 WARN message
+  corrected `≥90%`→`>90%` via non-re-ratifying **§Erratum E-006** — same non-decision-content
+  category as E-001..E-005, no POLICY 22 re-ratification required since the 0.9× threshold itself
+  is unchanged (closes F-S2125-P1-006); CAP-011 body corrected "default 10M operations"→"default
+  20M operations (per ADR-042 §Decision 2)" (closes F-S2125-P1-007); VP-079 amended under POLICY 9
+  propagation — Mandatory-Fields table row + SITE_7 added to Property 6, with an explicit scope
+  note that SITE_7 is schema-catalogued only and NOT yet mutation-proven (fixture pending S-21.25
+  delivery; Event 7's triggering-condition/semantics properties remain out of VP-079's scope,
+  owed to a forthcoming BC-1.03.019-anchored VP-TBD). Architect independently verified
+  verification-architecture.md and verification-coverage-matrix.md require no per-event edit
+  (VP-079's row in both is a bare stable anchor, POLICY 9 grep-confirmed).
+- `vsdd-factory:state-manager` (this burst): input-hash reconciliation via the per-file operator
+  `compute-input-hash` binary (POLICY 18; never dev-source `--scan --update` per D-952), run in
+  dependency order to avoid cascade drift — `capabilities.md` (`3033e89`→`c54ab65`, drifted from
+  an ARCH-INDEX change that landed after architect computed the hash) → BC-1.03.019
+  (`57262cf`→`7368f5a`) → BC-3.08.001 (`35c30eb`→`fe4436a`) → VP-079 (`ffa54ae`→`704a8ca`,
+  drifted from the BC-3.08.001 update) → S-21.25 (`775050b`→`558a5a3`); all five re-verified
+  clean (`--check` exit 0) after the full chain settled (closes F-S2125-P1-004 hash half). New
+  `adv-s21.25-local-pass-1.md` persisted (Part A/B + Disposition + Summary + Novelty Assessment
+  sections). 4-index propagation (BC-INDEX/ARCH-INDEX/VP-INDEX/STORY-INDEX).
+
+**(c) STATE.md body reconciliation (D-1058-deferred sections, closed this burst).** D-1058
+disclose-deferred a full STATE.md body reconcile rather than risk the duplicated-section
+corruption it hit mid-edit — correctness over completeness. This burst brings the deferred
+sections current for BOTH D-1058 and D-1059: Decisions Log body table (D-1058 + D-1059 rows
+added), Story Status (S-21.19 v1.1/7pts, S-21.24 v1.1/5pts, S-21.25 v1.1, all 7 sub-stories
+reflected in per-story convergence), Identifier Conventions (ADR count +ADR-044), Concurrent
+Cycles, Session Resume Checkpoint (next action: adversary pass-2 for S-21.19 AND S-21.25),
+Phase Progress, Blocking Issues, trajectory-tail LENGTH=4, banner `wc -l`. Small, single-section
+edits used throughout per the CRITICAL editing discipline that caused D-1058's original
+corruption risk; each edit structurally verified before the next.
+
+**(d) Streak discipline.** BC-5.39.001: resolving findings does not itself advance the streak —
+S-21.25 LOCAL cascade streak remains **0/3**. Fresh-context adversary pass-2 against the v1.1
+bundle (S-21.25 v1.1 + BC-1.03.019 v1.1 + BC-3.08.001 v1.25 + ADR-039 v1.15 + VP-079 v1.20 +
+`capabilities.md` v1.12) is the next action.
+
+**(e) Drift item (recorded, not silently left bare).** BC-1.03.019's `VP-TBD` placeholder remains
+open — a REAL triggering-condition VP (threshold predicate, boundary controls, `headroom_ratio`
+formula, independence from `on_error`/`failure_policy`) is still owed; VP-079 covers only the
+Event 7 wire-shape/schema-conformance dimension, not the `>90%` semantics. Anchored to a
+Phase-6 formal-verifier / named VP-authoring pass follow-up — not this burst's scope.
+
+**(f) Scope boundary (explicit).** This burst registers/reconciles/records only for the five
+S-21.25-cluster files (already authored in the worktree at burst start by story-writer/
+product-owner/architect) plus the STATE.md body reconcile explicitly assigned to D-1059. It does
+NOT touch S-21.19, S-21.24, or ADR-044 — those were D-1058's scope and are unchanged here.
+
+### Agents
+
+- product-owner: BC-1.03.019 v1.0→v1.1, BC-3.08.001 v1.24→v1.25 — both already present in the
+  worktree at burst start, registered/reconciled (not re-authored) this burst
+- architect: ADR-039 v1.14→v1.15 (§Erratum E-006), `capabilities.md` v1.11→v1.12, VP-079
+  v1.19→v1.20 — all three already present in the worktree at burst start
+- story-writer: S-21.25 v1.0→v1.1 — already present in the worktree at burst start
+- state-manager (this burst): input-hash reconciliation (5 files, dependency-ordered);
+  `adv-s21.25-local-pass-1.md` persistence; INDEX.md per-story cascade section + Convergence
+  Status; this D-1059 decision-log.md entry; STATE.md advance INCLUDING the D-1058-deferred body
+  reconcile; single atomic commit to `factory-artifacts` per TD-VSDD-053
+
+### 4-INDEX
+
+BC-INDEX v4.83→v4.84 (BC-1.03.019 v1.0→v1.1 row; BC-3.08.001 v1.24→v1.25 row + H1 title mirror)
+/ ARCH-INDEX v3.75→v3.76 (ADR-039 v1.14→v1.15 row sweep) / VP-INDEX v2.76→v2.77 (VP-079
+v1.19→v1.20 row) / STORY-INDEX v4.373→v4.374 (S-21.25 v1.0→v1.1 row).
+
+### Phase
+
+D-1059-S2125-PASS1-REMEDIATION
+
+### Date
+
+2026-08-20
+
+---

@@ -556,6 +556,25 @@ F-S2119-P1-001 remediated same-burst (D-1058); remediation does not itself advan
 per BC-5.39.001 (a resolved BLOCKER still holds the counter at 0). Pass-2 is the next action,
 reviewing the v1.1 bundle (S-21.19 v1.1 + S-21.24 v1.1 + ADR-044 v1.0) fresh-context.
 
+## S-21.25 LOCAL Adversary Reviews (BC-5.39.001 cascade)
+
+> **Split-seam cascade note:** S-21.25 is D-1057(k)'s independent/parallel Wave 6 seam
+> (fuel-headroom WARN event, ADR-039 §Decision 5 Mitigation 1) — no dependency edges to the
+> S-21.19-S-21.24 `failure_policy` seams. This is a pre-TDD spec-level cascade against the story
+> artifact itself. File convention: `adv-s21.25-local-pass-N.md`, matching the sibling per-story
+> pattern (`adv-s21.NN-local-pass-N.md`).
+
+| Pass | Date | File | Verdict | Findings | Streak | Reviewed Bundle | Status |
+|------|------|------|---------|----------|--------|------------------|--------|
+| 1 | 2026-08-20 | `adv-s21.25-local-pass-1.md` | **NOT-CLEAN** | 7 (2 HIGH F-S2125-P1-001/002, 2 MEDIUM F-S2125-P1-003/004, 3 LOW F-S2125-P1-005/006/007) | **0/3** | story v1.0, BC-1.03.019 v1.0, ADR-039 v1.14 | **REMEDIATED THIS BURST (D-1059)** — story-writer extracted named pure helpers (`fuel_headroom_exceeded`/`fuel_headroom_ratio` + `check_and_emit_fuel_headroom_warning` shell) + satisfiable `// SINGLE-EMIT-SITE` regression guard + AC-006/AC-008 field-set/message corrections (S-21.25 v1.0→v1.1, `775050b`→`558a5a3`); product-owner BC-1.03.019 v1.0→v1.1 (PC6 field set +`timestamp`/`message`, PC8 strict `>90%`, `7368f5a`) + BC-3.08.001 v1.24→v1.25 (Event 7 `plugin.fuel_headroom_warning` registered, `fe4436a`); architect ADR-039 v1.14→v1.15 (§Erratum E-006, `≥90%`→`>90%`) + `capabilities.md` v1.11→v1.12 (CAP-011 10M→20M) + VP-079 v1.19→v1.20 (Event 7 schema row + SITE_7, `704a8ca`). **NEXT: fresh-context adversary pass-2 against S-21.25 v1.1 + BC-1.03.019 v1.1 + BC-3.08.001 v1.25 + ADR-039 v1.15 + VP-079 v1.20 + `capabilities.md` v1.12 bundle.** |
+
+**Convergence Status (S-21.25 LOCAL cascade): NOT CONVERGED — streak 0/3.** Pass-1's 7 findings
+(2 HIGH, 2 MEDIUM, 3 LOW) remediated same-burst (D-1059); remediation does not itself advance the
+streak per BC-5.39.001. Pass-2 is the next action, reviewing the v1.1 bundle fresh-context.
+**Drift item:** BC-1.03.019's `VP-TBD` placeholder remains open — a real triggering-condition VP
+is still owed (VP-079 covers only Event 7's wire-shape, not the `>90%` semantics); anchored to a
+Phase-6 formal-verifier / named VP-authoring pass follow-up.
+
 ## Artifact Size Budgets (IP-003 / D-835)
 
 | Artifact | Soft Cap | Hard Cap | Current Lines | Compaction Destination | Codified |

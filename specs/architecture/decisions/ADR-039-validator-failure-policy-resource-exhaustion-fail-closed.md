@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.14"
+version: "1.15"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: ratified
 date: 2026-08-06
@@ -17,7 +17,22 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-20 (v1.14-subsystems-affected-sweep) — `subsystems_affected` frontmatter sweep
+  2026-08-20 (v1.15-headroom-warning-threshold-wording-correction) — §Decision 5 Mitigation 1
+  WARN message wording correction (architect; S-21.25 adversarial review upstream finding
+  F-S2125-P1-006, LOW, orchestrator-dispatched, brownfield cycle `v1.0-brownfield-backfill`):
+  the mandated verbatim WARN message read `"fuel-headroom-warning: plugin consumed ≥90% of
+  budget; ..."`, but the mitigation's own trigger predicate, stated one sentence earlier in the
+  same paragraph, is strict inequality (`fuel_consumed > 0.9 × cap`) — exactly 90% does NOT fire
+  the warning. The `≥90%` wording in the message string therefore misdescribed the condition
+  under which the dispatcher emits it. Because BC-1.03.019 Postcondition 8 / S-21.25 AC-008
+  require byte-for-byte reproduction of this ADR string, the drift was upstream-load-bearing.
+  Corrected the message text to `"fuel-headroom-warning: plugin consumed >90% of budget; next
+  larger input may trap — recalibrate fuel_cap"` (strict `>`, matching the trigger predicate
+  verbatim). No decision semantics, threshold value, or normative prescription altered — the
+  0.9× threshold itself is unchanged; only the message string's inequality symbol is corrected
+  to match it. See §Erratum E-006 for the full before/after diff and the ratification-scope
+  reasoning (same non-re-ratification category as E-001..E-005). ADR-039 v1.15.
+  [Prior: 2026-08-20 (v1.14-subsystems-affected-sweep) — `subsystems_affected` frontmatter sweep
   (architect; S-21.11 Phase-2 re-decomposition finding 1.3, orchestrator-dispatched
   consistency audit): `subsystems_affected` was `[SS-01, SS-07]`, under-scoped against this
   ADR's own §AMD-002 amendment (RATIFIED v1.10), which mandates a host-to-guest wiring change
@@ -317,6 +332,7 @@ modified:
   - "2026-08-19 (v1.12-status-sync-AMD-003-ratification)"
   - "2026-08-19 (v1.13-AMD-003-rule-narrowing-correction)"
   - "2026-08-20 (v1.14-subsystems-affected-sweep)"
+  - "2026-08-20 (v1.15-headroom-warning-threshold-wording-correction)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -769,7 +785,7 @@ S-21.07. Mitigation 2 (≥574 KB production-scale fixture) was delivered in S-21
 
 **Mitigation 1 — Fuel-headroom warning:**
 On `PluginResult::Ok`, if `fuel_consumed > 0.9 × cap`, the dispatcher MUST emit a WARN-level
-structured event: `"fuel-headroom-warning: plugin consumed ≥90% of budget; next larger input
+structured event: `"fuel-headroom-warning: plugin consumed >90% of budget; next larger input
 may trap — recalibrate fuel_cap"`. The event MUST include `plugin_name`, `fuel_consumed`,
 `fuel_cap`, and `headroom_ratio` fields. The check belongs in the `Ok` path of the invocation
 result handler, after `fuel_consumed_from_store` is computed in the invoke module.
@@ -1156,6 +1172,16 @@ frontmatter-only parity fix, made in the same burst as the operator-directed S-2
 6-seam re-decomposition (see `.factory/planning/S-21.11-decomposition-plan.md`). Status
 unchanged: RATIFIED. ADR-039 v1.14.
 
+HEADROOM-WARNING THRESHOLD WORDING ERRATUM 2026-08-20 (v1.15 — architect; S-21.25 adversarial
+review upstream finding F-S2125-P1-006, LOW, orchestrator-dispatched, brownfield cycle
+v1.0-brownfield-backfill): §Decision 5 Mitigation 1's mandated verbatim WARN message read
+"plugin consumed ≥90% of budget", but the mitigation's own trigger predicate is strict
+(`fuel_consumed > 0.9 × cap`; exactly 90% does not fire, per BC-1.03.019 Postcondition 2).
+Message text corrected to "plugin consumed >90% of budget" to match the strict trigger verbatim.
+No decision semantics, threshold value, or normative prescription altered — only the message
+string's inequality symbol. No decision semantics altered; status remains RATIFIED. ADR-039
+v1.15. See §Erratum E-006.
+
 Adjudicates F-S2107-P7-010 (HIGH), F-S2107-P7-011 (HIGH), F-S2107-P7-015 (MEDIUM) design
 legs from adversarial pass-7 of S-21.07. Extends ADR-035 §Decision 5 to the enforcement
 question. Does NOT supersede ADR-035.
@@ -1531,6 +1557,47 @@ decision-content is introduced. See §Erratum E-005.
 ---
 
 ## Erratum
+
+### E-006 — §Decision 5 Mitigation 1 WARN message: "≥90%" corrected to ">90%" to match the strict trigger predicate (v1.15, 2026-08-20)
+
+**Finding:** F-S2125-P1-006 (LOW, upstream; S-21.25 adversarial review, brownfield cycle
+`v1.0-brownfield-backfill`).
+
+**Error:** §Decision 5 Mitigation 1's mandated verbatim WARN message read:
+`"fuel-headroom-warning: plugin consumed ≥90% of budget; next larger input may trap —
+recalibrate fuel_cap"`. The mitigation's own trigger predicate, stated in the sentence
+immediately preceding the message string, is `fuel_consumed > 0.9 × cap` — strict inequality.
+Exactly 90% (`fuel_consumed == 0.9 × cap`) does NOT fire the warning (per BC-1.03.019
+Postcondition 2). The message's `≥90%` wording therefore misdescribed the condition under which
+the dispatcher emits it, understating the threshold by including the boundary value the trigger
+excludes.
+
+**Correction:** Message text corrected to:
+`"fuel-headroom-warning: plugin consumed >90% of budget; next larger input may trap —
+recalibrate fuel_cap"` (strict `>`, matching the trigger predicate verbatim).
+
+| Location | Before | After |
+|----------|--------|-------|
+| §Decision 5, Mitigation 1, WARN message string | `"fuel-headroom-warning: plugin consumed ≥90% of budget; next larger input may trap — recalibrate fuel_cap"` | `"fuel-headroom-warning: plugin consumed >90% of budget; next larger input may trap — recalibrate fuel_cap"` |
+
+**Scope:** Wording correction confined to the message string's inequality symbol. The 0.9×
+threshold value, the trigger predicate (`fuel_consumed > 0.9 × cap`, unchanged), the required
+event fields (`plugin_name`, `fuel_consumed`, `fuel_cap`, `headroom_ratio`), and the handler
+placement (`Ok` path, after `fuel_consumed_from_store` is computed) are all unchanged. No
+decision semantics or normative prescription altered.
+
+**Downstream cascade:** BC-1.03.019 Postcondition 8 and S-21.25 AC-008 both require byte-for-byte
+reproduction of this ADR string. Per the finding's routing, product-owner and story-writer
+update those artifacts to reproduce the corrected string above, in follow-up bursts to this one.
+
+**Ratification note:** This erratum does not require human re-ratification under POLICY 22.
+POLICY 22 governs changes to ADR decisions (rulings, thresholds, normative prescriptions actually
+being decided). The 0.9× threshold decision is unchanged; this erratum corrects a message
+string's own restatement of that already-ratified threshold back into agreement with it — the
+same non-decision-content category as E-001 through E-005. Status remains RATIFIED. ADR-039
+v1.15.
+
+---
 
 ### E-005 — §AMD-003 "Precise rule (normative)" paragraph broadened beyond its own chosen option, reintroducing a CWE-636 self-lock on the FailOpen exhaustion path (v1.13, 2026-08-19)
 

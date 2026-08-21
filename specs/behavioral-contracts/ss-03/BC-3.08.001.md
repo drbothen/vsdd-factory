@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.24"
-last_amended: "2026-07-15 (v1.24) — F-P8-001 (LOW, S-19.09 D22): Event 6 wire format and mandatory-fields enumeration amended to include `timestamp` field (ISO-8601 alias of `ts`, matching Events 1–5 sibling parity). [Prior: 2026-07-13 (v1.23) — S-19.05 pass-13 fix-burst discovery: frontmatter status: draft / lifecycle_status: active mismatch — missed POL-14 auto-promotion at S-15.01 PR-106 merge (2026-05-08, merge_sha=453eee1). [Prior: 2026-07-13 (v1.22) — S-19.05 pass-13 F-P13-001: five stale count phrases corrected (§Common Fields intro; session_id row; §Architecture Anchors FileSink row; §Traceability CAJ; §Traceability DI-017); §Traceability ADR row disambiguated (original-ADR four scope explicitly stated; Events 5–6 provenance noted). Whole-file count-phrase sweep conducted. [Prior: 2026-07-10 (v1.21) — F-P43-003: §VP VP-100 row verbatim-derived from VP-INDEX (cardinality+mutual-exclusivity form); F-P43-005: v1.19 Changelog row backfilled + v1.20 Amendment section authored; O-P43-001: last_amended canonicalized to chain form. [Prior: 2026-07-09 (v1.20) — D-798 pre-pass-43 consistency sweep.]]]]"
+version: "1.25"
+last_amended: "2026-08-20 (v1.25) — F-S2125-P1-003 (MEDIUM, S-21.25 adversarial pass-1, v1.0-brownfield-backfill): Event 7 `plugin.fuel_headroom_warning` added to the SS-03 event catalog — new dispatcher wire event for ADR-039 §Decision 5 Mitigation 1 (fuel-headroom early-warning signal); full triggering-condition/semantics authority remains BC-1.03.019, this BC registers the wire-format/field-shape catalog entry. Count-phrase sweep: six→seven event types throughout. [Prior: 2026-07-15 (v1.24) — F-P8-001 (LOW, S-19.09 D22): Event 6 wire format and mandatory-fields enumeration amended to include `timestamp` field (ISO-8601 alias of `ts`, matching Events 1–5 sibling parity). [Prior: 2026-07-13 (v1.23) — S-19.05 pass-13 fix-burst discovery: frontmatter status: draft / lifecycle_status: active mismatch — missed POL-14 auto-promotion at S-15.01 PR-106 merge (2026-05-08, merge_sha=453eee1). [Prior: 2026-07-13 (v1.22) — S-19.05 pass-13 F-P13-001: five stale count phrases corrected (§Common Fields intro; session_id row; §Architecture Anchors FileSink row; §Traceability CAJ; §Traceability DI-017); §Traceability ADR row disambiguated (original-ADR four scope explicitly stated; Events 5–6 provenance noted). Whole-file count-phrase sweep conducted. [Prior: 2026-07-10 (v1.21) — F-P43-003: §VP VP-100 row verbatim-derived from VP-INDEX (cardinality+mutual-exclusivity form); F-P43-005: v1.19 Changelog row backfilled + v1.20 Amendment section authored; O-P43-001: last_amended canonicalized to chain form. [Prior: 2026-07-09 (v1.20) — D-798 pre-pass-43 consistency sweep.]]]]]"
 status: active
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -11,7 +11,8 @@ inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-1.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.14.001.md
   - .factory/specs/behavioral-contracts/ss-07/BC-7.06.001.md
-input-hash: "35c30eb"
+  - .factory/specs/behavioral-contracts/ss-01/BC-1.03.019.md
+input-hash: "fe4436a"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -30,6 +31,7 @@ modified:
   - "2026-07-13 (v1.22)"
   - "2026-07-13 (v1.23)"
   - "2026-07-15 (v1.24)"
+  - "2026-08-20 (v1.25)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -38,11 +40,11 @@ removed: null
 removal_reason: null
 ---
 
-# BC-3.08.001: dispatcher async-semantics event types are catalogued and emitted via FileSink — `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path), `plugin.abandoned`, `plugin.completed` (async path)
+# BC-3.08.001: dispatcher async-semantics event types are catalogued and emitted via FileSink — `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path), `plugin.abandoned`, `plugin.completed` (async path), `plugin.fuel_headroom_warning`
 
 ## Description
 
-ADR-019 F2 introduces four new event-type strings as part of the async-semantics feature; `plugin.abandoned` is added by the F5 E-19 pass-1 fix burst (F-P1-013) to cover the async drain-window expiry path; `plugin.completed` (async path) is added by the F5 E-19 pass-5 fix burst (F-P5-003) to cover async plugins that complete within the drain window. These events are referenced in BC-1.14.001 and BC-7.06.001 but require SS-03 catalog authority to define their payload schemas and wire format. Each event is a JSON line written to `events-*.jsonl` via the standard FileSink path. This BC provides the catalog entry for all six, establishing the authoritative field set, wire format, and sink-fan-out obligation per DI-007 (amended: opt-in debug stream) and the VP-028 sink-fan-out invariant.
+ADR-019 F2 introduces four new event-type strings as part of the async-semantics feature; `plugin.abandoned` is added by the F5 E-19 pass-1 fix burst (F-P1-013) to cover the async drain-window expiry path; `plugin.completed` (async path) is added by the F5 E-19 pass-5 fix burst (F-P5-003) to cover async plugins that complete within the drain window; `plugin.fuel_headroom_warning` is added by the S-21.25 adversarial pass-1 fix burst (F-S2125-P1-003) to register the ADR-039 §Decision 5 Mitigation 1 fuel-headroom early-warning wire event whose full triggering-condition/semantics authority is BC-1.03.019. These events are referenced in BC-1.14.001, BC-7.06.001, and BC-1.03.019 but require SS-03 catalog authority to define their payload schemas and wire format. Each event is a JSON line written to `events-*.jsonl` via the standard FileSink path. This BC provides the catalog entry for all seven, establishing the authoritative field set, wire format, and sink-fan-out obligation per DI-007 (amended: opt-in debug stream) and the VP-028 sink-fan-out invariant.
 
 ## Preconditions
 
@@ -52,23 +54,23 @@ ADR-019 F2 introduces four new event-type strings as part of the async-semantics
 
 ## Common Fields
 
-All six event types carry the following dispatcher-owned fields on the wire. These fields are injected by the host (see `emit_event.rs` enrichment path) and are never supplied by plugins (they are RESERVED_FIELDS — see §Implementation Notes):
+All seven event types carry the following dispatcher-owned fields on the wire. These fields are injected by the host (see `emit_event.rs` enrichment path) and are never supplied by plugins (they are RESERVED_FIELDS — see §Implementation Notes):
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `trace_id` | UUID v4 string | Trace correlation value from the invoking hook envelope (DI-017). Canonical wire-format name; `dispatcher_trace_id` must NOT appear on wire (Invariant 5). |
-| `session_id` | UUID v4 string | Claude Code session identifier from the hook envelope context (`ctx.session_id`). Present on all six event types (O-P15-001). |
-| `plugin_name` | string | Name of the plugin registry entry, injected by the host. Present on plugin-context events (1, 4, 5, and 6) only; absent from dispatcher-startup events (2 + 3) which have no plugin context. |
+| `session_id` | UUID v4 string | Claude Code session identifier from the hook envelope context (`ctx.session_id`). Present on all seven event types (O-P15-001). |
+| `plugin_name` | string | Name of the plugin registry entry, injected by the host. Present on plugin-context events (1, 4, 5, 6, and 7) only; absent from dispatcher-startup events (2 + 3) which have no plugin context. |
 | `ts` | string | Emission timestamp (internal format). |
 | `ts_epoch` | integer | Emission timestamp as Unix epoch milliseconds. |
 | `schema_version` | integer | Registry schema version at emission time. |
 | `type` | string | The event type string (e.g. `"plugin.async_block_discarded"`). |
 
-The §Common Fields appear on the wire for ALL six event types except where noted. Wire-format examples in §Postconditions show:
-- **Plugin-context events (1, 4, and 5):** `plugin_name` explicitly shown (these are plugin-instance events). `plugin_version` is NOT emitted by Events 1, 4, and 5 — the original BC-3.08.001 emit functions for these events (in `crates/factory-dispatcher/src/host/emit_event.rs`) do not call `with_plugin_version()`.
+The §Common Fields appear on the wire for ALL seven event types except where noted. Wire-format examples in §Postconditions show:
+- **Plugin-context events (1, 4, 5, and 7):** `plugin_name` explicitly shown (these are plugin-instance events). `plugin_version` is NOT emitted by Events 1, 4, 5, and 7 — the original BC-3.08.001 emit functions for these events (in `crates/factory-dispatcher/src/host/emit_event.rs`) do not call `with_plugin_version()`.
 - **Event 6 (`plugin.completed` async path):** mirrors the sync-path `emit_lifecycle` call chain in `crates/factory-dispatcher/src/executor.rs`, which includes `with_plugin_version()`. Both `plugin_name` and `plugin_version` are explicitly shown in the Event 6 wire example.
 - **Dispatcher-startup events (2 + 3):** `plugin_name` OMITTED from examples (no plugin context at dispatcher startup).
-- All six event types: `trace_id` + `session_id` explicitly shown (verified by VP-079 payload conformance).
+- All seven event types: `trace_id` + `session_id` explicitly shown (verified by VP-079 payload conformance).
 - Common fields shown only in summary: `ts`, `ts_epoch`, `schema_version` (always emitted; not in examples for readability).
 
 ## Postconditions
@@ -208,7 +210,7 @@ The `error_code` field is an enum with exactly two valid values: `"E-REG-002"` a
 
 **Abandoned-vs-late-completion semantics (F-P1-013)**: See Invariant 6.
 
-**Sink destination**: All six events are routed to `events-*.jsonl` via FileSink. They are NOT routed to the dispatcher-internal debug stream (which is opt-in per DI-007 amended). The VP-028 sink-fan-out invariant applies: if multiple sinks are configured, all six events must fan out to all applicable sinks.
+**Sink destination**: All seven events are routed to `events-*.jsonl` via FileSink. They are NOT routed to the dispatcher-internal debug stream (which is opt-in per DI-007 amended). The VP-028 sink-fan-out invariant applies: if multiple sinks are configured, all seven events must fan out to all applicable sinks.
 
 ### Event 6: `plugin.completed` (async path)
 
@@ -241,11 +243,40 @@ The `error_code` field is an enum with exactly two valid values: `"E-REG-002"` a
 
 **Invariant 6 interplay**: `plugin.completed` (async path) and `plugin.abandoned` are mutually exclusive for any given `(trace_id, plugin_name, entry_index)` tuple (Invariant 6). When the drain timer fires, the `rx` channel receiver is dropped, precluding completion delivery for abandoned plugins. Conversely, a plugin that delivers its result to `rx` before the timer arm fires cannot subsequently emit `plugin.abandoned` for the same invocation.
 
+### Event 7: `plugin.fuel_headroom_warning`
+
+**Trigger**: `invoke_plugin` (`crates/factory-dispatcher/src/invoke.rs`) completes a WASM plugin invocation with `PluginResult::Ok` and the invocation consumed `fuel_consumed > 0.9 × fuel_cap` (strict, integer-exact comparison). This is a Phase-2 near-term observability mitigation from ADR-039 §Decision 5 Mitigation 1, fully independent of the `failure_policy`/`on_error` fail-closed enforcement machinery — it fires uniformly for every plugin, calibrated or not, and never influences the dispatcher's block decision. **Full behavioral governance (triggering-condition semantics, boundary controls, `headroom_ratio` formula, independence guarantees) is BC-1.03.019 (PC1–PC10); this catalog entry registers the wire-format/field-shape authority only.**
+
+**Wire format** (JSON line in `events-*.jsonl`):
+
+```json
+{
+  "type": "plugin.fuel_headroom_warning",
+  "trace_id": "<uuid-v4>",
+  "session_id": "<uuid-v4>",
+  "plugin_name": "<string — registry entry name>",
+  "fuel_consumed": <integer>,
+  "fuel_cap": <integer>,
+  "headroom_ratio": <float — fraction of budget REMAINING, clamped [0.0, 1.0]>,
+  "level": "warn",
+  "message": "fuel-headroom-warning: plugin consumed >90% of budget; next larger input may trap — recalibrate fuel_cap",
+  "timestamp": "<ISO-8601>"
+}
+```
+
+**Mandatory fields**: `type`, `trace_id`, `session_id`, `plugin_name`, `fuel_consumed`, `fuel_cap`, `headroom_ratio`, `level`, `message`, `timestamp`.
+
+**`level` and `message` semantics**: `level` is the literal string `"warn"` — `InternalEvent` has no dedicated severity field of its own, so `level` is carried as an explicit `fields` entry per BC-1.03.019 PC8. `message` reproduces ADR-039 v1.15 §Decision 5's mandated text verbatim (corrected by ADR-039 E-006 from an earlier `≥90%` draft wording to strict `>90%` to match the strict-greater-than trigger predicate) — implementations MUST NOT paraphrase, truncate, or interpolate the plugin name into this string.
+
+**`headroom_ratio` semantics**: The fraction of budget REMAINING, `1.0 - (fuel_consumed / fuel_cap)`, not the fraction consumed — see BC-1.03.019 PC7 for the full rationale.
+
+**Does not affect block decision**: Emitting this event never reads `RegistryEntry.on_error` or `RegistryEntry.failure_policy`, never sets `block_intent`, and never alters the dispatcher's exit code (BC-1.03.019 PC9; Invariant 3 below).
+
 ## Invariants
 
-1. **`trace_id` is mandatory on all six event types**: Per DI-017, every emitted event carries the UUID v4 from the invoking hook envelope. These six events are no exception.
+1. **`trace_id` is mandatory on all seven event types**: Per DI-017, every emitted event carries the UUID v4 from the invoking hook envelope. These seven events are no exception.
 2. **Events are write-once, no retry**: These are diagnostic events; partial emission is acceptable (emit-then-crash). They are never retried on FileSink write failure.
-3. **Events do not affect dispatcher exit code**: All six are observability-only. `plugin.async_block_discarded`, `plugin.timeout (async)`, `plugin.abandoned`, and `plugin.completed` (async path) are logged and forgotten. `dispatcher.schema_mismatch` and `dispatcher.registry_invalid` accompany a hard exit (non-zero) but the event itself does not cause the exit — the validation failure does.
+3. **Events do not affect dispatcher exit code**: All seven are observability-only. `plugin.async_block_discarded`, `plugin.timeout (async)`, `plugin.abandoned`, `plugin.completed` (async path), and `plugin.fuel_headroom_warning` are logged and forgotten. `dispatcher.schema_mismatch` and `dispatcher.registry_invalid` accompany a hard exit (non-zero) but the event itself does not cause the exit — the validation failure does.
 4. **`plugin.async_block_discarded` reason field is the literal string `"async_plugin_block_verdict_discarded"`**: Not an error code; a diagnostic reason string for human-readable log inspection.
 5. **`trace_id` is the exclusive wire-format field name for the trace correlation value**: The dispatcher's structured-event wire format uses field name `trace_id` exclusively. The legacy field name `dispatcher_trace_id` MUST NOT appear in the serialized wire output. Plugins MUST NOT emit a `trace_id` field via `with_field()` — `trace_id` is reserved for the dispatcher (see §Implementation Notes). Reference: DI-017 (amended per F-P1-007).
 6. **`plugin.abandoned` and `plugin.completed` (async path) are mutually exclusive terminal outcomes per invocation**: When the async drain timer fires (EC-011), `plugin.abandoned` is the last observable event for each in-flight plugin in this invocation. No `plugin.completed` event fires after `plugin.abandoned` for the same `trace_id` + `plugin_name` + `entry_index` tuple. Conversely, a plugin that emits `plugin.completed` (async path — Event 6) within the drain window cannot subsequently emit `plugin.abandoned` for the same tuple; the drain timer fires only for plugins still in-flight at expiry. Rationale for semantics option (a) abort-at-drain (F-P1-013): the dispatcher exits shortly after the drain window expires; in-flight Tokio tasks that complete after the `break` have no live FileSink to emit from. The `rx` channel receiver is dropped at drain timer fire, so any late result send is silently discarded. Option (b) (both events may fire) is structurally impossible under the current single-process lifecycle — the process exits before abandoned tasks can complete and write to a live sink. Option (c) (suppress `plugin.completed` after `plugin.abandoned`) is mechanically equivalent to (a) without benefit; no suppression logic is needed when the emission path is already closed. **Schema-level note (F-P7-007):** The `(trace_id, plugin_name, entry_index)` mutual-exclusivity key is a schema-level predicate — its correctness as a disambiguation key is verifiable by property/serialization tests over the event structs (asserting both events carry the same tuple fields with consistent types and ordinal derivation), not by a runtime concurrent-dispatch fixture that exercises two same-named entries simultaneously.
@@ -288,25 +319,29 @@ For canonical HOST_ABI documentation of which fields the dispatcher enriches aut
 - BC-1.14.001 — events `plugin.async_block_discarded` and `plugin.timeout` (async) originate from the dispatch loop defined there; this BC provides the SS-03 catalog authority
 - BC-7.06.001 — events `dispatcher.schema_mismatch` and `dispatcher.registry_invalid` originate from the registry validation path defined there; this BC provides the SS-03 catalog authority
 - BC-3.07.002 — sibling: `internal.sink_error` event catalog; same pattern (SS-03 catalogues events emitted by other subsystems)
+- BC-1.03.019 — event `plugin.fuel_headroom_warning` (Event 7) originates from `invoke_plugin` (`crates/factory-dispatcher/src/invoke.rs`) as defined there; this BC provides the SS-03 wire-format/field-shape catalog authority, while BC-1.03.019 remains the triggering-condition/semantics authority (threshold predicate, boundary controls, `headroom_ratio` formula, independence from `on_error`/`failure_policy`)
 
 ## Architecture Anchors
 
 - `crates/factory-dispatcher/src/main.rs` (call sites) + `crates/factory-dispatcher/src/host/emit_event.rs` (emit fns) — async block discard path; timeout termination path; `plugin.abandoned` emission path (drain timer arm, EC-011 break); `plugin.completed` (async path) emission path (drain result arm, mirroring sync `emit_lifecycle` in `crates/factory-dispatcher/src/executor.rs`)
+- `crates/factory-dispatcher/src/invoke.rs::invoke_plugin` + `crates/factory-dispatcher/src/host/emit_event.rs` — `plugin.fuel_headroom_warning` emission path: single centralized check after `invoke_plugin`'s internal `match` produces its final `PluginResult`, gated on `PluginResult::Ok` with `fuel_consumed > 0.9 × fuel_cap`; full site detail in BC-1.03.019 §Architecture Anchors
 - `crates/factory-dispatcher/src/registry.rs` — schema_mismatch and registry_invalid emission sites
-- `crates/sink-core/src/` — FileSink fan-out path for all six event types
+- `crates/sink-core/src/` — FileSink fan-out path for all seven event types
 - VP-028 — sink fan-out invariant verification
 
 ## Story Anchor
 
-TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07)
+TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07); S-21.25 anchors Event 7 (`plugin.fuel_headroom_warning`)
 
 ## VP Anchors
 
-- VP-079 — Payload schema conformance for all six event types including `plugin.abandoned` and `plugin.completed` (async path): each mandatory field is
+- VP-079 — Payload schema conformance for all seven event types including `plugin.abandoned`, `plugin.completed` (async path), and `plugin.fuel_headroom_warning`: each mandatory field is
   present, non-null, and the `type` string matches the catalogued value; verified via
-  fault-injection integration test per event-type triggering scenario (integration method, bats)
-- VP-028 — Sink fan-out invariant: once emitted, all six event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path), `plugin.abandoned`, `plugin.completed` (async path)) reach every configured accepting sink (independent of VP-079's payload conformance check)
+  fault-injection integration test per event-type triggering scenario (integration method, bats).
+  **Staleness flag (architect routing required, same pattern as the v1.18 Event-6 addition):** VP-079's own file still enumerates six event types and its mandatory-fields table has no Event 7 row; the count-phrase text in this bullet is corrected here, but the VP-079 file itself needs an architect-owned amendment.
+- VP-028 — Sink fan-out invariant: once emitted, all seven event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path), `plugin.abandoned`, `plugin.completed` (async path), `plugin.fuel_headroom_warning`) reach every configured accepting sink (independent of VP-079's payload conformance check)
 - VP-100 — Drain-Timer Expiry Emits Exactly One plugin.abandoned Per In-Flight (plugin_name, entry_index); No plugin.completed Follows for Same Trace (integration; S-19.05; Invariant 6; DI-019)
+- VP-TBD (per BC-1.03.019) — fuel-headroom warning triggering-condition/semantics properties (threshold predicate, boundary controls, independence from `on_error`/`failure_policy`); architect to assign a real VP-NNN and propagate to VP-INDEX/verification-architecture.md/verification-coverage-matrix.md per `vp_index_is_vp_catalog_source_of_truth` — this BC's Event 7 entry is the wire-format/field-shape catalog authority only, not the triggering-condition VP owner
 
 ## Edge Cases
 
@@ -321,6 +356,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | EC-006 | Multiple async plugins time out in same invocation | One `plugin.timeout` event per timed-out plugin (not a single batch event) |
 | EC-007 | Drain timer fires with N async plugins still in-flight | N `plugin.abandoned` events emitted (one per in-flight plugin), each with `drain_window_ms` set to the effective drain window value and `entry_index` identifying the registry partition position; no `plugin.completed` events follow for the abandoned plugins in this invocation (Invariant 6) |
 | EC-008 | Async plugin completes within drain window with exit code 0 (non-block) | `plugin.completed` (async path) emitted with all mandatory fields present including `entry_index`; no `plugin.abandoned` follows for the same `(trace_id, plugin_name, entry_index)` tuple; dispatcher exit code unchanged (Invariant 3 and Invariant 6) |
+| EC-009 | `invoke_plugin` completes `PluginResult::Ok` with `fuel_consumed > 0.9 × fuel_cap` | `plugin.fuel_headroom_warning` emitted with `plugin_name`, `fuel_consumed`, `fuel_cap`, `headroom_ratio`, `level="warn"`, verbatim `message`, `timestamp`; dispatcher exit code and block decision unaffected (Invariant 3; BC-1.03.019 PC9). Full boundary/negative-control edge cases (exact-90%, non-`Ok` outcomes, etc.) are BC-1.03.019's EC-001–EC-007. |
 
 ## Canonical Test Vectors
 
@@ -335,13 +371,14 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | Async plugin exits 0 within drain window (non-block) | `plugin.completed` event in events-*.jsonl; `type = "plugin.completed"`; `entry_index` present and correct; `plugin_version` present; no `plugin.abandoned` for same `(trace_id, plugin_name, entry_index)` tuple; dispatcher exit code unchanged | async-completed |
 | All async plugins complete before drain timer | No `plugin.abandoned` events in events-*.jsonl | abandoned-none |
 | One async plugin still in-flight at drain timer expiry | `plugin.abandoned` event with `drain_window_ms` set, `plugin_name` correct, `entry_index` correct, `trace_id` + `session_id` present; no `plugin.completed` follows for that plugin (Invariant 6) | abandoned-one |
+| `PluginResult::Ok`, `fuel_consumed=18_500_000`, `fuel_cap=20_000_000` (92.5%) | `plugin.fuel_headroom_warning` event in events-*.jsonl; `headroom_ratio=0.075`; `level="warn"`; `message="fuel-headroom-warning: plugin consumed >90% of budget; next larger input may trap — recalibrate fuel_cap"`; dispatcher exit code and block decision unaffected | fuel-headroom-warning |
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
 | VP-028 | Sink fan-out invariant — all events reach all configured sinks | integration |
-| VP-079 | Payload schema conformance for all six event types including `plugin.abandoned` and `plugin.completed` (async path) — mandatory fields present, non-null, type string correct | integration |
+| VP-079 | Payload schema conformance for all seven event types including `plugin.abandoned`, `plugin.completed` (async path), and `plugin.fuel_headroom_warning` — mandatory fields present, non-null, type string correct | integration |
 | VP-100 | Drain-timer expiry emits exactly one plugin.abandoned per in-flight (plugin_name, entry_index); no plugin.completed follows for same trace_id+plugin_name+entry_index (Invariant 6; DI-019) | integration (S-19.05) |
 
 ## Traceability
@@ -349,12 +386,12 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | Field | Value |
 |-------|-------|
 | L2 Capability | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 |
-| Capability Anchor Justification | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 — these six event types are observability events that operators and the VSDD engine consume to diagnose async plugin behavior; cataloguing them here fulfills the "stream observability events" promise by defining the wire format and sink-fan-out obligation |
-| L2 Domain Invariants | DI-017 — `trace_id` present on every emitted event; all six event types must carry `trace_id`; Invariant 5 of this BC enforces DI-017's requirement that `trace_id` be the canonical wire-field name (not `dispatcher_trace_id`); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (the `plugin.timeout` async path and `plugin.async_block_discarded` events are emitted by tasks running within the drain window bounded by DI-019; VP-079 fixture timing for these events must account for the DI-019 drain window value) |
-| Architecture Module | SS-03 — `crates/sink-core/` (event routing); SS-01 — `crates/factory-dispatcher/src/main.rs` + `crates/factory-dispatcher/src/host/emit_event.rs` (emission sites); SS-01 — `crates/factory-dispatcher/src/registry.rs` (schema_mismatch + registry_invalid emission sites). Note: SS-07 owns `plugins/vsdd-factory/hooks-registry.toml` (the file format) but the emission sites in registry.rs are SS-01 Rust modules per ARCH-INDEX. |
-| ADR | ADR-019 — Async Semantics at Registry Layer; introduces the original four ADR-019 async-semantics events (Events 1–4); Events 5 (`plugin.abandoned`) and 6 (`plugin.completed` async path) were added by E-19 fix bursts F-P1-013 and F-P5-003 respectively |
-| Stories | S-15.01 (single story per ADR-019 §6); S-19.05 (Event 6 — async plugin.completed telemetry) |
-| Cycle | v1.0-feature-plugin-async-semantics-pass-1 (F2) |
+| Capability Anchor Justification | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 — these seven event types are observability events that operators and the VSDD engine consume to diagnose async plugin behavior and dispatcher resource-budget health; cataloguing them here fulfills the "stream observability events" promise by defining the wire format and sink-fan-out obligation |
+| L2 Domain Invariants | DI-017 — `trace_id` present on every emitted event; all seven event types must carry `trace_id`; Invariant 5 of this BC enforces DI-017's requirement that `trace_id` be the canonical wire-field name (not `dispatcher_trace_id`); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (the `plugin.timeout` async path and `plugin.async_block_discarded` events are emitted by tasks running within the drain window bounded by DI-019; VP-079 fixture timing for these events must account for the DI-019 drain window value) |
+| Architecture Module | SS-03 — `crates/sink-core/` (event routing); SS-01 — `crates/factory-dispatcher/src/main.rs` + `crates/factory-dispatcher/src/host/emit_event.rs` (emission sites); SS-01 — `crates/factory-dispatcher/src/registry.rs` (schema_mismatch + registry_invalid emission sites); SS-01 — `crates/factory-dispatcher/src/invoke.rs` (`plugin.fuel_headroom_warning` emission site, Event 7). Note: SS-07 owns `plugins/vsdd-factory/hooks-registry.toml` (the file format) but the emission sites in registry.rs are SS-01 Rust modules per ARCH-INDEX. |
+| ADR | ADR-019 — Async Semantics at Registry Layer; introduces the original four ADR-019 async-semantics events (Events 1–4); Events 5 (`plugin.abandoned`) and 6 (`plugin.completed` async path) were added by E-19 fix bursts F-P1-013 and F-P5-003 respectively; Event 7 (`plugin.fuel_headroom_warning`) is added by ADR-039 v1.15 §Decision 5 Mitigation 1 (S-21.25 adversarial pass-1 fix burst, F-S2125-P1-003) |
+| Stories | S-15.01 (single story per ADR-019 §6); S-19.05 (Event 6 — async plugin.completed telemetry); S-21.25 (Event 7 — fuel-headroom warning telemetry) |
+| Cycle | v1.0-feature-plugin-async-semantics-pass-1 (F2); v1.0-brownfield-backfill (Event 7 addition, S-21.25 adversarial pass-1 fix burst) |
 
 ### Source Evidence
 
@@ -675,6 +712,7 @@ Addresses adversary pass-2 finding F-P2-010.
 
 **Changelog:**
 
+| 1.25 | 2026-08-20 | product-owner | F-S2125-P1-003 (MEDIUM, S-21.25 adversarial pass-1, `v1.0-brownfield-backfill`): Event 7 `plugin.fuel_headroom_warning` catalog entry added — dispatcher wire event for ADR-039 v1.15 §Decision 5 Mitigation 1 (fuel-headroom early-warning signal on `PluginResult::Ok`); full triggering-condition/semantics authority is BC-1.03.019 (PC1–PC10), this BC registers the wire-format/field-shape catalog entry only. Sibling parity: `plugin.fuel_headroom_warning` carries `timestamp` identically to Events 1/4/5/6, closing the gap the finding identified (BC-1.03.019's own PC6 previously omitted it). H1 title, §Description, §Common Fields (plugin_name/plugin_version presence rows extended to include Event 7), §Postconditions (Event 7 section added), §Sink destination paragraph, Invariants 1 and 3, §Architecture Anchors, §Story Anchor, §VP Anchors (VP-079/VP-028 count-phrase + enumeration updated; VP-079 staleness flag raised for architect routing per the v1.18 precedent; VP-TBD bullet added per BC-1.03.019), EC-009, Canonical Test Vectors (`fuel-headroom-warning` row), §Verification Properties (VP-079 row text), §Related BCs (BC-1.03.019 cross-reference), §Traceability (CAJ, DI, Architecture Module, ADR, Stories, Cycle rows) all updated — six→seven event-type count-phrase sweep performed throughout per the file's own established convention (cf. v1.18/F-P5-003's four→six sweep on the prior Event-6 addition). |
 | 1.24 | 2026-07-15 | product-owner | F-P8-001 (LOW, S-19.09 D22): Event 6 wire format and mandatory-fields enumeration amended to include `timestamp` field (ISO-8601 alias of `ts`, byte-consistent with Events 1–5 sibling form). SDK grounding: `emit_plugin_completed_async` in `crates/factory-dispatcher/src/host/emit_event.rs` chains `.with_field("timestamp", ts.as_str())`. |
 | 1.23 | 2026-07-13 | product-owner | S-19.05 pass-13 fix-burst discovery: frontmatter status: draft / lifecycle_status: active mismatch — missed POL-14 auto-promotion. Verification: S-15.01 (behavioral_contracts includes BC-3.08.001) carries status=merged, merged_at=2026-05-08, merged_in=PR-106, merge_sha=453eee1; POL-14 mandates draft→active on PR merge; lifecycle_status was already active. |
 | 1.22 | 2026-07-13 | product-owner | S-19.05 pass-13 F-P13-001: five stale count phrases corrected — §Common Fields intro "All five event types" → "All six event types"; session_id row "all five event types" → "all six event types"; §Architecture Anchors FileSink row "all five event types" → "all six event types"; §Traceability CAJ "these four event types" → "these six event types"; §Traceability DI-017 "all four event types" → "all six event types". §Traceability ADR row disambiguated: four-count scoped to original ADR-019 events (Events 1–4); Events 5–6 provenance noted. Whole-file count-phrase sweep conducted per F-P13-001 method; all remaining hits classified. |
@@ -813,3 +851,41 @@ Call chain: `emit_plugin_completed_async` captures `let ts = ev.ts.clone()` befo
 **POLICY 1 verification:** All prior content preserved verbatim except the four changes listed above. No event IDs renumbered. Events 1–5 wire-format examples unchanged.
 **POLICY 7 verification:** H1 heading unchanged (no new event type; this is a documentation parity fix).
 **TD-031 verification:** No `emit_event.rs:[0-9]+` line-number citations introduced; stable function anchor (`emit_plugin_completed_async`) used throughout.
+
+---
+
+## Amendment 2026-08-20 (v1.24 → v1.25 — F-S2125-P1-003: Event 7 `plugin.fuel_headroom_warning` catalog entry added)
+
+**Driver:** S-21.25 adversarial pass-1 finding F-S2125-P1-003 (MEDIUM), cycle `v1.0-brownfield-backfill`. The new `plugin.fuel_headroom_warning` dispatcher wire event, defined by BC-1.03.019 (fuel-headroom WARN early-warning signal per ADR-039 §Decision 5 Mitigation 1), was not registered in this BC's SS-03 event catalog — the authority BC-3.08.001 is for every dispatcher-emitted `plugin.*`/`dispatcher.*` wire event. The finding also noted that BC-1.03.019's own PC6 field enumeration omitted the `timestamp` common field every sibling `plugin.*` emitter carries (`emit_plugin_timeout_async`, `emit_plugin_abandoned`, `emit_plugin_completed_async` in `crates/factory-dispatcher/src/host/emit_event.rs`) — the exact gap S-19.09 T-013/F-WG-003 (this BC's own v1.24 amendment, immediately above) fixed on `emit_plugin_completed_async`. The adversary's preferred resolution was sibling parity (add `timestamp`) plus registration in this catalog, over a documented exemption; both are performed in this amendment and in BC-1.03.019's companion v1.0→v1.1 fix burst.
+
+**Schema derivation:** Field set derived from BC-1.03.019 PC6 (as corrected in the same burst): `plugin_name`, `fuel_consumed`, `fuel_cap`, `headroom_ratio`, `level`, `message`, `timestamp`, plus the standard envelope fields (`type`, `trace_id`, `session_id`, `schema_version`). No `plugin_version` — mirrors Events 1/4/5 (the original `emit_event.rs` functions do not call `with_plugin_version()`); Event 7's emitter (`emit_fuel_headroom_warning`, proposed per BC-1.03.019 §Architecture Anchors) follows the same convention, not Event 6's `emit_lifecycle`-mirroring exception.
+
+**Option chosen:** Option (a) — amend BC-3.08.001 v1.24→v1.25 to add `plugin.fuel_headroom_warning` as Event 7. No other existing BC owns this wire schema; BC-3.08.001 is the SS-03 catalog authority for dispatcher-emitted events; BC-1.03.019 remains the triggering-condition/semantics authority (threshold predicate, boundary controls, `headroom_ratio` formula, independence from `on_error`/`failure_policy`) and is cross-referenced rather than duplicated.
+
+**Changes made:**
+
+1. **Frontmatter** (POLICY 14 legs 1–4): `version: "1.24"` → `"1.25"`; `last_amended` chain form prepended with v1.25 entry; `modified[]` entry `"2026-08-20 (v1.25)"` added.
+2. **H1 title** (F-S2125-P1-003): `, \`plugin.fuel_headroom_warning\`` appended to event list. (POLICY 7: H1 updated; BC-INDEX row must mirror H1 — routed to state-manager/index-crossref, out of this BC's own edit scope.)
+3. **§Description**: `plugin.fuel_headroom_warning`/S-21.25/F-S2125-P1-003 cite added; "six" → "seven" in catalog-entry count.
+4. **§Common Fields**: `session_id` row, intro sentence, and closing bullets — "all six" → "all seven"; `plugin_name` presence row extended to "(1, 4, 5, 6, and 7)"; `plugin_version`-absence bullet extended to "(1, 4, 5, and 7)" since Event 7 does not emit `plugin_version` (mirrors Events 1/4/5, not Event 6).
+5. **§Sink destination paragraph**: "All six events" → "All seven events".
+6. **Event 7 postcondition section added**: trigger, wire format (JSON), mandatory fields list, `level`/`message` semantics, `headroom_ratio` semantics, block-decision-independence note — each cross-referencing BC-1.03.019 as the full behavioral authority rather than duplicating its ten postconditions.
+7. **Invariant 1**: "all six event types" → "all seven event types"; "These six events" → "These seven events".
+8. **Invariant 3**: "All six" → "All seven"; enumeration extended to include `plugin.fuel_headroom_warning`.
+9. **EC-009 added**: Edge case for the `>90%` fuel-headroom trigger, cross-referencing BC-1.03.019's EC-001–EC-007 for full boundary/negative-control detail.
+10. **§Canonical Test Vectors — `fuel-headroom-warning` row added**: Test vector for `PluginResult::Ok` at 92.5% fuel consumption.
+11. **§VP Anchors**: VP-079 bullet — "all six event types" → "all seven event types", enumeration extended, staleness flag raised (VP-079's own file is not amended here — architect routing required, same pattern as the v1.18/F-P5-003 Event-6 precedent). VP-028 bullet — "all six event types" → "all seven event types", enumeration extended. VP-TBD bullet added, cross-referencing BC-1.03.019's own VP-TBD placeholder (architect to assign a real VP-NNN for the triggering-condition properties).
+12. **§Verification Properties table**: VP-079 row scope text updated — "all six event types" → "all seven event types", enumeration extended. No new VP-NNN row added (Event 7's triggering-condition VP remains BC-1.03.019's VP-TBD, an architect-owned assignment, not duplicated here).
+13. **§Related BCs**: BC-1.03.019 cross-reference bullet added, stating the wire-format-vs-triggering-condition authority split explicitly.
+14. **§Architecture Anchors**: New bullet for `crates/factory-dispatcher/src/invoke.rs::invoke_plugin` (Event 7 emission site); FileSink bullet "all six" → "all seven".
+15. **§Story Anchor**: S-21.25 cite added for Event 7.
+16. **§Traceability**: CAJ, L2 Domain Invariants, Architecture Module, ADR, Stories, and Cycle rows all updated to reflect Event 7 / S-21.25 / ADR-039 v1.15 / `v1.0-brownfield-backfill`.
+17. **Changelog table**: v1.25 row added at top with F-S2125-P1-003 citation.
+
+**POLICY 1 verification:** All prior content preserved verbatim except the seventeen changes listed above. No event IDs renumbered (Events 1–6 unchanged; Event 7 is a genuinely new addition, not a renumbering). Events 1–6 wire-format examples unchanged.
+**POLICY 7 verification:** H1 heading updated to include `plugin.fuel_headroom_warning`; BC-INDEX row must mirror H1 in the same burst per this file's own POLICY 7 convention — routed to state-manager/index-crossref (out of product-owner's edit scope for this task).
+**TD-031 verification:** No `invoke.rs:[0-9]+` or `emit_event.rs:[0-9]+` line-number citations introduced; stable function anchors (`invoke_plugin`, `emit_fuel_headroom_warning`) used throughout.
+
+**VP-079 staleness flag (architect routing required):** VP-079 currently enumerates six event types and its mandatory-fields table does not include `plugin.fuel_headroom_warning`. Adding Event 7 makes VP-079 stale on: (a) event-count prose ("six" → "seven"); (b) mandatory-fields table (missing Event 7 row); (c) production caller-site list (missing the `invoke_plugin` fuel-headroom check point). Orchestrator should route VP-079 amendment to `vsdd-factory:architect`.
+
+**VP-TBD assignment flag (architect routing required):** BC-1.03.019's VP-TBD placeholder (fuel-headroom warning triggering-condition properties: threshold predicate PC1–PC3, non-`Ok`-outcome exclusion PC4, uniform sub-shape coverage PC5, required-fields shape PC6–PC8, independence PC9, exactly-once semantics PC10) needs a real VP-NNN assignment and propagation to VP-INDEX/verification-architecture.md/verification-coverage-matrix.md per `vp_index_is_vp_catalog_source_of_truth`. This BC's own VP-TBD bullet (§VP Anchors) mirrors that placeholder for cross-reference purposes only — it is not a duplicate VP, it is a pointer to BC-1.03.019's pending assignment.
