@@ -20749,3 +20749,128 @@ D-1060-WAVE6-PASS2-REMEDIATION
 2026-08-20
 
 ---
+
+## D-1061 — D-1061-WAVE6-PASS3-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` -> the prior recorded max
+in this file is `## D-1060`. This entry is D-1061, the next decision allocated after D-1060.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053; atomic across BOTH
+S-21.19 and S-21.25 clusters).** Per D-1057(k), each split seam requires its own independent
+BC-5.39.001 3-CLEAN LOCAL pre-TDD adversarial cascade before Phase-3 TDD entry. This entry records
+pass-3 outcomes for BOTH the S-21.19 cluster (D-1060's remediated v1.2 bundle) and the S-21.25
+cluster (D-1060's remediated v1.2 bundle), and their same-burst remediations, as one atomic Wave-6
+burst.
+
+**(a) S-21.19 pre-TDD adversary pass-3 verdict.** NOT-CLEAN. 1 MEDIUM + 1 LOW finding, no
+BLOCKER/HIGH. Pass-2's F-S2119-P2-001/002 (BC-1.03.017 Invariant 7 wiring re-key; AC-009
+`#[ignore]` gate) independently re-verified FIXED — not reopened; ADR-044's own capstone-flip
+split (D-1058, pass 1) also re-confirmed held. **F-S2119-P3-001** (MEDIUM): Task 2's
+`test_no_on_error_block_without_fail_closed_when_3arg_executor` (AC-012) cite was still
+`BC-1.03.017 v1.18 PC11` — a stale live cite the pass-2 sweep missed, despite that pass's own
+changelog claiming "all 18 body cites re-anchored." Whitespace-normalized detector confirmed
+4 live `v1.18` occurrences pre-fix (the Task-2 cite + 3 historical-changelog-exempt), 0 post-fix;
+true count now 19/19 live `BC-1.03.017` cites swept. **F-S2119-P3-002** (LOW): S-21.19's `blocks:`
+frontmatter omitted `S-21.24` despite S-21.24's `depends_on:` directly listing S-21.19 (S-21.24
+Task 0 consumes S-21.19's dormant 3-arg extension per ADR-044) — an asymmetric depends_on/blocks
+pair, and the STORY-INDEX D-1057 sub-schedule DAG narrative only showed the transitive path, not
+the direct edge the fixed asymmetry implies. Full verbatim review:
+`.factory/cycles/v1.0-brownfield-backfill/adv-s21.19-local-pass-3.md`.
+
+**(b) S-21.19 resolution — both findings fixed in scope, no BLOCKER, no deferral.**
+- `vsdd-factory:story-writer` (S-21.19 v1.2→v1.3, input-hash `e6f82f2` unchanged): swept Task 2's
+  stale `BC-1.03.017 v1.18 PC11` cite to `v1.19 PC11` (closes F-S2119-P3-001); independently
+  re-verified `BC-1.01.016` already correctly anchored at v1.3 throughout, no drift. Added
+  `S-21.24` to `blocks:` (now `[S-21.20, S-21.21, S-21.22, S-21.23, S-21.24]`) for bidirectional
+  depends_on/blocks parity with S-21.24 (closes F-S2119-P3-002). Zero points/wave change.
+- `vsdd-factory:state-manager` (this burst): added the direct S-21.19→S-21.24 edge to the
+  STORY-INDEX D-1057 sub-schedule DAG narrative (verified acyclic — same direction as the existing
+  transitive path through S-21.20-23), completing F-S2119-P3-002's fix on the index side.
+
+**(c) S-21.25 pre-TDD adversary pass-3 verdict.** NOT-CLEAN. 2 MEDIUM findings, no BLOCKER/HIGH.
+Pass-2's F-S2125-P2-001 (AC-005 self-match/RED-GREEN inversion) independently re-verified FIXED
+with no recurrence — the structural class of defect genuinely cannot recur under the relocated
+`concat!`-needle design. **F-S2125-P3-001** (MEDIUM): Task 7 and Task 11's "18 test functions
+total — 17 in `invoke.rs` + 1 separate" narrative silently dropped the 3 `emit_event.rs`
+field-shape tests (AC-006×1, AC-008×2) that the File Structure Requirements table has always
+placed in that file — the accurate distribution is 14 (invoke.rs) + 3 (emit_event.rs) + 1
+(separate integration file) = 18. **F-S2125-P3-002** (MEDIUM): S-21.25's VP status note justified
+only the BC-1.03.019 VP-TBD deferral and was silent on VP-079 v1.20's independent registration of
+this story's emission as SITE_7 and VP-079's own note tracking the SITE_7 fixture "for the
+test-writer at S-21.25 delivery time" — leaving the relationship and its deferral target
+unaddressed from this story's side. Full verbatim review:
+`.factory/cycles/v1.0-brownfield-backfill/adv-s21.25-local-pass-3.md`.
+
+**(d) S-21.25 resolution — both findings fixed in scope, no BLOCKER, no deferral (bidirectional
+fix for F-S2125-P3-002).**
+- `vsdd-factory:story-writer` (S-21.25 v1.2→v1.3, input-hash `4af3ec2` unchanged): corrected
+  Task 7 and Task 11 to state the accurate 14/3/1 test distribution, naming which ACs land in
+  which file (closes F-S2125-P3-001). Extended the VP status note with an explicit "VP-079 SITE_7
+  acknowledgment" paragraph naming the VP-079 SITE_7/BC-3.08.001 Event 7 relationship and stating
+  the SITE_7 mutation-counter-proof fixture is DEFERRED to Phase-6 formal-verification — a named,
+  concrete deferral, not silence (contributes to closing F-S2125-P3-002).
+- `vsdd-factory:architect` (VP-079 v1.20→v1.21, input-hash `704a8ca`→`2b508d4`, orchestrator scope
+  adjudication concurrent with the story-writer fix above): retargeted Property 6's SITE_7 scope
+  note and the §Feasibility Assessment Proof-complexity row from "tracked for the test-writer at
+  S-21.25 delivery time" to Phase-6 formal-verification, matching the orchestrator's adjudication
+  that the SITE_7 mutation-fixture (async-event-schema-conformance + cargo-mutants SITES/filter
+  extension) is VP-079's own Phase-6 infrastructure obligation, not S-21.25's pre-TDD/unit scope
+  (closes F-S2125-P3-002 in full — both artifacts now agree bidirectionally).
+
+**(e) Streak discipline.** BC-5.39.001: resolving findings does not itself advance the streak —
+BOTH S-21.19 and S-21.25 LOCAL cascade streaks remain **0/3**. Fresh-context adversary pass-4 is
+the next action for each: S-21.19 against S-21.19 v1.3 + BC-1.03.017 v1.19; S-21.25 against
+S-21.25 v1.3 + BC-1.03.019 v1.2 + VP-079 v1.21.
+
+**(f) Drift item (carried forward, not silently left bare).** Carried forward from D-1060(f):
+BC-1.03.017 v1.18→v1.19's Invariant 7 re-anchor remains **DEFERRED** for the not-yet-converging
+split-seam stories S-21.20/S-21.21/S-21.22 — unchanged this burst, out of scope (see (g)). Carried
+forward from D-1059(e)/D-1060(f): BC-1.03.019's `VP-TBD` placeholder remains open — a real
+triggering-condition VP is still owed; anchored to a Phase-6 formal-verifier / named VP-authoring
+pass follow-up, not this burst's scope. **New this burst:** the STORY-INDEX D-1057 sub-schedule
+blockquote's POLICY 18 input-hash enumeration stopped before the split stories (S-21.19-S-21.25),
+so the three-way frontmatter=catalog-row=blockquote parity could not be asserted for them — both
+this pass and the S-21.25 pass-3 review independently flagged this LOW process-gap. Closed this
+burst: the blockquote now enumerates all seven split stories' current input-hashes. A pre-existing,
+unrelated coincidence was surfaced (not introduced, not remediated) during that sweep: S-21.20 and
+S-21.23 currently share the identical input-hash `cbbc8dd` — flagged for awareness in the
+blockquote text; not investigated or fixed this burst (out of scope; no adversary finding raised
+it).
+
+**(g) Scope boundary (explicit).** This burst registers/reconciles/records only for the
+S-21.19-cluster (S-21.19) and S-21.25-cluster (S-21.25, VP-079) files already authored in the
+worktree at burst start, plus the STORY-INDEX D-1057 sub-schedule DAG/blockquote bookkeeping. It
+does NOT touch S-21.20, S-21.21, S-21.22, S-21.23, S-21.24, BC-1.03.017, BC-1.03.019, or
+BC-3.08.001 themselves — no BC/ADR content changed this pass-3 round.
+
+### Agents
+
+- story-writer: S-21.19 v1.2→v1.3, S-21.25 v1.2→v1.3 — both already present in the worktree at
+  burst start
+- architect: VP-079 v1.20→v1.21 — already present in the worktree at burst start
+- state-manager (this burst): input-hash reconciliation via the per-file operator
+  `compute-input-hash` binary (POLICY 18; never dev-source `--scan --update` per D-952) — VP-079
+  (`704a8ca`→`2b508d4`); S-21.19/S-21.25 verified already current (`--check` exit 0, no update
+  needed). New `adv-s21.19-local-pass-3.md` and `adv-s21.25-local-pass-3.md` persisted (Part A/B +
+  Disposition + Summary + Novelty Assessment sections each). STORY-INDEX D-1057 sub-schedule DAG
+  direct 19→24 edge added + POLICY 18 blockquote input-hash enumeration extended to all seven
+  split stories. INDEX.md per-story cascade sections (new pass-3 rows) + both Convergence Status
+  blocks. This D-1061 decision-log.md entry. STATE.md advance. Single atomic commit to
+  `factory-artifacts` per TD-VSDD-053.
+
+### 4-INDEX
+
+BC-INDEX v4.85 UNCHANGED (no BC content changed this burst) / ARCH-INDEX v3.76 UNCHANGED (no ADR
+content changed this burst) / VP-INDEX v2.77→v2.78 (VP-079 v1.20→v1.21 row) / STORY-INDEX
+v4.375→v4.376 (S-21.19 v1.2→v1.3, S-21.25 v1.2→v1.3 rows; D-1057 sub-schedule DAG + blockquote
+extension).
+
+### Phase
+
+D-1061-WAVE6-PASS3-REMEDIATION
+
+### Date
+
+2026-08-20
+
+---

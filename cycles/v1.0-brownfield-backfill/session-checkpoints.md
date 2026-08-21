@@ -2763,3 +2763,45 @@ Drift item: BC-1.03.019's `VP-TBD` placeholder remains open — a real triggerin
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1060-WAVE6-PASS2-REMEDIATION checkpoint burst (2026-08-20) — S-21.19 pre-TDD adversary pass-2 NOT-CLEAN (2 MEDIUM F-S2119-P2-001/002, BC-1.03.017 Invariant7↔ADR-044 contradiction + AC-009 red-first/green-trunk conflict) remediated via product-owner BC-1.03.017 v1.19 + story-writer S-21.19 v1.2/S-21.24 v1.2; S-21.25 pre-TDD adversary pass-2 NOT-CLEAN (1 HIGH F-S2125-P2-001 AC-005 self-match/RED-GREEN-inversion recurrence + 2 MEDIUM F-S2125-P2-002/003 emitter-name/stale-flag) remediated via story-writer S-21.25 v1.2 + product-owner BC-1.03.019 v1.2/BC-3.08.001 v1.26; both LOCAL streaks REMAIN 0/3, pass-3 next for both.**
+
+## Session Resume Checkpoint (2026-08-20 — D-1060-WAVE6-PASS2-REMEDIATION; PIPELINE ACTIVE) — ARCHIVED FULL TEXT
+
+> Archived verbatim from STATE.md at the D-1061 burst (this checkpoint was superseded there by
+> the D-1061-WAVE6-PASS3-REMEDIATION checkpoint). Closes part of the OWED archival gap noted
+> immediately above for D-1055/D-1057; D-1043/D-1044/D-1045/D-1050/D-1051 full-text backfill
+> remains separately OWED.
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE ACTIVE** at a clean checkpoint (this commit; `git -C .factory log -1` for the HEAD SHA). Per D-1057(k), each of the 7 stories split from CONVERGED S-21.11 requires its own independent BC-5.39.001 3-CLEAN LOCAL pre-TDD adversarial convergence before Phase-3 TDD entry. The two Wave 6 seams (S-21.19 and S-21.25, no dependency edge between them) have now BOTH completed their pre-TDD adversary pass-2:
+
+- **S-21.19** (D-1060): pass-2 **NOT-CLEAN** (2 MEDIUM — F-S2119-P2-001: BC-1.03.017 v1.18 Invariant 7 literally contradicted ADR-044's own declared-safe compliant state, conflating authoring [S-21.19, inert] with wiring [S-21.24 Task 0, enforcement-active]; F-S2119-P2-002: AC-009's enforcement-behavior assertion could not be simultaneously red-first-authored and green-on-`develop` at S-21.19's own merge point). Both fixed: product-owner BC-1.03.017 v1.18→v1.19 (Invariant 7 re-keyed on WIRING INTO / IN EFFECT, disambiguating authoring from wiring; ADR-044 added to inputs/Traceability); story-writer S-21.19 v1.1→v1.2 (AC-009 `#[ignore = "enforcement gate; enabled at S-21.24 Task 0 flip"]` + compile-safe fs-source-scan cross-assertion) / S-21.24 v1.1→v1.2 (Task 5 gained the matching un-ignore step). LOCAL streak **REMAINS 0/3**.
+- **S-21.25** (D-1060): pass-2 **NOT-CLEAN** (1 HIGH — F-S2125-P2-001: the AC-005 SINGLE-EMIT-SITE marker-scan guard was co-located in the same source file as its call site, self-matching its own marker-string reference and producing a RED/GREEN inversion — + 2 MEDIUM — F-S2125-P2-002: emitter name `emit_fuel_headroom_warning` omitted the `plugin_` qualifier carried by BC-3.08.001's Event 7 wire name and sibling emitters; F-S2125-P2-003: BC-3.08.001 v1.25 carried a stale VP-079-staleness flag at 3 sites, already-resolved-but-never-cleared). All fixed: story-writer S-21.25 v1.1→v1.2 (AC-005 relocated to a dedicated `tests/` file with a `concat!`-built needle; emitter renamed `emit_fuel_headroom_warning`→`emit_plugin_fuel_headroom_warning`); product-owner BC-1.03.019 v1.1→v1.2 (emitter rename sweep) + BC-3.08.001 v1.25→v1.26 (emitter rename sweep + 3-site false-flag closure). LOCAL streak **REMAINS 0/3**.
+
+State-manager (D-1060, this burst): 3-file input-hash reconcile in dependency order via the per-file operator `compute-input-hash` binary (POLICY 18; never dev-source `--scan --update` per D-952) — BC-1.03.017 (`dec3278`→`86a7e19`) → BC-3.08.001 (`fe4436a`→`9cc52d3`) → S-21.25 (`558a5a3`→`4af3ec2`); BC-1.03.019/`capabilities.md`/S-21.19/S-21.24 independently verified already current (`--check` exit 0, no update needed). 4-index: BC-INDEX v4.84→v4.85 (also backfilled the v1.25 row-cell + title-cell that was omitted at D-1059's own registration burst) / ARCH-INDEX v3.76 UNCHANGED / VP-INDEX v2.77 UNCHANGED / STORY-INDEX v4.374→v4.375. `adv-s21.19-local-pass-2.md` and `adv-s21.25-local-pass-2.md` both persisted; INDEX.md carries both pass-2 rows with per-story Convergence Status advance. Drift item recorded: BC-1.03.017 v1.19 re-anchor DEFERRED for S-21.20/S-21.21/S-21.22 (still cite v1.18) — anchored each story's own Wave-7 pre-TDD convergence burst.
+
+### §2 Convergence Counter
+
+S-21.11's own BC-5.39.001 streak remains **3/3 = CONVERGED** (frozen at pass-16, D-1056) — a HISTORICAL fact about the superseded story, not a live gate. Of the seven new stories: **S-21.19** and **S-21.25** have each had TWO passes (pass-1 and pass-2, both NOT-CLEAN both times, both REMEDIATED same-burst each time) — both at **0/3**. **S-21.20, S-21.21, S-21.22, S-21.23, S-21.24** have had **zero** passes — each starts at **0/3**, no pass-1 yet.
+
+### §3 In-Flight / NEXT ACTION (as of D-1060; superseded by D-1061 — see current STATE.md)
+
+RESUME = dispatch fresh-context adversary pass-3 against both remediated bundles in parallel (S-21.19 v1.2+S-21.24 v1.2+BC-1.03.017 v1.19; S-21.25 v1.2+BC-1.03.019 v1.2+BC-3.08.001 v1.26). This action was subsequently completed at D-1061 — see the current Session Resume Checkpoint in STATE.md for the live position.
+
+### §4 Pending Human Decision
+
+None outstanding from the D-1060 burst.
+
+### §5 Session Note
+
+No new standing rule this burst beyond the drift item — adversarial-finding remediation across 2 specialist agents (product-owner, story-writer), mechanical in nature; existing D-1044(g)/D-1045(h)/D-1046(h)/D-1046(b)/D-1047(h)/D-1051(j)/D-1053(i) lessons remain logged, unchanged, carried forward. Drift item: BC-1.03.017 v1.19 re-anchor DEFERRED for S-21.20/S-21.21/S-21.22 — anchored each story's own Wave-7 pre-TDD convergence burst. Carried forward: BC-1.03.019's `VP-TBD` placeholder remains open.
+
+### §6 Carry-Forward Blockers (as of D-1060; see current STATE.md for live list)
+
+Unchanged in substance from the list already recorded above for the D-1059 checkpoint, plus: `[D-1060]` BC-1.03.017 v1.19 re-anchor DEFERRED for S-21.20/S-21.21/S-21.22 OWED — anchored each story's own Wave-7 pre-TDD convergence burst.
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the D-1061-WAVE6-PASS3-REMEDIATION checkpoint burst (2026-08-20) — S-21.19 pre-TDD adversary pass-3 NOT-CLEAN (1 MEDIUM F-S2119-P3-001 stale BC-1.03.017 v1.18 Task-2 cite + 1 LOW F-S2119-P3-002 blocks/depends_on parity) remediated via story-writer S-21.19 v1.3 + state-manager STORY-INDEX DAG edge; S-21.25 pre-TDD adversary pass-3 NOT-CLEAN (2 MEDIUM F-S2125-P3-001 test-distribution miscount + F-S2125-P3-002 VP-079 SITE_7 coherence gap) remediated via story-writer S-21.25 v1.3 + architect VP-079 v1.21; both LOCAL streaks REMAIN 0/3, pass-4 next for both.**
