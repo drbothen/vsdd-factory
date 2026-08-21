@@ -11282,3 +11282,49 @@ verdict). Recorded as a methodology note for the remaining six seams' own cascad
 context for the S-15.03 PRIORITY-A tree-wide POLICY-19 authoring-time sweep gate candidate
 (D-1064) — such a gate would have caught F-S2125-P6-001 at BC-authoring time rather than five
 adversary passes later. `[positive-signal; methodology; BC-5.39.001; 3-CLEAN-convergence; S-21.19; first-of-seven; split-seam; D-1057; D-1065; asymptotic-hygiene-tail; corpus-wide-governance-sweep; S-15.03-PRIORITY-A-context]`
+
+## LESSON (D-1066) — WAVE 6 COMPLETE: both split seams with zero blocking DAG dependencies independently reached BC-5.39.001 3-CLEAN convergence; asymmetric pass-counts (7 vs 9) validate per-seam independence
+
+**Category:** positive-signal / methodology note (not a process-gap)
+
+**Session evidence** (2026-08-21, S-21.25 pre-TDD passes 8-9): S-21.25 reached BC-5.39.001 3-CLEAN
+convergence (passes 7, 8, 9 all CLEAN) after a 9-pass cascade — 4 substantive remediation passes
+(1-4), 2 index-propagation-residue passes (5-6, including a HIGH POLICY-19 governance finding at
+pass 6 discovered AFTER the story body itself had already re-derived CLEAN at pass 5), then 3
+consecutive CLEAN passes (7-9). Combined with S-21.19's own 7-pass convergence at D-1065, **both
+Wave-6 seams (S-21.19 and S-21.25 — the two of the seven D-1057 split stories with zero DAG
+dependencies blocking their own convergence work, `depends_on: [S-21.10]` and `depends_on: []`
+respectively) have now independently reached full BC-5.39.001 3-CLEAN convergence, completing
+Wave 6.** Fourth dispatch attempt for this closing burst — three prior state-manager delegates died
+to API connection loss before any commit landed; this is the first successful commit for D-1066,
+not a recovery from a partial or backfill state (TD-VSDD-053 single-commit discipline held: no
+partial artifact was ever pushed by the three failed attempts).
+
+**Methodology observation:** the two seams needed different pass-counts to converge (S-21.19: 7
+passes; S-21.25: 9 passes) despite starting from the same D-1057 split-decomposition event and
+running under the identical `.factory/policies.yaml` rubric. This asymmetry is expected and
+correct, not a process anomaly: S-21.25's own governing BC (BC-1.03.019) had a POLICY-19
+Traceability-row defect dating back to its v1.0 authoring (5 passes before it was caught by a
+corpus-wide grep at pass 6), while S-21.19's governing BCs did not carry an equivalent latent
+defect. This confirms the BC-5.39.001 3-CLEAN protocol correctly measures each seam's OWN
+convergence state rather than assuming split seams inherit a shared clock from their common
+parent — the D-1057 sizing-override decision explicitly anticipated this (per D-1057(k): "splitting
+a converged spec does not inherit convergence for the split parts").
+
+**Wave-sequencing implication:** with Wave 6 fully closed, the pipeline's next action is Wave 7
+(S-21.20, S-21.21, S-21.22, S-21.23 — each starts its own pre-TDD cascade from pass-1, none has run
+yet) followed by Wave 8 (S-21.24 capstone, STRICTLY LAST, gated on all five prior seams). Wave 7's
+first three stories (S-21.20/21/22) each carry a known pre-existing drift item — a stale
+`BC-1.03.017 v1.18` cite that must be re-anchored to `v1.19` before or during their own pass-1,
+per the D-1060 deferral (extended at D-1064/F-S2119-P6-001 to also cover the decomposition-plan.md
+§1 per-story detail and the STORY-INDEX sibling rows). S-21.23 cites only `BC-1.03.018` (confirmed
+D-1062) and needs no re-anchor before its own pass-1. This front-loads the re-anchor work into the
+FIRST burst of each affected story's cascade rather than deferring it further, avoiding a repeat of
+the same class of index-propagation residue that cost S-21.25 two non-substantive passes (5-6) in
+its own cascade.
+
+**Disposition:** Not a process-gap requiring codification — this is a positive milestone marking
+the completion of Wave 6 and validating that the per-seam independent-convergence discipline
+(D-1057(k)) produces correct, if asymmetric, outcomes. Recorded as context for Wave 7's dispatch
+planning — front-load the known BC-1.03.017 re-anchor rather than letting it surface as a
+mid-cascade finding. `[positive-signal; methodology; milestone; BC-5.39.001; 3-CLEAN-convergence; wave-6-complete; S-21.19; S-21.25; split-seam; D-1057; D-1065; D-1066; asymmetric-pass-counts; wave-7-planning; wave-sequencing]`
