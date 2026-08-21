@@ -29511,3 +29511,151 @@ body cite), F-S2125-P6-003 (VP-079 internal inconsistency) — all anchored to t
 owner touch. **NEXT ACTION: fresh-context adversary pass-7 against S-21.19 v1.3 (UNCHANGED) +
 STORY-INDEX v4.379 + BC-INDEX v4.88 bundle AND S-21.25 v1.5 + BC-1.03.019 v1.3 + BC-3.08.001 v1.27
 bundle.**
+
+## D-1065-WAVE6-PASS7-SEAL
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1064 < D-9000 ceiling
+```
+
+D-1065 allocated. **Parent-commit:** `<factory-artifacts HEAD at burst start>` — `fix(wave6):
+D-1064 pass-6 remediation — S-21.19 CLEAN (streak 2/3), S-21.25 POLICY-19 HIGH remediated (streak
+0/3)` (factory-artifacts HEAD at burst start, per orchestrator dispatch: `10b14f40`).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` pass-7 dispatched in parallel against BOTH Wave-6 seams
+(dispatch reported by orchestrator; this burst is bookkeeping-only — persisting/recording the
+already-obtained verdicts, single agent, last and only agent this burst).
+**S-21.19 bundle** (story v1.3 UNCHANGED + BC-1.03.017 v1.19 + BC-1.01.016 v1.3 + ADR-044 +
+ADR-039 v1.15 + sibling S-21.24 v1.2 + STORY-INDEX v4.379 + BC-INDEX v4.88): **verdict CLEAN —
+THIRD consecutive clean pass.** Zero streak-resetting findings localized to S-21.19's own
+perimeter; novelty LOW; LOCAL BC-5.39.001 streak **ADVANCES 2/3→3/3 = 3-CLEAN CONVERGENCE
+ACHIEVED**. Cascade CLOSED — no further LOCAL passes required for S-21.19.
+**S-21.25 bundle** (story v1.5 + BC-1.03.019 v1.3 + BC-3.08.001 v1.27 + VP-079 v1.21): **verdict
+CLEAN — first clean pass since the pass-6 HIGH.** Zero streak-resetting (BLOCKER/HIGH/MEDIUM)
+findings; F-S2125-P6-001/002 both VERIFIED FIXED and held under a repeated corpus-wide POLICY 19
+sweep; F-S2125-P6-003 remains correctly deferred to architect. Four non-resetting LOW cosmetic
+observations recorded (F-S2125-P7-001..004), all DEFERRED to a post-convergence cosmetic sweep.
+LOCAL streak **ADVANCES 0/3→1/3**. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-s21.19-local-pass-7.md` and
+`cycles/v1.0-brownfield-backfill/adv-s21.25-local-pass-7.md`.
+
+**Block 3: Files touched**
+
+- `.factory/cycles/v1.0-brownfield-backfill/adv-s21.19-local-pass-7.md` — new (pass-7 CLEAN record, 3-CLEAN CONVERGENCE; input-hash `80b6c8d` operator-binary-computed)
+- `.factory/cycles/v1.0-brownfield-backfill/adv-s21.25-local-pass-7.md` — new (pass-7 CLEAN record, streak 1/3, 4 LOW deferred; input-hash `4f8a9a3` operator-binary-computed)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — both LOCAL Adversary Reviews sections gained a pass-7 row; Convergence Status paragraphs advanced (S-21.19 → 3/3 CONVERGED, cascade CLOSED; S-21.25 → 1/3)
+- `.factory/stories/STORY-INDEX.md` — S-21.19 catalog row gained the backfilled D-1064 pass-6 clause (same-day gap in an adjacent burst, fixed in-scope) + new D-1065 CONVERGED-AWAITING-TDD-SEQUENCING clause; S-21.25 catalog row gained a "pass-6 next"→"pass-7 next" scrivener-typo fix (from D-1064) + new D-1065 pass-7 CLEAN streak-1/3 clause; version v4.379→v4.380; last_amended chain
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1065 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — S-21.19-first-of-7-to-converge lesson entry appended
+- `.factory/STATE.md` — full advance (frontmatter, Phase Progress row, Current Phase Steps, Decisions Log, Story Status, `[D-1057]` Blocking Issue row, trajectory-tail append, Session Resume Checkpoint)
+
+No BC, VP, ADR, or story BODY content touched this burst — BC-INDEX v4.88, VP-INDEX v2.79, and
+ARCH-INDEX v3.76 are all UNCHANGED. No `S-21.19-executor-decision-function-core.md`,
+`S-21.25-fuel-headroom-warn-event.md`, `BC-1.03.017.md`, `BC-1.03.019.md`, `BC-3.08.001.md`,
+`VP-079.md`, `ADR-039`, or `ADR-044` touched — both stories' bodies UNCHANGED this burst.
+
+**Block 4: Codifications**
+
+No new `[process-gap]` lesson class this burst. This burst records S-21.19 as the FIRST of the 7
+split stories (S-21.19..S-21.25) to reach BC-5.39.001 3-CLEAN convergence on its pre-TDD cascade —
+7 passes total, an asymptotic hygiene tail (0 substantive findings at passes 5-7 after 4 substantive
+remediation passes at 1-4) — see `lessons.md` for the full retrospective note on the fresh-context
+loop's value in surfacing the POLICY 19 governance defect at pass-6 after the story body itself had
+already converged at pass-5. No new follow-up story opened. Four LOW cosmetic observations
+(F-S2125-P7-001..004) recorded and explicitly anchored to a post-convergence cosmetic sweep for
+S-21.25, mirroring the S-21.11 D-1055/D-1056 pattern.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+S-21.19 story-unchanged-verification gate (defense-in-depth, literal shell, D-449(a)):
+
+```
+$ ~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.23/bin/compute-input-hash .factory/stories/S-21.19-executor-decision-function-core.md --check
+(exit 0 -- MATCH; hash e6f82f2 UNCHANGED)
+```
+
+S-21.25 story-unchanged-verification gate (literal shell, D-449(a)):
+
+```
+$ ~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.23/bin/compute-input-hash .factory/stories/S-21.25-fuel-headroom-warn-event.md --check
+(exit 0 -- MATCH; hash eefe28b UNCHANGED)
+```
+
+POLICY 19 corpus-wide re-sweep gate confirming F-S2125-P6-001's fix held (literal shell, D-449(a)):
+
+```
+$ grep -n "ADR-039 v1\.[0-9]* §Decision 5" .factory/specs/behavioral-contracts/ss-01/BC-1.03.019.md .factory/specs/behavioral-contracts/ss-03/BC-3.08.001.md
+(no output — zero remaining load-bearing version-pinned ADR-039 §Decision 5 cites in either live
+Traceability row; fix from D-1064 confirmed held)
+```
+
+Backfill-detection gate for the S-21.19 STORY-INDEX row (literal shell, D-449(a)):
+
+```
+$ grep -c "D-1064" stories/STORY-INDEX.md
+(1 occurrence found only in the pre-existing S-21.25 row's own D-1064 clause prior to this burst's
+edit — the S-21.19 row had ZERO "D-1064" occurrences, confirming the backfill gap; this burst adds
+the missing S-21.19 D-1064 clause immediately followed by the new D-1065 clause)
+```
+
+**Block 6 (Dim-5): Closes**
+
+- F-S2125-P7-001/002/003/004 recorded as non-resetting LOW cosmetic observations, DEFERRED to a
+  post-convergence cosmetic sweep — NOT closed this burst (deliberate deferral per explicit
+  dispatch instruction, mirrors the S-21.11 D-1055/D-1056 pattern).
+- **S-21.19 LOCAL BC-5.39.001 streak ADVANCES 2/3→3/3 = CONVERGED. Cascade CLOSED.**
+- **S-21.25 LOCAL BC-5.39.001 streak ADVANCES 0/3→1/3 — first clean pass since the pass-6 reset.**
+- Backfilled the S-21.19 STORY-INDEX D-1064 pass-6 CLEAN annotation clause (same-day gap in an
+  adjacent burst, fixed in-scope per the production-grade default).
+- Corrected the S-21.25 STORY-INDEX row's own D-1064 clause scrivener typo ("pass-6 next"→
+  "pass-7 next").
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1065-WAVE6-PASS7-SEAL` present. D-446(a) own-burst-log 8-block
+gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: the S-21.19 and S-21.25
+disposition paragraphs in decision-log.md D-1065 faithfully describe `adv-s21.19-local-pass-7.md`
+and `adv-s21.25-local-pass-7.md` finding sets — verified by direct comparison against both
+persisted pass-7 files at burst time. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16
+gate + both story-unchanged-verification gates + POLICY 19 re-sweep gate + STORY-INDEX backfill-
+detection gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode, no
+estimated counts, no trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered LOCAL adversary pass (pass-7, both cascades) — trajectory entries
+  updated: S-21.19 trajectory (7 true adversary passes, 3 CLEAN, CONVERGED) tail `→1→0→0→0`
+  (D-433(e)+D-439(c) LENGTH=4); S-21.25 trajectory (7 true adversary passes, 1 CLEAN) tail
+  `→1→2→1→0` (LENGTH=4).
+- Streaks: S-21.19 **3/3 CONVERGED** (cascade CLOSED); S-21.25 **1/3** (ADVANCES).
+- 4-INDEX: BC v4.88 (UNCHANGED) / VP v2.79 (UNCHANGED) / STORY v4.380 (both catalog rows annotated
+  + backfill + typo fix) / ARCH v3.76 (UNCHANGED)
+- policies.yaml v1.4.24 UNCHANGED — no `policies.yaml` text change this burst.
+- `feature/S-21.19`/`feature/S-21.25` — no code-repo commit this burst (bookkeeping-only, no
+  spec/index content change beyond STORY-INDEX annotations).
+- `pipeline: ACTIVE` — unchanged this burst.
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed via `factory-cas-push.sh` (BC-5.40.001 PC5 / S-17.01 D6 fetch-then-`--force-with-lease` CAS sequence)
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `10b14f40` — `fix(wave6): D-1064 pass-6 remediation — S-21.19 CLEAN (streak 2/3), S-21.25 POLICY-19 HIGH remediated (streak 0/3)`
+
+**Closes:** S-21.19 LOCAL streak ADVANCES 2/3→3/3 = **3-CLEAN CONVERGENCE ACHIEVED — cascade
+CLOSED**, no further LOCAL adversary passes for S-21.19. S-21.25 LOCAL streak ADVANCES 0/3→1/3 —
+first clean pass since the pass-6 reset. Four LOW cosmetic observations (F-S2125-P7-001..004)
+recorded, DEFERRED to a post-convergence cosmetic sweep. S-21.19 STORY-INDEX D-1064 backfill gap
+closed; S-21.25 STORY-INDEX D-1064 scrivener typo corrected. **NEXT ACTION: (a) fresh-context
+adversary pass-8 against S-21.25 v1.5 (UNCHANGED) bundle ONLY; (b) S-21.19 CONVERGED — awaiting
+orchestrator/human decision on Phase-3 TDD sequencing (start now vs hold for the remaining six
+split-story seams S-21.20..S-21.24 to also converge).**

@@ -21270,3 +21270,135 @@ D-1064-WAVE6-PASS6-REMEDIATION
 2026-08-21
 
 ---
+
+## D-1065 — D-1065-WAVE6-PASS7-SEAL
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` -> the prior recorded max
+in this file is `## D-1064`. This entry is D-1065, the next decision allocated after D-1064.
+
+**Scope note (single-commit BOOKKEEPING-ONLY burst, state-manager, TD-VSDD-053; atomic across BOTH
+S-21.19 and S-21.25 clusters; last and only agent this burst).** Per D-1057(k), each split seam
+requires its own independent BC-5.39.001 3-CLEAN LOCAL pre-TDD adversarial cascade before Phase-3
+TDD entry. This entry records pass-7 outcomes for BOTH the S-21.19 cluster (D-1064's remediated
+v1.3 bundle, UNCHANGED) and the S-21.25 cluster (D-1064's remediated v1.5 bundle, UNCHANGED). Both
+pass-7 verdicts were CLEAN. No spec/story/BC/VP content was changed this burst — this is a pure
+convergence-bookkeeping and index-annotation burst.
+
+**(a) S-21.19 pre-TDD adversary pass-7 verdict.** **CLEAN — THIRD consecutive clean pass —
+BC-5.39.001 3-CLEAN CONVERGENCE ACHIEVED.** The adversary re-derived every anchor in the S-21.19
+v1.3 bundle fresh-context (BC-1.03.017 v1.19, BC-1.01.016 v1.3, ADR-044, ADR-039 v1.15, sibling
+S-21.24 v1.2, STORY-INDEX v4.379, BC-INDEX v4.88) and found zero streak-resetting findings
+localized to S-21.19's own perimeter, for the third consecutive independent fresh-context pass
+(passes 5, 6, 7 all CLEAN). Novelty LOW ("findings absent, not refined" — the perimeter has been
+stable and empty across three consecutive passes). LOCAL BC-5.39.001 streak **ADVANCES 2/3 → 3/3 =
+3-CLEAN CONVERGENCE ACHIEVED**. S-21.19's pre-TDD adversarial convergence cascade is now COMPLETE —
+it drops out of the LOCAL adversary loop; no further passes required. Story file itself UNCHANGED
+this burst, stays v1.3 (`e6f82f2`). Full verbatim review:
+`.factory/cycles/v1.0-brownfield-backfill/adv-s21.19-local-pass-7.md`.
+
+**S-21.19 is now eligible for Phase-3 TDD entry** (pending the orchestrator's/human's
+wave-sequencing decision — start now vs hold for the remaining six split-story seams
+S-21.20..S-21.24 to also converge). **This burst does NOT start TDD** — recorded as
+CONVERGED-AWAITING-TDD-SEQUENCING per explicit dispatch scoping.
+
+**(b) S-21.19 confirmed-still-anchored deferred cross-artifact items (NOT re-litigated this pass).**
+The following items, recorded and deferred at prior passes, remain correctly anchored to their
+existing owners and were reconfirmed still open by pass-7 without re-argument or re-scoping:
+- `.factory/planning/S-21.11-decomposition-plan.md` §1 + STORY-INDEX sibling rows for
+  S-21.20/S-21.21/S-21.22/S-21.23 still citing `BC-1.03.017 v1.18` — anchored to each sibling
+  story's own Wave-7 pre-TDD convergence burst (D-1060 deferral, EXTENDED at D-1064/F-S2119-P6-001).
+- `ADR-044` body citing `BC-1.03.017 v1.18` at approximately lines 35, 104, 190 — anchored to the
+  architect's next ADR-044 touch (D-1064/F-S2119-P6-002).
+- `BC-1.01.016`'s sanctioned `CAP-TBD` placeholder anchor — SANCTIONED cycle-wide deferral per
+  D-1021, out-of-perimeter for per-story cascades, anchored S-15.03 PRIORITY-A.
+
+**(c) S-21.25 pre-TDD adversary pass-7 verdict.** **CLEAN — first clean pass since the pass-6
+POLICY 19 HIGH.** The adversary independently re-derived the story BODY as CLEAN across all 7
+previously-named risk areas (emitter-name parity, AC-005 self-match/RED-GREEN, test-distribution
+14/3/1=18, threshold-predicate testability, BC-3.08.001 Event-7 field-set, message-text parity,
+POLICY 18 three-way input-hash parity — frontmatter=catalog-row=blockquote, all `eefe28b`).
+F-S2125-P6-001 (POLICY 19 ADR-version-pin fix) and F-S2125-P6-002 (VP-079-cite dated annotation)
+were both VERIFIED FIXED and held under a repeated corpus-wide POLICY 19 grep sweep — no new
+outlier found anywhere in the BC corpus. F-S2125-P6-003 (VP-079 internal six/seven inconsistency)
+remains correctly deferred to the architect, not re-counted. Zero BLOCKER/HIGH/MEDIUM
+(streak-resetting) findings. LOCAL BC-5.39.001 streak **ADVANCES 0/3 → 1/3** — first clean pass
+since the pass-6 reset; pass-8 next. Story file itself UNCHANGED this burst, stays v1.5
+(`eefe28b`). Full verbatim review:
+`.factory/cycles/v1.0-brownfield-backfill/adv-s21.25-local-pass-7.md`.
+
+**(d) S-21.25 non-resetting LOW cosmetic observations (recorded, DEFERRED to a post-convergence
+cosmetic sweep — mirrors the S-21.11 D-1055/D-1056 accumulated-nit deferral pattern; NOT fixed this
+burst).**
+- **F-S2125-P7-001** (LOW, shared): erratum-annotation phrasing differs between the two
+  POLICY-19-compliant BC Traceability rows — BC-1.03.019 reads "(WARN message per §Erratum E-006)"
+  vs BC-3.08.001 reads "(E-006)". Both compliant; purely wording. Anchor: post-convergence cosmetic
+  sweep.
+- **F-S2125-P7-002** (LOW, S-21.25-specific): Context parenthetical (~story line 100) conflates the
+  current version cite `v1.3` with the governing BC's original 2026-08-20 authoring date. Cosmetic.
+  Anchor: post-convergence cosmetic sweep.
+- **F-S2125-P7-003** (LOW, pending-intent CONVENTION): AC-header BC-version tokens are asymmetric —
+  only AC-006/AC-008 headers carry an explicit ", v1.3" token; the other eight carry none. All
+  present cites are current (nothing stale). Convention question for orchestrator/human
+  adjudication. Anchor: post-convergence cosmetic sweep / human convention call.
+- **F-S2125-P7-004** (LOW, pending-intent CONVENTION, repo-wide): story frontmatter `last_amended`
+  bare-date form (no "(v1.5)" version prefix) is the story-template norm across the WHOLE repo —
+  NOT burst-introduced; changing it for S-21.25 alone would implicate every story. Anchor:
+  repo-wide convention decision (S-15.03 PRIORITY-A), not a per-story fix.
+
+**(e) Streak discipline.** BC-5.39.001: S-21.19's LOCAL cascade streak **ADVANCES 2/3→3/3 =
+CONVERGED**; cascade CLOSED, no further LOCAL passes. S-21.25's LOCAL cascade streak **ADVANCES
+0/3→1/3** (first clean pass since the pass-6 reset). Fresh-context adversary pass-8 is the next
+action for S-21.25 ONLY, against the S-21.25 v1.5 (UNCHANGED) bundle. No further LOCAL adversary
+pass is scheduled for S-21.19 — its next action is the orchestrator's/human's Phase-3 TDD
+wave-sequencing decision.
+
+**(f) Backfill correction (in-scope, same row already being touched this burst).** While annotating
+the S-21.19 STORY-INDEX catalog row for this burst's pass-7 outcome, state-manager found the D-1064
+pass-6 CLEAN outcome had been recorded in STATE.md/decision-log.md/INDEX.md/lessons.md but the
+corresponding STORY-INDEX body-row annotation clause for S-21.19 had been omitted at D-1064 (a
+same-day gap in an adjacent burst, not this burst's own defect) — backfilled in-scope this burst,
+immediately preceding the new D-1065 clause, per the production-grade default (fix defects found
+in scope rather than deferring or merely flagging). Separately, a scrivener typo in the S-21.25
+row's own D-1064 clause ("pass-6 next" where the surrounding narrative describes pass-6 itself,
+should read "pass-7 next") was also corrected in-scope, same edit.
+
+**(g) Scope boundary (explicit).** This burst is bookkeeping-only: it persists both pass-7
+adversary review files, updates INDEX.md (both LOCAL Adversary Reviews sections + Convergence
+Status), updates STORY-INDEX.md (catalog-row annotations for both stories + the D-1064 backfill +
+typo fix + version bump), updates this decision-log.md entry, burst-log.md, lessons.md, and
+STATE.md. It does NOT touch any BC, VP, ADR, or story BODY content — BC-INDEX v4.88, VP-INDEX
+v2.79, and ARCH-INDEX v3.76 are all UNCHANGED this burst (no BC/VP/ADR content changed). No TDD
+work is started this burst for S-21.19 despite its convergence.
+
+### Agents
+
+- state-manager (sole agent this burst, last and only agent, POLICY 3): persisted
+  `adv-s21.19-local-pass-7.md` (CLEAN, 3-CLEAN CONVERGENCE, input-hash `80b6c8d`
+  operator-binary-computed) and `adv-s21.25-local-pass-7.md` (CLEAN, streak 1/3, 4 LOW deferred,
+  input-hash `4f8a9a3` operator-binary-computed); INDEX.md both LOCAL Adversary Reviews sections
+  gained a pass-7 row + Convergence Status advance (S-21.19 → 3/3 CONVERGED, cascade CLOSED;
+  S-21.25 → 1/3); STORY-INDEX v4.379→v4.380 (S-21.19 catalog row gained the backfilled D-1064
+  clause + new D-1065 CONVERGED-AWAITING-TDD-SEQUENCING clause; S-21.25 catalog row gained the
+  D-1064 typo fix + new D-1065 clause); this D-1065 decision-log.md entry; burst-log.md 8-block
+  entry; lessons.md entry (S-21.19 is the FIRST of the 7 split stories to converge its pre-TDD
+  cascade); STATE.md full advance (frontmatter, Phase Progress row, Current Phase Steps, Decisions
+  Log, Story Status, `[D-1057]` Blocking Issue row, trajectory-tail append, Session Resume
+  Checkpoint). Single atomic commit to `factory-artifacts` per TD-VSDD-053.
+
+### 4-INDEX
+
+BC-INDEX v4.88 UNCHANGED (no BC content changed this burst) / ARCH-INDEX v3.76 UNCHANGED (no ADR
+content changed this burst) / VP-INDEX v2.79 UNCHANGED (no VP content changed this burst) /
+STORY-INDEX v4.379→v4.380 (S-21.19 catalog row: D-1064 backfill clause + D-1065
+CONVERGED-AWAITING-TDD-SEQUENCING clause; S-21.25 catalog row: D-1064 typo fix + D-1065 pass-7
+CLEAN streak-1/3 clause).
+
+### Phase
+
+D-1065-WAVE6-PASS7-SEAL
+
+### Date
+
+2026-08-21
+
+---

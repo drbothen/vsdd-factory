@@ -11249,3 +11249,36 @@ architect) is itself a further instance of the SAME general shape (a correction 
 — the Property Statement — not swept to a sibling site — the header comments — within the same
 file), reinforcing that within-file sibling-sweep discipline (TD-VSDD-060) remains incompletely
 internalized even at single-document scope. `[process-gap; recurrence-class-candidate; POLICY-19; adr_version_cite_volatile_pin_prohibition; BC-1.03.019; BC-3.08.001; Traceability-row; corpus-grep; state-manager; product-owner; story-writer; F-S2125-P6-001; F-S2125-P6-002; F-S2125-P6-003; D-1064; S-21.25; S-15.03-PRIORITY-A-anchor]`
+
+## LESSON (D-1065) — S-21.19 is the first of the 7 split stories to converge its pre-TDD cascade; the fresh-context loop's value in surfacing a governance defect AFTER substantive convergence
+
+**Category:** positive-signal / methodology note (not a process-gap)
+
+**Session evidence** (2026-08-21, S-21.19 pre-TDD pass-7): S-21.19 reached BC-5.39.001 3-CLEAN
+convergence (passes 5, 6, 7 all CLEAN) after 4 substantive remediation passes (1-4). Of the seven
+split stories spawned from the D-1057 sizing-override decomposition of the converged S-21.11 v2.11
+(S-21.19, S-21.20, S-21.21, S-21.22, S-21.23, S-21.24, S-21.25), S-21.19 is the FIRST to close its
+own independent pre-TDD LOCAL adversarial cascade — 7 passes total, an asymptotic hygiene tail
+(substantive findings at passes 1-4, zero substantive findings at passes 5-7). This establishes an
+empirical baseline for the remaining six seams: S-21.25 is mid-cascade (7 passes, streak 1/3,
+distinct 1 HIGH POLICY-19 governance finding at pass 6 after its own body had already been CLEAN
+since pass 5); S-21.20/S-21.21/S-21.22/S-21.23 (Wave 7) and S-21.24 (Wave 8) have not yet started.
+
+**Methodology observation:** S-21.19's own pass-6 finding pattern (zero findings, second consecutive
+CLEAN pass) illustrates that a story's own body can be substantively converged well before its
+governing BCs' cross-cutting governance properties (like POLICY 19 Traceability-row hygiene) are
+independently audited — S-21.25's pass-6 HIGH was discovered by a corpus-wide grep sweep against
+the GOVERNING BC (BC-1.03.019), not by re-reviewing the story body, which had already been CLEAN
+since pass 5. This confirms the fresh-context adversarial loop's value extends beyond finding
+story-body defects: periodic corpus-wide governance sweeps (POLICY-N compliance across ALL BCs, not
+just the ones a given story cites) surface defects that per-story rubric review alone would miss,
+because no single story's cascade has a natural trigger to audit BCs it does not itself amend.
+
+**Disposition:** Not a process-gap requiring codification — this is a positive validation that the
+BC-5.39.001 3-CLEAN protocol, applied independently per split seam, correctly distinguishes
+"this seam's own perimeter is stable" from "the seam is ready for TDD in isolation from its
+siblings" (the latter remains an orchestrator/human wave-sequencing decision, not an adversary
+verdict). Recorded as a methodology note for the remaining six seams' own cascades, and as
+context for the S-15.03 PRIORITY-A tree-wide POLICY-19 authoring-time sweep gate candidate
+(D-1064) — such a gate would have caught F-S2125-P6-001 at BC-authoring time rather than five
+adversary passes later. `[positive-signal; methodology; BC-5.39.001; 3-CLEAN-convergence; S-21.19; first-of-seven; split-seam; D-1057; D-1065; asymptotic-hygiene-tail; corpus-wide-governance-sweep; S-15.03-PRIORITY-A-context]`
