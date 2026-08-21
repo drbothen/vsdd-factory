@@ -20874,3 +20874,130 @@ D-1061-WAVE6-PASS3-REMEDIATION
 2026-08-20
 
 ---
+
+## D-1062 — D-1062-WAVE6-PASS4-REMEDIATION
+
+POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` -> the prior recorded max
+in this file is `## D-1061`. This entry is D-1062, the next decision allocated after D-1061.
+
+**Scope note (single-commit remediation burst, state-manager, TD-VSDD-053; atomic across BOTH
+S-21.19 and S-21.25 clusters).** Per D-1057(k), each split seam requires its own independent
+BC-5.39.001 3-CLEAN LOCAL pre-TDD adversarial cascade before Phase-3 TDD entry. This entry records
+pass-4 outcomes for BOTH the S-21.19 cluster (D-1061's remediated v1.3 bundle) and the S-21.25
+cluster (D-1061's remediated v1.3 bundle), and their same-burst remediations, plus a comprehensive
+proactive STORY-INDEX/BC-INDEX/VP-INDEX cross-reference hygiene sweep across the split-story
+cluster, as one atomic Wave-6 burst.
+
+**(a) S-21.19 pre-TDD adversary pass-4 verdict.** NOT-CLEAN. 1 MEDIUM finding, no BLOCKER/HIGH/LOW,
+plus 2 non-resetting cross-story observations. Pass-3's F-S2119-P3-001/002 (Task 2 stale
+`BC-1.03.017 v1.18` cite; `blocks:`/`depends_on:` asymmetry) independently re-verified FIXED — not
+reopened; ADR-044's capstone-flip split (D-1058) and the Invariant-7 wiring re-key + AC-009
+`#[ignore]` gate (D-1060) also re-confirmed held. **F-S2119-P4-001** (MEDIUM, STORY-INDEX-domain —
+the S-21.19 story file itself is UNCHANGED this round, stays v1.3): the D-1057 sub-schedule
+blockquote (STORY-INDEX.md ~line 751) still read `S-21.19 (9 pts)` and `S-21.24 (3 pts)` in its
+mid-list W6/W8 prose — stale since D-1058's ADR-044 capstone-owned-flip redistribution (9→7 for
+S-21.19, 3→5 for S-21.24), which had already correctly updated both catalog rows and both stories'
+frontmatter `points:` fields at the time. The blockquote's own mid-list text was the only
+un-swept site, masked through passes 2-3 because the blockquote's stated aggregate total (35 pts,
+S-21.19..S-21.24) is points-neutral under the 9/3↔7/5 swap (9+3=12=7+5). Full verbatim review:
+`.factory/cycles/v1.0-brownfield-backfill/adv-s21.19-local-pass-4.md`.
+
+**(b) S-21.19 resolution — finding fixed in scope, no BLOCKER, no deferral.**
+- `vsdd-factory:state-manager` (this burst; STORY-INDEX-domain fix, no story-writer dispatch
+  required — the S-21.19/S-21.24 story files themselves are unchanged): swept the D-1057
+  sub-schedule blockquote's mid-list points `S-21.19 (9 pts)`→`(7 pts)` and
+  `S-21.24 (3 pts)`→`(5 pts)`, verified against every catalog row's points column and both
+  stories' frontmatter (all four now consistent at 7/5).
+- Cross-story audit (dispatched alongside this remediation, recorded as observations
+  O-S2119-P4-001/002 in the pass-4 review, not counted toward this pass's severity total):
+  BC-INDEX's BC-1.03.017 Stories column incorrectly listed S-21.23 as a citer — S-21.23's own
+  frontmatter cites only `BC-1.03.018 v1.1`, never BC-1.03.017. `vsdd-factory:state-manager`
+  corrected the Stories column, removing S-21.23 (now reads S-21.10, S-21.19, S-21.20, S-21.21,
+  S-21.22, S-21.24). S-21.20/S-21.21/S-21.22's own stale `BC-1.03.017 v1.18` cites (BC itself now
+  at v1.19) were confirmed as real, pre-existing drift but explicitly NOT swept this burst — see
+  (f)/(g).
+
+**(c) S-21.25 pre-TDD adversary pass-4 verdict.** NOT-CLEAN. 1 MEDIUM finding, no BLOCKER/HIGH/LOW.
+Pass-3's F-S2125-P3-001 (Task 7/11 test-distribution miscount) independently re-verified FIXED with
+no recurrence. F-S2125-P3-002 (VP-079 SITE_7 silence) verified FIXED in substance — the story is no
+longer silent — but the fix-verification surfaced a follow-on, distinct failure mode:
+**F-S2125-P4-001** (MEDIUM, concurrency residue): pass-3's F-S2125-P3-002 remediation was split
+across two concurrent same-burst agents — story-writer authored S-21.25's VP-079 SITE_7
+acknowledgment paragraph citing `VP-079 v1.20` (current at the instant it was written), while
+architect concurrently bumped VP-079 itself v1.20→v1.21 (retargeting the same SITE_7 scope note's
+ownership language). Both edits were individually correct when written, but the combination left
+S-21.25 v1.3 citing and quoting a superseded VP-079 version at all 5 live sites (VP-status note,
+Context/Finding-Summary, Architecture Mapping table, Task 5, Architecture Compliance Rules table)
+by the time the D-1061 burst closed — including presenting v1.20's now-superseded SITE_7 sentence
+as VP-079's present-tense text. Full verbatim review:
+`.factory/cycles/v1.0-brownfield-backfill/adv-s21.25-local-pass-4.md`.
+
+**(d) S-21.25 resolution — finding fixed in scope, no BLOCKER, no deferral.**
+- `vsdd-factory:story-writer` (S-21.25 v1.3→v1.4, input-hash `4af3ec2` unchanged — body-only edit;
+  VP-079 is not in S-21.25's own `inputs:` dependency list): swept `VP-079 v1.20`→`v1.21` at all 5
+  live sites; reframed the VP-status note's quotation as a paraphrase of VP-079 v1.21's actual
+  current SITE_7 text (Phase-6 formal-verification tracking, explicitly NOT S-21.25's pre-TDD/unit
+  scope), with v1.20's superseded text now explicitly named as historical carry-forward context
+  rather than quoted as VP-079's present tense. Residual `v1.20` cites confirmed to be only the
+  exempt historical Changelog/`modified:` rows for v1.2/v1.3 (which correctly narrate what v1.20
+  said at the time it was written).
+
+**(e) Streak discipline.** BC-5.39.001: resolving findings does not itself advance the streak —
+BOTH S-21.19 and S-21.25 LOCAL cascade streaks remain **0/3**. Fresh-context adversary pass-5 is
+the next action for each: S-21.19 against S-21.19 v1.3 + STORY-INDEX v4.377 + BC-INDEX v4.86;
+S-21.25 against S-21.25 v1.4 + BC-1.03.019 v1.2 + VP-079 v1.21.
+
+**(f) Drift item (carried forward, not silently left bare).** Carried forward from D-1060(f)/
+D-1061(f): BC-1.03.017 v1.18→v1.19's Invariant 7 re-anchor remains **DEFERRED** for the
+not-yet-converging split-seam stories S-21.20/S-21.21/S-21.22 — unchanged this burst, out of scope
+(see (g)); confirmed still accurate by this burst's cross-story audit. **New this burst:** VP-079's
+own citation of `BC-3.08.001 v1.25` (at VP-079's Property-Statement opening parenthetical and its
+Property-6 SITE_7 site-description sentence) is itself one version behind — BC-3.08.001 advanced to
+v1.26 at D-1060 (F-S2125-P2-003's false-flag closure + emitter-rename sweep). VP-079's own §Amendment
+2026-08-20 (v1.20→v1.21) entry, added at D-1061, already correctly cites `BC-3.08.001 v1.26`, so
+this is a within-file inconsistency, not a wholesale staleness — flagged for the architect's next
+VP-079 touch (not this burst's scope; VP-079 content is architect's domain, and no adversary finding
+against S-21.19 or S-21.25 raised it — it was noticed incidentally during this burst's comprehensive
+cross-reference sweep and is recorded here so it is not silently lost).
+
+**(g) Scope boundary (explicit).** This burst registers/reconciles/records only for the
+S-21.19-cluster (S-21.19, STORY-INDEX, BC-INDEX) and S-21.25-cluster (S-21.25) files already
+authored in the worktree at burst start (S-21.25 v1.4) or fixed directly by state-manager
+(STORY-INDEX blockquote, BC-INDEX Stories column), plus the comprehensive cross-reference sweep
+explicitly requested this burst. It does NOT touch S-21.20, S-21.21, S-21.22, S-21.23, S-21.24,
+BC-1.03.017, BC-1.03.018, BC-1.03.019, BC-3.08.001, or VP-079 themselves — no BC/ADR/VP content
+changed this pass-4 round; the VP-079 BC-3.08.001 stale-cite item at (f) is recorded, not fixed,
+per this scope boundary.
+
+### Agents
+
+- story-writer: S-21.25 v1.3→v1.4 — already present in the worktree at burst start
+- state-manager (this burst): STORY-INDEX D-1057 sub-schedule blockquote mid-list points swept
+  9/3→7/5; BC-INDEX BC-1.03.017 Stories column corrected (S-21.23 removed); input-hash
+  reconciliation via the per-file operator `compute-input-hash` binary (POLICY 18; never
+  dev-source `--scan --update`) — `adv-s21.19-local-pass-4.md` and `adv-s21.25-local-pass-4.md`
+  computed and stamped (`c1bae4e`, `622af2b`); S-21.25 verified already current
+  (`--check`-equivalent frontmatter comparison, no update needed, `4af3ec2`). New
+  `adv-s21.19-local-pass-4.md` and `adv-s21.25-local-pass-4.md` persisted (Part A/B + Disposition +
+  Summary + Novelty Assessment sections each, plus S-21.19's Cross-Story Observations section).
+  STORY-INDEX and BC-INDEX per-story/per-BC row notes appended. INDEX.md per-story cascade sections
+  (new pass-4 rows) + both Convergence Status blocks. This D-1062 decision-log.md entry. STATE.md
+  advance. Single atomic commit to `factory-artifacts` per TD-VSDD-053.
+
+### 4-INDEX
+
+BC-INDEX v4.85→v4.86 (BC-1.03.017 Stories column correction) / ARCH-INDEX v3.76 UNCHANGED (no ADR
+content changed this burst) / VP-INDEX v2.78 UNCHANGED (no VP content changed this burst — the
+BC-3.08.001 v1.25→v1.26 stale-cite item at (f) is deferred, not fixed) / STORY-INDEX v4.376→v4.377
+(S-21.25 v1.3→v1.4 row; S-21.19 row D-1062 note appended, story itself unchanged; D-1057
+sub-schedule blockquote points correction).
+
+### Phase
+
+D-1062-WAVE6-PASS4-REMEDIATION
+
+### Date
+
+2026-08-20
+
+---

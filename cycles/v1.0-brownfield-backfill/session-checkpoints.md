@@ -2805,3 +2805,43 @@ Unchanged in substance from the list already recorded above for the D-1059 check
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1061-WAVE6-PASS3-REMEDIATION checkpoint burst (2026-08-20) — S-21.19 pre-TDD adversary pass-3 NOT-CLEAN (1 MEDIUM F-S2119-P3-001 stale BC-1.03.017 v1.18 Task-2 cite + 1 LOW F-S2119-P3-002 blocks/depends_on parity) remediated via story-writer S-21.19 v1.3 + state-manager STORY-INDEX DAG edge; S-21.25 pre-TDD adversary pass-3 NOT-CLEAN (2 MEDIUM F-S2125-P3-001 test-distribution miscount + F-S2125-P3-002 VP-079 SITE_7 coherence gap) remediated via story-writer S-21.25 v1.3 + architect VP-079 v1.21; both LOCAL streaks REMAIN 0/3, pass-4 next for both.**
+
+## Session Resume Checkpoint (2026-08-20 — D-1061-WAVE6-PASS3-REMEDIATION; PIPELINE ACTIVE) — ARCHIVED FULL TEXT
+
+> Archived verbatim from STATE.md at the D-1062 burst (this checkpoint was superseded there by
+> the D-1062-WAVE6-PASS4-REMEDIATION checkpoint).
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE ACTIVE** at a clean checkpoint. Per D-1057(k), each of the 7 stories split from CONVERGED S-21.11 requires its own independent BC-5.39.001 3-CLEAN LOCAL pre-TDD adversarial convergence before Phase-3 TDD entry. The two Wave 6 seams (S-21.19 and S-21.25, no dependency edge between them) both completed their pre-TDD adversary pass-3:
+
+- **S-21.19** (D-1061): pass-3 **NOT-CLEAN** (1 MEDIUM F-S2119-P3-001 — Task 2's AC-012 test cite retained the stale `BC-1.03.017 v1.18` version string, missed by pass-2's sweep; + 1 LOW F-S2119-P3-002 — `blocks:` frontmatter lacked bidirectional parity with S-21.24's `depends_on:`). Both fixed: story-writer S-21.19 v1.2→v1.3 (Task 2 cite swept to v1.19 PC11; `blocks:` gained S-21.24); state-manager added the direct S-21.19→S-21.24 edge to the STORY-INDEX D-1057 sub-schedule DAG. LOCAL streak **REMAINS 0/3**.
+- **S-21.25** (D-1061): pass-3 **NOT-CLEAN** (2 MEDIUM F-S2125-P3-001 test-distribution miscount + F-S2125-P3-002 VP-079 SITE_7 coherence gap). Both fixed: story-writer S-21.25 v1.2→v1.3 (Task 7/11 corrected to 14/3/1=18; VP-079 SITE_7 acknowledgment + Phase-6 deferral note added); architect VP-079 v1.20→v1.21 (SITE_7 scope note retargeted test-writer→Phase-6 formal-verification). LOCAL streak **REMAINS 0/3**.
+
+Both prior structural-fix sets re-verified CONFIRMED HELD at pass-3, no recurrence. State-manager (D-1061): 1-file input-hash reconcile (VP-079 `704a8ca`→`2b508d4`). 4-index: BC-INDEX v4.85 UNCHANGED / ARCH-INDEX v3.76 UNCHANGED / VP-INDEX v2.77→v2.78 / STORY-INDEX v4.375→v4.376. `adv-s21.19-local-pass-3.md` and `adv-s21.25-local-pass-3.md` both persisted.
+
+### §2 Convergence Counter
+
+S-21.11's own streak remains 3/3 = CONVERGED (frozen, historical). S-21.19 and S-21.25: each at pass-3, both **0/3**. S-21.20/S-21.21/S-21.22/S-21.23/S-21.24: zero passes, each starts 0/3.
+
+### §3 In-Flight / NEXT ACTION
+
+RESUME = dispatch fresh-context adversary pass-4 against both remediated bundles in parallel (S-21.19 v1.3+BC-1.03.017 v1.19; S-21.25 v1.3+BC-1.03.019 v1.2+VP-079 v1.21). This action was subsequently completed at D-1062 — see the current Session Resume Checkpoint in STATE.md for the live position.
+
+### §4 Pending Human Decision
+
+None outstanding from the D-1061 burst.
+
+### §5 Session Note
+
+No new standing rule this burst — adversarial-finding remediation across 2 specialist agents (story-writer, architect) plus state-manager DAG/blockquote bookkeeping, mechanical in nature; existing D-1044(g)/D-1045(h)/D-1046(h)/D-1046(b)/D-1047(h)/D-1051(j)/D-1053(i) lessons remain logged, unchanged, carried forward. Process-gap closed this burst: STORY-INDEX D-1057 sub-schedule blockquote's POLICY 18 input-hash enumeration extended to all seven split stories. Drift item: BC-1.03.017 v1.19 re-anchor DEFERRED for S-21.20/S-21.21/S-21.22 — anchored each story's own Wave-7 pre-TDD convergence burst. Carried forward: BC-1.03.019's `VP-TBD` placeholder remains open.
+
+### §6 Carry-Forward Blockers (as of D-1061; see current STATE.md for live list)
+
+Unchanged in substance from the list already recorded above for the D-1060 checkpoint.
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the D-1062-WAVE6-PASS4-REMEDIATION checkpoint burst (2026-08-20) — S-21.19 pre-TDD adversary pass-4 NOT-CLEAN (1 MEDIUM F-S2119-P4-001 STORY-INDEX D-1057 blockquote stale points 9/3→7/5, STORY-INDEX-domain, story itself unchanged v1.3) remediated via state-manager; S-21.25 pre-TDD adversary pass-4 NOT-CLEAN (1 MEDIUM F-S2125-P4-001 concurrency-residue VP-079 v1.20→v1.21 cite/quotation) remediated via story-writer S-21.25 v1.4; comprehensive STORY/BC-INDEX cross-reference hygiene sweep also performed (BC-INDEX BC-1.03.017 Stories column corrected); both LOCAL streaks REMAIN 0/3, pass-5 next for both.**
