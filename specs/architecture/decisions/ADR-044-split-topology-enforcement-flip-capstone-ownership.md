@@ -1,7 +1,7 @@
 ---
 document_type: adr
 adr_id: ADR-044
-version: "1.2"
+version: "1.3"
 title: "ADR-044: Split-topology flip-sequencing — the enforcement-active wiring commit is capstone-owned, not core-decision-story-owned, when an atomicity-critical story is partitioned across independently-mergeable sub-stories"
 status: ratified
 date: 2026-08-20
@@ -47,7 +47,47 @@ modified:
     established — it introduces no new decision, only corrects a wording defect that
     contradicted already-ratified content (same non-re-ratification category as ADR-039's
     E-001..E-007 erratum precedent). Adjudicates F-S2119-R1-001, F-S2121-P2-001. ADR-044 v1.2."
-input-hash: "0acab83"
+  - "2026-08-22 (v1.3) — architect fixing a HIGH fail-open window in the v1.1/v1.2 Addendum's
+    WIRING SEQUENCE (not its function-scope definitions, which were already correct after v1.2),
+    caught by fresh-context adversarial pass-3 against S-21.21 (F-S2121-P3-001, HIGH, verified
+    against live `crates/factory-dispatcher/src/executor.rs`). Root cause: the retained-today
+    2-arg `plugin_fail_closed(result, on_error)` call at the live block-decision site is the
+    SOLE synchronous path that blocks `Timeout` under `on_error=Block` right now
+    (`plugin_requests_block` returns `false` for `Timeout`). The v1.1/v1.2 Addendum's Decision
+    text described S-21.21's wave-7 task as wiring `plugin_fail_closed_on_error_exit` \"replacing
+    the current bare `plugin_fail_closed` call\" — a literal REPLACEMENT. Because
+    `plugin_fail_closed_on_error_exit`'s scope is `Crashed | Ok{exit_code!=0}` (Timeout
+    excluded, correctly, per v1.2) and the exhaustion leg (`plugin_fail_closed_on_exhaustion`,
+    which re-catches `Timeout` via `failure_policy`) does not wire until S-21.24 (wave 8), a
+    literal replacement at wave 7 DROPS the `Timeout`-blocks-on `on_error=Block` path for the
+    ENTIRE wave-7-to-wave-8 window — every `on_error=Block` sync entry, INCLUDING the two
+    self-lock-hazard `^Agent$` gates BC-1.03.018 governs, would fail OPEN on
+    `Timeout{Fuel|Epoch}` for that window: a CWE-636 regression this ADR itself exists to
+    prevent. The v1.0/v1.1's \"mechanically impossible fail-open window\" claim (Decision
+    section + Consequences Positive) reasoned only about the enforcement-active-before-
+    annotation direction (PC11's own concern) — it did not separately analyze that the wave-7
+    wiring step could SUBTRACT an already-live blocking path. Fix: the wave-7 (S-21.21) wiring
+    step is corrected from REPLACEMENT to ADDITIVE — RETAIN the existing 2-arg
+    `plugin_fail_closed` call (Crashed | Timeout, references neither `.failure_policy` nor
+    `Timeout`-as-a-calibration-gate, trips nothing in PC11) at the call site AND ADD
+    `plugin_fail_closed_on_error_exit` (Crashed | Ok{exit_code!=0}) alongside it — union at wave
+    7 = `Crashed | Timeout | Ok{exit_code!=0}`, so the pre-existing `Timeout` block is preserved
+    through the window. The wave-8 (S-21.24) task is corrected from a pure ADD to a MIGRATE:
+    S-21.24 now additionally REMOVES the retained 2-arg `plugin_fail_closed` call and replaces
+    it with `plugin_fail_closed_on_exhaustion(result, on_error, failure_policy)` (making
+    `Timeout` blocking `failure_policy`-CONDITIONAL, per ADR-039 axes-independence) — this is
+    where the intended behavior change (a `FailOpen`-annotated plugin's `Timeout` stops
+    unconditionally blocking) lands atomically at the capstone, not gradually during the window.
+    New invariant recorded: at every commit from S-21.19's merge through S-21.24's merge, SOME
+    live path blocks `Timeout + on_error=Block` — the pre-existing 2-arg call through wave 7,
+    then `plugin_fail_closed_on_exhaustion` from wave 8 onward; no commit in between has neither.
+    Does not require separate POLICY 22 re-ratification: this corrects a wiring-SEQUENCE defect
+    in how the already-ratified function-scope decisions (item 1/item 2, unchanged by this
+    correction) get wired across waves — it introduces no new function, no new scope, and no new
+    decision content, only a corrected transition path between two already-ratified end states
+    (same non-re-ratification category as the v1.2 erratum). Adjudicates F-S2121-P3-001.
+    ADR-044 v1.3."
+input-hash: "86c5edc"
 ---
 
 # ADR-044: Split-topology flip-sequencing — the enforcement-active wiring commit is capstone-owned, not core-decision-story-owned, when an atomicity-critical story is partitioned across independently-mergeable sub-stories
@@ -228,9 +268,14 @@ timed legs, each retaining its own atomicity analysis:**
 1. **Exhaustion leg — `plugin_fail_closed_on_exhaustion(result, on_error, failure_policy)`.**
    Governs `Timeout { cause: Fuel | Epoch }` with `failure_policy == FailClosed` (ADR-039
    §Decision 3 Phase 4). References `.failure_policy`; trips PC11; carries the annotate-before-
-   flip half-state hazard this ADR's v1.0 ruling exists to prevent. **UNCHANGED from v1.0: wiring
-   remains capstone-owned, deferred to S-21.24 (wave 8), which by construction cannot land before
-   all five plugins are annotated.**
+   flip half-state hazard this ADR's v1.0 ruling exists to prevent. **UNCHANGED from v1.0: this
+   function's live WIRING is capstone-owned, deferred to S-21.24 (wave 8), which by construction
+   cannot land before all five plugins are annotated. Corrected (v1.3): S-21.24's wave-8 wiring
+   task is a MIGRATION, not a pure addition — it ADDS this function's call AND REMOVES the
+   wave-7-retained 2-arg `plugin_fail_closed` call in the SAME commit (see the Wiring Sequence
+   subsection below). This is the commit where `Timeout` blocking becomes `failure_policy`-
+   conditional instead of unconditional-on-`on_error=Block` — the intended behavior change,
+   landing atomically at the capstone, not gradually during the wave-7→8 window.**
 2. **Error-exit leg — `plugin_fail_closed_on_error_exit(result, on_error)`.** Governs the existing
    `on_error==Block && Crashed` case (already live today, unchanged) EXTENDED per AMD-003 to also
    cover `on_error==Block && Ok { exit_code != 0 }` (PC13). **`Timeout {..}` is OUT OF SCOPE for
@@ -240,7 +285,10 @@ timed legs, each retaining its own atomicity analysis:**
    Rule condition 1 already establish; see the v1.2 correction note below). This function
    references neither `.failure_policy` nor `Timeout` at all; trips nothing in PC11; has no
    annotated-fleet precondition. **NEW in this Addendum: wireable immediately, owned by S-21.21,
-   not S-21.24.**
+   not S-21.24. Corrected (v1.3): S-21.21's wave-7 wiring task ADDS this function's call
+   ALONGSIDE the existing 2-arg `plugin_fail_closed` call — it does NOT replace or remove that
+   call (see the Wiring Sequence subsection below; the v1.1/v1.2 text's "replacing the current
+   bare `plugin_fail_closed` call" phrasing was the defect this v1.3 correction fixes).**
 
 **Correction (v1.2, 2026-08-22).** Item 2 above originally (v1.1) read
 "`on_error==Block && (Crashed | Timeout)` case ... EXTENDED ... to also cover
@@ -258,14 +306,43 @@ S-21.19 Task 6 is narrowed (not expanded) to author these as two separate standa
 rather than one bundled 3-arg function — `PluginOutcome.failure_policy` field-population and
 both functions' unit tests remain in S-21.19 exactly as before; only the SHAPE (two functions,
 not one) changes. S-21.19's own scope does not grow: this is a decomposition of already-planned
-work, not new work. S-21.21 gains one new task: wire
-`plugin_fail_closed_on_error_exit` into `execute_tiers`'s/`execute_tier`'s real block-decision
-call site (replacing the current bare `plugin_fail_closed` call with the renamed/extended
-function), plus AC-013b/AC-013c's already-planned end-to-end bats/dispatch legs, which now prove
-themselves against a genuinely live call site at wave 7 instead of waiting for wave 8. S-21.24's
-scope narrows correspondingly: it wires and proves ONLY the exhaustion leg; the error-exit leg's
-end-to-end proof moves out of S-21.24 entirely (superseding the "S-21.24 gains ... two test legs"
-Negative/Trade-offs bullet above, which described both legs undifferentiated).
+work, not new work. S-21.21 gains one new task: wire `plugin_fail_closed_on_error_exit` into
+`execute_tiers`'s/`execute_tier`'s real block-decision call site **ADDITIVELY, ALONGSIDE the
+existing bare `plugin_fail_closed` call — NOT replacing it (corrected v1.3; see Wiring Sequence
+subsection immediately below for why a literal replacement at wave 7 is unsafe)** — plus
+AC-013b/AC-013c's already-planned end-to-end bats/dispatch legs, which now prove themselves
+against a genuinely live call site at wave 7 instead of waiting for wave 8. S-21.24's scope
+narrows for the error-exit leg's end-to-end proof (which moves out of S-21.24 entirely,
+superseding the "S-21.24 gains ... two test legs" Negative/Trade-offs bullet above, which
+described both legs undifferentiated) but GAINS a migration sub-task (v1.3): removing the
+wave-7-retained 2-arg `plugin_fail_closed` call in the SAME commit that wires
+`plugin_fail_closed_on_exhaustion`.
+
+### Wiring sequence across waves 7-8 (v1.3 correction — closes F-S2121-P3-001)
+
+The Decision above states each function's target SCOPE; this subsection states the WIRING
+SEQUENCE that gets the call site from today's baseline to that final state without ever dropping
+live coverage of `Timeout + on_error=Block`. `plugin_requests_block` never covers `Timeout`
+(it matches only the `HookResult::Block` stdout convention) — so at every stage below, coverage
+of `Timeout + on_error=Block` depends entirely on which OTHER disjunct(s) are present in the
+`execute_tiers` block-decision `if` expression.
+
+| Stage | Call-site disjuncts (OR'd with `plugin_requests_block`, unchanged throughout) | `Timeout` + `on_error=Block` covered by | PC11-safe? |
+|-------|-------------------------------------------------------------------------------|------------------------------------------|------------|
+| **Baseline (today, pre-wave-7)** | `plugin_fail_closed(result, on_error)` — 2-arg, matches `Crashed \| Timeout` | The 2-arg call (unconditional on `on_error=Block` alone) | Yes — references neither `.failure_policy` nor a `failure_policy`-gated `Timeout` decision |
+| **Wave 7 (S-21.21), corrected** | `plugin_fail_closed(result, on_error)` **RETAINED** `\|\|` `plugin_fail_closed_on_error_exit(result, on_error)` **ADDED** | Still the retained 2-arg call — unchanged, uninterrupted | Yes — the retained call is unmodified from baseline (references neither `.failure_policy` nor `Timeout`-as-a-calibration-gate); the added function also references neither. Neither disjunct trips PC11's `.failure_policy`-for-`Timeout` scan. |
+| **Wave 8 (S-21.24), MIGRATE** | `plugin_fail_closed(result, on_error)` **REMOVED** `\|\|` `plugin_fail_closed_on_error_exit(result, on_error)` `\|\|` `plugin_fail_closed_on_exhaustion(result, on_error, failure_policy)` **ADDED, SAME COMMIT** | `plugin_fail_closed_on_exhaustion`, now `failure_policy`-conditional (the intended behavior change) | Yes — S-21.24 by construction cannot land before all five plugins are annotated (§Decision, item 1), so the newly-`.failure_policy`-referencing disjunct only ever appears in a commit where PC11's universal claim is already true |
+| **Final (post-wave-8)** | `plugin_fail_closed_on_error_exit(result, on_error)` `\|\|` `plugin_fail_closed_on_exhaustion(result, on_error, failure_policy)` | `plugin_fail_closed_on_exhaustion` | Yes — steady state |
+
+**Invariant (v1.3, closes F-S2121-P3-001):** At every commit from S-21.19's merge through
+S-21.24's merge, SOME live disjunct at the `execute_tiers` block-decision call site blocks
+`Timeout + on_error=Block` — the retained 2-arg `plugin_fail_closed` through the end of wave 7,
+then `plugin_fail_closed_on_exhaustion` from S-21.24's single migration commit onward. No commit
+in this range has neither. This is symmetric to, and does not weaken, the pre-existing PC11
+invariant ("no commit has enforcement-active AND any of the five plugins unannotated") stated in
+the v1.0 Decision section above — that invariant governs the ANNOTATION-vs-ENFORCEMENT direction;
+this new invariant governs the COVERAGE-CONTINUITY direction (the wave-7 wiring step must not
+itself subtract a live blocking path). Both must hold; v1.0-v1.2 established only the former.
 
 ### Rationale
 
@@ -287,7 +364,13 @@ S-21.24 and required no new human re-approval of the split shape itself.
 without waiting on S-21.24. No commit in `develop`'s history ever has the error-exit leg wired
 while any registry state it depends on is inconsistent, because — unlike the exhaustion leg —
 the error-exit leg depends on no per-plugin annotation state at all; it is safe to wire the
-moment it exists as a proven, unit-tested function, which S-21.19 already delivers.
+moment it exists as a proven, unit-tested function, which S-21.19 already delivers. **Corrected
+(v1.3):** because the wave-7 wiring step is additive (not a replacement — see Wiring Sequence
+subsection above), no commit in `develop`'s history from S-21.19's merge through S-21.24's merge
+ever has `Timeout + on_error=Block` unprotected by SOME live blocking path — closing
+F-S2121-P3-001's HIGH fail-open window, which the v1.1/v1.2 text's literal-replacement wording
+would otherwise have opened for the entire wave-7-to-wave-8 window, including for the two
+self-lock-hazard `^Agent$` gates BC-1.03.018 governs.
 
 **Negative / Trade-offs:** S-21.19, already CONVERGED (3-CLEAN, BC-5.39.001), requires a narrow
 spec-text amendment (splitting Task 6's one bundled function into two) and therefore a fresh
@@ -339,6 +422,18 @@ not applied by this ADR edit).
   annotate-before-flip hazard that justifies deferring the exhaustion leg, so deferring it anyway
   is an unjustified MVP-style wait under CLAUDE.md's Canonical Principle Rule 1, not a genuine
   architectural necessity.
+- **(Addendum, v1.3) Wire the wave-7 error-exit leg as a literal REPLACEMENT of the retained
+  2-arg `plugin_fail_closed` call (the v1.1/v1.2 text's original wording).** Rejected: this was
+  the defect F-S2121-P3-001 corrects. `plugin_fail_closed_on_error_exit`'s scope
+  (`Crashed | Ok{exit_code!=0}`) deliberately excludes `Timeout` (per the v1.2 axes-independence
+  fix), and the exhaustion leg that re-catches `Timeout` does not wire until S-21.24 — a literal
+  replacement at wave 7 would drop `Timeout`-blocks-on-`on_error=Block` coverage for the entire
+  wave-7-to-wave-8 window, a CWE-636 regression on every `on_error=Block` sync entry including
+  the two `^Agent$` self-lock-hazard gates. An ADDITIVE wave-7 step (retain the old call, add the
+  new one) costs nothing — the retained call is already unconditional and PC11-safe — and a
+  MIGRATE step at wave 8 (remove the retained call in the same commit that adds the exhaustion
+  leg) delivers the identical final call-site shape the replacement approach was trying to reach,
+  without ever opening the window.
 
 ## Source / Origin
 
@@ -349,6 +444,11 @@ not applied by this ADR edit).
   architect's three-question cross-story decision memo (Q1), human-ratified 2026-08-22.
 - **(Addendum, v1.1) Extends:** ADR-039 §AMD-003 (the error-exit predicate this Addendum splits
   out and schedules for early wiring).
+- **(Addendum, v1.3) Adversarial finding:** F-S2121-P3-001 (HIGH), S-21.21 fresh-context
+  adversarial pass-3, Wave-7 split lineage, brownfield cycle `v1.0-brownfield-backfill` — verified
+  against live `crates/factory-dispatcher/src/executor.rs`; fixed the wave-7 wiring-sequence
+  defect (literal replacement → additive-then-migrate) without altering any function-scope
+  decision from v1.2.
 - **Behavioral contract:** BC-1.03.017 v1.18, Invariant 7 + Postcondition 11 (PC11).
 - **Extends:** ADR-039 §Decision 3 (atomicity requirement this ADR refines for the
   split-topology delivery context; ADR-039's own single-story atomicity guidance is unchanged
