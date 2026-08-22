@@ -3254,3 +3254,49 @@ S-21.25 Phase-3 TDD sequencing decision remains open (unaffected by D-1069/D-107
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1070-WAVE7-PASS1-STORY-REMEDIATION checkpoint burst (state-manager, single-commit story-layer 'story-remediation' burst, TD-VSDD-053, 2026-08-22) — story-layer BC-version re-anchor + S-21.19 reopen EXECUTED; a new self-sufficient §1-§7 Session Resume Checkpoint was written in its place. See STATE.md for the live checkpoint.**
+
+---
+
+## Session Resume Checkpoint (2026-08-22 — D-1070-WAVE7-PASS1-STORY-REMEDIATION; PIPELINE ACTIVE)
+
+Archived from STATE.md by the D-1072-WAVE7-PASS2-STORY-REMEDIATION burst (2026-08-22). Full content preserved in git: `git -C .factory log --oneline -- STATE.md` (the D-1070 story-layer commit is the HEAD this checkpoint was archived from; the compact summary below is authoritative for this archive entry).
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT (at time of archiving).**
+
+### §1 Position (at time of archiving)
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode, PIPELINE ACTIVE. S-21.11 v2.11 previously 3-CLEAN CONVERGED (D-1056), OVERRIDDEN-SPLIT (D-1057) into S-21.19..S-21.24 + S-21.25. Wave 6 (S-21.19+S-21.25) reached 3-CLEAN by D-1066 ("WAVE 6 COMPLETE"). Wave-7 pre-TDD adversary pass-1 dispatched at D-1069 against S-21.20/21/22/23: S-21.20 CLEAN (streak 1/3); S-21.21/22/23 NOT-CLEAN. Architect Q1/Q2/Q3 memo human-RATIFIED; Q1=Option A reopened S-21.19 (Task 6, PC13 error-exit-axis live wiring, jointly owned with S-21.21) — BC-5.39.001 streak RESET 3/3→0/3, **Wave 6 NO LONGER COMPLETE**. D-1070 landed the story layer: BC-1.03.017 v1.20 / BC-1.03.018 v1.2 re-anchored across all six wave-7-adjacent stories; S-21.21/22/23 pass-1 findings remediated in-body (streaks REMAIN 0/3); S-21.20 gained non-resetting Phase-3 notes (streak REMAINS 1/3). S-21.13/S-21.16 `depends_on` redirects EXECUTED. STORY-INDEX v4.382→v4.383 (incl. S-21.23 stale-hash `cbbc8dd`→`33ca0c4` copy-paste correction). New `[process-gap]` Drift Item: ADR-044↔BC-1.03.017 mutual-cite non-converging input-hash cascade.
+
+### §2 Convergence Counters (at time of archiving — superseded by D-1071/D-1072, see STATE.md for current)
+
+**S-21.19** (story v1.4, REOPENED, `8291b42`): streak **RESET 3/3→0/3** — pass-1 (fresh context) NEXT. **[Superseded at D-1071/D-1072 — became R1, NOT-CLEAN, then remediated; story now v1.5, `915ec83`, streak REMAINS 0/3, R2 NEXT.]** **S-21.25** (story v1.5, UNCHANGED, `eefe28b`): streak **3/3 — CONVERGED**, UNCHANGED. **S-21.20** (story v1.2, `33ca0c4`): streak **1/3** (CLEAN pass-1, D-1070 re-anchor non-resetting); pass-2 NEXT. **[Superseded — pass-2 NOT-CLEAN, remediated at D-1072, story now v1.3, streak REMAINS 1/3, pass-3 NEXT.]** **S-21.21** (story v1.2, `a46a541`), **S-21.22** (story v1.2, `8291b42`), **S-21.23** (story v1.1, `33ca0c4`): all streaks **REMAIN 0/3**; pass-2 NEXT for all three. **[Superseded — all three pass-2 NOT-CLEAN, remediated at D-1072, stories now v1.3/v1.3/v1.2 respectively, streaks REMAIN 0/3, pass-3 NEXT.]** **S-21.24** (story v1.3, Wave 8 capstone): **0/3**, STRICTLY LAST. **[Superseded — re-anchored to BC-1.03.017 v1.21/BC-1.03.018 v1.3 at D-1072, story now v1.4; own cascade still not started.]**
+
+### §3 NEXT ACTION (at time of archiving)
+
+Dispatch five independent pre-TDD adversary cascades: S-21.19 pass-1 (Task-6-split); S-21.20 pass-2; S-21.21 pass-2 (Task 5a + Task 11 applied); S-21.22 pass-2 (inert-caveat + PC6 + harness applied); S-21.23 pass-2 (audit fail-closed applied). **[Superseded — all five were dispatched and returned NOT-CLEAN at pass-2/R1 (D-1071 spec findings, D-1072 story remediation); the next action as of D-1072 is S-21.19 R2 + S-21.20/21/22/23 pass-3, against the v1.21/v1.3 re-anchored spec state — see STATE.md for current.]**
+
+### §4 Deferred / Owed (at time of archiving — superseded items noted, see STATE.md for current)
+
+- `ADR-044` body cites `BC-1.03.017 v1.18` at ~lines 35/104/190 — target version now v1.20 per D-1069/D-1070. **[Target now v1.21 per D-1071/D-1072; still owed.]**
+- VP-079's three owed items (BC-3.08.001 v1.26 cite, POLICY 17 frontmatter gap, six/seven header inconsistency) — still owed at the architect's next VP-079 touch.
+- Accumulated S-21.25 cosmetic nits — still owed a post-convergence cosmetic sweep.
+- BC-1.03.019/BC-1.03.017/BC-1.03.018 all carry `VP-TBD` — owed, anchored Phase-6 formal-verifier.
+- develop-side uncommitted `plugins/vsdd-factory/config/artifact-path-registry.yaml` — needs a develop-branch PR.
+- hooks-registry.toml header plugin-count 35→37 OWED.
+- ADR-044 ↔ BC-1.03.017 mutual-cite non-converging input-hash cascade (`[process-gap]`, D-1070) — **[settled at a new snapshot pair (ADR-044 v1.2, BC-1.03.017 v1.21) at D-1071/D-1072; underlying design defect still owed a future architect/product-owner touch.]**
+- Carry-forward (unchanged): decision-log.md D-1016..D-1042 (exhaustive) plus D-1068/D-1069/D-1070/D-1071/D-1072 per-decision backfill OWED (D-1011/D-1012 also OWED); `[P0-followup]` POLICY 15 branch-protection enforcement; `[C-1]`..`[C-5]` exec_subprocess security findings; `[D-952]` compute-input-hash operator-cache divergence.
+
+### §5 Pending Human Decision (at time of archiving)
+
+S-21.25 Phase-3 TDD sequencing decision remains open (unaffected by D-1071/D-1072). S-21.19 remains excluded from any "start TDD now" batch decision until its cascade (now R2) re-converges.
+
+### §6 HEADs (at time of archiving)
+
+- `develop`: `27c56c01` — CI-GREEN.
+- `factory-artifacts`: the D-1070 story-layer commit (parent of D-1071's `8ef46b8a`), the HEAD this checkpoint was archived from.
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the D-1072-WAVE7-PASS2-STORY-REMEDIATION checkpoint burst (state-manager, single-commit story-layer 'story-remediation' burst, TD-VSDD-053, 2026-08-22; also backfills the D-1071 STATE.md-body gap) — a new self-sufficient §1-§7 Session Resume Checkpoint was written in its place. See STATE.md for the live checkpoint.**
