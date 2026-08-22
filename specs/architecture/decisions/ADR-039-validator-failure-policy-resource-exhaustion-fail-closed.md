@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.15"
+version: "1.16"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: ratified
 date: 2026-08-06
@@ -17,7 +17,39 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-20 (v1.15-headroom-warning-threshold-wording-correction) — §Decision 5 Mitigation 1
+  2026-08-22 (v1.16-decision3-audit-fail-closed+decision4-target-statistic-and-ceiling) —
+  Two scoped bursts applied same session by architect, dispatched via orchestrator relay of a
+  human-decided three-question architectural adjudication memo (cycle `v1.0-brownfield-backfill`,
+  Wave-7 pre-TDD adversary pass-1 findings across S-21.20/21/22/23, the split of CONVERGED
+  S-21.11): (1) NEW §AMD-004 (RATIFIED this session per human decision relayed via orchestrator,
+  POLICY 22 ratification-channel — Q3 of the adjudication memo) — §Decision 3's mandatory
+  `break_glass.activated` Audit bullet is strengthened with a fail-closed-on-audit-failure
+  requirement: the dispatcher's general-purpose `InternalLog::write` audit sink is deliberately
+  best-effort (swallows I/O errors; silently no-ops on its mount-gate skip, both paths
+  indistinguishable from a genuine write) — correct for its ~6 other hot-path telemetry callers,
+  but left unchecked at the break-glass call site it reproduces exactly the silent-approval state
+  the Audit bullet forbids (S-21.23 finding F-001, HIGH). New rule: the override MUST NOT be
+  applied unless the audit write is confirmed durably written; on failure or mount-gate skip, the
+  underlying gate's block decision stands. See §AMD-004 for the full ruling and the additive
+  `InternalLog::write_checked` design note. (2) §Decision 4 amended in place (erratum-class, no
+  separate POLICY 22 re-ratification — narrows already-present ambiguous text and formalizes an
+  already-load-bearing illustrative figure into a named constant, per the same non-re-ratification
+  category as E-001..E-006; Q2 of the same adjudication memo): (a) the "practical target...
+  p99.9 or the observed maximum" sentence, previously scoped only in general "hard-block boundary
+  validator" terms, is clarified to apply explicitly and unambiguously to all six §Decision 2
+  validators — `observed_max` (not `measured_p99`) is the correct calibration statistic for the
+  `× 1.5` fuel_cap headroom multiplier for this validator class; `measured_p99 × 1.5` remains a
+  valid schema-level floor but is NOT calibration-sufficient for any of the six; downstream BCs
+  (BC-1.03.017 Precondition 3, product-owner domain) and stories citing this Decision for their
+  fuel_cap formula MUST use `observed_max`, not `measured_p99` — timeout_ms calibration is
+  UNCHANGED (`measured_p99_ms × 2.0` remains correct; wall-clock variance across machines is the
+  reason p99, not observed_max, applies there); (b) `PRACTICAL_FUEL_CEILING = 500_000_000` is
+  formally defined as a named constant anchored to the pre-existing "e.g., it would need 500M fuel
+  for STATE.md" illustrative example in §Negative/Trade-offs — no new numeric threshold is
+  introduced; downstream citations of `PRACTICAL_FUEL_CEILING` (S-21.11/S-21.19/S-21.21/S-21.22/
+  S-21.24) MUST cite §Decision 4 as the defining source, not §Negative/Trade-offs. See §Erratum
+  E-007 for the full before/after diff. ADR-039 v1.16.
+  [Prior: 2026-08-20 (v1.15-headroom-warning-threshold-wording-correction) — §Decision 5 Mitigation 1
   WARN message wording correction (architect; S-21.25 adversarial review upstream finding
   F-S2125-P1-006, LOW, orchestrator-dispatched, brownfield cycle `v1.0-brownfield-backfill`):
   the mandated verbatim WARN message read `"fuel-headroom-warning: plugin consumed ≥90% of
@@ -314,7 +346,7 @@ last_amended: |-
   (5) near-term mitigations — headroom warning + ≥574 KB fixture; (6) verification requirement
   — behavioral test must exercise observed outcome, not documented intent.
   fail_closed_timeout_with_on_error_continue_is_open test encodes current policy and MUST be
-  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]]]]]]]
+  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]]]]]]]]
 modified:
   - "2026-08-06 (v1.0)"
   - "2026-08-06 (v1.1)"
@@ -333,6 +365,7 @@ modified:
   - "2026-08-19 (v1.13-AMD-003-rule-narrowing-correction)"
   - "2026-08-20 (v1.14-subsystems-affected-sweep)"
   - "2026-08-20 (v1.15-headroom-warning-threshold-wording-correction)"
+  - "2026-08-22 (v1.16-decision3-audit-fail-closed+decision4-target-statistic-and-ceiling)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -659,7 +692,10 @@ of plugin `name`s to bypass, or the literal `all` to bypass both. Concrete speci
   the bypassed gate name(s), a timestamp, and the trace UUID of the dispatch it applied to.
   Silent bypass (no audit event) is not an acceptable implementation — an unaudited break-glass
   reintroduces exactly the "silent approval" failure mode (CWE-636 lineage) this ADR exists to
-  close, just at a different layer.
+  close, just at a different layer. **Fail-closed-on-audit-failure (v1.16 amendment — see
+  §AMD-004): the audit write above MUST be confirmed durably written before the override is
+  honored; if it fails or is skipped, the override MUST NOT be applied.** §AMD-004 below states
+  the full ruling and the required additive dispatcher-side design.
 - **Minimum ACs this definition supports directly:** (a) unit/integration test asserting the
   override, when set, allows an `Agent` dispatch that the named gate would otherwise block; (b)
   unit/integration test asserting the override, when unset or set to an unrelated name, does NOT
@@ -691,11 +727,47 @@ adapter-class fuel model.
 Measure `fuel_consumed` on the calibration corpus. **The load-bearing guarantee is:
 sufficiency for the largest known live input at the time of calibration.** A `fuel_cap` of
 `max(measured_p99 × 1.5, 50_000_000)` is the headroom floor heuristic beneath that
-guarantee — a calibrated risk parameter, not an SRE standard. For hard-block (fail-closed)
-boundary validators (where exhaustion = unconditional pipeline block), p99 × 1.5 leaves
-~1% of production-representative inputs at exhaustion risk; the practical target for those
-validators should be p99.9 or the observed maximum of the calibration corpus. Simpler;
-required minimum for Phase 3.
+guarantee — a MINIMUM SCHEMA-LEVEL FLOOR, not the calibration target: it is a calibrated risk
+parameter, not an SRE standard, and by itself is NOT sufficient evidence of calibration for a
+hard-block (fail-closed) boundary validator.
+
+**Target statistic for the six §Decision 2 fail-closed validators (v1.16 clarification —
+erratum-class, see §Erratum E-007; narrows already-present ambiguous wording, introduces no new
+decision content).** All six validators named in §Decision 2 are hard-block (fail-closed)
+boundary validators — their exhaustion outcome is an unconditional pipeline block, not an
+advisory. For this validator class, `measured_p99 × 1.5` leaves ~1% of production-representative
+inputs at exhaustion risk: a resource cap sized off p99 self-locks against the top percentile of
+otherwise-legitimate inputs, which is a false-positive availability regression a fail-closed gate
+must not introduce. **The load-bearing calibration TARGET for `fuel_cap`, for all six §Decision 2
+validators, without exception, is therefore `max(observed_max × 1.5, 50_000_000)`** — the
+observed maximum `fuel_consumed` measured over the mandated calibration corpus (below), not
+`measured_p99`. (`p99.9` is an acceptable substitute only where the corpus is large enough to
+make `p99.9` statistically meaningful; in practice, for the fixed calibration corpora mandated
+below, `observed_max` and `p99.9` coincide.) `measured_p99 × 1.5` remains a valid Phase-1
+schema-parsing floor (the field accepts either shape at the parser level) but MUST NOT be treated
+as calibration-sufficient evidence for any of the six §Decision 2 validators. Downstream specs
+and stories citing this Decision 4 for their `fuel_cap` Precondition/AC formula (e.g.
+BC-1.03.017 Precondition 3) MUST use `observed_max`, not `measured_p99`, on the fuel_cap axis.
+This clarification does NOT extend to the `timeout_ms` axis immediately below: wall-clock
+duration is non-deterministic across CI runners/developer machines in a way fuel-consumption
+(WASM instruction count) is not, so `measured_p99_ms × 2.0` — not `observed_max_ms` — remains the
+correct, deliberately more conservative host-wall-clock-timeout target; this was already the
+correct reading of the pre-v1.16 text and is unchanged here.
+
+**Named practical fuel ceiling (v1.16 clarification — erratum-class, see §Erratum E-007;
+formalizes an existing illustrative figure into a citable constant, introduces no new numeric
+threshold).** `PRACTICAL_FUEL_CEILING = 500_000_000` (500 million fuel units) is the named
+constant anchoring the "impractically large required budget" trigger already described in
+§Negative/Trade-offs below: if a validator's production-scale calibration under the target-
+statistic rule above (`observed_max × 1.5`) computes a required `fuel_cap` at or above
+`PRACTICAL_FUEL_CEILING`, that validator MUST NOT receive `failure_policy = "fail-closed"` until
+a structural remedy exists (e.g. Option B size-proportional budgeting below, or a validator-
+specific input-size-reduction mitigation) — the fail-closed flip for that plugin is deferred, not
+forced through at an impractical cap. `500,000,000` is the same figure already load-bearing in
+§Negative/Trade-offs's "e.g., it would need 500M fuel for STATE.md" example and already consumed
+operationally as a hard-stop gate by downstream stories (e.g. S-21.22 Task 4); this paragraph
+gives it a formal, citable home. **Downstream specs/stories citing `PRACTICAL_FUEL_CEILING` MUST
+cite this paragraph (§Decision 4) as its defining source, not §Negative/Trade-offs.**
 
 **Preferred long-term approach (Option B — size-proportional budget):**
 Expose a registry field `fuel_per_kb: u64` (optional). The dispatcher computes
@@ -1545,6 +1617,69 @@ in `.factory/cycles/v1.0-brownfield-backfill/F-S2111V2-P1-001-mechanism-adjudica
 Not implemented in this burst — architect scope for this burst was spec-only; the
 `plugin_fail_closed` extension itself is S-21.11 Phase 4 implementer scope.
 
+### AMD-004 — Break-glass suppression MUST be fail-closed-on-audit-failure: an audit write that fails or is skipped MUST NOT permit the override (v1.16, 2026-08-22; architect adjudication Q3, RATIFIED 2026-08-22 by human this session via orchestrator relay, POLICY 22 ratification-channel)
+
+**Finding:** S-21.23 F-001 (HIGH; pre-TDD adversarial pass-1, Wave-7 split of CONVERGED
+S-21.11). §Decision 3's break-glass minimum-viable definition above mandates a
+`break_glass.activated` audit event on every override activation and states plainly that
+"Silent bypass (no audit event) is not an acceptable implementation." The mandated audit sink —
+the dispatcher's general-purpose internal-event writer, `InternalLog::write`
+(`crates/factory-dispatcher/src/internal_log.rs`) — is, by its own documented contract,
+best-effort: it swallows all I/O errors (logging only an `eprintln!`) and, independently, its
+mount-gate skip path (triggered when the `.factory/` mount is not yet ready) also returns
+success at the `write_inner` `Result` level. A caller cannot distinguish "durably written" from
+"silently dropped" or "silently skipped" from that `Result` alone. S-21.23's own pre-TDD Task 3
+plan calls this same best-effort `write()` with no check of its outcome. Left as specified, a
+break-glass activation whose audit write is dropped (I/O error, or a mount-gate skip during a
+live self-lock — precisely the scenario break-glass exists to recover from) still suppresses the
+underlying block: exactly the silent-approval state (CWE-636 lineage) the Audit bullet forbids,
+reproduced one layer down.
+
+**Why `InternalLog::write`'s best-effort contract is correct and must NOT be weakened.**
+`InternalLog::write` is a hot-path, general-purpose telemetry sink fired on effectively every
+tool dispatch (`dispatcher.started`, `plugin.invoked`, `plugin.completed`, and others, called
+from multiple sites in `executor.rs`/`main.rs`). Making the general writer blocking, retrying, or
+failure-propagating would risk hanging or crashing the dispatcher on ordinary telemetry for its
+~6 other callers — a strictly worse outcome than the narrow gap this amendment closes. The fix
+therefore belongs at the break-glass CALL SITE, not inside `InternalLog::write` itself.
+
+**Ruling.** Break-glass suppression (§Decision 3's minimum-viable definition) is granted only if
+its `break_glass.activated` audit write is confirmed durably written. If the write fails (I/O
+error) or is skipped (including the mount-gate skip), the override MUST NOT be applied — the
+underlying gate's block decision stands, computed exactly as if the override were unset. This is
+the fail-closed-on-audit-failure posture, and it is the same architectural bias (deny on
+uncertainty, not approve) already governing every other decision in this ADR.
+
+**Required additive dispatcher-side design (architecture note, not a redesign — the "wiring not
+redesign" carve-out).** `InternalLog::write_inner`'s `Result<(), io::Error>` currently conflates
+"durably written" and "mount-gate skip" — both return `Ok(())`. A checked caller cannot rely on
+`write_inner`'s existing `Result` alone. `InternalLog` gains a new, additive method — e.g.
+`write_checked` — returning a tri-state outcome (`Written` / `SkippedMountGate` /
+`Failed(io::Error)`), added ALONGSIDE the existing best-effort `write()`, which is UNCHANGED for
+its other callers. The break-glass call site alone consults `write_checked`'s result to decide
+whether to honor the override; every other `InternalLog::write` caller continues using the
+existing best-effort `write()` untouched.
+
+**Ownership of implementation.** BC-1.03.018 (product-owner domain) gains a new/amended
+Precondition + Invariant stating this semantics explicitly, alongside an Edge Case row for
+"audit sink unwritable/mount-gated during a matched override." S-21.23 (story-writer + TDD
+domain) gains a new/amended AC sibling to AC-018 plus a test exercising an unwritable or
+mount-gated sink during a matched override, asserting `block_intent` is unchanged (suppression
+denied) when the audit write fails or skips; S-21.23's Task 3 is revised to call the new checked-
+write path and gate the suppression decision on its result rather than fire-and-forget `write()`.
+The `InternalLog::write_checked` method itself is implemented in S-21.23's Phase-3 TDD scope,
+governed by this amendment as its design anchor.
+
+**Ratification note.** Per POLICY 22, this is new normative Decision-3 content (it adds a
+requirement — audit-write durability gating — not previously stated anywhere in this ADR) and
+requires human ratification before S-21.23's implementer work proceeds on this leg. Filed by
+architect during the Wave-7 cross-story adjudication burst (cycle `v1.0-brownfield-backfill`);
+**RATIFIED 2026-08-22 by human, this session, via orchestrator relay of the architect's
+three-question decision memo (Q3), POLICY 22 ratification-channel** — the human's directive
+("Proceed to APPLY your drafted ADR changes now") constitutes sign-off on this ruling as drafted.
+Not implemented in this burst — architect scope is spec-only; `InternalLog::write_checked` and
+the break-glass call-site gating are S-21.23 Phase-3 TDD implementer scope.
+
 **v1.13 wording-correction note.** The Precise Rule paragraph above was corrected (S-21.11 v2.3
 PRE-TDD spec-convergence cascade HIGH F-S2111V2-P3-001) from a broad "`result` is NOT
 `PluginResult::Ok { exit_code: 0, .. }`" formalization to the narrow two-condition form. This
@@ -1557,6 +1692,36 @@ decision-content is introduced. See §Erratum E-005.
 ---
 
 ## Erratum
+
+### E-007 — §Decision 4 target-statistic scope narrowed to explicit "all six §Decision 2 validators"; `PRACTICAL_FUEL_CEILING` formalized as a named constant (v1.16, 2026-08-22)
+
+**Before (v1.15 and earlier):** §Decision 4's "Correct budgeting" paragraph stated the practical
+target only in general terms — "For hard-block (fail-closed) boundary validators..., the
+practical target for those validators should be p99.9 or the observed maximum of the calibration
+corpus" — without naming which validators this covers, leaving room for a reader (or a
+downstream BC/story) to treat `measured_p99 × 1.5` as calibration-sufficient. Separately,
+`500,000,000` appeared only as an inline illustrative example in §Negative/Trade-offs ("e.g., it
+would need 500M fuel for STATE.md"), with no named, citable constant — despite already being
+consumed as a hard-stop gate by downstream stories (e.g. S-21.22 Task 4 citing
+`PRACTICAL_FUEL_CEILING` back to "ADR-039 §Decision 4," which defined no such constant;
+F-S2122-P1-003).
+
+**After (v1.16):** §Decision 4 now states explicitly that all six §Decision 2 validators, without
+exception, must calibrate `fuel_cap` against `max(observed_max × 1.5, 50_000_000)` — `observed_max`,
+not `measured_p99` — and that `PRACTICAL_FUEL_CEILING = 500_000_000` is formally defined in
+§Decision 4 itself, anchored to the pre-existing §Negative/Trade-offs example.
+
+**Scope of this erratum.** No new `1.5×`, `50_000_000`, or `500_000_000` figure is introduced —
+all three numbers were already present and load-bearing in the pre-v1.16 text (the `1.5×`/`50M`
+floor in §Decision 4; the `500M` example in §Negative/Trade-offs). This corrects the target
+STATISTIC (`observed_max`, not `measured_p99` — the pre-v1.16 wording already gestured at this
+via "p99.9 or the observed maximum" but did not commit to it as the load-bearing rule) and gives
+`PRACTICAL_FUEL_CEILING` a formal home. Does not require separate POLICY 22 re-ratification —
+same non-re-ratification category as E-001..E-006 (a wording/scope clarification that narrows
+already-present ambiguous text and formalizes an already-load-bearing figure, not new decision
+content). Status remains RATIFIED. ADR-039 v1.16. Originating findings: S-21.21 F-001 (HIGH),
+S-21.22 F-002 (HIGH), F-S2122-P1-002, F-S2122-P1-003 — architect Q2 adjudication, cycle
+`v1.0-brownfield-backfill` Wave-7 cross-story decision memo, 2026-08-22.
 
 ### E-006 — §Decision 5 Mitigation 1 WARN message: "≥90%" corrected to ">90%" to match the strict trigger predicate (v1.15, 2026-08-20)
 
