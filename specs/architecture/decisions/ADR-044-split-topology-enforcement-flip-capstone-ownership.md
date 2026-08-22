@@ -1,7 +1,7 @@
 ---
 document_type: adr
 adr_id: ADR-044
-version: "1.1"
+version: "1.2"
 title: "ADR-044: Split-topology flip-sequencing — the enforcement-active wiring commit is capstone-owned, not core-decision-story-owned, when an atomicity-critical story is partitioned across independently-mergeable sub-stories"
 status: ratified
 date: 2026-08-20
@@ -23,7 +23,31 @@ inputs:
 modified:
   - "2026-08-20 (v1.0) — created by architect adjudicating BLOCKER split-integrity finding F-S2119-P1-001 (S-21.19 pre-TDD adversarial convergence, brownfield cycle v1.0-brownfield-backfill): the 6-seam split of CONVERGED S-21.11 placed the executor's enforcement-active wiring in S-21.19 (wave 6) while the 5 on_error=block plugins' fail-closed annotations landed downstream in S-21.21/S-21.23/S-21.24 (waves 7-8), opening a multi-wave CWE-636 fail-open window on every commit of `develop` between S-21.19's merge and S-21.24's merge — contradicting BC-1.03.017 v1.18 Invariant 7 + PC11's mechanical-un-mergeability guarantee. This ADR records the resolution: the wiring event is capstone-owned. Full per-story change-list lives in `.factory/planning/S-21.11-decomposition-plan.md` §8."
   - "2026-08-22 (v1.1) — architect adjudicating HIGH finding F-S2121-P1-002 (S-21.21 pre-TDD adversarial pass-1, Wave-7, same split lineage): this ADR's v1.0 ruling bundled TWO orthogonal predicates — the failure_policy/Timeout exhaustion axis (§Decision 3 Phase 4 of ADR-039, references `.failure_policy`, trips PC11) and AMD-003's on_error==Block && Ok{exit_code!=0} error-exit axis (PC13, references neither `.failure_policy` nor `Timeout`, trips nothing in PC11) — into one function and deferred BOTH legs' live wiring to S-21.24 (wave 8). This manufactured a false wave-8 dependency for S-21.21's own AC-013b/AC-013c end-to-end legs, which need only the error-exit axis wired live. RATIFIED 2026-08-22 by human, this session, via orchestrator relay of the architect's three-question decision memo (Q1, Option A): reopen S-21.19 and wire the error-exit (PC13) axis live at wave 7, owned by S-21.21; the exhaustion axis's deferral to S-21.24 is UNCHANGED and remains this ADR's core ruling. See Addendum below."
-input-hash: "2a2b8f2"
+  - "2026-08-22 (v1.2) — architect fixing a self-contradiction in the v1.1 Addendum, caught
+    independently by two fresh-context adversary passes (S-21.19 R1 F-001 HIGH,
+    S-21.21 P2 F-001 HIGH), both dispatched after v1.1 landed at commit a3bfa1af: Addendum
+    Decision item 2 stated `plugin_fail_closed_on_error_exit` \"Governs the existing
+    `on_error==Block && (Crashed | Timeout)` case ... EXTENDED ... to also cover
+    `Ok{exit_code!=0}`\" — i.e. it INCLUDED `Timeout` in the error-exit leg's scope. This directly
+    contradicted the SAME Addendum's own qualifier three lines later (\"references neither
+    `.failure_policy` nor `Timeout`\") and the authoritative BC-1.03.017 v1.20 Architecture
+    Anchors + decomposition-plan §8.7, both of which scope the error-exit function to
+    `Crashed | Ok{exit_code!=0}` ONLY — `Timeout {..}` is governed EXCLUSIVELY by
+    `plugin_fail_closed_on_exhaustion` via the `failure_policy` axis, never via the error-exit
+    function. An implementer following item 2's literal (Crashed | Timeout) wording would carry
+    the `Timeout` arm into `plugin_fail_closed_on_error_exit`, OR-combine it with `on_error` alone
+    at the wired call site, and regress the axes-independence invariant this same document (and
+    ADR-039 §Decision 1/§Decision 6 test #4/§AMD-003 condition 1) already establishes: a
+    fuel-exhausted plugin with `failure_policy=FailOpen` and `on_error=Block` would wrongly BLOCK.
+    Corrected item 2's scope to `on_error==Block && Crashed` (unchanged, live today) EXTENDED to
+    `Ok{exit_code!=0}` (PC13) — `Timeout` explicitly and unconditionally excluded, matching
+    BC-1.03.017 v1.20 + plan §8.7. No change to the exhaustion leg (item 1) or to any other
+    ADR-044 ruling. Does not require separate POLICY 22 re-ratification: this restores internal
+    consistency with content the v1.1 Addendum, ADR-039, and BC-1.03.017 v1.20 already
+    established — it introduces no new decision, only corrects a wording defect that
+    contradicted already-ratified content (same non-re-ratification category as ADR-039's
+    E-001..E-007 erratum precedent). Adjudicates F-S2119-R1-001, F-S2121-P2-001. ADR-044 v1.2."
+input-hash: "0acab83"
 ---
 
 # ADR-044: Split-topology flip-sequencing — the enforcement-active wiring commit is capstone-owned, not core-decision-story-owned, when an atomicity-critical story is partitioned across independently-mergeable sub-stories
@@ -208,11 +232,27 @@ timed legs, each retaining its own atomicity analysis:**
    remains capstone-owned, deferred to S-21.24 (wave 8), which by construction cannot land before
    all five plugins are annotated.**
 2. **Error-exit leg — `plugin_fail_closed_on_error_exit(result, on_error)`.** Governs the existing
-   `on_error==Block && (Crashed | Timeout)` case (already live today, unchanged) EXTENDED per
-   AMD-003 to also cover `on_error==Block && Ok { exit_code != 0 }` (PC13). References neither
-   `.failure_policy` nor `Timeout`-as-a-calibration-gate; trips nothing in PC11; has no annotated-
-   fleet precondition. **NEW in this Addendum: wireable immediately, owned by S-21.21, not
-   S-21.24.**
+   `on_error==Block && Crashed` case (already live today, unchanged) EXTENDED per AMD-003 to also
+   cover `on_error==Block && Ok { exit_code != 0 }` (PC13). **`Timeout {..}` is OUT OF SCOPE for
+   this function, unconditionally — it is governed exclusively by the exhaustion leg above, via
+   the `failure_policy` axis, never by `on_error` in isolation** (this is the same
+   axes-independence invariant ADR-039 §Decision 1/§Decision 6 test #4 and §AMD-003's own Precise
+   Rule condition 1 already establish; see the v1.2 correction note below). This function
+   references neither `.failure_policy` nor `Timeout` at all; trips nothing in PC11; has no
+   annotated-fleet precondition. **NEW in this Addendum: wireable immediately, owned by S-21.21,
+   not S-21.24.**
+
+**Correction (v1.2, 2026-08-22).** Item 2 above originally (v1.1) read
+"`on_error==Block && (Crashed | Timeout)` case ... EXTENDED ... to also cover
+`Ok{exit_code!=0}`" — wording that included `Timeout` in the error-exit leg's scope, directly
+contradicting this same item's own next sentence ("references neither `.failure_policy` nor
+`Timeout`") and BC-1.03.017 v1.20 Architecture Anchors + decomposition-plan §8.7, both of which
+scope `plugin_fail_closed_on_error_exit` to `Crashed | Ok{exit_code!=0}` ONLY. Caught
+independently by two fresh-context adversary passes (S-21.19 R1 F-001, S-21.21 P2 F-001, both
+HIGH) after v1.1 landed. Corrected in place above: item 2 now reads `Crashed` (not
+`Crashed | Timeout`) as the pre-existing leg, with `Timeout` stated as explicitly and
+unconditionally out of scope for this function. See §Erratum-equivalent note in the frontmatter
+`modified` history (v1.2 entry) for the full before/after diff and non-re-ratification reasoning.
 
 S-21.19 Task 6 is narrowed (not expanded) to author these as two separate standalone functions
 rather than one bundled 3-arg function — `PluginOutcome.failure_policy` field-population and
