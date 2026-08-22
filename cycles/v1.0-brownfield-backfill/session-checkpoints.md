@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "ed9fa5b"
+input-hash: "b71c6bb"
 traces_to: STATE.md
 ---
 
@@ -3210,3 +3210,47 @@ Separately, unresolved: the **orchestrator/human Phase-3 TDD-entry sequencing de
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1068-WAVE7-PRECASCADE-REANCHOR checkpoint burst (state-manager, single-commit re-anchor-sweep burst, TD-VSDD-053, 2026-08-22) — Wave-7 pre-cascade BC-1.03.017 v1.18→v1.19 re-anchor EXECUTED for S-21.20/S-21.21/S-21.22 (D-1060 deferral DISCHARGED); a new self-sufficient §1-§7 Session Resume Checkpoint was written in its place reflecting the four Wave-7 stories now READY for their own pass-1 adversary cascades. See STATE.md for the live checkpoint.**
+
+---
+
+## Session Resume Checkpoint (2026-08-22 — D-1068-WAVE7-PRECASCADE-REANCHOR, plus D-1069-WAVE7-PASS1-SPEC-REMEDIATION MID-REMEDIATION POINTER; PIPELINE ACTIVE)
+
+Archived from STATE.md by the D-1070-WAVE7-PASS1-STORY-REMEDIATION burst (2026-08-22). Full content preserved in git: `git show a3bfa1af:.factory/STATE.md` (factory-artifacts HEAD at archive time, D-1069 spec-layer commit).
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+> **MID-REMEDIATION POINTER (D-1069, 2026-08-22, added at the D-1069 burst — NOT a full checkpoint refresh):** the §1-§7 checkpoint below still described the pre-D-1069 (D-1068) state verbatim. Since then, the Wave-7 pre-TDD adversary pass-1 cascade was dispatched fresh-context against S-21.20/S-21.21/S-21.22/S-21.23: **S-21.20 CLEAN** (streak 1/3); **S-21.21/S-21.22/S-21.23 NOT-CLEAN**. Architect adjudicated a 3-question memo (Q1/Q2/Q3), human RATIFIED Q1=Option A (reopen CONVERGED S-21.19 to wire PC13's error-exit axis live at wave 7, owned by S-21.21). Spec-layer fixes LANDED AT D-1069: `ADR-039 v1.15→v1.16`, `ADR-044 v1.0→v1.1`, `BC-1.03.017 v1.19→v1.20`, `BC-1.03.018 v1.1→v1.2` (ARCH-INDEX v3.77 / BC-INDEX v4.89; VP-INDEX v2.79 UNCHANGED). The story-layer re-anchor and S-21.19 reopen described as PENDING here were EXECUTED at D-1070 — see the current live checkpoint in STATE.md.
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE ACTIVE.** S-21.11 v2.11 previously reached BC-5.39.001 **3-CLEAN convergence** (D-1056); the operator then OVERRODE the standing keep-unified sizing decision → **SPLIT** (D-1057) into 6 sub-stories **S-21.19..S-21.24** plus a new tracked story **S-21.25** (fuel-headroom WARN event, governed by **BC-1.03.019**). **WAVE 6 IS COMPLETE (as of this checkpoint's original writing; NO LONGER TRUE as of D-1070 — S-21.19 reopened, see STATE.md):** S-21.19 (pass-7, D-1065) and S-21.25 (pass-9, D-1066) both reached full 3-CLEAN CONVERGENCE, both cascades CLOSED, both recorded **CONVERGED-AWAITING-TDD**, pending a batched orchestrator/human Phase-3 TDD-entry sequencing decision. **WAVE 7 PRE-CASCADE RE-ANCHOR EXECUTED at D-1068:** the D-1060 deferral (BC-1.03.017 v1.18→v1.19 re-anchor for S-21.20/S-21.21/S-21.22, EXTENDED D-1064 to decomposition-plan.md §1 + STORY-INDEX sibling rows) was **DISCHARGED**. Three story-writer sub-bursts swept each story's frontmatter `behavioral_contracts` + every body cite from v1.18 to v1.19; each story v1.0→v1.1; historical v1.0 `modified:`/Changelog text preserved verbatim per POLICY 1. STORY-INDEX catalog rows for S-21.20/S-21.21/S-21.22 corrected to match; STORY-INDEX v4.381→v4.382. **D-1064's extension item CLOSED:** the "S-21.23 stray `BC-1.03.017 v1.18` narrative cite" was independently re-scanned this burst and confirmed **ABSENT** from every file.
+
+### §2 Convergence Counters (at time of archiving — see STATE.md for current)
+
+**S-21.19** (story v1.3, UNCHANGED): LOCAL BC-5.39.001 streak **3/3 — CONVERGED**, cascade CLOSED. **[Superseded at D-1070 — REOPENED, streak reset 0/3.]** **S-21.25** (story v1.5, UNCHANGED, `eefe28b`): streak **3/3 — CONVERGED**, cascade CLOSED, UNCHANGED at D-1070. **S-21.20** (story v1.1, `86952d4`), **S-21.21** (story v1.1, `b558a81`), **S-21.22** (story v1.1, `158fd48`): re-anchor complete at D-1068, **0/3** at that time. **S-21.23** (story v1.0, UNCHANGED, `cbbc8dd` — this value was itself a stale copy-paste defect, corrected to `33ca0c4` at D-1070): **0/3** at that time. **S-21.24** (Wave 8 capstone): **0/3**, STRICTLY LAST.
+
+### §4 Deferred / Owed (at time of archiving — see STATE.md for current)
+
+- S-21.13 `depends_on` redirect and S-21.16 `depends_on` redirect — both **CLOSED at D-1070**.
+- `ADR-044` body cites `BC-1.03.017 v1.18/v1.20` at ~lines 35/104/190 — still owed at the architect's next ADR-044 touch (target now v1.20).
+- VP-079's three owed items (BC-3.08.001 v1.26 cite, POLICY 17 frontmatter gap, six/seven header inconsistency) — still owed at the architect's next VP-079 touch.
+- Accumulated S-21.25 cosmetic nits — still owed a post-convergence cosmetic sweep.
+- Story-level BC-version cite re-anchor (S-21.19/20/21/22/24 → v1.20; S-21.23/24 → v1.2) — **EXECUTED at D-1070**.
+- S-21.19 Task 6 (PC13 error-exit-axis live wiring) — **EXECUTED at D-1070** (new Task 6, S-21.21/S-21.19 jointly owned).
+- Carry-forward (unchanged): decision-log.md D-1016..D-1042 (exhaustive) plus D-1068/D-1069/D-1070 per-decision backfill OWED (D-1011/D-1012 also OWED); `[P0-followup]` POLICY 15 branch-protection enforcement; `[C-1]`..`[C-5]` exec_subprocess security findings; `[D-952]` compute-input-hash operator-cache divergence.
+- **NEW as of D-1070:** ADR-044 ↔ BC-1.03.017 mutual `inputs:` cite NON-CONVERGING input-hash cascade (a `[process-gap]`) — see STATE.md Drift Items.
+
+### §5 Pending Human Decision (at time of archiving — see STATE.md for current)
+
+S-21.25 Phase-3 TDD sequencing decision remains open (unaffected by D-1069/D-1070). S-21.19 removed from consideration as of D-1069 — it is back in an active pre-TDD cascade as of D-1070, not eligible for a "start TDD now" decision.
+
+### §6 HEADs (at time of archiving)
+
+- `develop`: `27c56c01` — CI-GREEN.
+- `factory-artifacts`: `a3bfa1af` (D-1069 spec-layer commit, the HEAD this checkpoint was archived from).
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the D-1070-WAVE7-PASS1-STORY-REMEDIATION checkpoint burst (state-manager, single-commit story-layer 'story-remediation' burst, TD-VSDD-053, 2026-08-22) — story-layer BC-version re-anchor + S-21.19 reopen EXECUTED; a new self-sufficient §1-§7 Session Resume Checkpoint was written in its place. See STATE.md for the live checkpoint.**
