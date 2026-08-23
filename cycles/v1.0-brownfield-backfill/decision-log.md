@@ -1669,4 +1669,58 @@ D-1067-CYCLE-LOG-TRIM
 
 2026-08-21
 
+## D-1072: WAVE7-PASS2-STORY-REMEDIATION
+
+D-1072-WAVE7-PASS2-STORY-REMEDIATION (state-manager, 2026-08-22; single-commit story-layer 'story-remediation' burst, TD-VSDD-053, Single-Commit Burst Protocol via `/vsdd-factory:state-burst`; SECOND, distinctly-themed commit finalizing the multi-burst remediation whose spec layer landed at `8ef46b8a`/D-1071): story-layer BC-version re-anchor EXECUTED — BC-1.03.017 v1.20→v1.21 swept across S-21.19/S-21.20/S-21.21/S-21.22/S-21.24; BC-1.03.018 v1.2→v1.3 swept across S-21.23/S-21.24. Every Wave-7 pass-2/S-21.19-R1 finding remediated in-body (full disposition: `cycles/v1.0-brownfield-backfill/adv-wave7-pass2.md`). STORY-INDEX v4.383→v4.384. `S-21.11-decomposition-plan.md` §1 v1.21 re-anchor + Precondition 2–6 fix. D-1071 STATE.md-body backfill EXECUTED. All five wave-7-adjacent streaks UNCHANGED (S-21.19/21/22/23 REMAIN 0/3; S-21.20 REMAINS 1/3). Full detail: `cycles/v1.0-brownfield-backfill/burst-log.md` (per-decision backfill OWED) + prior STATE.md v8.55 revision (`git -C .factory log -p -- STATE.md`).
+
+Summary: Story-layer BC-1.03.017 v1.21 / BC-1.03.018 v1.3 re-anchor EXECUTED; every pass-2/R1 finding remediated in-body; streaks UNCHANGED; STORY-INDEX v4.384; decomposition-plan.md v1.21 re-anchor; D-1071 STATE.md-body backfill folded in.
+
+### Agents
+
+state-manager (burst author), story-writer (sub-burst re-anchor for S-21.19/20/21/22/23/24)
+
+### Phase
+
+D-1072-WAVE7-PASS2-STORY-REMEDIATION
+
+### Date
+
+2026-08-22
+
+## D-1073: WAVE7-PASS3-SESSION-WRAP
+
+D-1073-WAVE7-PASS3-SESSION-WRAP (state-manager, 2026-08-22; single-commit pause burst, TD-VSDD-053, Single-Commit Burst Protocol via `/vsdd-factory:state-burst`, human-invoked `/wrap`; parent `8ef46b8a`/D-1072): **Wave-7 pass-3/R2 fresh-context adversary round dispatched** against S-21.19 (R2, its second remediation round since the D-1070 reopen) and S-21.20/S-21.21/S-21.22/S-21.23 (pass-3), against the D-1072-landed v1.21/v1.3 spec state.
+
+**Pass outcomes:**
+
+**S-21.19 R2 CLEAN** — first clean pass since the D-1070 Task-6 reopen; BC-5.39.001 LOCAL streak **ADVANCES 0/3→1/3**; R1's HIGH (F-S2119-R1-001, ADR-side, closed D-1071) and 2 LOW hygiene items (closed D-1072) independently re-verified resolved and stable; no new findings.
+
+**S-21.20 P3 NOT-CLEAN** — 1 MEDIUM F-S2120-P3-001 (the STORY-INDEX catalog row for S-21.20 still cites `BC-1.03.017 v1.19`, stale by two version bumps; the story's own frontmatter + body cites are current at v1.21 — an index-propagation-class finding, not a story-body defect); LOCAL streak **REMAINS 1/3** (non-resetting).
+
+**S-21.21 P3 NOT-CLEAN** — 1 HIGH F-S2121-P3-001 (the v1.1/v1.2 Addendum's literal-replacement wording for the wave-7 error-exit wiring step would have S-21.21 REPLACE the retained 2-arg `plugin_fail_closed` call with `plugin_fail_closed_on_error_exit`, opening a fail-open window: the retained call is the ONLY live disjunct that re-catches `Timeout` via `.failure_policy` until S-21.24's wave-8 wiring lands, so a literal replacement at wave 7 strips `Timeout` coverage for one full wave with no disjunct catching it) + 1 MEDIUM F-S2121-P3-002 (the story's EC-011 edge-case narrative implies `Timeout{Epoch}` is unenforced today, when in fact it IS enforced today via the existing 2-arg call — only the migration-window framing was wrong); LOCAL streak **REMAINS 0/3**.
+
+**S-21.22 P3 NOT-CLEAN** — 1 MEDIUM F-S2122-P3-001 (BC-1.03.017's Precondition 6 conflated the one-time live-corpus calibration confirmation with the durable standing CI regression assertion; the story's own converged Task 5a already correctly scopes the standing gate to a FROZEN corpus snapshot, but the BC cited a different, live-growing-file mechanism — a BC-side divergence, not a story defect); LOCAL streak **REMAINS 0/3**.
+
+**S-21.23 P3 NOT-CLEAN** — 1 HIGH F-S2123-P3-001 (no test proved the `all`-wildcard's scope-restriction guarantee preserves a NON-named blocking plugin's fail-closed enforcement — a naive suppress-every-block implementation would silently fail open for non-named plugins under `all`, a compound CWE-636+CWE-863 hazard with no audit trail) + 1 MEDIUM F-S2123-P3-002 (S-21.23's own AC-022 hardened PC9 with a 7th COMMENT-ONLY control and a detector-precision requirement that BC-1.03.018's PC9 did not carry — a story-superset-of-BC drift); LOCAL streak **REMAINS 0/3**.
+
+**Codified fixes** (architect + product-owner): `ADR-044 v1.2→v1.3` (Addendum corrected — the wave-7 error-exit wiring step is now ADDITIVE: S-21.21 RETAINS the existing 2-arg `plugin_fail_closed` call and ADDS `plugin_fail_closed_on_error_exit` alongside it, OR-combined, NOT a replacement; S-21.24's wave-8 step gains a MIGRATION sub-task — in the SAME commit that adds `plugin_fail_closed_on_exhaustion`, REMOVE the now-redundant retained 2-arg call; new Invariant: at every commit from S-21.19's merge through S-21.24's merge, the live block-decision call site blocks `Timeout` under `on_error=Block` via SOME disjunct; closes F-S2121-P3-001). `BC-1.03.017 v1.21→v1.22` (Precondition 6 split explicitly into (i) the one-time live-corpus calibration confirmation, which MAY reference live files at calibration time, and (ii) the durable standing gate, which MUST run against the frozen snapshot — matching S-21.22's converged mechanism, closing F-S2122-P3-001; new Invariant 12 migration coverage-continuity, mirroring ADR-044 v1.3's new invariant, closing F-S2121-P3-001; H1 title re-enriched per POLICY 7). `BC-1.03.018 v1.3→v1.4` (PC8 extended to state explicitly that `all` is name-scoped shorthand for the two named gates ONLY, NOT a blanket suppress-every-block switch — a non-named blocking plugin's block MUST stand and MUST NOT receive a `break_glass.activated` record; new Canonical Test Vector row, closing F-S2123-P3-001; PC9 gains an explicit detector-precision requirement (executable-code read pattern, not bare-grep) + control (g) COMMENT-ONLY, control count six→seven matching S-21.23's actual coverage, closing F-S2123-P3-002; H1 title re-enriched per POLICY 7). ARCH-INDEX v3.78→v3.79; BC-INDEX v4.90→v4.91; VP-INDEX v2.79 UNCHANGED; STORY-INDEX v4.384 UNCHANGED.
+
+**Story-layer application explicitly NOT STARTED this burst** — the human-invoked `/wrap` pause boundary lands between the spec-layer commit and what would otherwise be the second, distinctly-themed 'story-remediation' commit (mirroring the D-1071/D-1072 and D-1069/D-1070 two-commit precedent), NOT a scope omission. Story-layer fixes pending resume: S-21.20 STORY-INDEX title-cite, S-21.21 Task 5a ADDITIVE-wiring rewrite + EC-011, S-21.22 re-anchor, S-21.23 new negative-control AC + AC-022 count, and full BC-1.03.017 v1.22/BC-1.03.018 v1.4 re-anchor sweep across all six wave-7-adjacent stories.
+
+Compact pass-3 review record persisted: `cycles/v1.0-brownfield-backfill/adv-wave7-pass3.md`. Pipeline **ACTIVE→PAUSED** at a clean pushed HEAD. Session Resume Checkpoint fully replaced (self-sufficient §1-§7); prior D-1072 checkpoint archived verbatim to `session-checkpoints.md`.
+
+Summary: Wave-7 pass-3/R2 fresh-context adversary round; S-21.19 R2 CLEAN (streak 1/3); S-21.20/21/22/23 pass-3 NOT-CLEAN; ADR-044 v1.3 / BC-1.03.017 v1.22 / BC-1.03.018 v1.4 spec-layer fixes LANDED; story-layer application NOT STARTED, pending resume; pipeline ACTIVE→PAUSED (human-invoked `/wrap`).
+
+### Agents
+
+adversary (fresh-context, 5× dispatches), architect (ADR-044 v1.3), product-owner (BC-1.03.017 v1.22 + BC-1.03.018 v1.4), state-manager (burst author + commit)
+
+### Phase
+
+D-1073-WAVE7-PASS3-SESSION-WRAP
+
+### Date
+
+2026-08-22
+
 ---
