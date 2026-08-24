@@ -2112,3 +2112,74 @@ D-1079-WAVE7-PASS7-R6-STORY-REMEDIATION
 2026-08-24
 
 ---
+
+## D-1080
+
+**D-1080-WAVE7-PASS8-R7-STORY-REMEDIATION**
+
+Wave-7 pass-8/R7 adversary cascade (adv-wave7-pass8.md) dispatched against BC-1.03.017 v1.26 / BC-1.03.018 v1.6 / ADR-044 v1.3 / ADR-039 v1.16. Results: S-21.20 pass-8 NOT-CLEAN (RESET 3/3→0/3 — BC-table-cell miss at v1.25; D-1079 "full propagation" claim unbacked by table-cell-aware gate); S-21.19 (R7), S-21.21 (pass-8), S-21.22 (pass-8), S-21.23 (pass-8) NOT-CLEAN, all remediated.
+
+**Spec-layer fixes (product-owner, step ①):**
+
+BC-1.03.017 v1.26→v1.27: F-S2119-R7-001 MED: BC traceability row monolithic-S-21.11 framing corrected to split-topology split-seam-1 framing per §Architecture Anchors split-ownership section (all live monolithic-S-21.11 cites replaced with split-topology framing referencing the six-story split topology per D-1057). H1 enriched per POLICY 7 (same root-cause: split-topology coverage language added). BC-INDEX v4.96→v4.97: BC-1.03.017 v1.27 row updated (Title parity per POLICY 7; version chain v1.27 entry; input-hash 1c300e8→9b06e6d since BC body text changed). total_bcs UNCHANGED 1987.
+
+POLICY codification (policies.yaml v1.4.25→v1.4.26):
+
+- POLICY 8 TABLE-CELL-AWARE PARITY GATE verification step added: re-anchor bursts claiming "full propagation" MUST run and capture a table-cell-aware grep (`grep -nE '\| *<BC-ID> *\| *v[0-9]'`) to isolate the pipe-delimited BC-table Version column cell BEFORE attesting propagation. A free-text grep that does not isolate the Version column cell is NOT sufficient. An unbacked "full propagation" claim is itself a POLICY 8 finding. Closes BC-table-Version-cell straggler class F-S2120-R7-001/F-S2121-P8-001/F-S2122-P8-001 MED×3. POLICY 8 codified_at set to D-1080.
+
+**Plan fixes (architect, step ①):**
+
+Decomposition-plan §3/§4 AC-042–045 provenance corrected: §3 intro paragraph and §4 recommendation now cite the correct AC-042–045 provenance (AC-042 from S-21.19 AC set, AC-043–045 from S-21.23 AC set per the split-topology seam boundaries at D-1057). Context for F-S2123-P8-002 LOW (stale provenance descriptor referencing pre-D-1080 plan state). input-hash b89fe92→5d030c6.
+
+**Story-layer fixes (story-writer, step ②):**
+
+S-21.19 v1.10→v1.11: F-S2119-R7-001 MED: BC traceability row monolithic-S-21.11 framing corrected (split-seam-1 framing per BC-1.03.017 v1.27 §Architecture Anchors). BC-1.03.017 v1.26→v1.27 re-anchor. input-hash 3eba350→7bab495. Streak REMAINS 0/3.
+
+S-21.20 v1.8→v1.9: F-S2120-R7-001 MED: BC table cell corrected v1.25→v1.27 (POLICY 8 straggler — D-1079 claimed "full propagation" but did not run table-cell-aware grep; the pipe-delimited BC-table Version column cell was not reached). BC-1.03.017 v1.26→v1.27 re-anchor. input-hash c6a5c6a→fe80978. Streak RESET 3/3→0/3 per BC-5.39.001 (BC-table-cell miss = genuine POLICY 8 MED finding; streak resets).
+
+S-21.21 v1.9→v1.10: F-S2121-P8-001 MED: BC table cell corrected v1.25→v1.27 (same straggler class as F-S2120-R7-001). F-S2121-P8-002 MED: ADR-pin residual swept — 2 sites: ADR-044 v1.3 context anchor in Task 5a's live-wiring narrative + `§Decision 4 v1.16` in calibration-sufficiency rationale (POLICY 19 story-bodies extension, D-1079). BC-1.03.017 v1.26→v1.27 re-anchor. input-hash 1e3efaa→5a05f4e. Streak REMAINS 0/3.
+
+S-21.22 v1.9→v1.10: F-S2122-P8-001 MED: BC table cell corrected v1.25→v1.27 (same straggler class). F-S2122-P8-002 MED: ADR-pin residual swept — 1 site: `ADR-044 §Decision 5 v1.3` in calibration-protocol narrative (POLICY 19). BC-1.03.017 v1.26→v1.27 re-anchor. input-hash 3eba350→431d6ae. Streak REMAINS 0/3.
+
+S-21.23 v1.7→v1.8: F-S2123-P8-001 MED: DAG diagram block `ADR-044 v1.3 function-split reconvergence` annotation stripped to stable form `ADR-044 function-split reconvergence` (POLICY 19 story-bodies). F-S2123-P8-002 LOW: decomposition-plan §3/§4 AC-042–045 provenance descriptor updated (architect correction D-1080). BC-1.03.018 UNCHANGED (v1.6). input-hash 33ca0c4→0e718ce. Streak REMAINS 0/3.
+
+S-21.24 v1.10→v1.11: BC-1.03.017 v1.26→v1.27 re-anchor (frontmatter behavioral_contracts, H1, all body; split-topology re-anchor sweep; capstone STRICTLY LAST). BC-1.03.018 v1.6 UNCHANGED. input-hash c6a5c6a→2562802. Own cascade STRICTLY LAST; own pass-9/R8 re-confirmation PENDING.
+
+**State-manager step ③ (this entry):**
+
+adv-wave7-pass8.md persisted (5 verdicts: S-21.19/20/21/22/23 NOT-CLEAN FIXED; S-21.20 streak RESET 3/3→0/3).
+
+POLICY 8 TABLE-CELL-AWARE PARITY GATE codified in policies.yaml v1.4.26. POLICY 8 codified_at set to D-1080. Closes BC-table-Version-cell straggler class (F-S2120-R7-001/F-S2121-P8-001/F-S2122-P8-001 MED×3 root cause).
+
+BC-INDEX v4.96→v4.97: BC-1.03.017 v1.27 row (split-topology re-anchor; H1 per POLICY 7; version chain v1.27 entry; input-hash 1c300e8→9b06e6d). total_bcs UNCHANGED 1987.
+
+STORY-INDEX v4.390→v4.391: 6 story BC-pin updates (S-21.19/20/21/22/24: BC-1.03.017 v1.26→v1.27; S-21.23: BC-1.03.018 v1.6 UNCHANGED); 6 story input-hashes UPDATED (S-21.19=7bab495; S-21.20=fe80978; S-21.21=5a05f4e; S-21.22=431d6ae; S-21.23=0e718ce; S-21.24=2562802); 6 D-1080 row entries appended; blockquote: 6 story hashes updated; BC-1.03.017 1c300e8→9b06e6d; decomp-plan b89fe92→5d030c6 (D-952-class cascading recompute from STORY-INDEX version bump; architect's §3/§4 correction changed decomp-plan content). All story-hash collisions RESOLVED: S-21.19/S-21.22 3eba350 pair RESOLVED; S-21.20/S-21.24 c6a5c6a pair RESOLVED; 19 enumerated IDs now have 19 distinct hashes.
+
+VP-INDEX v2.79 UNCHANGED. ARCH-INDEX v3.79 UNCHANGED.
+
+STATE.md v8.63→v8.64: D-1080 Decisions Log row; Phase Progress D-1080 row; Current Phase Steps scroll (D-1075 archived, D-1080 added); Identifier Conventions BC-INDEX v4.97, STORY-INDEX v4.391; Story Status (S-21.19 v1.11 0/3; S-21.20 v1.9 0/3 RESET; S-21.21 v1.10 0/3; S-21.22 v1.10 0/3; S-21.23 v1.8 0/3; S-21.24 v1.11); trajectory-tail →1→1→1→0, LENGTH=4; D-1080 decisions log row; [D-1070] ADR-044↔BC-1.03.017 re-settlement updated v1.26→v1.27; [D-1064] ADR-044 stale cite target updated v1.26→v1.27; Historical Content: adv-wave7-pass8.md; Session Resume → pass-9/R8 NEXT.
+
+Summary: Wave-7 pass-8/R7 remediation COMPLETE. S-21.20 streak RESET 3/3→0/3 (BC-table-cell miss = genuine POLICY 8 MED finding; D-1079 "full propagation" claim was not backed by table-cell-aware gate). POLICY 8 TABLE-CELL-AWARE PARITY GATE codified (D-1080) — closes the BC-table-Version-cell straggler class. BC-1.03.017 v1.27 (split-topology re-anchor). BC-INDEX v4.97, STORY-INDEX v4.391. Streaks: S-21.19 0/3; S-21.20 0/3 (RESET); S-21.21 0/3; S-21.22 0/3; S-21.23 0/3. Pass-9/R8 NEXT.
+
+### Agents
+
+adversary (fresh-context, 5× dispatches — results in adv-wave7-pass8.md), product-owner (BC-1.03.017 v1.27 split-topology re-anchor; BC-INDEX v4.97), architect (decomp-plan §3/§4 AC-042–045 provenance), story-writer (S-21.19/20/21/22/23/24 remediation), state-manager (adv-wave7-pass8.md + policies.yaml POLICY-8 TABLE-CELL-AWARE PARITY GATE + BC-INDEX + STORY-INDEX + decision-log + lessons + STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v4.96 | v4.97 |
+| STORY-INDEX | v4.390 | v4.391 |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.79 | v3.79 (UNCHANGED) |
+
+### Phase
+
+D-1080-WAVE7-PASS8-R7-STORY-REMEDIATION
+
+### Date
+
+2026-08-24
+
+---
