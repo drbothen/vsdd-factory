@@ -1724,3 +1724,84 @@ D-1073-WAVE7-PASS3-SESSION-WRAP
 2026-08-22
 
 ---
+
+## D-1074: WAVE7-PASS3-STORY-REMEDIATION
+
+**[BACKFILL OWED — see STATE.md Blocking Issues]** D-1074-WAVE7-PASS3-STORY-REMEDIATION (state-manager, 2026-08-23; single-commit story-layer burst, TD-VSDD-053; parent D-1073 spec-layer commit): Wave-7 pass-3/R2 story-layer application. BC-1.03.017 v1.21→v1.22 + BC-1.03.018 v1.3→v1.4 re-anchor swept across S-21.20/S-21.21/S-21.22/S-21.23/S-21.24. S-21.20 F-S2120-P3-001 MEDIUM CLOSED; S-21.21 ADDITIVE wiring fix + EC-011 correction; S-21.22 re-anchor only; S-21.23 new AC-045 + AC-022 count; S-21.24 BC re-anchor + ADR-044 v1.3 wave-8 sub-task. STORY-INDEX v4.384→v4.385. S-21.19 OMITTED (per orchestration note in adv-wave7-pass4.md: S-21.19 was omitted from this sweep — fresh-context pass-4/R3 surfaced the omission as F-S2119-R3-002). Full per-decision verbose backfill owed.
+
+### Agents
+
+story-writer, state-manager
+
+### Phase
+
+D-1074-WAVE7-PASS3-STORY-REMEDIATION
+
+### Date
+
+2026-08-23
+
+---
+
+## D-1075: WAVE7-PASS4-R3-STORY-REMEDIATION
+
+D-1075-WAVE7-PASS4-R3-STORY-REMEDIATION (state-manager, 2026-08-23; single-commit three-role burst per TD-VSDD-053 — product-owner step ①, story-writer step ②, state-manager step ③ committed as ONE atomic commit; parent D-1074 `c47c913f`): **Wave-7 pass-4/R3 fresh-context adversary round findings remediated** across spec-layer (product-owner) and story-layer (story-writer + state-manager).
+
+**Pass-4/R3 outcomes (from adv-wave7-pass4.md):**
+
+**S-21.19 R3 NOT-CLEAN** — 3 HIGH streak-resetting findings: F-S2119-R3-001 (story frames 2-arg `plugin_fail_closed` as "retired"/superseded, contradicting ADR-044 v1.3 ADDITIVE-then-migrate); F-S2119-R3-002 (BC-1.03.017 v1.22 re-anchor missing, 57 sites); F-S2119-R3-003 (ADR-044 v1.1/v1.2→v1.3 stale cite). S-21.19 was OMITTED from D-1074's re-anchor sweep. Streak: 1/3 (from pass-3/R2 CLEAN) → **RESET 0/3**.
+
+**S-21.20 pass-4 NOT-CLEAN** — F-S2120-P4-001 MED (BC-table Title cell "and" insertion breaks POLICY-7 verbatim-subset). Streak: 1/3 → **RESET 0/3**.
+
+**S-21.21 pass-4 NOT-CLEAN** — F-S2121-P4-001 HIGH (BC-1.03.017 v1.22 EC-011 clause asserts no `on_error=Block` enforcement in BOTH sub-cases, contradicting Invariant 12) + F-S2121-P4-002 MED (PC6 S-21.22-ownership not propagated to story Task 10). Streak: **REMAINS 0/3**.
+
+**S-21.22 pass-4 CLEAN** — F-S2122-P4-001 LOW (STOP-gate ceil() vs BC un-ceil'd; NON-RESETTING) + F-S2122-P4-002 LOW (mixed ADR-044 v1.1/v1.3 cite; NON-RESETTING). Streak: **ADVANCES 0/3→1/3**. (Streak-neutral for state purposes: LOWs do not reset.)
+
+**S-21.23 pass-4 NOT-CLEAN** — F-S2123-P4-001 MED (BC-1.03.018 PC9 vs story AC-022 control-letter drift: BC (g)=COMMENT-ONLY vs story (g)=LIVE-TREE) + F-S2123-P4-002 MED (PC9 detector false-green: commented-out full call passes substring detector) + F-S2123-P4-003 MED (stale ADR-044 v1.2 cite). Streak: **REMAINS 0/3**.
+
+**Spec-layer fixes (product-owner, step ①):**
+
+`BC-1.03.017 v1.22→v1.23` — (F-S2121-P4-001 HIGH) EC-011 sub-case-distinct correction: `Ok{exit_code:1}` pre-§AMD-003 IS NOT blocked (PC13/§AMD-003 closes that gap); `Timeout{Epoch}` IS blocked by the retained 2-arg call via `on_error=Block` (Invariant 12); defect for sub-case (b) is TIMING ONLY, not enforcement absence. (F-S2122-P4-001 LOW) ceil() adopted throughout all live predicate occurrences. (F-S2121-P4-002 MED) PC6 S-21.22 ownership explicit. H1 enriched per POLICY 7.
+
+`BC-1.03.018 v1.4→v1.5` — (F-S2123-P4-001 MED) PC9 control-letter corrected: (f)=COMMENT-ONLY, (g)=LIVE-TREE. (F-S2123-P4-002 MED) Comment-stripping mandated before executable-code pattern check, closes CWE-636 full-call-in-comment false-green. (F-S2123-P4-005 LOW) PC3 `all` explicit as trimmed-comma-token. H1 enriched per POLICY 7.
+
+**Story-layer fixes (story-writer, step ②):**
+
+S-21.19 v1.5→v1.6: F-S2119-R3-001 additive-model rewrite + F-S2119-R3-002 BC-1.03.017 v1.22→v1.23 re-anchor + F-S2119-R3-003 ADR-044 v1.3 cite + F-S2119-R3-005 LOW Invariant 12 ACs. S-21.20 v1.4→v1.5: F-S2120-P4-001 MED title-cell fixed. S-21.21 v1.4→v1.5: F-S2121-P4-001 HIGH EC-011 + F-S2121-P4-002 MED PC6. S-21.22 v1.4→v1.5: F-S2122-P4-001 LOW ceil() + F-S2122-P4-002 LOW ADR-044 cite. S-21.23 v1.3→v1.4: F-S2123-P4-001 MED + F-S2123-P4-002 MED + F-S2123-P4-003 MED. S-21.24 v1.5→v1.6: BC re-anchor only. decomposition-plan.md §1 re-anchored to v1.23/v1.5. All stories anchored to BC-1.03.017 v1.23 / BC-1.03.018 v1.5.
+
+**State-manager index work (this step ③):**
+
+BC-INDEX v4.91→v4.92: BC-1.03.017 v1.23 row-sweep (Title cell + v1.23 version chain entry; closes F-S2121-P4-001 HIGH + F-S2121-P4-002 MED + F-S2122-P4-001 LOW per POLICY 7/8). BC-1.03.018 v1.5 row-sweep (Title cell + v1.5 version chain entry; closes F-S2123-P4-001 MED + F-S2123-P4-002 MED + F-S2123-P4-005 LOW per POLICY 7/8). total_bcs UNCHANGED 1987.
+
+STORY-INDEX v4.385→v4.386: all 6 story rows updated (header BC-anchor + input-hash + D-1075 version-chain entry). input-hash recomputed via `compute-input-hash --update`: S-21.19 `915ec83→3eba350` (closes F-S2119-R3-004 MED); decomposition-plan `b89fe92→e89dac3`. BC-1.03.018 input-hash `36f0be8→1b1c570` (updated same burst). BC-1.03.017 already current (`1c300e8`; ADR-044↔BC-1.03.017 circular-inputs drift noted under existing Drift Item at (ADR-044 v1.3, BC-1.03.017 v1.23) snapshot — underlying design defect anchored to future architect touch per existing drift entry).
+
+VP-INDEX v2.79 UNCHANGED (BC VP-TBD deferral is POLICY-9-sanctioned; touched VP-TBD placeholder bodies do NOT trigger VP-INDEX/architect propagation). ARCH-INDEX v3.79 UNCHANGED (no ADR touched this burst; ADR-044 body-cite re-target to v1.23 remains OWED to architect per the existing Drift Item at [D-1064]).
+
+STATE.md advance: v8.58→v8.59 (Decisions Log D-1075 row; Phase Progress row; Story Status; Concurrent Cycles; frontmatter; Session Resume Checkpoint → "pass-5/R4 dispatch NEXT"; trajectory-tail UNCHANGED — streaks UNCHANGED by remediation).
+
+Compact pass-4/R3 review record persisted: `cycles/v1.0-brownfield-backfill/adv-wave7-pass4.md`. Pipeline PAUSED. Session Resume Checkpoint updated to point at pass-5/R4 as NEXT.
+
+Summary: Wave-7 pass-4/R3 remediation burst COMPLETE; BC-1.03.017 v1.23 + BC-1.03.018 v1.5; all 6 wave-7 stories re-anchored; STORY-INDEX v4.386, BC-INDEX v4.92; pass-5/R4 dispatch NEXT (5 independent fresh-context cascades).
+
+### Agents
+
+adversary (fresh-context, 5× dispatches — prior burst results in adv-wave7-pass4.md), product-owner (BC-1.03.017 v1.23 + BC-1.03.018 v1.5), story-writer (S-21.19..S-21.24 re-anchor + decomposition-plan), state-manager (BC-INDEX + STORY-INDEX + STATE.md + decision-log)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v4.91 | v4.92 |
+| STORY-INDEX | v4.385 | v4.386 |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.79 | v3.79 (UNCHANGED) |
+
+### Phase
+
+D-1075-WAVE7-PASS4-R3-STORY-REMEDIATION
+
+### Date
+
+2026-08-23
+
+---
