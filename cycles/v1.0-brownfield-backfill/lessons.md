@@ -229,3 +229,19 @@ patterns (sibling-sweep misses, missing durable-gate task, missing FSR entry) �
 mode or new codification was required. References: TD-VSDD-059 (paper-fix detection), TD-VSDD-060
 (sibling-site sweep). `[process-technique; full-perimeter-audit; floor-breaking; consistency-validator;
 TD-VSDD-059; TD-VSDD-060; D-1077; asymptotic-convergence; wave-7]`
+
+---
+
+**[codified] POLICY 19 must cover story-bodies in addition to behavioral-contracts-traceability-rows — omitting story-bodies leaves a sweep gap that re-accumulates forbidden ADR version pins in story bodies across each re-anchor pass.**
+
+At D-1079 pass-7/R6, finding F-S2123-P7-P19-001 MED surfaced 6 ADR-039 version-pin cites in S-21.23's story body (`ADR-039 §Decision 3 v1.10` and `ADR-039 §Decision 3 v1.9` at 6 sites). POLICY 19, which prohibits load-bearing ADR version pins, was written to cover `behavioral-contracts-traceability-rows` — the class where the pin first appeared. Story body text was not explicitly in scope, so story-writer sweeps at earlier passes did not catch the story-body pins. The root cause is the scope enumeration in POLICY 19's `applies_to` field: it named only the initially-affected artifact type, not the broader logical class. The fix: extend POLICY 19 scope to `story-bodies` (policies.yaml v1.4.25) so that all future story-writer re-anchor sweeps are instructed to check story bodies as well as traceability rows. Changelog entries remain exempt (they record historical provenance; stripping version info from changelogs destroys audit trail).
+
+**Disposition:** POLICY scope enumerations must explicitly cover every artifact class that contains the prohibited pattern — not just the class where the pattern was first detected. When a new finding class emerges in a previously unguarded artifact type (story bodies, ADR body narrative, architecture docs), the remediation should simultaneously: (1) fix the current instance, and (2) extend the POLICY scope to prevent silent re-accumulation in the same artifact type on the next re-anchor pass. `[codified; POLICY-19; story-bodies; ADR-version-pin; scope-enumeration; F-S2123-P7-P19-001; D-1079; wave-7]`
+
+---
+
+**[codified] Per-physical-line grep misses wrapped version-pin cites — multiline-normalized `tr '\n' ' ' | grep` detector is mandatory for all re-anchor sweeps.**
+
+At D-1079 pass-7/R6, finding F-S2119-R6-001 MED revealed that S-21.19's Task 2 contained `ADR-044 v1.3` split across two physical lines ("`ADR-044`" on one line, "`v1.3`" on the next). The D-1078 pass-6/R5 sweep claimed 14 corrected sites but missed the 15th because it used single-line `grep 'ADR-044 v1.3'`, which cannot match tokens that cross a physical line boundary. This is a recurrence of F-S2119-P3-001, which first identified the line-wrap mechanism. The root cause: D-1078 documented the correct `tr '\n' ' ' | grep -oE 'ADR-[0-9]+ v[0-9.]+'` fix in its sweep log but the fix was NOT carried forward as a process discipline in POLICY 5 — meaning the next re-anchor sweep was free to revert to per-line grep.
+
+**Disposition:** POLICY 5 (re-anchor sweep discipline) codified the mandatory `tr '\n' ' ' | grep` normalized detector at D-1079 (policies.yaml v1.4.25). Any version-pin sweep that uses `grep 'ADR-NNN v1.X'` directly on a file without the `tr` normalization stage is non-compliant with POLICY 5 and will silently miss wrapped cites. The `tr '\n' ' ' | grep -oE 'ADR-[0-9]+[[:space:]]+v[0-9.]+'` form is the canonical detector; sed-or-awk alternatives are acceptable provided they also normalize across physical lines before matching. `[codified; POLICY-5; multiline-sweep; tr-normalized; re-anchor-discipline; F-S2119-R6-001; F-S2119-P3-001-regression; D-1079; wave-7]`

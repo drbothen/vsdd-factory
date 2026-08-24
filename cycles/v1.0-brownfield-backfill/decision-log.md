@@ -2042,3 +2042,73 @@ D-1078-WAVE7-PASS6-R5-STORY-REMEDIATION
 2026-08-24
 
 ---
+
+## D-1079
+
+**D-1079-WAVE7-PASS7-R6-STORY-REMEDIATION**
+
+Wave-7 pass-7/R6 adversary cascade (adv-wave7-pass7.md) dispatched against BC-1.03.017 v1.25 / BC-1.03.018 v1.6 / ADR-044 v1.3 / ADR-039 v1.16. Results: S-21.20 pass-7 CLEAN → 3/3 CONVERGED (PROVISIONAL; pass-8 re-confirmation required per BC-1.03.017 v1.26 anchor change; PC6-orthogonal; high confidence CLEAN); S-21.19 (R6), S-21.21 (pass-7), S-21.22 (pass-7), S-21.23 (pass-7) NOT-CLEAN, remediated.
+
+**Spec-layer fixes (product-owner, step ①):**
+
+BC-1.03.017 v1.25→v1.26: F-S2121-P7-001 HIGH: Precondition 6 flip-conditional language added — iterates `failure_policy == fail-closed` plugins only; assertion vacuously GREEN at S-21.21's own merge per decomposition-plan §8.8 Addendum. F-S2121-P7-002 MED + F-S2122-P7-001 MED: ceil() sweep at 4+2 body occurrences — `fuel_consumed × 1.5` wrapped in `ceil(...)` throughout BC body (~L526, ~L562, ~L569, ~L1327-1328 + VP-TBD row + Traceability ADR row). H1 enriched per POLICY 7. BC-INDEX v4.95→v4.96: BC-1.03.017 v1.26 row updated (Title parity; version chain entry; input-hash 1c300e8 UNCHANGED from v1.23–v1.25 since ADR-044 v1.3 declared input unchanged). total_bcs UNCHANGED 1987.
+
+POLICY codifications (policies.yaml v1.4.24→v1.4.25):
+
+- POLICY 19 scope extended from `behavioral-contracts-traceability-rows` to also cover `story-bodies`. Closes F-S2123-P7-P19-001 process-gap: story bodies were accumulating forbidden ADR version pins (e.g., `ADR-039 §Decision 3 v1.10`) that POLICY 19 was intended to prohibit but the prior scope enumeration did not cover.
+- POLICY 5 multiline-sweep mandate added: re-anchor sweeps MUST use `tr '\n' ' ' | grep` normalized detector (not per-physical-line grep). Closes F-S2119-R6-001 regression of F-S2119-P3-001: a 14-site D-1078 pass-6/R5 sweep missed the 15th cite because the ADR-044 version token spanned two physical lines and single-line grep cannot cross line boundaries. The multiline-normalized `tr '\n' ' ' | grep -oE 'ADR-[0-9]+[[:space:]]+v[0-9.]+'` detector closes this class.
+
+**Story-layer fixes (story-writer, step ②):**
+
+S-21.19 v1.9→v1.10: F-S2119-R6-001 MED: tr-normalized multiline sweep confirmed zero remaining version-pin cites; F-S2119-R6-002 LOW: ADR sub-version pin stripped (`ADR-044 §Decision 5 v1.3` → `ADR-044 §Decision 5`); story-wide ADR-044 v1.1/v1.3 body-pin-strip (POLICY 19 extended to story-bodies; Changelog entries exempt). BC-1.03.017 v1.25→v1.26 re-anchor. input-hash UNCHANGED 3eba350. Streak REMAINS 0/3.
+
+S-21.20 v1.7→v1.8: BC-1.03.017 v1.25→v1.26 re-anchor (frontmatter behavioral_contracts, H1, all body); story-wide ADR-pin-strip (POLICY 19). input-hash UNCHANGED c6a5c6a. Streak ADVANCES 2/3→3/3 CONVERGED (PROVISIONAL — pass-8 re-confirmation REQUIRED per BC-1.03.017 v1.26 anchor change; PC6-orthogonal; high confidence CLEAN). Non-resetting observations: F-S2120-P7-001 LOW (re-anchor mechanical/PC6-orthogonal; non-resetting); F-S2120-P7-002 LOW (DAG label `"(REOPENED — ADR-044 v1.2 function-split reconvergence in flight)"` stale editorial; DEFERRED — anchor next S-21.20 touch).
+
+S-21.21 v1.8→v1.9: BC-1.03.017 v1.25→v1.26 re-anchor (frontmatter, H1, all body) + ADR-pin-strip (POLICY 19). input-hash UNCHANGED 1e3efaa. Streak REMAINS 0/3.
+
+S-21.22 v1.8→v1.9: F-S2122-P7-001 MED: Task 4 narrative `fuel_consumed × 1.5` → `ceil(fuel_consumed × 1.5)` applied; BC-1.03.017 v1.25→v1.26 re-anchor + ADR-pin-strip (POLICY 19). F-S2122-P7-003 LOW DEFERRED: Task 3 cross-reference to S-21.21 Task 6 stale task number (non-load-bearing; anchor wave-gate pre-merge consistency check). input-hash UNCHANGED 3eba350. Streak REMAINS 0/3.
+
+S-21.23 v1.6→v1.7: F-S2123-P7-P19-001 MED: 6-site ADR-039 version-pin strip (`v1.10`/`v1.9` suffixes removed at ~L356/L401/L720/L855/L900/L942; stable form `ADR-039 §Decision 3`; POLICY 19 story-bodies extension); F-S2123-P7-P4-002 MED: provenance correction at 2 sites (§Bidirectional Parity Audit Note corrected from `BC-1.03.018 v1.5` to `BC-1.03.018 v1.4` as ground truth for PC8-scope and seven-control count per BC-1.03.018 Changelog D-1073 entry). BC-1.03.018 UNCHANGED (v1.6). input-hash UNCHANGED 33ca0c4. Streak REMAINS 0/3.
+
+S-21.24 v1.9→v1.10: BC-1.03.017 v1.25→v1.26 re-anchor (frontmatter behavioral_contracts, H1, all body) + ADR-pin-strip (POLICY 19). BC-1.03.018 v1.6 UNCHANGED. input-hash UNCHANGED c6a5c6a. Cascade STRICTLY LAST; own pass-8 re-confirmation PENDING.
+
+**State-manager step ③ (this entry):**
+
+adv-wave7-pass7.md persisted (5 verdicts: S-21.20 CLEAN → 3/3 CONVERGED PROVISIONAL; S-21.19/21/22/23 NOT-CLEAN FIXED).
+
+POLICY 19 scope extension (story-bodies) + POLICY 5 multiline-sweep mandate codified in policies.yaml v1.4.25.
+
+BC-INDEX v4.95→v4.96: BC-1.03.017 v1.26 row (Title per POLICY 7; version chain v1.26 entry; input-hash 1c300e8 UNCHANGED). total_bcs UNCHANGED 1987.
+
+STORY-INDEX v4.389→v4.390: 6 story BC-pin header updates (S-21.19/20/21/22: BC-1.03.017 v1.25→v1.26; S-21.23: BC-1.03.018 v1.5→v1.6 carry-forward from D-1078; S-21.24: BC-1.03.017 v1.25→v1.26 + BC-1.03.018 v1.5→v1.6 carry-forward); S-21.20 header input-hash corrected 33ca0c4→c6a5c6a (D-1078 POLICY-18 update not propagated to header); 6 D-1079 row entries appended; blockquote corrections: S-21.19=915ec83→3eba350 (stale from D-1072; catalog had 3eba350 since D-1075), S-21.20=33ca0c4→c6a5c6a (D-1078 non-propagation). ADR-044↔BC-1.03.017 cascade re-settled at (ADR-044 v1.3, BC-1.03.017 v1.26, input-hash 1c300e8 UNCHANGED from v1.23–v1.25).
+
+VP-INDEX v2.79 UNCHANGED. ARCH-INDEX v3.79 UNCHANGED.
+
+Drift item RESOLVED: `[D-1078] BC-1.03.017 PC6(ii) ceil vs no-ceil behavioral drift` — ceil() sweep complete at v1.26 (structural fix; no longer inert surface drift). STATE.md Drift Items row updated RESOLVED D-1079.
+
+STATE.md v8.62→v8.63: D-1079 Decisions Log row; Phase Progress D-1079 row; Current Phase Steps scroll (D-1074 archived, D-1079 added); Identifier Conventions BC-INDEX v4.96, STORY-INDEX v4.390; Story Status (S-21.19 v1.10 0/3; S-21.20 v1.8 3/3 CONVERGED PROVISIONAL; S-21.21 v1.9 0/3; S-21.22 v1.9 0/3; S-21.23 v1.7 0/3; S-21.24 v1.10); trajectory-tail →1→1→1→1, LENGTH=4; ADR-044↔BC-1.03.017 drift re-settlement updated v1.25→v1.26; [D-1078] PC6(ii) ceil drift RESOLVED; Historical Content: adv-wave7-pass7.md; Session Resume → pass-8/R7 NEXT.
+
+Summary: Wave-7 pass-7/R6 remediation COMPLETE. S-21.20 achieves 3-CLEAN CONVERGENCE (PROVISIONAL; pass-8 re-confirmation pending BC-1.03.017 v1.26 anchor change; PC6-orthogonal; high confidence CLEAN). BC-1.03.017 v1.26 (flip-conditional PC6 + full ceil() body sweep). POLICY 19 extended to story-bodies; POLICY 5 multiline-sweep mandate codified. BC-INDEX v4.96, STORY-INDEX v4.390. Streaks: S-21.19 0/3; S-21.20 3/3 CONVERGED (PROVISIONAL); S-21.21 0/3; S-21.22 0/3; S-21.23 0/3. Pass-8/R7 NEXT.
+
+### Agents
+
+adversary (fresh-context, 5× dispatches — results in adv-wave7-pass7.md), product-owner (BC-1.03.017 v1.26 flip-conditional PC6 + ceil() body sweep; BC-INDEX v4.96), story-writer (S-21.19/20/21/22/23/24 remediation), state-manager (adv-wave7-pass7.md + policies.yaml POLICY-19/5 codification + BC-INDEX + STORY-INDEX + decision-log + lessons + STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v4.95 | v4.96 |
+| STORY-INDEX | v4.389 | v4.390 |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.79 | v3.79 (UNCHANGED) |
+
+### Phase
+
+D-1079-WAVE7-PASS7-R6-STORY-REMEDIATION
+
+### Date
+
+2026-08-24
+
+---
