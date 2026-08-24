@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "8.61"
+version: "8.62"
 status: draft
 producer: state-manager
-timestamp: 2026-08-24T01:30:00Z
-phase: "D-1077-WAVE7-FLOOR-BREAK-CONSISTENCY-REMEDIATION COMPLETE (2026-08-24). decomp-plan §8.8 dedicated path. BC-1.03.017 v1.25. BC-INDEX v4.94, STORY-INDEX v4.388. Streaks UNCHANGED: S-21.19 0/3; S-21.20 1/3; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3. - trajectory-tail →1→0→1→1, LENGTH=4. NEXT: pass-6/R5 dispatch (5 independent fresh-context cascades against v1.25/v1.5). Resume: /vsdd-factory:next-step."
-last_amended: "2026-08-24 (v8.61) — D-1077-WAVE7-FLOOR-BREAK-CONSISTENCY-REMEDIATION: decomp-plan §8.8; BC-1.03.017 v1.25; 5 stories re-anchored; BC-INDEX v4.94; STORY-INDEX v4.388; decomp-plan input-hash 234548c→6757383; Session Resume Checkpoint → pass-6/R5 against v1.25/v1.5. [Prior: 2026-08-23 (v8.60) — D-1076-WAVE7-PASS5-R4-STORY-REMEDIATION; full prior chain: session-checkpoints.md]"
+timestamp: 2026-08-24T04:30:00Z
+phase: "D-1078-WAVE7-PASS6-R5-STORY-REMEDIATION COMPLETE (2026-08-24). BC-1.03.018 v1.6 (POLICY-19). S-21.19 v1.9 / S-21.21 v1.8 / S-21.22 v1.8 / S-21.23 v1.6 / S-21.24 v1.9 remediated. S-21.20 POLICY-18 inputs fix. BC-INDEX v4.95, STORY-INDEX v4.389. Streaks: S-21.19 0/3; S-21.20 2/3 ADVANCE; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3. - trajectory-tail →0→1→1→1, LENGTH=4. NEXT: pass-7/R6 dispatch (5 fresh cascades against v1.25/v1.6). Resume: /vsdd-factory:next-step."
+last_amended: "2026-08-24 (v8.62) — D-1078-WAVE7-PASS6-R5-STORY-REMEDIATION: BC-1.03.018 v1.6; S-21.19 v1.9/S-21.21 v1.8/S-21.22 v1.8/S-21.23 v1.6/S-21.24 v1.9; S-21.20 POLICY-18 inputs fix (ADR-044) + input-hash 33ca0c4→c6a5c6a; BC-INDEX v4.95; STORY-INDEX v4.389; S-21.20 streak ADVANCES 1/3→2/3; Session Resume Checkpoint → pass-7/R6. [Prior: 2026-08-24 (v8.61) — D-1077-WAVE7-FLOOR-BREAK-CONSISTENCY-REMEDIATION; full prior chain: session-checkpoints.md]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: PAUSED
-current_step: "D-1077-WAVE7-FLOOR-BREAK-CONSISTENCY-REMEDIATION COMPLETE. decomp-plan §8.8 dedicated path. BC-1.03.017 v1.25. BC-INDEX v4.94 STORY-INDEX v4.388. Streaks UNCHANGED: S-21.19 0/3; S-21.20 1/3; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3. - trajectory-tail →1→0→1→1, LENGTH=4. NEXT: pass-6/R5 dispatch (5 independent fresh-context cascades against v1.25/v1.5). PAUSED pending pass-6/R5. Resume: /vsdd-factory:next-step."
+current_step: "D-1078-WAVE7-PASS6-R5-STORY-REMEDIATION COMPLETE. BC-1.03.018 v1.6. BC-INDEX v4.95 STORY-INDEX v4.389. Streaks: S-21.19 0/3; S-21.20 2/3 ADVANCE; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3. - trajectory-tail →0→1→1→1, LENGTH=4. NEXT: pass-7/R6 dispatch (5 fresh cascades against v1.25/v1.6). PAUSED pending pass-7/R6. Resume: /vsdd-factory:next-step."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -42,8 +42,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-08-24 — D-1077-WAVE7-FLOOR-BREAK-CONSISTENCY-REMEDIATION (decomp-plan §8.8; BC-1.03.017 v1.25; 5 stories re-anchored; BC-INDEX v4.94, STORY-INDEX v4.388). trajectory-tail →1→0→1→1, LENGTH=4 (UNCHANGED). v8.60→v8.61. Pipeline PAUSED. NEXT: pass-6/R5 against v1.25/v1.5. |
-| **Current Phase** | Wave-7 floor-break consistency remediation COMPLETE (PAUSED). Streaks UNCHANGED: S-21.19 0/3; S-21.20 1/3; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3. NEXT: pass-6/R5 (5 fresh cascades against v1.25/v1.5). See Session Resume Checkpoint. |
+| **Last Updated** | 2026-08-24 — D-1078-WAVE7-PASS6-R5-STORY-REMEDIATION (adv-wave7-pass6.md; BC-1.03.018 v1.6; S-21.19 v1.9/S-21.21 v1.8/S-21.22 v1.8/S-21.23 v1.6/S-21.24 v1.9 remediated; S-21.20 POLICY-18 fix; BC-INDEX v4.95, STORY-INDEX v4.389). trajectory-tail →0→1→1→1, LENGTH=4. v8.61→v8.62. Pipeline PAUSED. NEXT: pass-7/R6 against v1.25/v1.6. |
+| **Current Phase** | Wave-7 pass-6/R5 story remediation COMPLETE (PAUSED). Streaks: S-21.19 0/3; S-21.20 2/3 ADVANCE; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3. NEXT: pass-7/R6 (5 fresh cascades against v1.25/v1.6). See Session Resume Checkpoint. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -64,28 +64,29 @@ dtu_services: []
 | **D-1075** WAVE7-PASS4-R3-STORY-REMEDIATION 2026-08-23 | **COMPLETE** | BC-1.03.017 v1.23 + BC-1.03.018 v1.5 LANDED; all 6 wave-7 stories re-anchored. BC-INDEX v4.92, STORY-INDEX v4.386. Streaks UNCHANGED (remediation): S-21.19 0/3; S-21.20 0/3; S-21.21 0/3; S-21.22 1/3; S-21.23 0/3. v8.58→v8.59. |
 | **D-1076** WAVE7-PASS5-R4-STORY-REMEDIATION 2026-08-23 | **COMPLETE** | adv-wave7-pass5.md; decomp-plan §8.7+§8.8 (architect); BC-1.03.017 v1.24 split-ownership (product-owner); all 6 wave-7 stories re-anchored. BC-INDEX v4.93, STORY-INDEX v4.387. Streaks: S-21.19 0/3; S-21.20 1/3 (ADVANCE); S-21.21 0/3; S-21.22 0/3 (RESET); S-21.23 0/3. v8.59→v8.60. |
 | **D-1077** WAVE7-FLOOR-BREAK-CONSISTENCY-REMEDIATION 2026-08-24 | **COMPLETE** | Full-perimeter audit: 7/10 classes clean, 4/6 stories residue-free; C-W7-001..005 (S-21.22 ceil() ×4 + S-21.21 Task 10a + FSR) remediated. BC-1.03.017 v1.25; decomp-plan §8.8 path. BC-INDEX v4.94, STORY-INDEX v4.388. Streaks UNCHANGED. v8.60→v8.61. |
+| **D-1078** WAVE7-PASS6-R5-STORY-REMEDIATION 2026-08-24 | **COMPLETE** | adv-wave7-pass6.md; BC-1.03.018 v1.6 (POLICY-19); S-21.19 v1.9/S-21.21 v1.8/S-21.22 v1.8/S-21.23 v1.6/S-21.24 v1.9 remediated; S-21.20 POLICY-18 inputs fix (ADR-044) + input-hash 33ca0c4→c6a5c6a; BC-INDEX v4.95; STORY-INDEX v4.389. Streaks: S-21.19 0/3; S-21.20 2/3 ADVANCE; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3. v8.61→v8.62. |
 | **E-18 EPIC COMPLETE 2026-07-01 D-744** | **EPIC COMPLETE** | Final story S-18.12 MERGED PR #384 ec05606a. |
 
 ## Current Phase Steps
 
-> Rows through D-1071-WAVE7-PASS2-SPEC-REMEDIATION archived to `cycles/v1.0-brownfield-backfill/burst-log.md` and `decision-log.md`. This table keeps the last 5 steps only per state-manager content-routing discipline.
+> Rows through D-1073-WAVE7-PASS3-SESSION-WRAP archived to `cycles/v1.0-brownfield-backfill/burst-log.md` and `decision-log.md`. This table keeps the last 5 steps only per state-manager content-routing discipline.
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| D-1073-WAVE7-PASS3-SESSION-WRAP | state-manager | COMPLETE | Pass-3/R2: S-21.19 R2 CLEAN (1/3); S-21.20/21/22/23 NOT-CLEAN. Spec: ADR-044 v1.3, BC-1.03.017 v1.22, BC-1.03.018 v1.4. BC-INDEX v4.91. Story-layer NOT STARTED. Pipeline PAUSED. v8.55→v8.56. |
 | D-1074-WAVE7-PASS3-STORY-REMEDIATION | state-manager | COMPLETE | Story-layer re-anchor post-pass-3/R2: S-21.20/21/22 v→v1.4; S-21.23 v→v1.3; S-21.24 v→v1.5. STORY-INDEX v4.385. Streaks UNCHANGED. v8.56→v8.57. Pass-4/R3 adversary dispatched. |
 | D-1075-WAVE7-PASS4-R3-STORY-REMEDIATION | state-manager | COMPLETE | BC-1.03.017 v1.23 + BC-1.03.018 v1.5; all 6 wave-7 stories re-anchored; BC-INDEX v4.92; STORY-INDEX v4.386. Streaks UNCHANGED: S-21.19 0/3; S-21.20 0/3; S-21.21 0/3; S-21.22 1/3; S-21.23 0/3. v8.58→v8.59. NEXT: pass-5/R4. |
 | D-1076-WAVE7-PASS5-R4-STORY-REMEDIATION | state-manager | COMPLETE | adv-wave7-pass5.md persisted; decomp-plan §8.7+§8.8 (architect); BC-1.03.017 v1.24 split-ownership (product-owner); all 6 wave-7 stories re-anchored; BC-INDEX v4.93; STORY-INDEX v4.387. Streaks: S-21.19 0/3; S-21.20 1/3 (ADVANCE); S-21.21 0/3; S-21.22 0/3 (RESET); S-21.23 0/3. v8.59→v8.60. NEXT: pass-6/R5. |
 | D-1077-WAVE7-FLOOR-BREAK-CONSISTENCY-REMEDIATION | state-manager | COMPLETE | Full-perimeter consistency audit (7/10 clean, 4/6 stories residue-free); C-W7-001..005 remediated (S-21.21 Task 10a + FSR; S-21.22 ceil() ×4); BC-1.03.017 v1.25 (PO); decomp-plan §8.8 path (architect); BC-INDEX v4.94; STORY-INDEX v4.388. Streaks UNCHANGED. v8.60→v8.61. NEXT: pass-6/R5 against v1.25/v1.5. |
+| D-1078-WAVE7-PASS6-R5-STORY-REMEDIATION | state-manager | COMPLETE | adv-wave7-pass6.md persisted; BC-1.03.018 v1.6 (POLICY-19 ADR-version-pin sweep); S-21.19 v1.9/S-21.21 v1.8/S-21.22 v1.8/S-21.23 v1.6/S-21.24 v1.9 remediated; S-21.20 POLICY-18 inputs fix (ADR-044) + input-hash 33ca0c4→c6a5c6a; BC-INDEX v4.95; STORY-INDEX v4.389. Streaks: S-21.19 0/3; S-21.20 2/3 ADVANCE; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3. v8.61→v8.62. NEXT: pass-7/R6. |
 
 ## Identifier Conventions
 
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,987 (BC-INDEX v4.94; see decision-log.md for incremental history D-1057..D-1077 (exhaustive)) |
+| Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,987 (BC-INDEX v4.95; see decision-log.md for incremental history D-1057..D-1078 (exhaustive)) |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 102 (VP-INDEX v2.79; VP-079 v1.21; see decision-log.md for history) |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 138 file-resident + 17 stub IDs (STORY-INDEX v4.388; see decision-log.md for history) |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 138 file-resident + 17 stub IDs (STORY-INDEX v4.389; see decision-log.md for history) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 22 (E-0..E-9, E-10..E-19, E-21 active, E-22 dissolved-retained D-962(f)) |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 44 (ADR-044 v1.3; see decision-log.md for history) |
 | **Merged Count** | merged_count | `stories/sprint-state.yaml` | **111** (S-21.10 MERGED PR #780 `27c56c01` 2026-08-17) |
@@ -96,7 +97,7 @@ dtu_services: []
 
 - **Merged (111):** S-21.10 MERGED PR #780; S-21.12 MERGED PR #781; S-21.07 MERGED PR #776; S-21.09 MERGED PR #775. Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **In-Flight (0):** none.
-- **E-21 active:** S-21.19 (v1.8, BC-1.03.017 v1.25, streak 0/3, pass-6/R5 NEXT); S-21.20 (v1.7, BC-1.03.017 v1.25, streak 1/3); S-21.21 (v1.7, BC-1.03.017 v1.25, streak 0/3); S-21.22 (v1.7, BC-1.03.017 v1.25, streak 0/3); S-21.23 (v1.5, BC-1.03.018 v1.5, streak 0/3); S-21.24 (v1.8, BC-1.03.017 v1.25 + BC-1.03.018 v1.5, Wave 8, STRICTLY LAST); S-21.25 (CONVERGED 3/3, awaiting TDD sequencing). S-21.11 SUPERSEDED D-1057. Full detail: Session Resume Checkpoint §2.
+- **E-21 active:** S-21.19 (v1.9, BC-1.03.017 v1.25, streak 0/3, pass-7/R6 NEXT); S-21.20 (v1.7, BC-1.03.017 v1.25, streak 2/3 ADVANCE); S-21.21 (v1.8, BC-1.03.017 v1.25, streak 0/3); S-21.22 (v1.8, BC-1.03.017 v1.25, streak 0/3); S-21.23 (v1.6, BC-1.03.018 v1.6, streak 0/3); S-21.24 (v1.9, BC-1.03.017 v1.25 + BC-1.03.018 v1.6, Wave 8, STRICTLY LAST); S-21.25 (CONVERGED 3/3, awaiting TDD sequencing). S-21.11 SUPERSEDED D-1057. Full detail: Session Resume Checkpoint §2.
 - **Draft (39), Partial (2), Withdrawn (1):** see prior session checkpoints.
 
 ## Active Branches
@@ -105,7 +106,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle 2026-07-18 |
 | develop | **27c56c01** | PR #780 squash-merged 2026-08-17. CI-GREEN. |
-| factory-artifacts | *(see `git -C .factory log -1`)* | D-1077-WAVE7-FLOOR-BREAK-CONSISTENCY-REMEDIATION. PAUSED. BC-INDEX v4.94. STORY-INDEX v4.388. |
+| factory-artifacts | *(see `git -C .factory log -1`)* | D-1078-WAVE7-PASS6-R5-STORY-REMEDIATION. PAUSED. BC-INDEX v4.95. STORY-INDEX v4.389. |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
 | fix/policy15-empty-range-inert | a6a15e1d | MERGED PR #779 2026-08-16. |
@@ -123,21 +124,21 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **PAUSED** | D-1077. Floor-break consistency remediation COMPLETE. trajectory-tail →1→0→1→1, LENGTH=4. NEXT: pass-6/R5 (5 fresh cascades against v1.25/v1.5). develop 27c56c01 CI-GREEN. merged_count 111. |
+| v1.0-brownfield-backfill | brownfield | **PAUSED** | D-1078. Pass-6/R5 story remediation COMPLETE. trajectory-tail →0→1→1→1, LENGTH=4. NEXT: pass-7/R6 (5 fresh cascades against v1.25/v1.6). develop 27c56c01 CI-GREEN. merged_count 111. |
 | v1.0-feature-engine-discipline-pass-1 | feature | PAUSED | F5 pass-75 D-510. META-LEVEL-30 CANDIDATE-CONFIRMED. trajectory-tail →7→9→7→9, LENGTH=4. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
-> D-001..D-606 (exhaustive): decision-log.md + decisions-log-archive.md. D-379..D-454 (exhaustive) (F5): cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md. D-607..D-1077 (exhaustive): this table + decision-log.md SoT. D-999 SKIPPED. Backfill OWED: D-1011/D-1012, D-1016..D-1042 (exhaustive), D-1068..D-1076 (exhaustive) per-decision entries in decision-log.md (compact-state burst added D-1072/D-1073; D-1068..D-1071 (exhaustive) + D-1074..D-1076 (exhaustive) remain OWED). Also: D-1011/D-1012 and D-1016..D-1042 (exhaustive).
+> D-001..D-606 (exhaustive): decision-log.md + decisions-log-archive.md. D-379..D-454 (exhaustive) (F5): cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md. D-607..D-1078 (exhaustive): this table + decision-log.md SoT. D-999 SKIPPED. Backfill OWED: D-1011/D-1012, D-1016..D-1042 (exhaustive), D-1068..D-1076 (exhaustive) per-decision entries in decision-log.md (compact-state burst added D-1072/D-1073; D-1068..D-1071 (exhaustive) + D-1074..D-1076 (exhaustive) remain OWED). Also: D-1011/D-1012 and D-1016..D-1042 (exhaustive).
 
 | ID | Decision | Summary | Phase | Date |
 |----|----------|---------|-------|------|
+| D-1078 | D-1078-WAVE7-PASS6-R5-STORY-REMEDIATION | adv-wave7-pass6.md; BC-1.03.018 v1.6 (POLICY-19); S-21.19 v1.9/S-21.21 v1.8/S-21.22 v1.8/S-21.23 v1.6/S-21.24 v1.9; S-21.20 POLICY-18 inputs fix (ADR-044) + input-hash 33ca0c4→c6a5c6a; BC-INDEX v4.95; STORY-INDEX v4.389. Streaks: S-21.19 0/3; S-21.20 2/3 ADVANCE; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3. Deferred: BC-1.03.017 PC6(ii) ceil drift (inert; anchor next touch), F-S2120-P6-002 DAG label (editorial; anchor next S-21.20 touch). Full: decision-log.md D-1078. | D-1078 | 2026-08-24 |
 | D-1077 | D-1077-WAVE7-FLOOR-BREAK-CONSISTENCY-REMEDIATION | Full-perimeter consistency audit (7/10 clean, 4/6 residue-free); C-W7-001..005 remediated; BC-1.03.017 v1.25; decomp-plan §8.8 path; BC-INDEX v4.94; STORY-INDEX v4.388. Streaks UNCHANGED. Full: decision-log.md D-1077. | D-1077 | 2026-08-24 |
 | D-1076 | D-1076-WAVE7-PASS5-R4-STORY-REMEDIATION | decomp-plan §8.7+§8.8; BC-1.03.017 v1.24 split-ownership; all 6 wave-7 stories re-anchored; BC-INDEX v4.93; STORY-INDEX v4.387. Streaks: S-21.19 0/3; S-21.20 1/3 (ADVANCE); S-21.21 0/3; S-21.22 0/3 (RESET); S-21.23 0/3. Full: decision-log.md D-1076. | D-1076 | 2026-08-23 |
 | D-1075 | D-1075-WAVE7-PASS4-R3-STORY-REMEDIATION | BC-1.03.017 v1.23 + BC-1.03.018 v1.5; all 6 wave-7 stories re-anchored; BC-INDEX v4.92; STORY-INDEX v4.386. Streaks UNCHANGED: S-21.19 0/3; S-21.20 0/3; S-21.21 0/3; S-21.22 1/3; S-21.23 0/3. Full: decision-log.md (backfill OWED). | D-1075 | 2026-08-23 |
-| D-1074 | D-1074-WAVE7-PASS3-STORY-REMEDIATION | Wave-7 pass-3/R2 story-layer remediation: S-21.20/21/22 v→v1.4; S-21.23 v→v1.3; S-21.24 v→v1.5. STORY-INDEX v4.385. Full: decision-log.md (backfill OWED). | D-1074 | 2026-08-23 |
-| D-413..D-1073 (exhaustive) | ARCHIVED | Full detail: decision-log.md SoT. | ARCHIVED | 2026-06-14..2026-08-22 |
+| D-413..D-1074 (exhaustive) | ARCHIVED | Full detail: decision-log.md SoT. | ARCHIVED | 2026-06-14..2026-08-23 |
 
 ## Skip Log
 
@@ -150,7 +151,7 @@ dtu_services: []
 
 | Blocker | Status | Risk Statement |
 |---------|--------|----------------|
-| **[D-1057] Each of the 7 new split stories (S-21.19..S-21.25) requires independent BC-5.39.001 3-CLEAN LOCAL pre-TDD convergence before Phase-3 TDD entry** | **OPEN — PAUSED post D-1077 remediation** | Wave 6: S-21.25 CONVERGED (D-1066). D-1077 COMPLETE: all 5 active stories re-anchored to v1.25/v1.5. Streaks UNCHANGED: S-21.19 0/3; S-21.20 1/3; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3. Full record: adv-wave7-pass5.md + decision-log.md D-1077. NEXT: pass-6/R5 against v1.25/v1.5. Wave 8 (S-21.24) STRICTLY LAST. |
+| **[D-1057] Each of the 7 new split stories (S-21.19..S-21.25) requires independent BC-5.39.001 3-CLEAN LOCAL pre-TDD convergence before Phase-3 TDD entry** | **OPEN — PAUSED post D-1078 remediation** | Wave 6: S-21.25 CONVERGED (D-1066). D-1078 COMPLETE: adv-wave7-pass6.md; BC-1.03.018 v1.6; all 5 active stories remediated. Streaks: S-21.19 0/3; S-21.20 2/3 ADVANCE; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3. Full record: adv-wave7-pass6.md + decision-log.md D-1078. NEXT: pass-7/R6 against v1.25/v1.6. Wave 8 (S-21.24) STRICTLY LAST. |
 | **[P0-followup] POLICY 15 gate wired + running but NOT enforcing (branch protection)** | **OPEN 2026-08-16 — HUMAN/ADMIN ACTION REQUIRED** | Gate jobs run on every PR but are not REQUIRED status checks. Closes when human/admin configures branch protection. |
 | **[C-1] CWE-706 incorrect path resolution — exec_subprocess binary_allow load-time prefix check** | **OPEN 2026-08-11 — HIGH SECURITY (D-972)** | `binary_allow` entries are bare names; prefix list inert. ADR-043 v1.5 NOT RATIFIED. |
 | **[C-2] CWE-362 TOCTOU — resolve-then-check window in exec_subprocess** | **OPEN 2026-08-11 — HIGH SECURITY (D-972)** | Race between resolution and spawn. Route: security-reviewer before ADR-043 ratification. |
@@ -190,6 +191,8 @@ dtu_services: []
 | **[D-1064] VP-079 internal six/seven header-comment inconsistency** | **OPEN — anchored architect's next VP-079 touch** | ~lines 149/482 say "six"; Property Statement says "seven". |
 | **[D-1067] Cycle-wide logs have no automated trim cadence** | **CODIFIED — anchored S-15.03 PRIORITY-A** | `/compact-state` only feeds STATE.md→cycle logs; cycle logs grow unbounded. |
 | **[develop-side] `plugins/vsdd-factory/config/artifact-path-registry.yaml` uncommitted** | **OPEN — anchored develop-branch PR follow-up** | D-1057 split-infra addition; on disk but requires develop-branch PR. |
+| **[D-1078] BC-1.03.017 PC6(ii) ceil vs no-ceil behavioral drift (inert)** | **DEFERRED-ANCHORED 2026-08-24 — anchor next BC-1.03.017 touch** | S-21.22 pass-6 found ceil()/no-ceil discrepancy across PC6(ii) sibling rows. Inert at current contract level; no failing scenario identified. Anchor next architect/product-owner touch of BC-1.03.017. |
+| **[D-1078] F-S2120-P6-002 DAG label editorial (LOW)** | **DEFERRED-ANCHORED 2026-08-24 — anchor next S-21.20 touch** | S-21.20 pass-6 found DAG label mismatch (editorial severity). Inert; does not block convergence. Anchor next S-21.20 touch. |
 
 ## Historical Content
 
@@ -197,32 +200,32 @@ dtu_services: []
 - `cycles/v1.0-brownfield-backfill/decision-log-archive-through-D1056.md` (19,990 lines; D-001..D-1056 (exhaustive) pre-D-1057 history)
 - `cycles/v1.0-brownfield-backfill/burst-log-archive-through-D1056.md` (29,201 lines; pre-D-1057 burst narratives)
 - `cycles/v1.0-brownfield-backfill/lessons-archive-pre-D1057.md` (11,165 lines; pre-D-1057 lessons)
-- `cycles/v1.0-brownfield-backfill/adv-wave7-pass1.md` through `adv-wave7-pass5.md` (compact Wave-7 pass records)
+- `cycles/v1.0-brownfield-backfill/adv-wave7-pass1.md` through `adv-wave7-pass6.md` (compact Wave-7 pass records)
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`
 
-## Session Resume Checkpoint (2026-08-24 — D-1077-WAVE7-FLOOR-BREAK-CONSISTENCY-REMEDIATION; PIPELINE PAUSED)
+## Session Resume Checkpoint (2026-08-24 — D-1078-WAVE7-PASS6-R5-STORY-REMEDIATION; PIPELINE PAUSED)
 
-> **SELF-SUFFICIENT RESUME CONTEXT.** Written at D-1077 (floor-break consistency remediation complete). **NEXT action: pass-6/R5 dispatch** — five independent fresh-context adversary cascades for S-21.19 (R4 continuation), S-21.20 (pass-6), S-21.21 (pass-6), S-21.22 (pass-6), S-21.23 (pass-6). Resume: `/vsdd-factory:next-step`.
+> **SELF-SUFFICIENT RESUME CONTEXT.** Written at D-1078 (pass-6/R5 story remediation complete). **NEXT action: pass-7/R6 dispatch** — five independent fresh-context adversary cascades for S-21.19 (R5 continuation), S-21.20 (pass-7), S-21.21 (pass-7), S-21.22 (pass-7), S-21.23 (pass-7). Specs-under-test: BC-1.03.017 v1.25, BC-1.03.018 v1.6, ADR-044 v1.3, ADR-039 v1.16. Resume: `/vsdd-factory:next-step`.
 
 ### §1 Position
 
-Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE PAUSED** post D-1077 remediation. S-21.11 v2.11 previously reached BC-5.39.001 3-CLEAN (D-1056); operator OVERRODE → **SPLIT** (D-1057) into 6 sub-stories **S-21.19..S-21.24** plus new **S-21.25**. Wave 6 reached 3-CLEAN by D-1066, then **S-21.19 REOPENED at D-1070** — streak RESET 3/3→0/3, **Wave 6 NO LONGER COMPLETE**. Wave-7 remediation rounds: pass-1/R0 at D-1069/D-1070; pass-2/R1 at D-1071/D-1072; pass-3/R2 at D-1073/D-1074; pass-4/R3 at D-1075; pass-5/R4 at D-1076; **floor-break consistency remediation at D-1077 (this burst)**. D-1077 COMPLETE: full-perimeter consistency-validator audit localized all residue to S-21.21/S-21.22 (7/10 audit classes clean, 4/6 stories residue-free); C-W7-001..005 remediated — decomp-plan §8.8 dedicated `pc6-bash-adapter-sufficiency-snapshot/` path (architect); BC-1.03.017 **v1.25** (product-owner); S-21.21 Task 10a + FSR (story-writer); S-21.22 ceil() ×4 (story-writer); all 5 active stories re-anchored; BC-INDEX **v4.94**; STORY-INDEX **v4.388**. C-W7-006 (ADR-044 body cite) remains deferred per D-1064. trajectory-tail →1→0→1→1, LENGTH=4 (UNCHANGED).
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE PAUSED** post D-1078 remediation. S-21.11 v2.11 previously reached BC-5.39.001 3-CLEAN (D-1056); operator OVERRODE → **SPLIT** (D-1057) into 6 sub-stories **S-21.19..S-21.24** plus new **S-21.25**. Wave 6 reached 3-CLEAN by D-1066, then **S-21.19 REOPENED at D-1070** — streak RESET 3/3→0/3, **Wave 6 NO LONGER COMPLETE**. Wave-7 remediation rounds: pass-1/R0 at D-1069/D-1070; pass-2/R1 at D-1071/D-1072; pass-3/R2 at D-1073/D-1074; pass-4/R3 at D-1075; pass-5/R4 at D-1076; floor-break consistency remediation at D-1077; **pass-6/R5 story remediation at D-1078 (this burst)**. D-1078 COMPLETE: adv-wave7-pass6.md persisted (S-21.19/R5 NOT-CLEAN MED; S-21.20/pass-6 CLEAN → streak 2/3 ADVANCE; S-21.21/pass-6 NOT-CLEAN HIGH; S-21.22/pass-6 NOT-CLEAN MED; S-21.23/pass-6 NOT-CLEAN MED+LOW+LOW); BC-1.03.018 **v1.6** (POLICY-19 ADR-version-pin sweep; product-owner); S-21.19 **v1.9** (R5 ADR-044 split-cite 14-site sweep); S-21.21 **v1.8** (Task 10a flip-conditional guard); S-21.22 **v1.8** (Task 4 cite PC6(ii)→PC6(i)); S-21.23 **v1.6** (plan descriptor + POLICY-19 BC-1.03.018 hygiene); S-21.24 **v1.9** (BC-1.03.018 re-anchor v1.5→v1.6); S-21.20 POLICY-18 inputs fix (ADR-044 added to inputs: + input-hash 33ca0c4→c6a5c6a); BC-INDEX **v4.95**; STORY-INDEX **v4.389**. trajectory-tail →0→1→1→1, LENGTH=4.
 
 ### §2 Convergence Counters
 
-**S-21.19** (v1.8, BC-1.03.017 v1.25): pass-5/R4 NOT-CLEAN remediated D-1076; floor-break re-anchor D-1077 → streak **0/3** (UNCHANGED by remediation); pass-6/R5 NEXT. **S-21.20** (v1.7, BC-1.03.017 v1.25): pass-5 CLEAN → streak **1/3** (UNCHANGED by remediation); pass-6 NEXT. **S-21.21** (v1.7, BC-1.03.017 v1.25): pass-5 NOT-CLEAN remediated D-1076; Task 10a/FSR added D-1077 → streak **0/3** (UNCHANGED by remediation). **S-21.22** (v1.7, BC-1.03.017 v1.25): pass-5 NOT-CLEAN → streak **0/3** (RESET from 1/3 at pass-5; ceil() ×4 fixed D-1077); pass-6 NEXT. **S-21.23** (v1.5, BC-1.03.018 v1.5): pass-5 NOT-CLEAN remediated D-1076 → streak **0/3** (UNCHANGED by D-1077 — S-21.23 had no floor-break residue). **S-21.24** (v1.8, BC-1.03.017 v1.25 + BC-1.03.018 v1.5, Wave 8): STRICTLY LAST — cascade not started. **S-21.25** (v1.5): **3/3 CONVERGED**; held TDD sequencing.
+**S-21.19** (v1.9, BC-1.03.017 v1.25): pass-6/R5 NOT-CLEAN; F-S2119-R5-001 MED (ADR-044 v1.3→v1.1 split-cite at 14 sites) remediated D-1078; streak **0/3** (RESET); pass-7/R6 NEXT. **S-21.20** (v1.7, BC-1.03.017 v1.25): pass-6 CLEAN → streak **2/3 ADVANCE**; pass-7 NEXT. **S-21.21** (v1.8, BC-1.03.017 v1.25): pass-6 NOT-CLEAN; F-S2121-P6-001 HIGH (Task 10a flip-conditional guard missing) remediated D-1078; streak **0/3** (UNCHANGED — was 0/3). **S-21.22** (v1.8, BC-1.03.017 v1.25): pass-6 NOT-CLEAN; F-S2122-P6-001 MED (Task 4 cite PC6(ii)→PC6(i)) remediated D-1078; streak **0/3** (UNCHANGED — was 0/3). **S-21.23** (v1.6, BC-1.03.018 v1.6): pass-6 NOT-CLEAN; F-S2123-P6-001 MED + F-S2123-P6-002/003 LOW remediated D-1078; streak **0/3** (UNCHANGED — was 0/3). **S-21.24** (v1.9, BC-1.03.017 v1.25 + BC-1.03.018 v1.6, Wave 8): STRICTLY LAST — cascade not started; v1.9 re-anchors BC-1.03.018 to v1.6. **S-21.25** (v1.5): **3/3 CONVERGED**; held TDD sequencing.
 
 ### §3 NEXT ACTION (resume)
 
-**Pass-6/R5 dispatch:** Five independent fresh-context adversary cascades (against v1.25/v1.5):
-- S-21.19 (R4 continuation — fourth wave-7 pass; decomp-plan §8.7 additive-framing + §8.8 calibration-ownership anchor; Task 10a new durable gate in v1.8)
-- S-21.20 (pass-6, streak 1/3; preserve CLEAN; all v1.25 re-anchor propagation confirmed)
-- S-21.21 (pass-6, Task 10a dedicated `pc6-bash-adapter-sufficiency-snapshot/` durable gate now in v1.7; PC6 split-ownership per §8.8 fully implemented)
-- S-21.22 (pass-6, ceil() ×4 sibling-sweep complete in v1.7; streak 0/3 — came from RESET at pass-5)
-- S-21.23 (pass-6, AC-022 (e)/(f)/(g) reposition to BC-1.03.018 v1.5 schema fixed in v1.5; S-21.23 unchanged by D-1077)
+**Pass-7/R6 dispatch:** Five independent fresh-context adversary cascades (against BC-1.03.017 v1.25 / BC-1.03.018 v1.6 / ADR-044 v1.3):
+- S-21.19 (R5 continuation — fifth wave-7 pass; ADR-044 split-cite 14-site sweep done in v1.9; streak 0/3 RESET)
+- S-21.20 (pass-7, streak 2/3; preserve CLEAN; all v1.25/v1.6 re-anchor propagation confirmed; POLICY-18 inputs fix confirmed)
+- S-21.21 (pass-7, Task 10a flip-conditional guard added in v1.8; PC6 split-ownership fully implemented; streak 0/3)
+- S-21.22 (pass-7, Task 4 cite PC6(ii)→PC6(i) fixed in v1.8; streak 0/3)
+- S-21.23 (pass-7, plan descriptor + POLICY-19 ADR-version-pin BC-1.03.018 hygiene fixed in v1.6; streak 0/3)
 
-Route: 5 × `vsdd-factory:adversary` dispatches. Each reads ONLY the story + its BC(s) — NO prior pass content. On results: any NOT-CLEAN → remediation burst then pass-7/R5. All CLEAN → all streaks advance; any at 3/3 → TDD sequencing eligible.
+Route: 5 × `vsdd-factory:adversary` dispatches. Each reads ONLY the story + its BC(s) + ADR(s) listed in story frontmatter — NO prior pass content. On results: any NOT-CLEAN → remediation burst then pass-8/R7. All CLEAN → all streaks advance; any at 3/3 → TDD sequencing eligible.
 
 ### §4 Deferred / Owed (with concrete anchors)
 
@@ -236,6 +239,8 @@ Route: 5 × `vsdd-factory:adversary` dispatches. Each reads ONLY the story + its
 - `[P0-followup]` branch-protection enforcement — human/admin action required.
 - `[C-1]...[C-5]` exec_subprocess security findings — ADR-043 NOT RATIFIED.
 - C-W7-006 (ADR-044 v1.18 body cite stale) — deferred per D-1064; architect's next ADR-044 touch.
+- BC-1.03.017 PC6(ii) ceil vs no-ceil behavioral drift (inert) — anchor next BC-1.03.017 touch per D-1078.
+- F-S2120-P6-002 DAG label editorial — anchor next S-21.20 touch per D-1078.
 
 ### §5 Pending Human Decision
 
@@ -244,7 +249,7 @@ Route: 5 × `vsdd-factory:adversary` dispatches. Each reads ONLY the story + its
 ### §6 HEADs
 
 - `develop`: `27c56c01` — CI-GREEN, unchanged.
-- `factory-artifacts`: see `git -C .factory log -1`. D-1077 is this burst — commit PENDING.
+- `factory-artifacts`: see `git -C .factory log -1`. D-1078 is this burst — commit PENDING.
 
 ### §7 Resume Command
 

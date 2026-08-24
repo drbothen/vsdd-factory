@@ -1961,3 +1961,84 @@ D-1077-WAVE7-FLOOR-BREAK-CONSISTENCY-REMEDIATION
 2026-08-24
 
 ---
+
+## D-1078: WAVE7-PASS6-R5-STORY-REMEDIATION
+
+D-1078-WAVE7-PASS6-R5-STORY-REMEDIATION (state-manager, 2026-08-24; four-role burst per TD-VSDD-053 — architect step ①, product-owner step ②, story-writer step ③, state-manager step ④ committed as ONE atomic commit; parent D-1077 `daecbbdb`): **Wave-7 pass-6/R5 adversarial review + remediation burst**. Floor-break audit (D-1077) confirmed effective — all OLD residue classes clean at pass-6 (consistency-validator confirmed zero residue from the D-1077 full-perimeter sweep). Five new novel, decaying-severity findings (TD-VSDD-059/060 recurrence-class; no new codification).
+
+**Pass-6/R5 adversarial review outcomes:**
+
+S-21.19 (R5) NOT-CLEAN — F-S2119-R5-001 MED: ADR-044 v1.3→v1.1 split-cite sweep (14 sites). Streak REMAINS 0/3.
+
+S-21.20 (pass-6) CLEAN — 2 LOW non-resetting (F-S2120-P6-001: ADR-044 missing from inputs:; F-S2120-P6-002: DAG label editorial, deferred). Streak ADVANCES 1/3→2/3.
+
+S-21.21 (pass-6) NOT-CLEAN — F-S2121-P6-001 HIGH: Task 10a ordering hazard — flip-conditional guard missing (snapshot committed this session guard required to prevent redundant re-emission). Streak REMAINS 0/3.
+
+S-21.22 (pass-6) NOT-CLEAN — F-S2122-P6-001 MED: Task 4 cite misattributed PC6(ii)→should be PC6(i) (bash-adapter-class regression is PC6(i) not PC6(ii)/native-WASM). Streak REMAINS 0/3.
+
+S-21.23 (pass-6) NOT-CLEAN — F-S2123-P6-001 MED: plan descriptor missing std::env::var_os-exclusive precision; F-S2123-P6-002/003 LOW: BC-1.03.018 POLICY-19 ADR-version-pin hygiene. Streak REMAINS 0/3.
+
+Full adversary record: `cycles/v1.0-brownfield-backfill/adv-wave7-pass6.md`.
+
+**Spec-layer fixes (product-owner, step ②):**
+
+`BC-1.03.018 v1.5→v1.6` — F-S2123-P6-002 LOW POLICY-19: ADR-version-pin `v1.10` stripped from PC9 `§Decision 3` cite → `§Decision 3 minimum-viable definition`; F-S2123-P6-003 LOW: `std::env::var_os`-exclusive detector-precision examples + accessor-agnostic clarification sentence added. H1 enriched per POLICY 7. input-hash cascade settled: `1b1c570→3bf2a93` (BC-1.03.017 v1.25 stable; ADR-044↔BC-1.03.017 circular-dependency Drift Item re-settled at (ADR-044 v1.3, BC-1.03.017 v1.25) snapshot).
+
+**Decomposition-plan fixes (architect, step ①):**
+
+`S-21.11-decomposition-plan.md §8.8` — Task-10a flip-conditional addendum: guard clause added (only emit durable gate if snapshot committed this session). §S-21.23 descriptor updated to reference `std::env::var_os`-exclusive detector precision per BC-1.03.018 v1.6. S-21.24 PC1–PC12 / 47-AC descriptor fixes applied. input-hash `a373feb→65d6fa3` (BC-1.03.018 v1.6 + STORY-INDEX v4.389 in inputs).
+
+**Story-layer fixes (story-writer, step ③):**
+
+S-21.19 v1.8→v1.9: F-S2119-R5-001 MED: ADR-044 v1.3→v1.1 split-cite sweep (14 sites; foundational split-topology invariant cites use v1.1; flip-capstone ownership cites retain v1.3). input-hash UNCHANGED 3eba350.
+
+S-21.20 UNCHANGED (v1.7) — pass-6 CLEAN, streak ADVANCES 1/3→2/3. Note: F-S2120-P6-001 LOW POLICY-18 frontmatter correction handled by state-manager step ④ (no story version bump).
+
+S-21.21 v1.7→v1.8: F-S2121-P6-001 HIGH: Task 10a conditional preamble added (only emit durable frozen-corpus gate if snapshot committed this session; prevents redundant overwrite on re-runs). input-hash UNCHANGED 1e3efaa.
+
+S-21.22 v1.7→v1.8: F-S2122-P6-001 MED: Task 4 regression-assertion header cite corrected PC6(ii)→PC6(i) (Task 4 bash-adapter-class regression correctly attributed to S-21.21's ownership mandate; S-21.22 owns only PC6(ii)/validate-cross-site-correspondence). input-hash UNCHANGED 3eba350.
+
+S-21.23 v1.5→v1.6: F-S2123-P6-001 MED: plan descriptor updated; F-S2123-P6-002/003 LOW: BC-1.03.018 v1.5→v1.6 re-anchor (behavioral_contracts, H1, all body). input-hash UNCHANGED 33ca0c4.
+
+S-21.24 v1.8→v1.9: BC-1.03.018 v1.5→v1.6 re-anchor (frontmatter behavioral_contracts, H1, all body). input-hash UNCHANGED c6a5c6a.
+
+**State-manager step ④ (this entry):**
+
+POLICY-18 fix: ADR-044 added to S-21.20 frontmatter `inputs:` array; input-hash 33ca0c4→c6a5c6a (recomputed via compute-input-hash --update). Streak ADVANCES 1/3→2/3 confirmed.
+
+BC-INDEX v4.94→v4.95: BC-1.03.018 v1.6 row-sweep (Title cell: POLICY-19 strip + std::env::var_os-exclusive note per POLICY 7; version chain v1.6 entry added; input-hash 1b1c570→3bf2a93 noted). BC-1.03.017 row UNCHANGED (v1.25). total_bcs UNCHANGED 1987.
+
+STORY-INDEX v4.388→v4.389: S-21.19 D-1078 v1.9 entry; S-21.20 D-1078 POLICY-18 hash entry (no version bump); S-21.21 D-1078 v1.8 entry; S-21.22 D-1078 v1.8 entry; S-21.23 D-1078 v1.6 entry; S-21.24 D-1078 v1.9 entry. Input-hash reconciliation complete.
+
+VP-INDEX v2.79 UNCHANGED (VP-TBD POLICY-9-sanctioned; no VP-touching change). ARCH-INDEX v3.79 UNCHANGED.
+
+Deferred DRIFT item recorded: BC-1.03.017 PC6(ii) sufficiency predicate uses `fuel_consumed × 1.5 <= fuel_cap` (no ceil) while affected stories write `ceil(fuel_consumed × 1.5) <= fuel_cap` — mathematically equivalent for integer fuel_cap (surface-only; adversary-confirmed inert; no BC version required). Anchor: next BC-1.03.017 touch.
+
+F-S2120-P6-002 deferred: DAG label editorial `"(REOPENED — ADR-044 v1.2 function-split reconvergence in flight)"` stale but non-load-bearing. Anchor: next S-21.20 touch.
+
+STATE.md v8.61→v8.62: D-1078 Decisions Log row; Phase Progress; Story Status (S-21.19 0/3; S-21.20 2/3 ADVANCE; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3); Concurrent Cycles trajectory-tail →0→1→1→1; frontmatter/Session Resume → pass-7/R6 NEXT.
+
+Summary: Wave-7 pass-6/R5 remediation COMPLETE. Floor-break audit confirmed effective (D-1077). S-21.20 streak ADVANCES 1/3→2/3 (sole CLEAN story pass-6). BC-1.03.018 v1.6 (POLICY-19 hygiene). BC-INDEX v4.95, STORY-INDEX v4.389. Pass-7/R6 dispatch NEXT (5 fresh cascades against v1.25/v1.6). Streaks: S-21.19 0/3; S-21.20 2/3; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3.
+
+### Agents
+
+adversary (fresh-context, 5× dispatches — prior burst results in adv-wave7-pass6.md), architect (decomposition-plan §8.8 flip-conditional + §S-21.23 descriptor), product-owner (BC-1.03.018 v1.6), story-writer (S-21.19/21/22/23/24 remediation), state-manager (adv-wave7-pass6.md + POLICY-18 S-21.20 fix + BC-INDEX + STORY-INDEX + decision-log + STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v4.94 | v4.95 |
+| STORY-INDEX | v4.388 | v4.389 |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.79 | v3.79 (UNCHANGED) |
+
+### Phase
+
+D-1078-WAVE7-PASS6-R5-STORY-REMEDIATION
+
+### Date
+
+2026-08-24
+
+---
