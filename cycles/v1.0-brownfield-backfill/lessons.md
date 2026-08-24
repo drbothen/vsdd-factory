@@ -213,3 +213,19 @@ threshold) rather than relying on an AI agent noticing the file is large during 
 `[process-gap; cycle-log-bloat; wasm-fuel-exhaustion; burst-fragility; state-manager;
 D-954; D-442(e); D-1057; D-1066; D-1067; S-15.03-PRIORITY-A; compact-state-asymmetry;
 section-aware-archival]`
+
+---
+
+**Wave-7 floor-break (D-1077): consolidated full-perimeter consistency audit broke the asymptotic
+floor in a single pass — process technique, not a defect.**
+
+At D-1076 HEAD, a consolidated full-perimeter consistency-validator audit (all 10 audit classes,
+all 6 stories simultaneously) surfaced all five remaining residual findings (C-W7-001..C-W7-005)
+in one pass rather than the one-or-two-per-pass asymptotic pattern observed in prior Wave-7
+rounds. This is a process-technique effect: the full-perimeter audit eliminates the partial-scan
+selection bias that would cause some cross-story sibling-sweep misses to go undetected until a
+later pass. The findings themselves were consistent with already-codified TD-VSDD-059/060
+patterns (sibling-sweep misses, missing durable-gate task, missing FSR entry) — no new failure
+mode or new codification was required. References: TD-VSDD-059 (paper-fix detection), TD-VSDD-060
+(sibling-site sweep). `[process-technique; full-perimeter-audit; floor-breaking; consistency-validator;
+TD-VSDD-059; TD-VSDD-060; D-1077; asymptotic-convergence; wave-7]`

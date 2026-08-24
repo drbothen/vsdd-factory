@@ -1882,3 +1882,82 @@ D-1076-WAVE7-PASS5-R4-STORY-REMEDIATION
 2026-08-23
 
 ---
+
+## D-1077: WAVE7-FLOOR-BREAK-CONSISTENCY-REMEDIATION
+
+D-1077-WAVE7-FLOOR-BREAK-CONSISTENCY-REMEDIATION (state-manager, 2026-08-24; four-role burst per TD-VSDD-053 — architect step ①, product-owner step ②, story-writer step ③, state-manager step ④ committed as ONE atomic commit; parent D-1076 `0dec5acd`): **Wave-7 floor-breaking full-perimeter consistency-validator audit + remediation burst** triggered by a D-1076 HEAD full-perimeter re-run that localized all residue to S-21.21 and S-21.22 after confirming 7/10 audit classes clean and 4/6 stories residue-free.
+
+**Full-perimeter audit outcome (D-1076 HEAD consistency-validator pass):**
+
+7/10 audit classes clean. 4/6 stories residue-free (S-21.19, S-21.20, S-21.23, S-21.24 — only S-21.24 is a re-anchor-only target). Residue localized to S-21.21 and S-21.22.
+
+**Findings C-W7-001..C-W7-005 (all remediated this burst):**
+
+**C-W7-001 HIGH (S-21.22 AC-007 body description):** `fuel_consumed × 1.5` missing `ceil()` wrapper — "asserts `fuel_consumed × 1.5 <= registry fuel_cap`" should be "asserts `ceil(fuel_consumed × 1.5) <= registry fuel_cap`". TD-VSDD-060 sibling-sweep miss from pass-5/R4 burst.
+
+**C-W7-002 HIGH (S-21.22 AC-007 Test bullet):** `fuel_consumed × 1.5 <= registry fuel_cap` missing `ceil()` — same class as C-W7-001.
+
+**C-W7-003 HIGH (S-21.22 Task 4 regression assertion + Task 5a standing-gate assertion):** Two further body occurrences of `fuel_consumed × 1.5 <=` missing `ceil()`. Full TD-VSDD-060 sweep: four occurrences total (AC-007 body, AC-007 Test bullet, Task 4, Task 5a); no fifth occurrence confirmed.
+
+**C-W7-004 HIGH (S-21.21 Task 10a — durable gate task missing):** S-21.21 had no dedicated durable standing CI gate task for its bash-adapter plugins. Per §8.8 S-21.21 owns BOTH the one-time confirmation (Tasks #6–#15) AND the durable CI frozen-corpus gate — but only Task 10 (one-time confirm) existed; no Task 10a. The gap means the durable gate for the five bash-adapter plugins was architecturally unanchored. Resolution: added Task 10a — `test_bash_adapter_plugins_fuel_cap_sufficiency()` committing `pc6-bash-adapter-sufficiency-snapshot/` and asserting `ceil(fuel_consumed × 1.5) <= registry fuel_cap` per plugin against FROZEN corpus; placed between Task 10 and Task 11.
+
+**C-W7-005 HIGH (S-21.21 FSR — missing `pc6-bash-adapter-sufficiency-snapshot/` entry):** File Structure Requirements had no entry for the new dedicated directory or test file introduced by C-W7-004. Resolution: FSR entry added for `pc6-bash-adapter-sufficiency-snapshot/` and `bash_adapter_fuel_cap_sufficiency.rs`.
+
+**C-W7-006 (ADR-044 v1.18 body cite) DEFERRED:** Remains deferred per D-1064 — fix at architect's next ADR-044 touch (existing Drift Item).
+
+**Spec-layer fixes (product-owner, step ②):**
+
+`BC-1.03.017 v1.24→v1.25` — C-W7-004/005 HIGH: Precondition 6 description updated to reflect adapter-class-specific FROZEN corpus snapshots (not a single shared `pc6-sufficiency-snapshot/`); S-21.21's durable gate path renamed `pc6-bash-adapter-sufficiency-snapshot/` (dedicated directory per §8.8 calibration-ownership); H1 enriched per POLICY 7 to reflect dedicated path. VP-TBD two-snapshot split noted (Phase-6 formal-verifier anchor, POLICY-9-sanctioned). ADR-044↔BC-1.03.017 cascade resettled at (ADR-044 v1.3, BC-1.03.017 v1.25) snapshot — underlying circular-dependency design defect NOT resolved (existing Drift Item [D-1070/D-1076]). input-hash 1c300e8 (BC's own inputs ADR-039/ADR-042/ADR-044/research unchanged; hash stable).
+
+**Decomposition-plan fixes (architect, step ①):**
+
+`S-21.11-decomposition-plan.md §8.8` — Updated to use dedicated `pc6-bash-adapter-sufficiency-snapshot/` path for S-21.21's durable gate (closes C-W7-004/005 architectural anchor). Description stabilized to match BC-1.03.017 v1.25 language. input-hash `234548c→6757383` (compute-input-hash --update executed; BC-1.03.017 v1.25 now in inputs).
+
+**Story-layer fixes (story-writer, step ③):**
+
+S-21.19 v1.7→v1.8: BC-1.03.017 v1.24→v1.25 re-anchor only. input-hash UNCHANGED 3eba350.
+
+S-21.20 v1.6→v1.7: BC-1.03.017 v1.24→v1.25 re-anchor (frontmatter, H1, Narrative, Context/Finding Summary, all 18 AC-024–AC-041 headers, BC table version, Token Budget, Architecture Compliance Rules). input-hash UNCHANGED 33ca0c4.
+
+S-21.21 v1.6→v1.7: C-W7-004 HIGH Task 10a added (bash-adapter durable frozen-corpus CI gate, `pc6-bash-adapter-sufficiency-snapshot/`) + C-W7-005 HIGH FSR entry for new directory and test file + BC-1.03.017 v1.24→v1.25 re-anchor. input-hash UNCHANGED 1e3efaa.
+
+S-21.22 v1.6→v1.7: C-W7-001/002/003 HIGH ceil() wrapper added to four body occurrences (AC-007 body, AC-007 Test bullet, Task 4, Task 5a) per TD-VSDD-060 exhaustive sibling sweep + BC-1.03.017 v1.24→v1.25 re-anchor. input-hash UNCHANGED 3eba350.
+
+S-21.23 UNCHANGED (v1.5) — residue-free; no touch this burst.
+
+S-21.24 v1.7→v1.8: BC-1.03.017 v1.24→v1.25 re-anchor only. input-hash UNCHANGED c6a5c6a.
+
+**State-manager index work (this step ④):**
+
+BC-INDEX v4.93→v4.94: BC-1.03.017 v1.25 row-sweep (Title cell re-enriched per POLICY 7: dedicated `pc6-bash-adapter-sufficiency-snapshot/` path for S-21.21's durable gate, adapter-class-specific snapshot language; v1.25 version chain entry; closes C-W7-004/005 HIGH per POLICY 7/8). BC-1.03.018 row UNCHANGED (v1.5). total_bcs UNCHANGED 1987.
+
+STORY-INDEX v4.387→v4.388: 5 story rows updated (BC-anchor v1.24→v1.25; S-21.20 title-cell v1.24→v1.25; D-1077 version chain entries). S-21.23 UNCHANGED. input-hash: decomposition-plan `234548c→6757383` (compute-input-hash --update confirmed); story files all hash-current (no BC in their inputs lists, re-verified).
+
+VP-INDEX v2.79 UNCHANGED (VP-TBD deferral POLICY-9-sanctioned; no VP-touching change this burst). ARCH-INDEX v3.79 UNCHANGED (no ADR touched this burst; ADR-044 body-cite re-target to v1.25 OWED to architect per existing Drift Item [D-1064]).
+
+STATE.md advance: v8.60→v8.61 (D-1077 Decisions Log row; Phase Progress row; Story Status; Concurrent Cycles UNCHANGED trajectory-tail; frontmatter; Session Resume Checkpoint → pass-6/R5 NEXT against v1.25/v1.5). Streaks UNCHANGED by remediation: S-21.20 1/3; S-21.19/21/22/23 all 0/3.
+
+Summary: Wave-7 floor-break consistency remediation COMPLETE; decomp-plan §8.8 `pc6-bash-adapter-sufficiency-snapshot/` (architect); BC-1.03.017 v1.25 dedicated-path (product-owner); S-21.19 v1.8/S-21.20 v1.7/S-21.21 v1.7/S-21.22 v1.7/S-21.24 v1.8 re-anchored (story-writer); BC-INDEX v4.94, STORY-INDEX v4.388; pass-6/R5 dispatch NEXT (5 fresh cascades against v1.25/v1.5). Streaks UNCHANGED: S-21.19 0/3; S-21.20 1/3; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3.
+
+### Agents
+
+consistency-validator (full-perimeter audit), architect (decomposition-plan §8.8 path stabilization), product-owner (BC-1.03.017 v1.25), story-writer (S-21.19/S-21.21/S-21.22 remediation + S-21.20/S-21.24 re-anchor), state-manager (BC-INDEX + STORY-INDEX + STATE.md + decision-log + lessons)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v4.93 | v4.94 |
+| STORY-INDEX | v4.387 | v4.388 |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.79 | v3.79 (UNCHANGED) |
+
+### Phase
+
+D-1077-WAVE7-FLOOR-BREAK-CONSISTENCY-REMEDIATION
+
+### Date
+
+2026-08-24
+
+---
