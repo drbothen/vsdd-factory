@@ -1805,3 +1805,80 @@ D-1075-WAVE7-PASS4-R3-STORY-REMEDIATION
 2026-08-23
 
 ---
+
+## D-1076: WAVE7-PASS5-R4-STORY-REMEDIATION
+
+D-1076-WAVE7-PASS5-R4-STORY-REMEDIATION (state-manager, 2026-08-23; four-role burst per TD-VSDD-053 — architect step ①, product-owner step ②, story-writer step ③, state-manager step ④ committed as ONE atomic commit; parent D-1075 `196ba85e`): **Wave-7 pass-5/R4 fresh-context adversary round findings remediated** across decomposition-plan (architect), spec-layer (product-owner), and story-layer (story-writer + state-manager).
+
+**Pass-5/R4 outcomes (from adv-wave7-pass5.md):**
+
+**S-21.19 R4 NOT-CLEAN** — F-S2119-R4-001 HIGH (decomposition-plan §8.7 literal-replacement framing contradicts ADR-044 v1.3 ADDITIVE-then-migrate invariant) + F-S2119-R4-002 LOW non-resetting (ADR-044 v1.3 cite pairing lacks ADDITIVE context anchor). Streak: **REMAINS 0/3**.
+
+**S-21.20 pass-5 CLEAN** — 2 LOW non-resetting findings folded (title-cell ceil() abbreviation; ADR-044 v1.2 historical descriptor). Streak: **ADVANCES 0/3→1/3**.
+
+**S-21.21 pass-5 NOT-CLEAN** — F-S2121-P5-001 HIGH (BC-1.03.017 v1.23 PC6 calibration-ownership over-reach: asserts S-21.22 owns ALL six validator calibration checks; architecturally impossible — S-21.21 owns the five bash-adapter-plugin checks) + F-S2121-P5-002 MED (ceil() Task 11 sibling sweep miss; TD-VSDD-060) + F-S2121-P5-003 LOW non-resetting (title-cell, folded). Streak: **REMAINS 0/3**.
+
+**S-21.22 pass-5 NOT-CLEAN** — F-S2122-P5-001 MED (Token Budget ADR-044 v1.1 stale cite; POLICY 19) + F-S2122-P5-002 MED (title-cell ceil() sibling-sweep miss; TD-VSDD-060). Streak: **RESETS 1/3→0/3**.
+
+**S-21.23 pass-5 NOT-CLEAN** — F-S2123-P5-001 HIGH (AC-022 control-letter (e)/(f) misaligned to BC-1.03.018 v1.5 PC9 seven-partition; (f)=COMMENT-ONLY, (g)=LIVE-TREE; story was at old (f)=LIVE-TREE position, missing new (g); CWE-636 fixture failure). Streak: **REMAINS 0/3**.
+
+All five NOT-CLEAN findings are TD-VSDD-059/060 recurrence-class partial-fix/sibling-sweep gaps from the pass-4 remediation. No new codification needed — already-codified pattern.
+
+**Decomposition-plan fixes (architect, step ①):**
+
+`S-21.11-decomposition-plan.md §8.7→v1.3` — Rewritten to ADR-044 v1.3 ADDITIVE-then-migrate: S-21.21 RETAINS the existing 2-arg `plugin_fail_closed` call AND ADDS `plugin_fail_closed_on_error_exit` alongside it (OR-combined), NOT a literal replacement; closes F-S2119-R4-001 HIGH. New `§8.8 Calibration-Ownership Matrix` added: S-21.21 OWNS BOTH calibration checks (one-time confirmation Tasks #6–#15, after AMD-002 wiring fix GREEN, AND durable CI gate Task 5a frozen `pc6-sufficiency-snapshot/`) for the FIVE legacy-bash-adapter.wasm-hosted plugins; S-21.22 OWNS BOTH checks (Tasks #1–#5 one-time confirmation AND Task 5a frozen snapshot durable CI gate) for the ONE native-WASM plugin `validate-cross-site-correspondence` ONLY. Rationale: per-story ownership preserves wave-7 parallelism (no `depends_on` edge between S-21.21 and S-21.22); routing S-21.21's five-plugin sufficiency gates to S-21.22 would create a false sequential DAG dependency and inflate S-21.22's scope beyond its native-WASM-only mandate. input-hash `e89dac3→d77241f` (compute-input-hash --update executed).
+
+**Spec-layer fixes (product-owner, step ②):**
+
+`BC-1.03.017 v1.23→v1.24` — (F-S2121-P5-001 HIGH) PC6 calibration-ownership over-reach corrected to split-ownership matrix per §8.8: S-21.21 OWNS BOTH checks — one-time calibration confirmation (Tasks #6–#15, after AMD-002 wiring fix GREEN) and durable CI gate (Task 5a frozen `pc6-sufficiency-snapshot/`) — for the FIVE bash-adapter plugins; S-21.22 OWNS BOTH checks — one-time confirmation (Tasks #1–#5) and durable CI gate (Task 5a frozen snapshot) — for `validate-cross-site-correspondence` ONLY. Per-story split ownership preserves wave-7 parallelism. H1 enriched per POLICY 7 to reflect split ownership. Sibling sweep (TD-VSDD-060): only PC6 and H1 carried the over-reach claim; Architecture Anchors, Canonical Test Vectors, VP Anchors, Verification Properties, Traceability, and historical records verified free of this assertion. input-hash 1c300e8 (ADR-044↔BC-1.03.017 circular-inputs cascade resettled at (ADR-044 v1.3, BC-1.03.017 v1.24) snapshot per existing Drift Item; underlying design defect NOT resolved — anchored to future architect touch).
+
+**Story-layer fixes (story-writer, step ③):**
+
+S-21.19 v1.6→v1.7: F-S2119-R4-001 ADR-044 v1.3 ADDITIVE context anchor added to Task 5a cite + F-S2119-R4-002 LOW cite pairing. BC-1.03.017 v1.23→v1.24 re-anchor. input-hash UNCHANGED 3eba350.
+
+S-21.20 v1.5→v1.6: 2 LOW folded (title-cell ceil() abbreviation, ADR-044 v1.2 historical descriptor). BC-1.03.017 v1.23→v1.24 re-anchor. input-hash UNCHANGED 33ca0c4.
+
+S-21.21 v1.5→v1.6: F-S2121-P5-001 HIGH PC6 calibration-ownership task framing corrected to §8.8 split-ownership (S-21.21 owns five bash-adapter plugins' checks, S-21.22 owns native-WASM check only) + F-S2121-P5-002 MED ceil() Task 11 + F-S2121-P5-003 LOW title-cell folded. BC-1.03.017 v1.23→v1.24 re-anchor. input-hash UNCHANGED 1e3efaa.
+
+S-21.22 v1.5→v1.6: F-S2122-P5-001 MED ADR-044 v1.1→v1.3 Token Budget cite + F-S2122-P5-002 MED title-cell ceil(). BC-1.03.017 v1.23→v1.24 re-anchor. input-hash UNCHANGED 3eba350.
+
+S-21.23 v1.4→v1.5: F-S2123-P5-001 HIGH AC-022 control-letter corrected to (f)=COMMENT-ONLY, (g)=LIVE-TREE per BC-1.03.018 v1.5 PC9 seven-partition. BC-1.03.018 v1.5 BC-anchor UNCHANGED. input-hash UNCHANGED 33ca0c4.
+
+S-21.24 v1.6→v1.7: BC-1.03.017 v1.23→v1.24 re-anchor only. No pass-5 adversary result (own cascade STRICTLY LAST, Wave 7 not yet converged). input-hash UNCHANGED c6a5c6a.
+
+**State-manager index work (this step ④):**
+
+BC-INDEX v4.92→v4.93: BC-1.03.017 v1.24 row-sweep (Title cell re-enriched per POLICY 7: PC6 split-ownership per §8.8 replaces v1.23 over-reach claim; v1.24 version chain entry; closes F-S2121-P5-001 HIGH per POLICY 7/8). BC-1.03.018 row UNCHANGED (v1.5 no new version this burst). total_bcs UNCHANGED 1987.
+
+STORY-INDEX v4.386→v4.387: all 6 story rows updated (BC-anchor v1.23→v1.24 for BC-1.03.017 stories; S-21.20 title-cell BC version cite updated; D-1076 version chain entries). input-hash: decomposition-plan `e89dac3→d77241f` (compute-input-hash --update confirmed); story files all UNCHANGED.
+
+VP-INDEX v2.79 UNCHANGED (no VP-touching change this burst; VP-TBD deferral POLICY-9-sanctioned). ARCH-INDEX v3.79 UNCHANGED (no ADR touched this burst; ADR-044 body-cite re-target to v1.24 OWED to architect per existing Drift Item [D-1064]).
+
+STATE.md advance: v8.59→v8.60 (D-1076 Decisions Log row; Phase Progress row; Story Status; Concurrent Cycles trajectory-tail →1→0→1→1, LENGTH=4; frontmatter; Session Resume Checkpoint → "pass-6/R5 dispatch NEXT (5 fresh cascades against v1.24/v1.5)"). trajectory-tail updated: pass-5 S-21.20 CLEAN +1, S-21.22 RESET -1, net = →1→0→1→1 LENGTH=4.
+
+adv-wave7-pass5.md persisted: `cycles/v1.0-brownfield-backfill/adv-wave7-pass5.md`. Pipeline PAUSED. Session Resume Checkpoint updated to point at pass-6/R5 as NEXT.
+
+Summary: Wave-7 pass-5/R4 remediation burst COMPLETE; decomposition-plan §8.7+§8.8 (architect); BC-1.03.017 v1.24 split-ownership (product-owner); S-21.19 v1.7/S-21.20 v1.6/S-21.21 v1.6/S-21.22 v1.6/S-21.23 v1.5/S-21.24 v1.7 re-anchored (story-writer); BC-INDEX v4.93, STORY-INDEX v4.387; pass-6/R5 dispatch NEXT (5 independent fresh-context cascades). Streaks: S-21.19 0/3; S-21.20 1/3; S-21.21 0/3; S-21.22 0/3; S-21.23 0/3.
+
+### Agents
+
+adversary (fresh-context, 5× dispatches — prior burst results in adv-wave7-pass5.md), architect (decomposition-plan §8.7 + §8.8), product-owner (BC-1.03.017 v1.24), story-writer (S-21.19..S-21.24 re-anchor), state-manager (BC-INDEX + STORY-INDEX + STATE.md + decision-log)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v4.92 | v4.93 |
+| STORY-INDEX | v4.386 | v4.387 |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.79 | v3.79 (UNCHANGED) |
+
+### Phase
+
+D-1076-WAVE7-PASS5-R4-STORY-REMEDIATION
+
+### Date
+
+2026-08-23
+
+---
