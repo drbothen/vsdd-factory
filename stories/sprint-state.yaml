@@ -8,7 +8,7 @@ last_updated: 2026-05-05
 next_milestone: v1.1 (E-8 W-15 complete; E-9 W-16 pending)
 
 # Per-story status list (BC-5.41.004 PC1-PC4; wave-ascending topo-sort per EC-003)
-# 172 non-retired stories; retired stories omitted per PC4
+# 189 non-retired stories; retired stories omitted per PC4
 # Status enum (INV-1): draft|ready|in-progress|partial|blocked|merged|withdrawn|cancelled
 stories:
   # --- terminal prefix (depth-ascending, lex tie-break within depth; def-b full-graph wave-depth ADR-026 §Decision 3a v1.37 / BC-5.41.004 v1.4 PC3) ---
@@ -281,6 +281,8 @@ stories:
     status: draft
   - id: S-21.15
     status: draft
+  - id: S-21.25
+    status: draft
   - id: S-4.11
     status: draft
   - id: S-7.04
@@ -315,6 +317,8 @@ stories:
     status: draft
   - id: S-21.11
     status: draft
+  - id: S-21.19
+    status: draft
   - id: S-7.07
     status: draft
   - id: S-7.09
@@ -325,13 +329,25 @@ stories:
     status: draft
   - id: S-2.05
     status: partial
+  - id: S-21.20
+    status: draft
+  - id: S-21.21
+    status: draft
+  - id: S-21.22
+    status: draft
+  - id: S-21.23
+    status: draft
   - id: S-21.13
+    status: draft
+  - id: S-21.24
     status: draft
   - id: S-10.06
     status: draft
   - id: S-3.04
     status: partial
   - id: S-10.07
+    status: draft
+  - id: S-21.16
     status: draft
   - id: S-10.08
     status: draft
