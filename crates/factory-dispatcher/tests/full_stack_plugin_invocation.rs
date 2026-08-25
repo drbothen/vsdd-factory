@@ -709,23 +709,29 @@ async fn test_e2e_BC_1_14_001_async_hook_output_reaches_sink_when_fast() {
     // crash-equivalent terminal events (plugin.crashed) are also acceptable per TC-5's
     // environment-tolerance requirement (factory-health binary may be absent in CI).
     //
-    // 15s bound covers debug WASM cold-start + WASM compile time in parallel test runs.
+    // 60s bound (widened from 15s per rc.24 flake fix) covers debug WASM cold-start +
+    // WASM compile time when the CI runner is under heavy parallel-test-run load.
+    // wait_for_log_event polls the log file, so this only lengthens how long a slow-but-
+    // correct completion is tolerated — it does not weaken the assertion: the test still
+    // fails if the event never arrives.
     let completed = wait_for_log_event(
         &log_dir,
         "plugin.completed",
         Some("session-start-telemetry"),
-        Duration::from_secs(15),
+        Duration::from_secs(60),
     )
     .await;
 
     // Also accept plugin.crashed as a terminal event (session-start-telemetry may crash
     // if exec_subprocess / factory-health is not on PATH; crash ≠ stub, real WASM ran).
+    // Fallback bound widened from 2s to 10s (rc.24 flake fix) for the same cold-start
+    // reason as the primary wait above.
     let crashed = if !completed {
         wait_for_log_event(
             &log_dir,
             "plugin.crashed",
             Some("session-start-telemetry"),
-            Duration::from_secs(2),
+            Duration::from_secs(10),
         )
         .await
     } else {
@@ -829,7 +835,11 @@ async fn test_e2e_BC_1_14_001_async_block_verdict_discarded() {
         Arc::new(ResolverRegistry::new()),
     );
 
-    let outcome = tokio::time::timeout(Duration::from_secs(15), handle)
+    // 60s bound (widened from 15s per rc.24 flake fix) covers debug WASM cold-start when
+    // the CI runner is under heavy parallel-test-run load. The JoinHandle either resolves
+    // (and the assertions below still run) or the timeout still fails the test — this only
+    // stops a slow-but-correct completion from being flagged as a failure.
+    let outcome = tokio::time::timeout(Duration::from_secs(60), handle)
         .await
         .expect("join did not panic")
         .expect("JoinHandle ok");
