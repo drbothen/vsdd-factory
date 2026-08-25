@@ -57,6 +57,9 @@ jobs:
         # separate compile-only pre-build step is no longer needed — running
         # the full suite once here, before ./run-all.sh, avoids paying to
         # compile factory-dispatcher's test targets twice.
+        env:
+          CI_REQUIRE_ARTIFACTS: "1"
+          VSDD_CORPUS_ROOT: ${{ github.workspace }}/.factory
         run: cargo test --workspace --all-targets
 
       - name: Run test suite
