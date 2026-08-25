@@ -1306,6 +1306,15 @@ EOF
 # "**retired**". Rows with "merged [deprecated...]" are NOT retired — they are merged
 # stories with deprecation notes and ARE included in the non-retired set.
 #
+# Superseded-story detection: a story row is "superseded" when its row contains the
+# text "**SUPERSEDED" (e.g. STORY-INDEX's "**SUPERSEDED (D-1057)**" status cell for
+# S-21.11). Superseded is a TERMINAL status identical in kind to retired for
+# sprint-state purposes — the story has been split/replaced and is no longer
+# independently delivery-tracked, so it is excluded from both PC4 completeness
+# (not required to appear in sprint-state.yaml) and PC2 status-fidelity (not
+# looked up for a matching status). Its successor stories carry their own rows
+# and ARE subject to the normal PC4/PC2 checks.
+#
 # Status extraction from STORY-INDEX: the Status column is identified dynamically
 # from the "| Story ID |" header row (portable across 7-col and 8-col table variants).
 # Only the FIRST space-delimited token of the Status cell is compared (e.g., "merged"
@@ -1338,11 +1347,12 @@ EOF
 
   # ---------------------------------------------------------------------------
   # ASSERT 1 — PC4 completeness: derive non-retired IDs from STORY-INDEX.
-  # Non-retired rows: start with "| S-" and do NOT contain "**retired**".
+  # Non-retired rows: start with "| S-" and do NOT contain "**retired**" or
+  # "**SUPERSEDED" (superseded is terminal, handled identically to retired).
   # ---------------------------------------------------------------------------
   local idx_ids
   idx_ids="$(awk -F'|' '
-    /^\| S-/ && !/\*\*retired\*\*/ {
+    /^\| S-/ && !/\*\*retired\*\*/ && !/\*\*SUPERSEDED/ {
       sid=$2; gsub(/^[[:space:]]+|[[:space:]]+$/, "", sid); print sid
     }
   ' "${story_index}" | sort)"
@@ -1433,7 +1443,7 @@ EOF
         }
         next
       }
-      status_col > 0 && /^\| S-/ && !/\*\*retired\*\*/ {
+      status_col > 0 && /^\| S-/ && !/\*\*retired\*\*/ && !/\*\*SUPERSEDED/ {
         sid_val=$2; gsub(/^[[:space:]]+|[[:space:]]+$/, "", sid_val)
         if (sid_val == story) {
           val=$status_col; gsub(/^[[:space:]]+|[[:space:]]+$/, "", val)
