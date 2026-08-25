@@ -105,8 +105,10 @@ setup() {
   # diagnostic text (e.g. registry/index warnings), producing a false FAIL that
   # has nothing to do with the actual wasmtime-wasi version.
   local metadata_json metadata_exit
+  set +e
   metadata_json=$(cd "$REPO_ROOT" && cargo metadata --format-version 1 --locked 2>/dev/null)
   metadata_exit=$?
+  set -e
 
   if [ "$metadata_exit" -ne 0 ] || [ -z "$metadata_json" ]; then
     # This job runs bats in an environment where `cargo metadata` is not
