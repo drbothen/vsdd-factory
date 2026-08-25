@@ -2183,3 +2183,48 @@ D-1080-WAVE7-PASS8-R7-STORY-REMEDIATION
 2026-08-24
 
 ---
+
+## D-1081
+
+**D-1081-WAVE7-PASS9-RECORDED-HELD**
+
+Wave-7 pass-9/R8 adversary cascade (adv-wave7-pass9.md) dispatched against BC-1.03.017 v1.27 / BC-1.03.018 v1.6 / ADR-044 v1.3 / ADR-039 v1.16. Results: S-21.22 pass-9 CLEAN (streak 0/3→1/3); S-21.19 R8 NOT-CLEAN (F-S2119-R8-001 HIGH line-wrapped BC-1.03.017 v1.26 cite; F-S2119-R8-002 MED ADR-039 AMD-002 pin); S-21.20 pass-9 NOT-CLEAN (F-S2120-P9-001 MED AC-022 narrative over-scope; F-S2120-P9-002 LOW [[hook]]→[[hooks]]); S-21.21 pass-9 NOT-CLEAN (F-S2121-P9-001 HIGH 6 anchor-interposed ADR-039 pins; F-S2121-P9-002 MED [process-gap] detector regex blind to anchor-interposed forms); S-21.23 pass-9 NOT-CLEAN (F-S2123-P9-001 HIGH line-wrapped ADR-039 §Decision 3 v1.10 in BC-1.03.018 Invariant 6; F-S2123-P9-002 LOW [process-gap] single-line-grep blind).
+
+**Disposition: NOT REMEDIATED.** All pass-9 findings are instances of two root-cause classes: (a) version-pin propagation churn (HIGH finds are structurally invisible to grep-based detectors via line-wrap or anchor interposition); (b) detector-architecture [process-gap] (MED/LOW finds identify tooling blindness, not story defects). Manual remediation would advance BC/ADR versions, regenerating new cohort-wide cites — the structural floor identified across passes 4–9. Pipeline PIVOTED to external research → ADR-045 proposal.
+
+**ADR-045 PROPOSED (stable-anchor cross-reference architecture; architect; 2026-08-24):**
+
+ADR-045 v1.0 proposes three decisions: (1) replace inline `BC vN.NN` / `ADR §Decision N vN.NN` version-pin cites with stable fingerprint anchors (function/invariant name, heading text); (2) introduce an AST-based suspect-link validator (Doorstop fingerprint/suspect-link model) that detects stale cites by document fingerprint comparison rather than version-string grep; (3) establish a corpus-migration epic to retroactively replace all existing version-pin cites. Subsystems: SS-01, SS-04, SS-05, SS-07. Research grounded in `.factory/research/wave7-xref-consistency-research.md`. Status: proposed. HUMAN RATIFICATION REQUIRED via POLICY 22 channel. POLICY 7/8/14/17/19 amendments deferred to ratification burst.
+
+**Wave-7 pre-TDD cascade HELD:** Wave-7 is neither accepted (findings open) nor converged (streaks: S-21.22 1/3; S-21.19/20/21/23 0/3). Cascade HELD pending ADR-045 ratification, which unblocks the validator-build + corpus-migration epic. S-21.22 streak 1/3 and S-21.25 3/3 CONVERGED status are unaffected by the HELD state.
+
+**ARCH-INDEX v3.79→v3.80:**
+
+ADR-045 row appended to ARCH-INDEX after ADR-044 row. ADR count 44→45. ARCH-INDEX version: v3.79→v3.80. Frontmatter last_amended prepended (D-1081 entry). VP-INDEX v2.79 UNCHANGED. BC-INDEX v4.97 UNCHANGED. STORY-INDEX v4.391 UNCHANGED.
+
+**STATE.md v8.64→v8.65:** D-1081 Decisions Log row; Phase Progress D-1081 row; Current Phase Steps scroll (D-1076 archived, D-1081 added); Identifier Conventions ADR count 44→45, ARCH-INDEX v3.80; Story Status (S-21.22 streak 0/3→1/3; others UNCHANGED); Blocking Issues ADR-045 HUMAN RATIFICATION GATE added; Drift Items Wave-7 version/ADR-pin propagation tail + 3 [process-gap] detector-completeness items added; trajectory-tail →1→1→0→1, LENGTH=4; Active Branches / Concurrent Cycles updated; Session Resume → Wave-7 HELD pending ADR-045 ratification.
+
+Summary: Wave-7 pass-9/R8 RECORDED and HELD. S-21.22 CLEAN (streak 1/3). S-21.19/20/21/23 NOT-CLEAN (all version/ADR-pin class or detector [process-gap]). NOT remediated — pipeline pivoted to ADR-045 stable-anchor architecture proposal. Wave-7 pre-TDD cascade HELD pending human ratification. ARCH-INDEX v3.80 (ADR count 44→45). Streaks: S-21.22 1/3; S-21.19 0/3; S-21.20 0/3; S-21.21 0/3; S-21.23 0/3. NEXT: human ADR-045 ratification decision.
+
+### Agents
+
+adversary (fresh-context, 5× dispatches — results in adv-wave7-pass9.md), architect (ADR-045 v1.0 proposal), state-manager (adv-wave7-pass9.md persist + ARCH-INDEX v3.80 + decision-log D-1081 + STATE.md v8.65)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v4.97 | v4.97 (UNCHANGED) |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.79 | v3.80 |
+
+### Phase
+
+D-1081-WAVE7-PASS9-RECORDED-HELD
+
+### Date
+
+2026-08-24
+
+---
