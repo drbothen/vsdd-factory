@@ -516,4 +516,31 @@ _scan_bare_literals() {
     echo "T-012: filter scope drifted — update either the filter or this count."
     false
   fi
+
+  # Identity gate: a count-only check ("running 6 tests") would still pass
+  # if a filter typo swapped in six DIFFERENT tests that happen to also
+  # match "s19_09" (e.g. a future rename collision). Assert each of the six
+  # documented test names individually appears in the output, not just the
+  # aggregate count.
+  local expected_tests=(
+    "t001_s19_09_read_prefix_instantiates_without_link_error_via_production_linker"
+    "t002_s19_09_read_prefix_round_trip_bytes_correct_and_out_ptr_nonzero_via_production_path"
+    "t002b_s19_09_read_prefix_head_c_bound_clamps_out_len_to_max_bytes"
+    "t003_s19_09_read_prefix_capability_absent_returns_capability_denied_via_production_path"
+    "t015_s19_09_read_prefix_empty_file_returns_ok_with_zero_ptr_len_no_grow"
+    "test_s19_09_t013_emit_plugin_completed_async_has_timestamp_field"
+  )
+  local missing_tests=()
+  for t in "${expected_tests[@]}"; do
+    echo "$output" | grep -qF "$t" || missing_tests+=("$t")
+  done
+  if [ "${#missing_tests[@]}" -gt 0 ]; then
+    echo "FAIL: the 's19_09' filter matched 6 tests by count, but by NAME the"
+    echo "following documented test(s) are missing from the output (a wrong-test"
+    echo "filter-typo scenario, not just a wrong-count scenario):"
+    printf '  missing: %s\n' "${missing_tests[@]}"
+    echo "--- actual test names in output ---"
+    echo "$output" | grep -E "^test .* \.\.\. (ok|FAILED)" || true
+    false
+  fi
 }

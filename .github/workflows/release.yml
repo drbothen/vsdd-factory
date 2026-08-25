@@ -31,15 +31,33 @@ jobs:
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
 
-      - name: Pre-build factory-dispatcher test binaries
-        # T-012 in host-abi-hygiene.bats runs `timeout 120 cargo test -p
-        # factory-dispatcher --all-targets`. On a cold runner without a Rust
-        # cargo cache, compilation alone can exceed the 120-second bats timeout
-        # (exit code 124, rc.23 release run 29656342082). Pre-building here
-        # warms target/ so the bats test only executes the already-compiled
-        # binary within its window. --no-run = compile only; the actual test
-        # assertions still run inside the bats 120-second timeout as intended.
-        run: cargo test -p factory-dispatcher --all-targets --no-run
+      - name: Run full workspace test suite (pre-warms target/ for bats T-012)
+        # Historically this step was "Pre-build factory-dispatcher test
+        # binaries" — a `cargo test -p factory-dispatcher --all-targets
+        # --no-run` compile-only warm-up, because T-012 in host-abi-hygiene.bats
+        # used to run the equivalent test command for real and could blow its
+        # 120-second bats timeout on a cold runner (exit code 124, rc.23
+        # release run 29656342082).
+        #
+        # PR #783 narrowed T-012 to `cargo test -p factory-dispatcher --lib --
+        # s19_09` (6 unit tests) to eliminate an async e2e wall-clock flake in
+        # full_stack_plugin_invocation.rs — see the T-012 comment in
+        # host-abi-hygiene.bats for the full rationale. In ci.yml that
+        # narrowing doesn't drop coverage: the separate `cargo-host` job runs
+        # `cargo test --workspace --all-targets` independently of the bats
+        # path. release.yml has no equivalent independent job — the bats run
+        # below was, until now, the ONLY step here that executed test
+        # assertions, and it no longer covers the full suite.
+        #
+        # This step is release.yml's replacement for that lost coverage: it
+        # actually EXECUTES `cargo test --workspace --all-targets` (not
+        # --no-run), restoring release-gate parity with ci.yml's cargo-host
+        # job. It still incidentally warms target/ ahead of bats' T-012 (a
+        # strict superset of `-p factory-dispatcher --lib -- s19_09`), so a
+        # separate compile-only pre-build step is no longer needed — running
+        # the full suite once here, before ./run-all.sh, avoids paying to
+        # compile factory-dispatcher's test targets twice.
+        run: cargo test --workspace --all-targets
 
       - name: Run test suite
         run: cd plugins/vsdd-factory/tests && ./run-all.sh
