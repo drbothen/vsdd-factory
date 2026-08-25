@@ -4,7 +4,7 @@ level: ops
 version: "8.65"
 status: draft
 producer: state-manager
-timestamp: 2026-08-24T14:01:00Z
+timestamp: 2026-08-25T16:45:54Z
 phase: "D-1081-WAVE7-PASS9-RECORDED-HELD (2026-08-24). adv-wave7-pass9.md recorded NOT remediated. S-21.22 pass-9 CLEAN streak 0/3→1/3. S-21.19/R8, S-21.20, S-21.21, S-21.23 pass-9 NOT-CLEAN 0/3 (version/ADR-pin class). ADR-045 PROPOSED (stable-anchor cross-reference architecture; human ratification required). Wave-7 pre-TDD cascade HELD. ARCH-INDEX v3.80. - trajectory-tail →1→1→0→1, LENGTH=4. NEXT: human ADR-045 ratification decision. Resume: /vsdd-factory:next-step."
 last_amended: "2026-08-24 (v8.65) — D-1081-WAVE7-PASS9-RECORDED-HELD: adv-wave7-pass9.md recorded NOT remediated; S-21.22 streak 0/3→1/3; others 0/3; ADR-045 PROPOSED (stable-anchor cross-reference architecture; ratification pending); Wave-7 HELD; ARCH-INDEX v3.79→v3.80 (ADR count 44→45). [Prior: 2026-08-24 (v8.64) — D-1080-WAVE7-PASS8-R7-STORY-REMEDIATION; full prior chain: session-checkpoints.md]"
 inputs: []
@@ -24,6 +24,7 @@ dtu_services: []
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
   Soft target: <=415 lines; hard cap: 500 lines (validate-state-md-size hook enforcement).
+  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 261 = 239 (D-446(c) dual-margin form). 261 lines (wc-l).
   Historical content belongs in cycle files, NOT here.
   D-1057..D-1076 (exhaustive) banner-history paragraphs extracted 2026-08-23 to cycles/v1.0-brownfield-backfill/burst-log.md.
   Pre-D-1058 history: `git -C .factory log -p -- STATE.md` + burst-log.md + decision-log.md.
