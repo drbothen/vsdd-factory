@@ -2597,3 +2597,145 @@ D-1084-ADR046-PASS27-SPEC-CONVERGENCE-REMEDIATION
 2026-08-26
 
 ---
+
+## D-1085
+
+**D-1085-ADR046-PASS28-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1084 (this cycle's decision-log.md; the F5 cycle at `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`
+tops out at D-454, well below). D-1085 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 28 dispatched against the frozen set
+(ADR-046 v1.12 + BC-4.17.001 v1.12 + BC-7.07.001 v1.29 + BC-5.40.001 v1.11). **VERDICT: FINDINGS
+(2: 1 HIGH + 1 MED) + 2 LOW observations.** BC-5.39.001 3-CLEAN streak REMAINS 0/3 (already reset
+at pass-25; findings do not reset an already-0/3 streak further). Root cause: the pass-27 (D-1084)
+fixes landed on BC-7.07.001 without sweeping siblings, creating both an inputs-omission straggler
+AND two FALSE recorded premises injected into BC-7.07.001's own disposition text. Full record:
+`adv-adr-046-pass-28.md`.
+
+**F-P28-001 (HIGH, POLICY 18, inputs: completeness + false cross-reference) — FIXED.** (a) Neither
+ADR-046's nor BC-4.17.001's `inputs:` cited `crates/factory-lock-parse/src/lib.rs`, despite both
+making heavily load-bearing claims against that crate (ADR-046's F-P25-001/v1.11 correction rests
+entirely on `flp::parse_factory_lock`'s `LockState` return type; BC-4.17.001's Precondition 4 /
+VP-TBD-7 / VP-TBD-8 / §Architecture Anchors all cite the crate directly). (b) BC-7.07.001's own
+v1.29 F-P27-003 disposition falsely claimed its `inputs:` addition of the same file was "mirroring
+sibling BC-4.17.001's input set" — BC-4.17.001's `inputs:` did NOT contain the file at that time.
+Architect added the crate (+ `BC-7.07.001.md`, found via a sanity sweep of ADR-046's own
+Source/Origin §) to ADR-046's `inputs:`. Product-owner independently added the crate to
+BC-4.17.001's `inputs:` (justified against BC-4.17.001's own claims, not derivative of BC-7.07.001's
+false claim) and corrected BC-7.07.001's v1.29 disposition text IN PLACE (folded into the v1.30
+bump alongside F-P28-002, per POLICY 14's erratum convention). ADR-046 v1.12→**v1.13**; BC-4.17.001
+v1.12→**v1.13**; BC-7.07.001 v1.29→**v1.30** (values unchanged from v1.29 for this leg, prose-only
+correction).
+
+**F-P28-002 (MED, POLICY 17/4, false sibling-parallel claim) — FIXED.** BC-7.07.001's own v1.29
+F-P27-002 status-flip rationale falsely stated "sibling BC-4.17.001/BC-5.40.001 both carry `status:
+active` + `lifecycle_status: active`" — FALSE for BC-4.17.001, which is correctly `status: draft`
+because its own base deliverable (S-17.05) has not shipped; BC-4.17.001 and BC-7.07.001 are
+asymmetric on this axis (BC-7.07.001's own base, `precompact-flush`, DID ship via S-18.04a — the
+actual, sufficient, independent reason `status: active` is correct). Product-owner corrected the
+v1.29 disposition text IN PLACE: now stands on BC-7.07.001's own shipped-base grounds, cites
+BC-5.40.001 alone for sibling-parity precedent, and explicitly notes BC-4.17.001's draft status is
+correct and unaffected. Neither `status`/`lifecycle_status`/`inputs:` VALUES changed from v1.29 —
+only the disposition prose. BC-7.07.001 v1.29→**v1.30** (same bump as F-P28-001(b)).
+
+**O-P28-001 (LOW, non-blocking, accepted-per-convention) — NO FIX NEEDED.** A stale `FactoryLock`
+type-name cite (superseded by F-P25-001/D-1082's `LockState` correction) survives only in PRESERVED
+HISTORICAL dated changelog entries (pre-F-P25-001 rows); live body text is correct across all three
+artifacts. Historical changelog rows are immutable audit trail per this repo's standing convention;
+left untouched, same treatment as other historical-preservation Drift Items.
+
+**O-P28-002 (LOW, `[process-gap]`, 3+ RECURRENCE) — ROOT-CAUSE FIXED.** ADR-046's own File-Change
+Plan self-referential version-bump directive (a row instructing ARCH-INDEX what version to cite)
+went stale a THIRD time (F-P25-002 added a new row without sweeping the directive forward;
+F-P26-001 caught and rewrote a stale "v1.10" straggler to "v1.12"; this pass catches it again —
+would go stale a fourth time the moment this very burst's v1.13 bump landed, if left in
+literal-directive form). Architect restructured the row to a version-stable instruction:
+state-manager now reads ADR-046's live frontmatter `version:` field at bump time rather than the
+row embedding a literal number, structurally preventing recurrence. Historical "Prior (vX.Y)..."
+disposition chain preserved as-is. Lesson recorded `[codified]`.
+
+**Artifact versions (architect + product-owner edits already on disk before this state-manager
+burst; reconciled same-commit):** ADR-046 v1.12→**v1.13**; BC-4.17.001 v1.12→**v1.13**; BC-7.07.001
+v1.29→**v1.30**. BC-5.40.001 v1.11 UNCHANGED this burst (no touch — not implicated in any pass-28
+finding). Input-hashes recomputed via `plugins/vsdd-factory/bin/compute-input-hash --update`:
+ADR-046 `26c1c59`→**`076b3a7`**; BC-4.17.001 `407e0ff`→**`4ae09b2`**; BC-7.07.001
+`056b419`→**`69e452c`**.
+
+**BC-4.17.001 ↔ BC-7.07.001 mutual `inputs:` cyclic-hash TD — RECONFIRMED, EXTENDED to a 3-way
+cycle, settled, NOT re-opened.** ADR-046 now cites `BC-7.07.001.md` in its own `inputs:` (added
+this burst per F-P28-001), and both companion BCs already cite `ADR-046.md` in theirs — the
+2-artifact cyclic-hash TD tracked since D-1082 now structurally extends to a 3-artifact cycle. The
+three recomputed hashes above reflect a single sequential update pass (ADR-046, then BC-4.17.001,
+then BC-7.07.001); because each file's stored `input-hash` field is itself part of what its
+cyclic-dependent siblings hash, no single ordering leaves all three simultaneously mutually
+self-consistent — the same class of expected residue already documented and settled at the
+existing `[D-1082]` Drift Item, extended (not reopened as a new item) to cover the third leg.
+Per this pass's task instruction, no attempt was made to chase full convergence via repeated
+re-computation rounds; the current triple is accepted as this burst's settled state.
+
+**Index reconciliation (state-manager, this burst):**
+
+- **ARCH-INDEX v3.82→v3.83:** ADR-046 row bumped v1.12→v1.13; "RATIFIED..." sentence version cite
+  updated; pass-27 (UNCHANGED, no ADR touch, BC-only findings) + pass-28 (F-P28-001 HIGH +
+  F-P28-002 MED fixed, O-P28-001/O-P28-002 LOW recorded) summary appended ahead of the preserved
+  pass-26 summary; "Fresh pass-27" trailing sentence replaced with "Fresh pass-29 is the documented
+  NEXT action."
+- **BC-INDEX v4.99→v5.00:** BC-4.17.001 row version-history v1.12→v1.13 appended (F-P28-001(a));
+  BC-7.07.001 row version-history v1.29→v1.30 appended (F-P28-001(b)+F-P28-002). No new BC
+  registered; total_bcs UNCHANGED 1988; SS-04/SS-05/SS-07 counts UNCHANGED.
+- STORY-INDEX v4.391 UNCHANGED. VP-INDEX v2.79 UNCHANGED.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md for the superseded version strings `ADR-046.*v1\.12\b`, `BC-4\.17\.001.*v1\.12\b`, and
+`BC-7\.07\.001.*v1\.29\b` (anchored to the artifact-ID context to avoid bare-number false
+positives) — matches confined to: (1) PRESERVED HISTORICAL dated changelog/last_amended rows in
+BC-INDEX/ARCH-INDEX (correctly immutable, not a propagation gap), and (2) the STATE.md loci updated
+in this same burst. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3→0/3 (REMAINS 0/3, explicitly recorded as no-further-reset); Current
+Artifact Versions ADR-046 v1.12→v1.13, BC-4.17.001 v1.12→v1.13, BC-7.07.001 v1.29→v1.30; Blocking
+Issues ADR-046-gate row updated (streak 0/3, pass-28 2 findings found+fixed, fresh pass-29 NEXT);
+cyclic-hash Drift Item ([D-1082]) updated to reflect the 3-way extension and new hash triple; new
+non-blocking Drift Item row for O-P28-001 (accepted-per-convention); O-P28-002 noted CODIFIED/
+root-cause-fixed; Session Resume Checkpoint refreshed (§2 streak 0/3 REMAINS, fresh pass-29 NEXT;
+§3 ADR-046 v1.13/BC-4.17.001 v1.13/BC-7.07.001 v1.30; §7 resume command); Phase Progress + Current
+Phase Steps rows added for D-1085 (Current Phase Steps table trimmed to keep only the last 5 —
+D-1081 row archived off, already fully preserved in decision-log.md/burst-log.md). Trajectory-tail
+unchanged (Wave-7 not touched this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-28 COMPLETE. 2 findings (1 HIGH F-P28-001 inputs:
+completeness + false cross-reference, 1 MED F-P28-002 false sibling-parallel claim) found and fixed
+same-burst, plus 1 non-blocking LOW accepted-per-convention (O-P28-001) and 1 LOW process-gap
+root-cause-fixed/codified (O-P28-002, closing a 3+ recurrence class). Streak REMAINS 0/3 (no
+further reset — was already 0/3 entering this pass). Fresh pass-29 is the documented NEXT action;
+needs 3 consecutive clean passes for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-28.md), architect (ADR-046 v1.13:
+F-P28-001(a) `inputs:` completed + O-P28-002 root-cause version-stable-directive restructure),
+product-owner (BC-4.17.001 v1.13: F-P28-001(a) `inputs:` addition; BC-7.07.001 v1.30: F-P28-001(b)
++ F-P28-002 disposition-prose corrections), state-manager (adv-adr-046-pass-28.md persist +
+ARCH-INDEX v3.83 + BC-INDEX v5.00 + input-hash recompute + decision-log D-1085 + lessons +
+burst-log + STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v4.99 | v5.00 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.82 | v3.83 |
+
+### Phase
+
+D-1085-ADR046-PASS28-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-26
+
+---
