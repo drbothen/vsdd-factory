@@ -2228,3 +2228,132 @@ D-1081-WAVE7-PASS9-RECORDED-HELD
 2026-08-24
 
 ---
+
+## D-1082
+
+**D-1082-ADR046-PASS25-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1081 (this cycle's decision-log.md; the F5 cycle at `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`
+tops out at D-454, well below). D-1082 is allocated cleanly above the true max. Note the
+pre-existing backfill-owed gap: the rc.24 release burst and the full ADR-046 creation history
+(passes 1–24, ADR-046 v1.0→v1.10, BC-4.17.001 v1.0→v1.11, BC-7.07.001 v1.19→v1.27, BC-5.40.001
+v1.4→v1.9) and the ADR-045 v1.0→v1.3 pivot all occurred between D-1081 (2026-08-24) and this
+entry without consuming any D-NNN — that backfill remains OWED (tracked in STATE.md Blocking
+Issues) and is unaffected by this allocation.
+
+ADR-046 fresh-context adversary spec-convergence pass 25 dispatched against the frozen set
+(ADR-046 v1.10 + BC-4.17.001 v1.11 + BC-7.07.001 v1.27 + BC-5.40.001 v1.9). **VERDICT: FINDINGS
+(2), both MEDIUM.** BC-5.39.001 3-CLEAN streak RESET 1/3→0/3 (any finding resets; pass-24 was the
+sole clean pass banked). Full record: `adv-adr-046-pass-25.md` (first persisted per-pass file for
+this gate — passes 1–24 were narrative-only in STATE.md/session-checkpoints.md; this establishes
+the `adv-adr-046-pass-N.md` convention mirroring `adv-adr-043-pass-N.md`).
+
+**F-P25-001 (MED, POLICY 4 spec-vs-code type/function mismatch) — FIXED.** ADR-046 §Decision 1 /
+File-Change Plan and BC-7.07.001 Invariant 3b mis-typed `flp::parse_factory_lock`'s result as
+`FactoryLock`; it actually returns `LockState` (crate `factory-lock-parse`) — a field-identical
+sibling struct to `FactoryLock` (crate `factory-lock`), which is produced only by the distinct
+function `factory_lock::parse_lock`, never called on this path. Canonical model now stated
+unambiguously in both artifacts: `renew_lock_if_holder` performs its own independent
+`flp::parse_factory_lock(content)` parse at the holder-present step, yielding `LockState`.
+This is the escalation of the previously-tracked **O-P24-001 (LOW)** type-provenance nit from
+pass-24 — now RESOLVED (moved to closed; no longer an open Drift Item).
+
+**F-P25-002 (MED, traceability story-anchor conflict) — FIXED.** ADR-046 named S-17.05 as the
+implementing story in narrative while all three companion BCs still carried `[pending]`
+placeholders in Traceability §Stories/§Story Anchor, and ADR-046's own File-Change Plan
+cross-reference to S-17.05 did not resolve (S-17.05 absent from the File-Change Plan itself).
+Architect added an explicit S-17.05 row to ADR-046's File-Change Plan; product-owner cited S-17.05
+in all three BCs' Traceability §Stories rows and §Story Anchor fields. All four frozen-set
+artifacts now agree on S-17.05 (`stamp-state-timestamp-hook`, E-17 Wave 5, 8pts,
+`tdd_mode: strict`).
+
+**Artifact versions (all edits already on disk before this state-manager burst; reconciled
+same-commit):** ADR-046 v1.10→**v1.11**; BC-7.07.001 v1.27→**v1.28**; BC-4.17.001 v1.11→**v1.12**;
+BC-5.40.001 v1.9→**v1.10**. Input-hashes recomputed via `bin/compute-input-hash --update`:
+ADR-046 `a26e973`; BC-4.17.001 `407e0ff`; BC-5.40.001 `d046d5a`; BC-7.07.001 `fea7819`.
+**BC-4.17.001↔BC-7.07.001 mutual `inputs:` cite NON-CONVERGING cyclic-hash cascade (previously
+tracked in STATE.md Drift Items) reconfirmed this burst** — 3 successive recompute rounds
+ping-ponged (BC-4.17.001: `60822ce`→`db873d5`→`5dd2dc1`→`407e0ff`; BC-7.07.001: `e7017cb`
+(stale)→`03b2edd`→`fea7819`→`fea7819` stable-on-3rd-round only because BC-4.17.001 was recomputed
+AFTER it) and does not converge to a fixed point by construction (each file's frontmatter
+`input-hash` field is itself part of the content the other file's hash is computed over).
+**Settled per task instruction ("if it ping-pongs, settle at one computed value and note it — do
+not loop forever"):** final order was BC-7.07.001 → BC-4.17.001 → BC-5.40.001; BC-4.17.001's
+stored hash (`407e0ff`) is current relative to BC-7.07.001's stored content; BC-7.07.001's stored
+hash (`fea7819`) reflects BC-4.17.001's PRIOR content (`5dd2dc1`), one cycle behind — this is the
+expected, already-tracked cyclic-TD residue, not a new defect. Not re-opened as a new Drift Item;
+cross-referenced against the existing entry (see STATE.md Drift Items).
+
+**Index reconciliation (state-manager, this burst — closes the "Index reconciliation OWED" item
+STATE.md has carried since ADR-046's authoring session):**
+
+- **BC-INDEX v4.97→v4.98:** BC-4.17.001 NEW row registered (SS-04, CAP-031, S-17.05, v1.0..v1.12
+  — was pending registration since v1.0 authoring 2026-08-25). SS-04 count 43→44. total_bcs
+  1987→1988. BC-7.07.001 row Version cell reconciled v1.18→v1.28 (10-version backfill from the
+  file's own `modified[]` history — the row had drifted 10 versions stale). BC-7.07.001 row Title
+  cell also found stale (pre-identity-gate `renew_lock()` text) — re-synced to current H1 verbatim
+  per POLICY 7 (in-scope production-grade fix, discovered during this reconciliation, not part of
+  the orchestrator's original scoped instruction but fixed per CANONICAL PRINCIPLE Rule 4).
+  BC-5.40.001 row Version cell reconciled v1.3→v1.10 (7-version backfill); Title cell similarly
+  re-synced to current H1 verbatim (was pre-ADR-046 text). Both BC-7.07.001 and BC-5.40.001
+  Stories cells gained S-17.05.
+- **ARCH-INDEX v3.80→v3.81:** ADR-046 row status corrected PROPOSED v1.0/HUMAN-RATIFICATION-
+  REQUIRED (stale since 2026-08-25 authoring — the row was never kept version-current across the
+  24 spec-convergence passes) → ACCEPTED, v1.11, with a pass-25 remediation summary appended. ADR
+  count unchanged at 46 (both ADR-045 and ADR-046 rows already existed in the table; this burst
+  corrects ADR-046's stale status/version text only).
+- VP-INDEX v2.79 UNCHANGED. STORY-INDEX v4.391 UNCHANGED (S-17.05 already file-resident; no
+  STORY-INDEX row content changed by this burst).
+
+**O-P24-001 (LOW) — RESOLVED.** Folded into F-P25-001's fix; removed from STATE.md Blocking
+Issues / Drift Items as an open item.
+
+**Non-blocking process observation (logged, not a violation):** during this burst's upstream
+spec-remediation work, a product-owner agent ran ONE read-only `grep` via Bash (STORY-INDEX
+presence check for S-17.05) — no `.factory` mutation via Bash occurred; all content edits used
+the Edit tool. Logged for the record, same class as the prior 2026-08-26 pass-21
+TD-FACTORY-HOOK-BYPASS-001 deviation note (which WAS a mutation-via-Bash violation); this
+occurrence is read-only and therefore not a TD-FACTORY-HOOK-BYPASS-001 instance, but is recorded
+to reinforce Edit/Write-only discipline for `.factory` mutations going forward.
+
+**STATE.md vNext:** streak 1/3→0/3; Current Artifact Versions updated (ADR-046 v1.11,
+BC-7.07.001 v1.28, BC-4.17.001 v1.12, BC-5.40.001 v1.10); Blocking Issues ADR-046 gate row updated
+(streak 0/3, pass-25 findings fixed) and O-P24-001 removed (resolved); Session Resume Checkpoint
+refreshed (§2 Convergence Counter 0/3, fresh pass-26 NEXT; §3 versions; §7 resume command);
+Drift Items gains the non-blocking process-observation note above. Trajectory-tail unchanged
+(Wave-7 not touched this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-25 COMPLETE. 2 MED findings (F-P25-001 type-provenance,
+F-P25-002 traceability) found and fixed same-burst. Streak RESET 1/3→0/3 per literal-3-CLEAN
+discipline. Canonical `LockState`-not-`FactoryLock` decision codified. S-17.05 anchor
+reconciliation closes the last traceability gap blocking convergence. Index reconciliation debt
+(BC-INDEX + ARCH-INDEX, owed since ADR-046's authoring session) CLOSED this burst. Fresh pass-26
+is the documented NEXT action; needs 3 consecutive clean passes for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-25.md), architect (ADR-046 v1.11: F-P25-001
+type-fix + File-Change Plan S-17.05 row), product-owner (BC-7.07.001 v1.28 + BC-4.17.001 v1.12 +
+BC-5.40.001 v1.10: F-P25-001/F-P25-002 fixes + Traceability S-17.05 anchors), state-manager
+(adv-adr-046-pass-25.md persist + BC-INDEX v4.98 + ARCH-INDEX v3.81 + input-hash recompute +
+decision-log D-1082 + lessons + burst-log + STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v4.97 | v4.98 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.80 | v3.81 |
+
+### Phase
+
+D-1082-ADR046-PASS25-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-26
+
+---
