@@ -2908,3 +2908,126 @@ D-1086-ADR046-PASS29-SPEC-CONVERGENCE-REMEDIATION
 2026-08-26
 
 ---
+
+## D-1087
+
+**D-1087-ADR046-PASS30-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1086 (this cycle's decision-log.md). D-1087 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 30 dispatched against the frozen set
+(ADR-046 v1.14 + BC-4.17.001 v1.14 + BC-7.07.001 v1.31 + BC-5.40.001 v1.12). **VERDICT: FINDINGS
+(2: 1 HIGH + 1 MED), 0 LOW observations.** BC-5.39.001 3-CLEAN streak REMAINS 0/3 (already reset
+at pass-25; findings do not reset an already-0/3 streak further). Findings narrowed to pure
+metadata parity — **NO spec-vs-code contradictions this pass**; all substance cross-checks
+(behavioral core, write-composition, event-sourcing, type-provenance, §Story Anchor parity,
+POLICY 19) re-verified CLEAN with zero regression. Fixed via a coordinated architect ∥
+product-owner COMPREHENSIVE per-dimension sweep (not spot-fixes). Full record:
+`adv-adr-046-pass-30.md`.
+
+**F-P30-001 (HIGH, POLICY 14/17, `modified:`/Changelog array-ordering parity) — FIXED.**
+BC-4.17.001's and BC-5.40.001's `modified:` frontmatter arrays were both ordered ASCENDING (oldest
+at top) while their own Changelog tables were correctly ordered DESCENDING (newest at top) — the
+same defect class F-P29-003 fixed on sibling BC-7.07.001 at pass 29, never swept to these two
+siblings (a pre-existing instance of the class, not a new regression of the pass-29 fix).
+Product-owner reordered BOTH arrays to strict descending-chronological, matching each BC's own
+Changelog table, and ran a full 3-BC cluster parity audit (version / Changelog-head /
+modified-head / last_amended-prefix parity, `inputs:` completeness, §Story-Anchor↔§Traceability
+cardinality) confirming BC-7.07.001 already clean on all five legs — no edit required there. Dated
+HISTORICAL entry text unchanged in both BCs; only array position corrected, per POLICY 1
+append-only numbering. BC-4.17.001 v1.14→**v1.15**; BC-5.40.001 v1.12→**v1.13**.
+
+**F-P30-002 (MED, POLICY 18, `inputs:` completeness) — FIXED.** ADR-046's own `inputs:`
+frontmatter array omitted 6 load-bearing files it makes exact current-state claims against:
+`crates/factory-dispatcher/src/invoke.rs` and `crates/factory-dispatcher/src/host/exec_subprocess.rs`
+(§Decision 2/F-005 config-scope-equivalence + §Context WASI-clock claims),
+`plugins/vsdd-factory/tests/verify-state-timestamp-refresh.bats` and
+`plugins/vsdd-factory/tests/validate-state-structure/pass-real-state-md-snapshot.bats`
+(Consequences/Negative + Source/Origin "Tests requiring rewrite" claims),
+`.factory/stories/S-17.05-stamp-state-timestamp-hook.md` (File-Change Plan's S-17.05 row content
+claim), and `.factory/policies.yaml` (Companion Amendments 5/6 quote its POLICY 19 `scope:`
+array). Architect ran a MANDATORY complete inputs-completeness audit of the full document body
+(not a spot sweep, per explicit task direction that pass-28's own sweep had missed the first two
+of these six files) and added all six; explicitly rejected as non-load-bearing padding:
+`STORY-INDEX.md`, `ARCH-INDEX.md` (already covered by `traces_to:`), `ci.yml` (cited only as a
+proposed future location). No `modified:` array exists in ADR-046's frontmatter, so no reordering
+finding applies to it. ADR-046 v1.14→**v1.15**.
+
+**Convergence-strategy technique lesson (recorded, see lessons.md):** passes 27, 28, and 29 each
+shed a partial-fix regression/straggler of the immediately-prior pass's own fix (single-locus
+spot-fixing perpetuates stragglers). This pass's remediation switched to COMPREHENSIVE
+per-dimension sweeps — reorder ALL BC `modified:` arrays cluster-wide, audit EVERY ADR-cited file
+rather than only the flagged locus — rather than spot-fixing only the two loci the adversary
+explicitly flagged. If pass-31 is clean, this technique is what closed the metadata layer.
+
+**Index reconciliation (state-manager, this burst):**
+
+- **ARCH-INDEX v3.84→v3.85:** ADR-046 row bumped v1.14→v1.15 (version-stable directive read live
+  `version:` field per O-P28-002); pass-30 summary appended ahead of the preserved pass-29 summary;
+  "Fresh pass-30 is the documented NEXT action" trailing sentence replaced with "Fresh pass-31 is
+  the documented NEXT action."
+- **BC-INDEX v5.01→v5.02:** BC-4.17.001 row version-history v1.14→v1.15 appended (F-P30-001);
+  BC-5.40.001 row version-history v1.12→v1.13 appended (F-P30-001). BC-7.07.001 row UNCHANGED
+  (already clean at v1.31, confirmed by cluster audit, no edit). No new BC registered; total_bcs
+  UNCHANGED 1988; SS-04/SS-05/SS-07 counts UNCHANGED.
+- STORY-INDEX v4.391 UNCHANGED. VP-INDEX v2.79 UNCHANGED.
+
+**Input-hash recompute (state-manager, this burst):** ADR-046 `4a19928`→`b18f058`; BC-4.17.001
+`f3ccd4c`→`5012d14`; BC-5.40.001 `19893f0`→`5d9e223`. BC-4.17.001↔BC-7.07.001↔ADR-046↔BC-5.40.001
+mutual `inputs:` cyclic-hash TD (tracked since `[D-1082]`, extended to 4-way at D-1086) settled
+per this pass's task instruction, cross-referenced against the existing `[D-1082]` Drift Item, NOT
+reopened as a new item — this burst's recompute does not resolve the cycle, consistent with prior
+passes.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md for the superseded version strings `ADR-046.*v1\.14\b`, `BC-4\.17\.001.*v1\.14\b`, and
+`BC-5\.40\.001.*v1\.12\b` (anchored to the artifact-ID context to avoid bare-number false
+positives) — matches confined to: (1) PRESERVED HISTORICAL dated changelog/`last_amended` rows in
+BC-INDEX/ARCH-INDEX (correctly immutable, not a propagation gap), and (2) the STATE.md loci
+updated in this same burst. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3→0/3 (REMAINS 0/3, explicitly recorded as no-further-reset); Current
+Artifact Versions ADR-046 v1.14→v1.15, BC-4.17.001 v1.14→v1.15, BC-5.40.001 v1.12→v1.13,
+BC-7.07.001 UNCHANGED v1.31; Blocking Issues ADR-046-gate row updated (streak 0/3, pass-30 2
+findings found+fixed, fresh pass-31 NEXT); Session Resume Checkpoint refreshed (§2 streak 0/3
+REMAINS, fresh pass-31 NEXT, human decision to CONTINUE looping to literal 3-CLEAN recorded; §3
+ADR-046 v1.15/BC-4.17.001 v1.15/BC-5.40.001 v1.13/BC-7.07.001 v1.31; §7 resume command); Phase
+Progress + Current Phase Steps rows added for D-1087 (Current Phase Steps table trimmed to keep
+only the last 5 — D-1083 row archived off, already fully preserved in decision-log.md/burst-log.md).
+Trajectory-tail unchanged (Wave-7 not touched this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-30 COMPLETE. 2 findings (1 HIGH F-P30-001 `modified:`/
+Changelog ordering parity + 1 MED F-P30-002 `inputs:` completeness) found and fixed same-burst via
+COMPREHENSIVE per-dimension sweeps, 0 LOW observations. No spec-vs-code contradictions — findings
+are pure metadata parity. Streak REMAINS 0/3 (no further reset — was already 0/3 entering this
+pass). Fresh pass-31 is the documented NEXT action; needs 3 consecutive clean passes for literal
+3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-30.md), architect (ADR-046 v1.15:
+F-P30-002 `inputs:` +6 files via mandatory complete audit), product-owner (BC-4.17.001 v1.15:
+F-P30-001 `modified:` array reorder; BC-5.40.001 v1.13: F-P30-001 `modified:` array reorder;
+BC-7.07.001 audited, confirmed clean, no edit), state-manager (adv-adr-046-pass-30.md persist +
+ARCH-INDEX v3.85 + BC-INDEX v5.02 + input-hash recompute + decision-log D-1087 + lessons +
+burst-log + STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.01 | v5.02 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.84 | v3.85 |
+
+### Phase
+
+D-1087-ADR046-PASS30-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-26
+
+---
