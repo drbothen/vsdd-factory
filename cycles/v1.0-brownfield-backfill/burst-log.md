@@ -1536,3 +1536,238 @@ open state carries forward; fresh pass-29 is NEXT). **NEXT ACTION:** dispatch fr
 adversary pass-29 against the newly-frozen set (ADR-046 v1.13 + BC-4.17.001 v1.13 + BC-7.07.001
 v1.30 + BC-5.40.001 v1.11); needs 3 consecutive clean passes (29, 30, 31) for literal 3-CLEAN
 convergence. S-17.05 TDD implementation remains gated on convergence.
+
+## D-1086-ADR046-PASS29-SPEC-CONVERGENCE-REMEDIATION
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1085 < D-9000 ceiling
+```
+
+(Gate run BEFORE D-1086 was appended to decision-log.md this burst, confirming D-1086 is the
+correct next allocation.) **Parent-commit:** `59452198` — `factory(adr-046): pass-28
+spec-convergence remediation — 2 findings (1 HIGH + 1 MED) fixed + 2 LOW observations, streak
+REMAINS 0/3 (D-1085)` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` spec-convergence pass-29 dispatched against the ADR-046
+frozen set (ADR-046 v1.13 + BC-4.17.001 v1.13 + BC-7.07.001 v1.30 + BC-5.40.001 v1.11). **Verdict:
+FINDINGS (3: 1 HIGH + 2 MED), 0 LOW observations.** BC-5.39.001 3-CLEAN streak REMAINS 0/3 (already
+reset at pass-25; findings do not reset an already-0/3 streak further). Fixed via a coordinated
+architect ∥ product-owner sweep. F-P29-001 (HIGH, POLICY 4) — ADR-046 self-contradicted on
+`rewrite_expires_at`'s home crate (one locus correctly cited `crates/factory-lock/src/lib.rs`,
+two others wrongly cited `factory-lock-write.sh`); FIXED same-burst (architect: both ADR-046 loci
+corrected; product-owner: BC-4.17.001 PC4 independently mirrored the correction). F-P29-002 (MED,
+POLICY 18) — BC-5.40.001's `inputs:` omitted 5 load-bearing code files, a de-scoped straggler of
+the pass-28 POLICY 18 sweep; FIXED same-burst (product-owner: 5 files added). F-P29-003 (MED,
+POLICY 17/14) — BC-7.07.001's `modified:` array re-regressed O-P27-001's ordering fix; FIXED
+same-burst (product-owner: array reordered strict-descending). Adversary also confirmed CLEAN on:
+the behavioral core (write-composition table, five-outcome table, identity-gating logic,
+event-sourcing struct-variant text) across three consecutive passes (27, 28, 29) — no regression;
+§Story Anchor/Traceability parity; type-provenance (F-P25-001 class); POLICY 19 (no new volatile
+pins); O-P28-002's version-stable directive (held, did not require re-patching at this pass's
+v1.13→v1.14 bump). Persisted verbatim as `cycles/v1.0-brownfield-backfill/adv-adr-046-pass-29.md`.
+
+**Block 3: Files touched**
+
+- `.factory/specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md`
+  — v1.13→v1.14 (architect, pre-burst; F-P29-001 `rewrite_expires_at` home-crate correction at 2
+  loci); input-hash `076b3a7`→`4a19928`
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md` — v1.13→v1.14 (product-owner,
+  pre-burst; F-P29-001 PC4 mirror correction); input-hash `4ae09b2`→`f3ccd4c`
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md` — v1.11→v1.12 (product-owner,
+  pre-burst; F-P29-002 `inputs:` +5 code files); input-hash `0a80aa5`→`19893f0`
+- `.factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md` — v1.30→v1.31 (product-owner,
+  pre-burst; F-P29-003 `modified:` array reordered strict-descending); input-hash
+  `69e452c`→`e65a1d0`
+- `.factory/cycles/v1.0-brownfield-backfill/adv-adr-046-pass-29.md` — new (pass-29 FINDINGS record)
+- `.factory/specs/architecture/ARCH-INDEX.md` — ADR-046 row bumped v1.13→v1.14, pass-29 summary
+  appended; version v3.83→v3.84
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — BC-4.17.001 row version-history v1.13→v1.14
+  appended; BC-5.40.001 row version-history v1.11→v1.12 appended; BC-7.07.001 row version-history
+  v1.30→v1.31 appended; version v5.00→v5.01
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1086 appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 2 new lessons appended (cross-language
+  home-crate mis-attribution content-defect class; `[process-observation]` asymptotic-floor
+  partial-fix-regression-cascade meta-lesson)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (streak 0/3 REMAINS, Current Artifact Versions, Blocking
+  Issues, cyclic-hash Drift Item BC-5.40.001 participation confirmed, convention-divergence Drift
+  row, Session Resume Checkpoint, version bump)
+- `.factory/logs/dispatcher-internal-2026-08-26.jsonl`, `.factory/logs/events-2026-08-26.jsonl`,
+  `.factory/sidecar-learning.md` — pre-existing telemetry drift accumulated since the D-1085 burst,
+  bundled into this single commit per TD-VSDD-053 (no separate telemetry-only commit)
+
+**Block 4: Codifications**
+
+Two new lessons codified in `lessons.md`: (1) a cross-language home-crate mis-attribution
+(`rewrite_expires_at`) survived 28 prior passes because every prior "attribution audit" only
+re-verified symbols a PRIOR pass had already flagged — the audit's own scope was implicitly bounded
+by its own history, not by an exhaustive symbol inventory; generalizes the D-1082/F-P25-001
+type-provenance lesson from "verify the type a function RETURNS" to "verify the crate/file a symbol
+IS DEFINED IN." (2) `[process-observation]` three consecutive passes (27, 28, 29) each shed a
+partial-fix regression of the immediately-prior pass's own fix — the behavioral core has converged
+and is stable, but the metadata/hygiene layer is not reaching literal 3-CLEAN under manual sweep
+discipline alone; recorded as an ASYMPTOTIC-FLOOR pattern anchored for human decision on
+convergence strategy, NOT resolved this burst (per explicit task instruction).
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+Input-hash recompute (literal shell, D-449(a)), sequence ADR-046 → BC-4.17.001 → BC-5.40.001 →
+BC-7.07.001:
+
+```
+$ ../plugins/vsdd-factory/bin/compute-input-hash specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md --check
+compute-input-hash: DRIFT — .../ADR-046-....md input-hash 076b3a7 ≠ computed 4a19928
+$ ../plugins/vsdd-factory/bin/compute-input-hash specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md --update
+compute-input-hash: updated .../ADR-046-....md input-hash → 4a19928
+$ ../plugins/vsdd-factory/bin/compute-input-hash specs/behavioral-contracts/ss-04/BC-4.17.001.md --check
+compute-input-hash: DRIFT — .../BC-4.17.001.md input-hash 4ae09b2 ≠ computed f3ccd4c
+$ ../plugins/vsdd-factory/bin/compute-input-hash specs/behavioral-contracts/ss-04/BC-4.17.001.md --update
+compute-input-hash: updated .../BC-4.17.001.md input-hash → f3ccd4c
+$ ../plugins/vsdd-factory/bin/compute-input-hash specs/behavioral-contracts/ss-05/BC-5.40.001.md --check
+compute-input-hash: DRIFT — .../BC-5.40.001.md input-hash 0a80aa5 ≠ computed 19893f0
+$ ../plugins/vsdd-factory/bin/compute-input-hash specs/behavioral-contracts/ss-05/BC-5.40.001.md --update
+compute-input-hash: updated .../BC-5.40.001.md input-hash → 19893f0
+$ ../plugins/vsdd-factory/bin/compute-input-hash specs/behavioral-contracts/ss-07/BC-7.07.001.md --check
+compute-input-hash: DRIFT — .../BC-7.07.001.md input-hash 69e452c ≠ computed e65a1d0
+$ ../plugins/vsdd-factory/bin/compute-input-hash specs/behavioral-contracts/ss-07/BC-7.07.001.md --update
+compute-input-hash: updated .../BC-7.07.001.md input-hash → e65a1d0
+```
+
+Cyclic-hash live-manifestation re-check (literal shell, confirming non-convergence — D-449(a)):
+
+```
+$ ../plugins/vsdd-factory/bin/compute-input-hash specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md --check
+compute-input-hash: DRIFT — .../ADR-046-....md input-hash 4a19928 ≠ computed 141b9d1
+$ ../plugins/vsdd-factory/bin/compute-input-hash specs/behavioral-contracts/ss-04/BC-4.17.001.md --check
+compute-input-hash: DRIFT — .../BC-4.17.001.md input-hash f3ccd4c ≠ computed 81e72b7
+```
+
+(ADR-046 and BC-4.17.001 both re-drift immediately after all four sequential `--update` calls
+complete, because BC-5.40.001 and BC-7.07.001 — both cited in ADR-046's and BC-4.17.001's own
+`inputs:` — were updated AFTER them in this sequence. This is the 3-way cyclic-hash TD `[D-1082]`
+manifesting live again, now confirmed to effectively span all four artifacts via BC-5.40.001's
+pre-existing citation of the other three — see Block 6/STATE.md Drift Items. Final stored values
+are those shown in the final `--update` line for each file above; per this pass's task instruction,
+no further re-computation rounds were run to chase convergence.)
+
+ARCH-INDEX + BC-INDEX row/version verification gate (literal shell):
+
+```
+$ grep -n '^version:' specs/architecture/ARCH-INDEX.md | head -1
+4:version: "3.84"
+$ grep -c "ADR-046 v1.14 as of this row" specs/architecture/ARCH-INDEX.md
+1
+$ grep -n '^version:' specs/behavioral-contracts/BC-INDEX.md | head -1
+4:version: "5.01"
+$ grep -c "input-hash 4ae09b2→f3ccd4c" specs/behavioral-contracts/BC-INDEX.md
+1
+$ grep -c "input-hash 0a80aa5→19893f0" specs/behavioral-contracts/BC-INDEX.md
+1
+$ grep -c "input-hash 69e452c→e65a1d0" specs/behavioral-contracts/BC-INDEX.md
+1
+```
+
+Frontmatter verification gate (literal shell):
+
+```
+$ grep -n '^version:\|^status:\|^input-hash:' specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md
+4:version: "1.14"
+6:status: accepted
+40:input-hash: "4a19928"
+$ grep -n '^version:\|^status:\|^input-hash:' specs/behavioral-contracts/ss-04/BC-4.17.001.md
+4:version: "1.14"
+5:status: draft
+22:input-hash: "f3ccd4c"
+$ grep -n '^version:\|^status:\|^input-hash:' specs/behavioral-contracts/ss-05/BC-5.40.001.md
+4:version: "1.12"
+5:status: active
+23:input-hash: "19893f0"
+$ grep -n '^version:\|^status:\|^input-hash:' specs/behavioral-contracts/ss-07/BC-7.07.001.md
+4:version: "1.31"
+5:status: active
+23:input-hash: "e65a1d0"
+```
+
+D-448(a) source-attestation parity gate (decision-log D-1086 finding-ID set vs
+adv-adr-046-pass-29.md Part A finding-ID set):
+
+```
+$ grep -oE "F-P29-[0-9]{3}" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-29.md | sort -u
+F-P29-001
+F-P29-002
+F-P29-003
+$ sed -n '/^## D-1086/,/^---$/p' cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE "F-P29-[0-9]{3}" | sort -u
+F-P29-001
+F-P29-002
+F-P29-003
+```
+
+Sets match exactly — decision-log D-1086 finding-ID set is a faithful description of
+adv-adr-046-pass-29.md Part A.
+
+**Block 6 (Dim-5): Closes**
+
+- **`F-P29-001`** (HIGH, `rewrite_expires_at` home-crate mis-attribution) — **FIXED**, ADR-046
+  corrected at 2 loci; BC-4.17.001 PC4 mirrored the correction.
+- **`F-P29-002`** (MED, `inputs:` completeness) — **FIXED**, BC-5.40.001 `inputs:` completed with 5
+  code files.
+- **`F-P29-003`** (MED, `modified:` array re-regression) — **FIXED**, BC-7.07.001 `modified:` array
+  reordered strict-descending.
+- **`BC-4.17.001 ↔ BC-7.07.001 ↔ ADR-046 cyclic-hash TD [D-1082]`** — RECONFIRMED non-convergent
+  again; BC-5.40.001's participation in the same cyclic tangle CONFIRMED (it already cited all
+  three siblings prior to this burst). Settled, cross-referenced against the existing item. NOT a
+  closure, NOT re-opened as a new item.
+- **`Convention divergence (historical-correction-in-place vs dated-history-preserved)`** — NOT
+  resolved this burst; recorded as a new non-blocking Drift Item, anchored for human decision.
+- **`BC-5.39.001 3-CLEAN streak`** — REMAINS 0/3 (explicitly NOT a further reset). NOT a closure —
+  fresh pass-30 is the documented NEXT action; needs 3 consecutive clean passes.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1086-ADR046-PASS29-SPEC-CONVERGENCE-REMEDIATION` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation
+gate: literal-shell diff captured in Block 5 — finding-ID sets match exactly between decision-log
+D-1086 and adv-adr-046-pass-29.md Part A. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY
+16 gate, input-hash recompute (×4, incl. the cyclic-hash live-manifestation re-check captured
+verbatim), ARCH-INDEX/BC-INDEX row/version verification, frontmatter verification, and D-448(a)
+source-attestation check all use actual shell with verbatim stdout captured (Block 5) — no
+pseudocode, no estimated counts, no trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (pass-29) — content-bearing, 3 findings (1 HIGH + 2 MED)
+  fixed, 0 LOW observations.
+- Streak: REMAINS 0/3 (no further reset). Fresh pass-30 is NEXT.
+- 4-INDEX: BC v5.00→v5.01 / VP v2.79 (UNCHANGED) / STORY v4.391 (UNCHANGED) / ARCH v3.83→v3.84.
+- policies.yaml UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` — unaffected by this burst (whatever prior-burst state carries forward; this burst
+  does not itself pause or resume the pipeline). Wave-7 substantive state UNCHANGED — this burst
+  is orthogonal to the Wave-7 cascade (trajectory-tail unchanged, →1→1→0→1, LENGTH=4).
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed
+  via fetch-then-`--force-with-lease` CAS sequence (BC-5.40.001 PC5 / S-17.01 D6)
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `59452198` —
+  `factory(adr-046): pass-28 spec-convergence remediation — 2 findings (1 HIGH + 1 MED) fixed + 2
+  LOW observations, streak REMAINS 0/3 (D-1085)`
+
+**Closes:** `F-P29-001` HIGH `rewrite_expires_at` home-crate mis-attribution FIXED. `F-P29-002` MED
+`inputs:` completeness FIXED. `F-P29-003` MED `modified:` array re-regression FIXED. 0 LOW
+observations. BC-4.17.001↔BC-7.07.001↔ADR-046 cyclic-hash TD RECONFIRMED/settled/NOT re-opened;
+BC-5.40.001's participation CONFIRMED. Convention-divergence question recorded, NOT resolved.
+BC-5.39.001 streak REMAINS 0/3 (NOT a closure — no further reset, open state carries forward; fresh
+pass-30 is NEXT). **NEXT ACTION:** dispatch fresh-context adversary pass-30 against the
+newly-frozen set (ADR-046 v1.14 + BC-4.17.001 v1.14 + BC-7.07.001 v1.31 + BC-5.40.001 v1.12); needs
+3 consecutive clean passes (30, 31, 32) for literal 3-CLEAN convergence. S-17.05 TDD implementation
+remains gated on convergence.

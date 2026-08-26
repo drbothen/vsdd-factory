@@ -2739,3 +2739,172 @@ D-1085-ADR046-PASS28-SPEC-CONVERGENCE-REMEDIATION
 2026-08-26
 
 ---
+
+## D-1086
+
+**D-1086-ADR046-PASS29-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1085 (this cycle's decision-log.md; the F5 cycle at `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`
+tops out at D-454, well below). D-1086 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 29 dispatched against the frozen set
+(ADR-046 v1.13 + BC-4.17.001 v1.13 + BC-7.07.001 v1.30 + BC-5.40.001 v1.11). **VERDICT: FINDINGS
+(3: 1 HIGH + 2 MED), 0 LOW observations.** BC-5.39.001 3-CLEAN streak REMAINS 0/3 (already reset
+at pass-25; findings do not reset an already-0/3 streak further). Fixed via a coordinated
+architect ∥ product-owner sweep. Full record: `adv-adr-046-pass-29.md`.
+
+**F-P29-001 (HIGH, POLICY 4, spec-vs-code home-crate mis-attribution) — FIXED.** ADR-046
+self-contradicted on `rewrite_expires_at`'s home crate: F-P10-001's own v1.8 citation (Companion
+Amendment 2's write-composition paragraph, and its own v1.8 Changelog restatement) correctly states
+`rewrite_expires_at` is confirmed at `crates/factory-lock/src/lib.rs`'s `renew_lock_with_now` Step
+5, but two OTHER loci — the Companion Amendment 2 PC4-reconciliation bullet, and the v1.8 Changelog
+entry's own closing sentence — described it as "the same mechanism `factory-lock-write.sh`'s own
+`_update_expires_at` and `rewrite_expires_at` already use," wrongly locating `rewrite_expires_at`
+INSIDE the bash script (`plugins/vsdd-factory/bin/factory-lock-write.sh`, confirmed by inspection
+to declare only `_epoch_to_iso`/`_write_factory_lock_block`/`_update_expires_at` — no
+`rewrite_expires_at`). BC-4.17.001's PC4 carried the identical mis-attribution, mirroring ADR-046's
+error. Architect corrected both ADR-046 loci (Companion Amendment 2 PC4-reconciliation bullet + the
+v1.8 Changelog entry's closing sentence) to attribute `rewrite_expires_at` to
+`crates/factory-lock/src/lib.rs`'s `renew_lock_with_now` (Rust) while keeping
+`factory-lock-write.sh`'s `_update_expires_at` (bash) as the correctly-attributed bash-side
+precedent — both mechanisms remain cited together (neither is a byte-range/patch API; both
+serialize the whole file with one region altered), only the file-of-record for
+`rewrite_expires_at` changed. A full-document sweep for `rewrite_expires_at` confirmed these were
+the only two mis-attributing loci in ADR-046. Product-owner independently corrected BC-4.17.001's
+PC4 to cite the identical two-mechanism pairing. ADR-046 v1.13→**v1.14**; BC-4.17.001
+v1.13→**v1.14**.
+
+**F-P29-002 (MED, POLICY 18, `inputs:` completeness) — FIXED.** BC-5.40.001's `inputs:` frontmatter
+array omitted 5 load-bearing code files despite this BC making exact-code-body current-state
+claims against them: PC3's `is_expired` comparison against `verify-factory-lock`; the migrated
+Precondition 6/Invariant 7/Invariant 8/EC-010 `STATE_MD_MAX_BYTES`/`extract_frontmatter` claims;
+PC4's `renew_lock_if_holder`/`TTL_SECONDS` claims; and the `hooks-registry.toml` deregistration
+claim. This BC was de-scoped from the POLICY 18 sweep already applied to BC-7.07.001 (v1.29) and
+BC-4.17.001 (v1.13) at pass-28 — a sibling-sweep straggler of that same class. Product-owner added
+`crates/hook-plugins/verify-factory-lock/src/lib.rs`, `crates/factory-lock/src/lib.rs`,
+`crates/factory-lock-parse/src/lib.rs`, `crates/hook-plugins/verify-state-timestamp-refresh/src/lib.rs`,
+and `plugins/vsdd-factory/hooks-registry.toml` to BC-5.40.001's `inputs:`, same path form the
+sibling BCs already use. Not the accepted BC-4.17.001↔BC-7.07.001↔ADR-046 mutual-inputs
+cyclic-hash TD (that concerns only that triple's mutual ADR/BC edges) — these are missing CODE
+inputs, legitimately in-scope and independent of the cyclic-hash class. BC-5.40.001
+v1.11→**v1.12**.
+
+**F-P29-003 (MED, POLICY 17/14, `modified:` array ordering re-regression) — FIXED.** BC-7.07.001's
+`modified:` array sequence was `v1.29, v1.30, v1.28, v1.27, ...` — the newest entry (v1.30 at the
+time) sat in the SECOND slot instead of the top of an otherwise strict-descending array, a
+RE-REGRESSION of O-P27-001 (pass-27 fixed the identical defect class); the v1.30 edit reintroduced
+it by appending its own new entry directly above the v1.29 entry it was correcting, rather than at
+the true top of the array. Product-owner reordered the entire `modified:` array to strict
+descending-chronological (newest at top) — v1.31, v1.30, v1.29, v1.28, ... down to v1.1 — verified
+against the Changelog table (already correctly ordered, newest-row-first). Dated HISTORICAL entry
+text (v1.1 through v1.30) unchanged — only array position corrected, per POLICY 1 append-only
+numbering. BC-7.07.001 v1.30→**v1.31**.
+
+**Novelty assessment (adversary, Part B):** the behavioral core (write-composition table,
+five-outcome table, identity-gating logic, event-sourcing struct-variant text) is verified CLEAN
+and stable across three consecutive passes (27, 28, 29) — no regression of any settled
+behavioral-content fix. However the spec has NOT fully converged: the metadata/hygiene layer
+(`inputs:` completeness, array-ordering discipline, cross-reference accuracy) continues to shed
+partial-fix regressions of the immediately-prior burst's own fix, one pass at a time — F-P29-001 is
+a genuinely NEW defect class (a cross-language home-crate mis-attribution never covered by any
+prior cross-language attribution audit), while F-P29-002 and F-P29-003 are both partial-fix
+regressions of the immediately-prior pass's own fixes (BC-5.40.001's de-scoping from the pass-28
+POLICY 18 sweep; a literal re-regression of O-P27-001).
+
+**Artifact versions (architect + product-owner edits already on disk before this state-manager
+burst; reconciled same-commit):** ADR-046 v1.13→**v1.14**; BC-4.17.001 v1.13→**v1.14**; BC-5.40.001
+v1.11→**v1.12**; BC-7.07.001 v1.30→**v1.31**. Input-hashes recomputed via
+`plugins/vsdd-factory/bin/compute-input-hash --update`, in sequence ADR-046 → BC-4.17.001 →
+BC-5.40.001 → BC-7.07.001: ADR-046 `076b3a7`→**`4a19928`**; BC-4.17.001 `4ae09b2`→**`f3ccd4c`**;
+BC-5.40.001 `0a80aa5`→**`19893f0`**; BC-7.07.001 `69e452c`→**`e65a1d0`**.
+
+**Cyclic-hash TD `[D-1082]` — RECONFIRMED, BC-5.40.001's participation CONFIRMED, settled, NOT
+re-opened.** The 3-way cycle (ADR-046 ↔ BC-4.17.001 ↔ BC-7.07.001) tracked since `[D-1082]` and
+extended at D-1085 remains non-convergent this pass: a re-check of ADR-046 and BC-4.17.001
+immediately after all four sequential `--update` calls confirms both again read DRIFT (ADR-046
+`4a19928`≠computed `141b9d1`; BC-4.17.001 `f3ccd4c`≠computed `81e72b7`), the same class of expected
+residue as D-1085. Additionally, BC-5.40.001 is now CONFIRMED to participate in the same cyclic
+tangle: it already cited ADR-046, BC-4.17.001, and BC-7.07.001 in its own `inputs:` prior to this
+burst (unchanged by F-P29-002, which added only code files); with all three siblings edited this
+same burst, BC-5.40.001's hash is unavoidably affected regardless of its own content edit, and —
+because both ADR-046 and BC-4.17.001 cite BC-5.40.001 in their own `inputs:` — the cycle now
+effectively spans all four artifacts. This is the SAME class of expected residue already documented
+and settled at `[D-1082]`, extended (not reopened as a new item) to note BC-5.40.001's confirmed
+participation. Per this pass's task instruction, no attempt was made to chase full convergence via
+repeated re-computation rounds; the current quadruple is accepted as this burst's settled state.
+
+**Index reconciliation (state-manager, this burst):**
+
+- **ARCH-INDEX v3.83→v3.84:** ADR-046 row bumped v1.13→v1.14 (version-stable directive read
+  live `version:` field per O-P28-002); pass-29 summary appended ahead of the preserved pass-28
+  summary; "Fresh pass-29 is the documented NEXT action" trailing sentence replaced with "Fresh
+  pass-30 is the documented NEXT action."
+- **BC-INDEX v5.00→v5.01:** BC-4.17.001 row version-history v1.13→v1.14 appended (F-P29-001
+  mirror); BC-5.40.001 row version-history v1.11→v1.12 appended (F-P29-002); BC-7.07.001 row
+  version-history v1.30→v1.31 appended (F-P29-003). No new BC registered; total_bcs UNCHANGED 1988;
+  SS-04/SS-05/SS-07 counts UNCHANGED.
+- STORY-INDEX v4.391 UNCHANGED. VP-INDEX v2.79 UNCHANGED.
+
+**Convention divergence (non-blocking, recorded for human decision, NOT resolved this burst):** the
+architect corrected ADR-046's historical v1.8 Changelog mis-attribution IN PLACE (rewriting the
+dated v1.8 entry's own closing sentence), while the product-owner LEFT BC-4.17.001's historical
+v1.7-equivalent mis-attribution text untouched per the dated-history convention (BC-4.17.001's PC4
+correction was applied only to the LIVE body text, not to any historical changelog restatement).
+This is an OPEN convention question: which policy governs correcting a factually-wrong statement
+inside a PRESERVED HISTORICAL dated changelog/Changelog entry — POLICY 1 (append-only / leave
+history as originally written, the convention `O-P28-001` invoked) vs. the general
+correct-misleading-code-attribution obligation this same pass applied to live text. Recorded as a
+new Drift Item; not adjudicated this burst.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md for the superseded version strings `ADR-046.*v1\.13\b`, `BC-4\.17\.001.*v1\.13\b`,
+`BC-5\.40\.001.*v1\.11\b`, and `BC-7\.07\.001.*v1\.30\b` (anchored to the artifact-ID context to
+avoid bare-number false positives) — matches confined to: (1) PRESERVED HISTORICAL dated
+changelog/`last_amended` rows in BC-INDEX/ARCH-INDEX (correctly immutable, not a propagation gap),
+and (2) the STATE.md loci updated in this same burst. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3→0/3 (REMAINS 0/3, explicitly recorded as no-further-reset); Current
+Artifact Versions ADR-046 v1.13→v1.14, BC-4.17.001 v1.13→v1.14, BC-5.40.001 v1.11→v1.12, BC-7.07.001
+v1.30→v1.31; Blocking Issues ADR-046-gate row updated (streak 0/3, pass-29 3 findings found+fixed,
+fresh pass-30 NEXT); cyclic-hash Drift Item (`[D-1082]`) updated to record BC-5.40.001's confirmed
+participation; new non-blocking Drift Item row for the convention-divergence open question; Session
+Resume Checkpoint refreshed (§2 streak 0/3 REMAINS, fresh pass-30 NEXT; §3 ADR-046 v1.14/BC-4.17.001
+v1.14/BC-5.40.001 v1.12/BC-7.07.001 v1.31; §7 resume command); Phase Progress + Current Phase Steps
+rows added for D-1086 (Current Phase Steps table trimmed to keep only the last 5 — D-1082 row
+archived off, already fully preserved in decision-log.md/burst-log.md). Trajectory-tail unchanged
+(Wave-7 not touched this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-29 COMPLETE. 3 findings (1 HIGH F-P29-001 home-crate
+mis-attribution + 2 MED F-P29-002 `inputs:` completeness + F-P29-003 `modified:` array
+re-regression) found and fixed same-burst, 0 LOW observations. Streak REMAINS 0/3 (no further
+reset — was already 0/3 entering this pass). Fresh pass-30 is the documented NEXT action; needs 3
+consecutive clean passes for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-29.md), architect (ADR-046 v1.14:
+F-P29-001 `rewrite_expires_at` home-crate correction at 2 loci), product-owner (BC-4.17.001 v1.14:
+F-P29-001 PC4 mirror correction; BC-5.40.001 v1.12: F-P29-002 `inputs:` +5 code files; BC-7.07.001
+v1.31: F-P29-003 `modified:` array reorder), state-manager (adv-adr-046-pass-29.md persist +
+ARCH-INDEX v3.84 + BC-INDEX v5.01 + input-hash recompute + decision-log D-1086 + lessons +
+burst-log + STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.00 | v5.01 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.83 | v3.84 |
+
+### Phase
+
+D-1086-ADR046-PASS29-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-26
+
+---
