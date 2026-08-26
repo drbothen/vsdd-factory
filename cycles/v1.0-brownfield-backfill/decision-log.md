@@ -2459,3 +2459,141 @@ D-1083-ADR046-PASS26-SPEC-CONVERGENCE-REMEDIATION
 2026-08-26
 
 ---
+
+## D-1084
+
+**D-1084-ADR046-PASS27-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1083 (this cycle's decision-log.md; the F5 cycle at `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`
+tops out at D-454, well below). D-1084 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 27 dispatched against the frozen set
+(ADR-046 v1.12 + BC-4.17.001 v1.12 + BC-7.07.001 v1.28 + BC-5.40.001 v1.10). **VERDICT: FINDINGS
+(3: 1 HIGH + 2 MED) + 1 LOW observation.** BC-5.39.001 3-CLEAN streak REMAINS 0/3 (already reset
+at pass-25; findings do not reset an already-0/3 streak further). All findings were
+S-17.05-retrofit sibling-sweep stragglers of the pass-25 `[pending]`→S-17.05 resolution: passes
+25/26 swept the Traceability §Stories rows and prose but not §Story Anchor, status/lifecycle
+parity, or `inputs:` completeness. Full record: `adv-adr-046-pass-27.md`.
+
+**F-P27-001 (HIGH, POLICY 4, §Story Anchor sibling-sweep gap) — FIXED.** BC-5.40.001's §Story
+Anchor still read "Dual-story anchor: S-17.01; S-19.08," omitting S-17.05 and carrying a now-stale
+cardinality-quantifier word, even though the v1.10 pass-25 fix had already added S-17.05 to the
+Traceability §Stories row. BC-7.07.001's §Story Anchor still read only "S-18.04a," likewise
+omitting S-17.05 despite the v1.28 pass-25 fix having added it to the Traceability §Stories row.
+Product-owner corrected BC-5.40.001's §Story Anchor to "Tri-story anchor: S-17.01; S-19.08;
+S-17.05" (quantifier corrected to match the three-story count) and BC-7.07.001's §Story Anchor to
+list both S-18.04a and S-17.05. This generalizes TD-VSDD-060 one layer further: resolving a
+`[pending]` implementing-story anchor to a real story ID must sweep ALL sibling loci in the SAME
+burst — §Story Anchor (including any cardinality quantifier), §Traceability §Stories, status/
+lifecycle parity, `inputs:` completeness, and every prose mention — not just the Traceability rows
+the initial fix touched. BC-5.40.001 v1.10→**v1.11**; BC-7.07.001 v1.28→**v1.29**.
+
+**F-P27-002 (MED, POLICY 17, status/lifecycle contradiction) — FIXED.** BC-7.07.001's frontmatter
+carried `status: draft` while `lifecycle_status: active` and the BC-INDEX status cell already read
+`active` — a same-file contradiction plus an index/file divergence. Adjudicated: the
+precompact-flush plugin this BC governs has shipped (S-18.04a, E-18 EPIC COMPLETE); sibling BCs
+BC-4.17.001/BC-5.40.001 carry the identical pending-S-17.05-amendment condition under `status:
+active` (spec-leading-code per this repo's VSDD standing rule); a pending amendment does not make
+an already-shipped base contract draft. Product-owner corrected `status: draft` → `status: active`,
+reconciling the file to what BC-INDEX already stated. Not escalated to architect — a mechanical
+sibling-parity + lifecycle-consistency adjudication answerable in scope per the CANONICAL
+PRINCIPLE.
+
+**F-P27-003 (MED, POLICY 18, inputs: completeness) — FIXED.** BC-7.07.001's `inputs:` frontmatter
+list was incomplete relative to what its own normative body prose depends on (LOCK_RENEWAL_TTL_SECS
+/ `parse_iso8601` / `flp::parse_factory_lock` code claims, Precondition 1's registry stanza,
+EC-004's BC-4.13.001-EC-009 alignment). Product-owner expanded `inputs:` with
+`.factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md`, `crates/factory-lock/src/lib.rs`,
+`crates/factory-lock-parse/src/lib.rs`, `crates/hook-plugins/precompact-flush/src/lib.rs`,
+`crates/hook-plugins/verify-factory-lock/src/lib.rs`, and
+`plugins/vsdd-factory/hooks-registry.toml` — mirroring sibling BC-4.17.001's already-complete
+input set for the same code surface. BC-4.17.001 itself RETAINED UNCHANGED this burst (its mutual
+`inputs:` cite of BC-7.07.001 is the existing, already-settled cyclic-hash TD — see Index
+reconciliation below; not re-opened).
+
+**O-P27-001 (LOW, non-blocking, cosmetic) — FIXED.** BC-7.07.001's `modified:` changelog array had
+the v1.19–v1.23 block interleaved out of strict descending-chronological order (landing after
+v1.24 instead of before it). Product-owner reordered the array into strict
+descending-chronological sequence; no content changed, array element order only.
+
+**Artifact versions (product-owner edits already on disk before this state-manager burst;
+reconciled same-commit):** BC-5.40.001 v1.10→**v1.11**; BC-7.07.001 v1.28→**v1.29**. ADR-046
+v1.12 UNCHANGED this burst (no ADR touched — all three findings are BC-only). Input-hashes
+recomputed via `plugins/vsdd-factory/bin/compute-input-hash --update`: BC-5.40.001
+`d046d5a`→**`0a80aa5`**; BC-7.07.001 `fea7819`→**`056b419`**.
+
+**BC-4.17.001 ↔ BC-7.07.001 mutual `inputs:` cyclic-hash TD — RECONFIRMED, settled, NOT
+re-opened.** BC-4.17.001 lists both BC-5.40.001.md and BC-7.07.001.md in its own `inputs:`; with
+both siblings' content now changed (BC-5.40.001 v1.11, BC-7.07.001 v1.29), BC-4.17.001's stored
+input-hash `407e0ff` is confirmed one round behind the freshly-recomputed value `485373a` — the
+identical class of expected residue already documented and settled at the existing `[D-1082]`
+Drift Item in STATE.md (a BC one cycle behind its own cyclic-input siblings' latest content is not
+a new defect). BC-4.17.001 itself was NOT touched this burst (no PC/Invariant/EC/Traceability
+content of BC-4.17.001 required correction); its stored input-hash is deliberately left
+UNCHANGED, consistent with the pass-25 precedent, cross-referenced against `[D-1082]` rather than
+opening a new Drift Item.
+
+**Index reconciliation (state-manager, this burst):**
+
+- **BC-INDEX v4.98→v4.99:** BC-5.40.001 row Version cell v1.10→v1.11 appended (F-P27-001
+  disposition); BC-7.07.001 row Version cell v1.28→v1.29 appended (F-P27-001/002/003/O-P27-001
+  disposition). BC-7.07.001 row's status cell already read `active` (no cell edit required — the
+  file was the stale side of that divergence, now reconciled). Stories cells for both rows already
+  listed S-17.05 since D-1082 (UNCHANGED — no cell edit required, the finding was §Story-Anchor-
+  section prose inside the BC files, not a BC-INDEX Stories-cell gap). No new BC registered;
+  total_bcs UNCHANGED 1988; SS-04/SS-05/SS-07 counts UNCHANGED.
+- ARCH-INDEX v3.82 UNCHANGED (no ADR touched this burst). VP-INDEX v2.79 UNCHANGED. STORY-INDEX
+  v4.391 UNCHANGED.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, STATE.md, ARCH-INDEX.md, STORY-INDEX.md,
+VP-INDEX.md for the superseded version strings `BC-5.40.001.*v1\.10\b` and
+`BC-7.07.001.*v1\.28\b` (anchored to the BC-ID context to avoid bare-number false positives) —
+only the BC-INDEX row cells and STATE.md Current-Artifact-Versions/Phase-Progress/frontmatter
+loci matched, all updated in this same burst; no propagation gap found.
+
+**STATE.md vNext:** streak 0/3→0/3 (REMAINS 0/3, explicitly recorded as no-further-reset);
+Current Artifact Versions BC-5.40.001 v1.10→v1.11, BC-7.07.001 v1.28→v1.29 (+ status draft→active);
+Blocking Issues ADR-046-gate row updated (streak 0/3, pass-27 3 findings found+fixed, fresh
+pass-28 NEXT); O-P26-001 awareness-note Drift Item row updated/closed (BC-7.07.001 `status:active`
+condition it flagged is now resolved to plain `active` with no draft/active contradiction — the
+underlying spec-leading-code condition via the S-17.05 anchor still holds and is unchanged, only
+the frontmatter contradiction O-P26-001 flagged is now moot); Session Resume Checkpoint refreshed
+(§2 Convergence Counter 0/3 REMAINS, fresh pass-28 NEXT; §3 BC-5.40.001 v1.11/BC-7.07.001 v1.29;
+§7 resume command); Phase Progress + Current Phase Steps rows added for D-1084 (Current Phase
+Steps table trimmed to keep only the last 5 — D-1080 row archived off, already fully preserved in
+decision-log.md/burst-log.md). Trajectory-tail unchanged (Wave-7 not touched this burst —
+→1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-27 COMPLETE. 3 findings (1 HIGH F-P27-001 §Story-Anchor
+sibling-sweep gap, 2 MED F-P27-002 status/lifecycle + F-P27-003 inputs-completeness) found and
+fixed same-burst, plus 1 non-blocking LOW cosmetic fix (O-P27-001). All four traced to the SAME
+S-17.05-retrofit sibling-sweep root event; the class is now closed across both companion BCs.
+Streak REMAINS 0/3 (no further reset — was already 0/3 entering this pass). Fresh pass-28 is the
+documented NEXT action; needs 3 consecutive clean passes for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-27.md), product-owner (BC-5.40.001 v1.11:
+F-P27-001 §Story Anchor fix; BC-7.07.001 v1.29: F-P27-001/F-P27-002/F-P27-003/O-P27-001 fixes),
+state-manager (adv-adr-046-pass-27.md persist + BC-INDEX v4.99 + input-hash recompute + decision-
+log D-1084 + lessons + burst-log + STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v4.98 | v4.99 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.82 | v3.82 (UNCHANGED) |
+
+### Phase
+
+D-1084-ADR046-PASS27-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-26
+
+---
