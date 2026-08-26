@@ -129,7 +129,11 @@ After the upgrade procedure completes, confirm the following:
   changes are required.
 - [ ] **Dispatcher log has entries.** Open
   `.factory/logs/dispatcher-internal.jsonl` and confirm it exists and
-  has recent entries (timestamps within the current session).
+  has recent entries (timestamps within the current session). If the file
+  is missing or empty, check `/vsdd-factory:factory-health` first: the
+  dispatcher deliberately skips internal-log writes while `.factory` is
+  not yet a mounted worktree (it emits a once-per-session stderr notice),
+  so an empty log can mean "mount the worktree", not "dispatcher broken".
 - [ ] **Factory health is green.** `/vsdd-factory:factory-health` reports
   all checks passing.
 - [ ] **Plugin version is correct.** The health check output includes the
@@ -222,7 +226,11 @@ If v1.0 misbehaves on your factory and you need to revert:
   a missed activation step. Run `/vsdd-factory:activate` and then restart
   your Claude Code session completely. Confirm activation wrote entries to
   `.factory/logs/dispatcher-internal.jsonl` on the next hook-triggering
-  action (e.g., make a commit).
+  action (e.g., make a commit). Before concluding the dispatcher is
+  broken, run `/vsdd-factory:factory-health`: with `.factory` present but
+  not mounted as a worktree, the dispatcher runs its hooks normally but
+  holds back internal-log writes until the mount exists, which presents
+  as this exact symptom.
 
 - **Datadog 401 Unauthorized.** The Datadog sink is returning an auth
   error. Check `observability-config.toml` — confirm the `api_key` value

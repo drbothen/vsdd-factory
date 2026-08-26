@@ -84,6 +84,70 @@ EOF
   [[ "${#stored}" -eq 7 ]]
 }
 
+@test "compute-input-hash: --update creates input-hash field when absent (#623)" {
+  # Regression for #623: --update silently no-oped (reported success, wrote
+  # nothing) when the frontmatter had NO input-hash field at all — the sed
+  # find-and-replace matched no line. It must now insert the field and exit 0
+  # with the field genuinely present.
+  cat > "$WORK/.factory/specs/prd.md" << 'EOF'
+---
+document_type: prd
+inputs: [product-brief.md]
+---
+# PRD body
+EOF
+  # Field genuinely absent to start with.
+  ! grep -q '^input-hash:' "$WORK/.factory/specs/prd.md"
+
+  run "$BIN" "$WORK/.factory/specs/prd.md" --update
+  [ "$status" -eq 0 ]
+  # stdout's first line is the emitted hash (run merges the stderr "updated"
+  # message into $output, so assert against ${lines[0]}).
+  [[ "${#lines[0]}" -eq 7 ]]
+
+  # Field must now exist with the computed hash — a single new line, frontmatter
+  # fence and body preserved.
+  stored=$(awk '/^input-hash:/ { sub(/.*: *"?/, ""); sub(/"?$/, ""); print; exit }' "$WORK/.factory/specs/prd.md")
+  [ "$stored" = "${lines[0]}" ]
+  [[ "${#stored}" -eq 7 ]]
+  [ "$(grep -c '^input-hash:' "$WORK/.factory/specs/prd.md")" -eq 1 ]
+  grep -q '^# PRD body' "$WORK/.factory/specs/prd.md"
+}
+
+@test "compute-input-hash: --update on field-absent file is idempotent on re-run (#623)" {
+  cat > "$WORK/.factory/specs/prd.md" << 'EOF'
+---
+document_type: prd
+inputs: [product-brief.md]
+---
+EOF
+  first=$("$BIN" "$WORK/.factory/specs/prd.md" --update)
+  stored1=$(awk '/^input-hash:/ { sub(/.*: *"?/, ""); sub(/"?$/, ""); print; exit }' "$WORK/.factory/specs/prd.md")
+
+  # Second run: field is now current, so nothing changes — value stays identical
+  # and no duplicate field is appended.
+  run "$BIN" "$WORK/.factory/specs/prd.md" --update
+  [ "$status" -eq 0 ]
+  stored2=$(awk '/^input-hash:/ { sub(/.*: *"?/, ""); sub(/"?$/, ""); print; exit }' "$WORK/.factory/specs/prd.md")
+
+  [ "$stored1" = "$first" ]
+  [ "$stored2" = "$first" ]
+  [ "$(grep -c '^input-hash:' "$WORK/.factory/specs/prd.md")" -eq 1 ]
+}
+
+@test "compute-input-hash: --update fails loudly on malformed frontmatter with no closing fence (#623)" {
+  # A bookkeeping tool must never report success on a no-op. If the frontmatter
+  # has an inputs: field but no closing '---' fence to anchor insertion, --update
+  # must exit nonzero rather than silently writing nothing.
+  printf -- '---\ninputs: [product-brief.md]\n# body with no closing fence\n' \
+    > "$WORK/.factory/specs/malformed.md"
+
+  run "$BIN" "$WORK/.factory/specs/malformed.md" --update
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"failed to write input-hash"* ]]
+  ! grep -q '^input-hash:' "$WORK/.factory/specs/malformed.md"
+}
+
 @test "compute-input-hash: --check passes when hash matches" {
   cat > "$WORK/.factory/specs/prd.md" << 'EOF'
 ---
@@ -293,6 +357,61 @@ EOF
   [ "$status" -eq 1 ]
   [[ "$output" == *"MISSING"* ]]
   [[ "$output" == *"nonexistent.md"* ]]
+}
+
+# ===== regression: trailing-newline byte fidelity (#637) =====
+
+@test "compute-input-hash: hash matches byte-accurate reference for input with trailing newlines (#637)" {
+  # Regression for the $(cat file) command-substitution bug: bash strips ALL
+  # trailing newlines from command-substitution output, so the computed hash
+  # diverged from any raw-byte reader (md5sum <file, Python rb.read()). Files
+  # ending in one or more newlines (the normal case for text) MUST hash to the
+  # same digest the byte-accurate reference produces.
+  printf '# Product Brief\nLine two\n\n\n' > "$WORK/.factory/specs/product-brief.md"
+  cat > "$WORK/.factory/specs/prd.md" << 'EOF'
+---
+inputs: [product-brief.md]
+input-hash: "[md5]"
+---
+EOF
+
+  tool_hash=$("$BIN" "$WORK/.factory/specs/prd.md")
+
+  # Byte-accurate reference: the same short MD5 the tool computes, but taken
+  # over the raw file bytes (no command substitution in the pipeline).
+  if command -v md5sum &>/dev/null; then
+    ref_hash=$(md5sum < "$WORK/.factory/specs/product-brief.md" | cut -c1-7)
+  else
+    ref_hash=$(md5 < "$WORK/.factory/specs/product-brief.md" | cut -c1-7)
+  fi
+
+  [ "$tool_hash" = "$ref_hash" ]
+}
+
+@test "compute-input-hash: multi-input hash matches byte-accurate concatenation reference (#637)" {
+  # Trailing newlines between concatenated inputs must survive too — proves the
+  # fix accumulates raw bytes in order, not newline-stripped substitution output.
+  printf '# First\ntrailing\n\n' > "$WORK/.factory/specs/first.md"
+  printf '# Second\nmore\n\n\n' > "$WORK/.factory/specs/second.md"
+  cat > "$WORK/.factory/specs/multi.md" << 'EOF'
+---
+inputs:
+  - first.md
+  - second.md
+input-hash: "[md5]"
+---
+EOF
+
+  tool_hash=$("$BIN" "$WORK/.factory/specs/multi.md")
+
+  cat "$WORK/.factory/specs/first.md" "$WORK/.factory/specs/second.md" > "$WORK/concat-ref"
+  if command -v md5sum &>/dev/null; then
+    ref_hash=$(md5sum < "$WORK/concat-ref" | cut -c1-7)
+  else
+    ref_hash=$(md5 < "$WORK/concat-ref" | cut -c1-7)
+  fi
+
+  [ "$tool_hash" = "$ref_hash" ]
 }
 
 # ===== hooks/validate-input-hash.sh =====

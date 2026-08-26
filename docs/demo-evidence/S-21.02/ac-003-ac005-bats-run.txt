@@ -1,0 +1,53 @@
+AC-003/AC-004/AC-005 Bats Evidence: post-rebase-diff-integrity-gate.bats
+Story: S-21.02 v1.6
+BC: BC-5.44.001 v1.4
+Captured: 2026-07-24
+Worktree HEAD: 8abf24e29d290060c4e8546c35708dfafc198977
+
+==========================================================================
+COMMAND
+==========================================================================
+
+  bats plugins/vsdd-factory/tests/post-rebase-diff-integrity-gate.bats
+
+==========================================================================
+FULL VERBATIM OUTPUT
+==========================================================================
+
+1..5
+ok 1 T-001 S-21.02 AC-003: gate halts on unverified net-negative delta in sibling-touched file
+ok 2 T-002 S-21.02 AC-004: gate passes — no sibling file overlap (PC3)
+ok 3 T-003 S-21.02 AC-005: gate passes — confirmed intentional removal (PC1)
+ok 4 T-004 S-21.02 PC4/EC-006: gate passes trivially — no sibling commits since branch creation
+ok 5 T-005 S-21.02 EC-005: detector failure and merge-base failure escalate — push never invoked blind
+
+EXIT: 0
+
+==========================================================================
+TEST-TO-AC MAPPING
+==========================================================================
+
+T-001 (ok 1) → AC-003 (BC-5.44.001 PC2, Invariant 1)
+  Mock: git diff origin/develop --stat returns -4 lines on autoload.gd;
+        sibling-story commit modifies autoload.gd; delta unverified.
+  Assert: force-push blocked + UnverifiedNetNegativeDelta in output. PASS.
+
+T-002 (ok 2) → AC-004 (BC-5.44.001 PC3)
+  Mock: git diff origin/develop --stat returns only feature-branch files;
+        no sibling-story overlap.
+  Assert: gate passes; force-push proceeds. PASS.
+
+T-003 (ok 3) → AC-005 (BC-5.44.001 PC1)
+  Mock: -4 lines on autoload.gd; confirmed intentional in feature-branch commits.
+  Assert: gate passes (PC1 path); force-push proceeds. PASS.
+
+T-004 (ok 4) → Additive edge coverage (PC4/EC-006, not a story AC)
+  Mock: no sibling commits since branch creation.
+  Assert: gate passes trivially. INCLUDED AS LABELED EDGE COVERAGE.
+
+T-005 (ok 5) → Additive edge coverage (EC-005, not a story AC)
+  Mock: detector failure + merge-base failure.
+  Assert: push never invoked blind; escalates instead of fail-open. INCLUDED AS LABELED EDGE COVERAGE.
+
+==========================================================================
+RESULT: 5/5 ok — EXIT 0

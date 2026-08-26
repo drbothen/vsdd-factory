@@ -75,6 +75,22 @@ setup() {
   grep -q 'Denied:.*exec' "$AGENTS/orchestrator/orchestrator.md"
 }
 
+@test "orchestrator documents session-scoped task-tracking tools" {
+  # Coordination is core to the orchestrator; the task-tracking tools must be
+  # named in the operating doc so they are loaded up front, not discovered
+  # mid-pipeline. See issue #221.
+  grep -q 'TaskCreate' "$AGENTS/orchestrator/orchestrator.md"
+  grep -q 'TaskUpdate' "$AGENTS/orchestrator/orchestrator.md"
+  grep -q 'TaskList' "$AGENTS/orchestrator/orchestrator.md"
+}
+
+@test "orchestrator task tools do not breach the no-write coordinator wall" {
+  # Task tracking is session coordination, not file writing. The doc must not
+  # have quietly reintroduced write/exec while adding the task-tracking tools.
+  grep -q 'Denied:.*write' "$AGENTS/orchestrator/orchestrator.md"
+  grep -q 'Denied:.*exec' "$AGENTS/orchestrator/orchestrator.md"
+}
+
 @test "pr-manager has coding profile" {
   grep -q 'Profile: `coding`' "$AGENTS/pr-manager.md"
 }

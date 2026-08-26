@@ -423,28 +423,31 @@ _run_dispatcher() {
 }
 
 # ---------------------------------------------------------------------------
-# T-4 (AC-012): Edit payload reconstruct stale timestamp → guard blocks (exit 2)
+# T-4 (AC-012 / ADR-032 Decision 1): Edit payload, phase-change only → Continue (payload-neutral)
 #
 # Payload type: Edit (tool_input.old_string + tool_input.new_string, AC-012).
 # On-disk STATE.md: timestamp = TS_OLD (2026-06-11T10:00:00Z)
-# Edit: changes the `phase:` line (NOT the timestamp line).
-# Guard reconstructs proposed from on-disk + edit → timestamp unchanged → Block.
-# Expected: exit 2 (Block) + FULL canonical TimestampStale message.
+# Edit: changes the `phase:` line (NOT the timestamp line, NOT factory_lock:).
 #
-# This test verifies the RECONSTRUCTION semantics of the Edit arm:
-#   - Guard reads on-disk STATE.md.
-#   - Guard applies old_string→new_string to produce proposed full content.
-#   - Guard compares timestamp: in proposed vs on-disk.
-#   - Timestamp unchanged → Block: TimestampStale.
+# ADR-032 Decision 1 (AC-020): Edit/MultiEdit whose new_string sets NEITHER
+# `timestamp:` NOR `factory_lock:` at column 0 is payload-neutral.  The guard
+# returns Continue immediately (Steps 4–8 skipped) and emits the sentinel:
+#   "verify-state-timestamp-refresh: guard_ran (continue: payload-neutral)"
 #
-# This was the 4th bats test required by S-17.04 v1.3 Red Gate Test Table
-# (test_verify_state_timestamp_refresh_edit_reconstruct_stale_blocks).
+# PRE-ADR-032 behaviour (now superseded): the guard reconstructed proposed content
+# from on-disk + edit, compared timestamps, and Blocked with TimestampStale.
+# That behaviour was correct before payload-targeted enforcement was introduced
+# (S-17.04 v1.3 Red Gate Test Table item 4), but it caused spurious blocks on
+# every payload-neutral Edit to STATE.md (D-866).
 #
-# RED GATE: WASM absent → skip. If WASM stub returns Continue after path check,
-# exit-2 assertion fails — correct Red Gate failure.
+# POST-ADR-032 behaviour asserted here: exit 0 (Continue) + payload-neutral sentinel.
+#
+# RED GATE: WASM absent → skip.
+# Against pre-ADR-032 WASM (guard always reconstructs and checks): exit 2 assertion
+# fails — correct Red Gate failure for the old binary.
 # ---------------------------------------------------------------------------
 
-@test "T-4 test_verify_state_timestamp_refresh_edit_reconstruct_stale_blocks" {
+@test "T-4 test_verify_state_timestamp_refresh_edit_payload_neutral_continues" {
   _require_artifacts
   _write_full_registry
 
@@ -453,8 +456,8 @@ _run_dispatcher() {
   # On-disk STATE.md: old timestamp. The edit will NOT touch the timestamp.
   _write_state_no_lock_with_ts "$ts_old"
 
-  # Edit payload: changes the `phase:` line, NOT the timestamp.
-  # After reconstruction: timestamp is still TS_OLD (stale) → must Block.
+  # Edit payload: changes the `phase:` line, NOT the timestamp, NOT factory_lock:.
+  # new_string sets neither timestamp: nor factory_lock: at column 0 → payload-neutral.
   # Edit payload fields: old_string + new_string (AC-012; NOT new_content).
   local old_str="phase: test"
   local new_str="phase: complete"
@@ -464,22 +467,31 @@ _run_dispatcher() {
 
   _run_dispatcher "$envelope"
 
-  # Must exit 2 (Block) — reconstructed content has stale timestamp.
-  [ "$status" -eq 2 ] || {
-    echo "FAIL: expected exit 2 (Block) for Edit reconstruct with stale timestamp but got status=$status"
-    echo "Edit: old_string=${old_str}, new_string=${new_str} (does NOT touch timestamp)"
-    echo "Reconstructed proposed content should have unchanged timestamp → TimestampStale"
+  # Must exit 0 (Continue) — payload-neutral Edit under ADR-032 Decision 1 (AC-020).
+  [ "$status" -eq 0 ] || {
+    echo "FAIL: expected exit 0 (Continue: payload-neutral) but got status=$status"
+    echo "Edit: old_string=${old_str}, new_string=${new_str} (sets neither timestamp: nor factory_lock:)"
+    echo "ADR-032 Decision 1 (AC-020): payload-neutral Edit → guard returns Continue immediately."
     echo "Output: $output"
     return 1
   }
 
-  # FULL canonical block message (M03 fix — not substring only).
-  local expected_msg="BLOCKED by verify-state-timestamp-refresh: STATE.md timestamp not advanced in this write. Fix: Update 'timestamp:' to the current UTC time before writing STATE.md. Code: TimestampStale."
+  # PRIMARY: payload-neutral sentinel must be present in combined stderr.
+  # "verify-state-timestamp-refresh: guard_ran (continue: payload-neutral)" is emitted
+  # at the AC-020 early-return branch. Sentinel-present + exit 0 proves the guard
+  # ran its full decision path and deliberately returned Continue, not crashed.
+  [[ "$output" == *"guard_ran"* ]] || {
+    echo "FAIL: guard_ran sentinel not found in dispatcher output."
+    echo "Expected 'verify-state-timestamp-refresh: guard_ran (continue: payload-neutral)' in stderr."
+    echo "This sentinel is emitted at the AC-020 payload-neutral early-return branch."
+    echo "Absence means the guard crashed or was not loaded."
+    echo "Output: $output"
+    return 1
+  }
 
-  [[ "$output" == *"${expected_msg}"* ]] || {
-    echo "FAIL: expected FULL canonical TimestampStale message in output."
-    echo "Expected message (substring): ${expected_msg}"
-    echo "Actual output: $output"
+  # Secondary: plugins_run=1 confirms the registry entry loaded and invoked the plugin.
+  [[ "$output" == *"plugins_run=1"* ]] || {
+    echo "FAIL: expected 'plugins_run=1' in dispatcher stderr but got: $output"
     return 1
   }
 }

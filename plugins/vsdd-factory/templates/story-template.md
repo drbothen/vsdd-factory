@@ -140,6 +140,7 @@ Target: <= 20-30% of agent context window. If over budget, split the story.
 9. [ ] Refactor
 10. [ ] Write Kani proof harnesses (if VP requires)
 11. [ ] Write fuzz targets (if VP requires)
+12. [ ] Add a CHANGELOG entry under [Unreleased] > Fixed/Changed/Added describing the shipped behavior, before creating the PR
 
 ## Previous Story Intelligence (MANDATORY)
 

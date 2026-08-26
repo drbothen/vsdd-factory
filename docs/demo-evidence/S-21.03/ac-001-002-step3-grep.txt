@@ -1,0 +1,31 @@
+# S-21.03 AC-001 / AC-002 — Step 3 mandate evidence
+# Captured: 2026-07-24
+# Worktree HEAD: 194e98fe
+# Target file: plugins/vsdd-factory/agents/pr-manager.md
+
+## Command 1: section heading + post-A label
+$ grep -n '### Step 3:\|Step 3-post-A\|baseRefName\|BaseRefNameMismatch\|does not equal\|configured trunk\|MUST NOT be merged\|STEP_COMPLETE: step=3' plugins/vsdd-factory/agents/pr-manager.md
+
+134:### Step 3: Create PR
+145:**Step 3-post-A — Post-create baseRefName assertion (BC-6.10.002 PC2, ADR-031 §Decision 8).**
+146:IMMEDIATELY after `gh pr create` succeeds, spawn github-ops to assert the PR's `baseRefName`
+147:equals the configured trunk:
+150:Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr view <pr_number> --json baseRefName")
+153:Assert the returned `baseRefName` value equals the configured trunk (`develop` for feature
+154:pipelines). If the returned value does not equal the configured trunk, hard-fail the burst
+155:with `BaseRefNameMismatch`:
+158:HARD FAIL: BaseRefNameMismatch — PR #<pr_number> baseRefName '<actual>' does not match
+159:configured trunk 'develop'. The PR was NOT created against the correct target branch
+164:The PR MUST NOT be merged and the story MUST NOT be marked delivered until this assertion passes
+170:`STEP_COMPLETE: step=3 name=create-pr status=ok note=PR #<N> created; baseRefName assertion passed`
+329:the configured trunk (`develop` for feature pipelines) BEFORE any branch deletion. Spawn
+
+## Evidence summary (AC-001 / AC-002 mandate tokens confirmed present in §Step 3):
+#   Line 134  — section heading "### Step 3: Create PR"
+#   Line 145  — "Step 3-post-A" bold heading: post-create baseRefName assertion
+#   Line 150  — gh pr view <pr_number> --json baseRefName command
+#   Line 153  — "baseRefName value equals the configured trunk"
+#   Line 154  — "does not equal the configured trunk" triggers hard-fail
+#   Line 155  — "BaseRefNameMismatch" error variant named
+#   Line 164  — "MUST NOT be merged" hard-fail consequence (BC-6.10.002 PC2 Invariant 2)
+#   Line 170  — STEP_COMPLETE noting baseRefName assertion passed (happy-path AC-002)

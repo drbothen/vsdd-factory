@@ -226,7 +226,18 @@ pub enum PluginResult {
         /// a partial message because the plugin was interrupted.
         stderr: String,
         elapsed_ms: u64,
+        /// Instructions executed before the interrupt. Useful telemetry for
+        /// the event log. Note: on `Trap::OutOfFuel`, `fuel_consumed_from_store`
+        /// returns `cap.saturating_sub(remaining)` where `remaining == 0`, so
+        /// `fuel_consumed == fuel_cap` on every fuel trap — it does not convey
+        /// demand independently of the cap. Use `fuel_cap` for the operator
+        /// message when communicating what limit was hit.
         fuel_consumed: u64,
+        /// The configured fuel budget at the time of invocation. Always
+        /// reflects the actual cap set on the wasmtime Store, independent of
+        /// whether `get_fuel()` succeeds. Use this field — not `fuel_consumed`
+        /// — when constructing operator-facing messages about which cap to raise.
+        fuel_cap: u64,
     },
     Crashed {
         trap_string: String,
@@ -255,6 +266,18 @@ pub enum TimeoutCause {
     Fuel,
 }
 
+/// ADR-042 §Decision 1: global fuel cap raised 10M → 20M (measurement-validated).
+/// Worst-case legacy-bash-adapter payload consumed 10,406,058 fuel
+/// (ARCH-INDEX + 50 KB last_assistant_message, 377,109 payload bytes),
+/// exhausting the former 10M cap. 20M leaves ~9.6M headroom (92% margin).
+///
+/// This constant is the single source of truth for the ADR-042 fuel cap.
+/// Both `InvokeLimits::default()` and `RegistryDefaults::default()` reference it,
+/// so any future deliberate cap change is made in one place and propagates
+/// atomically to both — structural enforcement rather than test-only enforcement.
+/// Any change to this value requires updating the ADR-042 §Decision 1 rationale.
+pub const DEFAULT_FUEL_CAP: u64 = 20_000_000;
+
 /// Per-invocation budget. Defaults live in
 /// `RegistryDefaults`; callers usually get these from a
 /// `RegistryEntry` with fallback.
@@ -268,7 +291,7 @@ impl Default for InvokeLimits {
     fn default() -> Self {
         Self {
             timeout_ms: 5_000,
-            fuel_cap: 10_000_000,
+            fuel_cap: DEFAULT_FUEL_CAP,
         }
     }
 }
@@ -397,6 +420,7 @@ pub fn invoke_plugin(
             &stderr,
             elapsed_ms,
             fuel_consumed,
+            limits.fuel_cap,
         ),
     }
 }
@@ -407,6 +431,7 @@ fn classify_trap(
     stderr: &MemoryOutputPipe,
     elapsed_ms: u64,
     fuel_consumed: u64,
+    fuel_cap: u64,
 ) -> Result<PluginResult, InvokeError> {
     let stderr_text = stderr_to_string(stderr);
     // WASI `exit(n)` propagates as an `I32Exit` in wasmtime-wasi's
@@ -429,12 +454,14 @@ fn classify_trap(
                 stderr: stderr_text,
                 elapsed_ms,
                 fuel_consumed,
+                fuel_cap,
             },
             Trap::OutOfFuel => PluginResult::Timeout {
                 cause: TimeoutCause::Fuel,
                 stderr: stderr_text,
                 elapsed_ms,
                 fuel_consumed,
+                fuel_cap,
             },
             other => PluginResult::Crashed {
                 trap_string: other.to_string(),
@@ -1055,6 +1082,100 @@ mod tests {
 
     fn bare_ctx() -> HostContext {
         HostContext::new("plugin", "0.0.1", "sess", "trace")
+    }
+
+    // ADR-042 §Decision 1: global fuel cap raised 10M → 20M (measurement-validated).
+    // 838 fuel-exhaustion events across 35 plugins confirmed by perf-engineer;
+    // worst-case payload (ARCH-INDEX + 50 KB assistant message) measured 10,406,058 fuel.
+    #[test]
+    fn invoke_limits_default_fuel_cap_is_20m() {
+        assert_eq!(InvokeLimits::default().fuel_cap, DEFAULT_FUEL_CAP);
+    }
+
+    // Proves the dispatcher enforces the fuel ceiling at the boundary: a synthetic WAT
+    // workload of ~10.8M fuel crosses from trapped to completing when the ceiling
+    // moves from 10M to 20M. This is a ceiling-enforcement test, not a production
+    // model: the WAT loop runs with an empty payload and no host calls, so it does
+    // not reflect the regression formula measured by the perf-engineer
+    // (fuel = 29,452 + 27.514 × payload_bytes). The ~10.8M estimate is based on
+    // the loop structure (1,200,000 iterations × ~9 WASM instructions each); the
+    // actual observed value is asserted in the 20M branch below.
+    #[test]
+    fn fuel_workload_exhausts_10m_completes_at_20m() {
+        let engine = build_engine().unwrap();
+        // Arithmetic loop: 1,200,000 iterations x ~9 instructions ≈ 10.8M fuel.
+        let module = compile(
+            &engine,
+            r#"
+            (module
+              (memory (export "memory") 1)
+              (func (export "_start")
+                (local $i i32)
+                (local.set $i (i32.const 0))
+                (block $done
+                  (loop $l
+                    (local.set $i (i32.add (local.get $i) (i32.const 1)))
+                    (br_if $done (i32.ge_u (local.get $i) (i32.const 1200000)))
+                    (br $l)))))
+            "#,
+        );
+
+        // At the former 10M cap: fuel exhaustion.
+        let res_10m = invoke_plugin(
+            &engine,
+            &module,
+            bare_ctx(),
+            b"",
+            InvokeLimits {
+                timeout_ms: 30_000,
+                fuel_cap: 10_000_000,
+            },
+        )
+        .unwrap();
+        assert!(
+            matches!(
+                res_10m,
+                PluginResult::Timeout {
+                    cause: TimeoutCause::Fuel,
+                    ..
+                }
+            ),
+            "expected Timeout{{Fuel}} at 10M cap, got {res_10m:?}"
+        );
+
+        // At the new 20M cap: completes successfully.
+        let res_20m = invoke_plugin(
+            &engine,
+            &module,
+            bare_ctx(),
+            b"",
+            InvokeLimits {
+                timeout_ms: 30_000,
+                fuel_cap: DEFAULT_FUEL_CAP,
+            },
+        )
+        .unwrap();
+        // Assert both the exit code and the observed fuel so a future wasmtime
+        // accounting change fails with a message stating the actual cost rather
+        // than an opaque pattern-match mismatch.
+        match res_20m {
+            PluginResult::Ok {
+                exit_code,
+                fuel_consumed,
+                ..
+            } => {
+                assert_eq!(exit_code, 0, "expected exit_code=0 at 20M cap");
+                assert!(
+                    fuel_consumed > 10_000_000,
+                    "fuel_consumed should be > 10M (workload is ~10.8M), got {fuel_consumed}"
+                );
+                assert!(
+                    fuel_consumed < DEFAULT_FUEL_CAP,
+                    "fuel_consumed should be < cap ({DEFAULT_FUEL_CAP}), got {fuel_consumed}"
+                );
+            }
+            other => panic!("expected Ok(exit_code=0) at 20M cap, got {other:?}"),
+        }
     }
 
     #[test]
@@ -1796,8 +1917,8 @@ mod tests {
 
 // S-18.04b-prereq: git_context payload injection (ADR-029)
 
-/// The four-field git_context schema injected into `payload.extra` on qualifying
-/// PostToolUse Bash git-commit events (ADR-029 §Decision 2).
+/// The seven-field git_context schema injected into `payload.extra` on qualifying
+/// PostToolUse Bash git-commit events (ADR-029 §Decision 2 / ADR-032-AC021-prereq).
 ///
 /// All fields are `String`. Empty string means the field could not be populated
 /// (e.g. `head_parent_sha` when factory-artifacts has only one commit).
@@ -1805,6 +1926,13 @@ mod tests {
 ///
 /// This struct is `pub` so integration tests can construct expected values and
 /// compare against the injected `serde_json::Value::Object`.
+///
+/// # ADR-032-AC021-prereq fields (three new fields)
+///
+/// `head_state_timestamp`, `head_parent_state_timestamp`, and `state_md_in_commit`
+/// are required by the AC-021 advisory plugin to detect stale timestamp commits
+/// without invoking `exec_subprocess` in the WASM sandbox (ADR-032 §Prerequisite
+/// deliverable). All three use the same empty-string sentinel convention.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GitContext {
     /// Subject line of HEAD commit in the factory-artifacts worktree.
@@ -1817,6 +1945,17 @@ pub struct GitContext {
     /// Full 40-character SHA of HEAD^ commit. Empty string if HEAD^ does not
     /// exist (initial commit case).
     pub head_parent_sha: String,
+    /// The `timestamp:` frontmatter value extracted from `HEAD:STATE.md`
+    /// in the factory-artifacts worktree (ADR-032-AC021-prereq).
+    /// Empty string if git show fails or the field is absent.
+    pub head_state_timestamp: String,
+    /// The `timestamp:` frontmatter value extracted from `HEAD^:STATE.md`.
+    /// Empty string on initial commit or git error.
+    pub head_parent_state_timestamp: String,
+    /// Serialized bool: `"true"` if `STATE.md` appears in the diff between
+    /// HEAD^ and HEAD; `"false"` if it does not; `""` on git error (initial
+    /// commit with no HEAD^, git not found, etc.) — ADR-032-AC021-prereq.
+    pub state_md_in_commit: String,
 }
 
 impl GitContext {
@@ -1825,7 +1964,7 @@ impl GitContext {
     ///
     /// # GREEN-BY-DESIGN
     ///
-    /// Pure field initialisation; zero branching, no I/O, no helpers, 7 lines.
+    /// Pure field initialisation; zero branching, no I/O, no helpers.
     /// Body is trivial struct construction only — BC-5.38.002 criteria all satisfied.
     pub fn empty() -> Self {
         Self {
@@ -1833,22 +1972,32 @@ impl GitContext {
             head_sha: String::new(),
             head_parent_subject: String::new(),
             head_parent_sha: String::new(),
+            head_state_timestamp: String::new(),
+            head_parent_state_timestamp: String::new(),
+            state_md_in_commit: String::new(),
         }
     }
 
     /// Serialize this context to a `serde_json::Value::Object` suitable for
     /// insertion into `payload.extra["git_context"]` (ADR-029 §Decision 2).
     ///
+    /// All seven fields are explicitly named in the `json!` literal — the macro
+    /// does NOT serialize struct fields automatically (ADR-032 §Prerequisite
+    /// deliverable item 5).
+    ///
     /// # GREEN-BY-DESIGN
     ///
-    /// Builds a JSON object from the four string fields; zero branching,
-    /// no I/O, no non-trivial helpers, body ≤ 8 lines. BC-5.38.002 satisfied.
+    /// Builds a JSON object from the seven string fields; zero branching,
+    /// no I/O, no non-trivial helpers. BC-5.38.002 satisfied.
     pub fn to_json(&self) -> serde_json::Value {
         serde_json::json!({
             "head_subject": self.head_subject,
             "head_sha": self.head_sha,
             "head_parent_subject": self.head_parent_subject,
             "head_parent_sha": self.head_parent_sha,
+            "head_state_timestamp": self.head_state_timestamp,
+            "head_parent_state_timestamp": self.head_parent_state_timestamp,
+            "state_md_in_commit": self.state_md_in_commit,
         })
     }
 }
@@ -1906,8 +2055,8 @@ pub fn detect_git_commit_event(payload: &crate::payload::HookPayload) -> bool {
     command.contains("git") && command.contains(" commit") && command.contains(".factory")
 }
 
-/// Execute the four git commands against the factory-artifacts worktree at
-/// `factory_dir` and return a populated `GitContext` (ADR-029 §Decision 3).
+/// Execute the seven git commands/operations against the factory-artifacts worktree at
+/// `factory_dir` and return a populated `GitContext` (ADR-029 §Decision 3 / ADR-032-AC021-prereq).
 ///
 /// Commands executed (in order) via `Command::new("git").current_dir(factory_dir)`:
 /// 1. `git log --format=%s -1 HEAD` → `head_subject`
@@ -1916,13 +2065,19 @@ pub fn detect_git_commit_event(payload: &crate::payload::HookPayload) -> bool {
 ///    (empty string if HEAD^ does not exist — exit non-zero)
 /// 4. `git rev-parse HEAD^` → `head_parent_sha`
 ///    (empty string if HEAD^ does not exist — exit non-zero)
+/// 5. `git show HEAD:STATE.md` → `head_state_timestamp`
+///    (extract `timestamp:` field via `extract_yaml_string_value`; empty on error)
+/// 6. `git show HEAD^:STATE.md` → `head_parent_state_timestamp`
+///    (empty string if HEAD^ does not exist — exit non-zero)
+/// 7. `git diff --name-only HEAD^ HEAD` → `state_md_in_commit`
+///    (`"true"` if STATE.md is listed; `"false"` otherwise; empty string on error)
 ///
 /// # Fail-open contract (BC-1.16.001 PC2 / AC-002 / AC-009)
 ///
 /// On ANY git command failure (non-zero exit, git binary not found, I/O error,
 /// permission denied), the function MUST:
 /// 1. Emit `tracing::warn!` describing the failure.
-/// 2. Return `GitContext::empty()` (all four fields `""`).
+/// 2. Return `GitContext::empty()` (all seven fields `""`).
 ///
 /// The dispatcher MUST NOT block, abort, or fail-closed on a git error.
 ///
@@ -1990,11 +2145,51 @@ pub fn build_git_context(factory_dir: &std::path::Path) -> GitContext {
     let head_parent_subject = run_git(&["log", "--format=%s", "-1", "HEAD^"]).unwrap_or_default();
     let head_parent_sha = run_git(&["rev-parse", "HEAD^"]).unwrap_or_default();
 
+    // ADR-032-AC021-prereq Steps 5+6+7: timestamp fields + STATE.md discriminator.
+
+    // Step 5: HEAD state timestamp — extract timestamp: from HEAD:STATE.md.
+    // factory_lock_parse::extract_yaml_string_value scans a single YAML line.
+    // Fail-open (consistent with HEAD^ handling above): any error → String::new().
+    let head_state_timestamp = match run_git(&["show", "HEAD:STATE.md"]) {
+        Ok(content) => content
+            .lines()
+            .find_map(|line| factory_lock_parse::extract_yaml_string_value(line, "timestamp"))
+            .unwrap_or_default(),
+        Err(_) => String::new(),
+    };
+
+    // Step 6: HEAD^ state timestamp. Error on initial commit → String::new().
+    let head_parent_state_timestamp = match run_git(&["show", "HEAD^:STATE.md"]) {
+        Ok(content) => content
+            .lines()
+            .find_map(|line| factory_lock_parse::extract_yaml_string_value(line, "timestamp"))
+            .unwrap_or_default(),
+        Err(_) => String::new(),
+    };
+
+    // Step 7: Whether STATE.md was changed in HEAD relative to HEAD^.
+    // git diff --name-only HEAD^ HEAD lists all filenames changed in the HEAD commit.
+    // Error (e.g. initial commit with no HEAD^, or git not found) → String::new()
+    // (fail-open; AC-021 Pre-condition 2 treats "" as fail-open Continue).
+    let state_md_in_commit = match run_git(&["diff", "--name-only", "HEAD^", "HEAD"]) {
+        Ok(files) => {
+            if files.lines().any(|f| f.trim() == "STATE.md") {
+                "true".to_string()
+            } else {
+                "false".to_string()
+            }
+        }
+        Err(_) => String::new(),
+    };
+
     GitContext {
         head_subject,
         head_sha,
         head_parent_subject,
         head_parent_sha,
+        head_state_timestamp,
+        head_parent_state_timestamp,
+        state_md_in_commit,
     }
 }
 
@@ -2007,10 +2202,10 @@ pub fn build_git_context(factory_dir: &std::path::Path) -> GitContext {
 ///    PostToolUse Bash event is a qualifying git-commit event.
 /// 2. If non-qualifying: return immediately without mutating `payload_value`
 ///    (AC-003, AC-004 — no injection on non-qualifying events).
-/// 3. If qualifying: call `build_git_context(factory_dir)` to obtain the four-field context,
+/// 3. If qualifying: call `build_git_context(factory_dir)` to obtain the seven-field context,
 ///    inject `git_context` as a `serde_json::Value::Object` into `payload_value` at key
 ///    `"git_context"` (rides in the `extra` flatten map — ADR-029 §Decision 2 / AC-005),
-///    with all four fields present as strings; null fields are forbidden (AC-006, AC-011).
+///    with all seven fields present as strings; null fields are forbidden (AC-006, AC-011).
 ///
 /// # Arguments
 ///
@@ -2049,5 +2244,233 @@ pub fn inject_git_context_if_qualifying(
     // (deserialized into HookPayload.extra via #[serde(flatten)]). AC-005.
     if let Some(map) = payload_value.as_object_mut() {
         map.insert("git_context".to_string(), git_ctx.to_json());
+    }
+}
+
+// ---------------------------------------------------------------------------
+// ADR-032-AC021-prereq: dispatcher git_context extension tests
+// ---------------------------------------------------------------------------
+#[cfg(test)]
+mod git_context_prereq_tests {
+    use super::*;
+
+    /// Initialize a minimal git repo at `dir` suitable for build_git_context tests.
+    /// Sets user.name and user.email locally so tests pass in CI environments
+    /// where the global git config may not be set.
+    fn git_init_and_configure(dir: &std::path::Path) {
+        let run = |args: &[&str]| {
+            std::process::Command::new("git")
+                .args(args)
+                .current_dir(dir)
+                .output()
+                .expect("git command failed")
+        };
+        run(&["init", "-b", "factory-artifacts"]);
+        run(&["config", "user.email", "test@vsdd.local"]);
+        run(&["config", "user.name", "VSDD Test"]);
+    }
+
+    fn git_run(dir: &std::path::Path, args: &[&str]) {
+        let out = std::process::Command::new("git")
+            .args(args)
+            .current_dir(dir)
+            .output()
+            .expect("git command failed");
+        assert!(
+            out.status.success(),
+            "git {} failed: {}",
+            args.join(" "),
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // ADR-032-AC021-prereq Dispatcher Test 1
+    //
+    // build_git_context(factory_dir).to_json() contains all three new keys
+    // (head_state_timestamp, head_parent_state_timestamp, state_md_in_commit)
+    // with correct values when STATE.md is committed with a known timestamp.
+    //
+    // Construct a temp git repo with:
+    //   Commit 1: STATE.md containing timestamp: "2026-07-20T09:00:00Z" (parent)
+    //   Commit 2: STATE.md updated to timestamp: "2026-07-20T10:00:00Z" (HEAD)
+    // Expected:
+    //   head_state_timestamp = "2026-07-20T10:00:00Z"
+    //   head_parent_state_timestamp = "2026-07-20T09:00:00Z"
+    //   state_md_in_commit = "true" (STATE.md changed in HEAD)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn adr032_ac021_prereq_test1_all_three_new_keys_populated() {
+        let dir = tempfile::tempdir().expect("create tmpdir for test 1");
+        let d = dir.path();
+
+        git_init_and_configure(d);
+
+        // Commit 1: parent STATE.md with timestamp TS_PARENT.
+        std::fs::write(
+            d.join("STATE.md"),
+            "---\ntimestamp: \"2026-07-20T09:00:00Z\"\nphase: test\n---\n\n# STATE\n",
+        )
+        .unwrap();
+        git_run(d, &["add", "STATE.md"]);
+        git_run(d, &["commit", "-m", "parent commit with STATE.md"]);
+
+        // Commit 2 (HEAD): STATE.md updated with timestamp TS_HEAD.
+        std::fs::write(
+            d.join("STATE.md"),
+            "---\ntimestamp: \"2026-07-20T10:00:00Z\"\nphase: complete\n---\n\n# STATE\n",
+        )
+        .unwrap();
+        git_run(d, &["add", "STATE.md"]);
+        git_run(d, &["commit", "-m", "HEAD commit with updated STATE.md"]);
+
+        let ctx = build_git_context(d);
+        let json = ctx.to_json();
+
+        assert_eq!(
+            json["head_state_timestamp"],
+            serde_json::json!("2026-07-20T10:00:00Z"),
+            "ADR-032-AC021-prereq Test 1: head_state_timestamp must be the timestamp \
+             from HEAD:STATE.md ('2026-07-20T10:00:00Z')"
+        );
+        assert_eq!(
+            json["head_parent_state_timestamp"],
+            serde_json::json!("2026-07-20T09:00:00Z"),
+            "ADR-032-AC021-prereq Test 1: head_parent_state_timestamp must be the timestamp \
+             from HEAD^:STATE.md ('2026-07-20T09:00:00Z')"
+        );
+        assert_eq!(
+            json["state_md_in_commit"],
+            serde_json::json!("true"),
+            "ADR-032-AC021-prereq Test 1: state_md_in_commit must be 'true' — \
+             STATE.md changed in HEAD commit"
+        );
+        // Confirm all 7 keys are present in the JSON object (ADR-032 §Prerequisite item 5).
+        for key in &[
+            "head_subject",
+            "head_sha",
+            "head_parent_subject",
+            "head_parent_sha",
+            "head_state_timestamp",
+            "head_parent_state_timestamp",
+            "state_md_in_commit",
+        ] {
+            assert!(
+                json.get(key).is_some(),
+                "ADR-032-AC021-prereq Test 1: to_json() must include key '{key}'"
+            );
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // ADR-032-AC021-prereq Dispatcher Test 2
+    //
+    // inject_git_context_if_qualifying with a qualifying PostToolUse Bash
+    // git-commit event where the committed file set includes STATE.md produces
+    // a payload where git_context["state_md_in_commit"] == "true".
+    //
+    // Same two-commit temp repo as Test 1. The qualifying payload simulates:
+    //   event_name = PostToolUse, tool_name = Bash,
+    //   command = "git -C .factory commit -m 'update'"
+    // -----------------------------------------------------------------------
+    #[test]
+    fn adr032_ac021_prereq_test2_inject_qualifying_state_md_commit_sets_state_md_in_commit_true() {
+        let dir = tempfile::tempdir().expect("create tmpdir for test 2");
+        let d = dir.path();
+
+        git_init_and_configure(d);
+
+        // Commit 1 (parent).
+        std::fs::write(
+            d.join("STATE.md"),
+            "---\ntimestamp: \"2026-07-20T09:00:00Z\"\n---\n\n# STATE\n",
+        )
+        .unwrap();
+        git_run(d, &["add", "STATE.md"]);
+        git_run(d, &["commit", "-m", "parent"]);
+
+        // Commit 2 (HEAD): STATE.md updated.
+        std::fs::write(
+            d.join("STATE.md"),
+            "---\ntimestamp: \"2026-07-20T10:00:00Z\"\n---\n\n# STATE\n",
+        )
+        .unwrap();
+        git_run(d, &["add", "STATE.md"]);
+        git_run(d, &["commit", "-m", "state: update STATE.md"]);
+
+        // Build a qualifying PostToolUse Bash git-commit payload.
+        // The command must contain "git", " commit", and ".factory" to pass
+        // detect_git_commit_event. inject_git_context_if_qualifying then calls
+        // build_git_context(d) which reads from the actual temp git repo.
+        let payload_json = serde_json::json!({
+            "event_name": "PostToolUse",
+            "session_id": "test-session",
+            "tool_name": "Bash",
+            "tool_input": { "command": "git -C .factory commit -m 'state: update STATE.md'" },
+            "tool_response": {},
+        });
+        let original_payload: crate::payload::HookPayload =
+            serde_json::from_value(payload_json.clone()).expect("parse HookPayload");
+        let mut payload_value = payload_json;
+
+        inject_git_context_if_qualifying(&original_payload, &mut payload_value, d);
+
+        let state_md_flag = payload_value
+            .get("git_context")
+            .and_then(|gc| gc.get("state_md_in_commit"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+
+        assert_eq!(
+            state_md_flag, "true",
+            "ADR-032-AC021-prereq Test 2: inject_git_context_if_qualifying must set \
+             git_context[state_md_in_commit] = 'true' when STATE.md was committed at HEAD; \
+             got: {state_md_flag:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // ADR-032-AC021-prereq Dispatcher Test 3 (negative branch)
+    //
+    // When the HEAD commit does NOT include STATE.md (e.g. a burst-log-only
+    // commit), build_git_context(factory_dir).to_json() produces
+    // state_md_in_commit == "false".
+    //
+    // Setup:
+    //   Commit 1: STATE.md (parent commit)
+    //   Commit 2: only burst-log.md committed (HEAD does NOT include STATE.md)
+    // Expected: state_md_in_commit = "false"
+    // -----------------------------------------------------------------------
+    #[test]
+    fn adr032_ac021_prereq_test3_negative_branch_no_state_md_in_commit_returns_false() {
+        let dir = tempfile::tempdir().expect("create tmpdir for test 3");
+        let d = dir.path();
+
+        git_init_and_configure(d);
+
+        // Commit 1 (parent): commit STATE.md.
+        std::fs::write(
+            d.join("STATE.md"),
+            "---\ntimestamp: \"2026-07-20T09:00:00Z\"\n---\n\n# STATE\n",
+        )
+        .unwrap();
+        git_run(d, &["add", "STATE.md"]);
+        git_run(d, &["commit", "-m", "initial STATE.md commit"]);
+
+        // Commit 2 (HEAD): commit only burst-log.md — STATE.md NOT changed.
+        std::fs::write(d.join("burst-log.md"), "## Burst log entry\n").unwrap();
+        git_run(d, &["add", "burst-log.md"]);
+        git_run(d, &["commit", "-m", "state: burst-log only (no STATE.md)"]);
+
+        let json = build_git_context(d).to_json();
+
+        assert_eq!(
+            json["state_md_in_commit"],
+            serde_json::json!("false"),
+            "ADR-032-AC021-prereq Test 3: state_md_in_commit must be 'false' when \
+             the HEAD commit does not include STATE.md (burst-log-only commit); \
+             got: {:?}",
+            json["state_md_in_commit"]
+        );
     }
 }

@@ -21,7 +21,20 @@ Before any other action, say verbatim:
 
 ## Prerequisites (check + abort if missing)
 
-1. Current working directory (or the nearest ancestor) must contain a `.factory/` subdirectory. Walk up from `$PWD` to find it. If none, abort with a clear error explaining the user needs to run this from inside a factory project.
+1. `.factory/` must be a **mounted factory-artifacts worktree at the repo root** —
+   not merely a directory that happens to exist. This ordering matters: if you
+   run this skill first, `factory-obs register` would create a plain
+   `.factory/logs/` directory, and a later `/factory-health` mount then fails
+   (`fatal: '.factory' already exists` on current git) — with nested
+   `.factory/.factory` mounts observed from botched recoveries of that state
+   (#205). Assert the mount before doing anything — the snippet halts, it does
+   not merely warn (paths canonicalized so symlinked checkouts don't false-fail):
+   ```bash
+   canon() { (cd "$1" 2>/dev/null && pwd -P); }
+   [ "$(canon "$(git -C .factory rev-parse --show-toplevel 2>/dev/null || echo /nonexistent)")" = "$(canon "$(git rev-parse --show-toplevel)")/.factory" ] \
+     || { echo ".factory/ is not a mounted worktree — run /factory-health first to set it up, then re-run this skill." >&2; exit 1; }
+   ```
+   Do not create `.factory/` here.
 2. The `factory-obs` binary must be present at `${CLAUDE_PLUGIN_ROOT}/bin/factory-obs`. If not, abort with "vsdd-factory plugin not found — is it installed in this Claude Code environment?".
 
 Don't fail silently — always print what's missing so the user can fix it.
@@ -120,7 +133,10 @@ This skill **does not**:
 
 ## When to use
 
-- **Brand new project** that just had the vsdd-factory plugin installed.
+Run this **after** `/factory-health` has mounted `.factory/` (see Prerequisites) —
+never before, or the leftover plain directory blocks the mount.
+
+- **Newly set-up project** whose `.factory/` worktree is already mounted and which you now want wired into observability.
 - **Existing project** you've been working in but haven't connected to your running stack yet (e.g., you set up the stack from a different project and want this one's events in the same Grafana).
 - **Troubleshooting**: "my events aren't showing up in Grafana" — re-running this skill is a quick idempotent fix that verifies both register + telemetry config are in place.
 

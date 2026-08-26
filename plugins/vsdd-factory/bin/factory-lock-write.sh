@@ -186,7 +186,10 @@ _remove_factory_lock() {
 # ---------------------------------------------------------------------------
 # Helper: write/replace the factory_lock block inside YAML frontmatter.
 # Strategy: strip any existing factory_lock block, then insert the new one
-# just before the closing --- of the frontmatter.
+# immediately after the timestamp: line in the frontmatter, above last_amended:.
+# Precondition: the frontmatter MUST contain a `timestamp:` line; if absent,
+# the awk insertion trigger never fires, the factory_lock block is not written,
+# and the acquire post-write assertion exits 1 with SchemaViolation (loud failure).
 # ---------------------------------------------------------------------------
 _write_factory_lock_block() {
   local file="$1"
@@ -197,25 +200,27 @@ _write_factory_lock_block() {
   # First, remove any existing factory_lock block
   _remove_factory_lock "$file"
 
-  # Now insert the new block before the closing --- of the frontmatter.
-  # The frontmatter is bounded by the first --- at line 1 and the next ---.
-  # We insert before the second --- (the closing delimiter).
+  # Insert the new block immediately after the timestamp: line in the frontmatter
+  # (ADR-032 §Third Deliverable placement mandate: factory_lock: must appear
+  # directly after timestamp:, above last_amended:).
+  # Frontmatter-region gate (front == 1), once-only insertion guard (inserted),
+  # and print-$0-first/next pattern are consistent with _remove_factory_lock and
+  # _update_expires_at sibling awk patterns.
   local orig_mode
   orig_mode="$(_get_file_mode "$file")"
   local tmpfile
   tmpfile="$(_make_tmpfile "${file}.XXXXXX")"
   awk -v holder="$holder" -v locked_at="$locked_at" -v expires_at="$expires_at" '
     BEGIN { front=0; inserted=0 }
-    /^---$/ {
-      front++
-      if (front == 2 && !inserted) {
-        # Insert factory_lock block before the closing ---
-        print "factory_lock:"
-        print "  holder: \"" holder "\""
-        print "  locked_at: \"" locked_at "\""
-        print "  expires_at: \"" expires_at "\""
-        inserted=1
-      }
+    /^---$/ { front++ }
+    front == 1 && /^timestamp:/ && !inserted {
+      print $0
+      print "factory_lock:"
+      print "  holder: \"" holder "\""
+      print "  locked_at: \"" locked_at "\""
+      print "  expires_at: \"" expires_at "\""
+      inserted=1
+      next
     }
     { print }
   ' "$file" > "$tmpfile"

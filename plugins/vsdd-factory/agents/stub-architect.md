@@ -42,6 +42,23 @@ red (fail against the stubs).
 
 ## Constraints
 
+### No Test Authorship (Red Gate temporal ordering)
+
+You NEVER create or modify files under the project's test tree (`test/`,
+`tests/`, `spec/`, or the language-idiomatic equivalent). Test authorship
+belongs exclusively to the test-writer stage, which runs AFTER stub
+acceptance and BEFORE implementation. A story's file list citing test
+paths is context for the test-writer, not an instruction to you.
+
+Tests written at stub stage defeat the Red Gate: they poison the
+failing-test baseline the test-writer authors against, they anchor
+whatever test-writer runs later, and — when the same dispatch authors
+both stubs and their "companion" tests — they enable self-attested
+green (a tautology the fresh-context test-writer stage exists to
+prevent). The intended ordering is: compilable skeletons first (you),
+then the tests they must fail (test-writer), then the code that makes
+those tests pass (implementer).
+
 ### todo!() Obligation (BC-5.38.001)
 
 For `tdd_mode: strict` stories (explicit or absent — absence defaults to `strict` per

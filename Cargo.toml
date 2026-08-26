@@ -23,6 +23,7 @@ members = [
     "crates/hook-plugins/warn-pending-wave-gate",
     "crates/hook-plugins/validate-pr-review-posted",
     "crates/hook-plugins/validate-artifact-path",
+    "crates/hook-plugins/validate-factory-path-staging",
     "crates/hook-plugins/verify-factory-lock",
     "crates/factory-lock-parse",
     "crates/hook-plugins/verify-state-timestamp-refresh",
@@ -39,6 +40,7 @@ members = [
     "crates/hook-plugins/validate-trajectory-tail-cell-completeness",
     "crates/hook-plugins/validate-wave-handoff-completeness",
     "crates/hook-plugins/validate-heavy-op-delegation",
+    "crates/hook-plugins/verify-state-timestamp-advisory",
     "crates/sink-core",
     "crates/sink-file",
     "crates/sink-otel-grpc",
@@ -48,6 +50,8 @@ members = [
     "crates/factory-lock",
     "crates/hook-plugins/precompact-flush",
     "crates/hook-plugins/read-prefix-fixture",
+    "crates/hook-plugins/validate-cross-site-correspondence",
+    "crates/policy15-attestation-gate",
 ]
 
 [workspace.package]
@@ -69,13 +73,13 @@ serde_json = "1.0"
 # See: https://crates.io/crates/serde_norway
 serde_norway = "0.9"
 toml = "0.8"
-anyhow = "1.0"
+anyhow = "1.0.104"
 thiserror = "2.0"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync", "time", "fs", "io-util", "process"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
-wasmtime = "44.0"
-wasmtime-wasi = "44.0"
+wasmtime = "46.0.2"
+wasmtime-wasi = "46.0.2"
 clap = { version = "4", features = ["derive"] }
 proc-macro2 = "1.0"
 quote = "1.0"
@@ -99,7 +103,7 @@ tonic = "0.14"
 tokio-stream = { version = "0.1", features = ["net"] }
 hostname = "0.4"
 reqwest = { version = "0.12", features = ["json"] }
-httpmock = "0.7"
+httpmock = "0.8.3"
 proptest = "1.6"
 wasmparser = "0.248"
 

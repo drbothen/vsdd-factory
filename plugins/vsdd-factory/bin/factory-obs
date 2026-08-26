@@ -242,7 +242,18 @@ _generate_override() {
       echo "factory-obs: skipping invalid registry entry: $root" >&2
       continue
     fi
-    mkdir -p "$root/.factory/logs" 2>/dev/null || true
+    # Issue #206: never plant `.factory/` state ahead of the worktree mount —
+    # a plain `.factory` (or a logs/ child inside one) blocks the later
+    # `git worktree add .factory factory-artifacts` during /factory-health
+    # bootstrap. Pre-create logs/ only when `.factory` is already
+    # mount-shaped (.git entry: file for a worktree, dir for a checkout);
+    # otherwise leave it alone and tell the operator. The mount line is still
+    # written — the collector picks the path up once the mount exists.
+    if [ -e "$root/.factory/.git" ]; then
+      mkdir -p "$root/.factory/logs" 2>/dev/null || true
+    else
+      echo "factory-obs: $root/.factory is not a mounted worktree — skipping logs/ pre-create (run /factory-health there first)" >&2
+    fi
     local name
     name=$(_safe_name "$root")
     mount_lines+="      - \"$root/.factory/logs:/var/log/factory/$name:ro\"

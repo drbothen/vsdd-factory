@@ -1,0 +1,32 @@
+[package]
+name = "verify-state-timestamp-advisory"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM hook plugin: PostToolUse advisory that fires when a factory-artifacts commit does not advance STATE.md timestamp: (AC-021)"
+publish = false
+
+# Hook plugins ship as WASI commands (_start entry point) built via
+# `cargo build --target wasm32-wasip1`. The [lib] target carries testable
+# logic; [[bin]] wraps the WASI entry point that calls into the lib.
+# The explicit hyphenated [[bin]] name produces a hyphenated wasm output
+# filename that matches what hooks-registry.toml references — without it,
+# Cargo would default to underscore-converted lib name.
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "verify-state-timestamp-advisory"
+path = "src/main.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true

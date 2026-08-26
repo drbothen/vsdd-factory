@@ -70,6 +70,7 @@ Ensure the story has:
 2. Write failing tests for BC-1.01.001
 3. Implement until tests pass
 4. ...
+5. Add a CHANGELOG entry under [Unreleased] > Fixed/Changed/Added describing the shipped behavior, before creating the PR
 ```
 
 **Implementation Strategy**:

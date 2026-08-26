@@ -662,6 +662,53 @@ path_allow = [
   ".factory/HANDOFF.md",
 ]
 
+# ---------- validate-cross-site-correspondence (PostToolUse, Edit|Write|MultiEdit) ----------
+# BC-5.39.010 §Gate Spec: PostToolUse cross-site value-correspondence gate (current version per BC-INDEX).
+# Six active arms: Class A Arm1 (BC version vs BC-INDEX row), Class A Arm2 (story BC-table
+# citations vs BC frontmatter), Class B Arm1 (story input-hash three-way equality),
+# Class B Arm2 (STORY-INDEX internal catalog/blockquote parity), Class E1 (frontmatter
+# version/last_amended parity), Class E2 (modified[] monotonicity).
+# Class D (finding-ID namespace format advisory) is DEFERRED to S-21.08 (BC-5.39.010 v1.6 / D-953).
+# priority = 460: next available slot after validate-wave-handoff-completeness (450).
+# on_error = "continue": fuel exhaustion (debug build, oversized artifact) → silent
+#   non-finding, not spurious block (ADR-035 §Decision 5). NOTE: max_bytes caps are
+#   NOT calibrated against the fuel budget — BC-5.39.010 v1.15 RETRACTED that claim
+#   as false (measured fuel consumption ~99.21% of the 10M-instruction budget at
+#   typical artifact sizes, i.e. near-exhaustion, not comfortable headroom).
+# tool = "^(Edit|Write|MultiEdit)$": aligns with all 41 Edit/Write/MultiEdit hooks
+#   in the live registry. BC-5.39.010 v1.1 §Gate Spec had MultiEdit omitted — a
+#   POLICY 13 ESCAPE-SCOPE-PARITY gap. v1.2 corrects to include MultiEdit.
+# No fuel_cap field: the per-plugin fuel_cap registry field (ADR-035 §Decision 5,
+#   ADR-039 §Decision 2) is not yet implemented — ADR-039 Phase 1 (registry fuel_cap
+#   schema extension) has not shipped. The general prohibition on fuel_cap entries
+#   (BC-5.39.010 v1.15) was LIFTED by ADR-042 §Decision 2 (v1.16): once ADR-039
+#   Phase 1 ships, a per-plugin fuel_cap SHOULD be set for this hook, calibrated to
+#   p99×1.5 (minimum 50M for Phase 3 fail-closed annotation). Until then the only
+#   available lever is the global InvokeLimits::default() cap (BC-5.39.010
+#   §Gate Spec §Fuel-cap verification).
+# path_allow: covers .factory/specs/behavioral-contracts/, .factory/specs/
+#   verification-properties/, .factory/stories/ — three directory subtrees the
+#   hook reads from. .factory/cycles/ was removed with Class D deferral
+#   (BC-5.39.010 v1.6 / D-953): cycle artifact dispatch descoped; no reads needed.
+# S-21.07 deliverable — E-21 W4 cross-site correspondence validation.
+
+[[hooks]]
+name = "validate-cross-site-correspondence"
+event = "PostToolUse"
+tool = "^(Edit|Write|MultiEdit)$"
+plugin = "hook-plugins/validate-cross-site-correspondence.wasm"
+priority = 460
+timeout_ms = 8000
+on_error = "continue"
+async = false
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/specs/behavioral-contracts/",
+  ".factory/specs/verification-properties/",
+  ".factory/stories/",
+]
+
 # ---------- PreToolUse ----------
 
 [[hooks]]
@@ -925,6 +972,37 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 binary_allow = ["bash", "git", "gh", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
 env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+
+# ---------- validate-factory-path-staging (PreToolUse, Bash) ----------
+# S-21.01: Layer-1 invariant guard for INV-E21-001 (Nested Worktree Path Exclusivity).
+# Blocks any Bash-tool `git add` command that stages a path under `.factory/` on a
+# product branch (develop, main, feature/*, release/*, maintenance/*).
+# Fail-open (on_error=continue): a crashed guard never wedges the session; Layer-2
+# (per-story-delivery.md §Main-Checkout Sync Protocol) provides defense-in-depth.
+# ADR-031 §Decision 2+3; BC-4.16.001; POLICY 21 compliance: native WASM, no .sh file.
+# Priority 140 — same tier as verify-git-push (140, ^Bash$); same-priority plugins execute
+# in parallel (registry.rs ~L217, S-1.6), not sequentially by registry order. Parallel
+# execution is safe: validate-factory-path-staging and verify-git-push have disjoint
+# check surfaces (staging-path guard vs push-destination guard) with no shared state.
+# Next Bash-matcher sibling: verify-factory-lock-bash (142, ^Bash$).
+# Dispatcher sorts ascending: lower priority number fires first (140 < 142).
+
+[[hooks]]
+name = "validate-factory-path-staging"
+event = "PreToolUse"
+tool = "^Bash$"
+plugin = "hook-plugins/validate-factory-path-staging.wasm"
+priority = 140
+timeout_ms = 5000
+on_error = "continue"
+async = false
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["git"]
+# PATH omitted: the dispatcher process inherits PATH from its parent Claude session;
+# the child git subprocess resolves the binary via that inherited PATH without needing
+# PATH re-injected into the plugin sandbox. Proven by AC-001 dispatcher-level block tests.
+env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
 
 # ---------- validate-artifact-path (PreToolUse, Write|Edit) ----------
 # Registered AFTER relocate-artifact --dry-run confirmed 0 violations on .factory/
@@ -1496,3 +1574,22 @@ patterns = [
   "./run-all.sh",
   "./run-bats.sh"
 ]
+
+# ---------- verify-state-timestamp-advisory (ADR-032 AC-021) ----------
+# PostToolUse advisory: emits ADVISORY AC-021 when a factory-artifacts commit
+# included STATE.md but did not advance the timestamp: frontmatter field.
+# advisory-only (on_error=continue; never blocks — PostToolUse cannot prevent commits).
+# Reads git_context from payload.extra (injected by dispatcher ADR-032-AC021-prereq).
+# No capabilities block: exec-free, no read_file, no exec_subprocess (BC-5.41.003 PC1).
+# Priority 159 = lowest free slot above 154 (validate-dispatch-advance).
+# (traces to ADR-032 AC-021 / BC-5.41.003 / BC-5.40.001 PC6)
+
+[[hooks]]
+name = "verify-state-timestamp-advisory"
+event = "PostToolUse"
+tool = "^Bash$"
+plugin = "hook-plugins/verify-state-timestamp-advisory.wasm"
+priority = 159
+timeout_ms = 5000
+async = false
+on_error = "continue"

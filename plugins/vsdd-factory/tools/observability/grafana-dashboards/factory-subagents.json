@@ -71,7 +71,7 @@
         {
           "refId": "A",
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count(count by (attributes_subagent) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_subagent != \"\" [$__range])))"
+          "expr": "count(count by (subagent) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | subagent != \"\" [$__range])))"
         }
       ]
     },
@@ -99,7 +99,7 @@
         {
           "refId": "A",
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.stop\"} | json | attributes_exit_class = \"ok\" [$__range]))"
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.stop\"} | exit_class = \"ok\" [$__range]))"
         }
       ]
     },
@@ -134,7 +134,7 @@
         {
           "refId": "A",
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.stop\"} | json | attributes_exit_class != \"ok\" | attributes_exit_class != \"\" [$__range]))"
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.stop\"} | exit_class != \"ok\" | exit_class != \"\" [$__range]))"
         }
       ]
     },
@@ -148,7 +148,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
-          "displayName": "${__field.labels.attributes_subagent}"
+          "displayName": "${__field.labels.subagent}"
         }
       },
       "options": {
@@ -160,8 +160,8 @@
         {
           "refId": "A",
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "topk(15, sum by (attributes_subagent) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_subagent != \"\" [$__range])))",
-          "legendFormat": "{{attributes_subagent}}"
+          "expr": "topk(15, sum by (subagent) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | subagent != \"\" [$__range])))",
+          "legendFormat": "{{subagent}}"
         }
       ]
     },
@@ -188,8 +188,8 @@
         {
           "refId": "A",
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "sum by (attributes_subagent, attributes_exit_class) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.stop\"} | json | attributes_subagent != \"\" | attributes_exit_class != \"\" [$__range]))",
-          "legendFormat": "{{attributes_subagent}} — {{attributes_exit_class}}"
+          "expr": "sum by (subagent, exit_class) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.stop\"} | subagent != \"\" | exit_class != \"\" [$__range]))",
+          "legendFormat": "{{subagent}} — {{exit_class}}"
         }
       ]
     },
@@ -218,8 +218,8 @@
         {
           "refId": "A",
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "sum by (attributes_subagent) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_subagent != \"\" [$__interval]))",
-          "legendFormat": "{{attributes_subagent}}"
+          "expr": "sum by (subagent) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | subagent != \"\" [$__interval]))",
+          "legendFormat": "{{subagent}}"
         }
       ]
     },

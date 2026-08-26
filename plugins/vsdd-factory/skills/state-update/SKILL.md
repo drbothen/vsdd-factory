@@ -35,13 +35,16 @@ Parse the YAML frontmatter for current `phase` and `pipeline` status.
 
 ### 2. Update frontmatter
 
-Update the YAML frontmatter fields:
+Update the YAML frontmatter fields. Preserve the existing `product` value read
+in step 1 — never overwrite it. If it is somehow absent, derive it from the
+repository (`git rev-parse --show-toplevel | xargs basename`, using the name
+verbatim with no suffix stripping) or ask the human:
 
 ```yaml
 ---
 pipeline: <RUNNING|PAUSED|COMPLETED|BLOCKED>
 phase: <new phase>
-product: corverax
+product: <existing product name — preserved unchanged>
 mode: <greenfield|brownfield|feature>
 timestamp: <current ISO8601>
 previous_phase: <old phase>

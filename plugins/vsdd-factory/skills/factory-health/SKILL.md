@@ -17,12 +17,20 @@ Validate that the `.factory/` worktree is properly mounted and healthy. Auto-rep
 git branch --list factory-artifacts
 ```
 
-- **If missing**: Create it.
+- **If missing**: Create it. Build the empty root commit with plumbing and
+  point the branch ref at it directly — this never moves `HEAD` and never
+  touches the working tree. No checkout dance, so there is no failed-return
+  case that could strand the session on `factory-artifacts`. The init marker
+  commit is deliberately unsigned: `git commit-tree` does not honor
+  `commit.gpgsign`, and a hard `-S` would fail outright in environments with
+  no signing key configured (fresh CI runners, agent containers, plugin
+  consumers). Real content commits on the branch are signed later by
+  state-manager under the repo's normal commit config.
   ```bash
-  git checkout --orphan factory-artifacts
-  git rm -rf --cached . 2>/dev/null || true
-  git commit --allow-empty -m "chore: initialize factory-artifacts orphan branch"
-  git checkout -  # return to previous branch
+  commit=$(git commit-tree "$(git mktree </dev/null)" \
+    -m "chore: initialize factory-artifacts orphan branch") \
+    || { echo "failed to create factory-artifacts init commit" >&2; exit 1; }
+  git branch factory-artifacts "$commit"
   ```
 
 ### 2. Worktree is mounted
@@ -32,11 +40,78 @@ git worktree list | grep -F '.factory'
 ```
 
 - **If missing**: Mount it.
+
+  First guard against a pre-existing **plain** `.factory/` directory. If
+  `.factory` exists but is NOT a worktree (e.g. a bare `.factory/logs/` left by
+  running `/onboard-observability` before this check), `git worktree add`
+  fails on current git with `fatal: '.factory' already exists` when the
+  directory is non-empty (verified on git 2.50/2.55; an empty one mounts
+  cleanly). A nested mount at `.factory/.factory` — a corrupt layout — has
+  also been observed once from this state (#205; mechanism unconfirmed —
+  candidates are a nested add path during error recovery or a process
+  re-creating `.factory` mid-setup).
+
+  Note `rev-parse --git-dir` CANNOT detect the plain-dir case — for an
+  in-repo plain directory it walks up, finds the parent repo's `.git`, and
+  exits 0, exactly as it does for a real worktree. The guard therefore
+  compares canonicalized (`pwd -P`, symlink-safe) worktree toplevels: a
+  healthy mount's toplevel resolves to `<repo-root>/.factory`, a plain dir's
+  resolves to the parent repo root. Run as one block — guard, prune stale
+  registrations, mount, restore, assert:
   ```bash
+  canon() { (cd "$1" 2>/dev/null && pwd -P); }    # symlink-safe path compare
+  repo_root="$(canon "$(git rev-parse --show-toplevel)")"
+
+  # Nested corrupt layout (#205)? Positively confirmed only — route to the
+  # recovery block below rather than mounting over it.
+  if [ -e .factory/.factory/.git ]; then
+    echo "ABORT: nested .factory/.factory mount detected — run the #205 recovery block" >&2
+    exit 1
+  fi
+
+  # Plain-dir guard: move aside anything that is not a repo-root worktree.
+  if [ -e .factory ] && \
+     [ "$(canon "$(git -C .factory rev-parse --show-toplevel 2>/dev/null || echo /nonexistent)")" != "$repo_root/.factory" ]; then
+    mv .factory ".factory-backup-$(date +%s)"   # plain dir, not a root worktree
+  fi
+
+  git worktree prune   # drop stale registrations left by earlier bad recoveries
   git worktree add .factory factory-artifacts
+
+  # Restore any backed-up contents (e.g. logs/) into the fresh worktree.
+  for b in .factory-backup-*; do
+    [ -e "$b" ] || continue
+    cp -R "$b/." .factory/
+    rm -rf "$b"
+  done
+
+  # Post-mount assertion — hard stop; later checks must not run on a bad mount.
+  [ "$(canon "$(git -C .factory rev-parse --show-toplevel 2>/dev/null || echo /nonexistent)")" = "$repo_root/.factory" ] \
+    || { echo "ABORT: .factory did not mount at the repo root" >&2; exit 1; }
   ```
 
-- **If mounted but pointing to wrong branch**: Remove and remount.
+  **#205 recovery block** — only for a positively confirmed nested mount
+  (`.factory/.factory/.git` exists). Do NOT run
+  `git worktree remove .factory --force` — that removal targets the wrong
+  path and cannot fix a nested mount. And do not delete anything on a mere
+  assertion failure: if the layout is not the known nested shape, inspect
+  `git worktree list` manually instead. The wrapper directory is moved
+  aside, not deleted, so its contents (e.g. logs/) are restored by the
+  mount block's backup-restore step on re-run:
+  ```bash
+  if [ -e .factory/.factory/.git ]; then
+    git worktree remove .factory/.factory --force
+    mv .factory ".factory-backup-$(date +%s)"   # preserve wrapper contents
+    git worktree prune                          # drop the dangling registration
+    # Now re-run the mount block above; it mounts clean and restores the backup.
+  else
+    echo "ABORT: not the known nested shape — inspect 'git worktree list' manually" >&2
+    exit 1
+  fi
+  ```
+
+- **If mounted but pointing to wrong branch**: Remove and remount, then re-run
+  the same post-mount assertion above.
   ```bash
   git worktree remove .factory --force
   git worktree add .factory factory-artifacts
@@ -56,12 +131,19 @@ cd .factory && git branch --show-current
 test -f .factory/STATE.md
 ```
 
-- **If missing**: Create initial STATE.md.
+- **If missing**: Create initial STATE.md. Derive `product` from the
+  repository — use the repo directory name verbatim (do NOT strip any
+  `-blue`/`-green` or other suffix; the name on disk is the name):
+  ```bash
+  git rev-parse --show-toplevel | xargs basename
+  ```
+  If that name is ambiguous or clearly not the product (e.g. a generic
+  checkout dir), ask the human for the product name instead. Then write:
   ```yaml
   ---
   pipeline: INITIALIZED
   phase: pre-1
-  product: corverax
+  product: <repo name from git, or human-supplied>
   mode: greenfield
   timestamp: <current ISO8601>
   ---
@@ -98,7 +180,7 @@ test -f .factory/reference-manifest.yaml
 Invoke the shared three-state lock status helper:
 
 ```bash
-plugins/vsdd-factory/bin/factory-lock-status.sh .factory/STATE.md "$(git config user.email)"
+${CLAUDE_PLUGIN_ROOT}/bin/factory-lock-status.sh .factory/STATE.md "$(git config user.email)"
 ```
 
 Append the output line to the health report. The helper returns one of:

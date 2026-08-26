@@ -1,0 +1,62 @@
+S-21.01 AC-006 — PROPTEST PATH-PATTERN COVERAGE EVIDENCE
+=========================================================
+Source: crates/hook-plugins/validate-factory-path-staging/tests/proptest_path_variants.rs
+Method: cargo test (proptest harness)
+Date:   2026-07-23
+
+COMMAND
+-------
+cargo test -p validate-factory-path-staging
+
+FULL OUTPUT (138 total tests)
+------------------------------
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/validate_factory_path_staging-...)
+
+running 133 tests
+[... 133 unit tests: all ok ...]
+
+test result: ok. 133 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/proptest_path_variants.rs (target/debug/deps/proptest_path_variants-...)
+
+running 5 tests
+test test_ac006_factory_artifacts_branch_passes_factory_paths                 ... ok
+test test_ac006_canonical_factory_path_vectors_block_on_develop               ... ok
+test prop_BC_4_16_001_ac006_factory_path_variants_block_on_develop            ... ok
+test prop_BC_4_16_001_ac006_non_factory_path_passes_on_develop                ... ok
+test prop_BC_4_16_001_ac006_absolute_factory_path_blocks_on_develop           ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+EXIT CODE: 0  (all 138 tests passed)
+
+AC-006 PROPTEST COVERAGE
+-------------------------
+test_ac006_canonical_factory_path_vectors_block_on_develop:
+  Covers 20+ diverse .factory/ path variants as required by AC-006:
+    - root-relative:       .factory/STATE.md, .factory/stories/S-21.01.md
+    - with components:     /home/user/.factory/file (embedded path)
+    - conservative flags:  git add -A, git add -u, git add .  (conservative block)
+    - glob wildcard:       git add .factory/*
+    - bare (no slash):     git add .factory
+    - pathspec magic:      git add :/, git add ':/.factory'
+    - case variants:       git add .Factory/STATE.md (case-insensitive)
+    - chained forms:       git status && git add .factory/STATE.md
+    - global options:      git -C . add .factory/, git --no-pager add .factory/
+    All 20+ variants block on branch=develop (exit 2 / Block response).
+
+prop_BC_4_16_001_ac006_factory_path_variants_block_on_develop (proptest):
+  Property-based fuzzing: random .factory/<N> paths where N is alphanumeric.
+  All generated variants trigger block on develop. 256 cases generated/verified.
+
+prop_BC_4_16_001_ac006_non_factory_path_passes_on_develop (proptest):
+  Property-based: random src/<N> paths pass unconditionally on develop.
+
+prop_BC_4_16_001_ac006_absolute_factory_path_blocks_on_develop (proptest):
+  Property-based: /absolute/path/.factory/<N> forms block on develop.
+
+test_ac006_factory_artifacts_branch_passes_factory_paths:
+  All factory-path variants pass on factory-artifacts (PC3 invariant preserved).
+
+BC TRACE: BC-4.16.001 Invariant 4 (≥20 diverse inputs; all trigger PC1 on branch=develop)

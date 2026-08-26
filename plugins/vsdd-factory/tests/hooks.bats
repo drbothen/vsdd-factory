@@ -309,3 +309,191 @@ teardown() {
   run bash -c 'echo "{\"tool_input\":{}}" | "'"$HOOKS"'/factory-branch-guard.sh"'
   [ "$status" -eq 0 ]
 }
+
+# ---------- validate-count-propagation (#690 id-drop + #567 historical exclusion) ----------
+#
+# The hook uses associative arrays (declare -A), which require bash 4+.
+# It runs via its #!/bin/bash shebang, so the interpreter that matters is
+# /bin/bash — bash 5.x on the ubuntu `validate` CI job, but 3.2 on macOS
+# where these cases skip (the hook's own pre-existing requirement, not a
+# limitation of the fix).
+require_bash4_hook_interp() {
+  local maj
+  maj=$(/bin/bash -c 'echo ${BASH_VERSINFO[0]}')
+  [[ "$maj" -ge 4 ]] || skip "hook requires bash 4+ (declare -A); /bin/bash is ${maj}.x"
+}
+
+@test "validate-count-propagation: epic-id token is not parsed as a count (#690)" {
+  require_bash4_hook_interp
+  # STATE.md references an epic by id next to a countable noun ("5 E-11 stories").
+  # The "11" belongs to the E-11 identifier, not a claimed count of 11 stories.
+  # STORY-INDEX carries the genuine, mutually-consistent story count.
+  printf '# STATE\nPhase 3 complete -> 5 E-11 stories delivered.\n' > .factory/STATE.md
+  printf '# STORY-INDEX\nThis corpus has 42 stories total.\n' > .factory/STORY-INDEX.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 0 ]
+}
+
+@test "validate-count-propagation: genuine count drift still blocks" {
+  require_bash4_hook_interp
+  printf '# STATE\nDelivered 13 stories this phase.\n' > .factory/STATE.md
+  printf '# STORY-INDEX\nThis corpus has 42 stories total.\n' > .factory/STORY-INDEX.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"COUNT DRIFT DETECTED"* ]]
+}
+
+@test "validate-count-propagation: mixed line keeps genuine count after dropping id" {
+  require_bash4_hook_interp
+  # A genuine count (13) shares a line with an epic id (E-11); dropping the id
+  # must not swallow the real quantity, so drift against the index still fires.
+  printf '# STATE\nPhase 3: E-11 delivered 13 stories.\n' > .factory/STATE.md
+  printf '# STORY-INDEX\nThis corpus has 42 stories total.\n' > .factory/STORY-INDEX.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"13 stories"* ]]
+}
+
+@test "validate-count-propagation: file with no genuine counts exits clean" {
+  require_bash4_hook_interp
+  # After identifier tokens are dropped, an all-phantom line leaves no counts.
+  # This path must exit 0, not trip set -u on the empty associative array.
+  printf '# STATE\nPhase 3 complete -> 5 E-11 stories delivered.\n' > .factory/STATE.md
+  printf '# STORY-INDEX\nNo countable nouns here.\n' > .factory/STORY-INDEX.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
+@test "validate-count-propagation: long dotted-id line stays fast and keeps trailing count" {
+  require_bash4_hook_interp
+  # Dense dotted-id lines are normal in index tables. The id-drop pattern must
+  # stay linear on them: a nested-extglob variant of the same drop takes >30s
+  # on this 550-char line (per-line, under PostToolUse). Also asserts the ids
+  # are dropped whole and the genuine trailing count survives extraction.
+  local ids
+  ids="$(printf 'BC-1.11.11 %.0s' $(seq 1 50))"
+  printf '# STATE\n%s41 BCs\n' "$ids" > .factory/STATE.md
+  printf '# BC-INDEX\ntotal_bcs: 41\n' > .factory/BC-INDEX.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 0 ]
+}
+
+# ---------- validate-bc-title ----------
+
+@test "validate-bc-title: title lookup scopes to the Title-header table (#566)" {
+  # The BC id appears first in a capability-satisfaction table (adjacent cell
+  # "CAP-001") before the §2 navigation table. The nav table title agrees with
+  # the H1, so this edit must pass — the matcher must not grab the CAP-001 cell.
+  local bc_dir=".factory/specs/behavioral-contracts"
+  cat > "$bc_dir/BC-2.01.001.md" <<'EOF'
+# BC-2.01.001: Drop-In SSH_AUTH_SOCK Replacement
+EOF
+  cat > "$bc_dir/BC-INDEX.md" <<'EOF'
+# BC-INDEX
+
+## 1. Capability Satisfaction
+
+| BC | Satisfies | Notes |
+|----|-----------|-------|
+| BC-2.01.001 | CAP-001 | primary |
+
+## 2. Navigation
+
+| BC | Title | Subsystem | Priority |
+|----|-------|-----------|----------|
+| BC-2.01.001 | Drop-In SSH_AUTH_SOCK Replacement | SS-02 | P0 |
+EOF
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/specs/behavioral-contracts/BC-2.01.001.md\"}}" | "'"$HOOKS"'/validate-bc-title.sh" 2>&1'
+  [ "$status" -eq 0 ]
+}
+
+@test "validate-bc-title: genuine H1/index drift in the nav table still blocks" {
+  local bc_dir=".factory/specs/behavioral-contracts"
+  cat > "$bc_dir/BC-2.01.001.md" <<'EOF'
+# BC-2.01.001: Drop-In SSH_AUTH_SOCK Replacement
+EOF
+  cat > "$bc_dir/BC-INDEX.md" <<'EOF'
+# BC-INDEX
+
+## 1. Capability Satisfaction
+
+| BC | Satisfies | Notes |
+|----|-----------|-------|
+| BC-2.01.001 | CAP-001 | primary |
+
+## 2. Navigation
+
+| BC | Title | Subsystem | Priority |
+|----|-------|-----------|----------|
+| BC-2.01.001 | Stale Divergent Title | SS-02 | P0 |
+EOF
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/specs/behavioral-contracts/BC-2.01.001.md\"}}" | "'"$HOOKS"'/validate-bc-title.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"bc_h1_index_drift"* ]]
+  [[ "$output" == *"Stale Divergent Title"* ]]
+}
+
+@test "validate-bc-title: headerless single-row index falls back and still blocks" {
+  # No Title-header table present — preserve prior behavior (first-occurrence
+  # fallback) so a genuine drift in a minimal index is still caught.
+  local bc_dir=".factory/specs/behavioral-contracts"
+  cat > "$bc_dir/BC-1.01.001.md" <<'EOF'
+# BC-1.01.001: Correct Title
+EOF
+  printf '| BC-1.01.001 | Wrong Title | SS-01 |\n' > "$bc_dir/BC-INDEX.md"
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/specs/behavioral-contracts/BC-1.01.001.md\"}}" | "'"$HOOKS"'/validate-bc-title.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"Wrong Title"* ]]
+}
+
+@test "validate-count-propagation: historical count in sibling is not drift (#567)" {
+  require_bash4_hook_interp
+  # Editing BC-INDEX (current total_bcs: 41). The only BC count in the STATE.md
+  # sibling is a frozen Phase Progress row, "PRD (38 BCs)". Pre-fix, the sibling's
+  # historical 38 was compared against the current 41 and fired drift; post-fix the
+  # historical section is skipped, the sibling has no current count, and absence is
+  # not drift.
+  printf '%s\n' '---' 'total_bcs: 41' '---' '# BC-INDEX' > .factory/BC-INDEX.md
+  printf '# STATE\n## Phase Progress\n| PRD | done | PRD (38 BCs) at phase-1 close |\n' > .factory/STATE.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'$WORK'/.factory/BC-INDEX.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 0 ]
+}
+
+@test "validate-count-propagation: historical count in source before current is not drift (#567)" {
+  require_bash4_hook_interp
+  # Editing STATE.md. Its frozen Phase Progress row ("PRD (38 BCs)") appears before
+  # the live Count Verification row ("41 BCs"). Pre-fix, first-match picked the
+  # historical 38 as the source count and fired drift against BC-INDEX's 41; post-fix
+  # the historical section is skipped and the live 41 is the source count — no drift.
+  printf '%s\n' '---' 'total_bcs: 41' '---' '# BC-INDEX' > .factory/BC-INDEX.md
+  printf '# STATE\n## Phase Progress\n| PRD | done | PRD (38 BCs) at phase-1 close |\n## Count Verification\nCurrent corpus: 41 BCs verified.\n' > .factory/STATE.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'$WORK'/.factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 0 ]
+}
+
+@test "validate-count-propagation: genuine current-count drift still blocks (#567)" {
+  require_bash4_hook_interp
+  # STATE's LIVE Count Verification section says 39 while BC-INDEX frontmatter says
+  # 41 — a real current-site disagreement that must still fire even though the same
+  # file carries a frozen Phase Progress row (38) that is correctly ignored.
+  printf '%s\n' '---' 'total_bcs: 41' '---' '# BC-INDEX' > .factory/BC-INDEX.md
+  printf '# STATE\n## Phase Progress\n| PRD | done | PRD (38 BCs) at phase-1 close |\n## Count Verification\nCurrent corpus: 39 BCs verified.\n' > .factory/STATE.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'$WORK'/.factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"COUNT DRIFT DETECTED"* ]]
+  [[ "$output" == *"39 BCs"* ]]
+}
+
+@test "validate-count-propagation: source with only historical counts exits clean, no crash (#567)" {
+  require_bash4_hook_interp
+  # Editing STATE.md whose only count is a frozen changelog row, with no current
+  # count anywhere. After the historical section is skipped the source-count map is
+  # empty; that path must exit 0, not trip set -u on the empty associative array
+  # (the reason the ${arr[*]:-} guard replaces ${#arr[@]}). Sibling carries no count.
+  printf '%s\n' '---' 'document_type: index' '---' '# BC-INDEX' 'Prose only, no counts.' > .factory/BC-INDEX.md
+  printf '# STATE\n## Changelog\n| 1.0 | 2026-06-27 | Lists all 36 BCs |\n' > .factory/STATE.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'$WORK'/.factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}

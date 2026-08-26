@@ -1,0 +1,51 @@
+AC-002 Gate Reference Evidence: step-f-pr-lifecycle.md
+Story: S-21.02 v1.6
+BC: BC-5.44.001 v1.4
+Captured: 2026-07-24
+Worktree HEAD: 8abf24e29d290060c4e8546c35708dfafc198977
+
+==========================================================================
+PART A — Gate reference + Role ownership block
+==========================================================================
+
+COMMAND:
+  grep -n 'role\|Role\|devops-engineer\|diff-integrity\|range-diff\|force-with-lease' plugins/vsdd-factory/skills/deliver-story/steps/step-f-pr-lifecycle.md
+
+STDOUT:
+20:**Role ownership:** The implementer (Sub-step F.1 agent) executing the rebase-then-force-push
+21:MUST follow `plugins/vsdd-factory/agents/devops-engineer.md §Inter-Wave Rebase` post-rebase
+22:diff-integrity gate before any `git push --force-with-lease`.
+25:sibling stories merged), the **post-rebase diff-integrity gate** (BC-5.44.001, ADR-031
+27:`git push --force-with-lease`. The gate MUST run before force-push; it cannot run after
+30:The gate uses `git range-diff <pre-rebase-tip>...<post-rebase-tip>` as the primary
+35:See `plugins/vsdd-factory/agents/devops-engineer.md §Inter-Wave Rebase` for the full gate
+
+EXIT: 0
+
+==========================================================================
+PART B — Primary token: range-diff
+==========================================================================
+
+COMMAND:
+  grep -n 'range-diff\|diff-integrity.gate' plugins/vsdd-factory/skills/deliver-story/steps/step-f-pr-lifecycle.md
+
+STDOUT:
+22:diff-integrity gate before any `git push --force-with-lease`.
+25:sibling stories merged), the **post-rebase diff-integrity gate** (BC-5.44.001, ADR-031
+30:The gate uses `git range-diff <pre-rebase-tip>...<post-rebase-tip>` as the primary
+
+EXIT: 0
+
+==========================================================================
+VERIFICATION
+==========================================================================
+
+Evidence confirms:
+  - Line 20-22: Role ownership block names devops-engineer.md §Inter-Wave Rebase +
+    diff-integrity gate as required before force-push-with-lease.
+  - Line 25: "post-rebase diff-integrity gate" named with BC-5.44.001 + ADR-031 citation.
+  - Line 27: Gate MUST run before force-push; explicit ordering constraint present.
+  - Line 30: range-diff named as primary detector.
+  - Line 35: Reference back to devops-engineer.md §Inter-Wave Rebase for full gate spec.
+
+AC-002 PASS.

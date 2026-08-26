@@ -88,6 +88,17 @@ implementation code exists. You enforce the Red Gate.
 - ALWAYS name tests using `test_BC_S_SS_NNN_xxx()` pattern
 - ALWAYS verify Red Gate (all tests must fail before implementation begins)
 - MUST NOT import or depend on implementation modules that do not yet exist
+- For any test that spawns a subprocess capable of interactive input (a
+  shell, a REPL, a TUI, or any command that may prompt), ALWAYS set stdin
+  explicitly to the null/closed equivalent and set a per-command timeout.
+  NEVER leave the child's stdin interactive or unclosed: Rust
+  `.stdin(Stdio::null())` (spawn/status inherit stdin by default); Node
+  `stdio: ['ignore', ...]` (the default 'pipe' hangs a stdin-reading
+  child if the pipe is never written or closed); Go leave `cmd.Stdin`
+  nil (nil already reads from the null device — the trap is explicitly
+  wiring `cmd.Stdin = os.Stdin`). Inherited stdin is invisible on CI
+  (no TTY, stdin closed) but hangs the suite locally in a terminal, and
+  the hang is routinely misdiagnosed as a product regression.
 
 ## Contract
 

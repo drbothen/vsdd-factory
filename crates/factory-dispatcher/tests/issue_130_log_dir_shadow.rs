@@ -66,6 +66,16 @@ fn test_BC_2_06_001_resolve_log_dir_cwd_inside_factory() {
     let factory_root = tmpdir.path().join(".factory");
     let cwd = factory_root.join("cycles").join("v1.0-pass-1");
     fs::create_dir_all(&cwd).expect("create simulated cwd");
+    // Since issue #206 the internal log refuses to write while `.factory` is
+    // not a mounted worktree (no `.git` entry): fabricate the mount shape (a
+    // `.git` FILE, as `git worktree add` produces) so the mkdir-p assertion
+    // below still exercises the write path. The shadow assertion this test
+    // exists for is unchanged.
+    fs::write(
+        factory_root.join(".git"),
+        "gitdir: ../.git/worktrees/.factory\n",
+    )
+    .expect("fabricate worktree .git file");
 
     // H-2: hermetic call — explicit None for all env-var params.
     // This test does NOT depend on the developer/CI shell having

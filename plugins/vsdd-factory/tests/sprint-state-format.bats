@@ -149,6 +149,31 @@ teardown() {
 }
 
 # ---------------------------------------------------------------------------
+# Live-artifact CI guard (issue #724)
+#
+# The five live-production-file tests below were designed per the PORTABILITY
+# notes above to SKIP in CI and run locally — the original guard keyed on the
+# .factory/ mount being absent, which was true in CI when they were authored.
+# CI now mounts factory-artifacts, which re-enabled these tests in CI runs.
+# In a pull_request run, CI mounts the BASE repo's artifact branch — a PR can
+# never modify what these tests assert — so any base-side artifact drift fails
+# every unrelated PR with the failure attributed to the PR (issue #724 is the
+# concrete instance: a PC3 def-b ordering violation in sprint-state.yaml failed
+# ten unrelated PRs at once).
+#
+# This guard skips only pull_request runs, where the base-mount mismatch
+# applies. Push runs on develop keep these tests live as a canary: there CI
+# mounts the artifact state develop actually ships, so a real sprint-state
+# corruption still surfaces on the push run. Local runs and the factory's
+# own hooks keep full enforcement either way.
+# ---------------------------------------------------------------------------
+_skip_live_artifact_in_ci() {
+  if [ "${GITHUB_EVENT_NAME:-}" = "pull_request" ]; then
+    skip "live .factory artifact assertions skip on pull_request runs (PORTABILITY notes; issue #724) — CI mounts the base repo's factory-artifacts, which a PR cannot modify; push runs keep this canary"
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # Helper: _count_stories_per_story_entries FILE
 # Count entries in the `stories:` YAML list that are per-story objects (have `id:`).
 # Returns 0 when the stories: key is a count-summary mapping (legacy format).
@@ -247,6 +272,7 @@ _leading_terminal_run() {
 # ---------------------------------------------------------------------------
 
 @test "test_sprint_state_stories_list_present" {
+  _skip_live_artifact_in_ci
   # Guard: skip when production file is absent (CI without factory-artifacts worktree)
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI without .factory/ mount)"
@@ -939,6 +965,7 @@ EOF
 # ---------------------------------------------------------------------------
 
 @test "test_real_production_file_round_trip" {
+  _skip_live_artifact_in_ci
   # Guard: skip when production file is absent (CI without factory-artifacts worktree)
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
@@ -1275,9 +1302,34 @@ EOF
 # status-fidelity. This test closes that drift-blindness class (L-BB-red-gate-fixture-
 # must-mirror-bc-canonical-test-vectors; S-18.10 lesson).
 #
-# Retired-story detection: a story row is "retired" when its row contains the text
-# "**retired**". Rows with "merged [deprecated...]" are NOT retired — they are merged
-# stories with deprecation notes and ARE included in the non-retired set.
+# Retired-story detection: a story row is "retired" when its Status column
+# (resolved dynamically from the "| Story ID |" header, not matched anywhere
+# in the row) contains the text "retired", case-insensitively. Rows with
+# "merged [deprecated...]" are NOT retired — they are merged stories with
+# deprecation notes and ARE included in the non-retired set.
+#
+# Superseded-story detection: a story row is "superseded" when its Status
+# column contains the text "superseded", case-insensitively (e.g. STORY-INDEX's
+# "**SUPERSEDED (D-1057)**" status cell for S-21.11). Superseded is a TERMINAL
+# status identical in kind to retired for sprint-state purposes — the story
+# has been split/replaced and is no longer independently delivery-tracked, so
+# it is excluded from both PC4 completeness (not required to appear in
+# sprint-state.yaml) and PC2 status-fidelity (not looked up for a matching
+# status). Its successor stories carry their own rows and ARE subject to the
+# normal PC4/PC2 checks.
+#
+# Both exclusions are anchored to the Status column specifically (not grepped
+# across the whole row) and case-normalized (lowercased before comparison) so
+# that a "**SUPERSEDED BY ...**"-style note landing in an unrelated cell (e.g.
+# Notes/BCs) on an otherwise-ACTIVE story cannot silently escape PC4/PC2
+# checking, and so "**RETIRED**"/"**Retired**"/"**retired**" and
+# "**SUPERSEDED**"/"**Superseded**"/"**superseded**" are all treated
+# identically. The bold-marker (`**...**`) requirement is preserved in both
+# assertions — a bare case-insensitive substring match would incorrectly
+# exclude MERGED stories whose Status cell carries a plain-prose deprecation
+# note such as "merged [superseded by ADR-015]" or "merged [deprecated by
+# ADR-015 — ... retired ...]" (S-1.04, S-1.08, S-4.04, S-4.06, S-4.07, S-4.09
+# in the live STORY-INDEX), which must remain in the non-retired set.
 #
 # Status extraction from STORY-INDEX: the Status column is identified dynamically
 # from the "| Story ID |" header row (portable across 7-col and 8-col table variants).
@@ -1290,6 +1342,7 @@ EOF
 # ---------------------------------------------------------------------------
 
 @test "test_real_production_file_completeness_and_status_fidelity" {
+  _skip_live_artifact_in_ci
   # Guard: skip when production files are absent (CI without factory-artifacts worktree)
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
@@ -1310,11 +1363,32 @@ EOF
 
   # ---------------------------------------------------------------------------
   # ASSERT 1 — PC4 completeness: derive non-retired IDs from STORY-INDEX.
-  # Non-retired rows: start with "| S-" and do NOT contain "**retired**".
+  # Non-retired rows: start with "| S-" and whose Status column (resolved
+  # dynamically from the "| Story ID |" header row, not matched anywhere in
+  # the row) does not carry a bold "**retired**" or "**superseded" marker,
+  # case-insensitively. Anchoring to the Status column specifically (rather
+  # than grepping the whole row) prevents a future "**SUPERSEDED BY ...**"
+  # note landing in an unrelated cell (e.g. Notes/BCs) from silently
+  # excluding an otherwise-ACTIVE story from PC4 completeness checking. The
+  # bold-marker requirement is preserved (not a bare substring match) so a
+  # plain-prose mention such as "merged [superseded by ADR-015]" or
+  # "merged [deprecated ... — ... retired ...]" in the Status cell — which is
+  # a MERGED status with a deprecation note, not a retired/superseded status
+  # — stays correctly included in the non-retired set.
   # ---------------------------------------------------------------------------
   local idx_ids
   idx_ids="$(awk -F'|' '
-    /^\| S-/ && !/\*\*retired\*\*/ {
+    /\| Story ID / {
+      for (i=1; i<=NF; i++) {
+        col=$i; gsub(/^[[:space:]]+|[[:space:]]+$/, "", col)
+        if (col == "Status") { status_col=i }
+      }
+      next
+    }
+    status_col > 0 && /^\| S-/ {
+      status_val=$status_col; gsub(/^[[:space:]]+|[[:space:]]+$/, "", status_val)
+      lstatus=tolower(status_val)
+      if (lstatus ~ /\*\*retired\*\*/ || lstatus ~ /\*\*superseded/) next
       sid=$2; gsub(/^[[:space:]]+|[[:space:]]+$/, "", sid); print sid
     }
   ' "${story_index}" | sort)"
@@ -1405,10 +1479,12 @@ EOF
         }
         next
       }
-      status_col > 0 && /^\| S-/ && !/\*\*retired\*\*/ {
+      status_col > 0 && /^\| S-/ {
         sid_val=$2; gsub(/^[[:space:]]+|[[:space:]]+$/, "", sid_val)
         if (sid_val == story) {
           val=$status_col; gsub(/^[[:space:]]+|[[:space:]]+$/, "", val)
+          lval=tolower(val)
+          if (lval ~ /\*\*retired\*\*/ || lval ~ /\*\*superseded/) { exit }
           # Extract first token (ignore bracketed deprecation notes)
           n = split(val, parts, /[[:space:]]/)
           token=parts[1]
@@ -1470,6 +1546,7 @@ EOF
 # ---------------------------------------------------------------------------
 
 @test "test_supersession_edge_tolerated_partition_placement" {
+  _skip_live_artifact_in_ci
   # Guard: skip when production file is absent (CI without factory-artifacts worktree)
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
@@ -1693,6 +1770,7 @@ EOF
 # ---------------------------------------------------------------------------
 
 @test "test_partitions_sorted_by_full_graph_depth_def_b" {
+  _skip_live_artifact_in_ci
   # Guard: skip when production files are absent (CI without factory-artifacts worktree)
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"

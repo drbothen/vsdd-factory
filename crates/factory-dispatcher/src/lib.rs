@@ -55,15 +55,15 @@ pub use internal_log::{
     PLUGIN_LOADED, PLUGIN_TIMEOUT,
 };
 pub use invoke::{
-    EventType, InvokeError, InvokeLimits, PluginResult, StoreData, TimeoutCause,
+    DEFAULT_FUEL_CAP, EventType, InvokeError, InvokeLimits, PluginResult, StoreData, TimeoutCause,
     dispatch_postcompact, dispatch_precompact, invoke_plugin,
 };
 pub use partition::{PluginPartition, partition_plugins};
 pub use payload::{HookPayload, PayloadError};
 pub use plugin_loader::{PluginCache, PluginLoadError};
 pub use registry::{
-    Capabilities, ExecSubprocessCaps, OnError, ReadFileCaps, Registry, RegistryDefaults,
-    RegistryEntry, RegistryError,
+    Capabilities, ExecSubprocessCaps, FailurePolicy, OnError, ReadFileCaps, Registry,
+    RegistryDefaults, RegistryEntry, RegistryError,
 };
 pub use routing::{PluginResultStub, group_by_priority, match_plugins};
 

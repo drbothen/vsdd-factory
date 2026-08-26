@@ -129,7 +129,7 @@ workflow:
       depends_on: [cleanup]
       task: >
         Update STATE.md: phase: 3, step: cleanup, status: complete.
-        Update sprint-state.yaml: story status completed.
+        Update sprint-state.yaml: story status merged.
 
     # === Implementation Gate ===
 

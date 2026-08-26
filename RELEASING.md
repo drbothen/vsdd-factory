@@ -54,7 +54,7 @@ The following invariants are non-negotiable. Violating any of them is what histo
 | Release PR is merged with **`--merge`** strategy, not `--squash` | Squash collapses develop's commits; main loses develop ancestry; future releases see false "diverged" warnings and trigger the [TD #68 binary auto-resolve](CHANGELOG.md#v1.0.0-rc.15--marketplace-source-sync-fix-main-backfill-2026-05-10) every time |
 | Tag is created **on `main`** after the merge, at main's new tip | Tag at develop's tip works (the bot will retag) but causes bot to retag onto main's existing commit, missing the merge |
 | Tag name is exactly `v<full-semver>` (no spaces, with `v` prefix) | `release.yml` only fires on `tags: ["v*"]` |
-| `CHANGELOG.md` has a `## <full-semver>` heading at the top | Validate job fails — `release.yml` checks for this |
+| `CHANGELOG.md` has a `## <full-semver>` heading (first version heading, directly below `## [Unreleased]`) | Validate job fails — `release.yml` checks for this |
 | `develop` is the source branch tracker, not `master` | Hardcoded throughout workflows + scripts |
 
 ## Step-by-step: cutting a release
@@ -88,9 +88,9 @@ Branch naming MUST be exactly `release/v<full-semver>`. The guardrail workflow u
 scripts/bump-version.sh 1.0.0-rc.X "<release title>"
 ```
 
-This prepends a CHANGELOG.md stub with today's date. **Do not commit yet** — the stub is a placeholder.
+This inserts a CHANGELOG.md stub with today's date, directly below the top-of-file `## [Unreleased]` section. **Do not commit yet** — the stub is a placeholder.
 
-Open `CHANGELOG.md` and replace the stub with real release notes. Required sections (keep-a-changelog format):
+Open `CHANGELOG.md` and replace the stub with real release notes. **Drain `## [Unreleased]` first:** story PRs accumulate their changelog rows under that section between releases — move them down into the new `## <full-semver>` section (they sit directly above the stub), then leave the `## [Unreleased]` heading in place, empty, for the next cycle. Synthesize the rest of the narrative from the drained rows plus the commit log. Required sections (keep-a-changelog format):
 
 - Headline paragraph (2-4 sentences) — what shipped, why it matters
 - `### Added` (if applicable)

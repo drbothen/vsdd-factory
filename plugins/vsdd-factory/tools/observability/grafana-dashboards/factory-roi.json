@@ -244,7 +244,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "count(count by (attributes_story_id) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_story_id != \"\" [$__range])))"
+          "expr": "count(count by (story_id) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | story_id != \"\" [$__range])))"
         }
       ]
     },
@@ -450,7 +450,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "count(count by (attributes_story_id) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_story_id != \"\" [$__range])))",
+          "expr": "count(count by (story_id) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | story_id != \"\" [$__range])))",
           "queryType": "instant",
           "hide": false
         },
@@ -706,7 +706,7 @@
           "color": {
             "mode": "palette-classic"
           },
-          "displayName": "${__field.labels.attributes_subagent}"
+          "displayName": "${__field.labels.subagent}"
         }
       },
       "options": {
@@ -727,8 +727,8 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "topk(10, sum by (attributes_subagent) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_subagent != \"\" [$__range])))",
-          "legendFormat": "{{attributes_subagent}}"
+          "expr": "topk(10, sum by (subagent) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | subagent != \"\" [$__range])))",
+          "legendFormat": "{{subagent}}"
         }
       ]
     },

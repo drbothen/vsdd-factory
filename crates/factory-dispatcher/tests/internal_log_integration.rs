@@ -31,10 +31,19 @@ fn read_lines(path: &Path) -> Vec<String> {
 #[test]
 fn startup_flow_writes_parseable_jsonl() {
     let dir = tempfile::tempdir().unwrap();
-    // Intentionally point at a nested path that does not exist yet to
-    // exercise the mkdir-p semantics in the same call path main.rs
-    // takes on a fresh checkout.
-    let log_dir = dir.path().join("repo").join(".factory").join("logs");
+    // `.factory` is fabricated as a mounted worktree (a `.git` FILE, the
+    // `git worktree add` shape): since issue #206 the internal log refuses to
+    // create `.factory/` itself — planting a plain `.factory` ahead of the
+    // mount is exactly the bootstrap race. `logs/` is still left absent to
+    // exercise the mkdir-p semantics main.rs relies on.
+    let factory_dir = dir.path().join("repo").join(".factory");
+    fs::create_dir_all(&factory_dir).unwrap();
+    fs::write(
+        factory_dir.join(".git"),
+        "gitdir: ../.git/worktrees/.factory\n",
+    )
+    .unwrap();
+    let log_dir = factory_dir.join("logs");
     let log = InternalLog::new(log_dir.clone());
 
     let trace_id = "trace-integration-1";

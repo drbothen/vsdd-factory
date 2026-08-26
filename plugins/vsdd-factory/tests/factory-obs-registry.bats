@@ -210,3 +210,32 @@ teardown() {
   count=$(grep -oE '/var/log/factory/api-[0-9a-f]+' "$OVERRIDE_FILE" | sort -u | wc -l | tr -d ' ')
   [ "$count" -eq 2 ]
 }
+
+# ---------- #206: logs/ pre-create gated on the worktree mount ----------
+
+@test "regenerate: does not create logs/ inside an unmounted .factory (#206)" {
+  # Plain .factory with no .git entry — the mid-bootstrap shape. The
+  # pre-create must skip it: planting logs/ here is exactly the state that
+  # blocks a later `git worktree add .factory factory-artifacts`.
+  UNMOUNTED="$TEST_HOME/proj-unmounted"
+  mkdir -p "$UNMOUNTED/.factory"
+  echo "$UNMOUNTED" > "$VSDD_OBS_REGISTRY"
+
+  run "$TOOL" regenerate
+  [ "$status" -eq 0 ]
+  [ ! -e "$UNMOUNTED/.factory/logs" ]
+  [[ "$output" == *"not a mounted worktree"* ]]
+  # The mount line is still generated for when the mount lands.
+  grep -q "$UNMOUNTED/.factory/logs:" "$OVERRIDE_FILE"
+}
+
+@test "regenerate: pre-creates logs/ when .factory is mount-shaped (#206)" {
+  MOUNTED="$TEST_HOME/proj-mounted"
+  mkdir -p "$MOUNTED/.factory"
+  echo "gitdir: ../.git/worktrees/.factory" > "$MOUNTED/.factory/.git"
+  echo "$MOUNTED" > "$VSDD_OBS_REGISTRY"
+
+  run "$TOOL" regenerate
+  [ "$status" -eq 0 ]
+  [ -d "$MOUNTED/.factory/logs" ]
+}

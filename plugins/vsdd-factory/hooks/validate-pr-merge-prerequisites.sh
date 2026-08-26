@@ -46,10 +46,23 @@ if ! echo "$PROMPT" | grep -qiE "gh pr merge|pr merge|merge.*PR"; then
   exit 0  # not a merge dispatch
 fi
 
-# Extract story ID from prompt
+# Extract story ID from prompt.
+#
+# Precedence matters: named story IDs (S-<PREFIX>.<NAME>, e.g.
+# S-BL.DISCOVERY-WIRE) must be recognized BEFORE the pure-numeric S-N.NN form.
+# Otherwise a numeric substring elsewhere in the prompt — typically a merged
+# dependency such as S-7.02 — hijacks the match and the hook blocks citing the
+# wrong story's missing evidence (issue #658). Most-specific-first:
+#   1. STORY-NNN            (explicit long form)
+#   2. S-<PREFIX>.<NAME>    (named story, alpha prefix)
+#   3. S-N.NN               (pure-numeric story)
 STORY_ID=$(echo "$PROMPT" | grep -oE 'STORY-[0-9]+' | head -1 || true)
 if [[ -z "$STORY_ID" ]]; then
-  # Try S-N.NN format
+  # Named story: alpha prefix, alnum/hyphen name (e.g. S-BL.DISCOVERY-WIRE)
+  STORY_ID=$(echo "$PROMPT" | grep -oE 'S-[A-Za-z]+\.[A-Za-z0-9-]+' | head -1 || true)
+fi
+if [[ -z "$STORY_ID" ]]; then
+  # Pure-numeric story (e.g. S-7.02)
   STORY_ID=$(echo "$PROMPT" | grep -oE 'S-[0-9]+\.[0-9]+' | head -1 || true)
 fi
 if [[ -z "$STORY_ID" ]]; then

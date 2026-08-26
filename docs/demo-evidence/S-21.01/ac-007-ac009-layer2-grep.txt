@@ -1,0 +1,74 @@
+S-21.01 AC-007..AC-009 — LAYER-2 PROTOCOL EVIDENCE
+====================================================
+Source: plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md
+Method: section-scoped grep captures (scripted terminal)
+Date:   2026-07-23
+
+NOTE: AC-007..AC-009 are doc-content assertions (per story spec and bats T-007..T-013).
+The bats suite verifies these section properties at runtime without WASM artifacts.
+All 7 Layer-2 bats tests (T-007..T-013) passed in the dispatcher run (see ac-001-ac005-bats-dispatcher.txt).
+
+--- AC-007(section): §Main-Checkout Sync Protocol PRESENT ---
+COMMAND: grep -n "Main-Checkout Sync Protocol" plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md
+OUTPUT:
+  153:## Main-Checkout Sync Protocol
+
+  [PASS] Section exists at line 153.
+
+--- AC-007(a): git diff --name-only gate PRESENT ---
+COMMAND: grep -n "git diff --name-only" plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md
+OUTPUT:
+  172:git diff --name-only HEAD..<target-ref>
+  186:If the output of `git diff --name-only HEAD..<target-ref>` contains any line matching
+  220:When `git diff --name-only HEAD..<target-ref>` returns no line matching `^\.factory/`,
+
+  [PASS] git diff --name-only HEAD..<target-ref> appears as the mandatory pre-check command.
+
+--- AC-007(b): FactoryPathDeletionInMergeDiff halt PRESENT ---
+COMMAND: grep -n "FactoryPathDeletionInMergeDiff" plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md
+OUTPUT:
+  184:### If .factory/ Paths Appear in the Diff: HALT with FactoryPathDeletionInMergeDiff
+  191:HALTED: FactoryPathDeletionInMergeDiff
+
+  [PASS] FactoryPathDeletionInMergeDiff error variant present; halt is mandatory (NOT executed after error).
+
+--- AC-007(c): passes transparently when no .factory/ paths ---
+COMMAND: grep -n "proceed normally" plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md
+OUTPUT:
+  221:the merge, pull, or checkout operation MUST proceed normally. No additional gate fires.
+
+  [PASS] Pass-through on clean diff documented with "MUST proceed normally".
+
+--- AC-007(d): covers git pull AND git merge ---
+COMMAND: grep -n "git pull\|git merge" plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md (in section)
+OUTPUT (section lines):
+  164:### Mandatory Pre-Check: Before Any git pull / git merge on the Main Checkout
+  166:Before executing **any** `git pull`, `git merge`, or `git checkout <target>` command ...
+  179:- Documented orchestrator dispatch steps (e.g., post-merge sync via `git pull origin develop`)
+  181:- Any `git pull --ff-only`, `git pull --rebase`, or `git checkout <target>` ...
+
+  [PASS] Section covers both git pull and git merge.
+
+--- AC-008: MUST proceed normally on clean diff (section-scoped) ---
+COMMAND: awk section extraction + grep "MUST proceed normally"
+OUTPUT (from §Main-Checkout Sync Protocol section body):
+  "the merge, pull, or checkout operation MUST proceed normally. No additional gate fires."
+
+  [PASS] Canonical BC-5.43.001 PC1 pass-through phrase confirmed in section body (not just whole-file).
+  T-011 bats: ok 17 (section-scoped grep via _extract_main_checkout_sync_protocol_section).
+
+--- AC-009: §Fail-Open When git diff Fails (non-zero, section-scoped) ---
+COMMAND: awk extract section + grep "Fail-Open When git diff Fails" + grep "non-zero"
+OUTPUT (from §Main-Checkout Sync Protocol section body):
+  "### Fail-Open When git diff Fails"
+  "non-zero exit code (e.g., network error, unresolvable ref) or git unavailable"
+  "1. Log a warning describing the failure and the non-zero exit code or error"
+  "2. Proceed with the merge/pull/checkout (fail-open)"
+
+  [PASS] §Fail-Open subsection present with "non-zero" explicitly documented.
+  T-012 bats: ok 18; T-013 bats: ok 19.
+
+BC TRACE:
+  AC-007: BC-5.43.001 PC2, Invariant 1
+  AC-008: BC-5.43.001 PC1
+  AC-009: BC-5.43.001 Invariant 4

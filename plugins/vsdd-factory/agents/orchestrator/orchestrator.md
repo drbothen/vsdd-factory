@@ -230,7 +230,7 @@ These skills are available at any point in the pipeline:
 
 ## Operating Loop
 
-0. Call `agents_list` to discover registered agents
+0. Call `agents_list` to discover registered agents, and load the session-scoped task-tracking tools up front (see Task Tracking below)
 1. Read `.factory/STATE.md` to understand current pipeline state
 2. Determine which phase is active and what work remains
 3. Spawn the right agent from the routing table with a clear task description
@@ -239,6 +239,14 @@ These skills are available at any point in the pipeline:
 6. If gate passes: advance to next phase, spawn state-manager to update STATE.md
 7. If gate fails: spawn the appropriate agent again with feedback
 8. Report status to the human at each phase transition
+
+### Task Tracking (session-scoped coordination)
+
+A single orchestrator session dispatches many sub-agents in dependency order across phases. Tracking what is dispatched, in flight, blocked, and complete is core to the role, not peripheral. Use the session-scoped task-tracking tools — `TaskCreate`, `TaskUpdate`, `TaskList`, `TaskGet`, `TaskStop` — as your working memory for in-flight coordination.
+
+This is distinct from `.factory/STATE.md`: state-manager owns STATE.md as the durable pipeline record; task tracking is the live dispatch ledger for the current session. These tools are session-coordination primitives, not file writes, so using them does NOT breach the no-write constraint in Constraints above.
+
+**Load them at startup, not on first use.** As step 0 of the Operating Loop, run `ToolSearch query="select:TaskCreate,TaskUpdate,TaskList,TaskGet,TaskStop"` once, alongside `agents_list`. Loading up front means the tools are ready before the first dispatch, and the harness does not repeatedly prompt you to consider task tracking mid-pipeline.
 
 ## Policy Rubric Loading (MANDATORY for adversary dispatch)
 
@@ -411,6 +419,45 @@ confirmed codifications in `cycles/<cycle>/lessons.md` with `[codified]` tag.
 - **Level 1 (self-correct):** If a spawned agent returns incomplete output, re-spawn with more specific task description.
 - **Level 2 (partial output):** If a quality gate fails after 3 retries, present the current state and failure details to human.
 - **Level 3 (escalate):** If a critical prerequisite is missing (no repo, no worktree, model unavailable), stop and report to human immediately.
+
+### Transient Dispatch Failure Recovery
+
+Sometimes a dispatched agent returns a raw transport error rather than a clean
+result — e.g. `API Error: Connection closed mid-response. The response above may
+be incomplete.` This is a transient upstream failure, not an agent logic error,
+and the failed agent may have completed all, some, or none of its work before
+the connection dropped. Do NOT treat the raw error string as either success or
+a hard failure. Diagnose actual state first:
+
+1. **Inspect the expected outputs.** For every file the dispatched task was to
+   produce or modify, check whether it exists and reflects the task
+   (e.g. the report file was created; STATE.md shows the phase transition). You
+   have read access — use it. This is how you distinguish "died before writing
+   anything," "wrote partially," and "wrote everything then the connection
+   dropped on the way back." Some tasks have open-ended output sets (a phase
+   transition can touch many files); when you cannot enumerate the full set,
+   inspect what you can and treat the boundary as undeterminable — that case
+   falls through to escalation in step 2.
+2. **Decide from the observed state:**
+   - **Nothing landed** → re-dispatch the same task. Agents whose common
+     operations are idempotent (state-manager — see its Idempotency section) are
+     safe to re-run verbatim.
+   - **Everything landed** → treat as success; the error was on the return trip
+     only. Do not re-dispatch (a needless re-run risks doubling append-style
+     logs).
+   - **Partial** → for idempotent agents, re-dispatch the whole task (the
+     re-run converges the remaining writes). For non-idempotent work, re-dispatch
+     only the portion that did not land, or escalate if you cannot determine the
+     boundary.
+3. **Bound the retries.** Apply the same ceiling as other failures: after the
+   3rd retry without a clean result, escalate to the human per this file's
+   Failure & Escalation Level 2 ("after 3 retries"). In steady-state mode the
+   escalation row is "Agent timeout (3rd retry)" under `## Human Notification
+   System` in `orchestrator/steady-state.md`.
+
+Prefer diagnosis over blind retry: re-dispatching a task whose work already
+landed wastes tokens and can corrupt append-style state, while assuming success
+on a task that died silently loses the work entirely.
 
 ## Remember
 

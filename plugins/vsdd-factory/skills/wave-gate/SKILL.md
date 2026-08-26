@@ -122,7 +122,7 @@ This spawns the holdout-evaluator agent with information asymmetry — it cannot
 ### Gate 6: State Update
 
 If all gates pass:
-- Update sprint-state.yaml: all wave stories → `completed`
+- Update sprint-state.yaml: all wave stories → `merged`
 - Update STATE.md with wave completion
 - Commit to factory-artifacts
 

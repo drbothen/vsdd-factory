@@ -17,6 +17,12 @@
 //!      cap fail before reaching this warn path; Invariant 8).
 //!      Call `factory_lock_parse::extract_frontmatter` on raw bytes before UTF-8 conversion
 //!      (Invariant 7 frontmatter-only mandate; BC-5.40.001 v1.2).
+//!   3a. For Edit/MultiEdit: scan new_string value(s) for top-level `timestamp:` and
+//!      `factory_lock:` fields (ADR-032 Decision 1+3).
+//!       - If neither is set: return Continue (guard_ran payload-neutral). AC-020.
+//!       - If only factory_lock: is set: skip Steps 4–7; proceed to Step 8.
+//!       - If timestamp: is set (with or without factory_lock:): run full check (Steps 4–8).
+//!       For Write: skip this step (full content always checked).
 //!   4. Extract `timestamp:` from both proposed content and the on-disk content.
 //!   5. If `timestamp:` is absent in proposed content → Block: TimestampStale (AC-008 §12.3 row 6).
 //!   6. If `timestamp:` is absent in on-disk content → Continue (first write ever, AC-015/AC-008).
@@ -463,6 +469,42 @@ pub fn extract_top_level_field(content: &str, key: &str) -> FieldResult {
 }
 
 // ---------------------------------------------------------------------------
+// Helper: new_string_sets_field — ADR-032 Decision 4 payload-scan helper
+// ---------------------------------------------------------------------------
+
+/// Return `true` if any non-indented line in `new_string` is a YAML string
+/// assignment for `field_key` (ADR-032 Decision 4).
+///
+/// Iterates `new_string.lines()`. Skips any line whose first byte is a space
+/// (0x20) or tab (0x09) — these are YAML sub-fields or list items. For each
+/// non-indented line, calls
+/// `factory_lock_parse::extract_yaml_string_value(line, field_key)`.
+/// Returns `true` on the first `Some(_)` result.
+/// Returns `false` if no match found or `new_string` is empty.
+///
+/// Used by `guard_logic` to determine whether a payload explicitly sets
+/// `timestamp:` (Decision 1) — the guard skips timestamp enforcement for
+/// Edit/MultiEdit payloads that do NOT set the timestamp field.
+///
+/// # Notes
+/// - The `factory_lock:` block key cannot be detected with this helper because
+///   `factory_lock:` has no value on the same line; use the inline
+///   `l.starts_with("factory_lock:")` scan for that field (Decision 3).
+/// - A false positive (a body line detected as the timestamp field) causes
+///   unnecessary enforcement, not bypass — safe failure mode per ADR-032 §Rationale.
+pub fn new_string_sets_field(new_string: &str, field_key: &str) -> bool {
+    for line in new_string.lines() {
+        if line.starts_with(' ') || line.starts_with('\t') {
+            continue;
+        }
+        if factory_lock_parse::extract_yaml_string_value(line, field_key).is_some() {
+            return true;
+        }
+    }
+    false
+}
+
+// ---------------------------------------------------------------------------
 // Helper: extract factory_lock sub-fields independently (AC-016/AC-017)
 // ---------------------------------------------------------------------------
 
@@ -648,6 +690,7 @@ where
 /// - AC-015: host::read_file NotFound → fail-open
 /// - AC-018: absolute file_path (env-free suffix-match trigger, v1.6 P0 fix)
 /// - AC-019: proposed timestamp empty string → Block TimestampStale
+/// - AC-020: Edit/MultiEdit payload-neutrality — if no new_string in the payload sets EITHER timestamp: OR factory_lock:, guard returns Continue (payload-neutral; module //! Steps 4–8 skipped (falls through to Step 9 → Continue))
 pub fn guard_logic<R, L, W>(
     payload: HookPayload,
     mut callbacks: GuardCallbacks<R, L, W>,
@@ -863,65 +906,149 @@ where
         }
     };
 
-    // Step 4: Extract timestamp: from proposed content.
-    let proposed_ts = match extract_top_level_field(&proposed_content, "timestamp") {
-        FieldResult::Found(v) => v,
-        FieldResult::NotFound => {
-            // Absent timestamp: in proposed content is a violation (AC-008 §12.3 row 6 / EC-005).
+    // ADR-032 Decision 1+3: Payload scan (inserted after code-inline Step 3).
+    //
+    // For Edit and MultiEdit, scan new_string value(s) to determine which enforcement
+    // checks apply. For Write and unknown tools: both flags are true (full enforcement).
+    //
+    // sets_timestamp: any new_string sets timestamp: at column 0 (non-indented).
+    // sets_factory_lock: any new_string has a non-indented line starting with factory_lock:.
+    //
+    // Routing (AC-020):
+    //   - !sets_timestamp && !sets_factory_lock → payload-neutral → return Continue.
+    //   - !sets_timestamp && sets_factory_lock  → skip Steps 4–6; run Step 7 only.
+    //   - sets_timestamp (with or without sets_factory_lock) → run Steps 4–7 normally.
+    let (sets_timestamp, sets_factory_lock) = match payload.tool_name.as_str() {
+        "Edit" => {
+            let ns = payload
+                .tool_input
+                .get("new_string")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let st = new_string_sets_field(ns, "timestamp");
+            let sfl = ns.lines().any(|l| {
+                !l.starts_with(' ') && !l.starts_with('\t') && l.starts_with("factory_lock:")
+            });
+            (st, sfl)
+        }
+        "MultiEdit" => {
+            let st = payload
+                .tool_input
+                .get("edits")
+                .and_then(|v| v.as_array())
+                .map(|arr| {
+                    arr.iter().any(|e| {
+                        new_string_sets_field(
+                            e.get("new_string").and_then(|v| v.as_str()).unwrap_or(""),
+                            "timestamp",
+                        )
+                    })
+                })
+                .unwrap_or(true); // absent edits array: conservative
+            let sfl = payload
+                .tool_input
+                .get("edits")
+                .and_then(|v| v.as_array())
+                .map(|arr| {
+                    arr.iter().any(|e| {
+                        e.get("new_string")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .lines()
+                            .any(|l| {
+                                !l.starts_with(' ')
+                                    && !l.starts_with('\t')
+                                    && l.starts_with("factory_lock:")
+                            })
+                    })
+                })
+                .unwrap_or(true); // absent edits array: conservative
+            (st, sfl)
+        }
+        _ => {
+            // Write + unknown tools: full enforcement (conservative — both true).
+            (true, true)
+        }
+    };
+
+    // AC-020: payload-neutral Edit/MultiEdit → skip all enforcement and return Continue.
+    if !sets_timestamp && !sets_factory_lock {
+        (callbacks.write_stderr)(
+            "verify-state-timestamp-refresh: guard_ran (continue: payload-neutral)\n",
+        );
+        return HookResult::Continue;
+    }
+
+    // Steps 4–6: timestamp enforcement — only when the payload explicitly sets timestamp:.
+    if sets_timestamp {
+        // Step 4: Extract timestamp: from proposed content.
+        let proposed_ts = match extract_top_level_field(&proposed_content, "timestamp") {
+            FieldResult::Found(v) => v,
+            FieldResult::NotFound => {
+                // Absent timestamp: in proposed content is a violation (AC-008 §12.3 row 6 / EC-005).
+                return HookResult::Block {
+                    reason: canonical_timestamp_stale_message(),
+                };
+            }
+            FieldResult::Malformed => {
+                // Malformed proposed frontmatter — fail-open (AC-008 §12.3 row 1).
+                (callbacks.log_warn)(
+                    "verify-state-timestamp-refresh: fail-open malformed-proposed (frontmatter unparseable)",
+                );
+                (callbacks.write_stderr)(
+                    "verify-state-timestamp-refresh: guard_ran (continue: fail-open malformed-proposed)\n",
+                );
+                return HookResult::Continue;
+            }
+        };
+
+        // AC-019: empty or whitespace-only proposed timestamp is equivalent to absent
+        // — Block: TimestampStale. `extract_top_level_field` returns `Found("")` for
+        // `timestamp: ""` and `Found("   ")` for `timestamp: "   "` (field present but
+        // value is empty or whitespace-only). Neither is a valid RFC-3339 timestamp;
+        // treat identically to NotFound. ADR-025 §12.2: stale detection must reject
+        // empty and whitespace-only values (L4 fix).
+        if proposed_ts.trim().is_empty() {
             return HookResult::Block {
                 reason: canonical_timestamp_stale_message(),
             };
         }
-        FieldResult::Malformed => {
-            // Malformed proposed frontmatter — fail-open (AC-008 §12.3 row 1).
-            (callbacks.log_warn)(
-                "verify-state-timestamp-refresh: fail-open malformed-proposed (frontmatter unparseable)",
-            );
-            (callbacks.write_stderr)(
-                "verify-state-timestamp-refresh: guard_ran (continue: fail-open malformed-proposed)\n",
-            );
-            return HookResult::Continue;
-        }
-    };
 
-    // AC-019: empty or whitespace-only proposed timestamp is equivalent to absent
-    // — Block: TimestampStale. `extract_top_level_field` returns `Found("")` for
-    // `timestamp: ""` and `Found("   ")` for `timestamp: "   "` (field present but
-    // value is empty or whitespace-only). Neither is a valid RFC-3339 timestamp;
-    // treat identically to NotFound. ADR-025 §12.2: stale detection must reject
-    // empty and whitespace-only values (L4 fix).
-    if proposed_ts.trim().is_empty() {
-        return HookResult::Block {
-            reason: canonical_timestamp_stale_message(),
+        // Step 5: Extract timestamp: from on-disk content (frontmatter-only per Invariant 7).
+        let on_disk_ts = match extract_top_level_field(&on_disk_field_content, "timestamp") {
+            FieldResult::Found(v) => v,
+            FieldResult::NotFound | FieldResult::Malformed => {
+                // Absent or malformed on-disk timestamp — first write ever (AC-008 §12.3 row 5 / EC-004).
+                // Continue — no prior value to compare against.
+                (callbacks.log_warn)(
+                    "verify-state-timestamp-refresh: fail-open no-disk-timestamp (first write or malformed on-disk)",
+                );
+                (callbacks.write_stderr)(
+                    "verify-state-timestamp-refresh: guard_ran (continue: fail-open no-disk-timestamp)\n",
+                );
+                return HookResult::Continue;
+            }
         };
+
+        // Step 6: Byte-identical timestamp: → Block TimestampStale (AC-005/AC-011/AC-012/AC-013).
+        // ADR-025 §12.2: string comparison, not datetime parse.
+        if proposed_ts == on_disk_ts {
+            return HookResult::Block {
+                reason: canonical_timestamp_stale_message(),
+            };
+        }
     }
 
-    // Step 5: Extract timestamp: from on-disk content (frontmatter-only per Invariant 7).
-    let on_disk_ts = match extract_top_level_field(&on_disk_field_content, "timestamp") {
-        FieldResult::Found(v) => v,
-        FieldResult::NotFound | FieldResult::Malformed => {
-            // Absent or malformed on-disk timestamp — first write ever (AC-008 §12.3 row 5 / EC-004).
-            // Continue — no prior value to compare against.
-            (callbacks.log_warn)(
-                "verify-state-timestamp-refresh: fail-open no-disk-timestamp (first write or malformed on-disk)",
-            );
-            (callbacks.write_stderr)(
-                "verify-state-timestamp-refresh: guard_ran (continue: fail-open no-disk-timestamp)\n",
-            );
-            return HookResult::Continue;
-        }
-    };
-
-    // Step 6: Byte-identical timestamp: → Block TimestampStale (AC-005/AC-011/AC-012/AC-013).
-    // ADR-025 §12.2: string comparison, not datetime parse.
-    if proposed_ts == on_disk_ts {
-        return HookResult::Block {
-            reason: canonical_timestamp_stale_message(),
-        };
-    }
-
-    // Step 7: Lock held in proposed content? If so, enforce factory_lock.expires_at freshness
-    // (AC-006 / AC-016 / AC-017 / ADR-025 §12.2 revised).
+    // Step 7: Lock-expiry enforcement — fires when sets_factory_lock OR sets_timestamp.
+    //
+    // When sets_timestamp=true: a timestamp-advancing Edit under a held lock MUST also
+    // renew factory_lock.expires_at in the same payload (PC4 — BC-5.40.001 §PC4).
+    // If the proposed content carries a stale expires_at, Block(LockExpiryStale).
+    //
+    // When sets_factory_lock=true (factory_lock-only Edit): enforce expires_at freshness
+    // directly — the payload explicitly modifies the lock block.
+    //
+    // When neither (payload-neutral): already returned Continue above; unreachable here.
     //
     // "Lock held" = factory_lock.holder present and non-empty in proposed content.
     //
@@ -938,7 +1065,9 @@ where
     // Fail-open cases (no lock enforcement):
     //   - extract_lock_subfields returns None (malformed frontmatter / no factory_lock key)
     //   - holder absent or empty (lock not held in proposed)
-    if let Some(proposed_subfields) = extract_lock_subfields(&proposed_content) {
+    if (sets_factory_lock || sets_timestamp)
+        && let Some(proposed_subfields) = extract_lock_subfields(&proposed_content)
+    {
         let proposed_holder = proposed_subfields
             .holder
             .as_deref()
@@ -1650,23 +1779,31 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // AC-012 — Edit payload: reconstruct stale timestamp → Block: TimestampStale
-    // Traces: AC-012 / ADR-025 D12 §12.2 / BC-5.40.001 PC4
+    // AC-012 / ADR-032 Decision 1 — Edit payload: new_string does NOT set timestamp:
+    //   or factory_lock: → payload-neutral → Continue
     //
-    // Edit payload: old_string = old_ts_line, new_string = same old_ts_line
-    // (timestamp not updated in the edit). Guard reconstructs proposed from on-disk
-    // + edit fragment and finds timestamp still byte-identical.
+    // Traces: AC-012 / ADR-025 D12 §12.2 / BC-5.40.001 PC4 / ADR-032 Decision 1 (AC-020)
     //
-    // GREEN: guard blocks — reconstructed Edit proposed has stale timestamp.
+    // Pre-ADR-032 behavior: guard reconstructed the full proposed content and
+    // checked whether the timestamp was advanced. A non-timestamp Edit (phase: test
+    // → phase: complete) with a stale on-disk timestamp would Block(TimestampStale).
+    //
+    // ADR-032 Decision 1 supersedes: guard now scans the payload (new_string) for
+    // top-level timestamp: and factory_lock: fields BEFORE reconstruction. If neither
+    // is set, the guard returns Continue immediately (payload-neutral; AC-020).
+    // "phase: complete" sets neither → Continue.
+    //
+    // GREEN: guard returns Continue — payload-neutral Edit under ADR-032 Decision 1.
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_edit_payload_reconstruct_stale_timestamp_blocks() {
+    fn test_edit_payload_reconstruct_phase_change_payload_neutral_continues() {
         let on_disk = state_md_no_lock(TS_OLD);
 
-        // The edit changes something else (e.g., the phase field), NOT the timestamp.
+        // The edit changes something else (the phase field), NOT the timestamp.
         // old_string: the phase line in on-disk content.
         // new_string: different phase value but timestamp unchanged.
+        // ADR-032: new_string sets NEITHER timestamp: NOR factory_lock: → payload-neutral.
         let old_str = "phase: test";
         let new_str = "phase: complete";
 
@@ -1682,22 +1819,16 @@ mod tests {
 
         let result = guard_logic(payload, callbacks);
 
-        let expected_msg = canonical_timestamp_stale_message();
-        match result {
-            HookResult::Block { reason } => {
-                assert_eq!(
-                    reason, expected_msg,
-                    "test_edit_payload_reconstruct_stale_timestamp_blocks: After Edit reconstruction, \
-                     unchanged timestamp must Block with FULL canonical message. \
-                     Expected: {expected_msg:?}. Got: {reason:?}"
-                );
-            }
-            HookResult::Continue => panic!(
-                "test_edit_payload_reconstruct_stale_timestamp_blocks: expected Block(TimestampStale) \
-                 but got Continue. Edit reconstruction yielded unchanged timestamp → must Block. RED GATE."
-            ),
-            other => panic!("Expected Block, got: {:?}", other),
-        }
+        // ADR-032 Decision 1: payload-neutral Edit → Continue (AC-020).
+        // Pre-ADR-032 Block(TimestampStale) behavior is superseded.
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_edit_payload_reconstruct_phase_change_payload_neutral_continues: Edit with new_string \
+             'phase: complete' (no timestamp: or factory_lock: at col 0) is payload-neutral \
+             under ADR-032 Decision 1 (AC-020) → must return Continue. \
+             Pre-ADR-032 Block(TimestampStale) behavior is superseded."
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -1738,20 +1869,29 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // AC-013 — MultiEdit payload: reconstruct stale timestamp → Block: TimestampStale
-    // Traces: AC-013 / ADR-025 D12 §12.2 / BC-5.40.001 PC4
+    // AC-013 / ADR-032 Decision 1 — MultiEdit payload: no new_string sets timestamp:
+    //   or factory_lock: → payload-neutral → Continue
     //
-    // MultiEdit: two edits applied sequentially. Neither edit touches the timestamp.
-    // Guard reconstructs full content from edits[] and finds timestamp unchanged.
+    // Traces: AC-013 / ADR-025 D12 §12.2 / BC-5.40.001 PC4 / ADR-032 Decision 1 (AC-020)
     //
-    // GREEN: guard blocks — reconstructed MultiEdit proposed has stale timestamp.
+    // Pre-ADR-032 behavior: guard reconstructed the full proposed content from all
+    // edits[] and checked whether the timestamp was advanced. A MultiEdit with no
+    // timestamp change would Block(TimestampStale).
+    //
+    // ADR-032 Decision 1 supersedes: guard scans all new_string values in edits[] for
+    // top-level timestamp: / factory_lock: fields. If none is set → payload-neutral →
+    // Continue immediately (AC-020). Neither "phase: complete" nor "version: 0.0.2-test"
+    // sets timestamp: or factory_lock: → payload-neutral → Continue.
+    //
+    // GREEN: guard returns Continue — payload-neutral MultiEdit under ADR-032 Decision 1.
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_multiedit_payload_reconstruct_stale_timestamp_blocks() {
+    fn test_multiedit_payload_reconstruct_phase_change_payload_neutral_continues() {
         let on_disk = state_md_no_lock(TS_OLD);
 
-        // Two edits that don't touch the timestamp line.
+        // Two edits that don't touch the timestamp line or factory_lock block.
+        // ADR-032: no new_string sets timestamp: or factory_lock: at col 0 → payload-neutral.
         let edit1_old = "phase: test";
         let edit1_new = "phase: complete";
         let edit2_old = "version: \"0.0.1-test\"";
@@ -1772,22 +1912,16 @@ mod tests {
 
         let result = guard_logic(payload, callbacks);
 
-        let expected_msg = canonical_timestamp_stale_message();
-        match result {
-            HookResult::Block { reason } => {
-                assert_eq!(
-                    reason, expected_msg,
-                    "test_multiedit_payload_reconstruct_stale_timestamp_blocks: After MultiEdit \
-                     reconstruction, unchanged timestamp must Block with FULL canonical message. \
-                     Expected: {expected_msg:?}. Got: {reason:?}"
-                );
-            }
-            HookResult::Continue => panic!(
-                "test_multiedit_payload_reconstruct_stale_timestamp_blocks: expected Block(TimestampStale) \
-                 but got Continue. MultiEdit reconstruction has unchanged timestamp → must Block. RED GATE."
-            ),
-            other => panic!("Expected Block, got: {:?}", other),
-        }
+        // ADR-032 Decision 1: payload-neutral MultiEdit → Continue (AC-020).
+        // Pre-ADR-032 Block(TimestampStale) behavior is superseded.
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_multiedit_payload_reconstruct_phase_change_payload_neutral_continues: MultiEdit with no \
+             new_string setting timestamp: or factory_lock: at col 0 is payload-neutral \
+             under ADR-032 Decision 1 (AC-020) → must return Continue. \
+             Pre-ADR-032 Block(TimestampStale) behavior is superseded."
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -3700,7 +3834,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // F-P2-002 Red Gate tests: body-target Edit/MultiEdit reconstruction
+    // F-P2-002 body-target Edit/MultiEdit reconstruction tests
     //
     // Finding F-P2-001 (HIGH): guard_logic passes frontmatter-only on_disk_content
     // to extract_edit_proposed/extract_multiedit_proposed after extract_frontmatter
@@ -3712,57 +3846,59 @@ mod tests {
     // Finding F-P2-002: existing Edit/MultiEdit reconstruction tests all use frontmatter
     // fields as old_string, so the suite never exercises the body-target path.
     //
-    // The four tests below (plus a >64 KiB variant) close F-P2-002.
+    // ADR-032 Decision 1 supersession (AC-020): body-only Edits whose new_string sets
+    // NEITHER timestamp: NOR factory_lock: at column 0 are now payload-neutral and
+    // return Continue BEFORE reconstruction. Tests 1, 2, and the large variant have
+    // been updated to assert Continue per ADR-032. The F-P2-001 fix (full-content base)
+    // remains in place and is exercised by test 3 (boundary-spanning new_string that
+    // DOES set timestamp:, routing through the full reconstruction path).
     //
-    // RED GATE tests (FAIL against current HEAD, PASS after the S-19.08 fix):
-    //   test_edit_body_target_delimiter_present_stale_timestamp_blocks     (test 1)
-    //   test_multiedit_body_target_stale_timestamp_blocks                  (test 2)
-    //   test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks (large variant)
+    // GREEN tests (payload-neutral under ADR-032 → Continue):
+    //   test_edit_body_target_delimiter_present_payload_neutral_continues     (test 1)
+    //   test_multiedit_body_target_payload_neutral_continues                  (test 2)
+    //   test_edit_body_target_70kib_delimiter_present_payload_neutral_continues (large variant)
     //
-    // GREEN tests (PASS against current HEAD and after fix):
+    // GREEN tests (timestamp-advancing → reconstruction path → Continue):
     //   test_edit_boundary_spanning_advanced_timestamp_continues           (test 3)
     //   test_multiedit_mixed_frontmatter_body_edits_advanced_timestamp_continues (test 4)
     // -----------------------------------------------------------------------
 
     // -----------------------------------------------------------------------
-    // F-P2-002 test 1 — Edit payload, delimiter-present fixture,
-    //   old_string = body content, timestamp NOT advanced → MUST Block
+    // F-P2-002 test 1 / ADR-032 Decision 1 — Edit payload, delimiter-present fixture,
+    //   old_string = body content, new_string = body-only replacement → payload-neutral
+    //   → Continue (AC-020)
     //
-    // Traces: F-P2-001/F-P2-002 / AC-012 / BC-5.40.001 PC4
+    // Traces: F-P2-001/F-P2-002 / AC-012 / BC-5.40.001 PC4 / ADR-032 Decision 1 (AC-020)
     //
     // Scenario:
     //   - On-disk: state_md_no_lock(TS_OLD) — has closing --- delimiter and
     //     "# STATE" body heading after it.
     //   - Edit payload: old_string = "# STATE" (body content after closing ---),
-    //     new_string = body replacement. Timestamp NOT advanced.
+    //     new_string = body-only replacement. Neither timestamp: nor factory_lock:
+    //     appears at column 0 in new_string.
     //
-    // Root cause path (F-P2-001):
-    //   extract_frontmatter truncates on_disk_bytes to frontmatter-only + synthetic
-    //   \n---\n. "# STATE" is absent from the truncated on_disk_content.
-    //   extract_edit_proposed: old_string not found → FailOpen → Continue.
+    // ADR-032 Decision 1 (AC-020): guard scans new_string for top-level timestamp:
+    //   and factory_lock: fields. new_string = "# STATE\n\nBody text added by edit."
+    //   sets neither → payload-neutral → guard returns Continue immediately,
+    //   before the reconstruction path is reached.
     //
-    // Expected after fix: full on_disk_content (including body) used as base →
-    //   "# STATE" found → proposed reconstruction has TS_OLD (unchanged) →
-    //   Step 6 byte-identical timestamp → Block(TimestampStale).
-    //
-    // RED GATE: currently FAILS — guard returns Continue (incorrect FailOpen).
+    // GREEN: guard returns Continue — payload-neutral Edit under ADR-032 Decision 1.
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_edit_body_target_delimiter_present_stale_timestamp_blocks() {
+    fn test_edit_body_target_delimiter_present_payload_neutral_continues() {
         let on_disk = state_md_no_lock(TS_OLD);
         let body_target = "# STATE";
 
-        // Confirm body content is in the full on-disk string (required for the fix to
-        // reconstruct correctly) but will be absent from the truncated frontmatter slice.
+        // Confirm body content is in the full on-disk string.
         assert!(
             on_disk.contains(body_target),
-            "test fixture (full content) must contain body target {body_target:?}; \
-             truncated frontmatter-only slice will NOT contain it (root of F-P2-001)"
+            "test fixture (full content) must contain body target {body_target:?}"
         );
 
-        // Edit targets body content only; timestamp NOT advanced in any way.
-        let old_str = body_target; // "# STATE" lives after the closing ---
+        // Edit targets body content only; new_string sets neither timestamp: nor factory_lock:.
+        // ADR-032 Decision 1: payload-neutral → Continue.
+        let old_str = body_target;
         let new_str = "# STATE\n\nBody text added by edit.";
 
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -3771,49 +3907,34 @@ mod tests {
 
         let result = guard_logic(payload, callbacks);
 
-        let expected_msg = canonical_timestamp_stale_message();
-        match result {
-            HookResult::Block { reason } => {
-                assert_eq!(
-                    reason, expected_msg,
-                    "test_edit_body_target_delimiter_present_stale_timestamp_blocks: \
-                     Block message must be FULL canonical TimestampStale string. \
-                     Expected: {expected_msg:?}. Got: {reason:?}"
-                );
-            }
-            HookResult::Continue => panic!(
-                "test_edit_body_target_delimiter_present_stale_timestamp_blocks: \
-                 expected Block(TimestampStale) but got Continue. \
-                 F-P2-002 RED GATE: Edit payload with old_string = '# STATE' (body \
-                 content after closing ---) and unchanged/stale timestamp MUST Block. \
-                 Current defect (F-P2-001): guard_logic passes frontmatter-only \
-                 on_disk_content to extract_edit_proposed after extract_frontmatter \
-                 truncation. '# STATE' absent from truncated slice → FailOpen → \
-                 Continue (incorrect; should be Block(TimestampStale))."
-            ),
-            other => panic!(
-                "test_edit_body_target_delimiter_present_stale_timestamp_blocks: \
-                 expected Block, got: {:?}",
-                other
-            ),
-        }
+        // ADR-032 Decision 1: new_string = "# STATE\n\n..." sets neither timestamp: nor
+        // factory_lock: at col 0 → payload-neutral → Continue (AC-020).
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_edit_body_target_delimiter_present_payload_neutral_continues: \
+             body-only Edit with new_string '# STATE\\n\\nBody text added by edit.' \
+             (no timestamp: or factory_lock: at col 0) is payload-neutral under \
+             ADR-032 Decision 1 (AC-020) → must return Continue."
+        );
     }
 
     // -----------------------------------------------------------------------
-    // F-P2-002 test 2 — MultiEdit payload, first edit targets body content,
-    //   timestamp NOT advanced → MUST Block
+    // F-P2-002 test 2 / ADR-032 Decision 1 — MultiEdit payload, first edit targets
+    //   body content, new_string = body-only replacement → payload-neutral → Continue
     //
-    // Traces: F-P2-001/F-P2-002 / AC-013 / BC-5.40.001 PC4
+    // Traces: F-P2-001/F-P2-002 / AC-013 / BC-5.40.001 PC4 / ADR-032 Decision 1 (AC-020)
     //
-    // Same root cause as test 1 but exercises extract_multiedit_proposed.
-    // MultiEdit with a single edit whose old_string = "# STATE" (body content).
-    // Timestamp NOT advanced. Expected: Block(TimestampStale).
+    // ADR-032 Decision 1 (AC-020): guard scans all new_string values in edits[] for
+    // top-level timestamp: / factory_lock: fields. The single edit's new_string
+    // ("# STATE\n\nBody text added by multiedit.") sets neither → payload-neutral →
+    // Continue immediately.
     //
-    // RED GATE: currently FAILS — guard returns Continue (incorrect FailOpen).
+    // GREEN: guard returns Continue — payload-neutral MultiEdit under ADR-032 Decision 1.
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_multiedit_body_target_stale_timestamp_blocks() {
+    fn test_multiedit_body_target_payload_neutral_continues() {
         let on_disk = state_md_no_lock(TS_OLD);
         let body_target = "# STATE";
 
@@ -3822,7 +3943,8 @@ mod tests {
             "test fixture (full content) must contain body target {body_target:?}"
         );
 
-        // Single edit targeting body content; timestamp NOT advanced.
+        // Single edit targeting body content; new_string sets neither timestamp: nor factory_lock:.
+        // ADR-032 Decision 1: payload-neutral → Continue.
         let edit1_old = body_target;
         let edit1_new = "# STATE\n\nBody text added by multiedit.";
 
@@ -3832,30 +3954,16 @@ mod tests {
 
         let result = guard_logic(payload, callbacks);
 
-        let expected_msg = canonical_timestamp_stale_message();
-        match result {
-            HookResult::Block { reason } => {
-                assert_eq!(
-                    reason, expected_msg,
-                    "test_multiedit_body_target_stale_timestamp_blocks: \
-                     Block message must be FULL canonical TimestampStale string. \
-                     Expected: {expected_msg:?}. Got: {reason:?}"
-                );
-            }
-            HookResult::Continue => panic!(
-                "test_multiedit_body_target_stale_timestamp_blocks: \
-                 expected Block(TimestampStale) but got Continue. \
-                 F-P2-002 RED GATE: MultiEdit with first old_string = '# STATE' \
-                 (body content after closing ---) and unchanged/stale timestamp \
-                 MUST Block. Current defect (F-P2-001): extract_multiedit_proposed \
-                 receives frontmatter-only on_disk_content → '# STATE' absent → \
-                 FailOpen → Continue (incorrect; should be Block(TimestampStale))."
-            ),
-            other => panic!(
-                "test_multiedit_body_target_stale_timestamp_blocks: expected Block, got: {:?}",
-                other
-            ),
-        }
+        // ADR-032 Decision 1: body-only new_string sets neither timestamp: nor factory_lock:
+        // at col 0 → payload-neutral → Continue (AC-020).
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_multiedit_body_target_payload_neutral_continues: \
+             body-only MultiEdit with new_string '# STATE\\n\\nBody text...' \
+             (no timestamp: or factory_lock: at col 0) is payload-neutral under \
+             ADR-032 Decision 1 (AC-020) → must return Continue."
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -3864,11 +3972,14 @@ mod tests {
     //
     // Traces: F-P2-001/F-P2-002 / AC-012 / BC-5.40.001 PC4 success path / PC6
     //
-    // Note on pure body-only positive path: a body-only Edit with an unchanged
-    // timestamp would always Block after the fix (body old_string found in full
-    // content → proposed has TS_OLD → Step 6 → Block(TimestampStale)). There is
-    // no meaningful pure-body-only Edit path that legitimately returns Continue
-    // without also advancing the timestamp.
+    // Note on pure body-only path: under the F-P2-001 fix alone, a body-only Edit
+    // with an unchanged timestamp would Block (body old_string found in full content
+    // → proposed has TS_OLD → Step 6 → Block(TimestampStale)). ADR-032 Decision 1
+    // supersedes this: body-only Edits whose new_string sets neither timestamp: nor
+    // factory_lock: at column 0 are payload-neutral and return Continue before
+    // reconstruction (AC-020). The full-content reconstruction base (F-P2-001 fix)
+    // remains necessary only for timestamp-advancing Edits (sets_timestamp = true)
+    // that also span body content — exercised by the boundary-spanning test below.
     //
     // Nearest meaningful positive path (covers body-region reconstruction):
     //   old_string spans the closing --- delimiter into the body heading, and
@@ -3999,12 +4110,12 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks() {
+    fn test_edit_body_target_70kib_delimiter_present_payload_neutral_continues() {
         // Red Gate 1: cap constant must be >= 70000.
         // Fails until Task 9 raises STATE_MD_MAX_BYTES to 262144.
         assert!(
             STATE_MD_MAX_BYTES >= 70_000u32,
-            "test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks: \
+            "test_edit_body_target_70kib_delimiter_present_payload_neutral_continues: \
              STATE_MD_MAX_BYTES ({}) must be >= 70000. \
              Raise to 262144 per BC-5.40.001 v1.2 Precondition 6 (Task 9).",
             STATE_MD_MAX_BYTES
@@ -4037,67 +4148,47 @@ mod tests {
 
         let result = guard_logic(payload, callbacks);
 
-        let expected_msg = canonical_timestamp_stale_message();
-        match result {
-            HookResult::Block { reason } => {
-                assert_eq!(
-                    reason, expected_msg,
-                    "test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks: \
-                     Block message must be FULL canonical TimestampStale string. \
-                     Expected: {expected_msg:?}. Got: {reason:?}"
-                );
-            }
-            HookResult::Continue => panic!(
-                "test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks: \
-                 expected Block(TimestampStale) but got Continue. \
-                 F-P2-002 RED GATE (large fixture): Edit with old_string = '# STATE' \
-                 (body content after closing ---) in a 70 KiB fixture and \
-                 unchanged/stale timestamp MUST Block. \
-                 Current defect (F-P2-001): extract_edit_proposed receives \
-                 frontmatter-only on_disk_content after extract_frontmatter truncation \
-                 → '# STATE' absent from truncated slice → FailOpen → Continue \
-                 (incorrect; should be Block(TimestampStale))."
-            ),
-            other => panic!(
-                "test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks: \
-                 expected Block, got: {:?}",
-                other
-            ),
-        }
+        // ADR-032 Decision 1: new_string = "# STATE\n\nBody text added by edit." sets neither
+        // timestamp: nor factory_lock: at col 0 → payload-neutral → Continue (AC-020).
+        // The STATE_MD_MAX_BYTES cap assertion above still validates the cap constant.
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_edit_body_target_70kib_delimiter_present_payload_neutral_continues: \
+             body-only Edit with new_string '# STATE\\n\\nBody text added by edit.' \
+             (no timestamp: or factory_lock: at col 0) is payload-neutral under \
+             ADR-032 Decision 1 (AC-020) → must return Continue (large-fixture variant)."
+        );
     }
 
     // -----------------------------------------------------------------------
-    // F-P3-001 regression lock — Edit payload, delimiter-present fixture with
+    // F-P3-001 / ADR-032 Decision 1 — Edit payload, delimiter-present fixture with
     //   non-UTF-8 body bytes, old_string targets frontmatter field (phase:),
-    //   timestamp NOT advanced → MUST Block(TimestampStale)
+    //   new_string = "phase: complete" → payload-neutral → Continue
     //
-    // Traces: F-P3-001 / AC-012 / BC-5.40.001 PC4 / ADR-025 D12 §12.2
+    // Traces: F-P3-001 / AC-012 / BC-5.40.001 PC4 / ADR-025 D12 §12.2 / ADR-032 Decision 1 (AC-020)
     //
     // Context: the F-P2-001 fix introduced a fallback in on_disk_reconstruction_base.
     // When String::from_utf8(full on_disk_bytes) fails because body bytes are non-UTF-8
-    // (delimiter found, but \xFF\xFE body bytes after the closing ---), the
-    // reconstruction base falls back to on_disk_field_content.clone() (frontmatter
-    // only, with synthetic \n---\n re-attached per Invariant 7).
+    // (\xFF\xFE after closing ---), the reconstruction base falls back to
+    // on_disk_field_content.clone() (frontmatter only + synthetic \n---\n per Invariant 7).
     //
-    // Behavior under correct code: an Edit whose old_string targets a frontmatter
-    // field ("phase: test") IS present in the frontmatter-only fallback base →
-    // extract_edit_proposed reconstructs the proposed content → proposed has TS_OLD
-    // (timestamp not advanced) → stale → Block(TimestampStale).
+    // Pre-ADR-032 behavior: "phase: test" IS present in the frontmatter-only fallback
+    // base → extract_edit_proposed reconstructs proposed content → proposed has TS_OLD
+    // (unchanged) → Block(TimestampStale).
     //
-    // This test is a REGRESSION LOCK (TD-VSDD-059): the behavior is already correct.
-    // It exists to catch a value-regression in the fallback arm — e.g., if the arm
-    // were changed to return String::new() instead of on_disk_field_content.clone(),
-    // old_string would not be found → FailOpen → Continue (incorrect).
+    // ADR-032 Decision 1 (AC-020) supersedes: guard scans new_string ("phase: complete")
+    // for top-level timestamp: / factory_lock: fields. Neither is set → payload-neutral →
+    // Continue immediately, before the non-UTF-8 fallback path is reached.
     //
-    // Mutation check (TD-VSDD-059):
-    //   Temporarily changing the fallback arm (on_disk_reconstruction_base non-UTF-8
-    //   body path) from `on_disk_field_content.clone()` to `String::new()` causes
-    //   this test to FAIL with the Continue panic message below — confirming it is
-    //   load-bearing. The mutation must be fully reverted before committing.
+    // Note on regression lock coverage: the non-UTF-8 fallback arm correctness is still
+    // verified by test_edit_non_utf8_body_fallback_advanced_timestamp_continues, whose
+    // new_string IS "timestamp: TS_NEW" (sets timestamp: → sets_timestamp = true →
+    // full reconstruction path exercised, including the fallback arm).
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_edit_non_utf8_body_fallback_stale_timestamp_blocks() {
+    fn test_edit_non_utf8_body_fallback_payload_neutral_continues() {
         // Base fixture: valid UTF-8 frontmatter with TS_OLD, closing --- delimiter.
         // state_md_no_lock(TS_OLD) produces:
         //   "---\n...\ntimestamp: \"TS_OLD\"\nphase: test\n---\n\n# STATE\n"
@@ -4135,36 +4226,19 @@ mod tests {
 
         let result = guard_logic(payload, callbacks);
 
-        let expected_msg = canonical_timestamp_stale_message();
-        match result {
-            HookResult::Block { reason } => {
-                assert_eq!(
-                    reason, expected_msg,
-                    "test_edit_non_utf8_body_fallback_stale_timestamp_blocks: \
-                     Block message must be FULL canonical TimestampStale string. \
-                     Expected: {expected_msg:?}. Got: {reason:?}"
-                );
-            }
-            HookResult::Continue => panic!(
-                "test_edit_non_utf8_body_fallback_stale_timestamp_blocks: \
-                 expected Block(TimestampStale) but got Continue. \
-                 F-P3-001 REGRESSION DETECTED: Edit with old_string='{}' targeting \
-                 frontmatter on a delimiter-present fixture whose body bytes are \
-                 non-UTF-8 (\\xFF\\xFE) must Block when timestamp is NOT advanced. \
-                 Root cause: on_disk_reconstruction_base fallback arm (triggered when \
-                 String::from_utf8 fails on non-UTF-8 body bytes) returned an empty or \
-                 wrong base — old_string not found → FailOpen → Continue (incorrect). \
-                 Fix: the fallback must return on_disk_field_content.clone() so that \
-                 frontmatter-targeted edits are reconstructable from the frontmatter-only \
-                 base (F-P2-001 fix / AC-012 / Invariant 7).",
-                old_str
-            ),
-            other => panic!(
-                "test_edit_non_utf8_body_fallback_stale_timestamp_blocks: \
-                 expected Block, got: {:?}",
-                other
-            ),
-        }
+        // ADR-032 Decision 1: new_string = "phase: complete" sets neither timestamp: nor
+        // factory_lock: at col 0 → payload-neutral → Continue (AC-020).
+        // Guard returns before the non-UTF-8 fallback reconstruction path is reached.
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_edit_non_utf8_body_fallback_payload_neutral_continues: \
+             Edit with new_string 'phase: complete' (no timestamp: or factory_lock: at col 0) \
+             is payload-neutral under ADR-032 Decision 1 (AC-020) → must return Continue. \
+             Pre-ADR-032 Block(TimestampStale) behavior is superseded. \
+             Non-UTF-8 fallback arm coverage remains via \
+             test_edit_non_utf8_body_fallback_advanced_timestamp_continues."
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -4205,6 +4279,536 @@ mod tests {
              contains the old timestamp line → reconstruction succeeds → proposed has \
              TS_NEW → different from on-disk TS_OLD → Continue \
              (BC-5.40.001 PC4 success path / PC6)."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // ADR-032 Decision 1+3+4: payload-targeted enforcement (AC-020)
+    //
+    // Red Gate tests (4): must FAIL against unmodified guard_logic, pass only
+    // after the ADR-032 payload-scan fix is applied.
+    //   - ac020_edit_body_only_no_timestamp_continues
+    //   - ac020_multiedit_no_timestamp_in_any_new_string_continues
+    //   - ac020_edit_body_lock_held_no_factory_lock_continues
+    //   - ac020_edit_factory_lock_only_stale_expires_blocks
+    //
+    // Regression guards (7): must pass both pre- and post-fix.
+    // -----------------------------------------------------------------------
+
+    // -----------------------------------------------------------------------
+    // Red Gate 1 of 4: ac020_edit_body_only_no_timestamp_continues
+    // Edit where new_string is body text (no timestamp: line);
+    // on-disk has OLD timestamp. Reconstructed proposed has same OLD timestamp.
+    // Pre-fix: Block(TimestampStale) — Step 6 fires on byte-identical timestamps.
+    // Post-fix: payload-neutral → Continue.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_edit_body_only_no_timestamp_continues() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        // Body-only Edit: new_string has no timestamp: field at column 0.
+        let old_string = "# STATE\n";
+        let new_string = "# SESSION CHECKPOINT\nbody text\n";
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_edit(old_string, new_string);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "ac020_edit_body_only_no_timestamp_continues: Edit with body-only new_string \
+             (no timestamp: at col-0) must return Continue (payload-neutral, ADR-032 Decision 1). \
+             Pre-fix: Block(TimestampStale) — RED GATE. \
+             Post-fix: payload-neutral → Continue."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Regression guard: ac020_edit_explicit_stale_timestamp_blocks
+    // Edit where new_string contains timestamp: "OLD" explicitly.
+    // Both pre- and post-fix: Block(TimestampStale).
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_edit_explicit_stale_timestamp_blocks() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        // Identity replacement: old_string == new_string, both contain timestamp: TS_OLD.
+        // Proposed content == on-disk content → proposed_ts == on_disk_ts → Block.
+        let ts_line = format!("timestamp: \"{TS_OLD}\"");
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_edit(&ts_line, &ts_line);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        assert_eq!(
+            result,
+            HookResult::Block {
+                reason: expected_msg.clone()
+            },
+            "ac020_edit_explicit_stale_timestamp_blocks: Edit where new_string explicitly sets \
+             timestamp: OLD must Block(TimestampStale) both pre- and post-fix (regression guard). \
+             Got: {result:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Regression guard: ac020_edit_explicit_advanced_timestamp_continues
+    // Edit where new_string contains timestamp: "NEW" (advancing).
+    // Both pre- and post-fix: Continue.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_edit_explicit_advanced_timestamp_continues() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        let old_ts_line = format!("timestamp: \"{TS_OLD}\"");
+        let new_ts_line = format!("timestamp: \"{TS_NEW}\"");
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_edit(&old_ts_line, &new_ts_line);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "ac020_edit_explicit_advanced_timestamp_continues: Edit that advances timestamp must \
+             Continue both pre- and post-fix (regression guard). Got: {result:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Red Gate 2 of 4: ac020_multiedit_no_timestamp_in_any_new_string_continues
+    // MultiEdit where no edits[i].new_string contains timestamp:; on-disk OLD.
+    // Pre-fix: Block(TimestampStale).
+    // Post-fix: payload-neutral → Continue.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_multiedit_no_timestamp_in_any_new_string_continues() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        // Single-edit MultiEdit: new_string is body text with no timestamp:.
+        let edits = vec![("# STATE\n", "## SESSION HEADER\nbody content\n")];
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_multiedit(edits);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "ac020_multiedit_no_timestamp_in_any_new_string_continues: MultiEdit where no \
+             new_string sets timestamp: must return Continue (payload-neutral, ADR-032 Decision 1). \
+             Pre-fix: Block(TimestampStale) — RED GATE. \
+             Post-fix: payload-neutral → Continue."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Regression guard: ac020_multiedit_one_new_string_stale_blocks
+    // MultiEdit where one edits[i].new_string contains timestamp: "OLD".
+    // Both pre- and post-fix: Block(TimestampStale).
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_multiedit_one_new_string_stale_blocks() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        // Identity replacement: new_string contains timestamp: TS_OLD explicitly.
+        let ts_line = format!("timestamp: \"{TS_OLD}\"");
+        let edits = vec![(ts_line.as_str(), ts_line.as_str())];
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_multiedit(edits);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        assert_eq!(
+            result,
+            HookResult::Block {
+                reason: expected_msg
+            },
+            "ac020_multiedit_one_new_string_stale_blocks: MultiEdit where a new_string explicitly \
+             sets timestamp: OLD must Block(TimestampStale) both pre- and post-fix (regression guard)."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Regression guard: ac020_write_stale_timestamp_still_blocks
+    // Write with stale full content (Write path unchanged by ADR-032).
+    // Both pre- and post-fix: Block(TimestampStale).
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_write_stale_timestamp_still_blocks() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        let proposed = state_md_no_lock(TS_OLD); // stale: same timestamp as on-disk
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        assert_eq!(
+            result,
+            HookResult::Block {
+                reason: expected_msg
+            },
+            "ac020_write_stale_timestamp_still_blocks: Write with stale timestamp must \
+             Block(TimestampStale) — Write path is unconditionally enforced (ADR-032 Decision 2). \
+             Regression guard."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Unit test: ac020_new_string_sets_field_helper
+    // Tests for new_string_sets_field: found at col-0; not found; indented skipped;
+    // multi-line mix.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_new_string_sets_field_helper() {
+        // col-0 match found
+        assert!(
+            new_string_sets_field("timestamp: \"2026-06-11T10:00:00Z\"", "timestamp"),
+            "col-0 timestamp: line must return true"
+        );
+
+        // not found (field absent)
+        assert!(
+            !new_string_sets_field("phase: test\nsome_other: \"val\"", "timestamp"),
+            "absent timestamp: must return false"
+        );
+
+        // indented sub-field skipped
+        assert!(
+            !new_string_sets_field(
+                "  timestamp: \"2026-06-11T10:00:00Z\"\nphase: test",
+                "timestamp"
+            ),
+            "indented timestamp: must be skipped (not col-0)"
+        );
+
+        // tab-indented sub-field skipped
+        assert!(
+            !new_string_sets_field("\ttimestamp: \"2026-06-11T10:00:00Z\"", "timestamp"),
+            "tab-indented timestamp: must be skipped"
+        );
+
+        // multi-line mix: col-0 match after some indented lines
+        assert!(
+            new_string_sets_field(
+                "  indented: \"val\"\ntimestamp: \"2026-06-11T10:00:00Z\"\n  more_indent: \"x\"",
+                "timestamp"
+            ),
+            "multi-line: col-0 timestamp: after indented lines must return true"
+        );
+
+        // empty new_string
+        assert!(
+            !new_string_sets_field("", "timestamp"),
+            "empty new_string must return false"
+        );
+
+        // different field key — present but not the target key
+        assert!(
+            !new_string_sets_field("version: \"1.0\"", "timestamp"),
+            "non-target field present must return false"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // ac020_new_string_sets_field_unquoted_timestamp_detected — Finding 4 disclosure
+    //
+    // PR reviewer (pr-reviewer) flagged a potential parser-divergence risk:
+    // "The payload scan uses `factory_lock_parse::extract_yaml_string_value`,
+    // while on-disk/proposed extraction uses `extract_top_level_field` (Steps 4/5).
+    // Two different parsers decide 'is this the timestamp field.' If they disagree
+    // on unquoted `timestamp: 2026-…`, a stale timestamp could yield
+    // `sets_timestamp=false` → enforcement skipped → Continue instead of Block."
+    //
+    // Ground-truth: `extract_top_level_field` also delegates to
+    // `factory_lock_parse::extract_yaml_string_value` per-line (lib.rs line 464).
+    // Both helpers use the SAME underlying parser.  `extract_yaml_string_value`
+    // accepts bare (unquoted) values — it strips only SURROUNDING double-quotes
+    // when present, leaving bare values unchanged.
+    //
+    // Spec-mandated behaviour (documented here, NOT changed):
+    //   An unquoted `timestamp:` value in `new_string` IS detected as setting the
+    //   timestamp field (`sets_timestamp=true`).  Enforcement runs.
+    //   The parser divergence identified in Finding 4 does NOT exist in the current
+    //   implementation.  Both paths share the same `extract_yaml_string_value` logic.
+    //
+    // Traces: ADR-032 Decision 4 / PR-742 Finding 4 / PR reviewer disclosure
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_new_string_sets_field_unquoted_timestamp_detected() {
+        // Unquoted timestamp value: no surrounding double-quotes.
+        // extract_yaml_string_value strips only surrounding double-quotes; bare values
+        // are returned as-is.  new_string_sets_field therefore returns true here.
+        assert!(
+            new_string_sets_field("timestamp: 2026-06-11T10:00:00Z", "timestamp"),
+            "unquoted timestamp: value must be detected by new_string_sets_field \
+             (extract_yaml_string_value accepts bare values — no parser divergence; \
+             extract_top_level_field uses the same underlying function)"
+        );
+
+        // Multi-line: unquoted timestamp in a multi-line new_string fragment
+        // (e.g., an Edit that rewrites several frontmatter lines including timestamp:).
+        assert!(
+            new_string_sets_field(
+                "phase: complete\ntimestamp: 2026-06-11T10:00:00Z\ncurrent_step: \"done\"",
+                "timestamp"
+            ),
+            "unquoted timestamp: in multi-line new_string must be detected at col-0"
+        );
+
+        // Quoted timestamp for contrast — must also be detected (baseline).
+        assert!(
+            new_string_sets_field("timestamp: \"2026-06-11T10:00:00Z\"", "timestamp"),
+            "quoted timestamp: value must also be detected (baseline)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // ac020_edit_timestamp_line_deletion_payload_neutral_continues — Finding 3 disclosure
+    //
+    // ADR-032 Decision 1 (AC-020) definition: payload-neutral = no new_string in the
+    // Edit/MultiEdit payload sets `timestamp:` or `factory_lock:` at column 0.
+    // The guard inspects only new_string — old_string is NOT consulted for the
+    // payload-neutral check.
+    //
+    // Implication: an Edit whose old_string = the `timestamp:` line and whose
+    // new_string is empty (i.e., deletes the field) is payload-neutral → Continue.
+    // The timestamp field would be removed from STATE.md without any block.
+    //
+    // Current (spec-accepted) behaviour documented here: Continue.
+    //
+    // Pending adjudication: security-reviewer must determine whether timestamp-field
+    // deletion should be an explicit Block condition (ADR-032 v1.14 amendment candidate).
+    // Until that adjudication, the production code does NOT block timestamp deletions,
+    // and these tests pin that disclosed behaviour so any future change is deliberate.
+    //
+    // Traces: ADR-032 Decision 1 / PR-742 Finding 3 / security-reviewer pending
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_edit_timestamp_line_deletion_payload_neutral_continues() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        // The Edit removes the timestamp: line entirely:
+        //   old_string = the timestamp: line in STATE.md
+        //   new_string = "" (line deleted, not replaced)
+        // Guard scans new_string for timestamp: at col-0 → not found → payload-neutral.
+        let old_str = &format!("timestamp: \"{}\"", TS_OLD);
+        let new_str = "";
+
+        assert!(
+            on_disk.contains(old_str.as_str()),
+            "Test fixture must contain old_string: {old_str:?}"
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_edit(old_str, new_str);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "ac020_edit_timestamp_line_deletion_payload_neutral_continues: \
+             Edit with old_string=timestamp: line, new_string=empty is payload-neutral \
+             under ADR-032 Decision 1 (AC-020) — new_string sets neither timestamp: \
+             nor factory_lock: at col-0 → guard returns Continue. \
+             PENDING: security-reviewer adjudication on whether deletion should Block \
+             (ADR-032 v1.14 amendment candidate). This test pins current behaviour."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // ac020_multiedit_timestamp_line_deletion_payload_neutral_continues — Finding 3 (MultiEdit)
+    //
+    // Same semantics as the Edit variant above, but exercised via MultiEdit.
+    // A MultiEdit whose edits[] contain one edit — old_string = the timestamp:
+    // line, new_string = "" — is payload-neutral → Continue.
+    //
+    // The production check iterates edits[].new_string; if none sets timestamp: or
+    // factory_lock: at col-0, the whole MultiEdit is payload-neutral.
+    //
+    // Pending adjudication: same as Edit variant (ADR-032 v1.14 amendment candidate).
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_multiedit_timestamp_line_deletion_payload_neutral_continues() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        let old_str = format!("timestamp: \"{}\"", TS_OLD);
+        let new_str = "";
+
+        assert!(
+            on_disk.contains(old_str.as_str()),
+            "Test fixture must contain old_string: {old_str:?}"
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_multiedit(vec![(&old_str, new_str)]);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "ac020_multiedit_timestamp_line_deletion_payload_neutral_continues: \
+             MultiEdit with old_string=timestamp: line, new_string=empty is payload-neutral \
+             under ADR-032 Decision 1 (AC-020) — no new_string in edits[] sets timestamp: \
+             or factory_lock: at col-0 → Continue. \
+             PENDING: security-reviewer adjudication (ADR-032 v1.14 amendment candidate)."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Red Gate 3 of 4: ac020_edit_body_lock_held_no_factory_lock_continues
+    // Edit: lock held on-disk with stale expires_at; new_string is body text with
+    // no factory_lock: line; on-disk timestamp is OLD.
+    // Pre-fix: Block(TimestampStale) — Step 6 fires (proposed_ts == on_disk_ts == OLD).
+    // Post-fix: payload-neutral → Continue.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_edit_body_lock_held_no_factory_lock_continues() {
+        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
+        // Body-only Edit: new_string has neither timestamp: nor factory_lock: at col-0.
+        let old_string = "# STATE\n";
+        let new_string = "# SESSION CHECKPOINT\nbody content here\n";
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_edit(old_string, new_string);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "ac020_edit_body_lock_held_no_factory_lock_continues: Body-only Edit with lock held \
+             on-disk (no factory_lock: or timestamp: in new_string) must return Continue \
+             (payload-neutral, ADR-032 Decision 1+3). \
+             Pre-fix: Block(TimestampStale) — RED GATE (Step 6 fires: proposed_ts == on_disk_ts). \
+             Post-fix: payload-neutral → Continue."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Regression guard: ac020_edit_factory_lock_in_new_string_stale_expires_blocks
+    // Edit: new_string contains BOTH factory_lock: block (stale expires_at) AND
+    // timestamp: "NEW" (advancing). Lock held on-disk with stale expires_at.
+    // Both pre- and post-fix: Block(LockExpiryStale).
+    // (F-ADR032-P2-004: fixture includes timestamp: NEW to ensure same block code
+    // pre- and post-fix — true regression guard.)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_edit_factory_lock_in_new_string_stale_expires_blocks() {
+        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
+
+        // old_string matches the timestamp+phase+factory_lock section of on-disk content.
+        let old_string = format!(
+            "timestamp: \"{TS_OLD}\"\nphase: test\nfactory_lock:\n  holder: \"{HOLDER}\"\n  locked_at: \"2026-06-11T10:00:00Z\"\n  expires_at: \"{EXPIRES_OLD}\""
+        );
+        // new_string advances timestamp: to TS_NEW but keeps factory_lock with stale EXPIRES_OLD.
+        let new_string = format!(
+            "timestamp: \"{TS_NEW}\"\nphase: test\nfactory_lock:\n  holder: \"{HOLDER}\"\n  locked_at: \"2026-06-11T10:00:00Z\"\n  expires_at: \"{EXPIRES_OLD}\""
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_edit(&old_string, &new_string);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_lock_expiry_stale_message();
+        assert_eq!(
+            result,
+            HookResult::Block {
+                reason: expected_msg
+            },
+            "ac020_edit_factory_lock_in_new_string_stale_expires_blocks: Edit advancing timestamp \
+             but keeping stale expires_at must Block(LockExpiryStale) both pre- and post-fix \
+             (regression guard, ADR-032 Decision 3 + F-ADR032-P2-004)."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Regression guard: ac020_edit_sets_timestamp_no_factory_lock_stale_expires_blocks
+    // Edit: new_string sets timestamp: "NEW" (advancing); no factory_lock: in new_string;
+    // lock held on-disk with stale expires_at.
+    // Both pre- and post-fix: Block(LockExpiryStale).
+    // (Decision 3 option (a): timestamp-advancing Edit must include factory_lock renewal
+    // when a lock is held — Step 7 always runs when sets_timestamp=true.)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_edit_sets_timestamp_no_factory_lock_stale_expires_blocks() {
+        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
+
+        // Edit advances timestamp only; factory_lock block (with stale expires) is inherited
+        // by reconstruction from on-disk content.
+        let old_ts_line = format!("timestamp: \"{TS_OLD}\"");
+        let new_ts_line = format!("timestamp: \"{TS_NEW}\"");
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_edit(&old_ts_line, &new_ts_line);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_lock_expiry_stale_message();
+        assert_eq!(
+            result,
+            HookResult::Block {
+                reason: expected_msg
+            },
+            "ac020_edit_sets_timestamp_no_factory_lock_stale_expires_blocks: timestamp-advancing \
+             Edit that does NOT renew factory_lock.expires_at must Block(LockExpiryStale) \
+             both pre- and post-fix (ADR-032 Decision 3 option (a) regression guard)."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Red Gate 4 of 4: ac020_edit_factory_lock_only_stale_expires_blocks
+    // Edit where new_string sets factory_lock: block with stale expires_at but no
+    // timestamp: line. Lock held on-disk with stale expires_at.
+    // Pre-fix: Block(TimestampStale) — Step 6 fires (proposed_ts == on_disk_ts == OLD).
+    // Post-fix: sets_factory_lock=true, sets_timestamp=false → skip Steps 4-6; Step 7
+    //   runs → Block(LockExpiryStale).
+    // Pre-fix result ≠ Post-fix result → RED GATE.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_edit_factory_lock_only_stale_expires_blocks() {
+        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
+
+        // Identity replacement of the factory_lock block (stale expires_at unchanged).
+        // new_string starts with factory_lock: at col-0 (not indented) → sets_factory_lock=true.
+        // new_string has no timestamp: line → sets_timestamp=false.
+        let lock_block = format!(
+            "factory_lock:\n  holder: \"{HOLDER}\"\n  locked_at: \"2026-06-11T10:00:00Z\"\n  expires_at: \"{EXPIRES_OLD}\""
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_edit(&lock_block, &lock_block); // identity replacement
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_lock_expiry_stale_message();
+        assert_eq!(
+            result,
+            HookResult::Block {
+                reason: expected_msg
+            },
+            "ac020_edit_factory_lock_only_stale_expires_blocks: factory_lock-only Edit with stale \
+             expires_at must Block(LockExpiryStale) (ADR-032 Decision 3). \
+             Pre-fix: Block(TimestampStale) — RED GATE. \
+             Post-fix: sets_factory_lock=true → skip timestamp checks; Step 7 → Block(LockExpiryStale)."
         );
     }
 }
