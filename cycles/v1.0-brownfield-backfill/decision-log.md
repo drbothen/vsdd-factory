@@ -2357,3 +2357,105 @@ D-1082-ADR046-PASS25-SPEC-CONVERGENCE-REMEDIATION
 2026-08-26
 
 ---
+
+## D-1083
+
+**D-1083-ADR046-PASS26-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1082 (this cycle's decision-log.md; the F5 cycle at `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`
+tops out at D-454, well below). D-1083 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 26 dispatched against the frozen set
+(ADR-046 v1.11 + BC-4.17.001 v1.12 + BC-7.07.001 v1.28 + BC-5.40.001 v1.10). **VERDICT: FINDINGS
+(1 MED + 2 LOW observations).** BC-5.39.001 3-CLEAN streak REMAINS 0/3 (already reset at pass-25;
+this finding does not reset an already-0/3 streak further). Full record:
+`adv-adr-046-pass-26.md`.
+
+**F-P26-001 (MED, POLICY 14/17/6, sibling-instruction-row sweep gap) — FIXED.** ADR-046's
+File-Change Plan carries its own self-referential sync instruction row directing the ARCH-INDEX
+ADR-046 row's target version. That row had drifted stale: it still directed a bump to "v1.10,"
+leading with the pass-21/F-P21-001 disposition, even after the pass-25 architect edit had already
+advanced the ADR to v1.11 (and added the File-Change Plan's own new S-17.05 row per F-P25-002) —
+the pass-25 edit swept every OTHER locus stating the ADR's content but did not sweep this SIBLING
+instruction row, which instructs a downstream artifact rather than describing the ADR's own
+content. Architect resolved by rewriting the row to direct the bump to **v1.12** — this revision's
+own resulting version — re-leading its summary with the pass-26 (F-P26-001) disposition followed
+by the pass-25 (F-P25-001/F-P25-002) disposition, with the pass-21/F-P21-001 text demoted one rung
+further down the existing Prior chain (content unchanged, only nesting position). A sweep for
+other load-bearing self-version directives found no other locus needing correction. ADR-046
+v1.11→**v1.12**.
+
+**O-P26-001 (LOW, non-blocking) — recorded, no fix this burst.** BC-7.07.001 carries
+`status: active` while its ADR-046 amendment invariants are not yet implemented (implementing
+story S-17.05 has not started — gated on this convergence). Judged WORKING-AS-DESIGNED
+spec-leading-code, anchored S-17.05, per this repo's VSDD "spec wins" standing rule — unlike
+sibling BC-4.17.001 (wholly draft, no ambiguity), BC-7.07.001 pre-dates ADR-046 and is amended in
+place, so `active` correctly describes its implemented pre-ADR-046 baseline plus a not-yet-shipped
+spec-ahead amendment layer. No inline pending marker added. Recorded as a non-blocking awareness
+note only.
+
+**O-P26-002 (LOW, `[process-gap]`, non-blocking) — recorded, deferred.** ARCH-INDEX's SS-07
+subsystem label "Hook Bash Layer" is an increasing misnomer as native-WASM hook plugins (including
+the ones ADR-046 itself proposes) continue to accrete under it alongside the bash hook scripts the
+label originally described. Predates ADR-046; out of this pass's review perimeter; no frozen-set
+artifact introduced or worsened it. Per the S-7.02 cycle-closing checklist, recorded as a Drift
+Item anchored to a future ARCH-INDEX subsystem-label review — not this burst's scope, no SS-07
+label edit made.
+
+**Artifact versions (architect edit already on disk before this state-manager burst;
+reconciled same-commit):** ADR-046 v1.11→**v1.12**. BC-4.17.001/BC-7.07.001/BC-5.40.001
+UNCHANGED this burst (no BC touched — F-P26-001 is ADR-046-only). Input-hash recomputed via
+`bin/compute-input-hash --update`: ADR-046 `a26e973`→**`26c1c59`**.
+
+**Index reconciliation (state-manager, this burst):**
+
+- **ARCH-INDEX v3.81→v3.82:** ADR-046 row version cite corrected v1.11→v1.12; pass-26 (F-P26-001,
+  fixed) + 2 LOW observations (O-P26-001, O-P26-002) summary appended ahead of the existing
+  pass-25 summary (pass-25 text preserved verbatim, not truncated). ADR count unchanged at 46 (row
+  update only, not a new-row addition).
+- BC-INDEX v4.98 UNCHANGED (no BC touched this burst). VP-INDEX v2.79 UNCHANGED. STORY-INDEX
+  v4.391 UNCHANGED.
+
+**STATE.md vNext:** streak 0/3→0/3 (REMAINS 0/3, explicitly recorded as no-further-reset); Current
+Artifact Versions ADR-046 v1.11→v1.12; Blocking Issues ADR-046-gate row updated (streak 0/3,
+pass-26 1 MED found+fixed, fresh pass-27 NEXT); Drift Items gains O-P26-002 (`[process-gap]`,
+deferred, anchored future ARCH-INDEX subsystem-label review) and a non-blocking awareness note for
+O-P26-001; Session Resume Checkpoint refreshed (§2 Convergence Counter 0/3 REMAINS, fresh pass-27
+NEXT; §3 ADR-046 v1.12; §7 resume command); Phase Progress + Current Phase Steps rows added for
+D-1083 (Current Phase Steps table trimmed to keep only the last 5 — D-1079 row archived off,
+already fully preserved in decision-log.md/burst-log.md). Trajectory-tail unchanged (Wave-7 not
+touched this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-26 COMPLETE. 1 MED finding (F-P26-001, sibling-
+instruction-row sweep gap — a self-referential version-bump directive inside an ADR's own
+File-Change Plan is itself a parity leg) found and fixed same-burst. 2 LOW observations recorded
+non-blocking (O-P26-001 awareness note, O-P26-002 deferred process-gap). Streak REMAINS 0/3 (no
+further reset — was already 0/3 entering this pass). Fresh pass-27 is the documented NEXT action;
+needs 3 consecutive clean passes for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-26.md), architect (ADR-046 v1.12:
+F-P26-001 File-Change Plan self-instruction-row fix), state-manager (adv-adr-046-pass-26.md
+persist + ARCH-INDEX v3.82 + input-hash recompute + decision-log D-1083 + lessons + burst-log +
+STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v4.98 | v4.98 (UNCHANGED) |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.81 | v3.82 |
+
+### Phase
+
+D-1083-ADR046-PASS26-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-26
+
+---

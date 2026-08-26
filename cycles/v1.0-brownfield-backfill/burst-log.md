@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-20T00:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "991f755"
+input-hash: "e7e9031"
 traces_to: STATE.md
 ---
 
@@ -971,3 +971,155 @@ reconciliation OWED item RESOLVED for BC-INDEX + ARCH-INDEX. BC-5.39.001 streak 
 adversary pass-26 against the newly-frozen set (ADR-046 v1.11 + BC-4.17.001 v1.12 + BC-7.07.001
 v1.28 + BC-5.40.001 v1.10); needs 3 consecutive clean passes (26, 27, 28) for literal 3-CLEAN
 convergence. S-17.05 TDD implementation remains gated on convergence.
+
+## D-1083-ADR046-PASS26-SPEC-CONVERGENCE-REMEDIATION
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1083 < D-9000 ceiling
+```
+
+(Gate run AFTER D-1083 was appended to decision-log.md this burst, confirming D-1083 is the
+correct next allocation and no over-allocation occurred. The F5 cycle's own decision-log tops out
+at D-454, well below.) **Parent-commit:** `854bca50` — `factory(adr-046): pass-25 spec-convergence
+remediation — 2 MED findings fixed, streak RESET 0/3 (D-1082)` (factory-artifacts HEAD at burst
+start).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` spec-convergence pass-26 dispatched against the ADR-046
+frozen set (ADR-046 v1.11 + BC-4.17.001 v1.12 + BC-7.07.001 v1.28 + BC-5.40.001 v1.10). **Verdict:
+FINDINGS (1 MED + 2 LOW observations).** BC-5.39.001 3-CLEAN streak REMAINS 0/3 (already reset at
+pass-25; this finding does not reset an already-0/3 streak further). F-P26-001 (MED, POLICY
+14/17/6, sibling-instruction-row sweep gap) — ADR-046's File-Change Plan carries its own
+self-referential sync instruction row directing the ARCH-INDEX ADR-046 row's target version; that
+row had drifted stale, still directing a bump to "v1.10"/pass-21 even after the pass-25 edit had
+already advanced the ADR to v1.11 — the pass-25 sweep covered every locus stating the ADR's
+substantive content but not this sibling downstream-facing instruction row. FIXED same-burst
+(architect: ADR-046 v1.11→v1.12, row rewritten to direct v1.12). Adversary also recorded two
+non-blocking LOW observations, no fix this burst: O-P26-001 (BC-7.07.001 `status:active` carrying
+not-yet-implemented ADR-046 invariants — judged WORKING-AS-DESIGNED spec-leading-code per S-17.05
+anchor) and O-P26-002 (`[process-gap]` SS-07 "Hook Bash Layer" label an increasing misnomer as
+native-WASM hook plugins accrete — out-of-perimeter, deferred). Adversary additionally confirmed
+CLEAN on LockState propagation (no residual `FactoryLock` mis-citation), all `crates/factory-lock*`
+spec-vs-code claims (independently re-traced), anchors/subsystem-names/registry facts, S-17.05
+traceability (no regression), and POLICY 19 (no new volatile pins) — an unusually large
+verified-clean cluster for a FINDINGS-verdict pass, since the sole MED is a self-referential
+instruction-row defect, not a substantive content defect. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-adr-046-pass-26.md`.
+
+**Block 3: Files touched**
+
+- `.factory/specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md` — v1.11→v1.12 (architect, pre-burst; F-P26-001 File-Change Plan self-instruction-row fix); input-hash `a26e973`→`26c1c59`
+- `.factory/cycles/v1.0-brownfield-backfill/adv-adr-046-pass-26.md` — new (pass-26 FINDINGS record)
+- `.factory/specs/architecture/ARCH-INDEX.md` — ADR-046 row version cite v1.11→v1.12; pass-26 (F-P26-001 fixed + O-P26-001/O-P26-002) summary appended ahead of the preserved pass-25 summary; version v3.81→v3.82
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1083 appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 1 new lesson appended (self-referential version-bump-directive sibling-sweep class, TD-VSDD-060 generalization)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (streak 0/3 REMAINS, Current Artifact Versions, Blocking Issues, Drift Items O-P26-002 + awareness note O-P26-001, Session Resume Checkpoint, version bump)
+
+**Block 4: Codifications**
+
+One new lesson codified in `lessons.md` (non-process-gap tag, content-defect class): a
+self-referential version-bump DIRECTIVE inside an ADR's own File-Change Plan (a row instructing a
+DOWNSTREAM artifact what version to cite) is itself a parity leg that must be swept on every
+single version bump the ADR undergoes — not just bumps that change substantive content — because
+the directive's own correctness depends on staying pinned to whatever version the CURRENT revision
+produces. Generalizes TD-VSDD-060 (sibling-site sweep) one layer further: self-referential
+downstream-facing instructions are a sweep target distinct from content-citation sites.
+O-P26-002 (`[process-gap]`, non-blocking) recorded as a Drift Item in STATE.md, NOT a lessons.md
+codification — anchored future ARCH-INDEX subsystem-label review, out of this burst's scope.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+Input-hash recompute (literal shell, D-449(a)):
+
+```
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md --check
+compute-input-hash: DRIFT — .../ADR-046-....md input-hash a26e973 ≠ computed 26c1c59
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md --update
+26c1c59
+compute-input-hash: updated .../ADR-046-....md input-hash → 26c1c59
+```
+
+ARCH-INDEX ADR-046 row + version verification gate (literal shell):
+
+```
+$ grep -n "^| ADR-046 " specs/architecture/ARCH-INDEX.md | grep -oE "RATIFIED 2026-08-25; ADR-046 v1\.12 as of this row\."
+RATIFIED 2026-08-25; ADR-046 v1.12 as of this row.
+$ grep -n '^version:' specs/architecture/ARCH-INDEX.md | head -1
+version: "3.82"
+```
+
+D-448(a) source-attestation parity gate (decision-log D-1083 finding-ID set vs adv-adr-046-pass-26.md
+Part A finding-ID set):
+
+```
+$ grep -oE "F-P26-[0-9]{3}|O-P26-[0-9]{3}" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-26.md | sort -u
+F-P26-001
+O-P26-001
+O-P26-002
+$ sed -n '/^## D-1083/,/^---$/p' cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE "F-P26-[0-9]{3}|O-P26-[0-9]{3}" | sort -u
+F-P26-001
+O-P26-001
+O-P26-002
+```
+
+Sets match exactly — decision-log D-1083 finding-ID set is a faithful description of
+adv-adr-046-pass-26.md Part A.
+
+**Block 6 (Dim-5): Closes**
+
+- **`F-P26-001`** (MED, sibling-instruction-row sweep gap) — **FIXED**, ADR-046 File-Change Plan
+  ARCH-INDEX sync row rewritten to direct v1.12 (self-consistent with this revision's version).
+- **`O-P26-001`** (LOW, non-blocking) — recorded as an awareness note in STATE.md Session Resume
+  Checkpoint. NOT a closure — no fix applied, none needed per WORKING-AS-DESIGNED disposition.
+- **`O-P26-002`** (LOW, `[process-gap]`, non-blocking) — recorded as a Drift Item in STATE.md,
+  deferred, anchored future ARCH-INDEX subsystem-label review. NOT a closure — open, deferred.
+- **`BC-5.39.001 3-CLEAN streak`** — REMAINS 0/3 (explicitly NOT a further reset — was already 0/3
+  entering this pass). NOT a closure — fresh pass-27 is the documented NEXT action; needs 3
+  consecutive clean passes.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1083-ADR046-PASS26-SPEC-CONVERGENCE-REMEDIATION` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation
+gate: literal-shell diff captured in Block 5 — finding-ID sets match exactly between decision-log
+D-1083 and adv-adr-046-pass-26.md Part A. D-449(a) literal-shell-execution SELF-APPLICATION:
+POLICY 16 gate, input-hash recompute, ARCH-INDEX row/version verification, and D-448(a)
+source-attestation check all use actual shell with verbatim stdout captured (Block 5) — no
+pseudocode, no estimated counts, no trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (pass-26) — content-bearing, 1 MED finding fixed, 2 LOW
+  observations recorded.
+- Streak: REMAINS 0/3 (no further reset). Fresh pass-27 is NEXT.
+- 4-INDEX: BC v4.98 (UNCHANGED) / VP v2.79 (UNCHANGED) / STORY v4.391 (UNCHANGED) / ARCH v3.81→v3.82.
+- policies.yaml UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` — unaffected by this burst (whatever prior-burst state carries forward; this burst
+  does not itself pause or resume the pipeline). Wave-7 substantive state UNCHANGED — this burst
+  is orthogonal to the Wave-7 cascade (trajectory-tail unchanged, →1→1→0→1, LENGTH=4).
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed
+  via fetch-then-`--force-with-lease` CAS sequence (BC-5.40.001 PC5 / S-17.01 D6)
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `854bca50` —
+  `factory(adr-046): pass-25 spec-convergence remediation — 2 MED findings fixed, streak RESET
+  0/3 (D-1082)`
+
+**Closes:** `F-P26-001` MED sibling-instruction-row sweep gap FIXED. `O-P26-001` LOW recorded
+non-blocking awareness note. `O-P26-002` LOW `[process-gap]` recorded deferred Drift Item.
+BC-5.39.001 streak REMAINS 0/3 (NOT a closure — no further reset, open state carries forward;
+fresh pass-27 is NEXT). **NEXT ACTION:** dispatch fresh-context adversary pass-27 against the
+newly-frozen set (ADR-046 v1.12 + BC-4.17.001 v1.12 + BC-7.07.001 v1.28 + BC-5.40.001 v1.10);
+needs 3 consecutive clean passes (27, 28, 29) for literal 3-CLEAN convergence. S-17.05 TDD
+implementation remains gated on convergence.
