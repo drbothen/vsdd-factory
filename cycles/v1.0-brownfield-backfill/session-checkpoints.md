@@ -3382,3 +3382,55 @@ Separately, unresolved: the **orchestrator/human Phase-3 TDD-entry sequencing de
 `/vsdd-factory:next-step`
 
 **This checkpoint superseded by the D-1074-WAVE7-PASS3-STORY-REMEDIATION checkpoint burst (state-manager, single-commit story-layer 'story-remediation' burst, TD-VSDD-053, Single-Commit Burst Protocol via `/vsdd-factory:state-burst`, 2026-08-23) — a new self-sufficient §1-§7 Session Resume Checkpoint was written in its place. See STATE.md for the live checkpoint.**
+
+---
+
+## Session Resume Checkpoint (2026-08-24 — D-1081-WAVE7-PASS9-RECORDED-HELD; PIPELINE PAUSED / HELD)
+
+> **SELF-SUFFICIENT RESUME CONTEXT.** Written at D-1081 (pass-9/R8 recorded, Wave-7 HELD pending ADR-045 ratification). **NEXT action: human ADR-045 ratification decision** via POLICY 22 channel — ratification unblocks the validator-build + corpus-migration epic. If ADR-045 is rejected: manual remediation route available (see adv-wave7-pass9.md §Remediation Routing). Resume: `/vsdd-factory:next-step`.
+
+### §1 Position
+
+Cycle `v1.0-brownfield-backfill`, brownfield mode. **PIPELINE PAUSED / HELD** post D-1081. S-21.11 v2.11 previously reached BC-5.39.001 3-CLEAN (D-1056); operator OVERRODE → **SPLIT** (D-1057) into 6 sub-stories **S-21.19..S-21.24** plus new **S-21.25**. Wave 6 reached 3-CLEAN by D-1066, then **S-21.19 REOPENED at D-1070** — streak RESET 3/3→0/3, **Wave 6 NO LONGER COMPLETE**. Wave-7 remediation rounds: pass-1/R0 through pass-8/R7 (D-1069–D-1080). Pass-9/R8 dispatched (D-1081): S-21.22 CLEAN (streak 0/3→1/3); S-21.19 R8 NOT-CLEAN (F-S2119-R8-001 HIGH line-wrapped BC-1.03.017 v1.26 cite; F-S2119-R8-002 MED ADR-039 AMD-002 pin); S-21.20 pass-9 NOT-CLEAN (F-S2120-P9-001 MED AC-022 over-scope; F-S2120-P9-002 LOW [[hook]]); S-21.21 pass-9 NOT-CLEAN (F-S2121-P9-001 HIGH 6 anchor-interposed ADR-039 pins; F-S2121-P9-002 MED [process-gap]); S-21.23 pass-9 NOT-CLEAN (F-S2123-P9-001 HIGH line-wrapped ADR-039 §Decision 3 v1.10 in Invariant 6; F-S2123-P9-002 LOW [process-gap]). NOT remediated — PIVOTED to research → ADR-045 proposal. ADR-045 PROPOSED 2026-08-24 (stable-anchor cross-reference architecture; eliminates load-bearing version pins by construction; SS-01/SS-04/SS-05/SS-07; HUMAN RATIFICATION REQUIRED). ARCH-INDEX v3.80 (ADR count 44→45). trajectory-tail →1→1→0→1, LENGTH=4.
+
+### §2 Convergence Counters
+
+**S-21.22** (v1.10, BC-1.03.017 v1.27): pass-9 CLEAN; streak **1/3** (ADVANCES). **S-21.19** (v1.11, BC-1.03.017 v1.27): R8 NOT-CLEAN; F-S2119-R8-001 HIGH + F-S2119-R8-002 MED; streak **0/3** (REMAINS); NOT remediated. **S-21.20** (v1.9, BC-1.03.017 v1.27): pass-9 NOT-CLEAN; F-S2120-P9-001 MED + F-S2120-P9-002 LOW; streak **0/3** (REMAINS); NOT remediated. **S-21.21** (v1.10, BC-1.03.017 v1.27): pass-9 NOT-CLEAN; F-S2121-P9-001 HIGH + F-S2121-P9-002 MED [process-gap]; streak **0/3** (REMAINS); NOT remediated. **S-21.23** (v1.8, BC-1.03.018 v1.6): pass-9 NOT-CLEAN; F-S2123-P9-001 HIGH + F-S2123-P9-002 LOW [process-gap]; streak **0/3** (REMAINS); NOT remediated. **S-21.24** (v1.11, BC-1.03.017 v1.27 + BC-1.03.018 v1.6, Wave 8): STRICTLY LAST — cascade not started. **S-21.25** (v1.5): **3/3 CONVERGED**; held TDD sequencing.
+
+### §3 NEXT ACTION (resume)
+
+**Human ADR-045 ratification decision.** ADR-045 v1.0 is at `.factory/specs/architecture/decisions/ADR-045-stable-anchor-cross-reference-architecture.md`. Research report at `.factory/research/wave7-xref-consistency-research.md`. Decision required via POLICY 22 channel (same channel as all prior ADR ratifications).
+
+**If RATIFIED:** orchestrator dispatches architect (amendments to POLICY 7/8/14/17/19 per ADR-045 §decisions) + story-writer (create corpus-migration epic: new stories for stable-anchor migration of Wave-7 stories, BCs, ADRs) + state-manager (record ratification burst).
+
+**If REJECTED (manual remediation route):** story-writer fixes pass-9 findings per adv-wave7-pass9.md §Remediation Routing, then pass-10/R9 dispatch. Five cascades: S-21.19 (R9), S-21.20 (pass-10), S-21.21 (pass-10), S-21.22 (pass-10), S-21.23 (pass-10).
+
+### §4 Deferred / Owed (with concrete anchors)
+
+- `ADR-044` body cites `BC-1.03.017 v1.18` at ~lines 35/104/190 — fix at architect's next ADR-044 touch; target now **v1.27**.
+- VP-079: stale `BC-3.08.001 v1.25→v1.26` cite, POLICY 17 frontmatter gap, "six"/"seven" inconsistency — all fix at architect's next VP-079 touch.
+- BC-1.03.019/BC-1.03.017/BC-1.03.018 VP-TBD — owed Phase-6 formal-verifier.
+- develop-side `artifact-path-registry.yaml` — develop-branch PR only; do NOT commit from factory-artifacts.
+- hooks-registry.toml header plugin-count 35→37 — next maintenance sweep.
+- S-21.25 accumulated cosmetic nits (D-1065/D-1066) — post-convergence cosmetic sweep.
+- decision-log.md per-decision backfill D-1011/D-1012, D-1016..D-1042 (exhaustive), D-1068..D-1076 (exhaustive) OWED.
+- `[P0-followup]` branch-protection enforcement — human/admin action required.
+- `[C-1]...[C-5]` exec_subprocess security findings — ADR-043 NOT RATIFIED.
+- F-S2120-P6-002 DAG label editorial — anchor next S-21.20 touch per D-1078.
+- F-S2122-P7-003 LOW stale cross-ref (Task 3→S-21.21 Task 6 mismatch) — deferred; anchor wave-gate pre-merge consistency check.
+
+### §5 Pending Human Decision
+
+1. **ADR-045 ratification (PRIMARY — BLOCKS Wave-7 HELD):** Ratify or reject stable-anchor cross-reference architecture via POLICY 22 channel. This is the unblocking decision.
+2. **S-21.25 Phase-3 TDD sequencing** (CONVERGED 3/3, UNCHANGED). Decision: start TDD now or HOLD until remaining split-story seams converge.
+
+### §6 HEADs
+
+- `develop`: `27c56c01` — CI-GREEN, unchanged.
+- `factory-artifacts`: see `git -C .factory log -1`. D-1081 is this burst.
+
+### §7 Resume Command
+
+`/vsdd-factory:next-step`
+
+**This checkpoint superseded by the SESSION-WRAP-PAUSE-2026-08-26 checkpoint burst (state-manager, single-commit bookkeeping-only pause burst, TD-VSDD-053, human-invoked `/wrap`, 2026-08-26) — a new self-sufficient §1-§7 Session Resume Checkpoint was written in its place, covering two concurrent workstreams (rc.24 release + ADR-046 spec-convergence) that advanced between D-1081 (2026-08-24) and this wrap without an intervening STATE.md update. See STATE.md for the live checkpoint; the D-1081 Wave-7/ADR-045 position above is PRESERVED VERBATIM as historical record — ADR-045 has since been ACCEPTED at v1.3 (pivoted to frozen-provenance model per human direction) but its ratification-recording burst (POLICY 7/8/14/17/19 amendments to policies.yaml, decision-log D-NNN, BC-INDEX/ARCH-INDEX rows) remains OWED as of this wrap.**

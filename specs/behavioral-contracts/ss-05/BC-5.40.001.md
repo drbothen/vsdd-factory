@@ -1,18 +1,21 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.9"
 status: active
 producer: product-owner
 timestamp: 2026-06-11T00:00:00Z
 phase: brownfield-backfill
-cycle: v1.0-brownfield-backfill
+cycle: v1.0-feature-engine-discipline-pass-1
 inputs:
   - .factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md
+  - .factory/specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
+  - .factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md
+  - .factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md
   - plugins/vsdd-factory/skills/state-burst/SKILL.md
-input-hash: "8be8e4e"
+input-hash: "b422b7e"
 traces_to: .factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md
 origin: brownfield
 extracted_from: null
@@ -24,6 +27,12 @@ modified:
   - "2026-06-11 (v1.1)"
   - "2026-07-13 (v1.2)"
   - "2026-07-14 (v1.3)"
+  - "2026-08-25 (v1.4)"
+  - "2026-08-25 (v1.5) — ADR-046 v1.1 Companion Amendment 1 (i)-(v) (product-owner; pass-2 spec remediation): Invariant 1 email-collision scope note added; PC4 >= predicate + expires_at-only idempotency scoping added; PC4 malformed-expires_at non-repair statement added; PC4/Architecture Anchors TTL_SECONDS canonical-const sourcing note added; Canonical Test Vectors truth-table rows added covering {Resolved+Match, Resolved+Mismatch, Failed} x {stamp-state-timestamp, precompact-flush}; PC4 AlreadyExpired non-resurrection disposition added for consistency with BC-4.17.001/BC-7.07.001."
+  - "2026-08-26 (v1.6) — Pass-2 spec remediation round 2 (product-owner), responding to adversarial spec review pass 2 PRODUCT-OWNER-ROUTED findings F-002/F-003 against ADR-025/ADR-046 (ADR-046 now v1.2). See last_amended for full disposition."
+  - "2026-08-26 (v1.7) — Pass-4 spec remediation (product-owner), responding to adversarial spec review pass 4 findings F-P4-001/F-P4-002 against ADR-046 (now v1.5). See last_amended for full disposition."
+  - "2026-08-26 (v1.8) — Pass-5 architecture-routed remediation mirror (product-owner), responding to ADR-046 v1.6's F-P5-001 (HIGH) and O-P5-001 (LOW). See last_amended for full disposition."
+  - "2026-08-26 (v1.9) — Pass-6 sibling-sweep remediation (product-owner), responding to adversarial spec review pass 6 (1 MED total against this BC: F-P6-002; plus in-scope sweep fixes for stray POLICY 19 version pins). See last_amended for full disposition."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -32,10 +41,10 @@ removed: null
 removal_reason: null
 bc_id: BC-5.40.001
 section: "5.40"
-last_amended: "2026-07-14 (v1.3) — F-P1-002 resolution (product-owner; post-merge burst; S-19.08 PR #646 squash 1304d280 2026-07-14): VP Anchors pending-placeholder replaced with definitive statement — S-19.08 verification delivered via BC-anchored unit/integration tests T-001..T-007 (no VP-NNN IDs assigned; per-story unit tests follow (unit-test) row convention); VP-096 reused by transitivity. [Prior: 2026-07-13 (v1.2) — S-19.08 Spec-First amendment (human-authorized; D-826/D-835): Precondition 6 added (verify-state-timestamp-refresh read capability: max_bytes=262144 (256 KiB); frontmatter-only via factory_lock_parse::extract_frontmatter (crates/factory-lock-parse/; S-19.02 PR #610; reuse-not-duplicate); cap mirrors BC-4.13.001 Phase-A Precondition 3 + ADR-025 §Decision 12 §12.5 parity; fail-open on OutputTooLarge per ADR-025 Decision 7). Invariant 7 added: frontmatter-only mandate for verify-state-timestamp-refresh (extract_frontmatter exclusive; mirrors BC-4.13.001 Invariant 9). Invariant 8 added: soft-warn threshold adjudication — verify-state-timestamp-refresh reads STATE.md in full → BC-4.13.001 Invariant 10 scope confirmed → state_md_approaching_cap MUST emit at bytes_read > 200000 AND ≤ 262144 (boundary table parity with BC-4.13.001 Invariant 10). EC-010 added (STATE.md exceeds 262144 bytes: OutputTooLarge → guard fail-open). Verification Properties updated: unit-test rows T-001..T-007 added; VP-096 back-cited (extract_frontmatter reuse). Story Anchor updated: S-17.01 + S-19.08. Traceability Stories updated: S-17.01 + S-19.08. Architecture Anchors: crates/factory-lock-parse/ added. [Prior: 2026-06-11 (v1.1) — POL-14 auto-promotion: lifecycle_status draft→active on PR #181 squash-merge c64b46d2 (S-17.01 merged); status draft→active; D-544 codified. [Prior: 2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D3/D6 deliverables). factory_lock STATE.md frontmatter schema, TTL auto-expiry, mid-burst renewal, state-burst CAS push fix.]]]"
+last_amended: "2026-08-26 (v1.9) — Pass-6 sibling-sweep remediation (product-owner), responding to adversarial spec review pass 6 (1 MED + 2 LOW total across the ADR-046 BC cluster, all sibling-sweep-straggler class; this BC's cited finding: F-P6-002). Disposition: **F-P6-002 (MED)** — PC3's 'Failure mode — long burst TTL self-eviction' sub-paragraph still read `now > expires_at` (strictly-greater), a straggler of the same guard-boundary comparison PC3's own normative statement above already corrected to `now >= expires_at` at v1.7 (F-P4-001) — swept to `now >=` here so the sub-paragraph matches PC3's own corrected statement and PC4 condition (c). **Comprehensive sibling-sweep (in-scope, production-grade default):** a full grep sweep of this BC for every occurrence of the canonical values ADR-046 governs (expiry boundary, `STATE_MD_MAX_BYTES` sourcing, malformed-arm disposition, 5-case numbering, shared-fn homes, TTL cast, event fields, POLICY 19 pins, per-arm fail-open) found and fixed 5 additional stray `ADR-046 vN.N` version-pin stragglers in body prose (the 'verify-state-timestamp-refresh read capability' Precondition annotation and the Architecture Anchors bullet for that same crate) — both stripped to the stable `ADR-046 §Decision N` anchor form per POLICY 19 anti-volatile-pin (mirroring O-P4-002's established pattern); all other categories swept clean (zero additional stragglers). No PC/Invariant/EC renumbered (append-only numbering preserved — POLICY 1); all corrections are in-place. BC-INDEX registration and title-cell sync deferred to state-manager same-burst per POLICY 7/8 (not applied by this amendment). [Prior: 2026-08-26 (v1.8) — Pass-5 architecture-routed remediation mirror (product-owner), responding to adversarial spec review pass 5 (ADR-046 flipped v1.5→v1.6 via architect-routed remediation of the same pass; product-owner mirrors ADR-046 v1.6's corrections here in a sequential follow-up burst per D-386 sequencing — strict isolation maintained across BC-4.17.001/BC-5.40.001/BC-7.07.001, no ADR/registry/hook-source/STATE.md/ARCH-INDEX content touched). Disposition: **F-P5-001 (HIGH)** — the migrated-Precondition-6 annotation's `STATE_MD_MAX_BYTES` sourcing statement (\"the same `STATE_MD_MAX_BYTES = 262144` cap ... reused (not re-declared) — now lives at BC-4.17.001's Precondition 4\") never named the constant's actual home, and its unnamed pre-v1.6 declaration site was the very `verify-state-timestamp-refresh` crate ADR-046 §Decision 5 deregisters and anticipates eventually deleting. Corrected by mirroring ADR-046 §Decision 5 v1.6 / F-P5-001's exact sourcing text verbatim into this Precondition's annotation: it now references `factory_lock_parse::STATE_MD_MAX_BYTES` — the single canonical declaration (`pub const STATE_MD_MAX_BYTES: u32 = 262144;`, relocated to the `factory-lock-parse` crate) — not a locally re-declared constant, and not the now-deregistered `verify-state-timestamp-refresh` crate. **O-P5-001 (LOW)** — the Architecture Anchors bullet for `crates/hook-plugins/verify-state-timestamp-refresh/src/lib.rs` still called the crate an \"S-19.08 implementation target\" and cited it as the home of `STATE_MD_MAX_BYTES`; annotated MIGRATED/DEREGISTERED consistently with the sibling Precondition 6/Invariant 7/Invariant 8/EC-010 annotations already applied at v1.7, and the constant's home reference corrected to `factory-lock-parse`. No PC/Invariant/EC renumbered or content deleted (append-only numbering preserved — POLICY 1); both are in-place corrections of existing annotation text, not new additions. BC-INDEX registration and title-cell sync deferred to state-manager same-burst per POLICY 7/8 (not applied by this amendment). [Prior: 2026-08-26 (v1.7) — Pass-4 spec remediation (product-owner), responding to adversarial spec review pass 4 (ADR-046 flipped v1.4→v1.5 via architect-routed remediation of the same pass; product-owner applies ADR-046 v1.5's expanded guidance here in a sequential follow-up burst per D-386 sequencing — strict isolation maintained across BC-4.17.001/BC-5.40.001/BC-7.07.001, no ADR/registry/hook-source/STATE.md/ARCH-INDEX content touched). Disposition: **F-P4-001 (MED, real bug)** — PC3's guard-boundary statement corrected from `now > factory_lock.expires_at` (strictly-greater) to `now >= factory_lock.expires_at`, matching this BC's OWN PC4 condition (c) (`now < expires_at` for 'not yet expired'), ADR-046's ground-truth citation of `verify-factory-lock` PC2 (`LockExpired`), and the actual code (`crates/hook-plugins/verify-factory-lock/src/lib.rs::is_expired(now, expires_at) -> bool { now >= expires_at }`) — the prior `now >` wording was internally self-contradictory with this BC's own PC4 and factually wrong against ground truth. **F-P4-002 (MED)** — applies ADR-046 v1.5 §Decision 5's per-element reconciliation table for the guard-read contract this BC specified on behalf of the now-deregistered `verify-state-timestamp-refresh` guard: Precondition 6, Invariant 7, Invariant 8, and EC-010 are RETAINED (not deleted, POLICY 1 append-only) but annotated MIGRATED-to-BC-4.17.001 (Precondition 4/Invariant 7/Invariant 8/EC-015 there), since `stamp-state-timestamp`'s shared `host::read_file` call is the identical read-hazard class these elements existed to bound and is now the actual production call site; the S-19.08 Verification Properties rows T-001..T-007 are annotated RETAINED AS HISTORICAL/DORMANT (the crate they test remains in-tree and its tests still pass, per Decision 5's crate-retention clause — not deleted), with BC-4.17.001 gaining its own new, equivalent VP-TBD-7/8/9 rows for the migrated guarantees. No PC/Invariant/EC content deleted or renumbered (append-only numbering preserved — POLICY 1); the migrated elements are annotated superseded-by-migration in place, per ADR-046's own File-Change Plan row for this BC. BC-INDEX registration and title-cell sync deferred to state-manager same-burst per POLICY 7/8 (not applied by this amendment). [Prior: 2026-08-26 (v1.6) — Pass-2 spec remediation round 2 (product-owner), responding to adversarial spec review pass 2 PRODUCT-OWNER-ROUTED findings F-002/F-003 against ADR-025/ADR-046 (ADR-046 now v1.2). Disposition: **F-002 (HIGH, POLICY 19 adr_version_cite_volatile_pin_prohibition)** — the Traceability § ADR Reference row carried load-bearing `ADR-025 v1.2` and `ADR-046 v1.1` version pins, both POLICY 19 violations and both already stale (ADR-025 is v1.2 only coincidentally current but the pin itself is the violation; ADR-046 is now v1.2); both are stripped to the stable `ADR-025 §Decision 2/3/5/8/10` and `ADR-046 §Decision 1(b)` anchor forms — no version token remains in that row. **F-003 (HIGH)** — the v1.5 last_amended/Changelog 'Flagged for architect: ADR-046's own Decision 1(b) text does not yet enumerate this AlreadyExpired case' note is now RESOLVED: ADR-046 v1.2 §Decision 1(b) already enumerates `AlreadyExpired` as the third `SkipReason` variant, consistent with this BC's own PC4/Invariant 1 AlreadyExpired disposition (added at v1.5) — no architect action remains outstanding on this item; the v1.5 historical narrative below and the v1.5 Changelog row are annotated with this resolution rather than left asserting a stale open flag. No PC/Invariant/EC content otherwise changed; no renumbering (append-only numbering preserved — POLICY 1). BC-INDEX registration and title-cell sync deferred to state-manager same-burst per POLICY 7/8 (not applied by this amendment). [Prior: 2026-08-25 (v1.5) — ADR-046 v1.1 Companion Amendment 1 (i)-(v) (product-owner; pass-2 spec remediation, responding to ADR-046's flip from v1.0 to v1.1 accepted): the v1.4 amendment (below) reflected only ADR-046 v1.0's PC4 actor reassignment. This pass adds the five v1.1-specific obligations ADR-046's Companion Amendments §item 1 states the BC 'MUST also state': **(i)** Invariant 1's 'sole writer' claim is qualified modulo email collision — two sessions sharing one git email are indistinguishable to the hook's holder-identity check, exactly as they are to `verify-factory-lock`'s own PC3 self-held comparison (ADR-046 F-010); this is a pre-existing property of the email-keyed identity model, not a new defect. **(ii)** PC4's renewal comparison predicate is `>=` (not strictly-greater) at second-precision wall-clock resolution — a same-wall-clock-second re-invocation produces a byte-identical `expires_at`, treated as a no-op-equivalent success; 'idempotent' describes ONLY this byte-identical-suppression behavior on the `expires_at` arm (ADR-046 F-007). **(iii)** a malformed/unparseable `expires_at` is NEVER repaired by the renewing hook — `verify-factory-lock` treats a malformed block as unlocked (fail-open, admits any caller), so a repair would silently re-materialize a lock under a session the guard just treated as free (ADR-046 F-008; matches BC-4.17.001 PC2 step 3 and BC-7.07.001's amended Invariant 3). **(iv)** `TTL_SECONDS` is sourced from the new canonical `factory_lock::TTL_SECONDS` const (ADR-046 F-006), not a BC-local literal — the 2700-second value itself (Invariant 2/AC-007) is UNCHANGED, only its source-of-truth citation is added. **(v)** the Canonical Test Vectors table gains a truth-table row set covering `{Resolved+Match, Resolved+Mismatch, Failed}` x `{stamp-state-timestamp, precompact-flush}` so both automatic-renewal call sites' identical behavior is spec-visible here, not only in BC-4.17.001/BC-7.07.001. Also added for consistency with the two hook BCs' F-009 disposition (not itself one of ADR-046's five enumerated items, but required for PC4 to remain internally consistent with its own enforcing hooks): an already-expired self-held lock is NOT resurrected by either automatic-renewal hook — the expiry precheck runs before identity resolution is attempted. (RESOLVED at v1.6 — ADR-046 v1.2 §Decision 1(b) now enumerates this `AlreadyExpired` case; no architect action remains outstanding). No PC/Invariant number renumbered; all additions are in-place amendments to PC4/Invariant 1/Canonical Test Vectors. BC-5.40.001 v1.4→v1.5. [Prior: 2026-08-25 (v1.4) — ADR-046 ratification amendment (product-owner; PC4 actor reassignment): PC4 (\"Mid-burst TTL renewal\") actor reassigned from state-manager (manual) to the `stamp-state-timestamp` PostToolUse hook (automatic, identity-gated). Invariant 1 (\"state-manager is the sole writer\") amended to carve out the mid-burst expires_at keep-alive as the hook's mechanically-enforced exception (holder-identity check: writer git user.email == factory_lock.holder), operationalizing the invariant rather than relaxing it. `factory-lock-write.sh renew` retained as an explicit break-glass/manual fallback. TTL=2700s (Invariant 2/AC-007) UNCHANGED — only renewal authorship moved. Related BCs + Architecture Anchors updated to cite new sibling BC-4.17.001 (`stamp-state-timestamp` plugin contract). H1 title re-enriched per POLICY 7 (BC H1 Title Authority) to reflect hook authorship. [Prior: 2026-07-14 (v1.3) — F-P1-002 resolution (product-owner; post-merge burst; S-19.08 PR #646 squash 1304d280 2026-07-14): VP Anchors pending-placeholder replaced with definitive statement — S-19.08 verification delivered via BC-anchored unit/integration tests T-001..T-007 (no VP-NNN IDs assigned; per-story unit tests follow (unit-test) row convention); VP-096 reused by transitivity. [Prior: 2026-07-13 (v1.2) — S-19.08 Spec-First amendment (human-authorized; D-826/D-835): Precondition 6 added (verify-state-timestamp-refresh read capability: max_bytes=262144 (256 KiB); frontmatter-only via factory_lock_parse::extract_frontmatter (crates/factory-lock-parse/; S-19.02 PR #610; reuse-not-duplicate); cap mirrors BC-4.13.001 Phase-A Precondition 3 + ADR-025 §Decision 12 §12.5 parity; fail-open on OutputTooLarge per ADR-025 Decision 7). Invariant 7 added: frontmatter-only mandate for verify-state-timestamp-refresh (extract_frontmatter exclusive; mirrors BC-4.13.001 Invariant 9). Invariant 8 added: soft-warn threshold adjudication — verify-state-timestamp-refresh reads STATE.md in full → BC-4.13.001 Invariant 10 scope confirmed → state_md_approaching_cap MUST emit at bytes_read > 200000 AND ≤ 262144 (boundary table parity with BC-4.13.001 Invariant 10). EC-010 added (STATE.md exceeds 262144 bytes: OutputTooLarge → guard fail-open). Verification Properties updated: unit-test rows T-001..T-007 added; VP-096 back-cited (extract_frontmatter reuse). Story Anchor updated: S-17.01 + S-19.08. Traceability Stories updated: S-17.01 + S-19.08. Architecture Anchors: crates/factory-lock-parse/ added. [Prior: 2026-06-11 (v1.1) — POL-14 auto-promotion: lifecycle_status draft→active on PR #181 squash-merge c64b46d2 (S-17.01 merged); status draft→active; D-544 codified. [Prior: 2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D3/D6 deliverables). factory_lock STATE.md frontmatter schema, TTL auto-expiry, mid-burst renewal, state-burst CAS push fix.]]]]]]"
 ---
 
-# BC-5.40.001: STATE.md MUST carry a factory_lock frontmatter block (holder, locked_at, expires_at) as the authoritative lock state, state-manager MUST be its sole writer, TTL auto-expiry MUST be enforced at 45 minutes, state-manager MUST renew expires_at at each intermediate burst commit, and state-burst MUST use fetch-then-force-with-lease CAS push
+# BC-5.40.001: STATE.md MUST carry a factory_lock frontmatter block (holder, locked_at, expires_at) as the authoritative lock state, state-manager MUST be its sole writer (modulo email collision), TTL auto-expiry MUST be enforced at 45 minutes (TTL_SECONDS, canonical constant), the stamp-state-timestamp PostToolUse hook MUST renew expires_at (>= comparison) on every qualifying STATE.md write gated on writer-identity == holder AND the lock NOT already expired (never resurrecting an expired self-held lock, never repairing a malformed expires_at), the identical gate applies to precompact-flush's renewal (shared renew_lock_if_holder), and state-burst MUST use fetch-then-force-with-lease CAS push (state-manager's manual factory-lock-write.sh renew retained as break-glass fallback)
 
 ## Description
 
@@ -45,7 +54,16 @@ the locking session), `locked_at` (ISO-8601 acquisition timestamp), and `expires
 expiry timestamp = `locked_at + 45min` initially; refreshed to `now + 45min` on each intermediate
 burst commit). Absent or null block = unlocked. Malformed block (missing required fields or
 unparseable values) = treated as unlocked (fail-open, consistent with BC-4.13.001 PC4). The
-`state-manager` agent is the sole writer of this block (TD-VSDD-053 single-writer discipline).
+`state-manager` agent is the sole writer of this block's structural fields — `holder`,
+`locked_at`, and the block's presence/absence via acquire/unlock (TD-VSDD-053 single-writer
+discipline). **Per ADR-046 (ratified 2026-08-25):** the mid-burst `expires_at` keep-alive
+renewal (PC4) is written automatically by the `stamp-state-timestamp` PostToolUse hook
+(SS-04 Plugin Ecosystem; BC-4.17.001) after every qualifying `Edit`/`Write`/`MultiEdit` to
+`.factory/STATE.md`, gated on the hook's own resolved writer identity
+(`git config user.email`) being byte-equal to the recorded `holder` — never on state-manager's
+own initiative. `state-manager` no longer manually invokes `factory-lock-write.sh renew` as
+part of ordinary content edits; that manual mode is retained as an explicit break-glass
+fallback (e.g., recovering a burst where the hook is unavailable).
 
 This BC also specifies the replacement of the blind `git push origin factory-artifacts` in
 `skills/state-burst/SKILL.md` with a fetch-then-`--force-with-lease` CAS push (ADR-025
@@ -93,6 +111,28 @@ This BC covers ADR-025 Decisions 2, 3, 5, 8, and 10, and deliverables D3 and D6.
 
 ### verify-state-timestamp-refresh read capability
 
+**[MIGRATED to BC-4.17.001 Precondition 4 — ADR-046 §Decision 5 reconciliation, F-P4-002;
+sourcing corrected 2026-08-26 per ADR-046 §Decision 5 / F-P5-001.]**
+`verify-state-timestamp-refresh` is deregistered from `hooks-registry.toml` per ADR-046 Decision
+5; the read-capability contract below describes that guard's own (now-dormant) `host::read_file`
+call. Its live enforcement now lives at BC-4.17.001's Precondition 4. **Sourcing (mirrored per
+ADR-046's Companion Amendment 1 item (vi) correction, version pin stripped per POLICY 19
+anti-volatile-pin, F-P6 sweep):** "Precondition 6
+(`STATE_MD_MAX_BYTES` cap) MUST reference `factory_lock_parse::STATE_MD_MAX_BYTES` — the single
+canonical declaration (`pub const STATE_MD_MAX_BYTES: u32 = 262144;`, relocated to the
+`factory-lock-parse` crate per ADR-046 §Decision 5 / F-P5-001) — not a locally re-declared
+constant, and not the now-deregistered `verify-state-timestamp-refresh` crate (which no longer
+declares it as of this correction)." Since `stamp-state-timestamp`'s shared
+`host::read_file(".factory/STATE.md")` call is the identical read-hazard class this Precondition
+existed to bound. This Precondition is RETAINED HERE, unmodified in substance (only its
+constant-sourcing annotation corrected), as a historical/dormant record — the
+`verify-state-timestamp-refresh` crate and its S-19.08 tests remain in-tree (not yet deleted, per
+ADR-046 Decision 5's crate-retention clause; per the same Decision's File-Change Plan, the
+crate's own local `STATE_MD_MAX_BYTES` declaration is removed and its call sites repointed to
+import `factory_lock_parse::STATE_MD_MAX_BYTES`), so the text below stays a factually true
+description of that crate's own (now-relocated-constant) contract; it is not deleted per POLICY 1
+append-only numbering.
+
 6. **Phase-A (active spec; implemented by S-19.08):** The `verify-state-timestamp-refresh`
    guard reads `.factory/STATE.md` via `host::read_file` with `max_bytes = 262144` (256 KiB).
    The plugin-side compile-time cap MUST be `STATE_MD_MAX_BYTES = 262144`. Before any YAML
@@ -139,33 +179,79 @@ removed.
 
 ### PC3 — TTL auto-expiry: guard treats expired lock as absent
 
-The `verify-factory-lock` guard (BC-4.13.001 PC2) checks `now > factory_lock.expires_at` at
-invocation time. When true, the lock is treated as absent and the operation proceeds. The expired
+The `verify-factory-lock` guard (BC-4.13.001 PC2) checks `now >= factory_lock.expires_at`
+(F-P4-001, corrected 2026-08-26) at invocation time — the exact-expiry instant `now ==
+expires_at` IS treated as expired, matching this BC's own PC4 condition (c) (`now < expires_at`
+for "not yet expired") and the guard's actual implementation
+(`crates/hook-plugins/verify-factory-lock/src/lib.rs::is_expired(now, expires_at) -> bool { now
+>= expires_at }`). The prior `now >` (strictly-greater) wording was internally inconsistent with
+this BC's own PC4 and with the ground-truth code; it is corrected here, not renumbered
+(POLICY 1). When true, the lock is treated as absent and the operation proceeds. The expired
 lock block remains in STATE.md frontmatter until the next `state-manager` write (which either
 refreshes it if the session is still active, or removes it at explicit unlock). This "stale
 expired block" state is safe: the guard's TTL check treats it as unlocked, and the next
 `state-manager` commit cleans it up.
 
 **Failure mode — long burst TTL self-eviction (ADR-025 Decision 5):**
-A burst longer than 45 minutes between intermediate commits self-evicts the lock: `now >
-expires_at` becomes true mid-burst, allowing another developer to acquire. Mitigation:
-mid-burst renewal (PC4). Residual risk: fencing token absent — see Invariant 4.
+A burst longer than 45 minutes between intermediate commits self-evicts the lock: `now >=
+expires_at` becomes true mid-burst (corrected 2026-08-26, F-P6-002 — matching this same PC3's
+own corrected guard-boundary statement above and PC4 condition (c)), allowing another developer
+to acquire. Mitigation: mid-burst renewal (PC4). Residual risk: fencing token absent — see
+Invariant 4.
 
-### PC4 — Mid-burst TTL renewal
+### PC4 — Mid-burst TTL renewal (hook-authored; ADR-046)
 
-At EVERY intermediate `state-manager` commit within a burst (not only at burst-close),
-`state-manager` MUST refresh `factory_lock.expires_at = now + 45 minutes` alongside the
-commit payload. This resets the TTL clock to 45 minutes from each intermediate write rather
-than from the original `locked_at`. The renewal MUST be atomic with the commit (same commit
-that advances any other STATE.md fields). No separate background timer or subprocess is
-required — the burst's own commit cadence is the renewal heartbeat.
+**Actor (amended 2026-08-25, ADR-046):** the `stamp-state-timestamp` PostToolUse hook
+(SS-04 Plugin Ecosystem; BC-4.17.001) — NOT `state-manager` directly — performs this
+renewal, via the SHARED `factory_lock::renew_lock_if_holder` function (ADR-046 Decision
+1(b)) also used by `precompact-flush`'s amended `PreCompact` renewal (BC-7.07.001). At EVERY
+`Edit`/`Write`/`MultiEdit` that lands a write to `.factory/STATE.md` within a burst (not only
+at burst-close), the hook fires after the write and:
+- Refreshes `factory_lock.expires_at = now + TTL_SECONDS` (2700 seconds, sourced from the
+  canonical `factory_lock::TTL_SECONDS` const — ADR-046 F-006; see Invariant 2/Architecture
+  Anchors) **if and only if** ALL of: (a) a `factory_lock` block is present in the post-write
+  frontmatter with a non-empty `holder`; (b) `expires_at` is present and parses successfully;
+  (c) the recorded lock is NOT already expired (`now < expires_at`, evaluated against the
+  hook's own wall clock); and (d) the hook's own resolved writer identity (`git config
+  user.email`, via `host::exec_subprocess` — the identical mechanism BC-4.13.001 already
+  uses), after applying the canonical `trim_git_email` trim (ADR-046 Decision 2/F-004), is
+  byte-equal to `holder`. **Comparison predicate (ADR-046 F-007):** the field's new value is
+  compared `>=` (not strictly-greater) against its pre-invocation value — a same-wall-clock-
+  second re-invocation produces a byte-identical `expires_at`, which is a no-op-equivalent
+  success, not a violation; "idempotent" describes ONLY this byte-identical-suppression
+  behavior on this arm (contrast BC-4.17.001's `timestamp:` arm, which is explicitly NOT
+  idempotent). If any of (a)-(d) fails — including a non-holder writer legitimately admitted
+  through BC-4.13.001 PC2 (`LockExpired`), or an already-expired self-held lock (condition
+  (c)) — `expires_at` is left untouched (no renewal; a foreign, expired, OR
+  already-expired-and-not-yet-reacquired holder's lock is never silently resurrected —
+  condition (c) is evaluated BEFORE identity resolution is attempted, since an expired lock's
+  outcome does not depend on who is asking). **Malformed `expires_at` is never repaired
+  (ADR-046 F-008):** if `expires_at` is present but unparseable, the hook does NOT compute a
+  fresh value to "fix" it — `verify-factory-lock` (BC-4.13.001 PC4) treats a malformed block
+  as unlocked (fail-open, admits any caller), so a repair would silently re-materialize a
+  lock under a session the guard just treated as free; the hook's only action is an advisory
+  warning, no write.
+- If no lock is held (block absent), no renewal occurs — there is nothing to keep alive.
 
-Concretely: the `state-manager` Commit-E sequence template (STATE.md final-advance commit)
-MUST include the `expires_at` refresh. Any intermediate Commit-A/B/C/D that touches STATE.md
-must also refresh `expires_at` if a lock is held.
+This resets the TTL clock to 45 minutes from each qualifying write rather than from the
+original `locked_at`. Because the hook fires immediately after the tool's own write and
+before `state-manager`'s subsequent `git commit` of the same burst step, the renewed value
+is captured in that commit — the renewal is atomic with the commit in effect, with no
+separate background timer or subprocess required. `state-manager` no longer needs to
+remember to author this refresh as part of any Commit-A/B/C/D/E payload; the obligation
+that was previously a documentary "state-manager MUST renew" instruction is now a
+mechanically-guaranteed property of every qualifying STATE.md write.
 
-**Error variant:** `RenewalMissed` (if a burst completes without refreshing `expires_at` while
-a lock is held — detectable by comparing old and new `expires_at` values post-commit)
+**Break-glass fallback:** `factory-lock-write.sh renew` (manual invocation) remains
+available and is unchanged — e.g., for recovering a burst where the hook is unavailable or
+disabled. It performs the same unconditional `expires_at = now + 2700s` update with no
+identity check (as today); this is acceptable for the manual path because invoking it is
+itself a conscious, deliberate act by whoever runs it.
+
+**Error variant:** `RenewalMissed` (if a burst completes without `expires_at` advancing while
+a lock is held by the writer — detectable by comparing old and new `expires_at` values
+post-write; now diagnostic of a hook fail-open/unavailability condition rather than agent
+forgetfulness)
 
 ### PC5 — state-burst fetch-then-CAS push
 
@@ -206,9 +292,28 @@ A developer who has NOT run `/factory-lock` is in the same position as today: th
 
 ## Invariants
 
-1. **`state-manager` is the sole writer**: No other agent, skill, or tool writes the
-   `factory_lock` block. The `/factory-lock` and `/factory-unlock` skills DELEGATE to
-   `state-manager` to write STATE.md (they do not write directly). This preserves TD-VSDD-053.
+1. **`state-manager` is the sole writer** (amended 2026-08-25, ADR-046): No other agent,
+   skill, or tool writes the `factory_lock` block's structural fields (`holder`, `locked_at`,
+   or the block's presence/absence). The `/factory-lock` and `/factory-unlock` skills
+   DELEGATE to `state-manager` to write STATE.md (they do not write directly). This preserves
+   TD-VSDD-053. **Mechanized exception (PC4):** the mid-burst `expires_at` keep-alive renewal
+   is the one field this invariant no longer requires a human-directed `state-manager` act
+   for — it is written by the `stamp-state-timestamp` PostToolUse hook (BC-4.17.001), gated
+   on a holder-identity check (the hook's independently-resolved writer git email must equal
+   the recorded `holder`). This is not a relaxation of the sole-writer invariant; it is the
+   invariant's first *mechanical* enforcement at the renewal call site — previously the
+   invariant was purely documentary there (nothing checked that only the holder renewed;
+   see ADR-046 Rationale). A non-holder's write to STATE.md (e.g., a caller legitimately
+   admitted through BC-4.13.001 PC2 `LockExpired`), or a write by the same holder after their
+   lock has already expired (never resurrected — see PC4), never renews under this gate.
+   **Scope note (added 2026-08-25, v1.5 — ADR-046 F-010):** this invariant's "sole writer"
+   guarantee holds **modulo email collision** — the hook's identity check is an email-equality
+   comparison, not a session-identity comparison. Two sessions authenticated under the same
+   git email (e.g., two terminal tabs on the same laptop, or a CI runner and a human sharing a
+   service account) are indistinguishable to this check, to `verify-factory-lock`'s own PC3
+   self-held comparison, and to the amended `precompact-flush`'s identical check (BC-7.07.001)
+   — this is a pre-existing property of the email-keyed identity model, not a defect this
+   amendment introduces or is expected to close.
 
 2. **Default TTL is 45 minutes (2700 seconds)**: The TTL value is not configurable by users.
    45 minutes is the production-grade default (ADR-025 Decision 5 rationale: midpoint of
@@ -237,7 +342,9 @@ A developer who has NOT run `/factory-lock` is in the same position as today: th
    well-formed blocks; however, if STATE.md is corrupted (e.g., manual edit), the system
    fails open rather than wedging.
 
-7. **`verify-state-timestamp-refresh` uses `extract_frontmatter` exclusively**: The guard MUST
+7. **[MIGRATED to BC-4.17.001 Invariant 7 — ADR-046 §Decision 5 reconciliation, F-P4-002;
+   retained here as historical/dormant, POLICY 1 append-only.] `verify-state-timestamp-refresh`
+   uses `extract_frontmatter` exclusively**: The guard MUST
    call `factory_lock_parse::extract_frontmatter(bytes)` on the byte slice returned by
    `host::read_file` before scanning for `timestamp:` or `factory_lock.expires_at`. The guard
    MUST operate only on the returned frontmatter slice and MUST NOT process the file body after
@@ -251,7 +358,9 @@ A developer who has NOT run `/factory-lock` is in the same position as today: th
    The `factory-lock-parse` crate is already a dependency of `verify-state-timestamp-refresh`
    (S-19.02 established the pattern); no new Cargo.toml dependencies are required.
 
-8. **Soft-warn threshold for `verify-state-timestamp-refresh` (BC-4.13.001 Invariant 10
+8. **[MIGRATED to BC-4.17.001 Invariant 8 — ADR-046 §Decision 5 reconciliation, F-P4-002;
+   retained here as historical/dormant, POLICY 1 append-only.] Soft-warn threshold for
+   `verify-state-timestamp-refresh` (BC-4.13.001 Invariant 10
    adjudication)**: `soft_warn_threshold = 200000` bytes. **Adjudication:** BC-4.13.001
    Invariant 10 applies to "a hook that already reads STATE.md in full (i.e., calls
    `host::read_file` on `.factory/STATE.md`)." The `verify-state-timestamp-refresh` guard
@@ -286,7 +395,7 @@ A developer who has NOT run `/factory-lock` is in the same position as today: th
 | EC-007 | Factory is unlocked (`factory_lock` absent); `state-burst` CAS push proceeds | Fetch + CAS push proceeds normally; if remote has advanced (another developer pushed), `CASPushRejected` error; developer fetches and retries |
 | EC-008 | `git -C .factory rev-parse origin/factory-artifacts` returns a SHA that does not exist locally after fetch | This indicates a fetch/parse race; `state-burst` MUST re-fetch before retrying; emit `CASPushRejected` with "stale SHA after fetch" detail |
 | EC-009 | Long burst: 3 intermediate commits, each refreshing `expires_at`; total burst duration = 70 min | Lock remains valid throughout: each commit resets `expires_at = now + 45min`; at burst-end, `expires_at` is 45 minutes in the future from the last commit |
-| EC-010 | `verify-state-timestamp-refresh` guard reads STATE.md exceeding `max_bytes = 262144` (256 KiB) | `host::read_file` returns `OutputTooLarge`; guard falls back to `HookResult::Continue` (fail-open per ADR-025 Decision 7); `StateReadError` warn emitted. The 262144-byte cap exceeds D-442(e) structural limits (≤200 KiB under 500-line compaction discipline); exceedance indicates either compaction overdue or anomalous STATE.md inflation. Timestamp-freshness gate is silently inert for this invocation. |
+| EC-010 | **[MIGRATED to BC-4.17.001 EC-015 — ADR-046 §Decision 5 reconciliation, F-P4-002; retained here as historical/dormant, POLICY 1 append-only.]** `verify-state-timestamp-refresh` guard reads STATE.md exceeding `max_bytes = 262144` (256 KiB) | `host::read_file` returns `OutputTooLarge`; guard falls back to `HookResult::Continue` (fail-open per ADR-025 Decision 7); `StateReadError` warn emitted. The 262144-byte cap exceeds D-442(e) structural limits (≤200 KiB under 500-line compaction discipline); exceedance indicates either compaction overdue or anomalous STATE.md inflation. Timestamp-freshness gate is silently inert for this invocation. |
 
 ## Canonical Test Vectors
 
@@ -298,6 +407,25 @@ A developer who has NOT run `/factory-lock` is in the same position as today: th
 | CAS push: concurrent write | N/A | `state-burst` push; remote advanced | N/A | `CASPushRejected`; error emitted; no clobber |
 | Expired lock cleanup | `{holder: "dev@x.com", ..., expires_at: T-1s}` | Guard check at any mutating tool | Guard: `HookResult::Continue` (expired); block remains in STATE.md until next state-manager write | Safe pass-through |
 
+**Renewal-gate truth table (added 2026-08-25, v1.5 — ADR-046 F-006 (v)):** both automatic
+renewal call sites (`stamp-state-timestamp`, BC-4.17.001; `precompact-flush`, BC-7.07.001)
+call the SAME shared `factory_lock::renew_lock_if_holder` function and therefore MUST exhibit
+identical behavior for each outcome below:
+
+| Call site | Identity outcome | `expires_at` result | Diagnostic |
+|-----------|-------------------|----------------------|------------|
+| `stamp-state-timestamp` | `Resolved+Match` (post-`trim_git_email` byte-equal to `holder`) | Renewed to `now + TTL_SECONDS` | none |
+| `stamp-state-timestamp` | `Resolved+Mismatch` (`SkipReason::NotHolder`) | Unchanged | none (legitimate skip) |
+| `stamp-state-timestamp` | `Failed` (`SkipReason::IdentityResolutionFailed` — subprocess error/timeout/empty stdout) | Unchanged | `factory.lock.renewal_indeterminate` event + `log_warn` |
+| `precompact-flush` | `Resolved+Match` | Renewed to `now + TTL_SECONDS` | none |
+| `precompact-flush` | `Resolved+Mismatch` (`SkipReason::NotHolder`) | Unchanged | none (legitimate skip) |
+| `precompact-flush` | `Failed` (`SkipReason::IdentityResolutionFailed`) | Unchanged | `factory.lock.renewal_indeterminate` event + `log_warn` |
+
+Both call sites additionally share the `SkipReason::AlreadyExpired` precheck (an already-expired
+self-held lock is never resurrected by either hook — evaluated BEFORE identity resolution is
+attempted) and the malformed-`expires_at` non-repair rule (advisory warn only, no write, no
+identity resolution attempted).
+
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
@@ -308,11 +436,11 @@ A developer who has NOT run `/factory-lock` is in the same position as today: th
 | (unit-test) | `state-burst` CAS push rejects concurrent write | Rust unit test: mock remote advancing after fetch; assert non-zero exit + error message |
 | (bats) | Bats integration: lock blocked when held by other developer | D9 T-2 (BC-4.13.001 canonical test vectors) |
 | (bats) | Bats integration: acquire CAS rejection on concurrent acquire | D9 T-10 (BC-6.23.001 canonical test vectors) |
-| (unit-test) | `STATE_MD_MAX_BYTES` constant equals 262144 in `verify-state-timestamp-refresh` | Rust unit test: `assert_eq!(STATE_MD_MAX_BYTES, 262144)` (S-19.08 T-001; AC-001) |
-| (unit-test) | Guard reads STATE.md successfully when 64 KiB < file size < 256 KiB; detects stale timestamp and returns block intent | Rust unit test: 70 KiB fixture + stale `timestamp:` → `TimestampStale`; advanced timestamp → `Continue` (S-19.08 T-002/T-003; AC-002) |
-| (unit-test) | `extract_frontmatter` wired before parse; body content excluded from parsed slice; no-delimiter fallback returns full content | Rust unit test: fixture with body after `---`; assert guard processes frontmatter only; delimiter-absent fixture → full content without error (S-19.08 T-004/T-005; AC-003) |
-| (integration) | Zero `output_too_large` events emitted for `verify-state-timestamp-refresh` on 70 KiB STATE.md | Integration test: 70 KiB fixture; captured event stream asserts zero `internal.capability_denied reason=output_too_large` (S-19.08 T-006; AC-004) |
-| (unit-test) | `state_md_approaching_cap` warn at bytes_read > 200000 ≤ 262144; no warn at ≤ 200000 (strict threshold); warn+read-success at cap-exact 262144; `StateReadError`+zero-warn at 262145 | Rust unit tests A/B/C/D/E (S-19.08 T-007; AC-005) |
+| (unit-test) | **[RETAINED AS HISTORICAL/DORMANT — ADR-046 §Decision 5, F-P4-002: the `verify-state-timestamp-refresh` crate is deregistered from `hooks-registry.toml` but retained in-tree per Decision 5's crate-retention clause, so this row remains a factually true statement about existing, passing tests against code that no longer executes in production; not deleted per POLICY 1. BC-4.17.001 carries its own new, equivalent VP-TBD-7 for the migrated guarantee.]** `STATE_MD_MAX_BYTES` constant equals 262144 in `verify-state-timestamp-refresh` | Rust unit test: `assert_eq!(STATE_MD_MAX_BYTES, 262144)` (S-19.08 T-001; AC-001) |
+| (unit-test) | **[HISTORICAL/DORMANT — see T-001 annotation above.]** Guard reads STATE.md successfully when 64 KiB < file size < 256 KiB; detects stale timestamp and returns block intent | Rust unit test: 70 KiB fixture + stale `timestamp:` → `TimestampStale`; advanced timestamp → `Continue` (S-19.08 T-002/T-003; AC-002) |
+| (unit-test) | **[HISTORICAL/DORMANT — see T-001 annotation above. BC-4.17.001 carries its own new, equivalent VP-TBD-8 for the migrated guarantee.]** `extract_frontmatter` wired before parse; body content excluded from parsed slice; no-delimiter fallback returns full content | Rust unit test: fixture with body after `---`; assert guard processes frontmatter only; delimiter-absent fixture → full content without error (S-19.08 T-004/T-005; AC-003) |
+| (integration) | **[HISTORICAL/DORMANT — see T-001 annotation above.]** Zero `output_too_large` events emitted for `verify-state-timestamp-refresh` on 70 KiB STATE.md | Integration test: 70 KiB fixture; captured event stream asserts zero `internal.capability_denied reason=output_too_large` (S-19.08 T-006; AC-004) |
+| (unit-test) | **[HISTORICAL/DORMANT — see T-001 annotation above. BC-4.17.001 carries its own new, equivalent VP-TBD-9 for the migrated guarantee.]** `state_md_approaching_cap` warn at bytes_read > 200000 ≤ 262144; no warn at ≤ 200000 (strict threshold); warn+read-success at cap-exact 262144; `StateReadError`+zero-warn at 262145 | Rust unit tests A/B/C/D/E (S-19.08 T-007; AC-005) |
 | VP-096 | `extract_frontmatter` purity — output byte-equals file prefix up to (excluding) the second `---` delimiter line (bytes 0..delimiter_start_offset); deterministic for any input | proptest (S-19.02; `crates/factory-lock-parse/tests/proptest_extract_frontmatter.rs`); applies to `verify-state-timestamp-refresh` Invariant 7 use by transitivity — reuse of same function, same correctness guarantee |
 
 ## Traceability
@@ -323,22 +451,26 @@ A developer who has NOT run `/factory-lock` is in the same position as today: th
 | Capability Anchor Justification | CAP-031 ("Enforce single-writer cross-session exclusivity on factory-artifacts state") per capabilities.md §CAP-031 — this BC defines the authoritative lock state data structure and the state-manager write discipline that underpins the entire CAP-031 mechanism. The `factory_lock` frontmatter schema is what the guard (BC-4.13.001) reads and what the skills (BC-6.23.001) manage; without a correct schema and renewal discipline, the guard cannot enforce exclusivity. |
 | L2 Domain Invariants | none (operational infrastructure invariant, not L2 domain spec) |
 | Architecture Module | `.factory/STATE.md` (frontmatter schema); `plugins/vsdd-factory/skills/state-burst/SKILL.md` (CAS push replacement D6); `agents/state-manager.md` (sole writer discipline); `plugins/vsdd-factory/hooks/verify-git-push.sh` (allows `--force-with-lease` — no change required) |
-| Stories | S-17.01 (initial implementation; PR #181 merged 2026-06-11; D-544; v1.0-brownfield-backfill); S-19.08 (`verify-state-timestamp-refresh` read-cap amendment; implements Precondition 6, Invariants 7 and 8; E-19 Wave-2; D-826/D-835) |
-| ADR Reference | ADR-025 v1.2 (Decisions 2, 3, 5, 8, 10 and deliverables D3, D6) |
+| Stories | S-17.01 (initial implementation; PR #181 merged 2026-06-11; D-544; v1.0-brownfield-backfill); S-19.08 (`verify-state-timestamp-refresh` read-cap amendment; implements Precondition 6, Invariants 7 and 8; E-19 Wave-2; D-826/D-835); [pending] (ADR-046 `stamp-state-timestamp` PC4 hook-authorship implementation — story not yet allocated as of this amendment) |
+| ADR Reference | ADR-025 §Decision 2/3/5/8/10 and deliverables D3, D6; ADR-046 §Decision 1(b) (PC4 actor reassignment — mid-burst `expires_at` renewal moves from state-manager to `stamp-state-timestamp` PostToolUse hook, identity-and-expiry-gated via the shared `renew_lock_if_holder`; also the renewal call site for the amended `precompact-flush`, BC-7.07.001; ratified 2026-08-25) |
 
 ## Related BCs
 
 - BC-4.13.001 — depends on (the guard reads the schema defined here; PC4 malformed-block semantics mirror this BC's Invariant 6)
 - BC-6.23.001 — composes with (the skills write the schema defined here; acquire/unlock operations produce the pre/postconditions defined in this BC)
 - BC-5.39.009 — sibling (STATE.md mutation discipline; state-manager Commit-E cadence; the renewal heartbeat for `expires_at` follows the same state-manager burst commit discipline)
+- BC-4.17.001 — depends on (ADR-046; the `stamp-state-timestamp` PostToolUse hook mechanically performs this BC's PC4 mid-burst `expires_at` renewal and the `timestamp:` re-stamp, on state-manager's behalf, identity-and-expiry-gated to the recorded `holder`)
+- BC-7.07.001 — depends on (ADR-046 Decision 3, added 2026-08-25, v1.5; the amended `precompact-flush` PreCompact renewal is the SECOND automatic call site of the same `renew_lock_if_holder` function that performs this BC's PC4 renewal — both hooks MUST exhibit identical behavior per the Canonical Test Vectors truth table)
 
 ## Architecture Anchors
 
 - `plugins/vsdd-factory/skills/state-burst/SKILL.md` — `git push origin factory-artifacts` (blind push; must be replaced with fetch-then-CAS; D6 target)
 - `plugins/vsdd-factory/hooks/verify-git-push.sh` — allows `--force-with-lease` (no changes required; confirmed by ADR-025 §Decision 8)
+- `crates/hook-plugins/stamp-state-timestamp/` — PostToolUse hook that performs PC4's mid-burst `expires_at` renewal (identity-and-expiry-gated) and the unconditional `timestamp:` re-stamp (ADR-046; BC-4.17.001)
+- `crates/factory-lock/src/lib.rs` — canonical `TTL_SECONDS: u32 = 2700` const (added 2026-08-25, v1.5 — ADR-046 F-006; sourced by PC4's renewal computation) and the shared `renew_lock_if_holder`/`IdentityResolution`/`SkipReason` types both automatic-renewal hooks call (BC-4.17.001, BC-7.07.001)
 - `.factory/STATE.md` — frontmatter region; `factory_lock:` block (new schema field)
 - `crates/factory-lock-parse/src/lib.rs` — `extract_frontmatter` pure-core function (S-19.02 PR #610; reuse by `verify-state-timestamp-refresh` per Invariant 7; no modifications permitted by this story)
-- `crates/hook-plugins/verify-state-timestamp-refresh/src/lib.rs` — `STATE_MD_MAX_BYTES` constant (raise to 262144); `extract_frontmatter` call site; soft-warn emission (S-19.08 implementation target)
+- `crates/hook-plugins/verify-state-timestamp-refresh/src/lib.rs` — **[MIGRATED/DEREGISTERED — ADR-046 §Decision 5, F-P4-002; constant home corrected 2026-08-26 per ADR-046 §Decision 5 / F-P5-001, O-P5-001; version pins stripped per POLICY 19 anti-volatile-pin, F-P6 sweep.]** `extract_frontmatter` call site; soft-warn emission (S-19.08 historical implementation; guard now deregistered from `hooks-registry.toml` per ADR-046 Decision 5, crate retained-in-tree-but-dormant). This crate no longer declares its own `STATE_MD_MAX_BYTES` constant — per ADR-046's File-Change Plan, the crate's local declaration is removed and its call sites (the `host::read_file` cap argument and the soft-warn comparison) are repointed to import the single canonical declaration, `factory_lock_parse::STATE_MD_MAX_BYTES: u32 = 262144`, from `crates/factory-lock-parse/src/lib.rs` — the same crate this line already cites for `extract_frontmatter`. `stamp-state-timestamp` (BC-4.17.001 Precondition 4) is the live production consumer of that same relocated constant.
 - `.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md` — authoritative design (§Decision 12 §12.5 cap parity; §Decision 7 fail-open)
 
 ## Story Anchor
@@ -348,7 +480,20 @@ Dual-story anchor: S-17.01 (initial implementation; `factory_lock` schema + stat
 ## VP Anchors
 
 - VP-096 — `extract_frontmatter` Purity — Output Byte-Equals File Prefix Up To (Excluding) the Second `---` Delimiter Line (bytes 0..delimiter_start_offset; opening `---\n` included); Deterministic for Any Input (proptest; S-19.02; `crates/factory-lock-parse/tests/proptest_extract_frontmatter.rs`); back-cited per Invariant 7 reuse obligation — `verify-state-timestamp-refresh` calls the same pure function; VP-096 covers its correctness by transitivity.
-- (S-19.08 unit/integration tests T-001..T-007) — S-19.08 verification is delivered via BC-anchored unit and integration tests following the `(unit-test)` / `(integration)` convention used throughout this BC. No VP-NNN IDs are assigned to per-story unit tests (established pattern; VP-096 is the load-bearing catalogued VP for the shared `extract_frontmatter` function, already active from S-19.02 and reused by Invariant 7 transitivity). Shipped test function names verified from commit 1304d280 (`origin/develop`, PR #646, 2026-07-14):
+- (S-19.08 unit/integration tests T-001..T-007) — **[RETAINED AS HISTORICAL/DORMANT — ADR-046
+  §Decision 5 reconciliation, F-P4-002. `verify-state-timestamp-refresh` is deregistered
+  from `hooks-registry.toml`, so the code path these tests verify no longer executes in
+  production; the crate and its tests remain in-tree (not deleted, per Decision 5's
+  crate-retention clause) and still pass, so this bullet stays a factually true record — not
+  deleted, per POLICY 1 append-only numbering. BC-4.17.001 gains its own new, equivalent
+  VP-TBD-7/8/9 rows for the migrated guarantees (`STATE_MD_MAX_BYTES` cap, `extract_frontmatter`
+  wiring, `state_md_approaching_cap` soft-warn) against `stamp-state-timestamp` itself.]**
+  S-19.08 verification is delivered via BC-anchored unit and integration tests following the
+  `(unit-test)` / `(integration)` convention used throughout this BC. No VP-NNN IDs are assigned
+  to per-story unit tests (established pattern; VP-096 is the load-bearing catalogued VP for the
+  shared `extract_frontmatter` function, already active from S-19.02 and reused by Invariant 7
+  transitivity). Shipped test function names verified from commit 1304d280 (`origin/develop`,
+  PR #646, 2026-07-14):
 
   ```
   # crates/hook-plugins/verify-state-timestamp-refresh/src/lib.rs
@@ -372,6 +517,12 @@ Dual-story anchor: S-17.01 (initial implementation; `factory_lock` schema + stat
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.9 | 2026-08-26 | Pass-6 sibling-sweep remediation (product-owner), responding to adversarial spec review pass 6 (1 MED + 2 LOW total across the ADR-046 BC cluster, all sibling-sweep-straggler class). **F-P6-002 (MED)** — PC3's "Failure mode — long burst TTL self-eviction" sub-paragraph corrected from `now >` (strictly-greater) to `now >=`, matching PC3's own already-corrected normative statement (F-P4-001, v1.7) and PC4 condition (c) — this sub-paragraph was a straggler the v1.7 fix missed. **Comprehensive sibling-sweep** — full grep sweep of this BC found and fixed 5 additional stray `ADR-046 vN.N` version-pin stragglers (the "verify-state-timestamp-refresh read capability" Precondition annotation + the Architecture Anchors bullet for that crate), stripped to the stable `ADR-046 §Decision N` anchor form per POLICY 19 anti-volatile-pin; all other swept categories (expiry boundary, STATE_MD_MAX_BYTES sourcing, malformed-arm disposition, 5-case numbering, shared-fn homes, TTL cast, event fields, per-arm fail-open) clean. No PC/Invariant/EC renumbered (POLICY 1 append-only). BC-INDEX registration and title-cell sync deferred to state-manager same-burst per POLICY 7/8. |
+| 1.8 | 2026-08-26 | Pass-5 architecture-routed remediation mirror (product-owner), responding to ADR-046 v1.6's F-P5-001 (HIGH) and O-P5-001 (LOW). **F-P5-001 (HIGH)** — the migrated-Precondition-6 annotation's `STATE_MD_MAX_BYTES` sourcing corrected from unnamed "reused (not re-declared)" phrasing to ADR-046 §Decision 5 v1.6's exact sourcing text, mirrored verbatim: references `factory_lock_parse::STATE_MD_MAX_BYTES` — the single canonical declaration (`pub const STATE_MD_MAX_BYTES: u32 = 262144;`, relocated to `factory-lock-parse`) — not a locally re-declared constant, and not the now-deregistered `verify-state-timestamp-refresh` crate. **O-P5-001 (LOW)** — Architecture Anchors bullet for `verify-state-timestamp-refresh/src/lib.rs` annotated MIGRATED/DEREGISTERED (was calling the crate an "S-19.08 implementation target"), constant home reference corrected to `factory-lock-parse`. No PC/Invariant/EC deleted or renumbered (POLICY 1 append-only); both in-place corrections. BC-INDEX registration deferred to state-manager same-burst per POLICY 7/8. |
+| 1.7 | 2026-08-26 | Pass-4 spec remediation (product-owner), responding to adversarial spec review pass 4 findings against ADR-046 (now v1.5). **F-P4-001 (MED, real bug)** — PC3's guard-boundary corrected from `now >` (strictly-greater) to `now >=`, matching this BC's own PC4 condition (c), ADR-046, and ground-truth code (`verify-factory-lock::is_expired`). **F-P4-002 (MED)** — applies ADR-046 v1.5 §Decision 5's per-element reconciliation table: Precondition 6/Invariant 7/Invariant 8/EC-010 RETAINED (not deleted) but annotated MIGRATED-to-BC-4.17.001; S-19.08 VP rows T-001..T-007 annotated RETAINED AS HISTORICAL/DORMANT. No PC/Invariant/EC deleted or renumbered (POLICY 1 append-only). BC-INDEX registration and title-cell sync deferred to state-manager same-burst per POLICY 7/8. |
+| 1.6 | 2026-08-26 | Pass-2 spec remediation round 2 (product-owner), responding to adversarial spec review pass 2 PRODUCT-OWNER-ROUTED findings against ADR-025/ADR-046 (ADR-046 now v1.2). **F-002 (HIGH, POLICY 19)** — stripped the load-bearing `ADR-025 v1.2` and `ADR-046 v1.1` version pins from the Traceability § ADR Reference row to the stable `ADR-025 §Decision 2/3/5/8/10` and `ADR-046 §Decision 1(b)` anchor forms. **F-003 (HIGH)** — resolved the v1.5 last_amended/Changelog "flagged for architect: AlreadyExpired not yet enumerated" note: ADR-046 v1.2 §Decision 1(b) now enumerates `AlreadyExpired`; historical narrative annotated accordingly. No PC/Invariant/EC content otherwise changed; no renumbering. BC-INDEX registration and title-cell sync deferred to state-manager same-burst per POLICY 7/8. |
+| 1.5 | 2026-08-25 | ADR-046 v1.1 Companion Amendment 1 (i)-(v) (product-owner; pass-2 spec remediation): Invariant 1 email-collision scope note added (F-010, ADR-046 v1.1 item (i)); PC4 comparison predicate corrected to `>=` and "idempotent" scoped to ONLY the `expires_at` arm's byte-identical-suppression behavior (F-007, item (ii)); PC4 malformed-`expires_at` non-repair statement added — the hook never "fixes" an unparseable value, matching `verify-factory-lock`'s own fail-open-as-unlocked read (F-008, item (iii)); PC4/Architecture Anchors TTL_SECONDS canonical-const sourcing added — `factory_lock::TTL_SECONDS: u32 = 2700` (F-006, item (iv); 2700-second VALUE itself unchanged); Canonical Test Vectors gains a 6-row truth table covering `{Resolved+Match, Resolved+Mismatch, Failed}` x `{stamp-state-timestamp, precompact-flush}` so both automatic-renewal call sites' identical behavior is spec-visible here (item (v)). Also added for cross-BC consistency: PC4/Invariant 1 `AlreadyExpired` non-resurrection disposition (an already-expired self-held lock is never resurrected by either hook, evaluated before identity resolution) — flagged for architect since ADR-046 Decision 1(b) text does not yet enumerate this case (RESOLVED at v1.6 — ADR-046 v1.2 §Decision 1(b) now enumerates `AlreadyExpired`, see v1.6 row above). Related BCs: BC-7.07.001 added as second `renew_lock_if_holder` call site. Traceability ADR Reference row updated to ADR-046 v1.1 and to name BC-7.07.001. No PC/Invariant renumbered. |
+| 1.4 | 2026-08-25 | ADR-046 ratification amendment (product-owner): PC4 ("Mid-burst TTL renewal") actor reassigned from `state-manager` (manual `factory-lock-write.sh renew`) to the new `stamp-state-timestamp` PostToolUse hook (SS-04; BC-4.17.001) — automatic, fires on every qualifying `Edit`/`Write`/`MultiEdit` to `.factory/STATE.md`, gated on writer-identity (`git config user.email`) == recorded `holder`; non-holder writes (e.g., admitted via BC-4.13.001 PC2 `LockExpired`) never renew. Invariant 1 ("state-manager is the sole writer") amended: carves out the mid-burst `expires_at` renewal as the hook's mechanized exception, operationalizing rather than relaxing the invariant (previously documentary/unenforced at the renewal call site). `factory-lock-write.sh renew` explicitly retained as a break-glass/manual fallback (unconditional, no identity check — acceptable because invocation is a conscious manual act). TTL=2700s constant (Invariant 2/AC-007) UNCHANGED — only renewal authorship moved, per ADR-046 Companion Amendment 1. H1 title re-enriched per POLICY 7. Description, Related BCs, Architecture Anchors, Traceability (Stories, ADR Reference) updated to cite sibling BC-4.17.001. `inputs:` frontmatter appended ADR-046. modified[] appended 2026-08-25 (v1.4). BC-INDEX/4-index registration deferred to state-manager same-burst per POLICY 7/8 (not applied by this amendment). |
 | 1.3 | 2026-07-14 | F-P1-002 resolution (product-owner; post-merge burst; S-19.08 merged PR #646 squash 1304d280 2026-07-14): VP Anchors pending-placeholder "to be assigned by state-manager after S-19.08 VP authoring pass" replaced with definitive statement — S-19.08 verification delivered via BC-anchored unit/integration tests T-001..T-007 following the `(unit-test)` / `(integration)` convention in the VP table; no new VP-NNN IDs assigned (per-story unit tests follow established `(unit-test)` row convention); VP-096 (`extract_frontmatter` proptest, active from S-19.02) reused by transitivity for Invariant 7. Shipped test function names cited from commit 1304d280 (`origin/develop`). Canonical Principle Rule 6 compliance: placeholder was answerable in scope. modified[] appended 2026-07-14 (v1.3). |
 | 1.2 | 2026-07-13 | S-19.08 Spec-First amendment (human-authorized; D-826/D-835): Precondition 6 added (`verify-state-timestamp-refresh` read capability: `max_bytes = 262144` (256 KiB); frontmatter-only via `factory_lock_parse::extract_frontmatter` (`crates/factory-lock-parse/`; S-19.02 PR #610; reuse-not-duplicate); cap rationale mirrors BC-4.13.001 Phase-A Precondition 3 + ADR-025 §Decision 12 §12.5 parity; fail-open on `OutputTooLarge` per ADR-025 Decision 7). Invariant 7 added: frontmatter-only mandate for `verify-state-timestamp-refresh` (`extract_frontmatter` exclusive; mirrors BC-4.13.001 Invariant 9). Invariant 8 added: soft-warn threshold adjudication — `verify-state-timestamp-refresh` reads STATE.md in full → Invariant 10 scope confirmed → `state_md_approaching_cap` MUST emit at `bytes_read > 200000 AND ≤ 262144` (boundary table parity with BC-4.13.001 Invariant 10). EC-010 added (STATE.md exceeds 262144 bytes: `OutputTooLarge` → guard fail-open). Verification Properties updated: unit-test rows T-001..T-007 added; VP-096 back-cited (extract_frontmatter reuse). Story Anchor updated: S-17.01 + S-19.08. Traceability Stories updated: S-17.01 + S-19.08. modified[] appended 2026-07-13 (v1.2). |
 | 1.1 | 2026-06-11 | POL-14 auto-promotion (state-manager; D-544; PR #181 squash-merged c64b46d2 2026-06-11; S-17.01 MERGED; status draft→active; lifecycle_status draft→active; modified[] appended 2026-06-11 (v1.1)). No BC content changes. BC-INDEX v2.66→v2.67 (body row draft→active). |
