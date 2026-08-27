@@ -513,3 +513,41 @@ most-recently-codified discipline — meta-level evidence that codified discipli
 follow-up verification pass, not just a one-time application, before being trusted as fully closed.
 `[codified; process-gap; arm-parity; sibling-sweep; verification-properties; locus-class-extension;
 what-vs-how; D-1097; adr-046-gate; f-p40-001; seventh-discipline; meta-verification]`
+
+---
+
+**[convergence-progress][codified] Pass-41 re-applied every now-codified convergence-technique
+discipline proactively — including BOTH the sixth (arm-parity sweep, D-1096) and seventh
+(locus-class extension, D-1097) disciplines together, against the exact frozen set those two fixes
+themselves produced — and found the entire frozen set clean on every dimension; streak ADVANCES
+0/3 → 1/3, the FOURTH clean pass this gate has produced this session**
+
+At D-1098 (ADR-046 pass-41), fresh-context adversary review against the newly-frozen set (ADR-046
+v1.16 + BC-4.17.001 v1.19 + BC-5.40.001 v1.16 + BC-7.07.001 v1.33) — the set produced by the pass-40
+fix burst — returned **VERDICT: CLEAN — zero findings at any severity**. This is the first pass to
+directly re-verify BOTH the arm-parity what-vs-how reconciliation dimension (D-1096/pass-39's
+dimension) and its locus-class extension (D-1097/pass-40's dimension) in the same review, including
+an independent re-derivation of all eleven `extract_frontmatter`-guarantee loci across BC-4.17.001
+(Precondition 4, Invariant 7, VP-TBD-8, PC1's rewrite-mechanism paragraph, PC3a, PC4, Invariant 5,
+Edge Cases, Canonical Test Vectors, Architecture Anchors, Description) — all confirmed consistently
+arm-split, with VP-TBD-8 specifically re-opened and confirmed correct. Every other previously-codified
+dimension (ADR §Decision anchor correctness, self-attested cardinality claims, version-stable
+directive, 4-leg parity, grep-complete inputs audit) was also re-verified holding, with no
+regression.
+
+**Disposition:** Recorded as `[convergence-progress]`, the same tag used for D-1095's pass-38
+confirmation, but distinguished from it by scope: D-1095 confirmed the pass-35/pass-37 dimensions
+(citation-accuracy and bookkeeping-cardinality) together; this entry confirms the pass-39/pass-40
+dimensions (arm-parity and its locus-class extension) together, the two MOST RECENTLY codified
+disciplines, on the same pass, against the frozen set those two fixes themselves produced. This is
+the first direct EVIDENCE that the D-1096/D-1097 pair — arguably the most consequential disciplines
+this gate has produced, since D-1096 closed a genuine data-destructive hazard — holds under
+independent fresh-context re-derivation. Evidence, not yet proof, since a single clean pass is not
+itself a confirmation the way three consecutive passes would be. Per BC-5.39.001, this is 1 of 3
+required CONSECUTIVE clean passes — the streak requires 2 further consecutive clean passes (42, 43),
+and any finding on either would reset (or, if already zero, hold) the streak. The correct
+disposition for passes 42 and 43 is to CONTINUE applying all seven convergence-technique disciplines
+proactively without relaxing rigor on the theory that "the two most recent dimensions are now proven
+safe" — one clean pass covering two previously-found dimensions is progress, not closure.
+`[convergence-progress; codified; sixth-and-seventh-dimensions-reconfirmed; fourth-clean-pass;
+D-1098; adr-046-gate; pending-pass-42-43-confirmation; not-yet-converged]`
