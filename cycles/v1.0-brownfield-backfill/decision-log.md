@@ -6988,3 +6988,44 @@ re-anchor for BC-7.07.001). Only after this cascade completes can E-17 Wave-5 TD
 ### Canonical 6-column row (STATE.md Decisions Log)
 
 | D-1124 | D-1124-ADR046-3CLEAN-CONVERGED-PERIMETER-AUDIT-WAVE-DECOMPOSITION-DECISION | ADR-046 spec-convergence gate CONVERGED-VALIDATED: fresh-context consistency-validator independently confirmed frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39) is internally consistent; 3-CLEAN (63/64/65) is VALID; all index cells PASS. Perimeter audit VERDICT: PERIMETER-GAPS — all 3 BLOCKS-CLOSURE gaps in S-17.05 (NOT specs): Gap A = no factory-lock shared-fn tasks (renew_lock_if_holder/IdentityResolution/SkipReason/classify_identity_resolution/trim_git_email); Gap B = no precompact-flush Step-4 identity-gate amendment; Gap C = BC-7.07.001 absent from S-17.05 frontmatter. Human decision (2026-08-27): WAVE DECOMPOSITION — S-17.05 stamper + S-17.06 factory-lock-fns + S-17.07 precompact-flush, all same wave/release (ADR-046 Rollout Note atomicity via wave gate); BC-7.07.001 re-anchored to S-17.07. S-17.05 TDD NOT READY — blocked on decomposition cascade. Full: decision-log.md D-1124 + perimeter-audit-adr-046-3clean.md. | D-1124 | 2026-08-27 |
+
+## D-1125
+
+**D-1125-ADR046-WAVE5-DECOMPOSITION-CASCADE-COMPLETE**
+
+Allocated as next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1124 (this cycle's decision-log.md). D-1125 allocated cleanly above the true max.
+
+**Summary:** Records the completion of the ADR-046 Wave-5 decomposition cascade — a 4-phase
+coordinated state-manager burst that registered the D-1124 wave decomposition decision into all
+affected index files and updated all hash/version cells for cross-document consistency.
+
+### Cascade Phase Record
+
+| Phase | What | Commit SHA |
+|-------|------|------------|
+| Phase A | ADR-046 v1.23→v1.24 (D-1124 Wave-5 decomposition narrative + S-17.06/S-17.07 mentions) | bebb9e92 |
+| Phase B | BC-7.07.001 v1.39→v1.40 (S-17.07 story anchor + inputs + BC-7.07.001 re-anchoring) + BC-4.17.001 v1.26→v1.27 (S-17.06 story anchor + inputs) | fb9d7e6d |
+| Phase C | S-17.05 v1.1→v1.2 (depends_on []→[S-17.06]; T-8 Red Gate test 22→23; BC-4.17.001 v1.27 anchor) + S-17.06 v1.0 NEW (factory-lock shared fns story; BC-4.17.001; depends_on []; blocks S-17.05+S-17.07) + S-17.07 v1.0 NEW (precompact-flush identity gate story; BC-7.07.001; depends_on [S-17.06]) | add9a3f4 |
+| Phase D | STORY-INDEX v4.393→v4.394 (3 catalog rows; E-17 blockquote Wave-5 decomposition) + E-17 epic v1.1→v1.2 (story_count 4→7; points 26→44; DAG S-17.06→{S-17.05,S-17.07}) + BC-4.17.001 BC-INDEX row v1.26→v1.27 + BC-7.07.001 BC-INDEX row v1.39→v1.40 + BC-INDEX v5.18→v5.19 + ARCH-INDEX v3.94→v3.95 (ADR-046 v1.24 note) + this decision-log D-1125 | this commit |
+
+### Outcome
+
+- E-17 Wave-5 now has 7 stories (story_count 4→7; 44 pts total)
+- DAG: S-17.06→{S-17.05 (stamper), S-17.07 (precompact-flush identity gate)}
+- All 3 Wave-5 stories are DRAFT, NOT started
+- S-17.05 blocking issue ("S-17.05 wave decomposition required") RESOLVED
+- POLICY 18 three-way parity VERIFIED for all 3 Wave-5 stories (frontmatter=catalog-row=blockquote)
+- target_release for E-17 Wave-5 TBD pending human confirmation (stale v1.0.0-rc.18 flagged)
+- E-17 Wave-5 TDD is now the NEXT work item; blocked only on human Wave-5 TDD go-ahead
+
+### D-1082 Cyclic Hash Residual Note
+
+BC-4.17.001 and BC-7.07.001 share a cyclic inputs dependency. After Phase D hash settlement:
+- BC-4.17.001 input-hash: `ee0c840` (last settled; BC-7.07.001 changed after this was computed)
+- BC-7.07.001 input-hash: `cc1ff3d` (last settled)
+- Per D-1082 disposition: one-round stop; cyclic residual is documented and accepted.
+
+### Canonical 6-column row (STATE.md Decisions Log)
+
+| D-1125 | D-1125-ADR046-WAVE5-DECOMPOSITION-CASCADE-COMPLETE | ADR-046 Wave-5 decomposition cascade COMPLETE: 4-phase coordinated state-manager burst — Phase A ADR-046 v1.24 (bebb9e92); Phase B BC-7.07.001 v1.40 + BC-4.17.001 v1.27 (fb9d7e6d); Phase C S-17.05 v1.2 + S-17.06 v1.0 + S-17.07 v1.0 (add9a3f4); Phase D STORY-INDEX v4.394 + E-17 epic v1.2 + BC-INDEX v5.19 + ARCH-INDEX v3.95 (this commit). E-17 story_count 4→7; DAG S-17.06→{S-17.05,S-17.07}; POLICY 18 three-way parity VERIFIED; target_release TBD (stale flagged). NEXT: E-17 Wave-5 TDD (human go-ahead gated). | D-1125 | 2026-08-27 |

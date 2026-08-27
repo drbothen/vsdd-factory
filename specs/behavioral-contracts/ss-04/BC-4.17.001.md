@@ -18,13 +18,14 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-01/BC-1.17.001.md
   - .factory/stories/S-17.01-factory-lock-schema-cas-push.md
   - .factory/stories/S-17.05-stamp-state-timestamp-hook.md
+  - .factory/stories/S-17.06-factory-lock-shared-functions.md
   - crates/factory-lock/src/lib.rs
   - crates/factory-lock-parse/src/lib.rs
   - crates/hook-plugins/precompact-flush/src/lib.rs
   - crates/hook-plugins/verify-factory-lock/src/lib.rs
   - plugins/vsdd-factory/bin/factory-lock-write.sh
   - plugins/vsdd-factory/hooks-registry.toml
-input-hash: "6b0b35c"
+input-hash: "ee0c840"
 traces_to: .factory/specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md
 origin: brownfield
 extracted_from: null

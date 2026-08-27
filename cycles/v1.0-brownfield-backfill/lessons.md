@@ -1561,3 +1561,11 @@ Without this perimeter gate, three implementation gaps (factory-lock shared func
 flush identity-gate amendment, BC-7.07.001 re-anchoring) would not have been caught until TDD
 failure, costing substantially more rework.
 `[convergence-governance][perimeter-audit; two-axis-gate; adversary-vs-consistency-validator-scope; D-1124; S-17.05-under-scoping; wave-decomposition]`
+
+The perimeter-audit-driven wave decomposition (D-1124) was closed by a 4-phase coordinated
+cascade (D-1125): the 3 BLOCKS-CLOSURE gaps (Gap A factory-lock shared fns, Gap B precompact-
+flush identity gate, Gap C BC-7.07.001 re-anchoring) were each remediated in dedicated
+sub-commits (Phase B spec amendments, Phase C story authoring, Phase D index registration).
+The POLICY 18 three-way parity discipline (frontmatter=catalog-row=blockquote) ensured hash
+consistency across all three new story files simultaneously at cascade close.
+`[convergence-governance][cascade-closure; 4-phase-burst; POLICY-18-parity; D-1125; wave-decomposition-complete]`

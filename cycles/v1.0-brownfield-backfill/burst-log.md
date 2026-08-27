@@ -8676,3 +8676,116 @@ Dim-7 attestation:
 
 Parent SHA: `16652bb5` (D-1123 burst).
 This burst commit SHA: `1ded5745` — state(D-1124): ADR-046 3-CLEAN CONVERGED-VALIDATED + perimeter audit PERIMETER-GAPS + wave-decomposition decision [pushed 2026-08-27]
+
+---
+
+## D-1125-ADR046-WAVE5-DECOMPOSITION-CASCADE-COMPLETE
+
+**Block 1: Parent commit**
+
+Parent SHA: `add9a3f4` (Phase C — S-17.05 v1.2 + S-17.06 v1.0 + S-17.07 v1.0).
+This is the final Phase D commit of the 4-phase ADR-046 Wave-5 decomposition cascade.
+Prior phases: Phase A=`bebb9e92`, Phase B=`fb9d7e6d`, Phase C=`add9a3f4`.
+
+**Block 2: Adversary verdict**
+
+N/A — bookkeeping burst (index registration + deferred hash reconciliation + STATE.md advance).
+No fresh-context adversary was dispatched. This burst closes the S-17.05 wave-decomposition
+blocker and advances E-17 Wave-5 to a 3-story TDD-ready state. Source-attestation gate D-448(a)
+is not applicable for non-adversary bookkeeping bursts.
+
+**Block 3: Files touched**
+
+Spec + story files (all via Edit tool per POL-3, no bypass):
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md` — inputs: + S-17.06 added; input-hash 6b0b35c→ee0c840 (Phase D deferred-inputs)
+- `.factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md` — inputs: + S-17.07 added; input-hash e73bc01→cc1ff3d (Phase D deferred-inputs)
+- `.factory/stories/S-17.05-stamp-state-timestamp-hook.md` — input-hash resettled to e8b9395 post-BC updates
+- `.factory/stories/S-17.06-factory-lock-shared-functions.md` — input-hash resettled to 372f2eb post-BC updates
+- `.factory/stories/S-17.07-precompact-flush-identity-gate.md` — input-hash resettled to 028002a post-BC updates
+- `.factory/stories/STORY-INDEX.md` — v4.393→v4.394 (S-17.05 row updated; S-17.06+S-17.07 rows added; E-17 blockquote updated; aggregation blockquote updated)
+- `.factory/stories/epics/E-17-factory-state-durability-concurrency.md` — v1.1→v1.2 (story_count 4→7; points 26→44; DAG updated; template sections added)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v5.18→v5.19 (BC-4.17.001 row v1.27 appended; BC-7.07.001 row v1.40 appended)
+- `.factory/specs/architecture/ARCH-INDEX.md` — v3.94→v3.95 (ADR-046 v1.24 note added)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1125 block + canonical row appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — convergence-governance terse note
+- `.factory/STATE.md` — v9.14→v9.15
+
+**Block 4: Codifications**
+
+D-1125 codified: `D-1125-ADR046-WAVE5-DECOMPOSITION-CASCADE-COMPLETE`
+
+**Block 5 (Dim-2): Literal-shell gate attestations per D-449(a)**
+
+POLICY 16 ceiling grep (section headers only):
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE "[0-9]+" | sort -n | tail -3
+1123
+1124
+1125
+```
+Result: max D-NNN before D-1125 allocation was D-1124. D-1125 allocated cleanly above ceiling. PASS.
+
+4-index version bump verification:
+```
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "4.394"
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "5.19"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "3.95"
+$ grep "^version:" .factory/stories/epics/E-17-factory-state-durability-concurrency.md | head -1
+version: "v1.2"
+```
+Result: all 4-index + epic bumps landed. PASS.
+
+POLICY 18 three-way parity verification (frontmatter=catalog-row=blockquote):
+```
+$ grep "^input-hash:" .factory/stories/S-17.05-stamp-state-timestamp-hook.md | head -1
+input-hash: "e8b9395"
+$ grep "S-17.05.*input-hash e8b9395" .factory/stories/STORY-INDEX.md | head -1 | grep -o e8b9395
+e8b9395
+$ grep "S-17.05=e8b9395" .factory/stories/STORY-INDEX.md | head -1 | grep -o e8b9395
+e8b9395
+
+$ grep "^input-hash:" .factory/stories/S-17.06-factory-lock-shared-functions.md | head -1
+input-hash: "372f2eb"
+$ grep "S-17.06.*input-hash 372f2eb" .factory/stories/STORY-INDEX.md | head -1 | grep -o 372f2eb
+372f2eb
+$ grep "S-17.06=372f2eb" .factory/stories/STORY-INDEX.md | head -1 | grep -o 372f2eb
+372f2eb
+
+$ grep "^input-hash:" .factory/stories/S-17.07-precompact-flush-identity-gate.md | head -1
+input-hash: "028002a"
+$ grep "S-17.07.*input-hash 028002a" .factory/stories/STORY-INDEX.md | head -1 | grep -o 028002a
+028002a
+$ grep "S-17.07=028002a" .factory/stories/STORY-INDEX.md | head -1 | grep -o 028002a
+028002a
+```
+Result: POLICY 18 three-way parity VERIFIED for all 3 Wave-5 stories (S-17.05/06/07). PASS.
+
+**Block 6 (Dim-5): Files opened/closed**
+
+Closes: S-17.05 wave-decomposition blocker (STATE.md Blocking Issues "S-17.05 wave decomposition
+required" → RESOLVED). E-17 Wave-5 TDD can now begin (pending human go-ahead).
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1125-ADR046-WAVE5-DECOMPOSITION-CASCADE-COMPLETE` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8 per D-444(c).
+D-448(a) source-attestation gate: N/A — no adversary review file (bookkeeping burst).
+D-449(a) literal-shell-execution self-application: POLICY 16 ceiling grep, 4-index version bump
+verification, and POLICY 18 three-way parity verification all use literal shell with captured
+stdout in Block 5 — no pseudocode. Per TD-FACTORY-HOOK-BYPASS-001 P0, all `.factory` content
+mutations used Edit/Write tools; Bash invocations were read-only (grep) or verification-only.
+D-1082 cyclic hash residual acknowledged: BC-4.17.001 ee0c840 has 1-hop residual relative to
+BC-7.07.001 cc1ff3d; one-round stop per D-1082 disposition.
+
+Dim-7 attestation: no backward-incompatible ABI changes. This is a pure bookkeeping burst.
+All spec files unchanged except deferred-inputs completion (BC-4.17.001/BC-7.07.001 inputs:).
+Story files: input-hashes resettled only. No behavioral changes to any BC or ADR.
+
+**Block 8: factory-artifacts commit**
+
+Parent SHA: `add9a3f4` (Phase C — S-17.05 v1.2 + S-17.06/S-17.07 v1.0 NEW).
+This burst commit SHA: PENDING_PUSH — will be updated via D-449(e) SHA-patch follow-up after push.

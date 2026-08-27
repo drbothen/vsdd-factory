@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "9.14"
+version: "9.15"
 status: draft
 producer: state-manager
-timestamp: 2026-08-27T23:59:00Z
-phase: "ACTIVE 2026-08-27. ADR-046 BC-5.39.001 3-CLEAN CONVERGED-VALIDATED (D-1124). Frozen set ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39 confirmed internally consistent; 3-CLEAN (63/64/65) VALID. Perimeter audit PERIMETER-GAPS — all gaps in S-17.05 (story-level, NOT specs). Human-directed wave decomposition: S-17.05 (stamper) + S-17.06 (factory-lock-fns) + S-17.07 (precompact-flush), same wave. S-17.05 TDD NOT READY — decomposition cascade NEXT."
-last_amended: "2026-08-27 (v9.14) — D-1124-ADR046-3CLEAN-CONVERGED-PERIMETER-AUDIT-WAVE-DECOMPOSITION-DECISION (state-manager; single-commit, TD-VSDD-053): ADR-046 gate CONVERGED-VALIDATED; perimeter audit PERIMETER-GAPS (story-level); human wave-decomposition decision (S-17.05/06/07). v9.13→v9.14. Prior: 2026-08-27 (v9.13) — D-1123-ADR046-PASS65-SPEC-CONVERGENCE-3CLEAN-ACHIEVED (state-manager): pass-65 CLEAN; LITERAL 3-CLEAN ACHIEVED (63/64/65). v9.12→v9.13. [Prior: full prior chain preserved verbatim in decision-log.md/burst-log.md D-1057..D-1124 (exhaustive); pre-D-1057 history: session-checkpoints.md]"
+timestamp: 2026-08-28T00:30:00Z
+phase: "ACTIVE 2026-08-27. ADR-046 BC-5.39.001 3-CLEAN CONVERGED-VALIDATED (D-1124). Wave-5 decomposition cascade COMPLETE (D-1125): S-17.05 v1.2 (stamper, depends_on S-17.06), S-17.06 v1.0 (factory-lock-fns, blocks S-17.05+S-17.07), S-17.07 v1.0 (precompact-flush identity-gate, depends_on S-17.06). STORY-INDEX v4.394, BC-INDEX v5.19, ARCH-INDEX v3.95. NEXT: E-17 Wave-5 TDD (S-17.06 first per DAG)."
+last_amended: "2026-08-27 (v9.15) — D-1125-ADR046-WAVE5-DECOMP-CASCADE-COMPLETE (state-manager; Phase D index+STATE advance, TD-VSDD-053): STORY-INDEX v4.394; E-17 epic v1.2; BC-INDEX v5.19; ARCH-INDEX v3.95; decision-log D-1125; wave-decomp cascade COMPLETE; blocking issue closed. v9.14→v9.15. Prior: 2026-08-27 (v9.14) — D-1124-ADR046-3CLEAN-CONVERGED-PERIMETER-AUDIT-WAVE-DECOMPOSITION-DECISION (state-manager; single-commit, TD-VSDD-053): ADR-046 gate CONVERGED-VALIDATED; perimeter audit PERIMETER-GAPS (story-level); human wave-decomposition decision (S-17.05/06/07). v9.13→v9.14. [Prior: full prior chain preserved verbatim in decision-log.md/burst-log.md D-1057..D-1125 (exhaustive); pre-D-1057 history: session-checkpoints.md]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: ACTIVE
-current_step: "D-1124-ADR046-3CLEAN-CONVERGED-PERIMETER-AUDIT-WAVE-DECOMPOSITION-DECISION: ADR-046 spec-convergence gate CONVERGED-VALIDATED (state-manager; single-commit, TD-VSDD-053). Fresh-context consistency-validator perimeter audit CONFIRMED frozen set (ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39) internally consistent; 3-CLEAN (63/64/65) VALID. Perimeter audit VERDICT: PERIMETER-GAPS — all BLOCKS-CLOSURE gaps in S-17.05 (story-level, NOT specs): Gap A (factory-lock shared-fn tasks), Gap B (precompact-flush Step-4 identity-gate), Gap C (BC-7.07.001 frontmatter absent — resolved via decomposition). Human decision (2026-08-27): WAVE DECOMPOSITION — S-17.05 (stamper) + S-17.06 (factory-lock-fns) + S-17.07 (precompact-flush), same wave/release; BC-7.07.001 re-anchored to S-17.07. S-17.05 TDD NOT READY — blocked on decomposition cascade (architect → product-owner → story-writer → state-manager). trajectory-tail →1→0→0→0 LENGTH=4. NEXT: decomposition cascade (S-17.06/S-17.07 creation + S-17.05 re-scope)."
+current_step: "D-1125-ADR046-WAVE5-DECOMP-CASCADE-COMPLETE: ADR-046 Wave-5 decomposition cascade complete (state-manager; Phase D index+STATE advance, TD-VSDD-053). STORY-INDEX v4.393→v4.394 (S-17.05 catalog-row v1.1→v1.2 + depends_on []→[S-17.06] + hash e8b9395; S-17.06 new row 5pts BC-4.17.001 hash 372f2eb; S-17.07 new row 5pts BC-7.07.001 hash 028002a; E-17 delivery blockquote DAG S-17.06→{S-17.05,S-17.07}; aggregation 5→7 stories 34→44pts). E-17 epic v1.1→v1.2 (story_count 4→7, pts 26→44). BC-INDEX v5.18→v5.19 (BC-4.17.001 v1.27 deferred-inputs S-17.06; BC-7.07.001 v1.40 deferred-inputs S-17.07; D-1082 cyclic residual noted). ARCH-INDEX v3.94→v3.95 (ADR-046 Wave-5 cascade note). D-1082 cyclic-hash settled: BC-4.17.001→ee0c840, BC-7.07.001→cc1ff3d; S-17.05→e8b9395, S-17.06→372f2eb, S-17.07→028002a (one-round stop). D-1125 codified. POLICY 18 three-way parity verified (literal grep). Blocking issue 'S-17.05 wave decomposition required' CLOSED. trajectory-tail →1→0→0→0 LENGTH=4. NEXT: E-17 Wave-5 TDD (S-17.06 first per DAG)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -42,8 +42,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-08-27 — **D-1124 ADR-046 3-CLEAN CONVERGED-VALIDATED + perimeter audit + wave-decomposition decision** (state-manager). Frozen set confirmed internally consistent; 3-CLEAN (63/64/65) VALID. Perimeter audit PERIMETER-GAPS (all gaps in S-17.05, NOT specs). Human decision: wave decomposition S-17.05/06/07. trajectory-tail →1→0→0→0 LENGTH=4. v9.13→v9.14. NEXT: decomposition cascade (architect → product-owner → story-writer → state-manager). |
-| **Current Phase** | **ACTIVE. ADR-046 CONVERGED-VALIDATED (D-1124).** Spec gate CLOSED (adversary 3-CLEAN + perimeter audit confirmed). Story S-17.05 under-scoped — wave decomposition required: S-17.05 (stamper) + S-17.06 (factory-lock-fns) + S-17.07 (precompact-flush), same wave. **S-17.05 TDD NOT READY — blocked on decomposition cascade.** See Session Resume Checkpoint. |
+| **Last Updated** | 2026-08-27 — **D-1125 ADR-046 Wave-5 decomposition cascade COMPLETE** (state-manager). STORY-INDEX v4.394; E-17 v1.2 (7 stories, 44pts); BC-INDEX v5.19; ARCH-INDEX v3.95; 141 stories. Blocking issue 'S-17.05 wave decomp required' CLOSED. trajectory-tail →1→0→0→0 LENGTH=4. v9.14→v9.15. NEXT: E-17 Wave-5 TDD (S-17.06 first per DAG). |
+| **Current Phase** | **ACTIVE. ADR-046 CONVERGED-VALIDATED (D-1124). Wave-5 decomposition cascade COMPLETE (D-1125).** S-17.06 (factory-lock-fns) + S-17.05 (stamper) + S-17.07 (precompact-flush) all registered; STORY-INDEX v4.394; E-17 v1.2 (7 stories, 44pts). **NEXT: E-17 Wave-5 TDD — S-17.06 first (blocks S-17.05 + S-17.07).** See Session Resume Checkpoint. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -73,32 +73,32 @@ dtu_services: []
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
+| D-1125-ADR046-WAVE5-DECOMP-CASCADE-COMPLETE | state-manager | COMPLETE | STORY-INDEX v4.393→v4.394 (S-17.05/06/07 registered; E-17 delivery blockquote DAG updated; aggregation 5→7 stories 34→44pts). E-17 epic v1.1→v1.2 (story_count 4→7, pts 26→44, template sections added). BC-INDEX v5.18→v5.19 (BC-4.17.001 v1.27 + BC-7.07.001 v1.40 deferred-inputs). ARCH-INDEX v3.94→v3.95 (ADR-046 Wave-5 note). decision-log D-1125. burst-log 8-block entry. POLICY 18 three-way parity verified (literal grep). Blocking issue 'S-17.05 wave decomp required' CLOSED. v9.14→v9.15. |
 | D-1124-ADR046-3CLEAN-CONVERGED-PERIMETER-AUDIT-WAVE-DECOMPOSITION-DECISION | state-manager | COMPLETE | **ADR-046 spec-convergence gate CONVERGED-VALIDATED.** Fresh-context consistency-validator perimeter audit confirmed frozen set (ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39) internally consistent; 3-CLEAN (63/64/65) VALID. Perimeter audit VERDICT: PERIMETER-GAPS — 3 BLOCKS-CLOSURE gaps in S-17.05 (story-level, NOT specs): Gap A (factory-lock shared-fn tasks), Gap B (precompact-flush Step-4), Gap C (BC-7.07.001 absent — resolved via decomposition). Human wave-decomposition decision (2026-08-27): S-17.05 (stamper) + S-17.06 (factory-lock-fns) + S-17.07 (precompact-flush), same wave. S-17.05 TDD NOT READY — decomposition cascade NEXT. v9.13→v9.14. |
 | D-1123-ADR046-PASS65-SPEC-CONVERGENCE-3CLEAN-ACHIEVED | state-manager | COMPLETE | adv-adr-046-pass-65.md persisted; **VERDICT CLEAN — THIRD consecutive clean pass. LITERAL BC-5.39.001 3-CLEAN ACHIEVED (63/64/65).** 14 spec-vs-code ground-truth checks all MATCH. Frozen set UNCHANGED. BC-5.39.001 streak ADVANCES 2/3→3/3. v9.12→v9.13. |
 | D-1120-S1705-V11-BINDING | state-manager | COMPLETE | Story-writer committed f323b5e2 (S-17.05 v1.0→v1.1; T-8 factory-lock doc-comment fix per O-P61-001/O-P62-001; BC cites 1.0/1.4→1.26/1.21; input-hash f2c092e→4702970). STORY-INDEX v4.392→v4.393: catalog-row story v1.0→v1.1 + input-hash 4702970 + BC cites 1.26/1.21; aggregation S-17.05=4702970 added to E-17 footnote; POLICY 18 three-way VERIFIED (frontmatter=catalog-row=blockquote=4702970 — literal grep check performed). O-P61-001/O-P62-001 Drift Items updated to CAPTURED. ADR-046 gate streak UNCHANGED 0/3. NOT a gate pass. v9.09→v9.10. |
 | D-1121-ADR046-PASS63-SPEC-CONVERGENCE-CLEAN | state-manager | COMPLETE | adv-adr-046-pass-63.md persisted; **VERDICT CLEAN — zero blocking findings at any severity.** Adversary independently re-derived all seventeen spec-vs-code ground-truth checks (all MATCH). F-P62-001 RETIRED confirmed under fresh lens (ARCH-INDEX ADR-046 row now version-stable by construction). **THIS IS A CLEAN PASS, NOT A FIX BURST** — frozen set UNCHANGED (ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39); no spec artifact edited; no version bump; no input-hash recompute; no 4-INDEX change. **BC-5.39.001 3-CLEAN streak ADVANCES 0/3 → 1/3.** O-P63-i/O-P63-ii: already-tracked non-defect (D-1082/D-1073); no new entry. Novelty NONE. v9.10→v9.11. |
-| D-1122-ADR046-PASS64-SPEC-CONVERGENCE-CLEAN | state-manager | COMPLETE | adv-adr-046-pass-64.md persisted; **VERDICT CLEAN — zero blocking findings at any severity.** Adversary independently re-derived all seventeen spec-vs-code ground-truth checks (all MATCH). F-P62-001 structural fix re-confirmed holding under fresh lens. **THIS IS A CLEAN PASS, NOT A FIX BURST** — frozen set UNCHANGED (ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39); no spec artifact edited; no version bump; no input-hash recompute; no 4-INDEX change. **BC-5.39.001 streak ADVANCES 1/3 → 2/3.** O-P64-001 = O-P57-001-class NON-DEFECT ACCEPTED-tracked (recurrence). O-P64-002 = ALREADY CAPTURED S-17.05 T-8 (D-1120). Novelty LOW. v9.11→v9.12. |
 
 ## Identifier Conventions
 
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,988 (BC-INDEX v5.17→v5.18 at D-1116 pass-59 FINDINGS(1) — BC-5.40.001 row v1.20→v1.21, F-P59-001; total_bcs UNCHANGED 1988, no new BC added; see decision-log.md for incremental history D-1057..D-1117 (exhaustive)) |
+| Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,988 (BC-INDEX v5.18→v5.19 at D-1125 — BC-4.17.001 v1.27 row + BC-7.07.001 v1.40 row (deferred S-17.06/S-17.07 inputs added); total_bcs UNCHANGED 1988, no new BC; see decision-log.md for history) |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 102 (VP-INDEX v2.79 UNCHANGED at D-1116 pass-59; VP-079 v1.21; see decision-log.md for history) |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 139 file-resident + 17 stub IDs (STORY-INDEX v4.393 at D-1120; S-17.05 remains REGISTERED since D-1107/F-P50-001 — E-17 Wave 5, draft, story_count 4→5, 26→34 pts; cited as implementing story in all 3 ADR-046 companion BC Traceability §Stories rows since D-1082, in all 3 companion BCs' §Story Anchor sections since D-1084/F-P27-001, and in all 3 companion BCs' `inputs:` arrays since D-1107/F-P50-002; gate streak **ADVANCES 1/3→2/3** as of D-1122 pass-64 CLEAN — fresh pass-65 NEXT, against the unchanged frozen set ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 **v1.21** + BC-7.07.001 v1.39, needing 1 more consecutive clean pass (65) for literal 3-CLEAN; see decision-log.md for history) |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 141 file-resident + 17 stub IDs = 158 total (STORY-INDEX v4.394 at D-1125; S-17.05 v1.2 REGISTERED (E-17 Wave 5, draft, stamper+TTL, depends_on S-17.06); S-17.06 v1.0 NEW-REGISTERED (E-17 Wave 5, draft, factory-lock-fns, blocks S-17.05+S-17.07, BC-4.17.001); S-17.07 v1.0 NEW-REGISTERED (E-17 Wave 5, draft, precompact-flush identity-gate, depends_on S-17.06, BC-7.07.001); decomp cascade COMPLETE D-1125; see decision-log.md for history) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 23 (E-0..E-9, E-10..E-19, E-21 active, E-22 dissolved-retained D-962(f), E-23 NEW this session — STALE, built for abandoned strip model, re-scope OWED) |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 46 (ADR-045 v1.3 ACCEPTED — pivoted stable-anchor→frozen-provenance; **ADR-046 v1.23, UNCHANGED at D-1116 pass-59** — not implicated by F-P59-001 (a BC-5.40.001-only coverage-enumeration finding); ADR-025 v1.25 expiry-boundary fix remains correctly disambiguated per the pass-35 fix, re-confirmed at every subsequent pass through pass-59; see decision-log.md for history) |
 | **Merged Count** | merged_count | `stories/sprint-state.yaml` | **111** (S-21.10 MERGED PR #780 `27c56c01` 2026-08-17) |
 
 ## Story Status
 
-139 file-resident + 17 stub IDs = 156 stories. E-18 EPIC COMPLETE D-744. E-22 DISSOLVED D-961 (file RETAINED per human ruling 2026-08-06). E-23 NEW this session (STALE — strip-model stories S-23.01..S-23.14, re-scope OWED to frozen-provenance model).
+141 file-resident + 17 stub IDs = 158 stories. E-18 EPIC COMPLETE D-744. E-22 DISSOLVED D-961 (file RETAINED per human ruling 2026-08-06). E-23 NEW this session (STALE — strip-model stories S-23.01..S-23.14, re-scope OWED to frozen-provenance model).
 
 - **Merged (111):** S-21.10 MERGED PR #780; S-21.12 MERGED PR #781; S-21.07 MERGED PR #776; S-21.09 MERGED PR #775. Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **In-Flight (0):** none.
 - **E-21 active (Wave-7 HELD, unchanged this burst):** S-21.19 (v1.11, BC-1.03.017 v1.27, streak 0/3, R8 NOT-CLEAN); S-21.20 (v1.9, BC-1.03.017 v1.27, streak 0/3 — pass-9 NOT-CLEAN); S-21.21 (v1.10, BC-1.03.017 v1.27, streak 0/3 — pass-9 NOT-CLEAN); S-21.22 (v1.10, BC-1.03.017 v1.27, streak **1/3** — pass-9 CLEAN); S-21.23 (v1.8, BC-1.03.018 v1.6, streak 0/3 — pass-9 NOT-CLEAN); S-21.24 (v1.11, BC-1.03.017 v1.27 + BC-1.03.018 v1.6, Wave 8, STRICTLY LAST); S-21.25 (CONVERGED 3/3, awaiting TDD sequencing). S-21.11 SUPERSEDED D-1057. Wave-7 cascade remains HELD pending the ADR-045 ratification-recording burst.
-- **E-17 Wave 5 (S-17.05 v1.1 — D-1120 binding; D-1124 decomposition decision 2026-08-27):** S-17.05 (stamp-state-timestamp-hook + TTL constant, re-scoped per D-1124) NOT started, **TDD NOT READY — blocked on wave decomposition cascade**: architect → product-owner → story-writer (create S-17.06 factory-lock-fns + S-17.07 precompact-flush + re-scope S-17.05) → state-manager indexing. ADR-046 spec-convergence gate CONVERGED-VALIDATED (D-1124). Companion stories S-17.06 and S-17.07 PENDING CREATION. All three must be in same wave/release (ADR-046 Rollout Note atomicity). BC-7.07.001 re-anchored to S-17.07 per D-1124.
+- **E-17 Wave 5 (D-1125 decomp cascade COMPLETE 2026-08-27):** S-17.06 v1.0 (factory-lock-fns, no deps, blocks S-17.05+S-17.07, BC-4.17.001) + S-17.05 v1.2 (stamper+TTL, depends_on S-17.06, BC-4.17.001+BC-5.40.001) + S-17.07 v1.0 (precompact-flush identity-gate, depends_on S-17.06, BC-7.07.001) all REGISTERED. STORY-INDEX v4.394; E-17 v1.2 (7 stories, 44pts). All 3 same wave/release (ADR-046 Rollout Note atomicity). **NEXT: TDD — S-17.06 first (blocks both), then S-17.05 + S-17.07 in parallel.** NOTE: E-17 target_release may be stale (set before decomp decision).
 - **E-23 new draft (STALE):** S-23.01..S-23.14 (anchor-detection classifier, normalization codemod, guard hook, index-resolution mechanism, 4-index migrations, residual-leakage measurement) — built for the abandoned strip model; must be RE-SCOPED to the frozen-provenance model (ADR-045 v1.3) before use.
 - **Draft (39), Partial (2), Withdrawn (1):** see prior session checkpoints.
 
@@ -108,7 +108,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **6993138b** | rc.24 sync-develop back-merge (merge commit, ancestry preserved). CI-GREEN. |
-| factory-artifacts | **`1ded5745`** | D-1124-ADR046-3CLEAN-CONVERGED-PERIMETER-AUDIT-WAVE-DECOMPOSITION-DECISION. ACTIVE. ADR-046 gate CONVERGED-VALIDATED; perimeter audit PERIMETER-GAPS (story-level); human wave-decomposition S-17.05/06/07. S-17.05 TDD NOT READY — decomposition cascade NEXT. ADR-045 v1.3 ratification burst still OWED; E-23 STALE. |
+| factory-artifacts | **`PENDING_PUSH`** | D-1125-ADR046-WAVE5-DECOMP-CASCADE-COMPLETE. ACTIVE. Wave-5 decomp cascade COMPLETE; STORY-INDEX v4.394; BC-INDEX v5.19; ARCH-INDEX v3.95; 141 stories; blocking issue 'S-17.05 wave decomp required' CLOSED. SHA patched via D-449(e) after push. ADR-045 v1.3 ratification burst still OWED; E-23 STALE. |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
 | fix/policy15-empty-range-inert | a6a15e1d | MERGED PR #779 2026-08-16. |
@@ -127,7 +127,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **ACTIVE (D-1124 ADR-046 CONVERGED-VALIDATED; decomposition cascade NEXT)** | rc.24 SHIPPED (develop 6993138b CI-GREEN; marketplace PR #19 MERGED 2026-08-27). ADR-046 gate **CONVERGED-VALIDATED (D-1124)** — frozen set confirmed internally consistent; 3-CLEAN (63/64/65) VALID; perimeter audit PERIMETER-GAPS (story-level); human wave-decomposition: S-17.05/06/07, same wave. S-17.05 TDD NOT READY — decomposition cascade NEXT. Frozen set UNCHANGED: ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39. ADR-045 v1.3 ACCEPTED (ratification-recording burst still OWED). Wave-7 (S-21.19/20/21/23) still HELD; S-21.22 streak 1/3. E-23 STALE. STORY-INDEX v4.393, VP-INDEX v2.79, ARCH-INDEX v3.94, BC-INDEX v5.18. merged_count 111. trajectory-tail →1→0→0→0, LENGTH=4. |
+| v1.0-brownfield-backfill | brownfield | **ACTIVE (D-1125 Wave-5 decomp CASCADE COMPLETE; E-17 Wave-5 TDD NEXT)** | rc.24 SHIPPED (develop 6993138b CI-GREEN; marketplace PR #19 MERGED 2026-08-27). ADR-046 gate **CONVERGED-VALIDATED (D-1124)** — 3-CLEAN (63/64/65) VALID. Wave-5 decomp cascade **COMPLETE (D-1125)**: S-17.06+S-17.05+S-17.07 REGISTERED; STORY-INDEX v4.394; E-17 v1.2 (7 stories, 44pts). Frozen set UNCHANGED: ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39. ADR-045 v1.3 ACCEPTED (ratification-recording burst still OWED). Wave-7 (S-21.19/20/21/23) still HELD; S-21.22 streak 1/3. E-23 STALE. STORY-INDEX v4.394, VP-INDEX v2.79, ARCH-INDEX v3.95, BC-INDEX v5.19. merged_count 111. trajectory-tail →1→0→0→0, LENGTH=4. |
 | v1.0-feature-engine-discipline-pass-1 | feature | PAUSED | F5 pass-75 D-510. META-LEVEL-30 CANDIDATE-CONFIRMED. trajectory-tail →7→9→7→9, LENGTH=4. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -137,6 +137,7 @@ dtu_services: []
 
 | ID | Decision | Summary | Phase | Date |
 |----|----------|---------|-------|------|
+| D-1125 | D-1125-ADR046-WAVE5-DECOMP-CASCADE-COMPLETE | Phase D index+STATE advance completing the ADR-046 Wave-5 decomposition cascade. STORY-INDEX v4.393→v4.394 (S-17.05 v1.2 catalog-row update + S-17.06 + S-17.07 new rows; E-17 delivery blockquote DAG S-17.06→{S-17.05,S-17.07}; aggregation 5→7 stories 34→44pts). E-17 epic v1.1→v1.2 (story_count 4→7, pts 26→44). BC-INDEX v5.18→v5.19 (BC-4.17.001 v1.27 deferred-inputs S-17.06 added; BC-7.07.001 v1.40 deferred-inputs S-17.07 added; D-1082 cyclic residual noted). ARCH-INDEX v3.94→v3.95 (ADR-046 Wave-5 cascade note). D-1082 cyclic-hash: BC-4.17.001→ee0c840, BC-7.07.001→cc1ff3d; S-17.05→e8b9395, S-17.06→372f2eb, S-17.07→028002a (one-round stop). POLICY 18 three-way parity verified (literal grep). Blocking issue 'S-17.05 wave decomp required' CLOSED. CASCADE PHASES: A=bebb9e92 (ADR-046 v1.24), B=fb9d7e6d (BC rewrites), C=add9a3f4 (stories), D=this commit. Full: decision-log.md D-1125 + burst-log.md D-1125. | D-1125 | 2026-08-27 |
 | D-1124 | D-1124-ADR046-3CLEAN-CONVERGED-PERIMETER-AUDIT-WAVE-DECOMPOSITION-DECISION | ADR-046 spec-convergence gate CONVERGED-VALIDATED: fresh-context consistency-validator independently confirmed frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39) internally consistent; 3-CLEAN (63/64/65) VALID; all index cells PASS. Perimeter audit VERDICT: PERIMETER-GAPS — all 3 BLOCKS-CLOSURE gaps in S-17.05 (NOT specs): Gap A = no factory-lock shared-fn tasks (renew_lock_if_holder/IdentityResolution/SkipReason/classify_identity_resolution/trim_git_email); Gap B = no precompact-flush Step-4 identity-gate amendment; Gap C = BC-7.07.001 absent from S-17.05 frontmatter. Human decision (2026-08-27): WAVE DECOMPOSITION — S-17.05 stamper + S-17.06 factory-lock-fns + S-17.07 precompact-flush, all same wave/release (ADR-046 Rollout Note atomicity via wave gate); BC-7.07.001 re-anchored to S-17.07. S-17.05 TDD NOT READY — blocked on decomposition cascade. Full: decision-log.md D-1124 + perimeter-audit-adr-046-3clean.md. | D-1124 | 2026-08-27 |
 | D-1122 | D-1122-ADR046-PASS64-SPEC-CONVERGENCE-CLEAN | adv-adr-046-pass-64.md persisted. **VERDICT CLEAN — zero blocking findings at any severity.** Adversary independently re-derived all seventeen spec-vs-code checks (all MATCH): empty-string holder→Err(Malformed "empty string"), absent-holder-w/-siblings→Err(Malformed "absent"), Ok(None) only for fully-absent/null block; renew_lock_with_now opaque-String/byte-compare/never-date-parses (case-1 RE-DERIVED accurate); is_expired now>=expires_at; trim_git_email trim_end; TTL_SECONDS=2700 + "MUST NOT be overridden" comment; precompact-flush Step-4 identity-blind renew_lock (LOCK_RENEWAL_TTL_SECS u64=2700); verify-state-timestamp-refresh Steps 4-7/8 module-doc; EC-011 holder:null→literal "null" code-accurate. Cross-artifact: F-P56-001 correction propagated consistently to all four; Decision-5 MIGRATED/RETAINED-AS-HISTORICAL symmetric (TARGET BC-4.17.001 v1.26 / SOURCE BC-5.40.001 v1.21); no load-bearing ADR version pins (POLICY 19). F-P62-001 structural fix re-confirmed. O-P64-001 = O-P57-001-class NON-DEFECT ACCEPTED-tracked. O-P64-002 CAPTURED in S-17.05 T-8 (D-1120). **BC-5.39.001 streak ADVANCES 1/3→2/3.** Frozen set UNCHANGED: ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39. **CLEAN PASS** — no spec edit; no version bump; no 4-INDEX change. Novelty LOW. Full: decision-log.md D-1122. | D-1122 | 2026-08-27 |
 | D-1121 | D-1121-ADR046-PASS63-SPEC-CONVERGENCE-CLEAN | adv-adr-046-pass-63.md persisted. **VERDICT CLEAN — zero blocking findings at any severity.** Adversary independently re-derived all seventeen spec-vs-code behavioral checks (all MATCH): parse_factory_lock empty/absent-holder→Err(Malformed); Ok(None) only for absent/fully-null block; renew_lock_with_now opaque-String expires_at/byte-compare/never date-parses; parse_iso8601 for case-1; is_expired now>=expires_at; trim_git_email trim_end; three TTL literals 2700 incl u64; precompact-flush Step-4 identity-blind renew_lock; FactoryLock vs LockState; extract_yaml_string_value holder:null→literal "null"; verify-state-timestamp-refresh Steps 4-7/8; five-case table byte-consistent; Decision-5 reconciled; POLICY 4/6/19 PASS; sibling-sweep clean. **F-P62-001 RETIRED confirmed** — ARCH-INDEX ADR-046 row now version-stable; O-P28-002 durably closed. **BC-5.39.001 streak ADVANCES 0/3→1/3.** O-P63-i/O-P63-ii: already-tracked non-defect; no new entry. Frozen set UNCHANGED: ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39. **CLEAN PASS** — no spec edit; no version bump; no 4-INDEX change. Novelty NONE. Full: decision-log.md D-1121. | D-1121 | 2026-08-27 |
@@ -162,7 +163,7 @@ dtu_services: []
 |---------|--------|----------------|
 | **[rc.24] Marketplace PR #19 (drbothen/claude-mp) — "bump vsdd-factory to 1.0.0-rc.24" MERGED 2026-08-27** | **RESOLVED 2026-08-27** | PR #19 merged by human 2026-08-27. rc.24 (5 RUSTSEC clears incl. wasmtime sandbox escape + h2 RUSTSEC-2026-0258, fuel-cap 10M→20M, POLICY 15 gate) now delivered to operators via marketplace. BLOCKER CLOSED. |
 | **[ADR-046] BC-5.39.001 3-CLEAN spec-convergence gate — CONVERGED-VALIDATED (D-1124, 2026-08-27)** | **RESOLVED/CONVERGED 2026-08-27** | 65 adversary passes; 46 genuine BLOCKING findings found+fixed. Frozen set ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39 confirmed internally consistent by fresh-context perimeter audit; 3-CLEAN (63/64/65) VALID. Full record: decision-log.md D-1082..D-1124 (exhaustive); perimeter-audit-adr-046-3clean.md. BLOCKER CLOSED (spec-convergence axis). |
-| **[E-17 Wave-5] S-17.05 wave decomposition required before TDD entry (human-directed D-1124 2026-08-27)** | **OPEN — ACTIVE (decomposition cascade in progress)** | Perimeter audit found S-17.05 under-scoped: Gap A (factory-lock shared-fns: renew_lock_if_holder/IdentityResolution/SkipReason/classify_identity_resolution/trim_git_email), Gap B (precompact-flush Step-4 identity-gate amendment + 4-outcome tests), Gap C (BC-7.07.001 re-anchoring — resolved by S-17.07). Human decision: S-17.05 (stamper + TTL) + S-17.06 (factory-lock-fns) + S-17.07 (precompact-flush), same wave/release (ADR-046 Rollout Note atomicity via wave gate). Decomposition cascade: architect → product-owner → story-writer → state-manager. E-17 Wave-5 TDD entry gated on cascade completing. |
+| **[E-17 Wave-5] S-17.05 wave decomposition required before TDD entry (human-directed D-1124 2026-08-27)** | **RESOLVED 2026-08-27 (D-1125)** | Cascade COMPLETE. S-17.06 v1.0 (factory-lock-fns, BC-4.17.001) + S-17.05 v1.2 (stamper+TTL, depends_on S-17.06) + S-17.07 v1.0 (precompact-flush identity-gate, BC-7.07.001, depends_on S-17.06) all registered in STORY-INDEX v4.394. E-17 epic v1.2 (7 stories, 44pts). TDD entry unblocked: S-17.06 first (no deps), then S-17.05+S-17.07 in parallel. BLOCKER CLOSED. |
 | **[ADR-045] v1.3 ACCEPTED but ratification-recording burst OWED** | **OPEN 2026-08-26 — anchored next architect/state-manager touch** | ADR-045 ratified (pivoted stable-anchor→FROZEN-PROVENANCE + suspect-link per human), but POLICY 7/8/14/17/19 amendments never applied to policies.yaml; decision-log D-NNN + BC-INDEX/ARCH-INDEX rows not recorded. Wave-7 pre-TDD cascade (S-21.19/20/21/23) remains HELD until this burst + the corpus-migration epic land. |
 | **[E-23] Epic + S-23.01..S-23.14 stories STALE — built for the ABANDONED strip model** | **OPEN 2026-08-26 — anchored next story-writer/architect touch** | Stories were authored against the originally-proposed ADR-045 v1.0 stable-anchor/strip design; ADR-045 pivoted to v1.3 frozen-provenance. Must be RE-SCOPED before any S-23.NN work starts. |
 | **[D-1057] Each of the 7 new split stories (S-21.19..S-21.25) requires independent BC-5.39.001 3-CLEAN LOCAL pre-TDD convergence before Phase-3 TDD entry** | **OPEN — PAUSED / HELD** | Wave 6: S-21.25 CONVERGED (D-1066). D-1081 RECORDED HELD: S-21.22 CLEAN (1/3); S-21.19/20/21/23 NOT-CLEAN 0/3 (not remediated). Wave-7 cascade remains HELD pending the ADR-045 ratification-recording burst (see above). Wave 8 (S-21.24) STRICTLY LAST. |
@@ -223,60 +224,64 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`
 
-## Session Resume Checkpoint (2026-08-27 — D-1124 ADR-046 CONVERGED-VALIDATED; wave-decomposition decision; PIPELINE ACTIVE)
+## Session Resume Checkpoint (2026-08-27 — D-1125 Wave-5 decomp cascade COMPLETE; E-17 Wave-5 TDD NEXT)
 
-> **SELF-SUFFICIENT RESUME CONTEXT.** D-1124 milestone burst: ADR-046 spec-convergence gate
-> CONVERGED-VALIDATED — frozen spec set confirmed internally consistent by fresh-context perimeter
-> audit; 3-CLEAN (63/64/65) VALID; perimeter audit PERIMETER-GAPS (story-level gaps in S-17.05);
-> human directed wave decomposition S-17.05/06/07. Prior checkpoint archived to
-> `cycles/v1.0-brownfield-backfill/session-checkpoints.md`. **NEXT action:** decomposition cascade
-> (architect → product-owner → story-writer → state-manager indexing for S-17.06/S-17.07).
+> **SELF-SUFFICIENT RESUME CONTEXT.** D-1125 Phase D burst: ADR-046 Wave-5 decomposition cascade
+> COMPLETE — S-17.06 (factory-lock-fns), S-17.05 (stamper, depends_on S-17.06), S-17.07
+> (precompact-flush, depends_on S-17.06) all registered in STORY-INDEX v4.394. E-17 epic v1.2
+> (7 stories, 44pts). BC-INDEX v5.19; ARCH-INDEX v3.95. Blocking issue 'S-17.05 wave decomp
+> required' CLOSED. Prior checkpoint archived to
+> `cycles/v1.0-brownfield-backfill/session-checkpoints.md`. **NEXT action:** E-17 Wave-5 TDD
+> — S-17.06 first (blocks both S-17.05 and S-17.07 per DAG).
 
 ### Position
 
 Brownfield cycle `v1.0-brownfield-backfill`. ADR-046 spec-convergence gate **CONVERGED-VALIDATED
-(D-1124)**. Frozen set: **ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001
-v1.39** (UNCHANGED since pass-59 fix; 4-index: ARCH-INDEX v3.94, BC-INDEX v5.18, VP-INDEX v2.79,
-STORY-INDEX v4.393). **Next phase:** E-17 Wave-5 decomposition cascade — S-17.05 (re-scope to
-stamper + TTL), S-17.06 (factory-lock shared-fns), S-17.07 (precompact-flush identity-gate).
-S-17.05 TDD NOT READY until cascade completes.
+(D-1124)**. Wave-5 decomposition cascade **COMPLETE (D-1125)**. Frozen set: **ADR-046 v1.23 +
+BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39** (UNCHANGED since pass-59 fix;
+4-index: ARCH-INDEX v3.95, BC-INDEX v5.19, VP-INDEX v2.79, STORY-INDEX v4.394). **Next phase:**
+E-17 Wave-5 TDD — S-17.06 (factory-lock-fns, no deps) → S-17.05 (stamper, depends_on S-17.06)
++ S-17.07 (precompact-flush, depends_on S-17.06) in parallel. All three same wave/release
+(ADR-046 Rollout Note atomicity). NOTE: E-17 epic target_release may be stale (set to rc.24 before
+decomp decision) — verify before release-cut. Merged count 111.
 
 ### Convergence summary
 
 65 adversary passes (passes 25→65); 46 genuine BLOCKING findings found+fixed; 9 streak resets.
 Literal BC-5.39.001 3-CLEAN achieved at passes 63/64/65 (D-1121/D-1122/D-1123). Perimeter audit
 (D-1124) confirmed 3-CLEAN VALID; found 3 BLOCKS-CLOSURE story-scope gaps in S-17.05.
-~28 decision codifications this session, D-1082..D-1124 (exhaustive).
+Wave-5 decomp cascade (D-1125): 4 phases (A=bebb9e92, B=fb9d7e6d, C=add9a3f4, D=this commit).
+~29 decision codifications this session, D-1082..D-1125 (exhaustive).
 
 ### Non-blocking items tracked — do NOT re-litigate on resume
 
 **17 ACCEPTED (NON-DEFECT):** O-P42-001 through O-P65-003 — all accepted/tracked, full list in
 `cycles/v1.0-brownfield-backfill/session-checkpoints.md`.
 
-**2 TRACKED DEFECT-TO-FIX:** O-P61-001/O-P62-001 — CAPTURED in S-17.05 v1.1 Task T-8 (story
-commit f323b5e2 2026-08-27; fix executes when S-17.05 enters TDD, after decomposition cascade).
+**2 TRACKED DEFECT-TO-FIX:** O-P61-001/O-P62-001 — CAPTURED in S-17.05 v1.2 Task T-8 (story
+commit f323b5e2 2026-08-27; fix executes when S-17.05 enters TDD).
 
 ### Pending / OWED items
 
-1. **E-17 Wave-5 decomposition cascade** — ACTIVE (human-directed D-1124 2026-08-27): architect
-   decomposition design → product-owner BC re-anchoring (BC-7.07.001 → S-17.07) → story-writer
-   (create S-17.06 + S-17.07, re-scope S-17.05) → state-manager (STORY-INDEX update). This is
-   the IMMEDIATE next work.
+1. **E-17 Wave-5 TDD** — NEXT (S-17.06 first per DAG, then S-17.05 + S-17.07 in parallel).
+   All 3 stories registered. No further cascades needed before TDD entry.
 2. **ADR-045 v1.3 ratification-recording burst OWED** — POLICY 7/8/14/17/19 amendments never
    applied to `policies.yaml`; decision-log D-NNN + BC-INDEX/ARCH-INDEX rows not recorded.
    Wave-7 pre-TDD cascade (S-21.19/20/21/23) remains HELD until this burst lands.
 3. **E-23 epic + S-23.01..S-23.14 re-scope** to the frozen-provenance model (ADR-045 v1.3).
+4. **D-1082 cyclic-hash residual** — BC-4.17.001 hash (ee0c840) stale relative to BC-7.07.001
+   (cc1ff3d); one-round stop applied per D-1082 disposition. No further action until structural
+   fix (architect).
 
 ### HEADs
 
 - `main`: `89f6f87c` — rc.24 bundle commit, tagged v1.0.0-rc.24.
 - `develop`: `6993138b` — rc.24 sync-develop back-merge, CI-GREEN.
-- `factory-artifacts`: `1ded5745` — D-1124 burst (2026-08-27). SHA patched post-push.
+- `factory-artifacts`: `PENDING_PUSH` — D-1125 Phase D burst. SHA patched via D-449(e) after push.
 
 ### Resume Command
 
-Dispatch decomposition cascade: `/vsdd-factory:architect` for S-17.05/06/07 decomposition design,
-then `/vsdd-factory:product-owner` for BC-7.07.001 re-anchoring, then `/vsdd-factory:story-writer`
-for S-17.06 + S-17.07 creation + S-17.05 re-scope, then `/vsdd-factory:state-manager` for
-STORY-INDEX update. Frozen set confirmed: ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21
-+ BC-7.07.001 v1.39.
+Dispatch E-17 Wave-5 TDD: S-17.06 (factory-lock shared-fns, no deps — start first);
+then S-17.05 (stamper + TTL, depends_on S-17.06) and S-17.07 (precompact-flush + identity-gate,
+depends_on S-17.06) in parallel after S-17.06 TDD completes. Frozen spec set confirmed:
+ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39.

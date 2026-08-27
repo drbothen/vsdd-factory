@@ -29,7 +29,8 @@ inputs:
   - plugins/vsdd-factory/bin/factory-lock-write.sh
   - .factory/specs/behavioral-contracts/ss-07/BC-7.07.002.md
   - .factory/stories/S-17.05-stamp-state-timestamp-hook.md
-input-hash: "e73bc01"
+  - .factory/stories/S-17.07-precompact-flush-identity-gate.md
+input-hash: "cc1ff3d"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
