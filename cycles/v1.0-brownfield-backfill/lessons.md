@@ -881,3 +881,50 @@ citation added to any of the four frozen-set artifacts must re-trigger this same
 sweep before the burst closes.
 `[codified; process-gap; ac-reference-grep-complete; verbatim-quote-source-check; D-1103;
 adr-046-gate; F-P46-002; D-1100-extension]`
+
+---
+
+**[codified][process-gap] Class-draining audits must sweep ALL cluster artifacts in the SAME
+burst — unifying meta-lesson spanning passes 43, 46, and 47's AC-attribution stragglers**
+
+The AC-attribution defect class (a live-body citation mis-scoping a story-level AC-NNN as if it
+belonged to the BC it cites) recurred THREE times across three passes before it was genuinely
+drained: pass-43 (F-P43-002) fixed BC-7.07.001's own "AC-018" mis-scoping, but the fix's audit
+was scoped only to BC-7.07.001 — it did not sweep ADR-046 or the other companion BCs for the
+same pattern. Pass-46 (F-P46-002) then found ADR-046's own separate "AC-007" mis-scoping — a
+DIFFERENT artifact, the SAME pattern — and fixed it, but again the audit was scoped only to
+ADR-046, not to the two companion BCs that also cite BC-5.40.001/AC-007. Pass-47 (F-P47-001)
+then found BC-4.17.001's own Invariant 3 carrying the identical AC-007 mis-scoping — the THIRD
+instance, the direct cluster-sibling of pass-46's fix, surviving because pass-46's audit never
+swept BC-4.17.001 in the same burst. Each individual audit (pass-43, pass-46) was itself
+correctly grep-complete WITHIN its own artifact's scope — the gap was never in the grep
+mechanics, but in the SCOPE BOUNDARY: each audit treated "the artifact the finding named" as the
+sweep's perimeter, when the actual perimeter should always have been "every artifact in the
+frozen cluster" (ADR-046 + BC-4.17.001 + BC-5.40.001 + BC-7.07.001). Pass-47's own audit broke
+this pattern deliberately — it swept all three companion BCs in one pass BEFORE any further
+finding could surface the gap piecemeal — and confirmed the class is now genuinely DRAINED
+cluster-wide: zero remaining live-body AC-NNN mis-anchors across any of the four frozen-set
+artifacts.
+
+This is not limited to the AC-attribution class. The SAME single-artifact-scoping failure mode
+could recur for any other class-draining audit this gate runs: `inputs:`-completeness
+(D-1090/D-1100), byte-range/body-confinement arm-scope (D-1096/D-1097), BC-to-BC/ADR
+cross-anchor citations (D-1092/F-P35-001 class), or illustrative verbatim-quote accuracy
+(D-1101). Each of those disciplines was ALREADY extended to be grep-complete WITHIN a single
+artifact by its originating pass — but none of them had an explicit, standing requirement that
+the sweep itself default to cluster-wide scope regardless of which one artifact triggered it.
+
+**Disposition:** ANY class-draining grep audit run at this gate — whether triggered by an
+`inputs:`-completeness finding, an AC-NNN cross-reference finding, a byte-range/arm-scope
+finding, a BC↔BC/ADR cross-anchor finding, or a verbatim-quote-accuracy finding — MUST, as a
+standing default, sweep ALL FOUR cluster artifacts (ADR-046, BC-4.17.001, BC-5.40.001,
+BC-7.07.001) in the SAME burst that produces the fix, not just the one artifact where the
+finding happened to surface. This eleventh discipline supersedes the "sweep the artifact this
+finding names" default that pass-43 and pass-46 each implicitly applied. Applied this burst:
+F-P47-001's own audit swept BC-4.17.001, BC-5.40.001, and BC-7.07.001 in a single pass —
+confirming the AC-attribution class fully drained, with zero remaining live-body mis-anchors in
+any of the three BCs and (from pass-46) ADR-046. Future class-draining audits at this gate
+should apply this same cluster-wide-by-default scope from the outset, rather than waiting for a
+cluster-sibling straggler to surface it pass-by-pass.
+`[codified; process-gap; cluster-wide-audit-scope; ac-reference-grep-complete; D-1104;
+adr-046-gate; F-P47-001; D-1100-extension; unifying-meta-lesson; pass-43-46-47-root-cause]`

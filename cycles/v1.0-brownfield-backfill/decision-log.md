@@ -4929,3 +4929,130 @@ D-1103-ADR046-PASS46-SPEC-CONVERGENCE-REMEDIATION
 2026-08-27
 
 ---
+
+## D-1104
+
+**D-1104-ADR046-PASS47-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1103 (this cycle's decision-log.md). D-1104 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 47 dispatched against the newly-frozen
+set produced by the pass-46 fix burst (ADR-046 v1.18 + BC-4.17.001 v1.21 + BC-5.40.001 v1.18 +
+BC-7.07.001 v1.34). **VERDICT: FINDINGS (1 MED).** The finding is the direct cluster-sibling of
+the pass-46 fix (F-P46-002) — a provenance/cross-reference/citation-accuracy defect, not a
+behavioral-core defect. The gate's design substance remains re-confirmed converged for the 21st
+consecutive pass (stable since pass-27).
+
+**F-P47-001 (MED, POLICY 4, cross-reference integrity).** BC-4.17.001 Invariant 3's own
+parenthetical — "This BC does not change the TTL value itself (BC-5.40.001 Invariant 2/AC-007 —
+2700 seconds, non-configurable — is UNCHANGED)" — carried the identical mis-scoping pattern the
+pass-46 fix (F-P46-002) already corrected on ADR-046's own AC-007 citation: it presented AC-007
+as though it were an acceptance criterion belonging to BC-5.40.001 itself, when BC-5.40.001 has
+no Acceptance Criteria section and no AC-NNN numbering scheme at all. AC-007 is in fact a
+STORY-level acceptance criterion of `.factory/stories/S-17.01-factory-lock-schema-cas-push.md`,
+tracing to BC-5.40.001 Invariant 2. The pass-46 fix corrected ADR-046's own two AC-007 loci but
+was scoped only to ADR-046 — it did not trigger a cluster-wide sweep of the two companion BCs
+for the same pattern, so this BC's own live-body AC-007 citation survived unaudited into this
+pass. **Mandatory cluster-wide exhaustive live-body AC-reference audit performed** (in-scope,
+this pass, extending the pass-43/pass-46 single-artifact-scoped audits to all three cluster BCs
+at once): BC-4.17.001 had ONE live-body hit (Invariant 3's AC-007, this finding); BC-5.40.001
+had SIX AC-NNN hits, all either dated historical narrative or live-body `§Verification
+Properties`/`§VP Anchors` rows already correctly scoped to S-19.08 (AC-001..AC-005), no edit
+made; BC-7.07.001 had FOUR AC-018 hits, all dated historical narrative already correctly
+resolved to S-18.04a at pass-43, no edit made. **BC-4.17.001's Invariant 3 was the ONLY
+remaining live-body mis-anchor across all three cluster BCs — the AC-attribution class is now
+DRAINED cluster-wide.** Fixed same-burst by product-owner: Invariant 3's parenthetical corrected
+to "(BC-5.40.001 §Invariant 2 — 2700 seconds, non-configurable; also S-17.01's AC-007 — is
+UNCHANGED)", mirroring the pass-46 ADR-046 remedy exactly. No PC/Invariant/EC renumbered
+(append-only numbering preserved — POLICY 1). BC-4.17.001 v1.21→v1.22.
+
+**BC-5.39.001 3-CLEAN streak STAYS 0/3** (already 0/3 from pass-46's reset; this finding keeps
+it there — there is no lower floor than 0/3). The finding is an UNSWEPT SIBLING of the pass-46
+fix — the class is now confirmed genuinely DRAINED cluster-wide across all four frozen-set
+artifacts (ADR-046 drained at pass-46; all three companion BCs drained this pass). The
+behavioral core (write-composition, five-outcome table, identity-gating, event-sourcing) remains
+independently re-verified CLEAN, stable for 21 consecutive passes (since pass-27). Full record:
+`adv-adr-046-pass-47.md`.
+
+**Index reconciliation (state-manager, this burst):** BC-INDEX v5.11→**v5.12** (BC-4.17.001 row
+version-chain cell appended). ARCH-INDEX v3.88 UNCHANGED (ADR-046 not touched this pass).
+STORY-INDEX v4.391 and VP-INDEX v2.79 UNCHANGED (no story or VP touched this burst).
+
+**Input-hash recompute:** `compute-input-hash --check`/`--update` run for BC-4.17.001 —
+confirmed already current at `efa4c8a`, no update needed. Only BC-4.17.001 was edited this
+burst; none of its `inputs:`-listed dependencies (ADR-046, BC-5.40.001, BC-7.07.001,
+capabilities.md, BC-4.13.001, BC-6.23.001, the crate sources, hooks-registry.toml) changed
+content this pass, so the stored hash remains correctly settled. Cyclic-hash TD `[D-1082]`
+UNCHANGED, NOT re-opened, NOT force-converged — cross-referenced per this burst's instruction to
+settle without reopening.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-46" as the current/NEXT pass or to
+a streak value other than the correct post-pass-47 `0/3` — matches confined to PRESERVED
+HISTORICAL rows (D-1082..D-1103 entries correctly describing their own contemporaneous pass
+numbers/streak values) and this same burst's own new content. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3→**STAYS 0/3** (a finding keeps it there); Current Artifact
+Versions BC-4.17.001 v1.22 (ADR-046/BC-5.40.001/BC-7.07.001 unchanged); Blocking Issues
+ADR-046-gate row updated (streak 0/3, pass-47 FINDINGS with the finding fixed, fresh pass-48
+NEXT against the newly-frozen set); Drift Items: AC-attribution class now recorded DRAINED
+CLUSTER-WIDE (the unifying meta-lesson spanning passes 43/46/47 — single-artifact-scoped audits
+leave cluster-sibling stragglers; class-draining audits must sweep every cluster artifact in the
+SAME burst); O-P42-001 stays tracked, unaffected; Session Resume Checkpoint refreshed (§2 streak
+0/3, fresh pass-48 NEXT against the newly-frozen set, history appends 47f:
+34C→35R→36C→37R→38C→39R→40f→41C→42C→43R→44obsfix→45C→46R→47f; §3 versions updated to BC-4.17.001
+v1.22); Phase Progress + Current Phase Steps rows added for D-1104 (Current Phase Steps table
+trimmed to keep only the last 5 — D-1099 row archived off, already fully preserved in
+decision-log.md/burst-log.md). Trajectory tail unchanged (Wave-7 not touched this burst —
+→1→1→0→1, LENGTH=4 carries forward).
+
+**CODIFICATION — unifying meta-lesson (new, this burst):** the AC-attribution class survived
+three passes (43, 46, 47) because each fix's own audit was scoped to the SINGLE artifact its
+finding named (pass-43: BC-7.07.001 only; pass-46: ADR-046 only), never sweeping the OTHER
+cluster artifacts in the same burst. Pass-47's CLUSTER-WIDE audit (all three companion BCs swept
+in one pass) found the last straggler (BC-4.17.001 Invariant 3) and drained the class. CODIFIED:
+ANY class-draining grep audit (inputs-completeness, AC-references, byte-range/arm-scope, BC↔BC/
+ADR cross-anchors, verbatim-quotes) MUST sweep ALL cluster artifacts (ADR-046 + all 3 companion
+BCs) in the SAME burst — not just the artifact where the finding originally surfaced.
+Single-artifact-scoped audits leave cluster-sibling stragglers that resurface as findings in
+later passes, resetting or holding the streak down. This is the recurring ROOT CAUSE identified
+across the pass-43/46/47 sequence — audit scope was per-artifact, not per-cluster; the fix is to
+make cluster-wide scope the DEFAULT for every future class-draining audit at this gate,
+regardless of which single artifact a finding happens to name.
+
+Summary: ADR-046 spec-convergence pass-47 COMPLETE. **VERDICT: FINDINGS (1 MED), fixed
+same-burst.** The finding is the direct cluster-sibling of the pass-46 fix, closed via a
+mandatory cluster-wide exhaustive live-body AC-reference audit — the AC-attribution class is now
+confirmed genuinely DRAINED cluster-wide across all four frozen-set artifacts. BC-5.39.001
+3-CLEAN streak **STAYS 0/3** (already at floor from pass-46's reset). BC-4.17.001 v1.22;
+BC-INDEX v5.12; ADR-046/BC-5.40.001/BC-7.07.001 UNCHANGED. Fresh pass-48 is the documented NEXT
+action, against the newly-frozen set, with the AC-attribution class and the new
+cluster-wide-audit-scope discipline both applied proactively from the start.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-47.md, VERDICT: FINDINGS, 1 MED),
+product-owner (BC-4.17.001 v1.21→v1.22, F-P47-001), state-manager (adv-adr-046-pass-47.md
+persist + decision-log D-1104 + lessons codification (unifying meta-lesson) + burst-log +
+BC-INDEX reconciliation + input-hash settle-confirm + STATE.md streak-stays refresh + Session
+Resume Checkpoint refresh)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.11 | v5.12 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.88 | v3.88 (UNCHANGED) |
+
+### Phase
+
+D-1104-ADR046-PASS47-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-27
+
+---
