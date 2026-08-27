@@ -1473,3 +1473,38 @@ ACCEPTED, no edit — so pass-59 (and any future pass) does not re-raise this cr
 asymmetry as a fresh finding.
 `[convergence-governance][provenance-verification][non-defect-adjudication; O-P58-001; D-1115;
 adr-046-gate; F-P25-002-vs-F-P27-001-provenance-confirmed]`
+
+---
+
+**[codified][process-gap] SWEEP-BOTH-MIGRATION-PARTIES-AT-FIX-TIME — fixing a migration-coverage
+finding on one artifact MUST sweep the migration counterpart AND run the cluster-wide audit in the
+SAME burst, not defer it to "next pass" (reinforces D-1104).**
+
+Pass-59's adversary found F-P59-001 (MED, POLICY 4): BC-5.40.001's §Traceability ADR Reference row
+and §Description omitted ADR-046 §Decision 5 despite this same BC's own Precondition 6, Invariant 7,
+Invariant 8, EC-010, and §VP Anchors T-001..T-007 all carrying explicit MIGRATED/RETAINED-AS-
+HISTORICAL annotations under §Decision 5. This is the EXACT mirror-image gap of BC-4.17.001's own
+F-P58-001, found and fixed just one pass earlier (v1.25→v1.26) — but the pass-58 fix-burst touched
+only BC-4.17.001 (the migration TARGET), not BC-5.40.001 (the migration SOURCE, where the contract
+originated before being migrated out). The pass-58 disposition prose itself correctly IDENTIFIED the
+sibling risk (Drift Items table: "apply proactively to BC-5.40.001/BC-7.07.001/ADR-046 at the next
+pass") but did not act on it in the same burst — deferring the sweep cost a full adversary cycle
+(pass-59) before the gap was actually closed, and re-triggered the streak-blocking mechanism a second
+time for what is structurally the SAME underlying defect discovered at pass-58. **Root-cause class:**
+this is the SAME single-artifact-scoped-fix pattern as the AC-attribution class drained at D-1104
+(eleventh discipline) — a fix confined to the literal artifact named in the finding, without also
+sweeping the artifact's structural counterpart (here: the OTHER party to a migration relationship),
+reliably reproduces the same finding CLASS at the counterpart on the very next pass. **CODIFIED rule
+going forward (extends D-1104):** any fix-burst that closes an inputs/AC-ref/ADR-Decision-coverage/
+cross-anchor/byte-range class of finding MUST, in the SAME burst, sweep ALL cluster artifacts party to
+that finding's class — for a migration-class finding specifically, this means BOTH the migration
+SOURCE and the migration TARGET, plus the mandatory cluster-wide audit already codified at D-1115 —
+not just the single artifact literally named in the finding text, and not "anchor for the next pass."
+Pass-59's own fix (BC-5.40.001 v1.20→v1.21) additionally re-ran the cluster-wide audit in the SAME
+burst and confirmed BC-4.17.001 (COMPLETE) and BC-7.07.001 (CLEAN, not a §Decision-5 participant) —
+this is the pattern the codification requires; had pass-58's fix done the same, pass-59 would have
+found zero findings instead of one. **Disposition:** FIXED by product-owner (BC-5.40.001 v1.20→v1.21)
+plus in-burst cluster audit. Anchor: apply this same-burst-both-parties discipline to every future
+migration-class or cross-artifact-coverage finding, not only ADR-Decision-coverage-enumeration.
+`[codified][process-gap][sweep-both-migration-parties-at-fix-time; F-P59-001; D-1116; adr-046-gate;
+reinforces-D-1104; mirror-of-F-P58-001]`

@@ -6340,3 +6340,129 @@ D-1115-ADR046-PASS58-SPEC-CONVERGENCE-REMEDIATION
 2026-08-27
 
 ---
+
+## D-1116
+
+**D-1116-ADR046-PASS59-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1115 (this cycle's decision-log.md). D-1116 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 59 dispatched against the SAME unchanged
+frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.20 + BC-7.07.001 v1.39; streak entered
+at 0/3, already at floor from pass-58). **VERDICT: FINDINGS (1 MED).** Full record:
+`adv-adr-046-pass-59.md`.
+
+**F-P59-001 (MED, POLICY 4 internal-consistency), FIXED:** BC-5.40.001's §Traceability ADR Reference
+row and §Description named ADR-046 coverage only for §Decision 1(b) (PC4 actor reassignment) —
+omitting **Decision 5** — despite this same BC's own Precondition 6, Invariant 7, Invariant 8,
+EC-010, and §Verification Properties/§VP Anchors T-001..T-007 all carrying explicit
+"MIGRATED/RETAINED-AS-HISTORICAL … per ADR-046 §Decision 5" annotations. This is the **mirror-image
+gap of BC-4.17.001's own F-P58-001** (fixed at pass-58, v1.26, on the migration TARGET side) — this
+is the same gap on the migration SOURCE side, never itself swept when the pass-58 fix landed.
+Fixed by product-owner (BC-5.40.001 v1.20→**v1.21**): §Description gains a sentence stating ADR-046
+§Decision 5 reconciles the guard-read contract originally specified here (Precondition
+6/Invariants 7-8/EC-010), migrated out to BC-4.17.001, retained here only as a historical/dormant
+record per §Decision 5's crate-retention clause; §Traceability ADR Reference row now cites
+`ADR-046 §Decision 1(b)/§Decision 5` with a §Decision 5 summary. No PC/Invariant/EC renumbered
+(append-only numbering preserved — POLICY 1). **Same defect CLASS as O-P48-001/F-P58-001**
+(under-inclusive ADR-Decision coverage enumeration), re-surfacing at a different BC/Decision
+pairing — not a new discipline, an instance of an existing one.
+
+**Mandatory cluster-wide ADR-Decision-coverage audit (in-scope, this pass, per the D-1115-codified
+discipline):** every `ADR-046 §Decision N`/`ADR-025 §Decision N` token in the live bodies of
+BC-4.17.001 and BC-7.07.001 was enumerated and cross-checked against each BC's own §Traceability
+ADR Reference row. BC-4.17.001's v1.26 §Decision 5 addition **CONFIRMED COMPLETE** (body cites only
+§Decision 1/1(b)/2/4/5, all present in its row — no gap). BC-7.07.001's body cites only
+`ADR-046 §Decision 1(b)/3/4`, matching its own ADR Reference row exactly — **CONFIRMED CLEAN**
+(BC-7.07.001 is not a participant in the §Decision 5 migration). BC-7.07.001's `ADR-025 §Decision 11`
+body citations and BC-4.17.001's/BC-5.40.001's `ADR-025 §Decision 14` cap-sourcing citations are
+passing supporting-citation footnotes, symmetrically already omitted from all three BCs' ADR
+Reference rows — confirmed not a fresh drift, no action required. **Result: BC-5.40.001 was the LAST
+remaining gap in the cluster; all three companion BCs now confirmed complete.**
+
+**BC-5.39.001 3-CLEAN streak STAYS 0/3** — already at floor entering this pass from pass-58's reset;
+this fix burst does not add a further reset (the streak counter has no lower bound below 0/3, and a
+finding against an already-reset gate does not decrement further — it simply keeps the gate open).
+
+**No non-blocking observations this pass.** The two carried-forward observations from pass-58
+(O-P58-001, O-P58-002) were re-examined and remain ACCEPTED-tracked, untouched.
+
+**Index reconciliation (state-manager, this burst):** BC-INDEX v5.17→**v5.18** (BC-5.40.001 row
+version-cell + Changelog cross-ref, POLICY 8 table-cell-aware). STORY-INDEX v4.392, VP-INDEX v2.79,
+ARCH-INDEX v3.93 all UNCHANGED (ADR-046/BC-4.17.001/BC-7.07.001 not edited this pass).
+
+**Input-hash recompute:** BC-5.40.001 `a21ce60`→`6a9cc08` via `compute-input-hash` (cyclic-hash TD
+`[D-1082]`, settled + cross-referenced, NOT reopened). ADR-046 `3335ad4`, BC-4.17.001 `6b0b35c`,
+BC-7.07.001 `e73bc01` remain unchanged (not edited this pass).
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to BC-5.40.001 `v1.20`/`a21ce60` as current, or
+to a streak value inconsistent with the correct `0/3` floor — matches confined to PRESERVED
+HISTORICAL rows (D-1057..D-1115 entries correctly describing their own contemporaneous
+versions/streak values) and this same burst's own new content. No propagation gap found.
+
+**[CODIFICATION][process-gap] SWEEP-BOTH-MIGRATION-PARTIES-AT-FIX-TIME (reinforces D-1104):** when a
+fix closes a migration-coverage/cross-reference finding on one artifact (here: BC-4.17.001, the
+migration TARGET, at pass-58/F-P58-001), the fix-burst MUST also sweep the artifact's migration
+COUNTERPART (here: BC-5.40.001, the migration SOURCE) AND run the cluster-wide audit AT FIX TIME —
+not defer the sibling check to the next pass. The pass-58 fix-burst touched only BC-4.17.001; the
+pass-58 disposition prose itself anchored the sibling sweep as "apply proactively … at the next
+pass" rather than performing it in the same burst, and pass-59 (this burst) is exactly that deferred
+sweep landing one pass later than necessary, costing a full adversary cycle. This is the SAME
+single-artifact-scoped-fix root cause as the AC-attribution class drained at D-1104 (eleventh
+discipline): a fix confined to the artifact the finding was raised against, without also sweeping
+the artifact's structural counterpart, reliably reproduces the same finding CLASS at the counterpart
+on the very next pass. **Standing rule (extends D-1104 to the ADR-Decision-coverage-enumeration
+discipline and to all future class-draining audits):** any fix to an inputs/AC-ref/ADR-Decision-
+coverage/cross-anchor/byte-range finding MUST, in the SAME burst, sweep ALL cluster artifacts party
+to that finding's class — for a migration-class finding specifically, BOTH the migration SOURCE and
+the migration TARGET, plus the cluster-wide audit — not just the artifact literally named in the
+finding text.
+
+**STATE.md vNext:** streak stays **0/3** (no further reset — already at floor); fresh **pass-60**
+documented NEXT against the pass-59-corrected frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 +
+BC-5.40.001 **v1.21** + BC-7.07.001 v1.39); Current Artifact Versions BC-5.40.001 v1.21
+(ADR-046/BC-4.17.001/BC-7.07.001 unchanged); BC-INDEX version cell v5.18; Blocking Issues ADR-046-gate
+row updated (streak 0/3, pass-59 FINDINGS(1) fixed, fresh pass-60 NEXT); Drift Items gains
+[D-1116][codified][process-gap] SWEEP-BOTH-MIGRATION-PARTIES-AT-FIX-TIME discipline entry; O-P42-001,
+O-P53-DESC-NOOP, O-P57-001, O-P58-001, O-P58-002 all remain UNCHANGED-status, tracked; Session Resume
+Checkpoint refreshed (§2 streak 0/3, fresh pass-60 NEXT, history appends 59f; §3 versions BC-5.40.001
+v1.21; §7 resume command updated); Phase Progress + Current Phase Steps rows added for D-1116
+(Current Phase Steps table trimmed to keep only the last 5). Trajectory tail unchanged (Wave-7 not
+touched this burst).
+
+Summary: ADR-046 spec-convergence pass-59 COMPLETE. **VERDICT: FINDINGS (1 MED).** F-P59-001
+(under-inclusive ADR-Decision-5 coverage enumeration in BC-5.40.001 — the mirror-image sibling of
+pass-58's F-P58-001) FIXED by product-owner (v1.20→v1.21), plus a mandatory cluster-wide audit
+confirming BC-4.17.001 and BC-7.07.001 both complete/clean. BC-5.39.001 3-CLEAN streak **STAYS 0/3**.
+BC-INDEX v5.17→v5.18. Input-hash recomputed for BC-5.40.001 (`a21ce60`→`6a9cc08`). New codification:
+sweep-both-migration-parties-at-fix-time (reinforces D-1104). Fresh pass-60 is the documented NEXT
+action against the pass-59-corrected frozen set.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-59.md, VERDICT: FINDINGS (1 MED)),
+product-owner (BC-5.40.001 v1.20→v1.21, F-P59-001 fix + cluster-wide ADR-Decision-coverage audit),
+state-manager (adv-adr-046-pass-59.md persist + decision-log D-1116 + lessons codification + Drift
+Items entry for the sweep-both-migration-parties discipline + burst-log + BC-INDEX v5.18 + input-hash
+recompute + STATE.md streak-stays-0/3 update)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.17 | v5.18 (BC-5.40.001 row) |
+| STORY-INDEX | v4.392 | v4.392 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.93 | v3.93 (UNCHANGED) |
+
+### Phase
+
+D-1116-ADR046-PASS59-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-27
+
+---
