@@ -104,7 +104,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **6993138b** | rc.24 sync-develop back-merge (merge commit, ancestry preserved). CI-GREEN. |
-| factory-artifacts | **ea54eb57** | D-1118-ADR046-PASS61-SPEC-CONVERGENCE-CLEAN. ACTIVE. rc.24 shipped + Marketplace PR #19 CLOSED. ADR-046 gate streak ADVANCES 1/3→2/3 (frozen set ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39, fresh pass-62 NEXT); ADR-045 v1.3 accepted (ratification burst still OWED); E-23 STALE. O-P61-001 TRACKED DEFECT-TO-FIX. |
+| factory-artifacts | **258c4972** | D-1119-ADR046-PASS62-SPEC-CONVERGENCE-RESET. ACTIVE. F-P62-001 FIXED structural (ARCH-INDEX v3.93→v3.94). ADR-046 gate streak RESETS 2/3→0/3 (9th reset; frozen set UNCHANGED: ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39; fresh pass-63 NEXT). O-P61-001/O-P62-001 BOUND to S-17.05 (human-directed). ADR-045 v1.3 accepted (ratification burst still OWED); E-23 STALE. |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
 | fix/policy15-empty-range-inert | a6a15e1d | MERGED PR #779 2026-08-16. |
@@ -268,7 +268,7 @@ Passes 25→62 run (38 fresh-context adversary passes). **9 streak resets** occu
 
 - `main`: `89f6f87c` — rc.24 bundle commit, tagged v1.0.0-rc.24. Marketplace PR #19 MERGED — rc.24 delivered to operators.
 - `develop`: `6993138b` — rc.24 sync-develop back-merge, CI-GREEN.
-- `factory-artifacts`: TBD (D-1119 burst commit SHA — see Active Branches after push).
+- `factory-artifacts`: `258c4972` — D-1119 pass-62 FINDINGS burst (pushed 2026-08-27).
 
 ### Resume Command
 
