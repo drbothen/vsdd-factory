@@ -6788,3 +6788,55 @@ D-1118-ADR046-PASS61-SPEC-CONVERGENCE-CLEAN
 **Canonical 6-column row (for STATE.md Decisions Log table):**
 
 | D-1121 | D-1121-ADR046-PASS63-SPEC-CONVERGENCE-CLEAN | adv-adr-046-pass-63.md persisted. **VERDICT CLEAN — zero blocking findings at any severity.** Adversary independently re-derived all seventeen spec-vs-code behavioral checks (all MATCH): parse_factory_lock empty/absent-holder→Err(Malformed); Ok(None) only for absent/fully-null block; renew_lock_with_now opaque-String expires_at/byte-compare/never date-parses; parse_iso8601 exists for case-1 re-derived check; is_expired now>=expires_at; trim_git_email trim_end; three TTL literals 2700 incl u64; precompact-flush Step-4 identity-blind renew_lock; FactoryLock vs LockState distinction; extract_yaml_string_value holder:null→literal "null"; verify-state-timestamp-refresh Steps 4-7/8 F-P54-001 fix; five-case table byte-consistent across ADR/BC-4.17.001 PC2/BC-7.07.001 Inv3b; Decision-5 migration reconciled both ends; POLICY 4/6 CAP-031/032 anchors correct; POLICY 19 no live-body load-bearing ADR pins; sibling-sweep no unswept holder:null straggler. **F-P62-001 RETIRED confirmed under fresh lens** — ARCH-INDEX ADR-046 row now version-stable by construction; O-P28-002 falsification durably closed. **BC-5.39.001 streak ADVANCES 0/3 → 1/3.** Frozen set UNCHANGED: ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39. **THIS IS A CLEAN PASS, NOT A FIX BURST** — no spec artifact edited; no version bump; no input-hash recompute; no 4-INDEX version-cell change. O-P63-i/O-P63-ii: already-tracked non-defect observations; no new entry. Novelty NONE. Full: decision-log.md D-1121. | D-1121 | 2026-08-27 |
+
+---
+
+## D-1122
+
+**D-1122-ADR046-PASS64-SPEC-CONVERGENCE-CLEAN**
+
+**Date:** 2026-08-27
+**Agents:** adversary (fresh-context; adv-adr-046-pass-64.md), state-manager (CLEAN-pass bookkeeping)
+**Decision:** ADR-046 BC-5.39.001 3-CLEAN spec-convergence gate pass-64 CLEAN — zero blocking findings; BC-5.39.001 streak ADVANCES 1/3→2/3; frozen set UNCHANGED; no spec artifact edited.
+
+**Verdict:** CLEAN — zero blocking findings at any severity.
+
+**Substantive verification:** Adversary independently re-derived the model from code + specs and verified every behavioral claim against source. All seventeen spec-vs-code ground-truth checks MATCH:
+
+- `parse_factory_lock` empty/absent-holder→Err(Malformed); `Ok(None)` only for absent/fully-null block
+- `renew_lock_with_now` opaque-String `expires_at`/byte-compare/never date-parses (case-1 RE-DERIVED accurate)
+- `parse_iso8601` used for case-1 `is_expired` check
+- `is_expired` now>=expires_at
+- `trim_git_email` trim_end
+- Three TTL literals 2700 incl u64; "MUST NOT be overridden" comment verified
+- Precompact-flush Step-4 identity-blind renew_lock (LOCK_RENEWAL_TTL_SECS u64=2700)
+- `FactoryLock` vs `LockState` distinction
+- `extract_yaml_string_value` holder:null→literal "null" (EC-011 accurate)
+- `verify-state-timestamp-refresh` Steps 4-7/8 module-doc (F-P54-001 fix)
+- Five-case table byte-consistent across ADR/BC-4.17.001 PC2/BC-7.07.001 Inv3b
+- Decision-5 migration reconciled both ends; MIGRATED/RETAINED-AS-HISTORICAL symmetric (TARGET BC-4.17.001 v1.26 / SOURCE BC-5.40.001 v1.21)
+- POLICY 4/6/19 PASS; no load-bearing ADR version pins (POLICY 19)
+- F-P62-001 structural fix re-confirmed holding: ARCH-INDEX ADR-046 row version-stable; O-P28-002 durably closed
+- Sibling-sweep: no unswept holder:null straggler
+
+**Observations (non-blocking, NON-DEFECT — both ALREADY TRACKED, no new action):**
+- O-P64-001 [NON-DEFECT, documentation-symmetry]: BC-4.17.001 has no explicit `holder: null` illustrative EC while siblings BC-5.40.001/BC-7.07.001 do. Adjudicated NON-DEFECT (BC-4.17.001's general five-case PC2 gate covers `holder: "null"` correctly; not spec-vs-code). SAME class as O-P57-001 (D-1114). Authorial-intent question for product-owner per S-7.01; remains ACCEPTED-tracked; no new entry beyond noting the recurrence.
+- O-P64-002 [out-of-perimeter → implementer]: stale `factory-lock` crate doc-comments (crates/factory-lock/src/lib.rs, renew_lock_with_now algorithm doc / Ok(None)-arm inline comment / parse_lock doc). ALREADY CAPTURED in S-17.05 v1.1 Task T-8 (D-1120). Runtime behavior correct; only doc-comments stale. No new action.
+
+**Frozen spec artifacts:** ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39 — ALL UNCHANGED.
+
+**THIS IS A CLEAN PASS, NOT A FIX BURST** — no spec artifact edited; no version bump; no input-hash recompute; no 4-INDEX version-cell change.
+
+**BC-5.39.001 streak ADVANCES 1/3 → 2/3.** Second consecutive clean pass of the post-pass-62-reset sequence. One more consecutive clean pass (65) needed for literal 3-CLEAN, which unblocks S-17.05 TDD.
+
+**Novelty:** LOW (converged; behavioral core clean for many passes since pass-27).
+
+**4-INDEX after this burst:**
+- ARCH-INDEX: v3.94 (UNCHANGED)
+- BC-INDEX: v5.18 (UNCHANGED)
+- VP-INDEX: v2.79 (UNCHANGED)
+- STORY-INDEX: v4.393 (UNCHANGED)
+
+**Canonical 6-column row (for STATE.md Decisions Log table):**
+
+| D-1122 | D-1122-ADR046-PASS64-SPEC-CONVERGENCE-CLEAN | adv-adr-046-pass-64.md persisted. **VERDICT CLEAN — zero blocking findings at any severity.** Adversary independently re-derived all seventeen spec-vs-code checks (all MATCH): empty-string holder→Err(Malformed "empty string"), absent-holder-w/-siblings→Err(Malformed "absent"), Ok(None) only for fully-absent/null block; renew_lock_with_now opaque-String/byte-compare/never-date-parses (case-1 RE-DERIVED accurate); is_expired now>=expires_at; trim_git_email trim_end; TTL_SECONDS=2700 + "MUST NOT be overridden" comment; precompact-flush Step-4 identity-blind renew_lock (LOCK_RENEWAL_TTL_SECS u64=2700); verify-state-timestamp-refresh Steps 4-7/8 module-doc; EC-011 holder:null→literal "null" code-accurate; five-case table byte-consistent; Decision-5 MIGRATED/RETAINED-AS-HISTORICAL symmetric (TARGET BC-4.17.001 v1.26 / SOURCE BC-5.40.001 v1.21); POLICY 4/6/19 PASS. F-P62-001 structural fix re-confirmed: ARCH-INDEX ADR-046 row version-stable; O-P28-002 durably closed. O-P64-001 = O-P57-001-class NON-DEFECT ACCEPTED-tracked (recurrence noted, no new entry). O-P64-002 = ALREADY CAPTURED S-17.05 T-8 (D-1120). **BC-5.39.001 streak ADVANCES 1/3 → 2/3.** Frozen set UNCHANGED: ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39. **THIS IS A CLEAN PASS, NOT A FIX BURST** — no spec artifact edited; no version bump; no input-hash recompute; no 4-INDEX version-cell change. Novelty LOW. Full: decision-log.md D-1122. | D-1122 | 2026-08-27 |

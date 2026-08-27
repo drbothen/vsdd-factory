@@ -1537,3 +1537,11 @@ index cell headlines) is durably eliminated. All seventeen codified convergence-
 re-verified holding with zero regression. BC-5.39.001 streak ADVANCES 0/3 → 1/3; two more consecutive
 clean passes needed for literal 3-CLEAN.
 `[convergence-progress][D-1121; adr-046-gate; pass-63-CLEAN; streak-1/3; F-P62-001-retired-confirmed]`
+
+**L-BB-D1122-pass64-clean** — Pass-64 CLEAN advances the BC-5.39.001 streak to 2/3 — one pass from
+literal 3-CLEAN. All seventeen spec-vs-code checks independently re-derived with zero divergence;
+behavioral core confirmed stable. O-P64-001 (BC-4.17.001 holder:null EC asymmetry) is the same
+documentation-symmetry class as O-P57-001 (D-1114) — adjudicated NON-DEFECT twice now; not a defect,
+not fixed. O-P64-002 (stale factory-lock crate doc-comments) is already captured in S-17.05 v1.1 T-8.
+The converged spec set has now passed 64 adversary reviews with 46 genuine findings fixed total.
+`[convergence-progress][D-1122; adr-046-gate; pass-64-CLEAN; streak-2/3; one-pass-from-3-CLEAN]`
