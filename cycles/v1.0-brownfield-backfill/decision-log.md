@@ -6233,3 +6233,110 @@ D-1114-ADR046-PASS57-SPEC-CONVERGENCE-CLEAN
 2026-08-27
 
 ---
+
+## D-1115
+
+**D-1115-ADR046-PASS58-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1114 (this cycle's decision-log.md). D-1115 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 58 dispatched against the SAME unchanged
+frozen set (ADR-046 v1.23 + BC-4.17.001 v1.25 + BC-5.40.001 v1.20 + BC-7.07.001 v1.39; streak entered
+at 1/3). **VERDICT: FINDINGS (1 MED) + 2 OBS.** Full record: `adv-adr-046-pass-58.md`.
+
+**F-P58-001 (MED, POLICY 4 internal-consistency), FIXED:** BC-4.17.001's §Description ADR-046-coverage
+sentence and §Traceability ADR Reference row enumerated this BC's own ADR-046 coverage as "Decisions
+1, 2, and 4" only — omitting **Decision 5** — despite this same BC's own Precondition 4, Invariant 7,
+Invariant 8, EC-015, and VP-TBD-7/8/9 all carrying explicit "MIGRATED … per ADR-046 §Decision 5"
+annotations, and despite BC-4.17.001 being the designated migration TARGET of Decision 5 per
+ADR-046's File-Change Plan + Companion Amendment 1 item (vi) (originally sourced at F-P4-002, v1.4).
+Fixed by product-owner (BC-4.17.001 v1.25→**v1.26**): §Description now states Decision 5 coverage
+alongside 1/2/4; §Traceability ADR Reference row adds a `§Decision 5` line with a short summary
+(migrated read-cap/`extract_frontmatter`/soft-warn/`OutputTooLarge` guard-read reconciliation from
+BC-5.40.001's retired `verify-state-timestamp-refresh`). No PC/Invariant/EC renumbered (append-only
+numbering preserved — POLICY 1). **Same defect CLASS as O-P48-001** (under-inclusive ADR-Decision
+coverage enumeration), re-surfacing at a different BC/Decision pairing — not a new discipline, an
+instance of an existing one.
+
+**BC-5.39.001 3-CLEAN streak RESETS 1/3 → 0/3** — the 8th reset this session.
+
+**Two non-blocking observations considered and adjudicated NON-DEFECT, tracked:**
+
+- **O-P58-001 (LOW):** the F-P27-001 (§Story Anchor) vs F-P25-002 (§Traceability) provenance-ID split
+  used by BC-5.40.001/BC-7.07.001, versus BC-4.17.001 citing only F-P25-002 at both loci, was
+  independently re-derived by the adversary and **CONFIRMED CORRECT PROVENANCE**: F-P25-002 (pass-25)
+  is the origin fix resolving the `[pending]` S-17.05 placeholder at §Traceability across all three
+  BCs; F-P27-001 (pass-27) was a §Story-Anchor-specific sibling-sweep fix applied only to
+  BC-5.40.001/BC-7.07.001 because BC-4.17.001's own pass-25 fix had already touched BOTH loci in the
+  same burst, leaving no separate gap for a pass-27 fix to close. No edit. Tracked so future passes do
+  not re-raise this as a fresh finding.
+- **O-P58-002 (LOW):** BC-4.17.001's `status: draft` and `lifecycle_status: draft` frontmatter fields
+  cross-checked against each other and POL-14 auto-promotion criteria — both correctly `draft` (S-17.05
+  has not yet merged an implementing PR). NON-DEFECT, noted only, no edit.
+
+**Process note:** the product-owner turn implementing the F-P58-001 fix dropped mid-edit on an API
+loss and was resumed to completion by a fresh product-owner dispatch; the resumed turn re-verified the
+partial edit state on disk before continuing. Final state (BC-4.17.001 v1.26, §Description +
+§Traceability both corrected, Changelog row + `modified:` entry both present) confirmed complete
+before this record was persisted. Non-blocking.
+
+**Index reconciliation (state-manager, this burst):** BC-INDEX v5.16→**v5.17** (BC-4.17.001 row
+version-cell + Changelog cross-ref, POLICY 8 table-cell-aware). STORY-INDEX v4.392, VP-INDEX v2.79,
+ARCH-INDEX v3.93 all UNCHANGED (ADR-046/BC-5.40.001/BC-7.07.001 not edited this pass).
+
+**Input-hash recompute:** BC-4.17.001 `b7f7213`→`6b0b35c` via `compute-input-hash` (cyclic-hash TD
+`[D-1082]`, settled + cross-referenced, NOT reopened). ADR-046 `3335ad4`, BC-5.40.001 `a21ce60`,
+BC-7.07.001 `e73bc01` remain unchanged (not edited this pass).
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to BC-4.17.001 `v1.25`/`b7f7213` as current, or
+to a streak value other than the correct post-reset `0/3` — matches confined to PRESERVED HISTORICAL
+rows (D-1057..D-1114 entries correctly describing their own contemporaneous versions/streak values)
+and this same burst's own new content. No propagation gap found.
+
+**STATE.md vNext:** streak 1/3→**0/3** (RESETS, 8th reset this session, history appends 58R); fresh
+**pass-59** documented NEXT against the pass-58-corrected frozen set (ADR-046 v1.23 + BC-4.17.001
+**v1.26** + BC-5.40.001 v1.20 + BC-7.07.001 v1.39); Current Artifact Versions BC-4.17.001 v1.26
+(ADR-046/BC-5.40.001/BC-7.07.001 unchanged); BC-INDEX version cell v5.17; Blocking Issues ADR-046-gate
+row updated (streak 0/3, pass-58 FINDINGS(1)+2obs, fresh pass-59 NEXT); Drift Items gains
+[D-1115][codified][process-gap] ADR-Decision-coverage-enumeration discipline entry + O-P58-001
+(accepted, correct-provenance) alongside O-P42-001, O-P53-DESC-NOOP, O-P57-001 (all UNCHANGED-status,
+tracked); Session Resume Checkpoint refreshed (§2 streak 0/3, fresh pass-59 NEXT, history appends
+58R; §3 versions BC-4.17.001 v1.26; §7 resume command updated); Phase Progress + Current Phase Steps
+rows added for D-1115 (Current Phase Steps table trimmed to keep only the last 5). Trajectory tail
+unchanged (Wave-7 not touched this burst).
+
+Summary: ADR-046 spec-convergence pass-58 COMPLETE. **VERDICT: FINDINGS (1 MED) + 2 OBS.** F-P58-001
+(under-inclusive ADR-Decision-5 coverage enumeration in BC-4.17.001) FIXED by product-owner
+(v1.25→v1.26). O-P58-001/O-P58-002 adjudicated NON-DEFECT, ACCEPTED-tracked, not fixed. BC-5.39.001
+3-CLEAN streak RESETS 1/3 → **0/3** (8th reset this session). BC-INDEX v5.16→v5.17. Input-hash
+recomputed for BC-4.17.001 (`b7f7213`→`6b0b35c`). Fresh pass-59 is the documented NEXT action against
+the pass-58-corrected frozen set.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-58.md, VERDICT: FINDINGS (1 MED) + 2 OBS),
+product-owner (BC-4.17.001 v1.25→v1.26, F-P58-001 fix; turn resumed after mid-edit API-loss drop),
+state-manager (adv-adr-046-pass-58.md persist + decision-log D-1115 + lessons codification + Drift
+Items entries for the ADR-Decision-coverage discipline + O-P58-001 + burst-log + BC-INDEX v5.17 +
+input-hash recompute + STATE.md streak reset)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.16 | v5.17 (BC-4.17.001 row) |
+| STORY-INDEX | v4.392 | v4.392 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.93 | v3.93 (UNCHANGED) |
+
+### Phase
+
+D-1115-ADR046-PASS58-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-27
+
+---

@@ -1425,3 +1425,51 @@ observe an OPTIONAL absence with nothing false asserted (accept-and-track, never
 Anchor: optional `holder: null` EC mirror into BC-4.17.001 at a future non-gating touch.
 `[convergence-governance][accept-vs-fix][non-defect-adjudication; O-P57-001; D-1114; adr-046-gate;
 O-P51-001-precedent-distinguished; O-P42-001-and-O-P53-DESC-NOOP-precedent-consistent]`
+
+---
+
+**[codified][process-gap] A BC's §Description/§Traceability ADR-coverage enumeration MUST include
+EVERY ADR Decision the BC is a migration TARGET of — verify against the BC's own "MIGRATED … §Decision
+N" annotations, not just against the Decisions the BC was originally authored to cover.**
+
+Pass-58's adversary found F-P58-001: BC-4.17.001's §Description ADR-046-coverage sentence and
+§Traceability ADR Reference row enumerated "Decisions 1, 2, and 4" only, omitting **Decision 5** —
+despite this BC's own Precondition 4, Invariant 7, Invariant 8, EC-015, and VP-TBD-7/8/9 all carrying
+explicit "MIGRATED … per ADR-046 §Decision 5" annotations (originally sourced at F-P4-002, v1.4), and
+despite ADR-046's own File-Change Plan + Companion Amendment 1 item (vi) directing that migration
+explicitly into this BC. The BC was silently under-counting its own documented scope: a coverage
+summary written once at initial authoring (v1.0, Decisions 1/2/4 only) was never revisited when a
+LATER amendment (v1.4, F-P4-002) added an entire Decision's worth of migrated content to the BC's own
+body. **CODIFIED test going forward:** whenever a BC's §Description/§Traceability enumerates its
+ADR-coverage as a fixed Decision-number list, cross-check that list against every "MIGRATED …
+§Decision N" / "per ADR-NNN §Decision N" annotation actually present in the BC's OWN live body
+(Preconditions/Invariants/EC/VP rows) — the coverage summary must be a superset of every Decision the
+body cites itself as implementing, not merely the Decisions cited at initial authoring. **Same defect
+CLASS as O-P48-001** (a prior under-inclusive-coverage-enumeration gap, fixed under governance
+election) — this is a re-surfacing of an EXISTING discipline at a different BC/Decision pairing, not a
+new discipline. **Disposition:** FIXED by product-owner (BC-4.17.001 v1.25→v1.26). Anchor: apply this
+cross-check proactively to ADR-046's OTHER companion BCs (BC-5.40.001, BC-7.07.001) and to ADR-046
+itself at the next pass, per standard proactive-application-of-all-codified-disciplines practice.
+`[codified][process-gap][ADR-decision-coverage-enumeration; F-P58-001; D-1115; adr-046-gate;
+O-P48-001-same-class; eighth-reset]`
+
+---
+
+**[convergence-governance] O-P58-001 provenance-ID split adjudicated NON-DEFECT (origin-pass
+F-P25-002 vs sibling-sweep-pass F-P27-001 correctly cited per locus) — track accepted.**
+
+Pass-58's adversary independently re-derived why BC-4.17.001 cites F-P25-002 at BOTH its
+§Traceability §Stories row AND its §Story Anchor section, while sibling BCs BC-5.40.001 and
+BC-7.07.001 cite F-P25-002 at §Traceability but F-P27-001 at §Story Anchor — and confirmed this
+asymmetry is CORRECT PROVENANCE, not a defect. F-P25-002 (pass-25) is the origin fix that first
+resolved the `[pending]` S-17.05 placeholder at §Traceability across all three cluster BCs.
+F-P27-001 (pass-27) was a §Story-Anchor-specific sibling-sweep fix applied only to
+BC-5.40.001/BC-7.07.001, because BC-4.17.001's own pass-25 fix had ALREADY touched both its
+§Traceability row and its §Story Anchor section in the same burst — leaving no separate §Story-Anchor
+gap in BC-4.17.001 for a pass-27 fix to close. Citing the fix that actually closed each locus, rather
+than forcing uniform citation across sibling BCs regardless of each BC's own distinct fix history, is
+the correct provenance discipline. **Disposition:** CONFIRMED NON-DEFECT, tracked as O-P58-001,
+ACCEPTED, no edit — so pass-59 (and any future pass) does not re-raise this cross-BC citation
+asymmetry as a fresh finding.
+`[convergence-governance][provenance-verification][non-defect-adjudication; O-P58-001; D-1115;
+adr-046-gate; F-P25-002-vs-F-P27-001-provenance-confirmed]`

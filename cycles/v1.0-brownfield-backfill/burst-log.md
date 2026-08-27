@@ -7342,3 +7342,200 @@ tracked, not fixed. **NEXT ACTION:** dispatch fresh-context adversary pass-58 ag
 unchanged frozen set (ADR-046 v1.23 + BC-4.17.001 v1.25 + BC-5.40.001 v1.20 + BC-7.07.001 v1.39) —
 2 more consecutive clean passes (58, 59) reach literal BC-5.39.001 3-CLEAN. ON CONVERGENCE: S-17.05
 TDD implementation unblocks.
+
+## D-1115-ADR046-PASS58-SPEC-CONVERGENCE-REMEDIATION
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a), run AFTER D-1115 was appended to
+decision-log.md this burst, confirming D-1115 is the correct next allocation):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1115 < D-9000 ceiling
+```
+
+**Parent-commit:** the D-1114 pass-57 burst commit (factory-artifacts HEAD at burst start; actual
+parent SHA captured at Block 8 commit time below).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` spec-convergence pass-58 dispatched against the SAME unchanged
+frozen set (ADR-046 v1.23 + BC-4.17.001 v1.25 + BC-5.40.001 v1.20 + BC-7.07.001 v1.39; streak entered
+at 1/3). **Verdict: FINDINGS (1 MED) + 2 OBS.** Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-adr-046-pass-58.md`.
+
+**F-P58-001 (MED, POLICY 4)** — BC-4.17.001's §Description ADR-046-coverage sentence and §Traceability
+ADR Reference row enumerated Decision points 1, 2, and 4 only, omitting **Decision 5**, despite this
+BC's own Precondition 4/Invariant 7/Invariant 8/EC-015/VP-TBD-7/8/9 all carrying explicit "MIGRATED …
+per ADR-046 §Decision 5" annotations, and despite BC-4.17.001 being the designated migration TARGET of
+Decision 5 per ADR-046's File-Change Plan + Companion Amendment 1 item (vi). Fixed by product-owner
+(BC-4.17.001 v1.25→**v1.26**): §Description now states Decision 5 coverage alongside 1/2/4;
+§Traceability ADR Reference row adds a `§Decision 5` line with summary. **BC-5.39.001 3-CLEAN streak
+RESETS 1/3 → 0/3** — the 8th reset this session.
+
+**O-P58-001 (LOW)** — CONFIRMED NON-DEFECT: the F-P27-001/F-P25-002 provenance-ID split BC-4.17.001
+uses at §Traceability/§Story Anchor (both cite F-P25-002) versus its siblings (§Traceability cites
+F-P25-002, §Story Anchor cites F-P27-001) is CORRECT provenance — BC-4.17.001's own pass-25 fix
+touched both loci at once, leaving no separate §Story-Anchor gap for pass-27 to close. No edit.
+
+**O-P58-002 (LOW)** — NON-DEFECT: BC-4.17.001's `status`/`lifecycle_status` frontmatter fields both
+correctly `draft` (S-17.05 not yet merged). No edit.
+
+**Process note:** the product-owner turn implementing the F-P58-001 fix dropped mid-edit on an API
+loss and was resumed to completion by a fresh product-owner dispatch; the resumed turn re-verified the
+partial edit state on disk before continuing. Non-blocking.
+
+**Block 3: Files touched**
+
+- `.factory/specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md`
+  — **UNCHANGED** at v1.23 (not implicated by F-P58-001 — a BC-4.17.001-only coverage-enumeration
+  defect)
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md` — **v1.25→v1.26** (product-owner:
+  §Description + §Traceability ADR Reference Decision-5 addition, F-P58-001)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md` — **UNCHANGED** at v1.20 (audited,
+  confirmed clean, no edit)
+- `.factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md` — **UNCHANGED** at v1.39 (audited,
+  confirmed clean, no edit)
+- `.factory/specs/architecture/ARCH-INDEX.md` — **UNCHANGED** at v3.93 (no ADR-046/ARCH-anchored row
+  edit required)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — **v5.16→v5.17** (BC-4.17.001 row version-cell +
+  Changelog cross-ref, POLICY 8 table-cell-aware; frontmatter `version:`/`last_amended:` updated)
+- `.factory/cycles/v1.0-brownfield-backfill/adv-adr-046-pass-58.md` — new (pass-58 FINDINGS(1)+2obs
+  record)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1115 appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 2 new lessons appended
+  (`[codified][process-gap]` ADR-Decision-coverage-enumeration discipline; `[convergence-governance]`
+  O-P58-001 provenance adjudication)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (streak 0/3 RESETS, Blocking Issues, Drift Items gains the new
+  codification + O-P58-001, Current Artifact Versions BC-4.17.001 v1.26, Session Resume Checkpoint,
+  version bump)
+
+**Block 4: Codifications**
+
+Two new lessons codified in `lessons.md`:
+1. `[codified][process-gap]` — a BC's §Description/§Traceability ADR-coverage enumeration MUST
+   include EVERY ADR Decision the BC is a migration TARGET of, verified against the BC's own
+   "MIGRATED … §Decision N" annotations, not just the Decisions cited at initial authoring. Same
+   defect CLASS as O-P48-001, re-surfacing at a different BC/Decision pairing.
+2. `[convergence-governance]` — O-P58-001's provenance-ID split (F-P25-002 origin-pass vs F-P27-001
+   sibling-sweep-pass, cited per-locus per each BC's own distinct fix history) adjudicated NON-DEFECT
+   and ACCEPTED-tracked.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+D-448(a) source-attestation parity gate (decision-log D-1115 BLOCKING finding-ID set vs
+adv-adr-046-pass-58.md Part A BLOCKING finding-ID set — both MUST match exactly):
+
+```
+$ grep -oE "F-P58-[0-9]{3}" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-58.md | sort -u
+F-P58-001
+$ sed -n '/^## D-1115/,/^---$/p' cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE "F-P58-[0-9]{3}" | sort -u
+F-P58-001
+```
+
+Both commands produce the identical single-element set `F-P58-001` — decision-log D-1115's finding
+citation faithfully describes adv-adr-046-pass-58.md Part A. O-P58-001/O-P58-002 deliberately excluded
+from the BLOCKING finding-ID set (non-blocking observations), same convention as prior O-PNN-NNN items.
+
+Streak-reset verification gate (literal shell):
+
+```
+$ grep -c "1/3 → \*\*RESETS to 0/3\*\*" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-58.md
+1
+```
+
+F-P58-001 ground-truth gate (direct inspection of BC-4.17.001's own live body post-fix, not trusted
+from the adversary's or product-owner's own narrative):
+
+```
+$ awk '/^---$/{c++; if(c==2) start=1; next} start' specs/behavioral-contracts/ss-04/BC-4.17.001.md | grep -n "Decision 5" | head -3
+47:fixes), 4 (renewal-indeterminate diagnostic event), and the Decision 5 guard-read/cap migration
+97:   BC-5.40.001 Precondition 6 — ADR-046 §Decision 5 reconciliation, F-P4-002):** the
+100:   `max_bytes = 262144` (256 KiB). **Sourcing (corrected 2026-08-26, ADR-046 §Decision 5 /
+$ awk '/^---$/{c++; if(c==2) start=1; next} start' specs/behavioral-contracts/ss-04/BC-4.17.001.md | grep -n "^| ADR Reference"
+714:| ADR Reference | ADR-046 §Decision 1/§Decision 2/§Decision 4/§Decision 5 (new plugin `stamp-state-timestamp`, identity model + trim/config-scope fixes, renewal-indeterminate diagnostic event, migrated read-cap/`extract_frontmatter`/soft-warn/`OutputTooLarge` guard-read reconciliation from BC-5.40.001's retired `verify-state-timestamp-refresh`; ratified 2026-08-25) |
+```
+
+Confirms §Description (line 47) and §Traceability's ADR Reference row (line 714) both now cite
+`§Decision 5` — the fix landed as claimed.
+
+Frontmatter version/input-hash CHANGED (BC-4.17.001 only) / UNCHANGED (other 3) gate, plus BC-INDEX
+version gate (literal shell, all confirmed post-edit):
+
+```
+$ for f in specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-05/BC-5.40.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md; do echo -n "$f: "; grep "^version:\|^input-hash:" "$f" | tr '\n' ' '; echo; done
+.../ADR-046-...md: version: "1.23" input-hash: "3335ad4"
+.../BC-4.17.001.md: version: "1.26" input-hash: "6b0b35c"
+.../BC-5.40.001.md: version: "1.20" input-hash: "a21ce60"
+.../BC-7.07.001.md: version: "1.39" input-hash: "e73bc01"
+$ grep -n '^version:' specs/behavioral-contracts/BC-INDEX.md
+4:version: "5.17"
+```
+
+Confirms BC-4.17.001 is the only artifact edited (v1.25→v1.26, input-hash `b7f7213`→`6b0b35c`); ADR-046
+/BC-5.40.001/BC-7.07.001 byte-identical to pass-57's values; BC-INDEX correctly bumped to v5.17.
+
+**Block 6 (Dim-5): Closes**
+
+- **Pass-58 FINDINGS(1)+2obs verdict** — persisted verbatim as `adv-adr-046-pass-58.md`.
+- **F-P58-001** — CLOSED. BC-4.17.001 v1.25→v1.26 fix ground-truth-verified above (both cited loci
+  confirmed to now carry `§Decision 5`).
+- **O-P58-001 / O-P58-002 adjudications** — CLOSED via ACCEPTED-tracked / NON-DEFECT-noted
+  dispositions + `[convergence-governance]` lesson entry (O-P58-001); no fix required for either.
+- **`BC-5.39.001 3-CLEAN streak`** — **RESETS 1/3 → 0/3** (8th reset this session). NOT a closure —
+  3 further consecutive clean passes (59, 60, 61) required for literal 3-CLEAN.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1115-ADR046-PASS58-SPEC-CONVERGENCE-REMEDIATION` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation
+gate: literal-shell diff captured in Block 5 — decision-log D-1115 and adv-adr-046-pass-58.md Part A
+BLOCKING finding-ID sets both confirmed to be the identical single-element set `F-P58-001` via literal
+grep with captured output. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate, D-448(a)
+source-attestation check, streak-reset verification gate, F-P58-001 ground-truth gate, and
+frontmatter/input-hash/BC-INDEX-version gate all use actual shell with verbatim stdout captured
+(Block 5) — no pseudocode, no estimated counts, no trusted-but-unverified claims. Per
+TD-FACTORY-HOOK-BYPASS-001 P0, all `.factory` content mutations this burst used the Edit/Write tools
+exclusively; the only Bash invocations were READ-ONLY (`grep`, `sed`, `awk`, `for`, POLICY 16 allocator
+gate, `compute-input-hash` recompute) — no content-mutating shell command was run against `.factory`
+content. **Note:** every Edit this burst to `.factory/specs/behavioral-contracts/BC-INDEX.md` and
+`.factory/cycles/v1.0-brownfield-backfill/decision-log.md`/`lessons.md` triggered a
+`fail-closed: plugin timed out` PostToolUse advisory
+(`validate-factory-path-root`/`validate-input-hash`/`validate-template-compliance`) — the known
+[D-1073]-tracked non-actionable noise on these large files; each write landed correctly (confirmed by
+re-grep immediately after each Edit, per Block 5 and preflight verification below), PostToolUse cannot
+revert a completed write, and no content-mutating bypass was used. **Also note:** one Edit tool call
+this burst (the table-row-tail insertion targeting BC-INDEX.md) was initially issued with an incorrect
+placeholder string that landed literally in the file (`v1.0X_PLACEHOLDER_NEVER_MATCH`); this was
+caught immediately via re-grep, corrected with a follow-up Edit before any further edits were layered
+on top, and verified clean before proceeding — recorded here for audit-trail completeness per the
+production-grade self-audit discipline (CLAUDE.md), not because it affected the final committed state.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (pass-58) — FINDINGS (1 MED) + 2 OBS, F-P58-001 FIXED.
+- Streak: RESETS 1/3 → 0/3 (8th reset this session). Fresh pass-59 is NEXT, against the pass-58-
+  corrected frozen set.
+- 4-INDEX: ARCH v3.93 (UNCHANGED) / BC v5.16→v5.17 (BC-4.17.001 row) / VP v2.79 (UNCHANGED) / STORY
+  v4.392 (UNCHANGED).
+- policies.yaml UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` — unaffected by this burst. Wave-7 substantive state UNCHANGED — this burst is
+  orthogonal to the Wave-7 cascade (trajectory-tail unchanged, →1→1→0→1, LENGTH=4).
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed
+  via plain push (no force required — fast-forward from parent, unless remote has diverged).
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** the D-1114 pass-57 burst
+  commit — actual commit SHA this burst produces captured at push time.
+
+**Closes:** Pass-58 FINDINGS(1)+2obs verdict persisted (`adv-adr-046-pass-58.md`); F-P58-001
+(under-inclusive ADR-Decision-5 coverage enumeration in BC-4.17.001) FIXED (v1.25→v1.26). BC-5.39.001
+streak **RESETS 1/3 → 0/3** — the 8th reset this session. Two non-blocking observations
+(O-P58-001/O-P58-002) ACCEPTED and tracked, not fixed. **NEXT ACTION:** dispatch fresh-context
+adversary pass-59 against the pass-58-corrected frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 +
+BC-5.40.001 v1.20 + BC-7.07.001 v1.39) — 3 consecutive clean passes (59, 60, 61) reach literal
+BC-5.39.001 3-CLEAN. ON CONVERGENCE: S-17.05 TDD implementation unblocks.
