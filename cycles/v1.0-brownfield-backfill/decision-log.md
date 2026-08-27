@@ -3172,3 +3172,115 @@ D-1088-ADR046-PASS31-SPEC-CONVERGENCE-REMEDIATION
 2026-08-26
 
 ---
+
+## D-1089
+
+**D-1089-ADR046-PASS32-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1088 (this cycle's decision-log.md). D-1089 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 32 dispatched against the frozen set
+(ADR-046 v1.15 + BC-4.17.001 v1.15 + BC-7.07.001 v1.32 + BC-5.40.001 v1.14). **VERDICT: FINDINGS
+(1 HIGH), 0 MED, 0 LOW observations.** BC-5.39.001 3-CLEAN streak REMAINS 0/3 (already reset at
+pass-25; a finding does not reset an already-0/3 streak further). All OTHER dimensions explicitly
+confirmed clean by the adversary — cross-anchors resolve, cardinalities match, every code claim
+verified, status pairs consistent — **NO further findings**. Fixed by product-owner. Full record:
+`adv-adr-046-pass-32.md`.
+
+**F-P32-001 (HIGH, POLICY 14/17, `modified:`-array/head-version parity) — FIXED.** BC-7.07.001's
+`modified:` frontmatter array was missing its own v1.32 entry: `version:`, the `## Changelog`
+table's newest row, and the `last_amended:` prefix all correctly read v1.32 (three of four in-file
+parity legs agreed), but the `modified:`-array's TOP (newest) entry still read v1.31 — the Pass-31
+edit that produced v1.32 updated the other three legs but never prepended the corresponding
+`modified:` entry. Product-owner bumped `version:` 1.32→**1.33**; prepended a new v1.33 `modified:`
+entry plus a BACKFILLED v1.32 entry (mirroring the existing v1.32 `last_amended` disposition text
+verbatim), restoring strict-descending order with no gaps; added a `## Changelog` v1.33 row;
+re-verified all 4 in-file parity legs now agree on v1.33. No PC/Invariant/EC renumbered (POLICY 1
+append-only preserved). BC-7.07.001 v1.32→**v1.33**.
+
+**Novelty assessment (recorded, see lessons.md):** the substantive behavioral spec for this
+ADR/BC cluster remains converged — six passes running (27-32), the defect surface has been entirely
+cross-reference and frontmatter integrity, never logic or spec-vs-code contradiction. This pass's
+sole finding is itself a *process*-layer defect — an incomplete version-bump propagation from the
+immediately-prior burst — rather than a fresh *content* defect surfaced by review of the underlying
+behavioral spec.
+
+**CODIFICATION — 3rd+ recurrence of the `modified:`-array-head-omission-on-version-bump class
+(F-P29-003, F-P30-001, F-P32-001):** bumping `version:` + the `## Changelog` table + `last_amended:`
+while forgetting to prepend the corresponding `modified:`-array head entry has now recurred three
+times across this gate's history. CODIFIED this burst: every BC/artifact version bump MUST run a
+4-leg head==version self-check (`version:` == `modified:`-array-head == `## Changelog`-table-head
+== `last_amended:`-prefix, with NO gap in the `modified:` array) BEFORE the burst is declared done.
+Per the S-7.02 cycle-closing checklist, a follow-up anchor is recorded for a MECHANICAL
+`validate-modified-head-parity` validator hook (develop-branch Rust/WASM code work, out of
+factory-artifacts scope — `validate-changelog-monotonicity` already exists but does NOT check
+modified-head==version; anchored to the same S-15.03 PRIORITY-A automation tranche as the other
+mechanical-consistency-checker follow-ups this gate has already accumulated, e.g. the `[D-1082]`
+cyclic-hash structural fix). Codified in `lessons.md` tagged `[codified][process-gap]`.
+
+**Index reconciliation (state-manager, this burst):**
+
+- **BC-INDEX v5.03→v5.04:** BC-7.07.001 row version-history v1.32→v1.33 appended (F-P32-001). No
+  new BC registered; total_bcs UNCHANGED 1988; SS-04/SS-05/SS-07 counts UNCHANGED.
+- ARCH-INDEX v3.85 UNCHANGED — no ADR touched this pass. STORY-INDEX v4.391 UNCHANGED. VP-INDEX
+  v2.79 UNCHANGED.
+
+**Input-hash recompute (state-manager, this burst, literal shell):** BC-7.07.001
+`8495a56`→`eabeda0`. This is a normal (non-cyclic) recompute — BC-7.07.001's own `inputs:` array was
+not touched this burst, only its `version:`/`modified:`/Changelog/`last_amended` fields; the
+`[D-1082]` 4-way cyclic-hash tangle (ADR-046↔BC-4.17.001↔BC-5.40.001↔BC-7.07.001 mutual `inputs:`
+cites) is UNCHANGED/settled, NOT reopened, NOT chased further — BC-5.40.001's own stored hash
+(`da34eb2`) is unaffected since BC-7.07.001's `inputs:` array itself did not change this burst (only
+BC-7.07.001's own frontmatter fields outside `inputs:` changed).
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md for the superseded version string `BC-7\.07\.001.*v1\.32\b` (anchored to the artifact-ID
+context to avoid bare-number false positives) — matches confined to PRESERVED HISTORICAL dated
+changelog/`last_amended` rows (correctly immutable, not a propagation gap) and the STATE.md loci
+updated in this same burst. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3→0/3 (REMAINS 0/3, explicitly recorded as no-further-reset); Current
+Artifact Versions BC-7.07.001 v1.32→v1.33, ADR-046/BC-4.17.001/BC-5.40.001 UNCHANGED; Blocking
+Issues ADR-046-gate row updated (streak 0/3, pass-32 1 HIGH finding found+fixed, fresh pass-33
+NEXT); new Drift Item recording the codified 4-leg-parity discipline + follow-up
+`validate-modified-head-parity` validator anchor; Session Resume Checkpoint refreshed (§2 streak
+0/3 REMAINS, fresh pass-33 NEXT, human decision to CONTINUE looping recorded; §3 ADR-046
+v1.15/BC-4.17.001 v1.15/BC-5.40.001 v1.14/BC-7.07.001 v1.33; §7 resume command); Phase Progress +
+Current Phase Steps rows added for D-1089 (Current Phase Steps table trimmed to keep only the last
+5 — D-1084 row archived off, already fully preserved in decision-log.md/burst-log.md). Trajectory
+tail unchanged (Wave-7 not touched this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-32 COMPLETE. 1 HIGH finding (F-P32-001, the 3rd+ recurrence
+of the `modified:`-array-head-omission class, CODIFIED this burst) found and fixed same-burst by
+product-owner; 0 MED, 0 LOW observations. All other dimensions explicitly confirmed clean by the
+adversary. No spec-vs-code contradictions — the finding is pure frontmatter-internal-consistency.
+Streak REMAINS 0/3 (no further reset — was already 0/3 entering this pass). Fresh pass-33 is the
+documented NEXT action; needs 3 consecutive clean passes for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-32.md), product-owner (BC-7.07.001 v1.33:
+F-P32-001 `modified:`-array parity restored — v1.33 entry prepended + v1.32 entry backfilled;
+ADR-046/BC-4.17.001/BC-5.40.001 audited, confirmed clean, no edit), state-manager
+(adv-adr-046-pass-32.md persist + BC-INDEX v5.04 + input-hash recompute + decision-log D-1089 +
+lessons codification + burst-log + STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.03 | v5.04 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.85 | v3.85 (UNCHANGED) |
+
+### Phase
+
+D-1089-ADR046-PASS32-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-26
+
+---

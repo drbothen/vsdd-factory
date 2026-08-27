@@ -510,3 +510,4 @@
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-08-26T19:26:13-0500","ts_epoch":1787790373,"schema_version":1}
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-08-26T19:26:31-0500","ts_epoch":1787790391,"schema_version":1}
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-08-26T19:26:44-0500","ts_epoch":1787790404,"schema_version":1}
+{"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-08-26T19:40:55-0500","ts_epoch":1787791255,"schema_version":1}
