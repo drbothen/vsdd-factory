@@ -2517,3 +2517,150 @@ forward; fresh pass-34 is NEXT). **NEXT ACTION:** dispatch fresh-context adversa
 the newly-frozen set (ADR-046 v1.16 + BC-4.17.001 v1.15 + BC-5.40.001 v1.14 + BC-7.07.001 v1.33);
 needs 3 consecutive clean passes (34, 35, 36) for literal 3-CLEAN convergence. S-17.05 TDD
 implementation remains gated on convergence.
+
+## D-1091-ADR046-PASS34-SPEC-CONVERGENCE-CLEAN
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1091 < D-9000 ceiling
+```
+
+(Gate run AFTER D-1091 was appended to decision-log.md this burst, confirming D-1091 is the correct
+next allocation — max cited is D-1091 itself.) **Parent-commit:** the D-1090 pass-33 burst commit
+`972607c0` (factory-artifacts HEAD at burst start; actual parent SHA captured at Block 8 commit
+time below).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` spec-convergence pass-34 dispatched against the ADR-046
+frozen set (ADR-046 v1.16 + BC-4.17.001 v1.15 + BC-7.07.001 v1.33 + BC-5.40.001 v1.14). **Verdict:
+CLEAN — zero findings at any severity.** Every code-vs-spec claim, cross-BC section anchor, 4-leg
+version parity, story-anchor cardinality, status/lifecycle pairing, and subsystem label was
+independently re-verified TRUE against source. **BC-5.39.001 3-CLEAN streak ADVANCES 0/3 → 1/3** —
+the FIRST clean pass this gate has produced across its 34-pass history. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-adr-046-pass-34.md`.
+
+**THIS IS A CLEAN PASS, NOT A FIX BURST.** No spec artifact was edited this burst — the frozen set
+is UNCHANGED. No version bump, no input-hash recompute, no 4-INDEX version-cell change. This
+burst's sole content is: persist the pass-34 record, advance the streak counter, and codify the
+empirical confirmation that the three previously-codified convergence-technique disciplines
+(version-stable directive O-P28-002/D-1085, 4-leg parity D-1089, grep-complete inputs audit
+D-1090), applied together and proactively, are sufficient to reach a literal-clean result.
+
+**Block 3: Files touched**
+
+- `.factory/specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md`
+  — **UNCHANGED** at v1.16 (audited, confirmed clean, no edit — CLEAN pass)
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md` — **UNCHANGED** at v1.15 (audited,
+  confirmed clean, no edit)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md` — **UNCHANGED** at v1.14 (audited,
+  confirmed clean, no edit)
+- `.factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md` — **UNCHANGED** at v1.33 (audited,
+  confirmed clean, no edit)
+- `.factory/specs/architecture/ARCH-INDEX.md` — **UNCHANGED** at v3.86 (no artifact touched this
+  pass; no row edit required)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — **UNCHANGED** at v5.04
+- `.factory/cycles/v1.0-brownfield-backfill/adv-adr-046-pass-34.md` — new (pass-34 CLEAN record)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1091 appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 1 new lesson appended
+  (`[convergence-confirmation][codified]`)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (streak 0/3→1/3 ADVANCES, Blocking Issues, Session Resume
+  Checkpoint, version bump; Current Artifact Versions UNCHANGED)
+
+**Block 4: Codifications**
+
+One new lesson codified in `lessons.md`: `[convergence-confirmation][codified]` — pass-34's
+zero-finding result is the first direct empirical confirmation (not merely a hypothesis) that the
+THREE convergence-technique disciplines this gate's history has produced — the version-stable
+ARCH-INDEX directive (O-P28-002, D-1085), the 4-leg `modified:`-array head==version parity
+self-check (D-1089), and the GREP-COMPLETE mechanical inputs-completeness audit method (D-1090) —
+together, applied proactively from the start of a pass rather than reactively after a fresh
+finding, are sufficient to drain the asymptotic metadata floor that produced a genuine finding on
+every one of the 7 immediately-prior passes (27 through 33). Per BC-5.39.001, this is 1 of 3
+required clean passes — the confirmation is provisional pending passes 35 and 36 also returning
+CLEAN under the same proactive-application discipline (not a relaxation of review rigor).
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+Since this is a CLEAN pass with no artifact edits, the input-hash-recompute and
+frontmatter-version-bump gates from prior fix-burst entries do NOT apply this burst (nothing
+changed to recompute). The applicable literal-shell gates this burst are the POLICY 16
+allocator-ceiling gate (Block 1, above) and the D-448(a) source-attestation parity gate (below).
+
+D-448(a) source-attestation parity gate (decision-log D-1091 finding-ID set vs
+adv-adr-046-pass-34.md Part A finding-ID set — both MUST be the empty set for a CLEAN pass):
+
+```
+$ grep -oE "F-P34-[0-9]{3}" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-34.md | sort -u
+(no output — empty set)
+$ sed -n '/^## D-1091/,/^---$/p' cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE "F-P34-[0-9]{3}" | sort -u
+(no output — empty set)
+```
+
+Both commands produce no output — the finding-ID set is empty on BOTH sides, confirming
+decision-log D-1091's "zero findings" claim faithfully describes adv-adr-046-pass-34.md Part A
+("VERDICT: CLEAN — zero findings at any severity"). Sets match exactly (both empty).
+
+Streak-advance verification gate (literal shell):
+
+```
+$ grep -c "0/3 → \*\*ADVANCES to 1/3\*\*" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-34.md
+1
+$ grep -c "0/3 → ADVANCES to 1/3" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-34.md
+1
+```
+
+**Block 6 (Dim-5): Closes**
+
+- **Pass-34 CLEAN verdict** — persisted verbatim as `adv-adr-046-pass-34.md`; zero findings at any
+  severity.
+- **`BC-5.39.001 3-CLEAN streak`** — **ADVANCES 0/3 → 1/3** (first clean pass this gate has
+  produced). NOT a full closure — 2 further consecutive clean passes (35, 36) required for literal
+  3-CLEAN convergence.
+- **Convergence-confirmation codification** — CLOSED via `[convergence-confirmation][codified]`
+  lesson entry; this confirms the three prior disciplines rather than introducing a new one; no
+  mechanical validator anchor (this is an empirical-confirmation record, not a process-gap fix).
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1091-ADR046-PASS34-SPEC-CONVERGENCE-CLEAN` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation
+gate: literal-shell diff captured in Block 5 — both decision-log D-1091 and
+adv-adr-046-pass-34.md Part A finding-ID sets are confirmed empty via literal grep with captured
+exit codes. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate, D-448(a)
+source-attestation check, and the streak-advance verification gate all use actual shell with
+verbatim stdout captured (Block 5) — no pseudocode, no estimated counts, no trusted-but-unverified
+claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (pass-34) — CLEAN, zero findings, zero observations.
+- Streak: ADVANCES 0/3 → 1/3 (first clean pass). Fresh pass-35 is NEXT, against the SAME unchanged
+  frozen set.
+- 4-INDEX: ARCH v3.86 (UNCHANGED) / BC v5.04 (UNCHANGED) / VP v2.79 (UNCHANGED) / STORY v4.391
+  (UNCHANGED) — no artifact touched this pass, no index update required.
+- policies.yaml UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` — unaffected by this burst. Wave-7 substantive state UNCHANGED — this burst is
+  orthogonal to the Wave-7 cascade (trajectory-tail unchanged, →1→1→0→1, LENGTH=4).
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed
+  via plain push (no force required — fast-forward from parent).
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `972607c0` (the D-1090
+  pass-33 burst commit) — actual commit SHA this burst produces captured at push time.
+
+**Closes:** Pass-34 CLEAN verdict persisted (`adv-adr-046-pass-34.md`); zero findings at any
+severity. BC-5.39.001 streak **ADVANCES 0/3 → 1/3** — the FIRST clean pass this gate has produced.
+No spec artifact edited; no version bump; no input-hash recompute; no 4-INDEX change.
+Convergence-confirmation lesson CODIFIED (empirical confirmation of the three prior disciplines).
+**NEXT ACTION:** dispatch fresh-context adversary pass-35 against the SAME unchanged frozen set
+(ADR-046 v1.16 + BC-4.17.001 v1.15 + BC-5.40.001 v1.14 + BC-7.07.001 v1.33); needs 2 further
+consecutive clean passes (35, 36) for literal 3-CLEAN convergence. S-17.05 TDD implementation
+remains gated on convergence.
