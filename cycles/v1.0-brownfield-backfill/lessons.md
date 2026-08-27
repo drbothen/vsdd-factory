@@ -1399,3 +1399,29 @@ accept-provisional at every prior reset) is thereby validated by this pass's out
 independent of whether the human continues declining accept-provisional going forward.
 `[META][convergence-strategy][seventh-reset; first-behavioral-core-finding-since-pass-27;
 F-P56-001; D-1113; adr-046-gate; literal-3-clean-payoff-demonstrated]`
+
+---
+
+**[convergence-governance] A fresh-context adversary explicitly adjudicating an item a NON-DEFECT
+(correct-as-is, authorial-intent-optional) is accepted-and-tracked, not fixed — distinct from a
+correctable inaccuracy, which IS fixed.**
+
+Pass-57's adversary considered whether BC-4.17.001's EC-011 (`holder: ""`) lacking a parallel
+`holder: null` edge case — while its sibling BC-7.07.001 v1.39 has one, added at the F-P56-001
+round-2 straggler fix — constitutes a defect. It explicitly ruled NOT: BC-4.17.001 asserts nothing
+FALSE about `holder: null` (that sub-case flows correctly through its general 0th-case/case-1..5
+analysis; it is simply not called out as its own illustrative EC row). This is the governing
+distinction this lesson codifies: **O-P51-001 (D-1108) found an illustrative "analogous to T-NNN"
+enumeration that was factually WRONG** — a correctable inaccuracy, and it WAS fixed, at zero streak
+cost (streak was at floor). **O-P57-001 (D-1114) found an illustrative-coverage asymmetry where
+nothing asserted is false** — only an optional elaboration is absent, and whether to add it is an
+authorial-intent/documentation-style call, not a content-correctness call an adversary can
+adjudicate. **Disposition:** tracked as O-P57-001, ACCEPTED non-blocking, NOT fixed this pass — the
+same `[convergence-governance]` fix-vs-accept discipline (D-1101, extended streak-state-dependent at
+D-1110) applies: at streak 1/3, fixing an optional non-defect would cost a live streak for no
+correctness gain. The TEST for this class going forward: does the finding assert the artifact
+contains a FALSE claim (fix it, streak-cost permitting per D-1101/D-1110's weighing), or does it
+observe an OPTIONAL absence with nothing false asserted (accept-and-track, never fix mid-streak)?
+Anchor: optional `holder: null` EC mirror into BC-4.17.001 at a future non-gating touch.
+`[convergence-governance][accept-vs-fix][non-defect-adjudication; O-P57-001; D-1114; adr-046-gate;
+O-P51-001-precedent-distinguished; O-P42-001-and-O-P53-DESC-NOOP-precedent-consistent]`
