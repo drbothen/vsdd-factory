@@ -6840,3 +6840,57 @@ D-1118-ADR046-PASS61-SPEC-CONVERGENCE-CLEAN
 **Canonical 6-column row (for STATE.md Decisions Log table):**
 
 | D-1122 | D-1122-ADR046-PASS64-SPEC-CONVERGENCE-CLEAN | adv-adr-046-pass-64.md persisted. **VERDICT CLEAN — zero blocking findings at any severity.** Adversary independently re-derived all seventeen spec-vs-code checks (all MATCH): empty-string holder→Err(Malformed "empty string"), absent-holder-w/-siblings→Err(Malformed "absent"), Ok(None) only for fully-absent/null block; renew_lock_with_now opaque-String/byte-compare/never-date-parses (case-1 RE-DERIVED accurate); is_expired now>=expires_at; trim_git_email trim_end; TTL_SECONDS=2700 + "MUST NOT be overridden" comment; precompact-flush Step-4 identity-blind renew_lock (LOCK_RENEWAL_TTL_SECS u64=2700); verify-state-timestamp-refresh Steps 4-7/8 module-doc; EC-011 holder:null→literal "null" code-accurate; five-case table byte-consistent; Decision-5 MIGRATED/RETAINED-AS-HISTORICAL symmetric (TARGET BC-4.17.001 v1.26 / SOURCE BC-5.40.001 v1.21); POLICY 4/6/19 PASS. F-P62-001 structural fix re-confirmed: ARCH-INDEX ADR-046 row version-stable; O-P28-002 durably closed. O-P64-001 = O-P57-001-class NON-DEFECT ACCEPTED-tracked (recurrence noted, no new entry). O-P64-002 = ALREADY CAPTURED S-17.05 T-8 (D-1120). **BC-5.39.001 streak ADVANCES 1/3 → 2/3.** Frozen set UNCHANGED: ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39. **THIS IS A CLEAN PASS, NOT A FIX BURST** — no spec artifact edited; no version bump; no input-hash recompute; no 4-INDEX version-cell change. Novelty LOW. Full: decision-log.md D-1122. | D-1122 | 2026-08-27 |
+
+## D-1123
+
+**D-1123-ADR046-PASS65-SPEC-CONVERGENCE-3CLEAN-ACHIEVED**
+
+**Date:** 2026-08-27
+**Agents:** adversary (fresh-context; adv-adr-046-pass-65.md), state-manager (CLEAN-pass bookkeeping)
+**Decision:** ADR-046 BC-5.39.001 3-CLEAN spec-convergence gate pass-65 CLEAN — THIRD consecutive clean pass; LITERAL 3-CLEAN ACHIEVED (63/64/65); frozen set UNCHANGED; no spec artifact edited; convergence closure PENDING fresh-context consistency audit + human gate approval.
+
+**Verdict:** CLEAN — zero blocking findings at any severity.
+
+**Substantive verification:** Adversary independently corroborated 14 load-bearing spec-vs-code claims against source (frozen set confirmed ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39):
+
+- F-P56-001 empty/absent-holder→Err(Malformed) + Ok(None) only for absent/fully-null
+- `renew_lock_with_now` opaque `expires_at`/byte-compare/silent-rewrite
+- `has_factory_lock_key` key-line-only
+- `parse_lock` returns `FactoryLock` vs `LockState`
+- `is_expired` now>=expires_at
+- `trim_git_email` trim_end
+- `verify-state-timestamp-refresh` `parse_iso8601` distinct local wrapper (F-P13-002)
+- Step numbering Steps 4-7/8 (F-P54-001)
+- Precompact-flush Step-4 identity-blind renew_lock as-built
+- Three TTL literals 2700 incl u64 + factory-lock-write.sh "MUST NOT be overridden" comment
+- S-19.08 retained-historical test names HEAD-reproducible
+- EC-011 holder:null→literal "null"
+- Five-case table byte-identical across ADR §Decision 1(b)/BC-4.17.001 PC2/BC-7.07.001 Inv3b
+- Decision-5 MIGRATED/RETAINED-AS-HISTORICAL reconciled SOURCE↔TARGET
+
+Cross-artifact parity: BC-INDEX version cells v1.26/v1.21/v1.39 match live + H1 verbatim (POLICY 7); ARCH-INDEX ADR-046 row version-stable post-F-P62-001 (third fresh-lens confirmation); CAP-031/032 + SS-04/05/07 anchors verbatim (POLICY 4/6); POLICY 19 stable ADR cites. Novelty ZERO — converged on substance.
+
+**Observations (non-blocking, NON-DEFECT — all already tracked):**
+- O-P65-001 [process-gap, already tracked]: SS-07 "Hook Bash Layer" registry label semantic misnomer (already O-P26-002/O-P28-002 class, deferred future ARCH-INDEX subsystem-label review).
+- O-P65-002 [NON-DEFECT]: File-Change-Plan design-only symbols not yet in code — correct per-design; scope of S-17.05.
+- O-P65-003 [known TD]: Input-hash 1-hop cyclic residual (D-1082). Not reopened.
+
+**BC-5.39.001 streak ADVANCES 2/3 → 3/3 — LITERAL 3-CLEAN ACHIEVED (passes 63/64/65).**
+
+**Gate closure status:** LITERAL 3-CLEAN ACHIEVED on the adversary axis. Convergence closure PENDING: (a) fresh-context consistency-validator perimeter audit; (b) explicit human gate approval. S-17.05 NOT yet unblocked.
+
+**Frozen spec artifacts:** ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39 — ALL UNCHANGED.
+
+**THIS IS A CLEAN PASS, NOT A FIX BURST** — no spec artifact edited; no version bump; no input-hash recompute; no 4-INDEX version-cell change.
+
+**Novelty:** ZERO (fully converged on substance).
+
+**4-INDEX after this burst:**
+- ARCH-INDEX: v3.94 (UNCHANGED)
+- BC-INDEX: v5.18 (UNCHANGED)
+- VP-INDEX: v2.79 (UNCHANGED)
+- STORY-INDEX: v4.393 (UNCHANGED)
+
+**Canonical 6-column row (for STATE.md Decisions Log table):**
+
+| D-1123 | D-1123-ADR046-PASS65-SPEC-CONVERGENCE-3CLEAN-ACHIEVED | adv-adr-046-pass-65.md persisted. **VERDICT CLEAN — zero blocking findings at any severity. THIRD consecutive clean pass. LITERAL BC-5.39.001 3-CLEAN ACHIEVED (63/64/65).** Adversary independently corroborated 14 load-bearing spec-vs-code claims against source (frozen set ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39): F-P56-001 empty/absent-holder→Err(Malformed) + Ok(None) only for absent/fully-null; renew_lock_with_now opaque expires_at/byte-compare/silent-rewrite; has_factory_lock_key key-line-only; parse_lock FactoryLock vs LockState; is_expired now>=expires_at; trim_git_email trim_end; verify-factory-lock parse_iso8601 distinct local wrapper (F-P13-002); step numbering Steps 4-7/8 (F-P54-001); precompact-flush Step-4 identity-blind renew_lock as-built; three TTL literals 2700 incl u64 + "MUST NOT be overridden" comment; S-19.08 retained-historical test names HEAD-reproducible; EC-011 holder:null→literal "null"; five-case table byte-identical across ADR §Decision 1(b)/BC-4.17.001 PC2/BC-7.07.001 Inv3b; Decision-5 MIGRATED/RETAINED-AS-HISTORICAL reconciled SOURCE↔TARGET. BC-INDEX version cells v1.26/v1.21/v1.39 match live + H1 verbatim (POLICY 7); ARCH-INDEX ADR-046 row version-stable post-F-P62-001; CAP-031/032 + SS-04/05/07 anchors verbatim (POLICY 4/6); POLICY 19 stable ADR cites. Novelty ZERO — converged on substance. O-P65-001 [process-gap, already tracked]: SS-07 label misnomer (O-P26-002 class, deferred). O-P65-002 [NON-DEFECT]: design-only symbols not yet in code (S-17.05 scope). O-P65-003 [known TD]: D-1082 cyclic residual. **BC-5.39.001 streak ADVANCES 2/3 → 3/3 — LITERAL 3-CLEAN ACHIEVED (63/64/65).** Convergence closure PENDING: (a) fresh-context consistency-validator perimeter audit; (b) human gate approval. S-17.05 NOT yet unblocked. **CLEAN PASS** — no spec edit; no version bump; no 4-INDEX change. Full: decision-log.md D-1123. | D-1123 | 2026-08-27 |

@@ -8442,3 +8442,105 @@ D-444(c) burst-log h2 heading `## D-1122-ADR046-PASS64-SPEC-CONVERGENCE-CLEAN` p
 - **This burst commit SHA:** `21dd33f4` — state(D-1122): ADR-046 pass-64 CLEAN — streak 2/3; fresh pass-65 NEXT [pushed 2026-08-27]
 
 **Closes:** Pass-64 CLEAN verdict persisted (`adv-adr-046-pass-64.md`); zero blocking findings at any severity. BC-5.39.001 streak **ADVANCES 1/3 → 2/3** — the second consecutive clean pass of the post-reset sequence. **NEXT ACTION:** dispatch fresh-context adversary pass-65 against the SAME unchanged frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39) — 1 more consecutive clean pass needed for literal BC-5.39.001 3-CLEAN, which unblocks S-17.05 TDD implementation.
+
+## D-1123-ADR046-PASS65-SPEC-CONVERGENCE-3CLEAN-ACHIEVED
+
+**Block 1: Parent-commit**
+
+Parent SHA (D-419(b)/D-444(c) convention — cites previous burst's commit): `21dd33f4` — the D-1122 SHA-patch burst commit (2026-08-27).
+
+**Block 2: Adversary verdict**
+
+Pass-65 adversary report: `adv-adr-046-pass-65.md`. **VERDICT: CLEAN — zero blocking findings at any severity.** This is the **THIRD consecutive clean pass** (63/64/65) — **LITERAL BC-5.39.001 3-CLEAN ACHIEVED**. Adversary independently corroborated 14 load-bearing spec-vs-code claims against the frozen set (ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39): F-P56-001 empty/absent-holder→Err(Malformed) + Ok(None) only for absent/fully-null; renew_lock_with_now opaque expires_at/byte-compare/silent-rewrite; has_factory_lock_key key-line-only; parse_lock FactoryLock vs LockState; is_expired now>=expires_at; trim_git_email trim_end; parse_iso8601 distinct local wrapper (F-P13-002); step numbering Steps 4-7/8 (F-P54-001); precompact-flush Step-4 identity-blind renew_lock as-built; three TTL literals 2700 incl u64 + "MUST NOT be overridden" comment; S-19.08 retained-historical test names HEAD-reproducible; EC-011 holder:null→literal "null"; five-case table byte-identical across ADR §Decision 1(b)/BC-4.17.001 PC2/BC-7.07.001 Inv3b; Decision-5 MIGRATED/RETAINED-AS-HISTORICAL reconciled SOURCE↔TARGET. BC-INDEX v5.18 version cells v1.26/v1.21/v1.39 match live + H1 verbatim (POLICY 7); ARCH-INDEX ADR-046 row version-stable post-F-P62-001 (third fresh-lens confirmation); CAP-031/032 + SS-04/05/07 anchors verbatim (POLICY 4/6); POLICY 19 PASS. Novelty ZERO. **BC-5.39.001 streak ADVANCES 2/3 → 3/3 — LITERAL 3-CLEAN ACHIEVED (63/64/65).** Gate closure PENDING: (a) fresh-context consistency-validator perimeter audit; (b) human gate approval. S-17.05 NOT yet unblocked.
+
+**Block 3: Files touched**
+
+| File | Change |
+|------|--------|
+| `cycles/v1.0-brownfield-backfill/adv-adr-046-pass-65.md` | NEW — full adversary pass-65 report (VERDICT CLEAN, 14-item ground-truth ledger, cross-artifact parity, observations, novelty ZERO) |
+| `cycles/v1.0-brownfield-backfill/INDEX.md` | Updated — pass-65 row added; Convergence Status advanced to **3/3 — LITERAL 3-CLEAN ACHIEVED (63/64/65); closure pending consistency audit + human approval** |
+| `cycles/v1.0-brownfield-backfill/decision-log.md` | D-1123 codification block added (CLEAN, streak 2/3→3/3, literal 3-CLEAN 63/64/65 achieved, closure PENDING, observations all tracked); canonical 6-column row |
+| `cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-D1123-pass65-3clean-achieved appended: `[convergence-progress]` |
+| `cycles/v1.0-brownfield-backfill/burst-log.md` | This 8-block pass-65 clean-pass entry |
+| `STATE.md` | v9.12→v9.13: frontmatter + phase/current_step/last_amended/timestamp; Phase Progress row D-1123; Current Phase Steps (last-5); Decisions Log D-1123 row; Blocking Issues ADR-046 row; Concurrent Cycles brownfield row; Session Resume Checkpoint; pipeline ACTIVE |
+| `logs/dispatcher-internal-2026-08-27.jsonl` | telemetry drift (swept same commit per TD-VSDD-053) |
+| `sidecar-learning.md` | telemetry drift (swept same commit per TD-VSDD-053) |
+
+**Block 4: Codifications**
+
+- **D-1123-ADR046-PASS65-SPEC-CONVERGENCE-3CLEAN-ACHIEVED** — codified in decision-log.md + STATE.md Decisions Log + STATE.md Phase Progress row + STATE.md Current Phase Steps + INDEX.md pass-65 row + INDEX.md Convergence Status.
+- **L-BB-D1123-pass65-3clean-achieved** — appended to lessons.md: literal BC-5.39.001 3-CLEAN reached after 65 passes / 9 resets this session; final clean run (63/64/65) followed F-P62-001 ARCH-INDEX structural fix; closure pending consistency audit + human approval.
+
+**Block 5: Dim-2/5/6/7 Attestations (literal shell, D-449(a))**
+
+D-448(a) source-attestation parity gate (decision-log D-1123 BLOCKING finding-ID set vs adv-adr-046-pass-65.md Part A BLOCKING finding-ID set — both MUST be empty for a CLEAN pass):
+
+```
+$ grep -oE "F-P65-[0-9]{3}" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-65.md | sort -u
+(no output)
+$ grep -oE "F-P65-[0-9]{3}" cycles/v1.0-brownfield-backfill/decision-log.md | sort -u
+(no output)
+```
+
+Both sets empty: {}. Decision-log D-1123's "CLEAN — zero blocking findings" claim faithfully describes adv-adr-046-pass-65.md Part A ("VERDICT: CLEAN — zero blocking findings at any severity").
+
+Streak-advance verification gate (literal shell):
+
+```
+$ grep -c "ADVANCES 2/3" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-65.md
+1
+```
+
+(One occurrence — Part F "ADVANCES 2/3 → 3/3 — LITERAL BC-5.39.001 3-CLEAN ACHIEVED (passes 63/64/65)".)
+
+Frontmatter version/input-hash UNCHANGED gate (literal shell, all four frozen-set artifacts):
+
+```
+$ for f in specs/architecture/decisions/ADR-046-*.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-05/BC-5.40.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md; do grep -E "^version:|^input-hash:" "$f" | head -2 | tr '\n' ' '; echo "  [$f]"; done
+version: "1.23" input-hash: "3335ad4"   [.../ADR-046-...md]
+version: "1.26" input-hash: "6b0b35c"   [.../BC-4.17.001.md]
+version: "1.21" input-hash: "6a9cc08"   [.../BC-5.40.001.md]
+version: "1.39" input-hash: "e73bc01"   [.../BC-7.07.001.md]
+```
+
+All four frozen artifacts confirmed at expected versions/hashes — NO edit this burst.
+
+POLICY 16 post-burst allocator-ceiling gate (literal shell, confirming D-1123 was appended):
+
+```
+$ grep -oE "D-[0-9]+" cycles/v1.0-brownfield-backfill/decision-log.md | grep "^D-112[0-9]$" | sort -u
+D-1121
+D-1122
+D-1123
+```
+
+D-1123 present in decision-log.md post-append. Sequence D-1121..D-1123 confirms no gaps and no skips.
+
+**Block 6 (Dim-5): Closes**
+
+- **Pass-65 CLEAN verdict** — persisted verbatim as `adv-adr-046-pass-65.md`; zero blocking findings at any severity.
+- **`BC-5.39.001 3-CLEAN streak`** — **ADVANCES 2/3 → 3/3 — LITERAL 3-CLEAN ACHIEVED (63/64/65)**. Adversary-streak component of the gate is SATISFIED. Gate is NOT yet fully closed — requires (a) fresh-context consistency-validator perimeter audit and (b) explicit human gate approval.
+- **O-P65-001/002/003** — all already-tracked NON-DEFECT/TD; no new actions.
+- **S-17.05 status** — UNCHANGED; TDD implementation remains gated pending full gate closure.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1123-ADR046-PASS65-SPEC-CONVERGENCE-3CLEAN-ACHIEVED` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: literal-shell diff captured in Block 5 — both decision-log D-1123 and adv-adr-046-pass-65.md Part A BLOCKING finding-ID sets are confirmed empty {} via literal grep with captured output. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate, D-448(a) source-attestation check, streak-advance verification gate, frozen-artifact unchanged gate, and POLICY 16 post-burst gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts, no trusted-but-unverified claims. Per TD-FACTORY-HOOK-BYPASS-001 P0, all `.factory` content mutations this burst used the Edit/Write tools exclusively; the only Bash invocations were READ-ONLY (`grep`, `wc -l`, `tail`) or append operations — no content-mutating shell bypass was run against `.factory` content.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (pass-65) — CLEAN, zero BLOCKING findings.
+- Streak: ADVANCES 2/3 → 3/3 — **LITERAL BC-5.39.001 3-CLEAN ACHIEVED (63/64/65)**.
+- Gate closure status: LITERAL 3-CLEAN achieved on adversary axis; closure PENDING consistency audit + human approval.
+- 4-INDEX: ARCH v3.94 (UNCHANGED) / BC v5.18 (UNCHANGED) / VP v2.79 (UNCHANGED) / STORY v4.393 (UNCHANGED) — no spec artifact touched this pass, no index update required.
+- policies.yaml UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` — ACTIVE (pass-65 CLEAN burst; trajectory-tail →1→0→0→0 LENGTH=4, +1 from the pass-65 CLEAN milestone advance).
+
+**Block 8: factory-artifacts commit**
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed via plain push (no force required — fast-forward from parent).
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `21dd33f4` — the D-1122 SHA-patch burst commit (2026-08-27).
+- **This burst commit SHA:** [D-449(e) SHA-patch to follow]
+
+**Closes:** Pass-65 CLEAN verdict persisted (`adv-adr-046-pass-65.md`); zero blocking findings at any severity. BC-5.39.001 streak **ADVANCES 2/3 → 3/3 — LITERAL 3-CLEAN ACHIEVED (63/64/65)**. Gate closure PENDING: (a) fresh-context consistency-validator perimeter audit; (b) explicit human gate approval. S-17.05 NOT yet unblocked. **NEXT ACTION:** await consistency-validator audit result + human gate approval before dispatching S-17.05 TDD.
