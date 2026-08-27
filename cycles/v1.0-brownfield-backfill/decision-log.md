@@ -4101,3 +4101,125 @@ D-1096-ADR046-PASS39-SPEC-CONVERGENCE-REMEDIATION
 2026-08-27
 
 ---
+
+## D-1097
+
+**D-1097-ADR046-PASS40-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1096 (this cycle's decision-log.md, backfilled above). D-1097 is allocated cleanly above the true
+max.
+
+ADR-046 fresh-context adversary spec-convergence pass 40 dispatched against the newly-frozen set
+(ADR-046 v1.16 + BC-4.17.001 v1.18 + BC-5.40.001 v1.16 + BC-7.07.001 v1.33) produced by the pass-39
+fix burst. **VERDICT: FINDINGS (1 MED), 0 HIGH, 0 LOW.** **BC-5.39.001 3-CLEAN streak STAYS 0/3**
+(already 0/3 entering this pass from the pass-39 reset; a finding keeps it at 0/3 rather than
+resetting again). Fixed by product-owner. Full record: `adv-adr-046-pass-40.md`.
+
+**F-P40-001 (MED, POLICY 4, sibling-locus-sweep-completeness) — FIXED.** The pass-39/D-1096
+remediation corrected Precondition 4 and Invariant 7 to arm-scope the `extract_frontmatter`-slice
+byte-range restriction to the `timestamp:` arm only. That fix did NOT sweep to VP-TBD-8 — the BC's
+own §Verification Properties table row carrying the identical guarantee — which still read as a
+single joint clause applying frontmatter-slice confinement to BOTH arms, the exact pre-F-P39-001
+framing the Precondition/Invariant pair was corrected away from. A literal reading of VP-TBD-8 (the
+artifact a verifier would consult to write the corresponding unit test) would re-encode the same
+data-destructive hazard F-P39-001 closed. This is direct empirical validation that the D-1096
+arm-parity sibling-sweep codification was itself under-applied at v1.18: the sweep covered the
+Precondition/Invariant pair but not the VP table, Architecture Anchors, or SDK-grounding blocks
+carrying the same guarantee. Corrected: VP-TBD-8 now states the arm split explicitly — PC1's
+`timestamp:` scan byte-range-confined to the `extract_frontmatter` slice; PC2's `expires_at`
+renewal fed the FULL `content_after_pc1`, verified by post-write STATE.md body byte-preservation,
+not slice-consumption. VP-TBD-8's stale internal pointer (`corrected 2026-08-26, F-P15-001`)
+corrected to cite the v1.18/F-P39-001 arm-scope split and this v1.19 sweep. **Comprehensive sweep
+performed same-burst:** every other locus mentioning `extract_frontmatter`, frontmatter slice/
+region, byte-range, or joint PC1/PC2 scoping was checked — Precondition 4, Invariant 7 (both
+confirmed correct, arm-split since v1.18, not re-broken), PC1's rewrite-mechanism paragraph, PC3a,
+PC4, Invariant 5, Edge Cases, Canonical Test Vectors, Architecture Anchors, and Description —
+VP-TBD-8 was the only locus still carrying the joint-arm framing. No PC/Invariant/EC renumbered
+(append-only numbering preserved per POLICY 1).
+
+BC-4.17.001 v1.18→**v1.19**. ADR-046/BC-5.40.001/BC-7.07.001 UNCHANGED at v1.16/v1.16/v1.33 (none
+carries the defective directive — not touched).
+
+**Novelty assessment (recorded, see lessons.md):** this finding is NOT a new dimension — it is the
+FIRST direct empirical validation of the D-1096 arm-parity sibling-sweep codification's own scope.
+The codification requires a what-vs-how reconciliation applied to one arm/case to sweep to every
+analogous sibling arm/case in the same burst; this pass demonstrates that "sibling arm/case" must be
+read to include §Verification Properties rows, Architecture Anchors, and SDK-grounding blocks
+carrying the identical guarantee — not just Preconditions/Invariants. **CODIFIED this burst** (see
+lessons.md, tagged `[codified][process-gap]`): extend the D-1096 arm-parity sibling-sweep discipline
+to explicitly enumerate ALL loci carrying a guarantee — Preconditions, Postconditions, Invariants,
+§Verification Properties rows, Architecture Anchors, and SDK-grounding blocks — not just
+Preconditions/Invariants, whenever a what-vs-how or arm-scope reconciliation is applied. The pass-40
+comprehensive 8-locus sweep (Precondition 4, Invariant 7, PC1's rewrite-mechanism paragraph, PC3a,
+PC4, Invariant 5, Edge Cases, Canonical Test Vectors, Architecture Anchors, Description, and
+VP-TBD-8 itself) is the model going forward for this class of reconciliation.
+
+**Index reconciliation (state-manager, this burst):**
+
+- **BC-INDEX v5.07→v5.08:** BC-4.17.001 row version-chain cell +v1.19.
+- ARCH-INDEX v3.86 UNCHANGED — ADR-046 not touched this pass. STORY-INDEX v4.391 UNCHANGED. VP-INDEX
+  v2.79 UNCHANGED (VP-TBD-8 is not yet VP-registered; see [D-1057] VP-authoring OWED item).
+
+**Input-hash recompute (state-manager, this burst, literal shell, print-mode only):** BC-4.17.001
+recomputed and confirmed **UNCHANGED at `4970575`** — no file listed in BC-4.17.001's own `inputs:`
+array changed content this burst (ADR-046, BC-5.40.001, and BC-7.07.001 are all UNCHANGED; the only
+edit this burst is to BC-4.17.001's OWN body, which is not self-referential in its own `inputs:`
+hash computation). Cyclic-hash TD `[D-1082]` NOT triggered this burst — settled, NOT reopened.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-39" as the current/NEXT pass, to
+streak value `1/3`, or to the superseded BC-4.17.001 `v1.18` version-chain head — matches confined
+to PRESERVED HISTORICAL rows (D-1082..D-1096 entries correctly describing their own contemporaneous
+pass numbers/streak values/versions at the time) and this same burst's own new content. No
+propagation gap found.
+
+**STATE.md vNext:** streak stays **0/3** (a finding on an already-0/3 streak does not reset it
+further, it simply keeps it at 0/3; explicitly recorded as such, distinguishing this from the prior
+three genuine resets); Current Artifact Versions BC-4.17.001 v1.18→v1.19, ADR-046/BC-5.40.001/
+BC-7.07.001 UNCHANGED v1.16/v1.16/v1.33; BC-INDEX version cell v5.07→v5.08; Blocking Issues
+ADR-046-gate row updated (streak STAYS 0/3, pass-40 1 finding found+fixed, fresh pass-41 NEXT); new
+Drift Item recording the extended sibling-sweep-includes-VPs lesson; Session Resume Checkpoint
+refreshed (§2 streak 0/3, fresh pass-41 NEXT against the newly-frozen set, records the
+34→35reset→36→37reset→38→39reset→40(finding, stays 0/3) streak history, human decision to CONTINUE
+looping recorded again; §3 versions updated; §7 resume command updated); Phase Progress + Current
+Phase Steps rows added for D-1097 (Current Phase Steps table trimmed to keep only the last 5 —
+D-1092 row archived off, already fully preserved in decision-log.md/burst-log.md). Trajectory tail
+unchanged (Wave-7 not touched this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-40 COMPLETE. **VERDICT: FINDINGS (1 MED), 0 HIGH, 0 LOW.**
+BC-5.39.001 3-CLEAN streak **STAYS 0/3** (a finding on an already-reset streak; not a new/4th
+reset in the sense of advancing-then-resetting — the streak was already at zero). F-P40-001 (MED)
+FIXED same-burst by product-owner: BC-4.17.001 v1.18→v1.19, VP-TBD-8 swept to the arm-split framing
+already applied to Precondition 4/Invariant 7 at v1.18. CODIFIED this burst: extend the D-1096
+arm-parity sibling-sweep discipline to explicitly cover §Verification Properties rows, Architecture
+Anchors, and SDK-grounding blocks, not just Preconditions/Invariants. Fresh pass-41 is the
+documented NEXT action against the newly-frozen set; needs 3 consecutive clean passes for literal
+3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-40.md, VERDICT: FINDINGS (1 MED), 0 HIGH, 0
+LOW), product-owner (BC-4.17.001 v1.19: F-P40-001 fixed — VP-TBD-8 swept to the arm-split framing;
+ADR-046/BC-5.40.001/BC-7.07.001 not touched, do not carry the defective directive), state-manager
+(adv-adr-046-pass-40.md persist + BC-INDEX v5.08 + input-hash recompute (unchanged) + decision-log
+D-1097 + lessons codification + burst-log + STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.07 | v5.08 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.86 | v3.86 (UNCHANGED) |
+
+### Phase
+
+D-1097-ADR046-PASS40-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-27
+
+---

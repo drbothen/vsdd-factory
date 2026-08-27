@@ -466,3 +466,50 @@ continued soundness, since a substantive defect just surfaced at pass-39, the sa
 found and fixed 30 prior genuine findings across the gate's history. `[codified; process-gap;
 convergence-observation; arm-parity; sibling-sweep; what-vs-how; substantive-reset;
 metadata-vs-substantive; D-1096; adr-046-gate; f-p39-001; third-reset; sixth-discipline]`
+
+---
+
+**[codified][process-gap] Pass-40's F-P40-001 empirically VALIDATED the D-1096 arm-parity
+sibling-sweep codification — and simultaneously revealed the codification's own scope was
+under-specified: the pass-39 fix swept Preconditions/Invariants but missed the sibling
+VERIFICATION PROPERTY carrying the identical guarantee**
+
+At D-1097 (ADR-046 pass-40), fresh-context adversary review against the frozen set produced by the
+pass-39 fix (ADR-046 v1.16 + BC-4.17.001 v1.18 + BC-5.40.001 v1.16 + BC-7.07.001 v1.33) found
+F-P40-001 (MED): BC-4.17.001's VP-TBD-8 — the §Verification Properties table row covering the
+identical `extract_frontmatter`-use guarantee Precondition 4/Invariant 7 govern — still lumped the
+`timestamp:` and `expires_at` arms under one joint frontmatter-slice confinement, re-encoding the
+exact pre-F-P39-001 framing the Precondition/Invariant pair was corrected away from one pass
+earlier. This is not a new class of defect independent of pass-39 — it is the SAME defect,
+un-swept at a sibling locus, and it is the first direct empirical test of whether the D-1096
+arm-parity sibling-sweep codification (recorded one pass ago) actually holds under fresh-context
+re-derivation. The answer is: PARTIALLY. The codification's own text ("every analogous sibling
+arm/case") was interpreted narrowly at v1.18 to mean the Precondition/Invariant pair alone — the
+locus class the pass-39 finding itself was discovered in — and did not extend the sweep to other
+locus CLASSES (§Verification Properties rows, Architecture Anchors, SDK-grounding blocks) that
+carry the same guarantee in different prose form.
+
+**Extension to the D-1096 codification (this entry's substantive content):** arm-scope/what-vs-how
+reconciliations MUST sweep to ALL loci carrying the guarantee, not just the locus class where the
+reconciliation was first discovered. Concretely, for this BC-cluster's recurring pattern, the sweep
+checklist now explicitly enumerates: Preconditions, Postconditions, Invariants, §Verification
+Properties rows, Architecture Anchors, and SDK-grounding blocks. The pass-40 comprehensive 8-locus
+sweep (Precondition 4, Invariant 7, PC1's rewrite-mechanism paragraph, PC3a, PC4, Invariant 5, Edge
+Cases, Canonical Test Vectors, Architecture Anchors, Description, and VP-TBD-8 itself) is the model
+going forward: when in doubt about how far a sibling-sweep must reach, grep the artifact for every
+mention of the load-bearing term/mechanism name (here, `extract_frontmatter`) and classify each hit
+as ALREADY-CORRECTED, GENUINELY-UNAFFECTED, or STRAGGLER — do not stop at the locus class where the
+original finding was discovered.
+
+**Disposition:** Recorded as `[codified][process-gap]`. This is the SEVENTH distinct
+convergence-technique discipline this gate has produced (after: (1) comprehensive-sibling-sweep
+D-1087/D-1088; (2) 4-leg `modified:`-array head==version parity D-1089; (3) GREP-COMPLETE
+`inputs:`-completeness audit D-1090; (4) ADR `§Decision`/`§N.M` anchor audit D-1092; (5)
+minimal-prose + mechanical-audit-backing discipline D-1094; (6) arm-parity what-vs-how
+reconciliation sweep D-1096; (7) this entry's locus-class extension of (6)). It is also
+decision-relevant evidence of a DIFFERENT shape than D-1096's part (b): rather than showing the
+gate finds NEW classes of defect, pass-40 shows the gate catches INCOMPLETE APPLICATION of its own
+most-recently-codified discipline — meta-level evidence that codified disciplines need their own
+follow-up verification pass, not just a one-time application, before being trusted as fully closed.
+`[codified; process-gap; arm-parity; sibling-sweep; verification-properties; locus-class-extension;
+what-vs-how; D-1097; adr-046-gate; f-p40-001; seventh-discipline; meta-verification]`
