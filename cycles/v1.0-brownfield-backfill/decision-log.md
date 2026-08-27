@@ -3031,3 +3031,144 @@ D-1087-ADR046-PASS30-SPEC-CONVERGENCE-REMEDIATION
 2026-08-26
 
 ---
+
+## D-1088
+
+**D-1088-ADR046-PASS31-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1087 (this cycle's decision-log.md). D-1088 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 31 dispatched against the frozen set
+(ADR-046 v1.15 + BC-4.17.001 v1.15 + BC-7.07.001 v1.31 + BC-5.40.001 v1.13). **VERDICT: FINDINGS
+(2 MED), 0 HIGH, 0 LOW observations.** BC-5.39.001 3-CLEAN streak REMAINS 0/3 (already reset at
+pass-25; findings do not reset an already-0/3 streak further). Both flagged findings are pure
+BC-cross-reference/`inputs:`-hygiene defects — **NO spec-vs-code contradictions this pass**; all
+substance cross-checks (behavioral core, write-composition, event-sourcing, type-provenance,
+§Story Anchor parity, POLICY 19, F-P30-001-class array-ordering) re-verified CLEAN with zero
+regression. Fixed by product-owner. Full record: `adv-adr-046-pass-31.md`.
+
+**F-P31-001 (MED, POLICY 18, `inputs:` completeness) — FIXED.** BC-5.40.001's `inputs:`
+frontmatter omitted BC-4.13.001 and BC-6.23.001 despite this BC's own body citing both as
+load-bearing current-state authorities (BC-4.13.001: PC2/PC3/PC4/Invariant 6/Invariant 8 and
+Invariant 9/10 TTL-boundary + malformed-block + soft-warn-threshold cites; BC-6.23.001: PC1/PC4
+acquire-writes/unlock-clears cites). Both sibling BCs (BC-4.17.001, BC-7.07.001) and ADR-046
+already listed both files — BC-5.40.001 was never itself swept for this specific pair.
+Product-owner added both to `inputs:`, same path form the siblings already use. BC-5.40.001
+v1.13→**v1.14**.
+
+**F-P31-002 (MED, POLICY 4, cross-reference accuracy) — FIXED.** BC-7.07.001's Postcondition 3
+Shared-classifier-mandate paragraph cited "BC-5.40.001 §Invariant 2" (the 2700-second TTL VALUE)
+for the `YYYY-MM-DDTHH:MM:SSZ` timestamp-FORMAT requirement — verified against BC-5.40.001's actual
+section content: the format requirement is stated in BC-5.40.001 §Precondition 3 (restated at PC1),
+not §Invariant 2. Product-owner retargeted the citation to `BC-5.40.001 §Precondition 3`.
+BC-7.07.001 v1.31→**v1.32**.
+
+**Audit-extra stragglers (found and fixed same-burst, in-scope per production-grade default — NOT
+part of the adversary's flagged 2-finding set; surfaced by the comprehensive cross-anchor and
+spec-inputs completeness audits product-owner ran in response to F-P31-001/F-P31-002, per the
+D-1087 convergence-strategy technique extended to a THIRD dimension — verify every cross-anchor
+citation and every spec-inputs claim inside the SAME BC the flagged finding already touched, not
+just sweep sibling BCs sharing the flagged defect class):**
+
+- **BC-5.40.001 own-body cross-anchor straggler:** BC-5.40.001's own Precondition 4 and
+  Postcondition 2 cited "BC-6.23.001 PC3/PC4" for `/factory-unlock` clearing behavior — verified
+  BC-6.23.001 PC3 is "`/factory-lock` foreign lock held: refuse" (an ACQUIRE-path refusal,
+  unrelated to `/factory-unlock`); the self-release clearing act is BC-6.23.001 PC4 alone. Both
+  occurrences corrected from "BC-6.23.001 PC3/PC4" to "BC-6.23.001 PC4". No PC/Invariant/EC
+  renumbered (POLICY 1 append-only preserved).
+- **BC-7.07.001 spec-inputs completeness straggler:** BC-7.07.001's body made load-bearing
+  current-state claims against five spec files absent from its own `inputs:` — BC-5.40.001 (the
+  just-corrected §Precondition 3 cite + Related-BCs "depends on" relationship), BC-5.41.003
+  (`MULTI_COMMIT_CHAIN_NOT_ALLOWED` exemption/false-positive-block claims), BC-1.15.001
+  (dispatcher-routes-PreCompact-events claim), BC-2.02.011, and
+  `.factory/specs/domain-spec/invariants.md`. All five added to `inputs:`.
+
+**Novelty assessment (recorded, see lessons.md):** the substantive behavioral spec for this
+ADR/BC cluster has converged — the remaining defect surface across passes 27-31 is entirely
+cross-reference and frontmatter integrity, never logic or spec-vs-code contradiction. This pass
+CONFIRMS (does not refute) the D-1087 convergence-strategy hypothesis: applying the comprehensive
+per-dimension-sweep technique to a BROADER scope (full cross-anchor semantic audit + full
+spec-inputs completeness audit against the SAME BC a flagged finding already touched, not just
+sibling-BC array-ordering) caught 3 additional genuine defects same-burst that a spot-fix of only
+the 2 flagged findings would have left for pass-32/33 to discover piecemeal. The 2 flagged findings
+demonstrate the technique alone does not yet reach a literal-CLEAN pass on first application to a
+new dimension — but its yield (3 extra defects closed same-burst) is the convergence accelerant
+this gate needs.
+
+**Index reconciliation (state-manager, this burst):**
+
+- **BC-INDEX v5.02→v5.03:** BC-5.40.001 row version-history v1.13→v1.14 appended (F-P31-001 +
+  audit-extra BC-6.23.001 PC3/PC4→PC4-only correction); BC-7.07.001 row version-history v1.31→v1.32
+  appended (F-P31-002 + audit-extra 5-file `inputs:` completion). No new BC registered; total_bcs
+  UNCHANGED 1988; SS-04/SS-05/SS-07 counts UNCHANGED.
+- ARCH-INDEX v3.85 UNCHANGED — no ADR touched this pass. STORY-INDEX v4.391 UNCHANGED. VP-INDEX
+  v2.79 UNCHANGED.
+
+**Input-hash recompute (state-manager, this burst, literal shell):** BC-5.40.001
+`5d9e223`→`e357a3c`→`da34eb2` (recomputed twice this burst — the first recompute, immediately after
+BC-7.07.001's own recompute, was itself invalidated by BC-7.07.001's `inputs:`-audit content change
+since BC-5.40.001 cites `BC-7.07.001.md` in its own `inputs:`; `da34eb2` is the settled final
+value); BC-7.07.001 `e65a1d0`→`8495a56`. Re-checking BC-7.07.001 after BC-5.40.001's second
+recompute shows BC-7.07.001's own stored hash `8495a56` is in turn now one hop stale relative to
+BC-5.40.001's final `da34eb2` (BC-7.07.001 cites `BC-5.40.001.md` in its own `inputs:`, added this
+same burst) — this is the tangle itself, not a fresh defect; NOT chased further, per this pass's
+task instruction. BC-4.17.001↔BC-7.07.001↔ADR-046↔BC-5.40.001
+mutual `inputs:` cyclic-hash TD (tracked since `[D-1082]`, extended to 4-way at D-1086) settled per
+this pass's task instruction, cross-referenced against the existing `[D-1082]` Drift Item, NOT
+reopened as a new item — BC-5.40.001's and BC-7.07.001's `inputs:` arrays grew this burst (the
+tangle's edge set is unchanged in KIND — BC-5.40.001 already cited BC-7.07.001 and vice versa
+pre-burst — only each file's own hash value moved), consistent with prior passes.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md for the superseded version strings `BC-5\.40\.001.*v1\.13\b` and
+`BC-7\.07\.001.*v1\.31\b` (anchored to the artifact-ID context to avoid bare-number false
+positives) — matches confined to: (1) PRESERVED HISTORICAL dated changelog/`last_amended` rows in
+BC-INDEX/STATE.md (correctly immutable, not a propagation gap), and (2) the STATE.md loci updated
+in this same burst. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3→0/3 (REMAINS 0/3, explicitly recorded as no-further-reset); Current
+Artifact Versions BC-5.40.001 v1.13→v1.14, BC-7.07.001 v1.31→v1.32, ADR-046/BC-4.17.001 UNCHANGED;
+Blocking Issues ADR-046-gate row updated (streak 0/3, pass-31 2 findings + 2 audit-extra stragglers
+found+fixed, fresh pass-32 NEXT); Session Resume Checkpoint refreshed (§2 streak 0/3 REMAINS, fresh
+pass-32 NEXT, human decision to CONTINUE looping recorded; §3 ADR-046 v1.15/BC-4.17.001 v1.15/
+BC-5.40.001 v1.14/BC-7.07.001 v1.32; §7 resume command); Phase Progress + Current Phase Steps rows
+added for D-1088 (Current Phase Steps table trimmed to keep only the last 5 — D-1083 row archived
+off, already fully preserved in decision-log.md/burst-log.md). Trajectory-tail unchanged (Wave-7
+not touched this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-31 COMPLETE. 2 findings (both MED — F-P31-001 BC-5.40.001
+`inputs:` completeness + F-P31-002 BC-7.07.001 cross-reference retarget) plus 2 audit-extra
+stragglers found and fixed same-burst via the comprehensive cross-anchor/spec-inputs audits
+product-owner ran in response to the flagged findings; 0 HIGH, 0 LOW observations. No spec-vs-code
+contradictions — findings are pure cross-reference/frontmatter integrity. Streak REMAINS 0/3 (no
+further reset — was already 0/3 entering this pass). Fresh pass-32 is the documented NEXT action;
+needs 3 consecutive clean passes for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-31.md), product-owner (BC-5.40.001 v1.14:
+F-P31-001 `inputs:` +2 files + audit-extra BC-6.23.001 PC3/PC4→PC4-only cross-anchor correction;
+BC-7.07.001 v1.32: F-P31-002 PC3 cross-reference retarget + audit-extra `inputs:` +5 files;
+BC-4.17.001/ADR-046 audited, confirmed clean, no edit), state-manager (adv-adr-046-pass-31.md
+persist + BC-INDEX v5.03 + input-hash recompute + decision-log D-1088 + lessons + burst-log +
+STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.02 | v5.03 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.85 | v3.85 (UNCHANGED) |
+
+### Phase
+
+D-1088-ADR046-PASS31-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-26
+
+---
