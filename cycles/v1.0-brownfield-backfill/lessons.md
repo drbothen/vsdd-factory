@@ -1516,3 +1516,13 @@ eight spec-vs-code ground-truth checks MATCH. Two non-defect observations (O-P60
 opening-fence assumption, O-P60-002 trim_git_email cross-ref), both accepted-tracked. Needs 2 more
 consecutive clean passes (61, 62) for literal 3-CLEAN.
 `[convergence-progress][D-1117; adr-046-gate; pass-60-CLEAN; streak-1/3]`
+
+**L-BB-D1118-pass61-clean** — Second consecutive clean pass (pass-61 CLEAN, streak 1/3→2/3):
+frozen set passes nine extended spec-vs-code ground-truth checks (added `parse_factory_lock`
+lines 207-227, `extract_yaml_string_value` no null-special-casing, `renew_lock_with_now`
+Duration::seconds(2700)/byte-compare, `is_expired` now>=expires_at boundary, `trim_git_email`,
+Step-4 identity-blind renew, plus confirmed-absent design-only symbols). All seventeen convergence
+disciplines still hold; no regression. O-P61-001 reveals F-P56-001 defect class has an unswept
+locus in implementation crate doc-comments — TRACKED DEFECT-TO-FIX, candidate anchor S-17.05.
+One more consecutive clean pass (pass-62) reaches literal 3-CLEAN.
+`[convergence-progress][D-1118; adr-046-gate; pass-61-CLEAN; streak-2/3]`

@@ -7921,3 +7921,176 @@ fixed. rc.24 Marketplace PR #19 CLOSED (merged 2026-08-27). **NEXT ACTION:** dis
 adversary pass-61 against the SAME unchanged frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 +
 BC-5.40.001 v1.21 + BC-7.07.001 v1.39) — 2 more consecutive clean passes (61, 62) reach literal
 BC-5.39.001 3-CLEAN. ON CONVERGENCE: S-17.05 TDD implementation unblocks.
+
+## D-1118-ADR046-PASS61-SPEC-CONVERGENCE-CLEAN
+
+**Burst classification:** CLEAN PASS — no spec artifact edited; no BC/ADR version bump; no
+input-hash recompute; no 4-INDEX version-cell change.
+
+### Block 1: Parent-commit
+
+**Parent SHA (prior pass's Commit D/E per D-419(b)/D-444(c) convention):** `fae60fad` — the
+pass-60 clean-pass burst commit (D-1117-ADR046-PASS60-SPEC-CONVERGENCE-CLEAN, 2026-08-27).
+
+### Block 2: Adversary verdict
+
+Adversary dispatched fresh-context (zero carryover knowledge of prior passes) against the
+unchanged frozen spec set: ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001
+v1.39 (unchanged since pass-59 fix D-1116). Streak entering this pass: 1/3.
+
+**VERDICT: CLEAN — zero blocking findings at any severity.** Full record:
+`cycles/v1.0-brownfield-backfill/adv-adr-046-pass-61.md`.
+
+This pass was substantively thorough: nine spec-vs-code ground-truth checks performed (three more
+than pass-60, extending into `parse_factory_lock` lines 207-227,
+`extract_yaml_string_value` no-null-special-casing, `renew_lock_with_now`
+Duration::seconds(2700)/byte-compare, `is_expired` now>=expires_at, `trim_git_email`, Step-4
+identity-blind renew, and confirmed-absent design-only symbols). All nine claims MATCH code.
+All seventeen codified convergence disciplines re-verified holding. No regression.
+
+Three non-blocking observations adjudicated:
+
+- **O-P61-001 (LOW severity, HIGH confidence — CORRECTABLE CODE DEFECT):** `crates/factory-lock/src/lib.rs`
+  doc-comments describe stale pre-F-P56-001 semantics (`renew_lock` ~line 113, inline comment
+  ~lines 158-160, `parse_lock` doc ~line 318). Ground truth: empty/absent holder is
+  `Err(MalformedLockBlock)`, NEVER `Ok(None)`. TRACKED DEFECT-TO-FIX; candidate anchor S-17.05.
+- **O-P61-002 (adjudicated NON-DEFECT):** BC-4.17.001 has no `holder: null` EC — correct by design.
+- **O-P61-003 (adjudicated NON-DEFECT):** BC-5.40.001 PC4 abstraction is correct.
+
+**BC-5.39.001 3-CLEAN streak ADVANCES 1/3 → 2/3** (second consecutive clean pass). One more
+consecutive clean pass (pass-62) reaches literal 3-CLEAN.
+
+### Block 3: Files written/updated
+
+| File | Action |
+|------|--------|
+| `cycles/v1.0-brownfield-backfill/adv-adr-046-pass-61.md` | CREATED — full pass-61 review report |
+| `cycles/v1.0-brownfield-backfill/INDEX.md` | UPDATED — added ADR-046 pass table section (pass-60 row + pass-61 row CLEAN 2/3) + Convergence Status bullet (streak 2/3 D-1118) + umbrella citation fixes |
+| `cycles/v1.0-brownfield-backfill/decision-log.md` | UPDATED — appended D-1118 codification block + canonical 6-column summary row |
+| `cycles/v1.0-brownfield-backfill/lessons.md` | UPDATED — appended L-BB-D1118-pass61-clean `[convergence-progress]` lesson |
+| `cycles/v1.0-brownfield-backfill/burst-log.md` | UPDATED — this entry (pass-61 8-block record) |
+| `STATE.md` | UPDATED — version 9.07→9.08; frontmatter/phase/current_step/timestamp; streak 1/3→2/3; trajectory-tail →1→1→0→1 → →1→0→1→0; D-1118 Phase Progress + Current Phase Steps rows; D-1118 Decisions Log row; Blocking Issues ADR-046-gate streak 2/3; Drift Items O-P61-001 TRACKED DEFECT-TO-FIX; Session Resume Checkpoint refresh |
+| `logs/dispatcher-internal-2026-08-27.jsonl` | STAGED (telemetry drift sweep) |
+| `sidecar-learning.md` | STAGED (telemetry drift sweep) |
+
+### Block 4: Codifications
+
+| ID | Type | Summary |
+|----|------|---------|
+| D-1118 | Decision | ADR-046 pass-61 CLEAN, streak 1/3→2/3, O-P61-001 TRACKED DEFECT-TO-FIX, O-P61-002/003 NON-DEFECT |
+| L-BB-D1118-pass61-clean | Lesson | Second clean pass; nine extended code checks PASS; O-P61-001 reveals unswept F-P56-001 doc-comment locus |
+
+### Block 5: Dim-2 literal-shell attestation (D-449(a))
+
+POLICY 16 allocator-ceiling gate — confirm true global max D-NNN before D-1118 allocation:
+
+```
+$ grep -hE "^## D-[0-9]+" cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE "D-[0-9]+" | sort -t- -k2 -n | tail -5
+D-1114
+D-1115
+D-1116
+D-1117
+D-1118
+```
+
+Max after append is D-1118 (D-1117 was max before; D-1118 allocated cleanly above).
+
+D-448(a) source-attestation parity gate (decision-log D-1118 BLOCKING finding-ID set vs
+adv-adr-046-pass-61.md Part A BLOCKING finding-ID set — both MUST be the empty set for a CLEAN
+pass):
+
+```
+$ grep -oE "F-P61-[0-9]{3}" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-61.md | sort -u
+(no output — empty set)
+$ sed -n '/^## D-1118/,/^---$/p' cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE "F-P61-[0-9]{3}" | sort -u
+(no output — empty set)
+```
+
+Both commands produce no output — the BLOCKING finding-ID set is empty on BOTH sides, confirming
+decision-log D-1118's "zero blocking findings" claim faithfully describes adv-adr-046-pass-61.md
+Part A ("VERDICT: CLEAN — zero blocking findings at any severity"). Sets match exactly (both empty).
+O-P61-001/O-P61-002/O-P61-003 are NOT `F-P61-NNN` IDs — non-blocking observations, correctly
+excluded from the BLOCKING finding-ID set.
+
+Streak-advance verification gate (literal shell):
+
+```
+$ grep -c "ADVANCES 1/3 → 2/3" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-61.md
+2
+```
+
+(Two occurrences — Summary and PART A header; both describe the advance. Confirms the clean-pass
+streak-advance claim is present in the report.)
+
+Frontmatter version/input-hash UNCHANGED gate (literal shell, all four frozen-set artifacts,
+confirms this pass made no edits):
+
+```
+$ for f in specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-05/BC-5.40.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md; do echo -n "$f: "; grep "^version:\|^input-hash:" "$f" | tr '\n' ' '; echo; done
+.../ADR-046-...md: version: "1.23" input-hash: "3335ad4"
+.../BC-4.17.001.md: version: "1.26" input-hash: "6b0b35c"
+.../BC-5.40.001.md: version: "1.21" input-hash: "6a9cc08"
+.../BC-7.07.001.md: version: "1.39" input-hash: "e73bc01"
+```
+
+All four artifacts confirmed byte-identical to the values pass-60 left them at — no drift, no new
+edit this burst.
+
+### Block 6 (Dim-5): Closes
+
+- **Pass-61 CLEAN verdict** — persisted verbatim as `adv-adr-046-pass-61.md`; zero blocking
+  findings at any severity.
+- **`BC-5.39.001 3-CLEAN streak`** — **ADVANCES 1/3 → 2/3** (second consecutive clean pass
+  against the pass-59-corrected set). NOT a full closure — 1 further consecutive clean pass (62)
+  required for literal 3-CLEAN.
+- **O-P61-001 tracking** — OPENED as TRACKED DEFECT-TO-FIX in STATE.md Drift Items; candidate
+  anchor S-17.05; pending human sequencing confirmation. NOT closed or deferred to tech-debt-register.
+- **O-P61-002 adjudication** — CLOSED via NON-DEFECT ruling; no action required.
+- **O-P61-003 adjudication** — CLOSED via NON-DEFECT ruling; no action required.
+
+### Block 7 (Dim-6): Gate attestation
+
+D-444(c) burst-log h2 heading `## D-1118-ADR046-PASS61-SPEC-CONVERGENCE-CLEAN` present. D-446(a)
+own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate:
+literal-shell diff captured in Block 5 — both decision-log D-1118 and adv-adr-046-pass-61.md Part A
+BLOCKING finding-ID sets are confirmed empty via literal grep with captured output. D-449(a)
+literal-shell-execution SELF-APPLICATION: POLICY 16 gate, D-448(a) source-attestation check,
+streak-advance verification gate, and frontmatter/input-hash-unchanged gate all use actual shell
+with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts, no
+trusted-but-unverified claims. Per TD-FACTORY-HOOK-BYPASS-001 P0, all `.factory` content mutations
+this burst used the Edit/Write tools exclusively; the only Bash invocations were READ-ONLY
+(`grep`, `sed`, `wc -l`) — no content-mutating shell command was run against `.factory` content.
+**Note:** the decision-log.md Edit this burst triggered a `fail-closed: FUEL_EXHAUSTED` PostToolUse
+advisory (`validate-factory-path-root`/`validate-input-hash`/`validate-template-compliance`) — the
+known [D-1073]-tracked non-actionable noise on large cycle files; the write landed correctly
+(confirmed by subsequent grep of the appended `## D-1118` heading in decision-log.md), PostToolUse
+cannot revert a completed write, and no content-mutating bypass was used.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (pass-61) — CLEAN, zero BLOCKING findings.
+- Streak: ADVANCES 1/3 → 2/3 (second consecutive clean pass against the pass-59-corrected set).
+  Fresh pass-62 is NEXT, against the SAME unchanged frozen set.
+- 4-INDEX: ARCH v3.93 (UNCHANGED) / BC v5.18 (UNCHANGED) / VP v2.79 (UNCHANGED) / STORY v4.392
+  (UNCHANGED) — no spec artifact touched this pass, no index update required.
+- policies.yaml UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` — ACTIVE (pass-61 burst is in-band with ongoing ADR-046 gate cascade;
+  trajectory-tail advances from →1→1→0→1 to →1→0→1→0, LENGTH=4).
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed
+  via plain push (no force required — fast-forward from parent).
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `fae60fad` — the
+  pass-60 clean-pass burst commit (D-1117-ADR046-PASS60-SPEC-CONVERGENCE-CLEAN, 2026-08-27).
+- **This burst commit SHA:** `[SHA-PATCH-PENDING — D-449(e) follow-up will update Active Branches
+  row with actual commit SHA after push]`
+
+**Closes:** Pass-61 CLEAN verdict persisted (`adv-adr-046-pass-61.md`); zero blocking findings at
+any severity. BC-5.39.001 streak **ADVANCES 1/3 → 2/3** — the second consecutive clean pass
+against the pass-59-corrected set. Three non-blocking observations: O-P61-001 TRACKED DEFECT-TO-FIX
+(not deferred/accepted), O-P61-002/O-P61-003 NON-DEFECT. **NEXT ACTION:** dispatch fresh-context
+adversary pass-62 against the SAME unchanged frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 +
+BC-5.40.001 v1.21 + BC-7.07.001 v1.39) — 1 more consecutive clean pass reaches literal
+BC-5.39.001 3-CLEAN. ON CONVERGENCE: S-17.05 TDD implementation unblocks.

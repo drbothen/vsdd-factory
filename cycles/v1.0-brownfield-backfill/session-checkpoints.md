@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "b71c6bb"
+input-hash: "ada4d15"
 traces_to: STATE.md
 ---
 
@@ -3508,3 +3508,21 @@ Gate history: the gate has caught 45 GENUINE BLOCKING findings across 59 passes 
 `/vsdd-factory:next-step` → resumes the ADR-046 3-CLEAN gate by running a **fresh adversary pass 60** against the pass-59-corrected frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 **v1.21** + BC-7.07.001 v1.39) — applying all eighteen prior codified convergence-technique disciplines proactively from the start. Any BLOCKING finding OR spec edit on pass 60 keeps the streak at 0/3 (already at floor). **ON CONVERGENCE (3/3 literal clean, i.e. passes 60, 61, AND 62 all clean): S-17.05 TDD implementation unblocks.** Separately: merge marketplace PR #19; and record ADR-045 v1.3 ratification + re-scope E-23.
 
 **This checkpoint superseded by the SESSION-WRAP-PAUSE-2026-08-27 checkpoint burst (state-manager, single-commit bookkeeping-only pause burst, TD-VSDD-053, human-invoked `/wrap`, 2026-08-27) — a new self-sufficient Session Resume Checkpoint was written in its place in STATE.md. See STATE.md for the live checkpoint; the D-1116 pass-59 position above is PRESERVED VERBATIM as historical record — the ADR-046 BC-5.39.001 3-CLEAN gate remains at streak 0/3, fresh pass-60 is the NEXT documented action on resume, against the frozen set ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39, needing 3 consecutive clean passes (60, 61, 62) for literal 3-CLEAN.**
+
+---
+
+## ARCHIVED CHECKPOINT: 2026-08-27 — pass-60 CLEAN D-1117; PIPELINE ACTIVE (streak 1/3)
+
+> **ARCHIVED FROM STATE.md** — superseded by the pass-61 CLEAN D-1118 burst (2026-08-27). Position: streak ADVANCES 1/3→2/3; fresh pass-62 NEXT. See STATE.md for the live checkpoint.
+
+**Position:** Brownfield cycle `v1.0-brownfield-backfill`. Active work is the ADR-046 BC-5.39.001 3-CLEAN spec-convergence gate. **Streak = 1/3.** Frozen set: **ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39** (UNCHANGED since pass-59 fix). NEXT = fresh adversary pass-61 — 2 more consecutive clean passes (61, 62) needed for literal BC-5.39.001 3-CLEAN.
+
+**Convergence counter (as of this checkpoint):** Passes 25→60 run (36 passes). 8 streak resets. Streak reached 2/3 twice (41-42 → reset at 43; 52-53 → reset at 54). ~21 decision codifications, D-1082..D-1117 (exhaustive).
+
+**8 ACCEPTED non-blocking items (pass-60 checkpoint):** [D-1082] mutual-inputs cyclic-hash; O-P42-001; STORY-INDEX stale aggregates; O-P53-DESC-NOOP; O-P57-001; O-P58-001/O-P58-002; O-P60-001 (extract_frontmatter opening-fence); O-P60-002 (trim_git_email cross-ref).
+
+**Pending human decisions (pass-60 checkpoint):** ADR-045 ratification-recording burst OWED; E-23 epic re-scope; accept-provisional option (D-386 Option C).
+
+**HEADs (pass-60 checkpoint):** main `89f6f87c` (rc.24 tagged); develop `6993138b` (CI-GREEN); factory-artifacts: `git -C .factory log -1` (D-1117 pass-60 CLEAN burst).
+
+**Resume Command (pass-60 checkpoint):** `/vsdd-factory:next-step` — fresh adversary pass-61 against the frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39). Streak 1/3. Any BLOCKING finding OR spec edit resets streak to 0/3. On 2 more consecutive clean passes (61, 62): S-17.05 TDD unblocks.

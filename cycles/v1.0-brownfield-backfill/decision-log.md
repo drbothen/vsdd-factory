@@ -6576,3 +6576,124 @@ D-1117-ADR046-PASS60-SPEC-CONVERGENCE-CLEAN
 2026-08-27
 
 ---
+
+## D-1118
+
+**D-1118-ADR046-PASS61-SPEC-CONVERGENCE-CLEAN**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1117 (this cycle's decision-log.md). D-1118 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 61 dispatched against the unchanged
+frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39; streak
+entered at 1/3, from pass-60 CLEAN D-1117). **VERDICT: CLEAN — zero blocking findings at any
+severity.** Full record: `adv-adr-046-pass-61.md`.
+
+This pass was a **substantive** clean: the adversary read all four frozen-set artifacts in full
+and independently verified every behavioral claim against actual code at
+`crates/factory-lock-parse/src/lib.rs` (`parse_factory_lock` lines 207-227,
+`extract_yaml_string_value` no null-special-casing), `crates/factory-lock/src/lib.rs`
+(`renew_lock_with_now` bare Duration::seconds(2700)/byte-compare only, `has_factory_lock_key`
+key-line-only), `crates/hook-plugins/verify-factory-lock/src/lib.rs` (`is_expired`
+now>=expires_at, `trim_git_email`), `crates/hook-plugins/precompact-flush/src/lib.rs` (Step-4
+identity-blind `renew_lock`), and `plugins/vsdd-factory/bin/factory-lock-write.sh` (TTL literal
+`TTL_SECONDS=2700`). Confirmed absent from code (design-only, S-17.05 unimplemented):
+`renew_lock_if_holder`, `classify_identity_resolution`, `SkipReason`, `IdentityResolution`.
+**All nine code claims MATCH.** Cross-cutting checks also PASSED: POLICY 7 (H1↔BC-INDEX title
+byte-identical ×3), POLICY 19 (stable ADR anchors, no load-bearing vX.Y), POLICY 4
+(Decision-participation enumeration complete: BC-4.17.001 §Dec 1/2/4/5; BC-5.40.001 §Dec
+1(b)/5; BC-7.07.001 §Dec 1(b)/3/4), capability anchoring vs capabilities.md CAP-031/032,
+POLICY 14/17 (5-leg parity ×3), POLICY 1 (no renumbering; EC-011 new ID), POLICY 18
+(inputs[] complete), five-case return-value table identity (ADR ≡ BC-7.07.001 ≡ BC-4.17.001 PC2).
+
+**BC-5.39.001 3-CLEAN streak ADVANCES 1/3 → 2/3** — the second consecutive clean pass against
+the pass-59-corrected frozen set. 1 more consecutive clean pass (pass-62) reaches literal 3-CLEAN,
+unblocking S-17.05 TDD implementation.
+
+**Three non-blocking observations considered:**
+
+- **O-P61-001 (LOW severity, HIGH confidence — CORRECTABLE CODE DEFECT, outside frozen spec set):**
+  `crates/factory-lock/src/lib.rs` doc-comments still describe the pre-F-P56-001 semantics —
+  `renew_lock` algorithm doc (~line 113 "Ok(None) → NoOp when holder null/absent"), inline comment
+  at the Ok(None) arm (~lines 158-160 "Key was present but lock is null/absent holder → NoOp"),
+  and `parse_lock` doc (~line 318 "Ok(None) — key absent or holder is null/absent/empty"). Ground
+  truth (`factory-lock-parse/src/lib.rs` lines 219-227): empty-string holder OR absent holder w/
+  siblings present → `Err(MalformedLockBlock)`, NEVER `Ok(None)`. The FROZEN SPECS are all correct
+  (POLICY 15 satisfied); this is the unswept SIBLING code-doc locus of the F-P56-001 defect class.
+  **TRACKED DEFECT-TO-FIX — NOT accept-and-forget.** Candidate owner: implementer. Candidate
+  anchor: S-17.05 (touches these functions). Fix pending human sequencing confirmation.
+
+- **O-P61-002 (adjudicated NON-DEFECT):** BC-4.17.001 has no `holder: null` EC analogous to
+  BC-7.07.001 EC-011 — correct: BC-7.07.001 EC-011 corrected a prior wrong EC-009 claim; BC-4.17.001
+  never carried that wrong claim; `holder: "null"` is subsumed by case-3. No missing coverage.
+  ACCEPTED-tracked (re-observation of O-P57-001 at a more specific locus; same adjudication).
+
+- **O-P61-003 (adjudicated NON-DEFECT):** BC-5.40.001 PC4 abstracts empty-holder into "(a) fails
+  → no renewal" — correct: BC-5.40.001 delegates granular five-case dispatch to the shared truth
+  table + BC-4.17.001/BC-7.07.001; makes no contradictory Ok(None)/0th claim. ACCEPTED-tracked.
+
+**This is a CLEAN pass, NOT a fix burst.** No spec artifact was edited this burst — the frozen set
+is UNCHANGED at ADR-046 v1.23 / BC-4.17.001 v1.26 / BC-5.40.001 v1.21 / BC-7.07.001 v1.39. No
+version bump, no input-hash recompute, no 4-INDEX version-cell change.
+
+**Novelty assessment:** LOW. All seventeen codified convergence-technique disciplines re-verified
+holding, zero regression. O-P61-001 applies the existing TD-VSDD-060 sibling-sweep discipline to
+a new target locus (implementation crate doc-comments); not a new discipline. See
+adv-adr-046-pass-61.md §Novelty Assessment for the full seventeen-discipline list.
+
+**Index reconciliation (state-manager, this burst):** none required — BC-INDEX v5.18, STORY-INDEX
+v4.392, VP-INDEX v2.79, ARCH-INDEX v3.93 all UNCHANGED (no artifact touched this pass, per the
+CLEAN-pass discipline: do NOT bump versions or recompute input-hashes when nothing was edited).
+
+**Input-hash recompute:** NOT PERFORMED — no artifact content changed this burst; the stored
+input-hashes (ADR-046 `3335ad4`, BC-4.17.001 `6b0b35c`, BC-5.40.001 `6a9cc08`, BC-7.07.001
+`e73bc01`) remain valid and unchanged. Cyclic-hash TD `[D-1082]` UNCHANGED, NOT re-opened.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-60" as the current/NEXT pass or
+to a streak value other than the correct post-advance `2/3` — matches confined to PRESERVED
+HISTORICAL rows (D-1057..D-1117 entries correctly describing their own contemporaneous pass
+numbers/streak values) and this burst's own new content. No propagation gap found.
+
+**STATE.md vNext:** streak 1/3→**2/3** (ADVANCES, second consecutive clean pass against the
+pass-59-corrected set); pipeline remains ACTIVE; version 9.07→9.08; Current Artifact Versions
+UNCHANGED; Blocking Issues ADR-046-gate row updated (streak 2/3, pass-61 CLEAN, fresh pass-62
+NEXT against the SAME unchanged frozen set); Drift Items gains O-P61-001 (tracked defect-to-fix,
+candidate anchor S-17.05); O-P61-002/O-P61-003 added to Session Resume Checkpoint accepted-tracked
+list; Phase Progress + Current Phase Steps rows added for D-1118 (Current Phase Steps table
+trimmed to keep only the last 5). Trajectory tail updated →1→1→0→1 → →1→0→1→0, LENGTH=4
+(pass-61 CLEAN = 0 appended, oldest 1 dropped).
+
+Summary: ADR-046 spec-convergence pass-61 COMPLETE. **VERDICT: CLEAN — zero blocking findings.**
+Second consecutive clean pass against the pass-59-corrected frozen set. Three adversary-adjudicated
+non-blocking observations: O-P61-001 TRACKED DEFECT-TO-FIX (code doc-comments, NOT deferred/accepted),
+O-P61-002/O-P61-003 NON-DEFECT, ACCEPTED-tracked. **BC-5.39.001 3-CLEAN streak ADVANCES 1/3 →
+2/3.** No spec artifact edited; no version bump; no input-hash recompute; no 4-INDEX change.
+Fresh pass-62 is the documented NEXT action against the SAME unchanged frozen set; 1 more
+consecutive clean pass for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-61.md, VERDICT: CLEAN), state-manager
+(adv-adr-046-pass-61.md persist + INDEX.md ADR-046 section + decision-log D-1118 + lessons
+codification + Drift Items entry for O-P61-001 + burst-log + STATE.md streak advance; no other
+specialist dispatched — no artifact required a fix)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.18 | v5.18 (UNCHANGED) |
+| STORY-INDEX | v4.392 | v4.392 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.93 | v3.93 (UNCHANGED) |
+
+### Phase
+
+D-1118-ADR046-PASS61-SPEC-CONVERGENCE-CLEAN
+
+### Date
+
+2026-08-27
+
+---
