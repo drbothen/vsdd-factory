@@ -5055,4 +5055,132 @@ D-1104-ADR046-PASS47-SPEC-CONVERGENCE-REMEDIATION
 
 2026-08-27
 
+## D-1105
+
+**D-1105-ADR046-PASS48-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1104 (this cycle's decision-log.md). D-1105 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 48 dispatched against the frozen set
+(ADR-046 v1.18 + BC-4.17.001 v1.22 + BC-5.40.001 v1.18 + BC-7.07.001 v1.34). **VERDICT: FINDINGS
+(1 MED + 1 LOW observation), both fixed same-burst.** Both items are the fourth and fifth
+instances of the recurring META pattern (first pass-37, then pass-44): the remediation's OWN
+disposition/summary prose is itself attack surface. Neither touches the behavioral core, which
+remains re-confirmed converged for the 22nd consecutive pass (stable since pass-27).
+
+**F-P48-001 (MED, POLICY 4, false-fabrication provenance claim).** ADR-046's own v1.18
+disposition prose (frontmatter `last_amended` nested v1.18 entry + `## Changelog` v1.18 row)
+falsely claimed the quote "MUST NOT be overridden via environment or arguments" was FABRICATED —
+"not verbatim-present anywhere in this repository" — on the strength of a `grep -rn` sweep that
+was mis-scoped to `.factory/` only and never searched `plugins/`. VERIFIED via a TRUE repo-wide
+grep this pass: the phrase IS verbatim-present in `plugins/vsdd-factory/bin/factory-lock-write.sh`
+(its `TTL_SECONDS` header comment) — an ADR-046 `inputs:`-listed file. So the phrase was
+INHERITED from `factory-lock-write.sh`, not fabricated. Resolved by architect: both v1.18 loci
+corrected to state the accurate provenance and the pass-46 grep's mis-scoping root cause. The
+v1.18 disposition's LIVE-BODY correction itself (AC-007 re-attributed to S-17.01, BC-5.40.001
+Invariant 2 quoted verbatim in §Rationale/§Source-Origin) was independently re-verified accurate
+and left UNCHANGED — only the provenance claim was wrong. ADR-046 v1.18→v1.19.
+
+**O-P48-001 (LOW, POLICY 4, under-inclusive exhaustive-enumeration claim, FIXED).** BC-7.07.001's
+Description used "only" to enumerate exit-0 conditions as success/no-op/STATE.md-unreadable, but
+Precondition 4's worktree-discovery-failure/split-tree-mismatch paths and Postcondition 9's
+hook-crash-under-`on_error=continue` path also exit 0 (fail-open) and were omitted. A mandatory
+within-artifact sweep for sibling under-inclusive enumeration claims additionally found
+Postcondition 8's own closing sentence restating the identical under-inclusive exit-0 list inside
+the NORMATIVE Postconditions section. Resolved by product-owner: Description expanded to the full
+enumeration; Postcondition 8's closing sentence expanded identically. BC-7.07.001 v1.34→v1.35.
+
+**BC-5.39.001 3-CLEAN streak STAYS 0/3** (already 0/3 from pass-46's reset — the MEDIUM finding
+alone is sufficient to keep it there; the LOW observation's fix-vs-accept disposition follows the
+D-1101 convergence-governance rule identically to O-P44-001's precedent, zero incremental streak
+cost). Full record: `adv-adr-046-pass-48.md`.
+
+**Index reconciliation (state-manager, this burst):** ARCH-INDEX v3.88→**v3.89** (ADR-046 row
+version-chain cell appended — pass-47-unchanged note + pass-48 fix note). BC-INDEX
+v5.12→**v5.13** (BC-7.07.001 row version-chain cell appended — v1.35 entry). STORY-INDEX v4.391
+and VP-INDEX v2.79 UNCHANGED (no story or VP touched this burst).
+
+**Input-hash recompute (cyclic-hash TD [D-1082] — settled, NOT reopened):** `compute-input-hash`
+run for both edited artifacts via the sanctioned `--check`/`--update` tool. ADR-046 and
+BC-7.07.001 mutually cite each other in `inputs:`, so updating one changes the other's computed
+hash — the same non-converging cascade [D-1082] already documents. Settled by running each
+artifact's `--update` in turn and accepting the resulting state per the established convention
+(one artifact SETTLED against the other's final content, the other carrying an accepted 1-hop
+residual, exactly mirroring pass-46's "ADR-046 1-hop residual accepted; BC-... settled"
+disposition): **BC-7.07.001 input-hash `d4b0881`→`f4ecc70` (SETTLED — matches its own `--check`
+against ADR-046's final v1.19 content, verified via literal shell, exit 0)**. **ADR-046
+input-hash `6110700`→`1e9016d` (1-HOP RESIDUAL ACCEPTED — a subsequent `--check` computes
+`bc51158` because BC-7.07.001's own final content, hashed as one of ADR-046's inputs, changed
+after ADR-046's own hash was last written; per [D-1082] this is the known non-convergent
+ping-pong, not re-chased further this burst, cross-referenced not reopened)**.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-47" as the current/NEXT pass or to
+a streak value other than the correct post-pass-48 `0/3` — matches confined to PRESERVED
+HISTORICAL rows (D-1057..D-1104 entries correctly describing their own contemporaneous pass
+numbers/streak values) and this same burst's own new content. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3→**STAYS 0/3** (a finding keeps it there); Current Artifact
+Versions ADR-046 v1.19, BC-7.07.001 v1.35 (BC-4.17.001 v1.22 / BC-5.40.001 v1.18 unchanged);
+Blocking Issues ADR-046-gate row updated (streak 0/3, pass-48 FINDINGS with both items fixed,
+fresh pass-49 NEXT against the newly-frozen set); Drift Items: the repo-wide-grep-for-absence-
+claims (twelfth discipline) and summary-enumeration-accuracy (thirteenth discipline) lessons
+recorded; O-P42-001 stays tracked, unaffected; Session Resume Checkpoint refreshed (§2 streak
+0/3, fresh pass-49 NEXT against the newly-frozen set, history appends 48f:
+34C→35R→36C→37R→38C→39R→40f→41C→42C→43R→44obsfix→45C→46R→47f→48f; §3 versions updated to
+ADR-046 v1.19 / BC-7.07.001 v1.35); Phase Progress + Current Phase Steps rows added for D-1105
+(Current Phase Steps table trimmed to keep only the last 5 — D-1100 row archived off, already
+fully preserved in decision-log.md/burst-log.md). Trajectory tail unchanged (Wave-7 not touched
+this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+**CODIFICATION — two new lessons + one meta lesson (this burst):** (a) VERBATIM-ABSENCE claims —
+any "fabricated"/"not present anywhere"/"verbatim-absent" assertion in disposition prose MUST be
+backed by a TRUE repository-wide grep (all `inputs:` files including `plugins/` and `crates/`,
+not just `.factory/`), and MUST state the scope of the grep performed; the pass-46 mis-scoped
+grep produced a false "fabricated" claim, the root cause of F-P48-001. (b) SUMMARY-ENUMERATION
+claims — Description/overview "only"/"exclusively"/exhaustive enumerations must match the
+normative Preconditions/Postconditions body exactly; any such claim requires a within-artifact
+sweep for sibling stragglers, per O-P48-001's own sweep finding the Postcondition 8 sibling.
+(c) META — the recurring pattern of "the remediation's OWN disposition prose contains a false or
+inaccurate claim" (F-P37-001 decision-count, O-P44-001 misattributed quote, F-P48-001 false-
+fabrication, O-P48-001 under-inclusive enumeration) confirms a fix's changelog/last_amended
+prose is itself attack surface — keep it MINIMAL and verify every factual claim in it before
+writing, rather than assuming a prior pass's grep or paraphrase was accurate.
+
+Summary: ADR-046 spec-convergence pass-48 COMPLETE. **VERDICT: FINDINGS (1 MED + 1 LOW
+observation), both fixed same-burst.** F-P48-001 corrected a false-fabrication provenance claim
+in ADR-046's own v1.18 disposition prose (root cause: pass-46's grep was `.factory/`-scoped, not
+repo-wide); O-P48-001 corrected an under-inclusive exit-0 enumeration in BC-7.07.001's
+Description plus its Postcondition 8 sibling straggler. BC-5.39.001 3-CLEAN streak **STAYS 0/3**
+(already at floor from pass-46's reset). ADR-046 v1.19; BC-7.07.001 v1.35; ARCH-INDEX v3.89;
+BC-INDEX v5.13; BC-4.17.001/BC-5.40.001 UNCHANGED. Fresh pass-49 is the documented NEXT action,
+against the newly-frozen set, with two new codified disciplines (repo-wide-absence-grep,
+summary-enumeration-accuracy) applied proactively from the start.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-48.md, VERDICT: FINDINGS, 1 MED + 1 LOW),
+architect (ADR-046 v1.18→v1.19, F-P48-001), product-owner (BC-7.07.001 v1.34→v1.35, O-P48-001),
+state-manager (adv-adr-046-pass-48.md persist + decision-log D-1105 + lessons codification (2 +
+meta) + burst-log + ARCH-INDEX + BC-INDEX reconciliation + input-hash settle + STATE.md
+streak-stays refresh + Session Resume Checkpoint refresh)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.12 | v5.13 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.88 | v3.89 |
+
+### Phase
+
+D-1105-ADR046-PASS48-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-27
+
 ---

@@ -928,3 +928,89 @@ should apply this same cluster-wide-by-default scope from the outset, rather tha
 cluster-sibling straggler to surface it pass-by-pass.
 `[codified; process-gap; cluster-wide-audit-scope; ac-reference-grep-complete; D-1104;
 adr-046-gate; F-P47-001; D-1100-extension; unifying-meta-lesson; pass-43-46-47-root-cause]`
+
+---
+
+**[codified][process-gap] VERBATIM-ABSENCE claims require a TRUE repository-wide grep, with
+scope stated explicitly — twelfth distinct convergence-technique discipline**
+
+At pass-46 (F-P46-002), the architect's fix corrected ADR-046's fabricated "verbatim quote"
+claim by asserting the quoted phrase ("MUST NOT be overridden via environment or arguments") was
+"not present anywhere in this repository," backed by a `grep -rn` sweep. That sweep was, in
+fact, rooted at `.factory/` — it never searched `plugins/` or `crates/`. At pass-48 (F-P48-001),
+a TRUE repository-wide grep (executed this pass, spanning the whole repository, not
+`.factory/`-scoped) found the phrase verbatim-present in
+`plugins/vsdd-factory/bin/factory-lock-write.sh`'s `TTL_SECONDS` header comment — an
+`inputs:`-listed file this ADR already cites for the same TTL constant. The phrase was INHERITED
+from that file, not fabricated; the pass-46 "fabricated" claim was itself false, caused by an
+under-scoped grep presented with unqualified "anywhere in this repository" language.
+
+**Disposition:** ANY assertion in disposition/changelog prose that a phrase, quote, or pattern is
+"fabricated," "not present anywhere," or "verbatim-absent" MUST be backed by a grep that
+genuinely covers the full repository — every `inputs:`-listed file class, including `plugins/`
+and `crates/`, not just `.factory/` — and the disposition prose recording the claim MUST STATE
+the scope of the grep performed (e.g., "repo-wide, not `.factory/`-scoped") so a later pass can
+verify the claim's provenance without re-deriving it from scratch. An absence claim that does not
+state its own scope is not verifiable and should be treated as suspect. Applied this burst:
+F-P48-001's own fix explicitly states "a TRUE repo-wide `grep -rn` for the phrase, across the
+whole repository, not `.factory/`-scoped" as the basis for the corrected claim.
+`[codified; process-gap; verbatim-absence-claim; repo-wide-grep-scope; D-1105; adr-046-gate;
+F-P48-001; twelfth-discipline]`
+
+---
+
+**[content-defect-discipline] SUMMARY-ENUMERATION claims must match the normative body exactly —
+thirteenth distinct convergence-technique discipline**
+
+At pass-48 (O-P48-001), BC-7.07.001's Description used "only" to enumerate the hook's exit-0
+conditions as success/no-op/STATE.md-unreadable — omitting two normatively-documented exit-0
+paths (Precondition 4's worktree-discovery-failure/split-tree-mismatch, and Postcondition 9's
+hook-crash-under-`on_error=continue`). The mandatory within-artifact sweep this finding triggered
+(grepping the BC's Description plus all other summary/overview prose for further "only"/
+"exclusively"/"exhaustively" claims, cross-checked against the normative Preconditions/
+Postconditions/Invariants) found a SIBLING straggler of the identical defect class inside the
+NORMATIVE body itself: Postcondition 8's own closing sentence restated the same under-inclusive
+exit-0 list ("The ONLY exit codes this hook ever produces are 0 ... and 2 ...") — a more serious
+instance than the Description summary, since it purports to be part of the authoritative
+enumeration rather than an informal overview.
+
+**Disposition:** any Description/overview sentence using "only," "exclusively," "exhaustively,"
+or equivalent totalizing language to enumerate a set of outcomes, conditions, or exit codes MUST
+be cross-checked against the FULL set of Preconditions/Postconditions/Invariants that can produce
+that outcome — not just the ones the summary sentence's author had in mind at drafting time — and
+any such claim found in one location REQUIRES a within-artifact sweep for sibling instances of the
+same pattern before the burst closes, since (as this pass demonstrated) an under-inclusive claim
+in an informal summary section often has a normative-section sibling carrying the identical
+defect. Applied this burst: the Description fix and the Postcondition 8 sibling fix were both
+applied same-burst, from the single triggering finding's mandated sweep.
+`[content-defect-discipline; summary-enumeration-accuracy; sibling-sweep; D-1105; adr-046-gate;
+O-P48-001; thirteenth-discipline]`
+
+---
+
+**[process-observation][convergence-observation] META: a remediation's OWN disposition/changelog
+prose is itself attack surface — now confirmed across FOUR instances (pass-37, pass-44, and TWO
+at pass-48)**
+
+Four separate findings at this gate now share the same recurring root pattern: the prose a fix
+writes to DESCRIBE its own correction contains a factual error independent of the substantive
+fix itself. Pass-37 (F-P37-001): ADR-046's own decision-count mis-statement in disposition prose.
+Pass-44 (O-P44-001): BC-5.40.001's illustrative "verbatim quote" misattributed to the wrong
+source. Pass-48 (F-P48-001): ADR-046's own "fabricated" provenance claim, itself false, caused by
+an under-scoped grep. Pass-48 (O-P48-001): BC-7.07.001's own Description/Postcondition-8
+under-inclusive exhaustive-enumeration claim. In every instance, the LIVE-BODY substantive
+correction being described was itself accurate — only the NARRATIVE describing/justifying it
+carried the defect. This confirms disposition/changelog/`last_amended` prose is not inert
+documentation of a fix; it is itself a surface an adversarial pass will find defects in, at a
+rate comparable to the live body.
+
+**Disposition (reaffirmed, no change from pass-44's original framing):** keep disposition prose
+MINIMAL, and verify every factual claim it makes — every quote, every count, every "fabricated"/
+"absent"/"only" assertion — via direct evidence (grep, count, cross-reference) BEFORE writing it,
+rather than composing persuasive narrative first and treating its claims as self-evidently true
+because they read plausibly. Applied this burst: F-P48-001's own fix narrative states the exact
+grep command scope used to verify the corrected claim; O-P48-001's own fix narrative states the
+exact sweep performed and its one additional finding (Postcondition 8) — both narratives are
+falsifiable, not merely assertive.
+`[process-observation; convergence-observation; meta-lesson; disposition-prose-attack-surface;
+D-1105; adr-046-gate; F-P37-001; O-P44-001; F-P48-001; O-P48-001; four-instance-pattern]`

@@ -5115,3 +5115,242 @@ pass-48 against the newly-frozen set (ADR-046 v1.18 + BC-4.17.001 v1.22 + BC-5.4
 BC-7.07.001 v1.34), starting a new streak toward literal 3-CLEAN, applying all ten now-codified
 convergence-technique disciplines plus the new eleventh (cluster-wide-audit-scope) discipline
 proactively from the start. S-17.05 TDD implementation remains gated on convergence.
+
+## D-1105-ADR046-PASS48-SPEC-CONVERGENCE-REMEDIATION
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1105 < D-9000 ceiling
+```
+
+(Gate run AFTER D-1105 was appended to decision-log.md this burst, confirming D-1105 is the
+correct next allocation.) **Parent-commit:** the D-1104 pass-47 burst commit `0e2669d9`
+(factory-artifacts HEAD at burst start; actual parent SHA re-confirmed at Block 8 commit time
+below).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` spec-convergence pass-48 dispatched against the frozen
+set (ADR-046 v1.18 + BC-4.17.001 v1.22 + BC-5.40.001 v1.18 + BC-7.07.001 v1.34). **Verdict:
+FINDINGS (1 MED + 1 LOW observation), both fixed same-burst.** F-P48-001 (MED, POLICY 4,
+false-fabrication provenance claim) — ADR-046's own v1.18 disposition prose (frontmatter
+`last_amended` nested v1.18 entry + Changelog v1.18 row) falsely claimed the quote "MUST NOT be
+overridden via environment or arguments" was fabricated ("not present anywhere in this
+repository"), on the strength of a `grep -rn` sweep mis-scoped to `.factory/` only (never
+searched `plugins/`). A TRUE repo-wide grep this pass found the phrase verbatim-present in
+`plugins/vsdd-factory/bin/factory-lock-write.sh`'s `TTL_SECONDS` header comment — an ADR-046
+`inputs:`-listed file — so the phrase was INHERITED, not fabricated. Fixed same-burst by
+architect: both v1.18 loci corrected to state accurate provenance and the mis-scoping root cause;
+the live-body §Rationale correction itself (AC-007 re-attributed to S-17.01, BC-5.40.001
+Invariant 2 quoted verbatim) was independently re-verified accurate and left UNCHANGED. ADR-046
+v1.18→v1.19. O-P48-001 (LOW, POLICY 4, under-inclusive exhaustive-enumeration claim, non-blocking,
+FIXED) — BC-7.07.001's Description used "only" to enumerate exit-0 conditions, omitting
+Precondition 4's worktree-discovery-failure/split-tree-mismatch paths and Postcondition 9's
+hook-crash-under-`on_error=continue` path; a mandatory within-artifact sweep additionally found
+Postcondition 8's own closing sentence restating the identical under-inclusive list inside the
+NORMATIVE Postconditions section. Fixed same-burst by product-owner: Description and
+Postcondition 8 both expanded to the full enumeration. BC-7.07.001 v1.34→v1.35. **The behavioral
+core (write-composition, five-outcome table, identity-gating, event-sourcing) remains
+independently re-verified CLEAN for the 22nd consecutive pass (since pass-27)** — neither item
+touches it; both are confined to disposition/summary-prose accuracy, the fourth and fifth
+instances of the recurring META pattern (pass-37 F-P37-001, pass-44 O-P44-001) that a
+remediation's own narrative is itself attack surface. **BC-5.39.001 3-CLEAN streak STAYS 0/3**
+(already 0/3 from pass-46's reset; the MEDIUM finding alone keeps it there). Persisted verbatim
+as `cycles/v1.0-brownfield-backfill/adv-adr-046-pass-48.md`.
+
+**THIS IS A FIX BURST.** Two of the four frozen-set artifacts edited: ADR-046 v1.18→v1.19
+(F-P48-001, architect), BC-7.07.001 v1.34→v1.35 (O-P48-001, product-owner). BC-4.17.001 v1.22 and
+BC-5.40.001 v1.18 UNCHANGED — no finding routed to either this pass. Input-hash recomputed via
+`compute-input-hash --check`/`--update` (cyclic-hash TD [D-1082], settled not reopened):
+BC-7.07.001 `d4b0881`→`f4ecc70` (SETTLED — matches its own `--check` against ADR-046's final
+v1.19 content, exit 0), ADR-046 `6110700`→`1e9016d` (1-HOP RESIDUAL ACCEPTED — a subsequent
+`--check` would compute `bc51158` because BC-7.07.001's post-edit content, hashed as one of
+ADR-046's own inputs, changed after ADR-046's hash was last written; the same non-convergent
+ping-pong [D-1082] already documents, not re-chased further). 4-INDEX: ARCH-INDEX v3.88→v3.89;
+BC-INDEX v5.12→v5.13.
+
+**Block 3: Files touched**
+
+- `.factory/specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md`
+  — **v1.18→v1.19** (F-P48-001 fix, architect); input-hash `6110700`→`1e9016d` (1-hop residual
+  accepted per cyclic-hash TD [D-1082], NOT reopened)
+- `.factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md` — **v1.34→v1.35** (O-P48-001 fix,
+  product-owner); input-hash `d4b0881`→`f4ecc70` (settled)
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md` — **UNCHANGED** at v1.22 (not
+  implicated this pass)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md` — **UNCHANGED** at v1.18 (not
+  implicated this pass)
+- `.factory/specs/architecture/ARCH-INDEX.md` — **v3.88→v3.89** (ADR-046 row version-chain cell
+  appended — pass-47-unchanged note + pass-48 fix note; frontmatter `last_amended` prepended,
+  self-balanced bracket-delta verified unchanged relative to pre-existing D-1073-tracked drift,
+  152)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — **v5.12→v5.13** (BC-7.07.001 row
+  version-chain cell appended — v1.35 entry; frontmatter `last_amended` prepended, self-balanced
+  bracket-delta verified unchanged relative to pre-existing D-1073-tracked drift, 241)
+- `.factory/cycles/v1.0-brownfield-backfill/adv-adr-046-pass-48.md` — new (pass-48 FINDINGS
+  record, 1 MED + 1 LOW observation, both fixed)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1105 appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 3 new lessons appended (`[codified]
+  [process-gap]` verbatim-absence-claim repo-wide-grep-scope; `[content-defect-discipline]`
+  summary-enumeration-accuracy; `[process-observation][convergence-observation]` META
+  disposition-prose-attack-surface, four-instance pattern)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (streak 0/3 STAYS, Current Artifact Versions ADR-046
+  v1.19/BC-7.07.001 v1.35, Blocking Issues, Drift Items, Session Resume Checkpoint, version bump
+  v8.93→v8.94)
+
+**Block 4: Codifications**
+
+Two new lessons plus one meta-lesson codified in `lessons.md`: (1) `[codified][process-gap]`
+VERBATIM-ABSENCE claims — twelfth discipline — any "fabricated"/"not present anywhere"/
+"verbatim-absent" assertion in disposition prose MUST be backed by a TRUE repository-wide grep
+(all `inputs:` files including `plugins/` and `crates/`, not just `.factory/`), stating the scope
+performed; the pass-46 mis-scoped grep produced F-P48-001's false "fabricated" claim. (2)
+`[content-defect-discipline]` SUMMARY-ENUMERATION claims — thirteenth discipline —
+Description/overview "only"/"exclusively"/exhaustive enumerations must match the normative
+Preconditions/Postconditions body exactly, and any such claim requires a within-artifact sweep
+for sibling stragglers (O-P48-001's own sweep found the Postcondition 8 sibling). (3)
+`[process-observation][convergence-observation]` META — a remediation's OWN disposition/
+changelog prose is itself attack surface, now confirmed across FOUR instances (pass-37
+F-P37-001, pass-44 O-P44-001, pass-48 F-P48-001 + O-P48-001) — keep disposition prose MINIMAL
+and verify every factual claim before writing it.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 allocator-ceiling gate: captured in Block 1 above (`PASS: global max D-1105 <
+D-9000 ceiling`).
+
+D-448(a) source-attestation parity gate (decision-log D-1105 BLOCKING finding-ID set vs
+adv-adr-046-pass-48.md Part A BLOCKING finding-ID set — both MUST match exactly; O-P48-001 is a
+non-blocking observation, excluded from the BLOCKING set per the same convention D-1101 applied
+to O-P44-001):
+
+```
+$ grep -oE "F-P48-[0-9]{3}" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-48.md | sort -u
+F-P48-001
+$ sed -n '/^## D-1105/,/^---$/p' cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE "F-P48-[0-9]{3}" | sort -u
+F-P48-001
+```
+
+Both commands produce the identical 1-element set `F-P48-001` — confirming decision-log
+D-1105's finding-set claim faithfully describes adv-adr-046-pass-48.md Part A. Sets match
+exactly.
+
+Streak-stays verification gate (literal shell):
+
+```
+$ grep -c "STAYS 0/3" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-48.md
+3
+```
+
+Input-hash final-state verification gate (literal shell, confirms all four frontmatter fields
+carry the values this entry claims):
+
+```
+$ for f in specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-05/BC-5.40.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md; do echo -n "$f: "; grep "^input-hash:" "$f"; done
+specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md: input-hash: "1e9016d"
+specs/behavioral-contracts/ss-04/BC-4.17.001.md: input-hash: "efa4c8a"
+specs/behavioral-contracts/ss-05/BC-5.40.001.md: input-hash: "e5499da"
+specs/behavioral-contracts/ss-07/BC-7.07.001.md: input-hash: "f4ecc70"
+```
+
+Bracket-delta self-consistency gate (literal shell, confirms this burst's ARCH-INDEX and
+BC-INDEX frontmatter edits did not regress the pre-existing D-1073-tracked historical
+bracket-nesting condition on either index):
+
+```
+$ python3 -c "
+import re
+for path in ['specs/architecture/ARCH-INDEX.md', 'specs/behavioral-contracts/BC-INDEX.md']:
+    with open(path, encoding='utf-8') as f:
+        line = f.readlines()[7].rstrip('\n')
+    pc = line.count('[Prior:')
+    m = re.search(r'(\]+)\"\$', line)
+    tr = len(m.group(1)) if m else None
+    print(path, 'prior_count=', pc, 'trailing_run=', tr, 'delta=', pc - tr)
+"
+specs/architecture/ARCH-INDEX.md prior_count= 178 trailing_run= 26 delta= 152
+specs/behavioral-contracts/BC-INDEX.md prior_count= 276 trailing_run= 35 delta= 241
+```
+
+Both indexes' `[Prior:` count and trailing bracket run each advanced by a matched +1/+1 delta
+(ARCH-INDEX 177→178 / 25→26; BC-INDEX 275→276 / 34→35), so the tracked deltas themselves remain
+152 and 241 respectively, unchanged from the pre-edit baselines — confirming this burst's two
+frontmatter edits are self-balanced and introduce zero new bracket-nesting regression; the
+pre-existing deltas remain the tracked, OPEN [D-1073] drift item, unchanged and NOT remediated by
+this burst (out of scope; anchored to the S-15.03 PRIORITY-A compaction burst).
+
+**Block 6 (Dim-5): Closes**
+
+- **Pass-48 FINDINGS verdict** — persisted verbatim as `adv-adr-046-pass-48.md`; 1 MED finding
+  (F-P48-001) + 1 LOW observation (O-P48-001), both fixed same-burst.
+- **`BC-5.39.001 3-CLEAN streak`** — **STAYS 0/3** (already at floor from pass-46's reset). A
+  new streak starts at pass-49 against the newly-frozen set.
+- **F-P48-001** — CLOSED via provenance correction (inherited, not fabricated) on ADR-046,
+  architect; both v1.18 loci corrected, live-body correction independently re-verified accurate
+  and left unchanged.
+- **O-P48-001** — CLOSED via Description + Postcondition 8 exit-0 enumeration expansion on
+  BC-7.07.001, product-owner; sweep confirmed no further stragglers.
+- **4-INDEX reconciliation** — CLOSED: ARCH-INDEX v3.89 (row-level and frontmatter-level);
+  BC-INDEX v5.13 (row-level and frontmatter-level).
+- **Input-hash recompute** — CLOSED for both edited artifacts per the settled/1-hop-residual
+  convention; cyclic-hash TD [D-1082] cross-referenced, explicitly NOT reopened per this burst's
+  instruction.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1105-ADR046-PASS48-SPEC-CONVERGENCE-REMEDIATION` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a)
+source-attestation gate: literal-shell diff captured in Block 5 — decision-log D-1105 and
+adv-adr-046-pass-48.md Part A BLOCKING finding-ID sets are confirmed matching exactly via literal
+grep with captured stdout. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate,
+D-448(a) source-attestation check, the streak-stays verification gate, the input-hash
+final-state verification gate, and the bracket-delta self-consistency gate all use actual shell
+with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts, no
+trusted-but-unverified claims. Per TD-FACTORY-HOOK-BYPASS-001 P0, all `.factory` content
+mutations this burst used the Edit/Write tools exclusively; the only Bash invocations were
+READ-ONLY (`git status`/`git log`/`grep`/`python3` preflight and gate checks, plus the
+`compute-input-hash` sanctioned tool's `--check`/`--update` modes, whose sole effect is reading
+or writing the computed `input-hash` frontmatter field — the canonical, CLAUDE.md-documented
+tool for this mechanical operation, not a bypass) — no `sed -i` or other content-mutating shell
+command was run against `.factory` content; every prose/version/table edit used the Edit/Write
+tool.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (pass-48) — FINDINGS (1 MED + 1 LOW observation), both
+  fixed same-burst.
+- Streak: STAYS 0/3 (already at floor from pass-46's reset). Fresh pass-49 is NEXT, against the
+  newly-frozen set (ADR-046 v1.19 + BC-4.17.001 v1.22 + BC-5.40.001 v1.18 + BC-7.07.001 v1.35).
+- 4-INDEX: ARCH v3.89 (bumped) / BC v5.13 (bumped) / VP v2.79 (UNCHANGED) / STORY v4.391
+  (UNCHANGED).
+- policies.yaml UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` — unaffected by this burst. Wave-7 substantive state UNCHANGED — this burst is
+  orthogonal to the Wave-7 cascade (trajectory-tail unchanged, →1→1→0→1, LENGTH=4).
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE,
+  pushed via plain push (no force required — fast-forward from parent, unless remote has
+  diverged).
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `0e2669d9` (the
+  D-1104 pass-47 burst commit) — actual commit SHA this burst produces captured at push time.
+
+**Closes:** Pass-48 FINDINGS verdict persisted (`adv-adr-046-pass-48.md`); 1 MED finding
+(F-P48-001) + 1 LOW observation (O-P48-001), both fixed same-burst — the fourth and fifth
+instances of the recurring META pattern that a remediation's own disposition prose is itself
+attack surface, closed via a TRUE repo-wide absence grep and a within-artifact
+exhaustive-enumeration sweep respectively. ADR-046 v1.19; BC-7.07.001 v1.35; BC-4.17.001/
+BC-5.40.001 UNCHANGED. ARCH-INDEX v3.89; BC-INDEX v5.13. BC-5.39.001 streak **STAYS 0/3**
+(already at floor from pass-46's reset), disposition-prose-accuracy class, behavioral core
+unaffected (22 consecutive clean passes on the design substance since pass-27). **NEXT ACTION:**
+dispatch fresh-context adversary pass-49 against the newly-frozen set (ADR-046 v1.19 +
+BC-4.17.001 v1.22 + BC-5.40.001 v1.18 + BC-7.07.001 v1.35), starting a new streak toward literal
+3-CLEAN, applying all eleven now-codified convergence-technique disciplines plus the two new
+(twelfth: repo-wide-absence-grep; thirteenth: summary-enumeration-accuracy) disciplines
+proactively from the start. S-17.05 TDD implementation remains gated on convergence.
