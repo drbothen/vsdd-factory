@@ -407,3 +407,62 @@ D-1091 (pass-34) and D-1093 (pass-36) each reached the gate's zero-finding CLEAN
 At D-1095 (ADR-046 pass-38), fresh-context adversary review against the SAME unchanged frozen set (ADR-046 v1.16 + BC-4.17.001 v1.17 + BC-5.40.001 v1.16 + BC-7.07.001 v1.33) — the set produced by the pass-37 fix burst — returned **VERDICT: CLEAN — zero findings at any severity**. This is the first pass to directly re-verify BOTH previously-reset dimensions in the same review: the ADR §Decision/§N.M anchor-correctness class (D-1092/pass-35's dimension) and the self-attested cardinality/completeness-claim class (D-1094/pass-37's dimension, including an independent recount of ADR-046's own `## Decision` section confirming 6 items against both BCs' now-corrected "1–6" prose). Every other previously-codified dimension (version-stable directive, 4-leg parity, grep-complete inputs audit) was also re-verified holding, with no regression.
 
 **Disposition:** Recorded as `[convergence-progress]`, the same tag used for D-1093's pass-36 confirmation, but distinguished from it by scope: D-1093 confirmed the ADR-anchor dimension alone (immediately after its own reset); this entry confirms BOTH reset dimensions simultaneously, on the same pass, against the same frozen set that triggered the second reset. This is the first direct EVIDENCE that the D-1094 mitigation (minimal, factual, mechanically-backed disposition prose) holds under independent fresh-context re-derivation — evidence, not yet proof, since a single clean pass is not itself a confirmation the way three consecutive passes would be. Per BC-5.39.001, this is 1 of 3 required CONSECUTIVE clean passes — the streak requires 2 further consecutive clean passes (39, 40), and any finding on either would reset the streak to 0/3 again. The correct disposition for passes 39 and 40 is to CONTINUE applying all convergence-technique disciplines proactively without relaxing rigor on the theory that "both reset dimensions are now proven safe" — one clean pass covering two previously-reset dimensions is progress, not closure. `[convergence-progress; codified; both-reset-dimensions-reconfirmed; third-clean-pass; D-1095; adr-046-gate; pending-pass-39-40-confirmation; not-yet-converged]`
+
+---
+
+**[codified][process-gap][convergence-observation] Arm-parity sibling-sweep + substantive-vs-metadata reset distinction — pass-39's finding was a genuine data-destructive internal contradiction in BC-4.17.001's own operative Precondition/Invariant text, the FIRST substantive (not metadata/prose) reset this gate has produced, surfacing a sixth distinct convergence-technique discipline: what-vs-how reconciliations must sweep to every analogous sibling arm/case in the same burst.**
+
+At D-1096 (ADR-046 pass-39), fresh-context adversary review against the frozen set produced by
+pass-38 (ADR-046 v1.16 + BC-4.17.001 v1.17 + BC-5.40.001 v1.16 + BC-7.07.001 v1.33) found F-P39-001
+(MED): BC-4.17.001's Precondition 4 and Invariant 7 mandated `extract_frontmatter`-slice confinement
+for BOTH the `timestamp:` re-stamp arm AND the `expires_at` renewal arm, directly contradicting
+Precondition 2's/Invariant 9's own requirement that `renew_lock_if_holder` be fed the FULL
+`content_after_pc1` for the single composed `host::write_file`. A literal reading of the `expires_at`
+arm's slice-exclusivity directive would have truncated `RenewOutcome::Renewed(new_content)` to the
+frontmatter region on write — since that truncated value becomes the entire composed write, this
+would have DESTROYED STATE.md's body content on a live write. This defect survived 37 prior passes
+(including the Pass-16/O-P16-001 fix that reconciled the analogous what-vs-how tension for PC4's
+OTHER case — the `timestamp:` arm) because no prior pass's audit checklist included "when a
+what-vs-how reconciliation is applied to one arm/case, check whether every sibling arm/case with
+analogous language received the same reconciliation" as a discrete check.
+
+**Part (a) — `[codified][process-gap]`:** when a what-vs-how (semantic-scope vs. mechanism)
+reconciliation is applied to ONE arm/case of a contract, ALL sibling arms/cases carrying analogous
+language MUST receive the same reconciliation in the SAME burst. This is the arm-parity variant of
+the sibling-sweep discipline already codified for callsites (TD-VSDD-060) and for BC clusters
+(D-1087/D-1088's comprehensive-sweep convergence-strategy lessons) — but operating at a FINER
+granularity: not "every BC that shares this defect class," but "every CLAUSE-ARM within the SAME BC
+that uses analogous language to the clause just reconciled." The Pass-16 fix reconciled PC4's
+`timestamp:`-arm what-vs-how tension (frontmatter-slice-directive vs. actual write-mechanism scope)
+but never checked whether Invariant 7's PARALLEL `expires_at`-arm language carried the identical
+tension — it did, and it went unreconciled for 23 further passes (16 through 38) until a
+fresh-context adversary traced the full write-composition data flow from first principles rather
+than re-running any previously-codified checklist item.
+
+**Part (b) — `[process-observation][convergence-observation]`:** this is the gate's THIRD reset this
+session (after pass-35 and pass-37), but the FIRST that is SUBSTANTIVE rather than metadata/prose.
+Pass-35's reset was a citation-accuracy gap (wrong ADR §Decision NUMBER, correct underlying value).
+Pass-37's reset was a bookkeeping miscount INSIDE a prior remediation's own narrative prose (no
+operative-content risk at all — the actual `ADR-046 Decision N` citations in live body text were
+never wrong). **Pass-39's finding is neither of those shapes** — it is a genuine unreconciled
+contradiction in the BC's own live Precondition/Invariant text that, if shipped into S-17.05's TDD
+implementation, would have produced a real data-truncation bug on the very first `expires_at`
+renewal write. This is decision-relevant evidence for the human's standing continue-vs-accept-
+provisional choice (§5 Pending Human Decision): the two prior resets could be read as the gate
+"finding diminishing returns" on prose-level polish; this reset demonstrates the OPPOSITE — the gate
+is still finding genuine, consequential defects a fresh adversary's first-principles trace can
+surface that no accumulated checklist of previously-codified disciplines would have caught, because
+each codified discipline targets the SPECIFIC failure shape its own discovery pass revealed, not the
+general class "any two Preconditions/Invariants governing the same composed write may silently
+diverge in scope."
+
+**Disposition:** Recorded as `[codified][process-gap]` for part (a) — the arm-parity sibling-sweep
+discipline is now in force for all future ADR-046 gate remediation bursts and any other BC exhibiting
+a what-vs-how reconciliation pattern across multiple arms/cases — and `[process-observation]
+[convergence-observation]` for part (b) — recorded for the human's decision-relevance, not itself a
+fix. The human's standing choice (CONTINUE looping toward literal 3-CLEAN, re-affirmed twice already
+this session) is not altered by this entry; this entry supplies additional evidence FOR that choice's
+continued soundness, since a substantive defect just surfaced at pass-39, the same discipline that
+found and fixed 30 prior genuine findings across the gate's history. `[codified; process-gap;
+convergence-observation; arm-parity; sibling-sweep; what-vs-how; substantive-reset;
+metadata-vs-substantive; D-1096; adr-046-gate; f-p39-001; third-reset; sixth-discipline]`

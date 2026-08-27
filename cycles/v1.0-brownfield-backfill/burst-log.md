@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-20T00:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "e5c8b08"
+input-hash: "1e6834f"
 traces_to: STATE.md
 ---
 
@@ -3421,4 +3421,219 @@ this session, and the first to re-confirm BOTH previously-reset dimensions (ADR-
 self-attested cardinality claims) simultaneously. **NEXT ACTION:** dispatch fresh-context adversary
 pass-39 against the SAME unchanged frozen set (ADR-046 v1.16 + BC-4.17.001 v1.17 + BC-5.40.001
 v1.16 + BC-7.07.001 v1.33); needs 2 more consecutive clean passes (39, 40) for literal 3-CLEAN
+convergence. S-17.05 TDD implementation remains gated on convergence.
+
+---
+
+## D-1096-ADR046-PASS39-SPEC-CONVERGENCE-REMEDIATION
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1096 < D-9000 ceiling
+```
+
+(Gate run AFTER D-1096 was appended to decision-log.md this burst, confirming D-1096 is the correct
+next allocation.) **Parent-commit:** the D-1095 pass-38 burst commit `35b0bb8f` (factory-artifacts
+HEAD at burst start; actual parent SHA captured at Block 8 commit time below).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` spec-convergence pass-39 dispatched against the SAME
+unchanged frozen set (ADR-046 v1.16 + BC-4.17.001 v1.17 + BC-5.40.001 v1.16 + BC-7.07.001 v1.33) —
+the set produced by the pass-38 CLEAN pass. **Verdict: FINDINGS (1 MED), 0 HIGH, 0 LOW.** F-P39-001
+(MED, POLICY 4): BC-4.17.001 v1.17's Precondition 4 and Invariant 7 mandated
+`extract_frontmatter`-slice confinement for BOTH the `timestamp:` arm AND the `expires_at` arm,
+directly contradicting Precondition 2's/Invariant 9's requirement that `renew_lock_if_holder` be fed
+the FULL `content_after_pc1` for the single composed `host::write_file`. A literal reading of the
+`expires_at` arm's slice-exclusivity directive would have truncated
+`RenewOutcome::Renewed(new_content)` to the frontmatter region on write, DESTROYING STATE.md's body
+— a genuine data-destructive internal contradiction, unlike the pass-35 (citation-accuracy) and
+pass-37 (bookkeeping-miscount) resets. **BC-5.39.001 3-CLEAN streak RESETS 1/3 → 0/3** — the THIRD
+reset of the session, and the FIRST substantive (not metadata/prose) reset. Fixed same-burst by
+product-owner: Precondition 4 + Invariant 7 arm-scoped to reconcile the `expires_at` arm's
+full-content requirement against the `timestamp:` arm's frontmatter-slice requirement, mirroring
+PC4's own pre-existing semantic-scope-vs-write-mechanism framing. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-adr-046-pass-39.md`.
+
+**Block 3: Files touched**
+
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md` — v1.17→v1.18 (product-owner,
+  pre-burst; F-P39-001 Precondition 4 + Invariant 7 arm-scoped reconciliation); input-hash
+  recomputed and confirmed UNCHANGED at `4970575` (state-manager, this burst — no input-file
+  content changed)
+- `.factory/specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md`
+  — **UNCHANGED** at v1.16 (not touched — the contradiction lives entirely inside BC-4.17.001's own
+  PC4/Invariant 7 text)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md` — **UNCHANGED** at v1.16 (audited,
+  confirmed clean, no edit)
+- `.factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md` — **UNCHANGED** at v1.33 (not touched)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — BC-4.17.001 row version-chain cell +v1.18;
+  version v5.06→v5.07
+- `.factory/specs/architecture/ARCH-INDEX.md` — **UNCHANGED** at v3.86 (ADR-046 not touched)
+- `.factory/cycles/v1.0-brownfield-backfill/adv-adr-046-pass-39.md` — new (pass-39 FINDINGS record)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1096 appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 1 new entry appended (two-part:
+  `[codified][process-gap]` arm-parity sibling-sweep discipline + `[process-observation]
+  convergence-observation` substantive-vs-metadata reset distinction)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (streak 1/3→0/3 RESET, Current Artifact Versions, BC-INDEX
+  version cell, Blocking Issues, new Drift Item, Session Resume Checkpoint, version bump)
+
+**Block 4: Codifications**
+
+One new lesson entry codified in `lessons.md`, two-part: (a) `[codified][process-gap]` — when a
+what-vs-how (semantic-scope vs. mechanism) reconciliation is applied to ONE arm/case of a contract
+(as PC4's pre-existing framing was applied to the `timestamp:` arm at Pass-16/O-P16-001), every
+sibling arm/case carrying analogous language MUST receive the same reconciliation in the SAME burst
+— the arm-parity variant of the sibling-sweep discipline (TD-VSDD-060-adjacent, at clause-arm
+granularity rather than callsite granularity). (b) `[process-observation][convergence-observation]`
+— this 3rd reset is SUBSTANTIVE (a genuine data-truncation hazard), not metadata/prose like the
+pass-35/pass-37 resets; this is the strongest evidence yet that the BC-5.39.001 3-CLEAN gate's
+continued operation is finding real defects, not merely churning on prose — a fresh-context adversary
+caught what 38 prior passes' worth of citation-accuracy, inputs-completeness, and cardinality-claim
+audits all walked past.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+Input-hash recompute (literal shell, D-449(a); print-mode only — no `--update`, per
+TD-FACTORY-HOOK-BYPASS-001 P0, values applied via the Edit tool):
+
+```
+$ bash plugins/vsdd-factory/bin/compute-input-hash .factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md
+4970575
+$ bash plugins/vsdd-factory/bin/compute-input-hash .factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md --check
+(exit 0 — matches stored input-hash; no input-file content changed this burst)
+```
+
+Confirmed UNCHANGED — cyclic-hash TD `[D-1082]` NOT triggered this burst (only BC-4.17.001's own
+body changed, which is not self-referential in its own `inputs:` hash computation; ADR-046,
+BC-5.40.001, and BC-7.07.001, the files BC-4.17.001's `inputs:` array actually cites, are all
+UNCHANGED).
+
+BC-INDEX version/row verification gate (literal shell):
+
+```
+$ grep -n '^version:' specs/behavioral-contracts/BC-INDEX.md | head -1
+4:version: "5.07"
+$ grep -c "v1.18 (2026-08-27 Pass-39" specs/behavioral-contracts/BC-INDEX.md
+1
+```
+
+Table-cell-aware POLICY 8 gate (literal shell — isolates the BC-4.17.001 row itself, not a free-text
+match):
+
+```
+$ grep -noE '\| \[BC-4\.17\.001\]\(ss-04/BC-4\.17\.001\.md\)' specs/behavioral-contracts/BC-INDEX.md
+818:| [BC-4.17.001](ss-04/BC-4.17.001.md)
+```
+
+Frontmatter verification gate (literal shell):
+
+```
+$ grep -n '^version:\|^status:\|^input-hash:' specs/behavioral-contracts/ss-04/BC-4.17.001.md
+4:version: "1.18"
+5:status: draft
+23:input-hash: "4970575"
+```
+
+D-448(a) source-attestation parity gate (decision-log D-1096 finding-ID set vs
+adv-adr-046-pass-39.md Part A finding-ID set):
+
+```
+$ grep -oE "F-P39-[0-9]{3}" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-39.md | sort -u
+F-P39-001
+$ sed -n '/^## D-1096/,/^---$/p' cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE "F-P39-[0-9]{3}" | sort -u
+F-P39-001
+```
+
+Sets match exactly — decision-log D-1096's finding-ID set is a faithful description of
+adv-adr-046-pass-39.md Part A.
+
+Streak-reset verification gate (literal shell):
+
+```
+$ grep -c "1/3 → \*\*RESETS to 0/3\*\*" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-39.md
+1
+$ grep -c "1/3 → RESETS to 0/3" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-39.md
+1
+```
+
+BC-INDEX `last_amended` bracket-balance gate (literal shell — this burst added exactly one new
+outer nesting layer around the untouched pre-existing content; the pre-existing internal
+opens/trailing-run asymmetry, 269/29, is pre-existing D-1073 drift, NOT introduced or fixed by this
+burst):
+
+```
+$ python3 -c "
+import re
+with open('specs/behavioral-contracts/BC-INDEX.md') as f:
+    for line in f:
+        if line.startswith('last_amended:'):
+            print('opens:', line.count('[Prior:'), 'trailing-close-run:', len(re.search(r'(\]+)\"\$', line.rstrip(chr(10))).group(1)))
+            break
+"
+opens: 270 trailing-close-run: 30
+```
+
+269→270 opens, 29→30 trailing-close-run — exactly +1 each, confirming the new v5.07 wrap is
+internally balanced and the pre-existing interior content was not disturbed.
+
+**Block 6 (Dim-5): Closes**
+
+- **`F-P39-001`** (MED, BC-4.17.001 Precondition 4/Invariant 7 vs. Precondition 2/Invariant 9
+  arm-scoping contradiction) — **FIXED**: BC-4.17.001 v1.18.
+- **`BC-5.39.001 3-CLEAN streak`** — **RESETS 1/3 → 0/3.** NOT a closure — fresh pass-40 is the
+  documented NEXT action; needs 3 consecutive clean passes.
+- **Arm-parity sibling-sweep discipline codification** — CLOSED via `[codified][process-gap]`
+  lesson entry.
+- **Substantive-vs-metadata reset distinction** — CLOSED via `[process-observation]
+  [convergence-observation]` lesson entry (recorded for human decision-relevance, not a fix; human
+  decision on convergence strategy remains open per §5 Pending Human Decision).
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1096-ADR046-PASS39-SPEC-CONVERGENCE-REMEDIATION` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation
+gate: literal-shell diff captured in Block 5 — finding-ID sets match exactly between decision-log
+D-1096 and adv-adr-046-pass-39.md Part A (both `{F-P39-001}`). D-449(a) literal-shell-execution
+SELF-APPLICATION: POLICY 16 gate, input-hash recompute (print-mode only, confirming UNCHANGED),
+BC-INDEX version/row verification, table-cell-aware POLICY 8 gate, frontmatter verification, the
+D-448(a) source-attestation check, the streak-reset verification gate, and the bracket-balance gate
+all use actual shell with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts,
+no trusted-but-unverified claims. Per TD-FACTORY-HOOK-BYPASS-001 P0, all `.factory` content
+mutations this burst used the Edit/Write tools exclusively; the only Bash invocations were
+READ-ONLY (`compute-input-hash` print-mode and `--check`, `grep`, `python3` bracket count) — no
+`sed`/`--update`/content-mutating shell command was run against `.factory` content.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (pass-39) — content-bearing, 1 finding (MED) fixed, 0 LOW
+  observations, 0 HIGH.
+- Streak: **RESETS 1/3 → 0/3.** Fresh pass-40 is NEXT, against the newly-frozen set.
+- 4-INDEX: ARCH v3.86 (UNCHANGED) / BC v5.06→v5.07 / VP v2.79 (UNCHANGED) / STORY v4.391
+  (UNCHANGED).
+- policies.yaml UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` — unaffected by this burst. Wave-7 substantive state UNCHANGED — this burst is
+  orthogonal to the Wave-7 cascade (trajectory-tail unchanged, →1→1→0→1, LENGTH=4).
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed
+  via plain push (no force required — fast-forward from parent).
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `35b0bb8f` (the D-1095
+  pass-38 burst commit) — actual commit SHA this burst produces captured at push time.
+
+**Closes:** Pass-39 FINDINGS verdict persisted (`adv-adr-046-pass-39.md`); F-P39-001 (MED) BC-4.17.001
+Precondition 4/Invariant 7 arm-scoping contradiction (a genuine data-destructive internal
+contradiction, not a metadata/prose defect like the pass-35/37 resets) FIXED. BC-5.39.001 streak
+**RESETS 1/3 → 0/3** (3rd reset this session, first SUBSTANTIVE reset). Arm-parity sibling-sweep
+discipline CODIFIED as a sixth distinct convergence-technique discipline; substantive-vs-metadata
+reset distinction recorded as a `[convergence-observation]`. **NEXT ACTION:** dispatch fresh-context
+adversary pass-40 against the newly-frozen set (ADR-046 v1.16 + BC-4.17.001 v1.18 + BC-5.40.001
+v1.16 + BC-7.07.001 v1.33); needs 3 consecutive clean passes (40, 41, 42) for literal 3-CLEAN
 convergence. S-17.05 TDD implementation remains gated on convergence.

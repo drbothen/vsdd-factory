@@ -3971,3 +3971,133 @@ D-1095-ADR046-PASS38-SPEC-CONVERGENCE-CLEAN
 2026-08-26
 
 ---
+
+## D-1096
+
+**D-1096-ADR046-PASS39-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1095 (this cycle's decision-log.md). D-1096 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 39 dispatched against the SAME unchanged
+frozen set (ADR-046 v1.16 + BC-4.17.001 v1.17 + BC-5.40.001 v1.16 + BC-7.07.001 v1.33) produced by
+the pass-38 CLEAN pass. **VERDICT: FINDINGS (1 MED), 0 HIGH, 0 LOW.** **BC-5.39.001 3-CLEAN streak
+RESETS 1/3 → 0/3** — the THIRD reset this session. Unlike the pass-35 reset (a newly-revealed
+citation-accuracy dimension) and the pass-37 reset (a bookkeeping miscount inside a prior
+remediation's own narrative, no data-destructive consequence), **this reset is SUBSTANTIVE**: the
+finding is a genuine unreconciled internal contradiction in BC-4.17.001's own OPERATIVE spec content
+that would have caused actual data loss if followed literally. Fixed by product-owner. Full record:
+`adv-adr-046-pass-39.md`.
+
+**F-P39-001 (MED, POLICY 4, semantic-anchoring-integrity) — FIXED.** BC-4.17.001 v1.17's
+Precondition 4 and Invariant 7 mandated `extract_frontmatter`-slice confinement for BOTH the
+`timestamp:` arm AND the `expires_at` arm, directly contradicting Precondition 2's/Invariant 9's own
+requirement that `renew_lock_if_holder` be fed the FULL `content_after_pc1` and that both arms
+compose into a SINGLE `host::write_file` call. A literal reading of the `expires_at` arm's
+slice-exclusivity directive would have fed `renew_lock_if_holder` a frontmatter-only slice,
+truncating its `RenewOutcome::Renewed(new_content)` return value to the frontmatter region — and
+since that truncated value becomes the entire composed write, this would have DESTROYED STATE.md's
+body content on a live write. Not a cosmetic defect: this is a genuine data-truncation hazard hiding
+in the BC's own normative text. Corrected: Precondition 4 and Invariant 7 now scope the
+extract_frontmatter-slice byte-range restriction to PC1's `timestamp:` scan only; for the
+`expires_at` arm, frontmatter confinement is restated as a semantic-region guarantee delegated
+internally to `renew_lock_if_holder`/`flp::parse_factory_lock`/`rewrite_expires_at`, while the arm is
+still fed full `content_after_pc1` per PC2 — mirroring PC4's own pre-existing "'Targeted' is a
+semantic-scope guarantee, not a write-mechanism constraint" framing (the same reconciliation already
+applied to the `timestamp:`/PC4 case at Pass-16/O-P16-001, now extended to the sibling `expires_at`
+arm). PC1, PC2, and Invariant 9 themselves UNCHANGED — independently re-verified already correct. No
+PC/Invariant/EC renumbered (append-only numbering preserved per POLICY 1).
+
+BC-4.17.001 v1.17→**v1.18**. ADR-046/BC-5.40.001/BC-7.07.001 UNCHANGED at v1.16/v1.16/v1.33 (none
+carries the defective directive — not touched).
+
+**Novelty assessment (recorded, see lessons.md):** this pass's finding is a THIRD distinct FAILURE
+CLASS on this gate, structurally different from both prior resets. Pass-35 (D-1092) found a
+citation-accuracy gap (wrong ADR §Decision number, correct value). Pass-37 (D-1094) found a
+bookkeeping miscount inside a remediation's own narrative prose (no operative-content risk at all).
+**Pass-39 found a genuine unreconciled contradiction inside the BC's own live Precondition/Invariant
+text — the kind of defect that, if shipped into the implementing story S-17.05's TDD work, would
+have produced a data-destructive bug.** This is the clearest demonstration yet of why the BC-5.39.001
+3-CLEAN gate exists: a fresh-context adversary, unaware of 38 prior passes' worth of prose-level
+cleanup, traced the write-composition data flow from first principles and found a defect every prior
+comprehensive audit (citation accuracy, `inputs:` completeness, array-ordering, cardinality claims)
+walked past, because none of those audits included "trace each PC4/Invariant-7 arm's data flow
+independently against PC2/Invariant 9's own full-content requirement" as a discrete check.
+**CODIFIED this burst** (see lessons.md, tagged `[codified][process-gap][convergence-observation]`):
+(a) when a what-vs-how (semantic-scope vs. mechanism) reconciliation is applied to ONE arm/case of a
+contract, every sibling arm/case using analogous language MUST receive the same reconciliation in the
+SAME burst — this is the arm-parity variant of the sibling-sweep discipline (TD-VSDD-060-adjacent,
+but at the clause-arm granularity rather than the callsite granularity); (b) this 3rd reset,
+being SUBSTANTIVE rather than metadata/prose, is itself the strongest evidence yet that literal
+3-CLEAN convergence — even under five previously-codified disciplines applied proactively — has not
+exhausted the space of genuine defects a fresh adversary can find; the gate's continued operation is
+justified, not merely ceremonial.
+
+**Index reconciliation (state-manager, this burst):**
+
+- **BC-INDEX v5.06→v5.07:** BC-4.17.001 row version-chain cell +v1.18.
+- ARCH-INDEX v3.86 UNCHANGED — ADR-046 not touched this pass. STORY-INDEX v4.391 UNCHANGED. VP-INDEX
+  v2.79 UNCHANGED.
+
+**Input-hash recompute (state-manager, this burst, literal shell, print-mode only):** BC-4.17.001
+recomputed and confirmed **UNCHANGED at `4970575`** — no file listed in BC-4.17.001's own `inputs:`
+array changed content this burst (ADR-046, BC-5.40.001, and BC-7.07.001 are all UNCHANGED; the only
+edit this burst is to BC-4.17.001's OWN body, which is not self-referential in its own `inputs:`
+hash computation). Cyclic-hash TD `[D-1082]` NOT triggered this burst — settled, NOT reopened.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-38" as the current/NEXT pass, to
+streak value `1/3`, or to the superseded BC-4.17.001 `v1.17` version-chain head — matches confined to
+PRESERVED HISTORICAL rows (D-1082..D-1095 entries correctly describing their own contemporaneous
+pass numbers/streak values/versions at the time) and this same burst's own new content. No
+propagation gap found.
+
+**STATE.md vNext:** streak 1/3→**0/3** (RESETS, explicitly recorded, 3rd reset this session, this
+one SUBSTANTIVE not metadata); Current Artifact Versions BC-4.17.001 v1.17→v1.18, ADR-046/BC-5.40.001/
+BC-7.07.001 UNCHANGED v1.16/v1.16/v1.33; BC-INDEX version cell v5.06→v5.07; Blocking Issues
+ADR-046-gate row updated (streak RESET 0/3, pass-39 1 substantive finding found+fixed, fresh pass-40
+NEXT); new Drift Item recording the arm-parity sibling-sweep discipline codification; Session Resume
+Checkpoint refreshed (§2 streak 0/3 RESET, fresh pass-40 NEXT against the newly-frozen set, records
+the 34→35reset→36→37reset→38→39reset streak history, human decision to CONTINUE looping recorded
+again; §3 versions updated; §7 resume command updated); Phase Progress + Current Phase Steps rows
+added for D-1096 (Current Phase Steps table trimmed to keep only the last 5 — D-1091 row archived
+off, already fully preserved in decision-log.md/burst-log.md). Trajectory tail unchanged (Wave-7 not
+touched this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-39 COMPLETE. **VERDICT: FINDINGS (1 MED), 0 HIGH, 0 LOW.**
+BC-5.39.001 3-CLEAN streak **RESETS 1/3 → 0/3** (3rd reset this session, the first SUBSTANTIVE
+reset — a genuine data-destructive internal contradiction, not a metadata/prose defect).
+F-P39-001 (MED) FIXED same-burst by product-owner: BC-4.17.001 v1.17→v1.18, Precondition 4 +
+Invariant 7 arm-scoped to reconcile the `expires_at` arm's full-content feed requirement against the
+`timestamp:` arm's frontmatter-slice requirement. CODIFIED this burst: arm-parity sibling-sweep
+discipline (what-vs-how reconciliation applied to one arm must sweep to every analogous sibling arm
+in the same burst) + meta-observation distinguishing SUBSTANTIVE resets from metadata/prose resets.
+Fresh pass-40 is the documented NEXT action against the newly-frozen set; needs 3 consecutive clean
+passes for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-39.md, VERDICT: FINDINGS (1 MED), 0 HIGH, 0
+LOW), product-owner (BC-4.17.001 v1.18: F-P39-001 fixed — Precondition 4 + Invariant 7 arm-scoped
+reconciliation; ADR-046/BC-5.40.001/BC-7.07.001 not touched, do not carry the defective directive),
+state-manager (adv-adr-046-pass-39.md persist + BC-INDEX v5.07 + input-hash recompute (unchanged) +
+decision-log D-1096 + lessons codification + burst-log + STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.06 | v5.07 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.86 | v3.86 (UNCHANGED) |
+
+### Phase
+
+D-1096-ADR046-PASS39-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-27
+
+---
