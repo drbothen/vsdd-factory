@@ -812,3 +812,72 @@ illustrative-quote dimension is now proven safe" — one clean pass covering a f
 discipline is progress, not closure.
 `[convergence-progress; ninth-discipline-reconfirmed; fifth-clean-pass; cleanest-set-yet;
 D-1102; adr-046-gate; pending-pass-46-47-confirmation; not-yet-converged]`
+
+---
+
+**[codified][process-gap] A sweep that judges a locus "clean" must RECORD WHY (arm-split-
+correct / semantic-region-true-both-arms / needs-caveat), not just assert "checked" —
+self-attested-but-unexplained checks can hide a locus still carrying stale framing**
+
+At D-1097 (pass-40), the sibling-sweep-includes-VPs discipline swept every
+`extract_frontmatter`/frontmatter-slice/byte-range locus in BC-4.17.001 and listed Invariant 5
+as "confirmed correct, arm-split since v1.18, not re-broken." That verdict was WRONG: Invariant
+5's headline ("body never read or parsed") was still carrying the pre-F-P39-001 un-caveated
+byte-range framing, and its "Mirrors BC-4.13.001 Invariant 9" citation imported BC-4.13.001's
+read-only `read_prefix` semantics without the reader-vs-writer caveat this hook's whole-file
+`host::read_file`/`host::write_file` call site requires. The "checked" label recorded that the
+locus was inspected, but not the REASONING that produced the "correct" verdict — so a
+one-word self-attestation survived six further passes (41 through 45) without being
+independently re-derived from first principles, because each subsequent pass trusted the
+prior pass's "checked" label rather than re-deriving the arm-split from the locus's own text.
+This is a distinct failure mode from O-P37-001's "self-attested read-in-full has no mechanical
+backing" — that lesson concerns claiming a document was READ; this one concerns claiming a
+VERDICT was correct without recording the reasoning that makes it checkable by a future pass.
+
+**Disposition:** When any convergence-technique sweep (arm-parity, locus-class-extension,
+byte-range/body-confinement, or any future class) judges a locus "clean" / "correct" /
+"unaffected," the record MUST capture WHY — the specific classification the locus falls into
+(e.g., "arm-split-correct: byte-range-confined on PC1, semantic-region-guarantee on PC2" or
+"semantic-region-true-under-both-arms" or "unrelated to this claim class entirely") — not a
+bare "checked" or "confirmed correct" verdict with no reasoning attached. This makes a future
+fresh-context pass able to verify the PRIOR pass's reasoning against the locus's actual current
+text, rather than trusting an opaque pass/fail label. Applied this burst: the mandatory
+exhaustive byte-range/body-confinement locus audit (F-P46-001's remediation) records, for every
+locus enumerated, which of the three classifications it falls into and why — the model for all
+future locus-class audits under this discipline.
+`[codified; process-gap; record-why-not-just-checked; byte-range-class-drained; D-1103;
+adr-046-gate; F-P46-001; pass-40-sweep-gap]`
+
+---
+
+**[codified][process-gap] The grep-complete-all-cluster-artifacts audit discipline (D-1100,
+eighth discipline) extends to AC-NNN cross-references and their attached verbatim quotes, not
+only to `inputs:`-array completeness — a fix scoped to ONE cited AC-NNN locus does not by
+itself confirm every other AC-NNN reference across the cluster is correctly scoped**
+
+At D-1100 (pass-43), F-P43-002 fixed ADR-046's/BC-7.07.001's mis-scoped "AC-018" cross-
+reference (implying it was BC-7.07.001's own acceptance criterion, when AC-018 is in fact
+S-18.04a's story-level AC). That fix was scoped to the ONE locus the pass-43 finding named. It
+did not trigger a grep-complete sweep of every OTHER `AC-[0-9]+` token across the frozen set —
+so ADR-046's own separate "BC-5.40.001 Invariant 2/AC-007" cross-reference, carrying the
+identical mis-scoping pattern (AC-007 is S-17.01's story-level AC, not BC-5.40.001's own),
+survived three further passes (44, 45, unfound-at-43) unaudited, plus a fabricated "verbatim
+quote" attached to it that was never checked against either candidate source text. The
+underlying discipline (D-1100) was correctly grep-complete for `inputs:`-array
+citations — it had not yet been extended to treat AC-NNN cross-references (and any illustrative
+quote attached to them) as their own grep-complete class.
+
+**Disposition:** Any burst that fixes a mis-scoped AC-NNN cross-reference MUST, in the same
+pass, run a grep-complete sweep of every `AC-[0-9]+` token across the full frozen set's live
+body (not just the one finding's own locus) and verify: (a) the citation names the actual
+OWNING artifact (story vs. BC — extending D-1100's existing owning-artifact discipline), and
+(b) any quote presented as verbatim is checked against the actual cited source text via a
+repo-wide grep, not assumed accurate because it "sounds right." Applied this burst: F-P46-002's
+mandatory exhaustive AC-reference audit swept every `AC-[0-9]+` token in ADR-046's body (found
+AC-007 ×2, both now fixed; AC-018 ×2, both already correct from pass-43) — the model for all
+future AC-reference-scoped fixes at this gate. This audit class is now confirmed DRAINED for
+the two-instance cluster identified across passes 43 and 46 (AC-018, AC-007); a future AC-NNN
+citation added to any of the four frozen-set artifacts must re-trigger this same grep-complete
+sweep before the burst closes.
+`[codified; process-gap; ac-reference-grep-complete; verbatim-quote-source-check; D-1103;
+adr-046-gate; F-P46-002; D-1100-extension]`

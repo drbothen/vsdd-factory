@@ -4785,3 +4785,147 @@ D-1102-ADR046-PASS45-SPEC-CONVERGENCE-CLEAN
 2026-08-27
 
 ---
+
+## D-1103
+
+**D-1103-ADR046-PASS46-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1102 (this cycle's decision-log.md). D-1103 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 46 dispatched against the SAME unchanged
+frozen set re-confirmed CLEAN at pass-45 (ADR-046 v1.17 + BC-4.17.001 v1.20 + BC-5.40.001 v1.18
++ BC-7.07.001 v1.34). **VERDICT: FINDINGS (2 MED).** Both findings are provenance/cross-
+reference/citation-accuracy class, not behavioral-core defects — the gate's design substance
+remains re-confirmed converged for the 20th consecutive pass (stable since pass-27).
+
+**F-P46-001 (MED, POLICY 4, byte-range/body-confinement arm-scope reconciliation).**
+BC-4.17.001 Invariant 5's headline ("body never read or parsed") was an un-caveated byte-range
+claim contradicting the arm-scope reconciliation already applied to sibling loci (Precondition
+4, Invariant 7, VP-TBD-8, PC4, Invariant 9) at v1.18/v1.19 (F-P39-001/F-P40-001) — the hook's
+single `host::read_file` call reads the WHOLE file (body included), and PC2's `Renewed`
+outcome's single composed `host::write_file` rewrites the WHOLE file back; "operates only
+within the frontmatter region" is, for the `expires_at` arm, a semantic-region guarantee, not a
+byte-range restriction. Its "Mirrors BC-4.13.001 Invariant 9" citation also imported
+BC-4.13.001's byte-range `read_prefix` (read-only, envelope-bounded) semantics without the
+reader-vs-writer caveat this hook's `host::read_file` (whole-file writer) call requires. The
+pass-40 sweep had listed Invariant 5 as "checked," but that self-attestation recorded only that
+the locus was inspected, not WHY it was judged correct — it was still carrying the
+pre-F-P39-001 framing underneath the "checked" label. **Mandatory exhaustive byte-range/body-
+confinement locus audit performed:** every Precondition/Postcondition/Invariant/VP/
+Architecture-Anchor/Edge-Case/Description/§SDK-Grounding-Evidence locus making a byte-range/
+body-confinement/frontmatter-only/`read_prefix`-vs-`read_file` claim was enumerated and
+verdicted — Precondition 4, Invariant 7 (incl. fence-not-located tail), PC4, and VP-TBD-8 all
+re-confirmed CORRECT and unmodified; every other locus confirmed either semantic-region-only
+(true under both arms) or unrelated to byte-range/body-confinement entirely. **Invariant 5 was
+the ONLY locus still carrying the un-caveated byte-range framing — the class is now fully
+drained.** Fixed same-burst by product-owner: Invariant 5 restated with the same arm-split as
+its siblings; headline corrected from "body never read" to "body never PARSED, inspected, or
+depended on"; the BC-4.13.001 mirror-citation corrected to note the mirror is on
+semantic-region intent, not byte-range read mechanism. No PC/Invariant/EC renumbered
+(append-only numbering preserved — POLICY 1). BC-4.17.001 v1.20→v1.21.
+
+**F-P46-002 (MED, POLICY 4, cross-reference integrity).** ADR-046 cited "BC-5.40.001 Invariant
+2/AC-007" in two live-body loci (§Rationale, §Source/Origin) as though AC-007 were a normative
+acceptance-criterion section of BC-5.40.001 itself — but BC-5.40.001 has no Acceptance Criteria
+section and no AC-NNN numbering scheme at all (confirmed by a full section-heading sweep), the
+same fact this ADR's own pass-43 remediation (F-P43-002) already established for
+BC-7.07.001/AC-018, now recurring on a sibling artifact. AC-007 is in fact a STORY-level
+acceptance criterion of `.factory/stories/S-17.01-factory-lock-schema-cas-push.md`. Additionally,
+§Rationale's parenthetical "MUST NOT be overridden via environment or arguments" was presented
+as a verbatim quote but is not verbatim-present anywhere in this repository (confirmed by a
+repo-wide `grep -rn` sweep of `.factory/` returning only this ADR's own two loci as hits) —
+fabricated at some point in this ADR's own drafting/revision history. **Mandatory exhaustive
+AC-reference audit performed** (grep-complete sweep of every `AC-[0-9]+` token across the
+document body): found exactly two other AC-NNN loci in the live body, both AC-018, both already
+correctly attributed to S-18.04a by the pass-43 fix and requiring no further change. Fixed
+same-burst by architect: both AC-007 loci re-expressed as S-17.01's AC-007, anchored to
+BC-5.40.001 Invariant 2 rather than implied as the BC's own AC-NNN — §Rationale now cites a
+verbatim quote from BC-5.40.001 Invariant 2 ("The TTL value is not configurable by users.") in
+place of the fabricated quote; §Source/Origin now reads "Invariant 2 (`TTL_SECONDS = 2700`
+non-configurable; also S-17.01's AC-007)." No Decision content, File-Change Plan, or other
+Companion Amendment item touched. No new Decision added; Decision numbering (1–6) unchanged;
+Status remains **accepted**. ADR-046 v1.17→v1.18.
+
+**BC-5.39.001 3-CLEAN streak RESETS 1/3 → 0/3 — the 5th reset this session** (after pass-35,
+pass-37, pass-39, pass-43). Both findings are UNSWEPT SIBLINGS of prior fixes — F-P46-001 is
+the byte-range class's last un-caveated locus (missed by the pass-40 sweep's self-attested-but-
+unexplained "checked" verdict); F-P46-002 is the AC-reference class's second instance (the
+pass-43 fix only swept BC-7.07.001/AC-018, the locus that finding itself named, not every
+AC-NNN reference cluster-wide) — confined to the provenance/cross-reference/citation-accuracy
+perimeter, qualitatively closer to the pass-35/pass-43 resets than the pass-39 data-destructive
+reset. The behavioral core (write-composition, five-outcome table, identity-gating,
+event-sourcing) remains independently re-verified CLEAN, stable for 20 consecutive passes
+(since pass-27). Full record: `adv-adr-046-pass-46.md`.
+
+**Index reconciliation (state-manager, this burst):** ARCH-INDEX v3.87→**v3.88** (ADR-046 row
+version cell + pass-44..46 narrative summary appended). BC-INDEX v5.10→**v5.11** (BC-4.17.001
+row version-chain cell appended). STORY-INDEX v4.391 and VP-INDEX v2.79 UNCHANGED (no story or
+VP touched this burst).
+
+**Input-hash recompute:** performed via `compute-input-hash --update` for both edited
+artifacts (ADR-046, BC-4.17.001), in that edit order — the settling order established at
+D-1100. Final stored values: ADR-046 `6110700`, BC-4.17.001 `efa4c8a`. Because BC-4.17.001
+cites ADR-046.md as an input, and ADR-046 cites BC-4.17.001.md as an input, updating ADR-046
+first then BC-4.17.001 means BC-4.17.001's stored hash settles EXACTLY against its own current
+inputs (including ADR-046's just-written content); ADR-046's own stored hash carries an
+accepted 1-hop residual drift relative to BC-4.17.001's later same-burst edit — consistent with
+the D-1100/D-1101 precedent ("1-hop residual drift — accepted, NOT chased further"). BC-5.40.001
+(`e5499da`) and BC-7.07.001 (`d4b0881`) confirmed byte-unchanged this burst, unaffected by the
+cyclic tangle since neither was edited. Cyclic-hash TD `[D-1082]` UNCHANGED, NOT re-opened, NOT
+force-converged.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-45" as the current/NEXT pass or to
+a streak value other than the correct post-reset `0/3` — matches confined to PRESERVED
+HISTORICAL rows (D-1082..D-1102 entries correctly describing their own contemporaneous pass
+numbers/streak values) and this same burst's own new content. No propagation gap found.
+
+**STATE.md vNext:** streak 1/3→**0/3** (RESETS, 5th reset this session); Current Artifact
+Versions ADR-046 v1.18, BC-4.17.001 v1.21, BC-5.40.001 v1.18 (unchanged), BC-7.07.001 v1.34
+(unchanged); Blocking Issues ADR-046-gate row updated (streak 0/3, pass-46 FINDINGS with both
+fixed, fresh pass-47 NEXT against the newly-frozen set); Drift Items: byte-range/body-
+confinement class now recorded DRAINED (F-P46-001); AC-reference class now recorded DRAINED for
+the two-instance cluster identified so far (F-P46-002); O-P42-001 stays tracked, unaffected;
+Session Resume Checkpoint refreshed (§2 streak 0/3, fresh pass-47 NEXT against the newly-frozen
+set, history appends 46R: 34C→35R→36C→37R→38C→39R→40f→41C→42C→43R→44obsfix→45C→46R; §3 versions
+updated to v1.18/v1.21/v1.18/v1.34; §7 resume command updated); Phase Progress + Current Phase
+Steps rows added for D-1103 (Current Phase Steps table trimmed to keep only the last 5 — D-1098
+row archived off, already fully preserved in decision-log.md/burst-log.md). Trajectory tail
+unchanged (Wave-7 not touched this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-46 COMPLETE. **VERDICT: FINDINGS (2 MED), both fixed
+same-burst.** Both findings are unswept-sibling instances of already-codified discipline
+classes (byte-range/body-confinement arm-scope; AC-owning-artifact cross-reference) — the
+design substance remains re-confirmed converged (20 consecutive clean passes on the behavioral
+core, since pass-27). BC-5.39.001 3-CLEAN streak RESETS 1/3 → **0/3** — the 5th reset this
+session. ADR-046 v1.18; BC-4.17.001 v1.21; ARCH-INDEX v3.88; BC-INDEX v5.11; input-hashes
+recomputed for both edited artifacts. Fresh pass-47 is the documented NEXT action, starting a
+new streak toward literal 3-CLEAN against the newly-frozen set.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-46.md, VERDICT: FINDINGS, 2 MED),
+architect (ADR-046 v1.17→v1.18, F-P46-002), product-owner (BC-4.17.001 v1.20→v1.21,
+F-P46-001), state-manager (adv-adr-046-pass-46.md persist + decision-log D-1103 + lessons
+codification + burst-log + 4-index reconciliation + input-hash recompute for both edited
+artifacts + STATE.md streak reset + Session Resume Checkpoint refresh)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.10 | v5.11 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.87 | v3.88 |
+
+### Phase
+
+D-1103-ADR046-PASS46-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-27
+
+---
