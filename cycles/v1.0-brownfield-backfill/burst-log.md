@@ -8084,8 +8084,7 @@ cannot revert a completed write, and no content-mutating bypass was used.
   via plain push (no force required — fast-forward from parent).
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `fae60fad` — the
   pass-60 clean-pass burst commit (D-1117-ADR046-PASS60-SPEC-CONVERGENCE-CLEAN, 2026-08-27).
-- **This burst commit SHA:** `[SHA-PATCH-PENDING — D-449(e) follow-up will update Active Branches
-  row with actual commit SHA after push]`
+- **This burst commit SHA:** `ea54eb57` (factory-artifacts, pushed 2026-08-27).
 
 **Closes:** Pass-61 CLEAN verdict persisted (`adv-adr-046-pass-61.md`); zero blocking findings at
 any severity. BC-5.39.001 streak **ADVANCES 1/3 → 2/3** — the second consecutive clean pass
