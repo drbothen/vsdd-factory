@@ -5778,3 +5778,132 @@ D-1110-ADR046-PASS53-SPEC-CONVERGENCE-CLEAN
 2026-08-27
 
 ---
+
+## D-1111
+
+**D-1111-ADR046-PASS54-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1110 (this cycle's decision-log.md). D-1111 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 54 — **the CONVERGENCE pass** (streak
+entered this pass at 2/3; one more consecutive clean pass would have reached literal 3-CLEAN) —
+dispatched against the SAME O-P51-001-corrected frozen set (ADR-046 v1.21 + BC-4.17.001 v1.24 +
+BC-5.40.001 v1.20 + BC-7.07.001 v1.37) passes 52/53 also reviewed. **VERDICT: FINDINGS (1 MED) —
+F-P54-001, FIXED.** Full record: `adv-adr-046-pass-54.md`.
+
+**F-P54-001 (MED, POLICY 15 spec-vs-code + POLICY 4 internal-consistency).** ADR-046
+systematically mis-cited `verify-state-timestamp-refresh`'s own module-doc step numbers at four
+loci: §Context item 2 and §Rationale's "Why the identity gate on `expires_at`" bullet both labeled
+the lock-expiry (`factory_lock.expires_at`) staleness arm "Step 7"; §Decision 5's retirement
+paragraph labeled the two arms "Steps 4–6 (timestamp)" and "Step 7 (lock-expiry)"; §Decision 3's
+"three current mechanisms corrected to four" bullet also labeled the lock-expiry arm "Step 7".
+Ground truth, confirmed by inspection of
+`crates/hook-plugins/verify-state-timestamp-refresh/src/lib.rs`'s own module-doc "On each
+invocation the guard:" enumeration (its own Step 3a already states "If only `factory_lock:` is set:
+skip Steps 4–7; proceed to Step 8"): **Steps 4–7 are the `timestamp:` staleness arm** (Step 4
+extract, Step 5 block-if-absent-in-proposed, Step 6 continue-if-absent-on-disk, Step 7
+block-if-byte-identical); **Step 8 is the separate `factory_lock.expires_at` staleness arm.**
+ADR-046 had the two arms' step-ranges swapped/mislabeled at all four loci; there was also an
+internal §Context("Steps 4-8" umbrella)/§Decision-5("Steps 4-6"/"Step 7" split) mutual
+inconsistency compounding the defect — the substance (two arms, both retired, functionally
+correctly described) was never wrong, only the numeric step-labels were.
+
+**Fixed by architect**, all four loci corrected in the same burst: §Context item 2 → "Step 8
+(module-doc Steps 4–8; the lock-expiry arm)"; §Decision 5 → "Steps 4–7 (timestamp staleness block)
+and Step 8 (lock-expiry staleness block)"; §Rationale and §Decision 3 → both now cite "Step 8". A
+within-artifact grep-complete sweep of every `Step[s] [0-9]` token confirmed these were the ONLY
+four loci citing `verify-state-timestamp-refresh`'s own step numbers — no sibling recurrence within
+ADR-046 (every other "Step N" citation refers to a different module's own numbering and was already
+correct). A parallel check of BC-5.40.001, BC-4.17.001, and BC-7.07.001 for the same mis-citation
+pattern found NONE — both BCs' single "Step N" occurrences refer to `factory-lock`/
+`precompact-flush`'s own step numbering, not `verify-state-timestamp-refresh`'s, and required no
+correction. No Decision content, File-Change Plan, or Companion Amendment item otherwise touched;
+Decision numbering (1–6) unchanged; Status remains **accepted**. ADR-046 **v1.21→v1.22**.
+
+**BC-5.39.001 3-CLEAN streak: 2/3 → RESETS to 0/3.** This is the SECOND time this session a
+convergence-pass finding has reset a live 2/3 streak (the first was pass-43, D-1101/D-1102/D-1103
+range) — in both cases, the finding was a genuine spec-vs-code defect surfaced by a fresh-context
+adversary applying a lens no prior pass had used (pass-43: `capabilities.md` inputs-completeness;
+pass-54: exact module-doc step-number citation), not a repeat of a previously-cleared class. This
+empirically confirms the asymptotic-floor pattern: even after 53 clean/fixed passes, a genuinely
+fresh cross-check dimension can still surface exactly one narrow, real defect — supporting the case
+for D-386 Option C asymptotic acceptance as a legitimate alternative to chasing literal 3-CLEAN
+indefinitely, though the human has again been offered and has again declined accept-provisional
+this session (see §5 Pending Human Decision in STATE.md).
+
+**Novelty assessment (recorded, see lessons.md):** F-P54-001 is a NEW distinct finding class —
+**STEP-NUMBER CITATION** — not an instance of any of the fifteen previously-codified disciplines.
+CODIFIED this burst as the **SIXTEENTH** convergence-technique discipline: any "Step N"/"Steps
+N-M" citation of a module's own internal enumeration MUST be cross-checked against that module's
+actual `//!`/doc-comment step numbering, not merely checked for functional/arm correctness.
+
+**Index reconciliation (state-manager, this burst):** ARCH-INDEX **v3.91→v3.92** (ADR-046 row
+bumped v1.21→v1.22, version-stable read-through convention preserved). BC-INDEX v5.15, STORY-INDEX
+v4.392, VP-INDEX v2.79 all **UNCHANGED** (no companion-BC/story/VP edit this pass).
+
+**Input-hash recompute (cyclic-hash TD `[D-1082]` — settled + cross-referenced, NOT reopened):**
+`compute-input-hash --check` then `--update` run for ADR-046 against its post-edit content:
+**CONFIRMED SETTLED, unchanged at `cb428ff`** — no drift. The fix corrected numeric labels attached
+to an already-`inputs:`-listed module (`verify-state-timestamp-refresh`); it added no new citation,
+so ADR-046's own input-hash (which reflects its LISTED inputs' content, not its own body text) is
+unaffected. The 3 companion BCs' own stored hashes (`0edc756`/`a21ce60`/`673078a`) remain at their
+existing 1-hop-residual state relative to ADR-046's content — unchanged in kind from the pass-51
+disposition, not re-chased, per established `[D-1082]` convention.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-53"/"pass-54" as the current/NEXT
+pass, to streak value `2/3`, or to ADR-046 `v1.21` as the live version — matches confined to
+PRESERVED HISTORICAL rows (D-1057..D-1110 entries correctly describing their own contemporaneous
+pass numbers/streak/version values) and this same burst's own new content. No propagation gap
+found.
+
+**STATE.md vNext:** streak 2/3→**0/3** (RESETS, second convergence-pass reset this session,
+parallel to pass-43); Current Artifact Versions: ADR-046 **v1.22** (BC-4.17.001/BC-5.40.001/
+BC-7.07.001 UNCHANGED); ARCH-INDEX version cell v3.92; Blocking Issues ADR-046-gate row updated
+(streak 0/3, pass-54 FINDINGS(1 MED)/fixed, fresh pass-55 NEXT); Drift Items gains the
+STEP-NUMBER-CITATION `[codified][process-gap]` sixteenth-discipline entry; O-P42-001 and
+O-P53-DESC-NOOP stay tracked, UNCHANGED; a new non-blocking Drift note records 2 architect Bash
+python3-write ATTEMPTS blocked by the sandbox before recovery via Edit (non-blocking, no bypass
+occurred); Session Resume Checkpoint refreshed (§2 streak 0/3, fresh pass-55 NEXT against the
+newly-frozen v1.22 set, history appends 54R noting 52C→53C→54R paralleling the earlier
+41C→42C→43R; §3 versions ADR-046 v1.22; §7 resume command updated); Phase Progress + Current Phase
+Steps rows added for D-1111 (Current Phase Steps table trimmed to keep only the last 5). Trajectory
+tail unchanged (Wave-7 not touched this burst).
+
+Summary: ADR-046 spec-convergence pass-54 COMPLETE (the CONVERGENCE pass). **VERDICT: FINDINGS (1
+MED) — F-P54-001, FIXED.** Genuine spec-vs-code step-number mis-citation, four loci, corrected by
+architect. **BC-5.39.001 3-CLEAN streak RESETS 2/3 → 0/3** — the second reset at a convergence pass
+this session. ADR-046 v1.21→**v1.22**; input-hash confirmed SETTLED (unchanged, `cb428ff`);
+ARCH-INDEX v3.91→**v3.92**. Behavioral core re-confirmed CLEAN for the 28th consecutive pass.
+CODIFIED the sixteenth convergence-technique discipline (STEP-NUMBER CITATION) plus 1 META lesson.
+Fresh pass-55 is the documented NEXT action against the newly-frozen set (ADR-046 v1.22 +
+BC-4.17.001 v1.24 + BC-5.40.001 v1.20 + BC-7.07.001 v1.37), starting a new streak toward literal
+3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-54.md, VERDICT: FINDINGS (1 MED)), architect
+(ADR-046 v1.21→v1.22, F-P54-001 fix at 4 loci), state-manager (adv-adr-046-pass-54.md persist +
+decision-log D-1111 + lessons codification (2 entries) + Drift Items entry for
+STEP-NUMBER-CITATION + burst-log + STATE.md streak reset + ARCH-INDEX row/version bump +
+input-hash recompute-and-confirm)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.15 | v5.15 (UNCHANGED) |
+| STORY-INDEX | v4.392 | v4.392 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.91 | v3.92 |
+
+### Phase
+
+D-1111-ADR046-PASS54-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-27
+
+---

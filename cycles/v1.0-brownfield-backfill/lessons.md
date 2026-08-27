@@ -1245,3 +1245,55 @@ STREAK-STATE input differs, correctly producing the opposite action (accept, not
 streak. Anchor: optional Description-precision tightening at a future non-gating touch.
 `[convergence-governance][accept-vs-fix][streak-state-dependent; O-P53-DESC-NOOP; D-1110;
 adr-046-gate; O-P42-001-precedent-consistent; O-P51-001-precedent-distinguished]`
+
+---
+
+**[codified][process-gap] STEP-NUMBER CITATION discipline — any "Step N"/"Steps N-M" citation of a
+module's own internal enumeration MUST be cross-checked against that module's actual
+`//!`/doc-comment step numbering, not merely checked for functional/arm correctness.**
+
+Pass-54's adversary found F-P54-001: ADR-046 mis-cited `verify-state-timestamp-refresh`'s own
+module-doc step numbers at four loci — the lock-expiry (`factory_lock.expires_at`) staleness arm
+was labeled "Step 7" (correct: "Step 8"), and the timestamp staleness arm was labeled "Steps 4-6"
+(correct: "Steps 4-7"), confirmed against the module's own doc-comment enumeration ("skip Steps
+4-7; proceed to Step 8"). This defect survived 53 prior passes because every prior pass verified
+the FUNCTIONAL correctness of the two-arms description (which was always accurate — both arms
+correctly attributed to the right behavior) without independently re-deriving the LITERAL step
+numbers from the cited module's own source. Functional correctness and numeric-label correctness
+are separable failure modes: a citation can correctly describe WHAT a step does while citing the
+WRONG NUMBER for it, and no prior discipline's grep/audit pattern (inputs-completeness,
+AC-attribution, illustrative-content-accuracy, etc.) was scoped to catch numeric step-citation
+drift specifically. **Disposition:** CODIFIED as the SIXTEENTH convergence-technique discipline —
+any "Step N"/"Steps N-M" citation of a module's own enumeration must be cross-checked, via direct
+inspection of that module's actual `//!`/doc-comment numbering, before being asserted in a spec
+document; a within-artifact grep-complete sweep of every `Step[s] [0-9]` token plus a cross-BC check
+for the same class must accompany any such fix, mirroring the now-established pattern (fourteenth,
+fifteenth disciplines) of pairing a point fix with a mechanical corpus-wide re-audit.
+`[codified][process-gap][step-number-citation; sixteenth-discipline; F-P54-001; D-1111;
+adr-046-gate; functional-vs-numeric-correctness-distinct]`
+
+---
+
+**[META] Sixth streak reset this session, SECOND at the convergence pass itself (2/3→0/3 at both
+pass-43 and pass-54) — both convergence-pass resets came from a fresh-context adversary finding
+ONE genuine-but-narrow defect via a lens no prior pass had used; empirical asymptotic-floor
+confirmation.**
+
+The BC-5.39.001 3-CLEAN streak has now reset six times this session (passes 35, 37, 39, 43, 46,
+54), and twice specifically AT the convergence pass itself — i.e., with the streak already at 2/3
+and only one more consecutive clean pass required for literal 3-CLEAN. Pass-43 (D-1101 range)
+reset 2/3→0/3 via a `capabilities.md` inputs-completeness lens no prior pass had applied at that
+depth; pass-54 (D-1111) reset 2/3→0/3 via an exact module-doc step-number citation lens no prior
+pass had applied. In both cases the finding was a real, narrow, single-locus-class defect (not a
+regression of a previously-fixed item, not a false positive), and in both cases the behavioral core
+itself remained untouched and independently re-verified CLEAN. This is a second empirical data
+point supporting the same conclusion the pass-43 reset first suggested: a 50+-pass-deep gate can
+still be genuinely one fresh cross-check dimension away from a real (if narrow) defect, which is
+the strongest argument yet for the D-386 Option C asymptotic-acceptance alternative to chasing
+literal 3-CLEAN indefinitely — the marginal defects being found are increasingly confined to the
+citation/provenance/numbering perimeter, never the behavioral core (CLEAN for 28 consecutive
+passes). **Disposition:** recorded as a META observation for the human's ongoing convergence-
+strategy decision (STATE.md §5 Pending Human Decision). The human was RE-OFFERED accept-provisional
+under D-386 Option C this burst and has again DECLINED, choosing to CONTINUE looping toward literal
+3-CLEAN. `[META][convergence-strategy][sixth-reset; second-convergence-pass-reset; pass-43-parallel;
+D-1111; adr-046-gate; asymptotic-floor-empirical-confirmation; human-reaffirmed-continue]`
