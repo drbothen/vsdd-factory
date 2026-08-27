@@ -3645,3 +3645,95 @@ D-1092-ADR046-PASS35-SPEC-CONVERGENCE-REMEDIATION
 2026-08-26
 
 ---
+
+## D-1093
+
+**D-1093-ADR046-PASS36-SPEC-CONVERGENCE-CLEAN**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1092 (this cycle's decision-log.md). D-1093 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 36 dispatched against the newly-frozen set
+(ADR-046 v1.16 + BC-4.17.001 v1.16 + BC-7.07.001 v1.33 + BC-5.40.001 v1.15) — the set produced by
+the pass-35 fix burst. **VERDICT: CLEAN — zero findings at any severity.** Every code-vs-spec
+claim, cross-BC section anchor, 4-leg version parity, story-anchor cardinality, status/lifecycle
+pairing, subsystem label, and — critically — every `ADR-NNN §Decision N`/`§N.M` citation (the
+FOURTH dimension codified at D-1092/pass-35) was independently re-verified TRUE against source.
+This is the **SECOND clean pass** this gate has produced across its 36-pass history, following the
+pass-35 reset. **BC-5.39.001 3-CLEAN streak ADVANCES 0/3 → 1/3.** Full record:
+`adv-adr-046-pass-36.md`.
+
+**This is a CLEAN pass, NOT a fix burst.** No spec artifact was edited this burst — the frozen set
+is UNCHANGED at ADR-046 v1.16 / BC-4.17.001 v1.16 / BC-5.40.001 v1.15 / BC-7.07.001 v1.33. No
+version bump, no input-hash recompute, no 4-INDEX version-cell change. This burst's sole content
+is: persist the pass-36 record, advance the streak counter, and codify the confirmation that the
+FOURTH convergence-technique discipline (ADR §Decision/§N.M anchor audit, codified at D-1092) — not
+merely the 3 loci pass-35 explicitly fixed — is now drained across the entire frozen set.
+
+**Novelty assessment (recorded, see lessons.md):** pass-36 re-applied all FOUR now-codified
+convergence-technique disciplines proactively from the start, including the ADR-anchor audit that
+reset the streak just one pass prior. Zero mis-anchors were found anywhere in the frozen set on
+this dimension — not just at the 3 loci pass-35 corrected, but across every `ADR-NNN §Decision`
+citation in all four artifacts, including ADR-046's own sole cross-ADR anchor and BC-5.40.001's
+separate `§Decision 7` citation. **CODIFIED this burst** (see lessons.md, tagged
+`[convergence-progress][codified]`): this is the first direct evidence that the FOURTH discipline,
+applied proactively, closes the class it targets the same way the first three disciplines closed
+theirs at pass-34 — evidence, not yet proof (one pass); 2 further consecutive clean passes (37, 38)
+are required to confirm this holds under BC-5.39.001's literal 3-CLEAN standard.
+
+**Index reconciliation (state-manager, this burst):** none required — BC-INDEX v5.05, ARCH-INDEX
+v3.86, VP-INDEX v2.79, STORY-INDEX v4.391 all UNCHANGED (no artifact touched this pass, per the
+CLEAN-pass discipline: do NOT bump versions or recompute input-hashes when nothing was edited).
+
+**Input-hash recompute:** NOT PERFORMED — no artifact content changed this burst; the stored
+input-hashes (ADR-046 `16255a0`, BC-4.17.001 `a88dde0`, BC-5.40.001 `2da1abb`, BC-7.07.001
+`eabeda0`) remain valid and unchanged. Cyclic-hash TD `[D-1082]` UNCHANGED, NOT re-opened, NOT
+chased further.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-35" as the current/NEXT pass or to a
+streak value other than the correct post-advance `1/3` — matches confined to PRESERVED HISTORICAL
+rows (D-1082..D-1092 entries correctly describing their own contemporaneous pass numbers/streak
+values) and this same burst's own new content. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3→**1/3** (ADVANCES, 2nd clean pass, following the pass-35 reset);
+Current Artifact Versions UNCHANGED (ADR-046 v1.16, BC-4.17.001 v1.16, BC-5.40.001 v1.15,
+BC-7.07.001 v1.33); Blocking Issues ADR-046-gate row updated (streak 1/3, pass-36 CLEAN, fresh
+pass-37 NEXT); Session Resume Checkpoint refreshed (§2 streak 1/3, fresh pass-37 NEXT against the
+unchanged frozen set, notes pass-34→35-reset→36 history, human decision to CONTINUE looping
+recorded; §3 versions UNCHANGED; §7 resume command updated); Phase Progress + Current Phase Steps
+rows added for D-1093 (Current Phase Steps table trimmed to keep only the last 5 — D-1088 row
+archived off, already fully preserved in decision-log.md/burst-log.md). Trajectory tail unchanged
+(Wave-7 not touched this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-36 COMPLETE. **VERDICT: CLEAN — zero findings at any
+severity.** This is the SECOND clean pass this gate has produced, and the FIRST to confirm the
+FOURTH (ADR-anchor) discipline drained across the whole frozen set. BC-5.39.001 3-CLEAN streak
+ADVANCES 0/3 → **1/3**. No spec artifact edited; no version bump; no input-hash recompute; no
+4-INDEX change. Fresh pass-37 is the documented NEXT action against the SAME unchanged frozen set;
+needs 2 more consecutive clean passes (37, 38) for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-36.md, VERDICT: CLEAN), state-manager
+(adv-adr-046-pass-36.md persist + decision-log D-1093 + lessons codification + burst-log + STATE.md
+streak advance; no other specialist dispatched — no artifact required a fix)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.05 | v5.05 (UNCHANGED) |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.86 | v3.86 (UNCHANGED) |
+
+### Phase
+
+D-1093-ADR046-PASS36-SPEC-CONVERGENCE-CLEAN
+
+### Date
+
+2026-08-26
+
+---
