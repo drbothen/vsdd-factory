@@ -1014,3 +1014,40 @@ exact sweep performed and its one additional finding (Postcondition 8) — both 
 falsifiable, not merely assertive.
 `[process-observation; convergence-observation; meta-lesson; disposition-prose-attack-surface;
 D-1105; adr-046-gate; F-P37-001; O-P44-001; F-P48-001; O-P48-001; four-instance-pattern]`
+
+---
+
+**[codified][process-gap] CITATION→INPUT PARITY — a body edit that adds a verbatim citation must
+add its source to `inputs:` in the SAME burst — fourteenth distinct convergence-technique
+discipline**
+
+At pass-49 (F-P49-001), ADR-046's own v1.19 disposition prose — itself the pass-48 fix that
+re-attributed AC-007 to S-17.01 and quoted BC-5.40.001 Invariant 2 verbatim — quoted S-17.01's
+AC-007 verbatim without adding S-17.01 to ADR-046's own `inputs:` array. This is distinct from
+every prior `inputs:`-completeness finding at this gate (F-P28-002, F-P29-002, F-P30-002,
+F-P31-001, F-P33-001, F-P35-002, F-P43-001): those were all PRE-EXISTING omissions a
+not-yet-performed audit would have caught. F-P49-001 is the FIRST instance where a PREVIOUSLY-RUN
+grep-complete audit (pass-43's, extended cluster-wide at pass-44) was subsequently invalidated by
+a LATER body edit (pass-46/48's AC-007 re-attribution) that added a brand-new citation without a
+same-burst `inputs:` update — the audit was correct when it ran; the ground shifted under it
+afterward. The mandatory re-audit this finding triggered found 6 more instances of the identical
+mechanism, cluster-wide: ADR-046's own §Companion Amendment 3 (S-18.04a, cited since pass-43);
+BC-4.17.001's Invariant 3 (S-17.01, cited since pass-47) and Invariant 5 (BC-1.17.001); BC-5.40.001's
+§VP Anchors (S-19.08); BC-7.07.001's PC4/Architecture Anchors (`factory-lock-write.sh`) and
+Related BCs (BC-7.07.002).
+
+**Disposition:** (i) any body edit that ADDS a verbatim citation or quote of a source file or
+story — not merely a passing mention, but content the artifact's own claims depend on — MUST add
+that source to `inputs:` in the SAME burst as the edit that introduces the citation; this is a
+point-of-edit obligation, not deferred to the next scheduled audit. (ii) Because the
+grep-complete inputs audit (D-1090/D-1100, eighth discipline) is inherently POINT-IN-TIME, it
+does not stay valid across subsequent body-evolving edits — after any RUN of body-evolving
+bursts (such as this gate's own passes 43 through 48, each adding or correcting a live citation),
+a fresh CLUSTER-WIDE grep-complete inputs re-audit must be performed, not merely trusted because
+an earlier pass's audit reported clean. Applied this burst: state-manager ran the compute-input-
+hash `--check`/`--update` recompute across all four cluster artifacts, and product-owner/architect
+each ran the triggered re-audit as a cluster-wide sweep rather than scoping to the single artifact
+the initiating finding named — directly applying the D-1104 eleventh-discipline standing default
+to this fourteenth discipline's own re-audit.
+`[codified; process-gap; citation-input-parity; cluster-wide-reaudit; D-1106; adr-046-gate;
+F-P49-001; fourteenth-discipline]`

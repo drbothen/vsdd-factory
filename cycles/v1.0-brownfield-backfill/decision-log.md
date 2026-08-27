@@ -5184,3 +5184,129 @@ D-1105-ADR046-PASS48-SPEC-CONVERGENCE-REMEDIATION
 2026-08-27
 
 ---
+
+## D-1106
+
+**D-1106-ADR046-PASS49-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1105 (this cycle's decision-log.md). D-1106 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 49 dispatched against the frozen set
+(ADR-046 v1.19 + BC-4.17.001 v1.22 + BC-5.40.001 v1.18 + BC-7.07.001 v1.35). **VERDICT: FINDINGS
+(1 MED), fixed same-burst, plus 6 audit-extra cluster-wide inputs stragglers found and fixed via
+the mandatory re-audit this finding triggered (7 total).** The behavioral core remains
+re-confirmed converged for the 23rd consecutive pass (stable since pass-27) — this finding is
+confined entirely to the `inputs:`-completeness perimeter.
+
+**F-P49-001 (MED, POLICY 18, inputs:-completeness).** ADR-046's own v1.19 disposition prose — the
+F-P48-001 fix that re-attributed AC-007 to S-17.01 and quoted BC-5.40.001 Invariant 2 verbatim in
+§Rationale/§Source-Origin — quoted S-17.01's AC-007 verbatim without adding
+`.factory/stories/S-17.01-factory-lock-schema-cas-push.md` to ADR-046's own `inputs:`. This is a
+FRESH straggler CREATED by the pass-46/48 AC-007 re-attribution edits themselves, not a
+pre-existing gap any prior audit could have caught (the citation did not exist before pass-46). A
+mandatory grep-complete inputs RE-AUDIT (triggered by this finding, per the newly-codified
+CITATION→INPUT PARITY discipline) additionally found ADR-046's own §Companion Amendment 3 citing
+S-18.04a verbatim since pass-43's F-P43-002 fix, likewise never added to `inputs:`. Resolved by
+architect: both `.factory/stories/S-17.01-factory-lock-schema-cas-push.md` and
+`.factory/stories/S-18.04a-precompact-flush-sh-core.md` added to `inputs:`; bracket-balance of
+`last_amended` re-verified 27/27 unchanged. ADR-046 v1.19→v1.20.
+
+**Audit-extra findings (product-owner, cluster-wide re-audit across all three companion BCs, same
+discipline):** BC-4.17.001 — Invariant 3's S-17.01 AC-007 citation (added at v1.22/F-P47-001) and
+Invariant 5's BC-1.17.001 citation were both missing from `inputs:`; added, BC-4.17.001
+v1.22→v1.23. BC-5.40.001 — §Verification Properties/§VP Anchors' S-19.08 attribution was missing
+from `inputs:`; added, BC-5.40.001 v1.18→v1.19. BC-7.07.001 — PC4/Architecture Anchors'
+`plugins/vsdd-factory/bin/factory-lock-write.sh` citation and Related BCs' BC-7.07.002 citation
+were both missing from `inputs:`; added, BC-7.07.001 v1.35→v1.36. 5 stragglers across the 3 BCs +
+1 additional ADR-046 straggler (S-18.04a) + F-P49-001's own S-17.01 fix = 7 total
+citation-without-input stragglers drained cluster-wide this burst.
+
+**BC-5.39.001 3-CLEAN streak STAYS 0/3** (already 0/3 from pass-46's reset — the MEDIUM finding
+alone is sufficient to keep it there). Full record: `adv-adr-046-pass-49.md`.
+
+**Index reconciliation (state-manager, this burst):** ARCH-INDEX v3.89→**v3.90** (ADR-046 row
+version-chain cell appended — pass-49 fix note). BC-INDEX v5.13→**v5.14** (BC-4.17.001/
+BC-5.40.001/BC-7.07.001 row version-chain cells appended). STORY-INDEX v4.391 and VP-INDEX v2.79
+UNCHANGED (no story or VP touched this burst).
+
+**Input-hash recompute (cyclic-hash TD [D-1082] — settled, NOT reopened; tangle now includes the
+new BC-1.17.001/BC-7.07.002/story edges):** `compute-input-hash` run for all four cluster
+artifacts via the sanctioned `--check`/`--update` tool, in edit order ADR-046→BC-4.17.001→
+BC-5.40.001→BC-7.07.001 (last-updated artifact settles against the other three's final content;
+the other three each carry a 1-hop residual since a sibling changed after their own hash was
+written — this is the same non-convergent ping-pong [D-1082] documents, now expected to produce
+MULTIPLE residuals when 4 mutually-citing artifacts are all edited in the same burst, per explicit
+task instruction to accept 1-hop residuals plural this burst): **BC-7.07.001 input-hash
+`f4ecc70`→`e2062c6` (SETTLED — `--check` exit 0, verified via literal shell)**. **ADR-046
+input-hash `1e9016d`→`a07142a` (1-hop residual accepted — computed value diverges from final
+content, per [D-1082])**. **BC-4.17.001 input-hash `efa4c8a`→`bf9748a` (1-hop residual
+accepted)**. **BC-5.40.001 input-hash `e5499da`→`7394d84` (1-hop residual accepted)**.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-48" as the current/NEXT pass or to a
+streak value other than the correct post-pass-49 `0/3` — matches confined to PRESERVED HISTORICAL
+rows (D-1057..D-1105 entries correctly describing their own contemporaneous pass numbers/streak
+values) and this same burst's own new content. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3→**STAYS 0/3** (a finding keeps it there); Current Artifact
+Versions ADR-046 v1.20, BC-4.17.001 v1.23, BC-5.40.001 v1.19, BC-7.07.001 v1.36; Blocking Issues
+ADR-046-gate row updated (streak 0/3, pass-49 FINDINGS with 1 MED + 6 audit-extra stragglers, all
+fixed, fresh pass-50 NEXT against the newly-frozen set); Drift Items: the CITATION→INPUT PARITY
+(fourteenth discipline) lesson recorded; O-P42-001 stays tracked, unaffected; Session Resume
+Checkpoint refreshed (§2 streak 0/3, fresh pass-50 NEXT against the newly-frozen set, history
+appends 49f: 34C→35R→36C→37R→38C→39R→40f→41C→42C→43R→44obsfix→45C→46R→47f→48f→49f; §3 versions
+updated to ADR-046 v1.20 / BC-4.17.001 v1.23 / BC-5.40.001 v1.19 / BC-7.07.001 v1.36); Phase
+Progress + Current Phase Steps rows added for D-1106 (Current Phase Steps table trimmed to keep
+only the last 5 — D-1101 row archived off, already fully preserved in decision-log.md/
+burst-log.md). Trajectory tail unchanged (Wave-7 not touched this burst — →1→1→0→1, LENGTH=4
+carries forward).
+
+**CODIFICATION — one new discipline + no meta lesson this burst (the finding is a novel discipline
+in its own right, not merely another instance of the pass-37/44/48 disposition-prose-attack-
+surface META pattern — it is confined to `inputs:` mechanics, not disposition prose accuracy):**
+CITATION→INPUT PARITY (fourteenth discipline) — any body edit that ADDS a verbatim citation/quote
+of a source file/story MUST add that source to `inputs:` in the SAME burst; because the
+grep-complete inputs audit (D-1090/D-1100) is point-in-time, a run of body-evolving bursts (such
+as passes 43-48's AC-007 re-attributions) can re-open the gap even after a prior audit passed
+clean — mandating a periodic CLUSTER-WIDE re-audit after any such run, not merely a one-time
+audit treated as permanently valid.
+
+Summary: ADR-046 spec-convergence pass-49 COMPLETE. **VERDICT: FINDINGS (1 MED), fixed same-burst,
+plus 6 audit-extra cluster-wide inputs stragglers found and fixed.** F-P49-001 closed a fresh
+citation-without-input straggler on ADR-046 (S-17.01), created by the pass-46/48 AC-007
+re-attribution; the triggered cluster-wide re-audit found and fixed 6 more of the identical class
+across ADR-046 (S-18.04a) and all three companion BCs. BC-5.39.001 3-CLEAN streak **STAYS 0/3**
+(already at floor from pass-46's reset). ADR-046 v1.20; BC-4.17.001 v1.23; BC-5.40.001 v1.19;
+BC-7.07.001 v1.36; ARCH-INDEX v3.90; BC-INDEX v5.14. Fresh pass-50 is the documented NEXT action,
+against the newly-frozen set, with the new CITATION→INPUT PARITY (fourteenth) discipline applied
+proactively from the start.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-49.md, VERDICT: FINDINGS, 1 MED),
+architect (ADR-046 v1.19→v1.20, F-P49-001 + 1 audit-extra straggler), product-owner (BC-4.17.001
+v1.22→v1.23, BC-5.40.001 v1.18→v1.19, BC-7.07.001 v1.35→v1.36, 5 audit-extra stragglers
+cluster-wide), state-manager (adv-adr-046-pass-49.md persist + decision-log D-1106 + lessons
+codification (fourteenth discipline) + burst-log + ARCH-INDEX + BC-INDEX reconciliation +
+input-hash recompute (4 artifacts) + STATE.md streak-stays refresh + Session Resume Checkpoint
+refresh)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.13 | v5.14 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.89 | v3.90 |
+
+### Phase
+
+D-1106-ADR046-PASS49-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-27
+
+---
