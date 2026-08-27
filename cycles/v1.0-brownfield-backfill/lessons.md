@@ -1529,3 +1529,11 @@ One more consecutive clean pass (pass-62) reaches literal 3-CLEAN.
 
 **L-BB-D1119-pass62-findings-arch-index-headline** — ARCH-INDEX output-cell embedded version literals go stale independently of ADR instruction-row directives. The O-P28-002 fix (pass-28) made the ADR File-Change-Plan instruction row version-stable by replacing "bump to v1.12" with "read ADR frontmatter version at bump time." But it left the ARCH-INDEX output cell's own headline marker (`**RATIFIED 2026-08-25; ADR-046 v1.18 as of this row.**`) as a hard-coded literal that must be manually swept on every ADR touch. F-P62-001 found this 5 revisions stale — a NEW LOCUS of the same staleness class. Durable close: any ARCH-INDEX cell that cites an artifact's current version MUST use a stable reference form ("current version per [artifact] frontmatter") rather than a hard-coded literal number. Hard-coded version literals in cell headlines are a recurrence trap; structural restatement (TD-VSDD-059) is the only correct fix.
 `[codified][process-gap][D-1119; adr-046-gate; pass-62-FINDINGS; arch-index-output-cell-literal-staleness; O-P28-002-falsification]`
+
+**L-BB-D1121-pass63-clean** — Post-reset restart at pass-63 CLEAN confirms the F-P62-001 structural fix
+(ARCH-INDEX ADR-046 row headline marker → stable reference form) held under independent fresh-lens
+re-derivation. The recurrence mechanism (sweep-every-touch failure on hard-coded version literals in
+index cell headlines) is durably eliminated. All seventeen codified convergence-technique disciplines
+re-verified holding with zero regression. BC-5.39.001 streak ADVANCES 0/3 → 1/3; two more consecutive
+clean passes needed for literal 3-CLEAN.
+`[convergence-progress][D-1121; adr-046-gate; pass-63-CLEAN; streak-1/3; F-P62-001-retired-confirmed]`
