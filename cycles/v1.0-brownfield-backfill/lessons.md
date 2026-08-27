@@ -778,3 +778,37 @@ observation, consulting the streak position and the item's provenance (fresh vs.
 before defaulting to either accept or fix.
 `[convergence-governance; fix-vs-accept; zero-streak-cost; fresh-vs-inherited; D-1101;
 adr-046-gate; O-P44-001; O-P42-001-contrast]`
+
+---
+
+**[convergence-progress] Pass-45 re-applied every now-codified convergence-technique
+discipline proactively — including the ninth (illustrative-quote verbatim-source-accuracy +
+sibling-parity-check, D-1101) whose discovery caused the immediately preceding burst's
+governance-fix disposition — against the pass-44-corrected set, and found zero findings, zero
+observations, of any severity; streak ADVANCES 0/3 → 1/3, the cleanest pass this gate has
+produced across all 45 passes.**
+
+At D-1101 (pass-44), the ninth discipline was freshly codified in response to O-P44-001 — a
+misattributed illustrative quote confined to BC-5.40.001's own disposition prose, fixed
+same-burst. Pass-45 is the first fresh-context re-derivation to run against the exact
+post-fix bytes, re-checking not only BC-5.40.001's newly-corrected CAP-031 quote but both
+sibling BCs' equivalent CAP-031/CAP-032 quotes as well — all three confirmed verbatim-correct
+against `capabilities.md`. Every other dimension this gate has ever codified (arm-parity
+sweep, locus-class extension, ADR-anchor correctness, minimal-prose-plus-mechanical-backing,
+grep-complete cluster-wide `inputs:` completeness, AC-owning-artifact cross-reference
+discipline) was also re-verified clean, with the arm-parity and locus-class-extension pair now
+at its FIFTH consecutive confirmation.
+
+**Disposition:** Recorded as `[convergence-progress]`, the same tag used at D-1093/D-1095/D-1098
+for prior single-pass confirmations following a fresh codification or a reset. This is the
+first direct EVIDENCE that the ninth discipline, applied proactively from the start of a
+fresh-context pass, closes the class it targets — evidence, not yet proof, since a single clean
+pass is not itself a confirmation the way three consecutive passes would be. Per BC-5.39.001,
+this is 1 of 3 required CONSECUTIVE clean passes counting from the pass-44 governance-fix — the
+streak requires 2 further consecutive clean passes (46, 47), and any finding on either would
+reset the streak to 0/3 again. The correct disposition for passes 46 and 47 is to CONTINUE
+applying all nine disciplines proactively without relaxing rigor on the theory that "the
+illustrative-quote dimension is now proven safe" — one clean pass covering a freshly-codified
+discipline is progress, not closure.
+`[convergence-progress; ninth-discipline-reconfirmed; fifth-clean-pass; cleanest-set-yet;
+D-1102; adr-046-gate; pending-pass-46-47-confirmation; not-yet-converged]`
