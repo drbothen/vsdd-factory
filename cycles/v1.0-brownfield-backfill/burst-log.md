@@ -6898,3 +6898,244 @@ pass-54-corrected set. **NEXT ACTION:** dispatch fresh-context adversary pass-56
 unchanged frozen set (ADR-046 v1.22 + BC-4.17.001 v1.24 + BC-5.40.001 v1.20 + BC-7.07.001 v1.37) —
 2 more consecutive clean passes (56, 57) reach literal BC-5.39.001 3-CLEAN. ON CONVERGENCE: S-17.05
 TDD implementation unblocks.
+
+---
+
+## D-1113-ADR046-PASS56-SPEC-CONVERGENCE-REMEDIATION
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a), run AFTER D-1113 was appended to
+decision-log.md this burst, confirming D-1113 is the correct next allocation):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1113 < D-9000 ceiling
+```
+
+**Parent-commit:** the D-1112 pass-55 burst commit `67d6dca3a468cb87289c51d775b019c665fbac0` (factory-artifacts HEAD at burst start; actual parent SHA re-confirmed at Block 8 commit time below).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` spec-convergence pass-56 dispatched against the SAME
+pass-54-corrected frozen set (ADR-046 v1.22 + BC-4.17.001 v1.24 + BC-5.40.001 v1.20 + BC-7.07.001
+v1.37; streak entered this pass at 1/3, having ADVANCED at pass-55). **Verdict: FINDINGS (1 MED) —
+F-P56-001, FIXED (whole class).** ADR-046 and both companion BCs (BC-4.17.001, BC-7.07.001)
+mischaracterized an empty-string, absent, or explicit-`null` `holder` sub-field as equivalent to the
+pre-existing 0th case (`factory_lock:` fully absent/null — silent `NoOp`), grounded in a claim
+("inherited from `renew_lock`'s existing presence-precheck") that was itself FALSE. CODE-VERIFIED
+(architect) by direct inspection of `crates/factory-lock-parse/src/lib.rs`'s `parse_factory_lock`:
+`Ok(None)` is returned ONLY for a fully-absent-or-fully-null block with NO sub-fields at all; once
+ANY sub-field is present, an empty-string or absent `holder` returns `Err(MalformedLockBlock(..))` —
+mapped by `crates/factory-lock/src/lib.rs`'s `renew_lock_with_now` to `Err(LockError::Malformed)`,
+case 1, never `NoOp`; `has_factory_lock_key`'s presence pre-check never inspects `holder`'s value.
+Corroborated by a pre-existing unit test,
+`test_BC_5_40_001_parse_factory_lock_errors_on_empty_holder`. Fixed by architect (ADR-046
+v1.22→v1.23) and product-owner (BC-4.17.001 v1.24→v1.25; BC-7.07.001 v1.37→v1.38→v1.39, 2 rounds —
+round 2 caught a THIRD degenerate sub-case, an explicit `holder: null` token missed by round 1,
+correcting EC-009 and adding new EC-011). BC-5.40.001 v1.20 cluster-checked CLEAN, UNCHANGED. **This
+is the first genuine spec-vs-code BEHAVIORAL finding since the behavioral core stabilized at
+pass-27** — every other post-pass-27 finding was confined to the citation/provenance/metadata
+perimeter. **BC-5.39.001 3-CLEAN streak RESETS 1/3 → 0/3** — the SEVENTH reset this session.
+Persisted verbatim as `cycles/v1.0-brownfield-backfill/adv-adr-046-pass-56.md`.
+
+**THIS IS A FIX BURST.** ADR-046 edited this burst (v1.22→v1.23); BC-4.17.001 (v1.24→v1.25) and
+BC-7.07.001 (v1.37→v1.39) also edited. This burst's content is: persist the pass-56 record, fix
+F-P56-001 across its whole class (3 artifacts, BC-7.07.001 in 2 rounds), reset the streak counter,
+codify the seventeenth convergence-technique discipline (0TH-CASE/NO-OP CLAIM VERIFICATION) plus a
+META lesson distinguishing this reset from the prior six, and reconcile ARCH-INDEX + BC-INDEX +
+STATE.md.
+
+**Block 3: Files touched**
+
+- `.factory/specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md`
+  — **v1.22→v1.23** (F-P56-001 fix, architect; §Decision 1(b) Holder-present-check bullet + five-case
+  table 0th-case parenthetical corrected)
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md` — **v1.24→v1.25** (F-P56-001 fix,
+  product-owner; PC2 0th-case/case-1 bullets, EC-011, `holder: ""` Canonical Test Vector, PC3b
+  non-goal list)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md` — **UNCHANGED** at v1.20 (cluster-checked,
+  confirmed clean — its "malformed→unlocked" language describes a different call site, no edit)
+- `.factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md` — **v1.37→v1.38→v1.39** (F-P56-001 fix,
+  product-owner, 2 rounds; PC3/Invariant 3/Invariant 3b at v1.38, EC-009 correction + new EC-011 at
+  v1.39)
+- `.factory/specs/architecture/ARCH-INDEX.md` — **v3.92→v3.93** (ADR-046 row bumped v1.22→v1.23;
+  version-stable read-through convention preserved)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — **v5.15→v5.16** (BC-4.17.001 row v1.24→v1.25;
+  BC-7.07.001 row v1.37→v1.39)
+- `.factory/cycles/v1.0-brownfield-backfill/adv-adr-046-pass-56.md` — new (pass-56 FINDINGS record)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1113 appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 2 new lessons appended
+  (`[codified][process-gap]` 0TH-CASE/NO-OP CLAIM VERIFICATION, `[META]` seventh-reset)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (streak 1/3→0/3 RESETS, Current Artifact Versions ADR-046
+  v1.23/BC-4.17.001 v1.25/BC-7.07.001 v1.39, ARCH-INDEX v3.93 + BC-INDEX v5.16 version cells,
+  Blocking Issues, new Drift Item for the seventeenth discipline, Session Resume Checkpoint, version
+  bump 9.01→9.02)
+
+**Block 4: Codifications**
+
+Two new lessons codified in `lessons.md`:
+1. `[codified][process-gap]` 0TH-CASE/NO-OP CLAIM VERIFICATION — the SEVENTEENTH convergence-technique
+   discipline: any "0th case"/"no lock held"/`NoOp` claim about a degenerate or missing field value
+   MUST be verified against the actual parser's `Ok`/`Err` partition, with every degenerate sub-case
+   (empty-string, absent-with-siblings-present, explicit `null` token, and whitespace) traced
+   individually — not inferred from the field's ABSENCE alone. A fix addressing one sub-case does not
+   establish coverage of sibling sub-cases (this burst's own round-1→round-2 miss demonstrates it).
+2. `[META]` Seventh streak reset this session, but the MOST SUBSTANTIVE finding of the entire 56-pass
+   effort — the first genuine spec-vs-code BEHAVIORAL divergence since the behavioral core stabilized
+   at pass-27, breaking a 29-consecutive-pass clean streak on that specific dimension. Recorded as the
+   concrete payoff of continuing to grind toward literal 3-CLEAN rather than accepting D-386 Option C
+   asymptotic acceptance at an earlier streak-peak.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+D-448(a) source-attestation parity gate (decision-log D-1113 BLOCKING finding-ID set vs
+adv-adr-046-pass-56.md Part A BLOCKING finding-ID set — both MUST match):
+
+```
+$ grep -oE "F-P56-[0-9]{3}|O-P56-[0-9]{3}" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-56.md | sort -u
+F-P56-001
+$ sed -n '/^## D-1113/,/^---$/p' cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE "F-P56-[0-9]{3}" | sort -u
+F-P56-001
+```
+
+Both sides produce exactly `F-P56-001` — decision-log D-1113's finding-ID set faithfully matches
+adv-adr-046-pass-56.md Part A's BLOCKING finding-ID set.
+
+Streak-reset verification gate (literal shell):
+
+```
+$ grep -c "RESETS to 0/3" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-56.md
+2
+```
+
+F-P56-001 cross-artifact tracking gate (confirms the finding is faithfully recorded in all three
+governing artifacts, not silently dropped anywhere):
+
+```
+$ grep -c "F-P56-001" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-56.md
+11
+$ grep -c "F-P56-001" cycles/v1.0-brownfield-backfill/decision-log.md
+2
+$ grep -c "F-P56-001" cycles/v1.0-brownfield-backfill/lessons.md
+4
+```
+
+All three artifacts carry the F-P56-001 ID (non-zero count) — confirms the finding is faithfully
+tracked across the pass record, decision-log D-1113, and the lessons.md codification.
+
+Ground-truth degenerate-holder re-derivation gate (the F-P56-001 locus, re-verified directly against
+the cited parser's own source, not trusted from the adversary's report alone):
+
+```
+$ grep -n "MalformedLockBlock\|holder.is_none\|Ok(None)" crates/factory-lock-parse/src/lib.rs | sed -n '1,8p'
+43:    MalformedLockBlock(String),
+171:    let mut holder: Option<String> = None;
+207:    if !in_factory_lock && holder.is_none() && locked_at.is_none() && expires_at.is_none() {
+208:        return Ok(None);
+212:    if in_factory_lock && holder.is_none() && locked_at.is_none() && expires_at.is_none() {
+213:        return Ok(None);
+217:    let holder_val = match holder {
+220:        return Err(LockParseError::MalformedLockBlock(
+```
+
+Confirms: `Ok(None)` (lines 207-213) fires ONLY when `holder`/`locked_at`/`expires_at` are ALL
+`None` — i.e. no sub-fields present at all. Once ANY sub-field exists, control falls through to the
+`holder_val` match (line 217+), whose empty/absent arms return `Err(MalformedLockBlock(..))`
+(confirmed at lines 220/225 in the full file), never `Ok(None)`. This directly falsifies the
+pre-fix spec claim that an empty/absent `holder` reaches the 0th `NoOp` case.
+
+EC-011 collision check (this burst's task item 3):
+
+```
+$ grep -c "^| EC-011 " specs/behavioral-contracts/ss-07/BC-7.07.001.md
+1
+```
+
+Exactly one EC-011 table-row definition — no collision with a pre-existing ID. No `## Token Budget`
+section exists in this BC to reconcile against the addition.
+
+Frontmatter version/input-hash gate (literal shell, all four frozen-set artifacts, confirms exactly
+three edits — ADR-046, BC-4.17.001, BC-7.07.001; BC-5.40.001 unchanged):
+
+```
+$ for f in specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-05/BC-5.40.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md; do echo -n "$f: "; grep "^version:\|^input-hash:" "$f" | tr '\n' ' '; echo; done
+.../ADR-046-...md: version: "1.23" input-hash: "3335ad4"
+.../BC-4.17.001.md: version: "1.25" input-hash: "b7f7213"
+.../BC-5.40.001.md: version: "1.20" input-hash: "a21ce60"
+.../BC-7.07.001.md: version: "1.39" input-hash: "e73bc01"
+```
+
+Confirms ADR-046 v1.23, BC-4.17.001 v1.25, BC-7.07.001 v1.39 (all three edited); BC-5.40.001
+byte-identical to its pass-51 value at v1.20 (no new edit). Input-hashes recomputed via
+`compute-input-hash --update` in edit order (ADR-046 → BC-4.17.001 → BC-7.07.001): ADR-046
+`cb428ff`→`3335ad4` and BC-4.17.001 `0edc756`→`b7f7213` are 1-hop residuals (later-edited siblings
+feed back into their computed hash per the established [D-1082] cyclic tangle; NOT re-chased);
+BC-7.07.001 `673078a`→`e73bc01` is **SETTLED** (`compute-input-hash --check` exit 0, last-edited
+artifact this burst).
+
+**Block 6 (Dim-5): Closes**
+
+- **F-P56-001** — CLOSED, whole class, fixed by architect (ADR-046, 1 locus pair) and product-owner
+  (BC-4.17.001, 1 round; BC-7.07.001, 2 rounds catching the EC-009 `holder: null` straggler).
+- **Pass-56 FINDINGS verdict** — persisted verbatim as `adv-adr-046-pass-56.md`.
+- **`BC-5.39.001 3-CLEAN streak`** — **RESETS 1/3 → 0/3** (seventh reset this session). NOT closed —
+  fresh pass-57 required, starting a new streak toward literal 3-CLEAN.
+- **0TH-CASE/NO-OP CLAIM VERIFICATION discipline** — CODIFIED as the seventeenth convergence-technique
+  discipline via `lessons.md` entry.
+- **Input-hash recompute obligation (this burst's task item)** — CLOSED: `compute-input-hash
+  --update` run for ADR-046, BC-4.17.001, BC-7.07.001 in edit order; ADR-046/BC-4.17.001 confirmed
+  1-hop residual (expected, cross-referenced, NOT reopened); BC-7.07.001 confirmed SETTLED.
+- **EC-011 consistency check (this burst's task item 3)** — CLOSED: no collision, nothing to flag
+  for product-owner follow-up.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1113-ADR046-PASS56-SPEC-CONVERGENCE-REMEDIATION` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation
+gate: literal-shell diff captured in Block 5 — decision-log D-1113 and adv-adr-046-pass-56.md Part A
+BLOCKING finding-ID sets both produce exactly `F-P56-001`, confirmed matching via literal grep with
+captured output. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate, D-448(a)
+source-attestation check, streak-reset verification gate, F-P56-001 cross-artifact tracking gate,
+ground-truth degenerate-holder re-derivation gate (direct inspection of the Rust source, not the
+adversary's report), EC-011 collision check, and frontmatter/input-hash gate all use actual shell
+with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts, no trusted-but-unverified
+claims. Per TD-FACTORY-HOOK-BYPASS-001 P0, all `.factory` content mutations this burst used the
+Edit/Write tools exclusively; the only Bash invocations were READ-ONLY (`grep`, `sed`,
+`compute-input-hash` per the sanctioned recompute tooling, POLICY 16 allocator gate) — no
+content-mutating shell command was run against `.factory` content. **Note:** the ARCH-INDEX.md,
+BC-INDEX.md, decision-log.md, and this burst-log.md Edits each triggered a `fail-closed: plugin
+timed out` PostToolUse advisory (`validate-factory-path-root`/`validate-input-hash`/
+`validate-template-compliance`) — the known [D-1073]-tracked non-actionable noise on these large
+files; each write landed correctly (confirmed by re-grep of the appended content and version fields
+post-write), PostToolUse cannot revert a completed write, and no content-mutating bypass was used.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (pass-56) — FINDINGS (1 MED, fixed, whole class).
+- Streak: RESETS 1/3 → 0/3 (seventh reset this session). Fresh pass-57 is NEXT, against the
+  newly-frozen v1.23/v1.25/v1.20/v1.39 set, starting a new streak toward literal 3-CLEAN.
+- 4-INDEX: ARCH v3.92→v3.93 (ADR-046 row bumped) / BC v5.15→v5.16 (BC-4.17.001 + BC-7.07.001 rows
+  bumped) / VP v2.79 (UNCHANGED) / STORY v4.392 (UNCHANGED).
+- policies.yaml UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` — unaffected by this burst. Wave-7 substantive state UNCHANGED — this burst is
+  orthogonal to the Wave-7 cascade (trajectory-tail unchanged, →1→1→0→1, LENGTH=4).
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed
+  via plain push (no force required — fast-forward from parent, unless remote has diverged).
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** the D-1112 pass-55 burst
+  commit `67d6dca3` — actual commit SHA this burst produces captured at push time.
+
+**Closes:** Pass-56 FINDINGS (1 MED) verdict persisted (`adv-adr-046-pass-56.md`); F-P56-001 fixed
+whole-class by architect + product-owner (2 rounds); ADR-046 v1.22→v1.23; BC-4.17.001 v1.24→v1.25;
+BC-7.07.001 v1.37→v1.39; ARCH-INDEX v3.92→v3.93; BC-INDEX v5.15→v5.16; input-hashes recomputed
+(ADR-046/BC-4.17.001 1-hop residual, BC-7.07.001 SETTLED). BC-5.39.001 streak **RESETS 1/3 → 0/3** —
+the seventh reset this session, the most substantive finding of the effort. 0TH-CASE/NO-OP CLAIM
+VERIFICATION codified as the seventeenth convergence-technique discipline; 1 META lesson recorded.
+**NEXT ACTION:** dispatch fresh-context adversary pass-57 against the newly-frozen set (ADR-046
+v1.23 + BC-4.17.001 v1.25 + BC-5.40.001 v1.20 + BC-7.07.001 v1.39), starting a new streak toward
+literal BC-5.39.001 3-CLEAN. ON CONVERGENCE: S-17.05 TDD implementation unblocks.

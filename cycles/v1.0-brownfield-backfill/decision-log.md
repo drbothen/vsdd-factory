@@ -6003,3 +6003,122 @@ D-1112-ADR046-PASS55-SPEC-CONVERGENCE-CLEAN
 2026-08-27
 
 ---
+
+## D-1113
+
+**D-1113-ADR046-PASS56-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1112 (this cycle's decision-log.md). D-1113 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 56 dispatched against the pass-54-corrected
+set (ADR-046 v1.22 + BC-4.17.001 v1.24 + BC-5.40.001 v1.20 + BC-7.07.001 v1.37; streak entered this
+pass at 1/3). **VERDICT: FINDINGS (1 MED) — F-P56-001, FIXED (whole class).** ADR-046 and both
+companion BCs (BC-4.17.001, BC-7.07.001) mischaracterized an empty-string, absent, or explicit-`null`
+`holder` sub-field as equivalent to the pre-existing 0th case (`factory_lock:` fully absent/null —
+"no lock held," silent `NoOp`), describing it as "inherited from `renew_lock`'s existing
+presence-precheck." **CODE-VERIFIED FALSE** by direct inspection (architect):
+`crates/factory-lock-parse/src/lib.rs`'s `parse_factory_lock` returns `Ok(None)` ONLY for a
+fully-absent-or-fully-null block with NO sub-fields at all; an empty-string holder, or an absent
+holder while other sub-fields are present, returns `Err(MalformedLockBlock(..))` — mapped by
+`crates/factory-lock/src/lib.rs`'s `renew_lock_with_now` to `Err(LockError::Malformed)`, case 1, NOT
+`NoOp`. `has_factory_lock_key`'s presence pre-check tests only the literal `factory_lock:` key line,
+never `holder`'s value, so the "inherited from `renew_lock`'s presence-precheck" grounding was FALSE.
+An explicit `holder: null` YAML sub-field is a THIRD degenerate sub-case — `extract_yaml_string_value`
+has no special-case for the bare `null` token, so it parses as the literal 4-char string `"null"`,
+never absence — this sub-case was missed by the round-1 sweep and required a round-2 straggler fix.
+
+Fixed by the correct specialists, whole class, across all three loci:
+- **ADR-046 v1.22→v1.23 (architect):** §Decision 1(b)'s "Holder-present check" bullet + canonical
+  five-case table's 0th-case parenthetical narrowed to `Ok(None)`-only; false grounding struck.
+- **BC-4.17.001 v1.24→v1.25 (product-owner):** PC2 0th-case/case-1 bullets, EC-011, the
+  `holder: ""` Canonical Test Vector, PC3b's non-goal event-suppression list.
+- **BC-7.07.001 v1.37→v1.38→v1.39 (product-owner, 2 rounds):** round 1 (v1.38) — PC3, Invariant 3
+  execution-order branch, new Invariant 3b; round 2 (v1.39) — EC-009's condition cell corrected
+  (the missed `holder: null` straggler) + new EC-011 added (append-only) documenting the
+  `holder: null` quirk's dispatch (case 1 if `locked_at`/`expires_at` absent; a genuinely-held lock
+  with literal-string holder `"null"` if present+valid).
+- **BC-5.40.001 v1.20, UNCHANGED:** cluster-checked CLEAN — its "malformed→unlocked" language
+  describes `verify-factory-lock`'s own distinct call site, not an instance of this class.
+
+No PC/Invariant/EC renumbered anywhere (append-only numbering preserved — POLICY 1); EC-011 is a new
+ID, not a reuse. Full record: `adv-adr-046-pass-56.md`.
+
+**BC-5.39.001 3-CLEAN streak RESETS 1/3 → 0/3** — the SEVENTH streak reset this session, but
+qualitatively the most substantive finding of the entire 56-pass convergence effort: the first
+genuine spec-vs-code BEHAVIORAL divergence since the behavioral core stabilized at pass-27 (breaking
+a 29-consecutive-pass clean streak on that specific dimension), as opposed to every prior post-pass-27
+finding, which was confined to the provenance/citation/traceability/metadata perimeter. This is the
+concrete payoff of the literal-3-CLEAN grind under BC-5.39.001 — a real edge-case defect that 55
+prior passes walked past because no prior adversary had independently re-derived the parser's actual
+`Ok`/`Err` partition for degenerate `holder` values from its own match arms, instead accepting the
+spec's own "0th case, no lock held" framing at face value. Had this shipped uncorrected, S-17.05's
+TDD implementation would have been built against a spec that contradicted the code it wraps.
+
+**Index reconciliation (state-manager, this burst):** ARCH-INDEX **v3.92→v3.93** (ADR-046 row
+bumped v1.22→v1.23; version-stable read-through convention preserved). BC-INDEX **v5.15→v5.16**
+(BC-4.17.001 row v1.24→v1.25; BC-7.07.001 row v1.37→v1.39). STORY-INDEX v4.392, VP-INDEX v2.79 both
+UNCHANGED.
+
+**Input-hash recompute (cyclic-hash TD [D-1082] — settled + cross-referenced, NOT reopened):**
+`compute-input-hash --update` run for ADR-046, BC-4.17.001, BC-7.07.001 in edit order: ADR-046
+`cb428ff`→`3335ad4` (1-hop residual accepted), BC-4.17.001 `0edc756`→`b7f7213` (1-hop residual
+accepted), BC-7.07.001 `673078a`→`e73bc01` (**SETTLED**, confirmed via `--check` exit 0, last-edited
+artifact this burst).
+
+**EC-011 consistency check (task item 3):** `grep -n "EC-011"` against BC-7.07.001's body confirms
+exactly ONE definition locus — no collision with any pre-existing EC-011 ID. This BC has no
+`## Token Budget` section and no explicit "EC count" field to reconcile against the EC-011 addition —
+nothing to flag for product-owner follow-up; consistent by omission.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-55" as the current/NEXT pass, to
+streak value `1/3` (pre-reset), or to ADR-046 `v1.22`/BC-4.17.001 `v1.24`/BC-7.07.001 `v1.37` as the
+live versions — matches confined to PRESERVED HISTORICAL rows (D-1057..D-1112 entries correctly
+describing their own contemporaneous pass numbers/streak/version values) and this same burst's own
+new content. No propagation gap found.
+
+**STATE.md vNext:** streak 1/3→**0/3** (RESETS, seventh reset this session, most substantive finding
+of the effort); Current Artifact Versions ADR-046 v1.23, BC-4.17.001 v1.25, BC-7.07.001 v1.39
+(BC-5.40.001 v1.20 UNCHANGED); ARCH-INDEX v3.93 + BC-INDEX v5.16 version cells; Blocking Issues
+ADR-046-gate row updated (streak 0/3, pass-56 FINDINGS, fresh pass-57 NEXT); O-P42-001 and
+O-P53-DESC-NOOP stay tracked, UNCHANGED; new Drift Item for the seventeenth discipline
+(0TH-CASE/NO-OP CLAIM VERIFICATION); Session Resume Checkpoint refreshed (§2 streak 0/3, fresh
+pass-57 NEXT, history appends 56R; §3 versions updated; §7 resume command updated — ON CONVERGENCE
+S-17.05 TDD unblocks); Phase Progress + Current Phase Steps rows added for D-1113 (Current Phase
+Steps table trimmed to keep only the last 5). Trajectory tail unchanged (Wave-7 not touched this
+burst).
+
+Summary: ADR-046 spec-convergence pass-56 COMPLETE. **VERDICT: FINDINGS (1 MED) — F-P56-001, FIXED
+(whole class).** BC-5.39.001 3-CLEAN streak **RESETS 1/3 → 0/3** — the seventh reset this session,
+but the most substantive: a genuine spec-vs-code behavioral divergence in the empty/absent/null-holder
+0th-case characterization, found+fixed across ADR-046 + 2 companion BCs (incl. an EC-009 straggler
+and new EC-011). ADR-046 v1.23; BC-4.17.001 v1.25; BC-7.07.001 v1.39. ARCH-INDEX v3.93; BC-INDEX
+v5.16. Fresh pass-57 is the documented NEXT action against the newly-frozen set; needs 3 consecutive
+clean passes (57, 58, 59) for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-56.md, VERDICT: FINDINGS (1 MED)), architect
+(ADR-046 v1.22→v1.23 fix; code-verification evidence), product-owner (BC-4.17.001 v1.24→v1.25 fix;
+BC-7.07.001 v1.37→v1.38→v1.39 fix, 2 rounds), state-manager (adv-adr-046-pass-56.md persist +
+decision-log D-1113 + lessons codification + burst-log + 4-index sync + STATE.md streak reset)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.15 | v5.16 |
+| STORY-INDEX | v4.392 | v4.392 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.92 | v3.93 |
+
+### Phase
+
+D-1113-ADR046-PASS56-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-27
+
+---

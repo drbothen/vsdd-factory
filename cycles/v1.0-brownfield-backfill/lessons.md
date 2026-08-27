@@ -1331,3 +1331,71 @@ proven safe" — one clean pass on a freshly-codified discipline is progress, no
 `[convergence-progress; sixteen-disciplines; sixteenth-discipline-first-confirmation;
 first-clean-pass-post-F-P54-001; D-1112; adr-046-gate; pending-pass-56-57-confirmation;
 not-yet-converged]`
+
+---
+
+**[codified][process-gap] 0TH-CASE/NO-OP CLAIM VERIFICATION — any "0th case" / "no lock held" / `NoOp`
+claim about a degenerate or missing field value MUST be verified against the actual parser's
+`Ok`/`Err` partition, with every degenerate sub-case (empty-string, absent-with-siblings-present,
+explicit `null` token, and whitespace) traced individually, not inferred from the field's ABSENCE
+alone.**
+
+Pass-56's adversary found F-P56-001: ADR-046, BC-4.17.001, and BC-7.07.001 all mischaracterized an
+empty-string or absent `holder` sub-field as equivalent to the pre-existing 0th case
+(`factory_lock:` fully absent/null — silent `NoOp`), grounding the claim in "inherited from
+`renew_lock`'s existing presence-precheck." Direct inspection of
+`crates/factory-lock-parse/src/lib.rs`'s `parse_factory_lock` (architect) proved this FALSE:
+`Ok(None)` is returned ONLY when `factory_lock:` is fully absent or present-but-fully-null with NO
+sub-fields at all; once ANY sub-field is present, an empty-string or absent `holder` returns
+`Err(MalformedLockBlock(..))` — mapped by `renew_lock_with_now` to `Err(LockError::Malformed)`, case
+1, never `NoOp`. `has_factory_lock_key`'s presence pre-check tests only the literal `factory_lock:`
+key line, never `holder`'s value, so the "inherited from... presence-precheck" grounding was itself
+fabricated-by-inference, not verified. A THIRD degenerate sub-case — an explicit `holder: null` YAML
+token — was missed by this burst's own round-1 sweep (BC-7.07.001 v1.38) and required a round-2
+straggler fix (v1.39, EC-009 correction + new EC-011) once discovered that
+`extract_yaml_string_value` has no special-case for the bare `null` token (it parses as the literal
+string `"null"`, never absence). This defect survived 55 prior passes because no prior adversary had
+independently re-derived the parser's actual `Ok`/`Err` partition for degenerate `holder` values from
+its own match arms — every prior pass accepted the spec's own "0th case, no lock held" framing of the
+empty/absent-holder condition at face value, the same failure mode the sixteenth discipline
+(STEP-NUMBER CITATION, D-1111) named for step-number citations: accepting a spec's SELF-DESCRIPTION
+of a mapping instead of independently re-deriving that mapping from the actual source. **Disposition:**
+CODIFIED as the SEVENTEENTH convergence-technique discipline — any "0th case"/"no lock held"/`NoOp`
+claim about a degenerate or missing field value must be verified against the actual parser's
+`Ok`/`Err` partition, and EVERY degenerate sub-case of that field (empty-string, absent-with-siblings,
+explicit `null` token, and — per this burst's own round-1 miss — an audit for whitespace-only values)
+must be traced individually rather than assumed to share the same outcome; a fix addressing one
+sub-case does not, by itself, establish coverage of sibling sub-cases, as this burst's own 2-round
+sweep demonstrates.
+`[codified][process-gap][0th-case-no-op-verification; seventeenth-discipline; F-P56-001; D-1113;
+adr-046-gate; degenerate-sub-case-exhaustive-enumeration; two-round-sweep-required]`
+
+---
+
+**[META] Seventh streak reset this session, but the MOST SUBSTANTIVE finding of the entire
+56-pass convergence effort — the first genuine spec-vs-code BEHAVIORAL divergence since the
+behavioral core stabilized at pass-27.**
+
+The BC-5.39.001 3-CLEAN streak has now reset seven times this session (passes 35, 37, 39, 43, 46,
+54, 56). Unlike every one of the prior six resets — each confined to the
+provenance/citation/traceability/metadata perimeter (cross-reference accuracy, `inputs:`
+completeness, catalog membership, step-number citation, illustrative-enumeration accuracy) — pass-56's
+F-P56-001 is a genuine BEHAVIORAL divergence: a claim about WHAT THE CODE ACTUALLY DOES in a specific
+input state (empty/absent/null `holder`), and the claim was FALSE, verified false by direct inspection
+of the parser's match arms and independently corroborated by a pre-existing unit test
+(`test_BC_5_40_001_parse_factory_lock_errors_on_empty_holder`). This breaks a 29-consecutive-pass
+clean streak on the specific dimension of "does the spec accurately describe the code's behavior in
+every input state," the first crack in what had otherwise been the single most stable dimension of
+this gate's entire history. Had this shipped uncorrected into S-17.05's TDD implementation, the
+implementer would have built test coverage against a spec that contradicted the very code it
+describes — a defect class the BC-5.39.001 literal-3-CLEAN discipline exists specifically to catch,
+and did. **Disposition:** recorded as a META observation distinguishing this reset sharply from the
+prior six metadata-perimeter resets — this is the concrete PAYOFF of continuing to grind toward
+literal 3-CLEAN rather than accepting D-386 Option C asymptotic acceptance at an earlier streak-peak:
+a fresh-context adversary, applying an edge-case lens no prior pass had used, caught a real defect at
+pass 56 that 55 prior passes — including two each at streak 2/3, one pass from convergence — had all
+missed. The human's standing decision to CONTINUE looping toward literal 3-CLEAN (declined
+accept-provisional at every prior reset) is thereby validated by this pass's outcome specifically,
+independent of whether the human continues declining accept-provisional going forward.
+`[META][convergence-strategy][seventh-reset; first-behavioral-core-finding-since-pass-27;
+F-P56-001; D-1113; adr-046-gate; literal-3-clean-payoff-demonstrated]`
