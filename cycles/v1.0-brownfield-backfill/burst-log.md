@@ -7911,8 +7911,8 @@ completed write, and no content-mutating bypass was used.
 - Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed
   via plain push (no force required — fast-forward from parent).
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `fdb4277b` — the
-  SESSION-WRAP-PAUSE-2026-08-27 burst commit — actual commit SHA this burst produces captured at
-  push time.
+  SESSION-WRAP-PAUSE-2026-08-27 burst commit.
+- **This burst commit SHA:** `fae60fad` (factory-artifacts, pushed 2026-08-27).
 
 **Closes:** Pass-60 CLEAN verdict persisted (`adv-adr-046-pass-60.md`); zero blocking findings at
 any severity. BC-5.39.001 streak **ADVANCES 0/3 → 1/3** — the first clean pass against the
