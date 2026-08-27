@@ -6894,3 +6894,97 @@ Cross-artifact parity: BC-INDEX version cells v1.26/v1.21/v1.39 match live + H1 
 **Canonical 6-column row (for STATE.md Decisions Log table):**
 
 | D-1123 | D-1123-ADR046-PASS65-SPEC-CONVERGENCE-3CLEAN-ACHIEVED | adv-adr-046-pass-65.md persisted. **VERDICT CLEAN — zero blocking findings at any severity. THIRD consecutive clean pass. LITERAL BC-5.39.001 3-CLEAN ACHIEVED (63/64/65).** Adversary independently corroborated 14 load-bearing spec-vs-code claims against source (frozen set ADR-046 v1.23/BC-4.17.001 v1.26/BC-5.40.001 v1.21/BC-7.07.001 v1.39): F-P56-001 empty/absent-holder→Err(Malformed) + Ok(None) only for absent/fully-null; renew_lock_with_now opaque expires_at/byte-compare/silent-rewrite; has_factory_lock_key key-line-only; parse_lock FactoryLock vs LockState; is_expired now>=expires_at; trim_git_email trim_end; verify-factory-lock parse_iso8601 distinct local wrapper (F-P13-002); step numbering Steps 4-7/8 (F-P54-001); precompact-flush Step-4 identity-blind renew_lock as-built; three TTL literals 2700 incl u64 + "MUST NOT be overridden" comment; S-19.08 retained-historical test names HEAD-reproducible; EC-011 holder:null→literal "null"; five-case table byte-identical across ADR §Decision 1(b)/BC-4.17.001 PC2/BC-7.07.001 Inv3b; Decision-5 MIGRATED/RETAINED-AS-HISTORICAL reconciled SOURCE↔TARGET. BC-INDEX version cells v1.26/v1.21/v1.39 match live + H1 verbatim (POLICY 7); ARCH-INDEX ADR-046 row version-stable post-F-P62-001; CAP-031/032 + SS-04/05/07 anchors verbatim (POLICY 4/6); POLICY 19 stable ADR cites. Novelty ZERO — converged on substance. O-P65-001 [process-gap, already tracked]: SS-07 label misnomer (O-P26-002 class, deferred). O-P65-002 [NON-DEFECT]: design-only symbols not yet in code (S-17.05 scope). O-P65-003 [known TD]: D-1082 cyclic residual. **BC-5.39.001 streak ADVANCES 2/3 → 3/3 — LITERAL 3-CLEAN ACHIEVED (63/64/65).** Convergence closure PENDING: (a) fresh-context consistency-validator perimeter audit; (b) human gate approval. S-17.05 NOT yet unblocked. **CLEAN PASS** — no spec edit; no version bump; no 4-INDEX change. Full: decision-log.md D-1123. | D-1123 | 2026-08-27 |
+
+## D-1124
+
+**D-1124-ADR046-3CLEAN-CONVERGED-PERIMETER-AUDIT-WAVE-DECOMPOSITION-DECISION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1123 (this cycle's decision-log.md). D-1124 is allocated cleanly above the true max.
+
+**Summary:** Records three concurrent events: (1) ADR-046 BC-5.39.001 3-CLEAN
+CONVERGED-VALIDATED — the fresh-context consistency-validator perimeter audit independently
+confirmed the frozen spec set (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 +
+BC-7.07.001 v1.39) is internally consistent and the 3-CLEAN (passes 63/64/65) is VALID; (2) the
+perimeter audit found PERIMETER-GAPS in the implementing story S-17.05 (not the specs); (3) the
+human directed wave-decomposition remediation (S-17.05 + S-17.06 + S-17.07) as the path forward.
+
+### Part 1: ADR-046 Spec-Convergence Gate — CONVERGED-VALIDATED
+
+The fresh-context consistency-validator read the frozen spec set in full and independently
+confirmed:
+
+- Internal consistency: all cross-references, version cites, and behavioral claims within
+  ADR-046/BC-4.17.001/BC-5.40.001/BC-7.07.001 are mutually consistent.
+- The adversary 3-CLEAN result (passes 63/64/65) is VALID.
+- Index parity: ALL cells PASS (ADR-046/ARCH-INDEX version-stable; BC-INDEX v5.18
+  v1.26/v1.21/v1.39; STORY-INDEX v4.393 S-17.05 v1.1). No index drift.
+
+**The ADR-046 spec-convergence gate on the adversary axis is CLOSED.**
+
+Full audit persisted at:
+`cycles/v1.0-brownfield-backfill/perimeter-audit-adr-046-3clean.md`
+
+### Part 2: Perimeter Audit Verdict — PERIMETER-GAPS (story-level only)
+
+The consistency-validator identified the following gaps in the implementing story S-17.05 v1.1:
+
+**BLOCKS-CLOSURE (3 gaps):**
+
+- **Gap A:** S-17.05 has no task for ADR-046 File-Change-Plan `factory-lock` shared-function
+  additions: `renew_lock_if_holder`, `IdentityResolution`, `SkipReason`,
+  `classify_identity_resolution`, `trim_git_email` promotion to `crates/factory-lock-parse/`.
+  `target_module`/Library-Requirements/File-Structure/Tasks all omit `crates/factory-lock/`. Code
+  has none of these functions. Owner: story-writer.
+
+- **Gap B:** S-17.05 has no task for the precompact-flush Step-4 identity-gate amendment
+  (call-site → `renew_lock_if_holder` + 4-outcome tests). ADR-046 Rollout Note MANDATES all parts
+  ship in the SAME release. `precompact-flush/src/lib.rs` ~line 518 still calls identity-blind
+  `renew_lock`. No companion story existed. Owner: story-writer.
+
+- **Gap C:** BC-7.07.001 absent from S-17.05 `behavioral_contracts` frontmatter (bidirectional-
+  citation violation, VSDD Criteria 67/69); no AC traces to BC-7.07.001 PC3/Inv3/Inv3b. Owner:
+  story-writer. **RESOLVED by human decomposition decision below** — BC-7.07.001 re-anchored to
+  S-17.07.
+
+**ADVISORY (2 items):**
+
+- **Gap D:** S-17.05 `verification_properties` comment cites "VP-TBD-1..4" but BC-4.17.001
+  v1.26 also has VP-TBD-7/8/9 (Decision-5 migration) — stale count. Owner: story-writer.
+
+- **Gap E:** `trim_git_email` promotion path ambiguous in T-2 (Rule 9 "direct crate reference"
+  undefined; only coherent path is promotion to `crates/factory-lock-parse/`). Owner: story-writer,
+  to clarify in S-17.06.
+
+**SANCTIONED-DEFERRALs (2 items):**
+
+- **Gap F:** VP-TBD-7/8/9 not in VP-INDEX — POLICY 9 formal-verifier scope, expected state.
+
+- **Gap G:** `verify-state-timestamp-refresh` crate source deletion deferred — human-directed,
+  ADR-anchored.
+
+### Part 3: Human Decision — Wave Decomposition (2026-08-27)
+
+Human directed remediation of S-17.05 under-scoping via wave decomposition:
+
+- **S-17.05** (stamp-state-timestamp plugin + TTL constant) — retained, re-scoped to narrower
+  original intent. T-8 factory-lock doc-comment fix (O-P61-001/O-P62-001) stays with S-17.05.
+- **S-17.06** (factory-lock shared-fns + identity resolution) — NEW story, owning:
+  `renew_lock_if_holder` / `IdentityResolution` / `SkipReason` / `classify_identity_resolution`
+  + `trim_git_email` promotion to `crates/factory-lock-parse/`.
+- **S-17.07** (precompact-flush Step-4 identity-gate amendment + 4-outcome tests) — NEW story,
+  owning the call-site amendment and test suite. BC-7.07.001 re-anchored here.
+
+All three stories MUST be in the same wave/release (ADR-046 Rollout Note atomicity preserved via
+the wave gate). Gap C resolved by re-anchoring BC-7.07.001 to S-17.07.
+
+### Part 4: S-17.05 TDD Readiness
+
+**S-17.05 TDD entry: NOT READY.** Blocked on the decomposition cascade:
+architect decomposition design → product-owner BC re-anchoring → story-writer (new stories +
+S-17.05 re-scope) → state-manager indexing (STORY-INDEX update for S-17.06/S-17.07 + BC-INDEX
+re-anchor for BC-7.07.001). Only after this cascade completes can E-17 Wave-5 TDD begin.
+
+### Canonical 6-column row (STATE.md Decisions Log)
+
+| D-1124 | D-1124-ADR046-3CLEAN-CONVERGED-PERIMETER-AUDIT-WAVE-DECOMPOSITION-DECISION | ADR-046 spec-convergence gate CONVERGED-VALIDATED: fresh-context consistency-validator independently confirmed frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39) is internally consistent; 3-CLEAN (63/64/65) is VALID; all index cells PASS. Perimeter audit VERDICT: PERIMETER-GAPS — all 3 BLOCKS-CLOSURE gaps in S-17.05 (NOT specs): Gap A = no factory-lock shared-fn tasks (renew_lock_if_holder/IdentityResolution/SkipReason/classify_identity_resolution/trim_git_email); Gap B = no precompact-flush Step-4 identity-gate amendment; Gap C = BC-7.07.001 absent from S-17.05 frontmatter. Human decision (2026-08-27): WAVE DECOMPOSITION — S-17.05 stamper + S-17.06 factory-lock-fns + S-17.07 precompact-flush, all same wave/release (ADR-046 Rollout Note atomicity via wave gate); BC-7.07.001 re-anchored to S-17.07. S-17.05 TDD NOT READY — blocked on decomposition cascade. Full: decision-log.md D-1124 + perimeter-audit-adr-046-3clean.md. | D-1124 | 2026-08-27 |

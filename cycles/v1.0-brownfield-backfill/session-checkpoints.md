@@ -3526,3 +3526,46 @@ Gate history: the gate has caught 45 GENUINE BLOCKING findings across 59 passes 
 **HEADs (pass-60 checkpoint):** main `89f6f87c` (rc.24 tagged); develop `6993138b` (CI-GREEN); factory-artifacts: `git -C .factory log -1` (D-1117 pass-60 CLEAN burst).
 
 **Resume Command (pass-60 checkpoint):** `/vsdd-factory:next-step` — fresh adversary pass-61 against the frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39). Streak 1/3. Any BLOCKING finding OR spec edit resets streak to 0/3. On 2 more consecutive clean passes (61, 62): S-17.05 TDD unblocks.
+
+---
+
+## Archived Checkpoint: D-1123 pass-65 CLEAN burst (2026-08-27) — LITERAL 3-CLEAN ACHIEVED
+
+**Context:** pass-65 CLEAN (D-1123); BC-5.39.001 streak ADVANCES 2/3→3/3 — LITERAL 3-CLEAN
+ACHIEVED (63/64/65). Gate closure PENDING: (a) fresh-context consistency-validator perimeter
+audit; (b) explicit human gate approval. S-17.05 TDD NOT yet unblocked. This checkpoint was
+replaced by the D-1124 checkpoint (perimeter audit + wave-decomposition) on 2026-08-27.
+
+**Position:** ADR-046 "fix-state-writes" BC-5.39.001 3-CLEAN spec-convergence gate. Streak = 3/3.
+Frozen set: ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39
+(UNCHANGED since pass-59 fix; 4-index: ARCH-INDEX v3.94, BC-INDEX v5.18, VP-INDEX v2.79,
+STORY-INDEX v4.393).
+
+**14 spec-vs-code ground-truth checks (all MATCH at pass-65):** F-P56-001 empty/absent-holder
+→Err(Malformed) + Ok(None) only for absent/fully-null; renew_lock_with_now opaque expires_at/
+byte-compare/silent-rewrite; has_factory_lock_key key-line-only; parse_lock FactoryLock vs
+LockState; is_expired now>=expires_at; trim_git_email trim_end; parse_iso8601 distinct local
+wrapper (F-P13-002); step numbering Steps 4-7/8 (F-P54-001); precompact-flush Step-4 identity-
+blind renew_lock as-built; three TTL literals 2700 incl u64 + "MUST NOT be overridden" comment;
+S-19.08 retained-historical test names HEAD-reproducible; EC-011 holder:null→literal "null";
+five-case table byte-identical; Decision-5 MIGRATED/RETAINED-AS-HISTORICAL reconciled
+SOURCE↔TARGET. Novelty ZERO.
+
+**Non-blocking items (17 accepted + 2 tracked-to-fix):**
+- O-P65-001: SS-07 label misnomer (NON-DEFECT, deferred).
+- O-P65-002: design-only symbols (NON-DEFECT, S-17.05 scope).
+- O-P65-003: input-hash cyclic residual (known TD, D-1082).
+- O-P61-001/O-P62-001: TRACKED DEFECT-TO-FIX — stale factory-lock doc-comments, CAPTURED in
+  S-17.05 v1.1 Task T-8 (story commit f323b5e2 2026-08-27).
+- O-P42-001 through O-P64-002: all accepted/tracked; see prior session-checkpoints.md entries.
+
+**Pending (as of D-1123):**
+1. ADR-046 gate closure — PENDING fresh-context consistency audit + human gate approval.
+2. ADR-045 v1.3 ratification-recording burst OWED.
+3. E-23 epic re-scope.
+4. S-17.05 story task addition — COMPLETE (T-8 added, f323b5e2).
+
+**HEADs (D-1123 checkpoint):** main `89f6f87c`; develop `6993138b`; factory-artifacts `16652bb5`.
+
+**Resume Command (D-1123 checkpoint):** Await perimeter audit + human gate approval. Upon approval:
+dispatch S-17.05 TDD.

@@ -8544,3 +8544,135 @@ D-444(c) burst-log h2 heading `## D-1123-ADR046-PASS65-SPEC-CONVERGENCE-3CLEAN-A
 - **This burst commit SHA:** `16652bb5` — state(D-1123): ADR-046 pass-65 CLEAN — LITERAL 3-CLEAN ACHIEVED (63/64/65); streak 3/3; closure pending consistency audit + human approval [pushed 2026-08-27]
 
 **Closes:** Pass-65 CLEAN verdict persisted (`adv-adr-046-pass-65.md`); zero blocking findings at any severity. BC-5.39.001 streak **ADVANCES 2/3 → 3/3 — LITERAL 3-CLEAN ACHIEVED (63/64/65)**. Gate closure PENDING: (a) fresh-context consistency-validator perimeter audit; (b) explicit human gate approval. S-17.05 NOT yet unblocked. **NEXT ACTION:** await consistency-validator audit result + human gate approval before dispatching S-17.05 TDD.
+
+---
+
+## D-1124-ADR046-3CLEAN-CONVERGED-PERIMETER-AUDIT-WAVE-DECOMPOSITION-DECISION
+
+**Date:** 2026-08-27
+**Agent:** state-manager
+**Burst type:** milestone + perimeter-audit + human-decision codification
+**TD-VSDD-053 discipline:** single-commit burst (main commit + D-449(e) SHA-patch; no
+backfill/Stage chain)
+
+**Block 1 (Dim-2): Summary**
+
+Three simultaneous events recorded in a single atomic burst per TD-VSDD-053:
+
+1. **ADR-046 spec-convergence gate CONVERGED-VALIDATED** — fresh-context consistency-validator
+   perimeter audit confirmed the frozen spec set (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001
+   v1.21 + BC-7.07.001 v1.39) is internally consistent; the 3-CLEAN (63/64/65) is VALID.
+
+2. **Perimeter audit VERDICT: PERIMETER-GAPS** — all gaps in the implementing story S-17.05, NOT
+   the specs. 3 BLOCKS-CLOSURE (Gap A: factory-lock shared-fn tasks missing; Gap B: precompact-
+   flush Step-4 identity-gate amendment missing; Gap C: BC-7.07.001 absent from S-17.05
+   frontmatter), 2 ADVISORYs (Gap D: stale VP count; Gap E: trim_git_email path ambiguous), 2
+   SANCTIONED-DEFERRALs (Gap F: VP-TBD-7/8/9; Gap G: verify-state-timestamp-refresh deletion).
+   All index cells PASS.
+
+3. **Human decision (2026-08-27): wave decomposition** — S-17.05 (stamp-state-timestamp +
+   TTL constant) + S-17.06 (factory-lock shared-fns + identity resolution) + S-17.07
+   (precompact-flush Step-4 identity-gate amendment + 4-outcome tests), all same wave/release.
+   BC-7.07.001 re-anchored to S-17.07. S-17.05 TDD NOT READY — blocked on decomposition cascade.
+
+**Dim-2 gate attestation (literal shell — D-449(a)):**
+
+Spec set version/hash UNCHANGED gate (literal shell):
+
+```
+$ for f in .factory/specs/architecture/decisions/ADR-046*.md .factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md .factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md .factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md; do grep -E "^version:|^input-hash:" "$f" 2>/dev/null | head -2 | tr '\n' ' '; echo "  [$f]"; done
+```
+Expected and confirmed: ADR-046 v1.23/3335ad4, BC-4.17.001 v1.26/6b0b35c, BC-5.40.001
+v1.21/6a9cc08, BC-7.07.001 v1.39/e73bc01. NOT a spec-edit burst — no spec artifact touched.
+
+POLICY 16 D-NNN ceiling gate (literal shell):
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -3
+## D-1122
+## D-1123
+## D-1124
+```
+D-1124 present; sequence correct; no gaps.
+
+Perimeter audit file creation confirmed (literal shell):
+```
+$ ls -la .factory/cycles/v1.0-brownfield-backfill/perimeter-audit-adr-046-3clean.md
+-rw-r--r-- 1 ... perimeter-audit-adr-046-3clean.md
+```
+
+**Block 2: Parent commit**
+
+Parent SHA: `16652bb5` — D-1123-ADR046-PASS65-SPEC-CONVERGENCE-3CLEAN-ACHIEVED (2026-08-27).
+
+**Block 3: Files touched this burst**
+
+- **NEW:** `.factory/cycles/v1.0-brownfield-backfill/perimeter-audit-adr-046-3clean.md`
+- **APPENDED:** `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-1124 entry)
+- **EDITED:** `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` (Convergence Status updated)
+- **APPENDED:** `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-BB-D1124 lesson)
+- **APPENDED:** `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+- **EDITED:** `.factory/STATE.md` (v9.13→v9.14; Current Phase, Blocking Issues, Story Status,
+  Decisions Log D-1124 row, Session Resume Checkpoint, Concurrent Cycles, Phase Progress)
+
+No spec artifacts edited. No version bumps. No input-hash recomputes. No 4-INDEX version-cell
+changes.
+
+**Block 4: Adversary verdict**
+
+Not an adversary pass. This burst records the perimeter audit (consistency-validator) result +
+human decision. No adversary-axis verdict. The prior adversary-axis verdict (D-1123, pass-65
+CLEAN) stands.
+
+**Block 5 (Dim-2 — D-448(a) source-attestation gate):**
+
+Source-attestation gate (literal shell — D-449(a)):
+
+Decision-log D-1124 summary faithfully describes the perimeter audit verdict. Confirmed by
+checking perimeter-audit-adr-046-3clean.md verdict line:
+
+```
+$ grep "^## VERDICT\|^Verdict:" .factory/cycles/v1.0-brownfield-backfill/perimeter-audit-adr-046-3clean.md | head -1
+## VERDICT: PERIMETER-GAPS
+```
+
+And D-1124 canonical-row Summary field contains "PERIMETER-GAPS" — MATCH.
+
+Human decision wave-decomposition confirmed present in decision-log D-1124:
+```
+$ grep -c "S-17.06\|S-17.07" .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+8
+```
+S-17.06 and S-17.07 cited in D-1124 body.
+
+**Block 6 (Dim-5): Closes**
+
+- **ADR-046 spec-convergence gate (adversary axis):** CLOSED. 3-CLEAN (63/64/65)
+  CONVERGED-VALIDATED.
+- **Perimeter audit step:** COMPLETE. Verdict PERIMETER-GAPS persisted to
+  `perimeter-audit-adr-046-3clean.md`. D-1124 codified.
+- **Human wave-decomposition decision:** RECORDED (D-1124, 2026-08-27).
+- **S-17.05 TDD gate:** BLOCKED on decomposition cascade — this closure confirms the block is
+  expected and the path forward is known.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1124-ADR046-3CLEAN-CONVERGED-PERIMETER-AUDIT-WAVE-DECOMPOSITION-DECISION`
+present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a)
+source-attestation gate: literal-shell grep in Block 5 confirms perimeter-audit file and D-1124
+Summary alignment. D-449(a) literal-shell-execution self-application: spec-set version/hash
+gate, POLICY 16 ceiling gate, perimeter-audit file presence, and source-attestation grep all
+use literal shell with captured stdout — no pseudocode. Per TD-FACTORY-HOOK-BYPASS-001 P0, all
+`.factory` content mutations used Edit/Write tools; Bash invocations were read-only (grep) or
+append-only.
+
+Dim-7 attestation:
+- Not a numbered adversary pass — milestone + perimeter-audit + human-decision burst.
+- 4-INDEX: ARCH v3.94 / BC v5.18 / VP v2.79 / STORY v4.393 — UNCHANGED (no spec artifact
+  touched; no index update required).
+- policies.yaml UNCHANGED.
+- pipeline: ACTIVE.
+
+**Block 8: factory-artifacts commit**
+
+Parent SHA: `16652bb5` (D-1123 burst).
+This burst commit SHA: TBD — filled by SHA-patch after push (D-449(e) convention).

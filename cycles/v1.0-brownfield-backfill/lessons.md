@@ -1548,3 +1548,16 @@ The converged spec set has now passed 64 adversary reviews with 46 genuine findi
 
 **L-BB-D1123-pass65-3clean-achieved** — Pass-65 CLEAN is the THIRD consecutive clean pass (63/64/65), achieving literal BC-5.39.001 3-CLEAN after 65 adversary passes and 9 streak resets this session. The final clean run (63/64/65) followed the F-P62-001 ARCH-INDEX structural fix (headline marker replaced with stable reference form per TD-VSDD-059). Novelty is ZERO across all 14 ground-truth verification checks — the spec-vs-code behavioral core has been substantively converged for many passes. Gate closure is PENDING: (a) fresh-context consistency-validator perimeter audit and (b) explicit human gate approval. S-17.05 TDD implementation remains gated until both steps complete.
 `[convergence-progress][D-1123; adr-046-gate; pass-65-CLEAN; streak-3/3; LITERAL-3-CLEAN-ACHIEVED-63-64-65; closure-pending-consistency-audit+human-approval]`
+
+**L-BB-D1124-perimeter-audit-caught-story-scope-gaps-post-3clean** — The fresh-context perimeter
+audit (consistency-validator) caught 3 BLOCKS-CLOSURE story-scope gaps AFTER the adversary
+declared 3-CLEAN (passes 63/64/65, D-1123). This validates the two-axis model: the adversary
+verifies the spec set is internally consistent (closed-world behavioral correctness within the
+frozen artifact cluster); the consistency-validator checks whether the surrounding perimeter — the
+implementing story, BC citations, and index parity — is also correct (open-world structural
+completeness). The adversary structurally cannot see story under-scoping because the story is
+outside the frozen spec set; the consistency-validator is the correct agent for perimeter checks.
+Without this perimeter gate, three implementation gaps (factory-lock shared functions, precompact-
+flush identity-gate amendment, BC-7.07.001 re-anchoring) would not have been caught until TDD
+failure, costing substantially more rework.
+`[convergence-governance][perimeter-audit; two-axis-gate; adversary-vs-consistency-validator-scope; D-1124; S-17.05-under-scoping; wave-decomposition]`
