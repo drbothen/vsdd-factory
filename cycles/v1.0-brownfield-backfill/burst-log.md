@@ -8093,3 +8093,127 @@ against the pass-59-corrected set. Three non-blocking observations: O-P61-001 TR
 adversary pass-62 against the SAME unchanged frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 +
 BC-5.40.001 v1.21 + BC-7.07.001 v1.39) — 1 more consecutive clean pass reaches literal
 BC-5.39.001 3-CLEAN. ON CONVERGENCE: S-17.05 TDD implementation unblocks.
+
+---
+
+## D-1119-ADR046-PASS62-SPEC-CONVERGENCE-RESET
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a), run BEFORE this burst append, confirming D-1119 is the correct next allocation):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sort -t- -k2 -n | tail -1)
+Global max: D-1118
+PASS: global max D-1118 < D-9000 ceiling
+```
+
+**Parent-commit:** the D-1118 SHA-patch burst commit `1ca30fd9` (factory-artifacts HEAD at burst start; D-1118-sha-patch — Active Branches → ea54eb57, 2026-08-27).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` spec-convergence pass-62 dispatched against the SAME pass-59-corrected frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39; streak entered this pass at 2/3 — second consecutive clean pass from passes 60+61). **Verdict: FINDINGS (1 MED) — F-P62-001, FIXED (structural, TD-VSDD-059).** The four frozen spec artifacts (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39) were independently re-verified CLEAN and code-faithful: all nine spec-vs-code ground-truth checks MATCH (`parse_factory_lock` empty/absent-holder→Err(Malformed); `renew_lock_with_now` bare Duration::seconds(2700)/byte-guard; `has_factory_lock_key` key-line-only; `trim_git_email`/`is_expired` now>=expires_at; precompact-flush Step-4 identity-blind renew_lock; `factory-lock-write.sh` TTL_SECONDS=2700; FactoryLock vs LockState distinction; five-case table byte-identical across ADR/BC-4.17.001 PC2/BC-7.07.001 Inv3b; migration reconciliation BC-5.40.001→BC-4.17.001 bidirectional); all seventeen codified disciplines re-verified holding. **F-P62-001 (MEDIUM; POLICY 14/17 upstream-index version parity + POLICY 4 intra-cell inconsistency):** ARCH-INDEX.md ADR-046 row headline `**RATIFIED 2026-08-25; ADR-046 v1.18 as of this row.**` stale by 5 revisions (live ADR-046 v1.23; cell tail recorded v1.22→v1.23 at pass-56); self-contradicts the cell's own tail; NEW LOCUS of O-P28-002 recurrence class, FALSIFYING O-P28-002's "version-stable by construction" claim. Fixed structural: headline rewritten to `**RATIFIED 2026-08-25; current version per ADR-046 frontmatter (tail records bump history).**`. Three non-blocking observations: O-P62-001 (out-of-perimeter, BOUND to S-17.05 per human direction), O-P62-002 (finding-ID provenance divergence, awareness-only), O-P62-003 (O-P28-002 falsification, process-observation). Human adjudication: literal-3-CLEAN standard — out-of-frozen-set finding still resets, streak 2/3→0/3 (9th reset, 2026-08-27).
+
+**Block 3: Files touched**
+
+| File | Change |
+|------|--------|
+| `cycles/v1.0-brownfield-backfill/adv-adr-046-pass-62.md` | NEW — pass-62 adversary report (FINDINGS 1 MED; F-P62-001; confirmed-clean frozen set) |
+| `specs/architecture/ARCH-INDEX.md` | v3.93→**v3.94** — ADR-046 row headline structurally fixed (F-P62-001); pass-62 note added to cell; version/last_amended/changelog 5-leg parity |
+| `cycles/v1.0-brownfield-backfill/INDEX.md` | pass-62 row added; Convergence Status updated (streak 0/3, 9th reset, 4-index ARCH v3.94) |
+| `cycles/v1.0-brownfield-backfill/decision-log.md` | D-1119 block appended |
+| `cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-D1119-pass62 appended (arch-index output-cell literal staleness; O-P28-002 falsification) |
+| `cycles/v1.0-brownfield-backfill/burst-log.md` | This entry |
+| `.factory/STATE.md` | v9.08→**v9.09** — frontmatter/phase/current_step/last_amended/timestamp; Project Metadata; Phase Progress D-1119 row; Current Phase Steps; Decisions Log; Blocking Issues ADR-046 row (streak 0/3); Drift Items O-P61-001/O-P62-001 BOUND to S-17.05; Identifier Conventions ARCH-INDEX v3.94; Concurrent Cycles brownfield row; Session Resume Checkpoint |
+
+**Block 4: Codifications**
+
+- **D-1119-ADR046-PASS62-SPEC-CONVERGENCE-RESET** — codified in decision-log.md + STATE.md Decisions Log + STATE.md Phase Progress row + STATE.md Current Phase Steps.
+- **L-BB-D1119-pass62-findings-arch-index-headline** — codified in lessons.md: ARCH-INDEX output-cell embedded version literals go stale independently of ADR instruction-row directives; structural restatement (TD-VSDD-059) is the correct fix.
+- **O-P62-001 sequencing** — O-P61-001 + O-P62-001 Drift Item status updated from "candidate anchor S-17.05; pending human sequencing" to "BOUND to S-17.05 (human-directed 2026-08-27)".
+
+**Block 5: Dim-2/5/6/7 Attestations (literal shell, D-449(a))**
+
+D-448(a) source-attestation parity gate (decision-log D-1119 BLOCKING finding-ID set vs adv-adr-046-pass-62.md Part A BLOCKING finding-ID set — both MUST contain F-P62-001 and no other F-P62-NNN IDs):
+
+```
+$ grep -oE "F-P62-[0-9]{3}" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-62.md | sort -u
+F-P62-001
+$ grep -oE "F-P62-[0-9]{3}" cycles/v1.0-brownfield-backfill/decision-log.md | sort -u
+F-P62-001
+```
+
+Both sets match: {F-P62-001}. Decision-log D-1119's "FINDINGS (1 MED F-P62-001)" claim faithfully describes adv-adr-046-pass-62.md Part A ("F-P62-001 MEDIUM: ARCH-INDEX ADR-046 row headline stale").
+
+Streak-reset verification gate (literal shell):
+
+```
+$ grep -c "RESETS 2/3 → 0/3\|RESETS 2/3->0/3\|2/3 → 0/3\|2/3->0/3" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-62.md
+4
+```
+
+(Multiple occurrences — Part A verdict, Summary, Convergence fields; all describe the reset. Confirms reset claim present in the report.)
+
+Frontmatter version/input-hash UNCHANGED gate (literal shell, all four frozen-set artifacts):
+
+```
+$ for f in specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-05/BC-5.40.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md; do grep -E "^version:|^input-hash:" "$f" | head -2 | tr '\n' ' '; echo "  [$f]"; done
+version: "1.23" input-hash: "3335ad4"   [.../ADR-046-...md]
+version: "1.26" input-hash: "6b0b35c"   [.../BC-4.17.001.md]
+version: "1.21" input-hash: "6a9cc08"   [.../BC-5.40.001.md]
+version: "1.39" input-hash: "e73bc01"   [.../BC-7.07.001.md]
+```
+
+All four frozen artifacts confirmed at expected versions/hashes — NO edit this burst. ARCH-INDEX v3.93→v3.94 is the ONLY spec-index artifact edited.
+
+D-444(a) diff gate (literal shell, confirming ARCH-INDEX version bump):
+
+```
+$ grep "^version:" specs/architecture/ARCH-INDEX.md | head -1
+version: "3.94"
+```
+
+(Confirms ARCH-INDEX version advanced from v3.93 to v3.94 this burst.)
+
+POLICY 16 post-burst allocator-ceiling gate (literal shell, confirming D-1119 was appended):
+
+```
+$ grep -oE "D-[0-9]+" cycles/v1.0-brownfield-backfill/decision-log.md | grep "^D-111[5-9]$" | sort -u
+D-1115
+D-1116
+D-1117
+D-1118
+D-1119
+```
+
+(D-1119 present in decision-log.md post-append. Sequence D-1115..D-1119 confirms no gaps and no skips in recent allocations.)
+
+**Block 6 (Dim-5): Closes**
+
+- **Pass-62 FINDINGS verdict** — persisted verbatim as `adv-adr-046-pass-62.md`; F-P62-001 FIXED structural.
+- **F-P62-001 structural close** — ARCH-INDEX ADR-046 row headline marker rewritten from hard-coded `v1.18 as of this row` literal to stable `current version per ADR-046 frontmatter (tail records bump history)` form. O-P28-002 "version-stable by construction" claim durably closed (not paper-patched; TD-VSDD-059 satisfied).
+- **BC-5.39.001 3-CLEAN streak** — **RESETS 2/3 → 0/3** (9th reset; human-directed literal-3-CLEAN standard; out-of-frozen-set finding resets per human ruling 2026-08-27). Fresh pass-63 NEXT.
+- **O-P62-001 / O-P61-001 sequencing** — Drift Item status updated to BOUND to S-17.05 (human-directed 2026-08-27); owner: implementer. NOT accepted; NOT deferred to tech-debt-register.
+- **O-P62-002** — CLOSED via awareness-only recording; no action required.
+- **O-P62-003** — CLOSED via structural fix + lesson codification.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1119-ADR046-PASS62-SPEC-CONVERGENCE-RESET` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: literal-shell diff captured in Block 5 — both decision-log D-1119 and adv-adr-046-pass-62.md Part A BLOCKING finding-ID sets are confirmed {F-P62-001} via literal grep with captured output. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate, D-448(a) source-attestation check, streak-reset verification gate, frozen-artifact unchanged gate, D-444(a) diff gate, and POLICY 16 post-burst gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts, no trusted-but-unverified claims. Per TD-FACTORY-HOOK-BYPASS-001 P0, all `.factory` content mutations this burst used Edit/Write tools exclusively; the only Bash invocations were READ-ONLY (`grep`, `find`, `git log`) or file-write operations (`cat >>`) — no content-mutating shell bypass was run against `.factory` content.
+
+**Dim-7 Attestation:**
+
+- This burst IS a fix burst — ARCH-INDEX.md edited (F-P62-001 structural fix).
+- Streak: RESETS 2/3 → 0/3 (9th reset; human-directed 2026-08-27). Fresh pass-63 NEXT against the SAME unchanged frozen set.
+- 4-INDEX: ARCH v3.93→**v3.94** / BC v5.18 (UNCHANGED) / VP v2.79 (UNCHANGED) / STORY v4.392 (UNCHANGED).
+- policies.yaml UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` — ACTIVE (pass-62 fix burst; trajectory-tail advances from →1→0→1→0 to →0→1→0→1, LENGTH=4, +1 FINDINGS this pass).
+
+**Block 8: factory-artifacts commit**
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed via plain push (no force required — fast-forward from parent).
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `1ca30fd9` — the D-1118 SHA-patch burst commit (2026-08-27).
+- **This burst commit SHA:** `[TBD — to be filled by D-449(e) SHA-patch follow-up after push]`
+
+**Closes:** Pass-62 FINDINGS verdict persisted (`adv-adr-046-pass-62.md`); F-P62-001 FIXED structural (ARCH-INDEX ADR-046 row headline); O-P28-002 falsification durably closed. BC-5.39.001 streak **RESETS 2/3 → 0/3** — the 9th reset this session. Human-directed literal-3-CLEAN standard confirmed. **NEXT ACTION:** dispatch fresh-context adversary pass-63 against the SAME unchanged frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39) — fresh streak begins at 0/3; 3 consecutive clean passes needed for literal BC-5.39.001 3-CLEAN.

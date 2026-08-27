@@ -6697,3 +6697,39 @@ D-1118-ADR046-PASS61-SPEC-CONVERGENCE-CLEAN
 2026-08-27
 
 ---
+
+---
+
+## D-1119
+
+**D-1119-ADR046-PASS62-SPEC-CONVERGENCE-RESET**
+
+**Date:** 2026-08-27
+**Agents:** adversary (fresh-context; adv-adr-046-pass-62.md), state-manager (fix burst; ARCH-INDEX edit + bookkeeping)
+**Decision:** ADR-046 BC-5.39.001 3-CLEAN spec-convergence gate pass-62 FINDINGS (1 MED) — F-P62-001 FIXED (structural); BC-5.39.001 streak RESETS 2/3→0/3 (9th reset); fresh pass-63 NEXT against same frozen set.
+
+**Verdict:** FINDINGS (1 MEDIUM — F-P62-001)
+
+**Finding F-P62-001 (MEDIUM; POLICY 14/17 upstream-index version parity + POLICY 4 intra-cell inconsistency):** In `.factory/specs/architecture/ARCH-INDEX.md`, `## Architecture Decisions` table, ADR-046 row Decision-Summary cell headline, the text `**RATIFIED 2026-08-25; ADR-046 v1.18 as of this row.**` was stale by 5 revisions (live ADR-046 frontmatter `version: "1.23"`; cell tail recorded v1.22→v1.23 at pass-56). Self-contradicts the cell's own tail content. NEW LOCUS of O-P28-002 recurrence class — FALSIFIES O-P28-002's "version-stable by construction" claim (the O-P28-002 fix closed the instruction-row staleness vector but left the output-cell embedded-literal vector open). Owner: state-manager (ARCH-INDEX per POLICY 6).
+
+**Fix applied (structural, TD-VSDD-059):** ARCH-INDEX.md ADR-046 row headline rewritten from `**RATIFIED 2026-08-25; ADR-046 v1.18 as of this row.**` to `**RATIFIED 2026-08-25; current version per ADR-046 frontmatter (tail records bump history).**` — eliminates the sweep-every-touch requirement permanently. NOT a paper-patch to v1.23 (which would restale on the next ADR touch). ARCH-INDEX v3.93→**v3.94** (POLICY 14/17 5-leg parity: version + changelog row + last_amended prefix + cell body fix + STATE.md identifier-conventions cite).
+
+**Human adjudication (2026-08-27; literal-3-CLEAN standard):** Out-of-frozen-set finding still resets BC-5.39.001 streak per human ruling. Streak 2/3→0/3 (9th reset this session).
+
+**Frozen spec artifacts:** ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39 — ALL UNCHANGED.
+
+**Observations recorded:**
+- O-P62-001 [out-of-perimeter]: `crates/factory-lock/src/lib.rs` doc-comments stale pre-F-P56-001 semantics. Same locus as O-P61-001. Status updated: **BOUND to S-17.05 (human-directed 2026-08-27)**. Owner: implementer.
+- O-P62-002 [LOW, awareness only]: Finding-ID provenance divergence (BC-4.17.001/BC-7.07.001 label `classify_identity_resolution` mandate "F-003"; ADR-046 labels "F-006"). Substance identical; per-document labels; NOT a POLICY 4 mis-anchor. Recorded for awareness.
+- O-P62-003 [process-observation]: O-P28-002 "version-stable by construction" claim falsified by F-P62-001. Durable close is the structural restatement above.
+
+**4-INDEX after this burst:**
+- ARCH-INDEX: v3.93→**v3.94** (F-P62-001 fix)
+- BC-INDEX: v5.18 (UNCHANGED — no BC edited)
+- VP-INDEX: v2.79 (UNCHANGED)
+- STORY-INDEX: v4.392 (UNCHANGED)
+
+**Canonical 6-column row (for STATE.md Decisions Log table):**
+
+| D-1119 | D-1119-ADR046-PASS62-SPEC-CONVERGENCE-RESET | adv-adr-046-pass-62.md persisted. **VERDICT FINDINGS (1 MED) — F-P62-001, FIXED (structural, TD-VSDD-059).** ARCH-INDEX ADR-046 row headline marker `**RATIFIED 2026-08-25; ADR-046 v1.18 as of this row.**` stale by 5 revisions (live v1.23); self-contradicts cell own tail. Fixed: headline rewritten to `**RATIFIED 2026-08-25; current version per ADR-046 frontmatter (tail records bump history).**` — eliminates sweep-every-touch recurrence; O-P28-002 "version-stable by construction" claim falsified and durably closed. ARCH-INDEX v3.93→**v3.94**. Frozen spec set UNCHANGED. Human adjudication: out-of-frozen-set finding resets per literal-3-CLEAN standard (2026-08-27). **BC-5.39.001 streak RESETS 2/3→0/3 (9th reset)**. O-P62-001 BOUND to S-17.05 (human-directed). O-P62-002/O-P62-003 NON-BLOCKING. Full: decision-log.md D-1119. | D-1119 | 2026-08-27 |
+
