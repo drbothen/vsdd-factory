@@ -597,3 +597,102 @@ re-litigating it as a fresh finding), and to fix in-scope any NEW blocking findi
 surface (which would reset the streak, as any genuine finding always has).
 `[convergence-governance; accept-and-track; documentary-historical-deferred; O-P42-001; streak-2of3;
 D-1099; adr-046-gate; frozen-set-preservation; out-of-perimeter]`
+
+---
+
+**[codified][process-gap] Grep-complete mechanical inputs audits (D-1090) must be applied to
+EVERY artifact in a cluster, not just the anchor/ADR document — the BCs' own piecemeal inputs
+fixes left capabilities.md (+3 more on BC-5.40.001) missing until pass-43, the FIRST pass to
+scope the audit to the BCs themselves**
+
+D-1090 (pass-33) codified that inputs-completeness audits must be GREP-COMPLETE mechanical
+file-path-token enumeration, not human read-throughs — and every subsequent inputs-completeness
+finding through pass-40 (F-P33-001, F-P30-002, F-P29-002, F-P31-001, F-P35-002, F-P40-001, etc.)
+was found by running that discipline against ADR-046's own `inputs:` array, or against a single
+BC in response to a specific triggering claim. What no prior pass had done was run the
+grep-complete audit against EACH of the three companion BCs' own `inputs:` arrays as a routine,
+comprehensive sweep — the audits were always triggered reactively (an adversary spotting one
+specific missing citation) rather than run proactively and exhaustively per-artifact the way
+D-1090 itself was.
+
+At pass-43, product-owner ran the FIRST such comprehensive per-BC audit (prompted by F-P43-001's
+discovery that all three BCs were missing `capabilities.md` from `inputs:` despite quoting their
+capability's description verbatim) and immediately found 3 MORE genuinely-missing files on
+BC-5.40.001 alone — files that had been load-bearing citations since as early as pass-29
+(`inputs:` was last touched on BC-5.40.001 at v1.14/pass-31, nine passes before this gap was
+caught). This is a structural gap in how the D-1090 discipline had been APPLIED, not a weakness in
+the discipline's own definition: D-1090's text never restricted itself to "the ADR only," but every
+prior application of it happened to be ADR-scoped or single-BC-triggered, and no burst had ever
+explicitly run it as "audit ALL FOUR frozen-set artifacts' own `inputs:` arrays, mechanically,
+every time."
+
+**Disposition:** Extend the D-1090 codification's PRACTICE (not its definition — the mechanical
+grep-complete method itself is unchanged) to explicitly require: when this gate's grep-complete
+inputs audit runs, it MUST run against every artifact in the frozen/reviewed set — the ADR AND
+every companion BC — not just the artifact a specific triggering finding happens to implicate.
+This closes a class of gap where a defect in one artifact (missing `capabilities.md`) is fixed
+locally without checking whether sibling artifacts in the same cluster carry the identical gap.
+`[codified][process-gap][inputs-audit-scope-extension][D-1100; adr-046-gate; F-P43-001;
+grep-complete; all-cluster-artifacts]`
+
+---
+
+**[content-defect-discipline] A cross-reference to an acceptance criterion must name the OWNING
+artifact (story vs. BC) and anchor to the BC's actual normative locus, not assume the AC belongs
+to whichever artifact happens to be citing it**
+
+At pass-43, F-P43-002 found that ADR-046's Companion Amendment 3 (and BC-7.07.001's own v1.19
+Changelog row, independently) both referred to "AC-018" as though it were a normative
+acceptance-criterion section of BC-7.07.001 itself — "The BC's existing AC-018 ('If `Renewed`:
+call `host::write_file`') is otherwise unchanged." A full section-heading sweep of BC-7.07.001
+confirms it has no Acceptance Criteria section and no AC-NNN numbering scheme at all: this BC's
+sections are Description / Preconditions / Postconditions / Invariants / Edge Cases / Canonical
+Test Vectors / Related BCs / Architecture Anchors / Story Anchor / VP Anchors / Verification
+Properties / Traceability / Changelog. AC-018 is in fact a STORY-level acceptance criterion,
+belonging to `.factory/stories/S-18.04a-precompact-flush-sh-core.md`'s own `### AC-018` section —
+which itself traces down INTO BC-7.07.001 at a real, citable, section-anchored locus: Postcondition
+3 case 5 / Invariant 3 step 4. The label "AC-018" was not fabricated (it genuinely exists, at the
+story level, and genuinely traces to the cited BC locus) — it was mis-scoped, attributed to the
+wrong owning artifact, by BOTH the ADR and the BC that echo it.
+
+**Disposition:** When a cross-reference names an acceptance criterion (AC-NNN) or any other
+artifact-scoped identifier, the citing text must (a) verify which artifact actually OWNS that
+identifier's numbering scheme (a story's AC-NNN list is distinct from a BC's own PC/Invariant/EC
+numbering — a BC citing "AC-NNN" as if it were its own section is a category error unless that BC
+demonstrably has its own AC-NNN scheme), and (b) anchor the citation at the OWNING artifact's
+actual locus while ALSO naming the concrete downstream section (PC/Invariant/EC) in the cited BC
+that the story-level AC traces to — both halves are required for the cross-reference to resolve to
+something real on both ends. This is a distinct class from the AC-018 mis-scoping bug's own
+symptom (a plausible-sounding identifier a reader would not think to double-check) and from
+ADR-025 §Decision anchor mis-cites (D-1092) — this class is specifically about IDENTIFIER-OWNERSHIP
+attribution across the story/BC boundary, not section-number accuracy within one document.
+`[content-defect-discipline; ac-owning-artifact; cross-reference-integrity; D-1100; adr-046-gate;
+F-P43-002; story-vs-bc-boundary]`
+
+---
+
+**[process-observation][convergence-observation] META: the 4th reset (at the convergence pass
+itself) was SUBSTANTIVE/provenance, not gaming or noise — the BC inputs perimeter had never been
+grep-audited before this pass, so finding it now is convergence PROGRESS, not a regression**
+
+Pass-43 was dispatched specifically to CLOSE the gate at literal 3-CLEAN (streak was 2/3 entering
+this pass). Instead it found 2 MED findings and reset the streak to 0/3 — the 4th reset this
+session. It would be tempting to read a reset at exactly the convergence pass as evidence the gate
+is not actually converging, or that findings are being manufactured to avoid closure. Neither
+reading holds up: F-P43-001 is the FIRST-EVER application of the mandatory grep-complete inputs
+audit to the three companion BCs' own `inputs:` arrays (as opposed to ADR-046's) — a genuinely new
+DIMENSION this gate's 42 prior passes never checked, not a re-discovery of an already-checked
+dimension regressing. F-P43-002 is a genuine cross-reference defect (AC-018 mis-scoping) that
+existed since BC-7.07.001's v1.19 (pass-2-era) and was never independently caught because both the
+ADR and the BC echoing each other created a false consensus — exactly the kind of two-way
+mutual-reinforcement defect fresh-context adversarial review with information asymmetry exists to
+catch. Both findings sit at the provenance/cross-reference perimeter, not the behavioral core,
+which remains independently re-verified clean for 17 consecutive passes (since pass-27). **The
+correct reading: this reset represents the gate finding a previously-unaudited dimension and
+draining it — the BC inputs perimeter is now drained (all three BCs grep-complete-audited for the
+first time), which is convergence PROGRESS, structurally identical to the D-1096/D-1097 pattern
+(a new dimension found, fixed, then re-confirmed clean on subsequent passes) rather than evidence
+against the gate's validity.** Fresh pass-44 starts a new streak with one more dimension now
+provably clean than pass-43 started with.
+`[process-observation; convergence-observation; substantive-reset; not-gaming; D-1100; adr-046-gate;
+fourth-reset; bc-inputs-perimeter-drained; convergence-progress]`

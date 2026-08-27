@@ -4427,3 +4427,139 @@ D-1099-ADR046-PASS42-SPEC-CONVERGENCE-CLEAN
 2026-08-27
 
 ---
+
+## D-1100
+
+**D-1100-ADR046-PASS43-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1099 (this cycle's decision-log.md). D-1100 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 43 — **the CONVERGENCE pass** — dispatched
+against the SAME unchanged frozen set produced by the pass-40 fix burst and re-confirmed clean at
+pass-41/pass-42 (ADR-046 v1.16 + BC-4.17.001 v1.19 + BC-5.40.001 v1.16 + BC-7.07.001 v1.33).
+**VERDICT: FINDINGS (2 MED) + 2 observations (O-P43-001 LOW, fixed; O-P43-002 informational, no
+action).** Both findings are provenance/cross-reference class, not behavioral-core defects — the
+gate's design substance remains re-confirmed converged for the 17th consecutive pass (stable since
+pass-27).
+
+**F-P43-001 (MED, POLICY 18, inputs: completeness).** All three companion BCs (BC-4.17.001,
+BC-5.40.001, BC-7.07.001) quote their respective capability (CAP-031/CAP-032) verbatim against
+`.factory/specs/domain-spec/capabilities.md`, but none of the three BCs' own `inputs:` frontmatter
+arrays listed that file — a load-bearing citation gap of the exact character this gate has
+repeatedly found and fixed on ADR-046's own `inputs:` (F-P28-001/F-P30-002/F-P33-001), but never
+before checked on the BCs' arrays themselves. This burst ran the FIRST mandatory grep-complete
+inputs audit (D-1090's discipline) scoped to all three BCs, not just the ADR. Beyond
+`capabilities.md`, the audit found 3 further genuinely-missing files on BC-5.40.001 specifically:
+`plugins/vsdd-factory/bin/factory-lock-write.sh` (PC4 break-glass-fallback claim),
+`plugins/vsdd-factory/hooks/verify-git-push.sh` (Precondition 5/Invariant 5 `--force-with-lease`
+claim), and `crates/hook-plugins/verify-state-timestamp-refresh/tests/integration_t006_no_output_too_large.rs`
+(§VP Anchors literal grep-evidence block). BC-4.17.001 and BC-7.07.001's own audits found no other
+gaps beyond `capabilities.md`. Fixed same-burst by product-owner: BC-4.17.001 v1.19→v1.20,
+BC-5.40.001 v1.16→v1.17, BC-7.07.001 v1.33→v1.34 (this row shared with F-P43-002 below).
+
+**F-P43-002 (MED, POLICY 4, cross-reference integrity).** ADR-046's Companion Amendment 3 closing
+sentence referred to "The BC's existing AC-018" as though AC-018 were a normative
+acceptance-criterion section of BC-7.07.001 itself — but BC-7.07.001 has no Acceptance Criteria
+section and no AC-NNN numbering scheme at all (confirmed by a full section-heading sweep). AC-018
+is in fact a STORY-level acceptance criterion of `.factory/stories/S-18.04a-precompact-flush-sh-core.md`,
+tracing to BC-7.07.001's own Postcondition 3 case 5 / Invariant 3 step 4. The mis-scoping was
+two-way: BC-7.07.001's own v1.19 Changelog row independently carried the identical "AC-018 ...
+UNCHANGED" phrasing (ADR-046 echoed it verbatim, not fabricated it). Fixed same-burst: architect
+corrected ADR-046 Companion Amendment 3's closing sentence to "S-18.04a's AC-018 (...; BC-7.07.001
+Postcondition 3 case 5 / Invariant 3 step 4) is otherwise unchanged" (ADR-046 v1.16→v1.17);
+product-owner mirrored the identical correction into BC-7.07.001's own v1.34 narrative same-burst.
+
+**O-P43-001 (LOW, stale volatile pin, fixed).** BC-4.17.001 Invariant 6 carried a stale BC-to-BC
+version pin, `(see BC-5.40.001 v1.5 Invariant 1)` — a POLICY-19-class anti-pattern this gate's
+sibling-sweep disciplines had not previously checked for cross-BC version pins specifically.
+Stripped to the stable anchor `(see BC-5.40.001 §Invariant 1)`; a sweep of BC-4.17.001 found no
+other live-body BC-to-BC version pins (the two other matches are confined to POLICY-1 append-only
+dated historical narrative).
+
+**O-P43-002 (informational, no action).** No ADR-046 content is implicated by either finding above
+independent of F-P43-002's cross-reference fix; recorded for observation-ledger completeness only.
+
+**BC-5.39.001 3-CLEAN streak RESETS 2/3 → 0/3 — the 4th reset this session** (after pass-35,
+pass-37, pass-39). Qualitatively, this reset sits closer to the pass-35 (citation-accuracy) and
+pass-37 (bookkeeping) resets than the pass-39 (data-destructive) reset: both findings are confined
+to the provenance/cross-reference perimeter — the behavioral core (write-composition, five-outcome
+table, identity-gating, event-sourcing) remains independently re-verified CLEAN, stable for 17
+consecutive passes (since pass-27). Full record: `adv-adr-046-pass-43.md`.
+
+**Index reconciliation (state-manager, this burst):** ARCH-INDEX v3.86→**v3.87** (ADR-046 row
+version cell + pass-34..43 narrative summary appended). BC-INDEX v5.08→**v5.09** (BC-4.17.001 row
++v1.20, BC-5.40.001 row +v1.17, BC-7.07.001 row +v1.34 version-chain cells appended). STORY-INDEX
+v4.391 and VP-INDEX v2.79 UNCHANGED (no story or VP touched this burst).
+
+**Input-hash recompute:** performed for all four frozen-set artifacts (mandatory per this burst's
+content edits). Final stored values: ADR-046 `8f11d0e`, BC-4.17.001 `39fa054`, BC-5.40.001
+`b711178`, BC-7.07.001 `d4b0881`. The 4-artifact cyclic tangle ([D-1082]: BC-4.17.001 ↔
+BC-7.07.001 ↔ ADR-046 ↔ BC-5.40.001) means each edit shifts the computed hash of every artifact
+that cites the just-edited file — recomputation was iterated across the edit order (ADR-046 →
+BC-4.17.001 → BC-5.40.001 → BC-7.07.001, last-edited-settles-exactly convention) until
+BC-7.07.001's own stored/computed values matched exactly (settled). ADR-046, BC-4.17.001, and
+BC-5.40.001 each carry an accepted 1-hop residual drift relative to BC-7.07.001's later same-burst
+edit (their stored hashes reflect the state immediately before BC-7.07.001's own edit landed) —
+consistent with the precedent at pass-31/pass-37 ("ONE-HOP residual drift — accepted, NOT chased
+further"). Cyclic-hash TD `[D-1082]` UNCHANGED, NOT re-opened, NOT force-converged, per this
+burst's explicit task direction.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-42" as the current/NEXT pass or to a
+streak value other than the correct post-reset `0/3` — matches confined to PRESERVED HISTORICAL
+rows (D-1082..D-1099 entries correctly describing their own contemporaneous pass numbers/streak
+values) and this same burst's own new content. No propagation gap found.
+
+**STATE.md vNext:** streak 2/3→**0/3** (RESETS, 4th reset this session); Current Artifact Versions
+ADR-046 v1.17, BC-4.17.001 v1.20, BC-5.40.001 v1.17, BC-7.07.001 v1.34 (all four bumped); Blocking
+Issues ADR-046-gate row updated (streak 0/3, pass-43 FINDINGS with both fixed, fresh pass-44 NEXT
+against the newly-frozen set); Drift Items: the D-1090 grep-complete-inputs-audit codification
+extended to explicitly cover all cluster artifacts (not just the ADR) per this pass's own finding;
+a new AC-owning-artifact citation-discipline lesson recorded; O-P42-001 stays tracked
+(documentary-historical-deferred, unaffected by this burst — BC-5.40.001's edit this burst touched
+`inputs:`/Invariant text, not the `modified:` array rows O-P42-001 concerns); Session Resume
+Checkpoint refreshed (§2 streak 0/3, fresh pass-44 NEXT against the newly-frozen set, notes full
+history 34C→35R→36C→37R→38C→39R→40f→41C→42C→43R, human decision to CONTINUE looping recorded
+again; §3 versions updated to v1.17/v1.20/v1.17/v1.34; §7 resume command updated); Phase Progress +
+Current Phase Steps rows added for D-1100 (Current Phase Steps table trimmed to keep only the last
+5 — D-1096 row archived off, already fully preserved in decision-log.md/burst-log.md). Trajectory
+tail unchanged (Wave-7 not touched this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-43 (the CONVERGENCE pass) COMPLETE. **VERDICT: FINDINGS (2
+MED) + 2 observations (1 fixed, 1 informational).** Both findings are provenance/cross-reference
+class — the design substance remains re-confirmed converged (17 consecutive clean passes on the
+behavioral core, since pass-27). BC-5.39.001 3-CLEAN streak RESETS 2/3 → **0/3** — the 4th reset
+this session. All four frozen-set artifacts bumped (ADR-046 v1.17, BC-4.17.001 v1.20, BC-5.40.001
+v1.17, BC-7.07.001 v1.34); ARCH-INDEX v3.87; BC-INDEX v5.09; input-hashes recomputed for all four.
+Fresh pass-44 is the documented NEXT action, starting a new streak toward literal 3-CLEAN against
+the newly-frozen set.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-43.md, VERDICT: FINDINGS, 2 MED + 2
+observations), architect (ADR-046 v1.16→v1.17, F-P43-002), product-owner (BC-4.17.001
+v1.19→v1.20 F-P43-001+O-P43-001; BC-5.40.001 v1.16→v1.17 F-P43-001+3 audit-extra inputs;
+BC-7.07.001 v1.33→v1.34 F-P43-001+F-P43-002 mirror), state-manager (adv-adr-046-pass-43.md
+persist + decision-log D-1100 + lessons codification + burst-log + 4-index reconciliation +
+input-hash recompute for all four artifacts + STATE.md streak reset + Session Resume Checkpoint
+refresh)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.08 | v5.09 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.86 | v3.87 |
+
+### Phase
+
+D-1100-ADR046-PASS43-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-27
+
+---
