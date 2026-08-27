@@ -5565,3 +5565,98 @@ D-1108-ADR046-PASS51-SPEC-CONVERGENCE-REMEDIATION
 2026-08-27
 
 ---
+
+## D-1109
+
+**D-1109-ADR046-PASS52-SPEC-CONVERGENCE-CLEAN**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1108 (this cycle's decision-log.md). D-1109 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 52 dispatched against the O-P51-001-corrected
+frozen set (ADR-046 v1.21 + BC-4.17.001 v1.24 + BC-5.40.001 v1.20 + BC-7.07.001 v1.37) produced by
+the pass-51 fix burst. **VERDICT: CLEAN — zero findings at any severity.** Every code-vs-spec claim,
+cross-BC section anchor, AC→story attribution, 4-leg version parity, cardinality claim,
+status/lifecycle pairing, byte-range/body-confinement arm-scope reconciliation, and — most
+directly — the illustrative "analogous to T-NNN" enumeration dimension pass-51's own finding
+(O-P51-001) targeted, were all independently re-verified TRUE against source. ADR-046 §Decision 5
+now correctly reads "T-001/T-004/T-005/T-007," matching BC-4.17.001's own authoritative basis
+exactly, with no sibling recurrence found anywhere else in the frozen set. **BC-5.39.001 3-CLEAN
+streak ADVANCES 0/3 → 1/3** — the first clean pass against the corrected set, following the pass-51
+spec-edit supersession. Full record: `adv-adr-046-pass-52.md`.
+
+**This is a CLEAN pass, NOT a fix burst.** No spec artifact was edited this burst — the frozen set
+is UNCHANGED at ADR-046 v1.21 / BC-4.17.001 v1.24 / BC-5.40.001 v1.20 / BC-7.07.001 v1.37. No
+version bump, no input-hash recompute, no 4-INDEX version-cell change. This burst's sole content
+is: persist the pass-52 record, advance the streak counter, and codify the confirmation that all
+fifteen now-codified convergence-technique disciplines — including the ninth (D-1101), just
+extended at D-1108 to cover illustrative example-enumerations — hold under a fresh adversary's
+independent re-derivation.
+
+**Novelty assessment (recorded, see lessons.md):** pass-52 re-applied all fifteen codified
+convergence-technique disciplines proactively from the start, including the dimension whose
+correction (O-P51-001) produced this pass's own reviewed set. Zero findings on any dimension.
+**CODIFIED this burst** (see lessons.md, tagged `[convergence-progress]`): this is the first direct
+evidence that the ninth discipline's D-1108 extension (illustrative example-enumerations, not only
+verbatim quotes) holds under independent fresh-context re-derivation, and that all fourteen prior
+disciplines continue holding simultaneously. Evidence, not yet proof (one pass); 2 further
+consecutive clean passes (53, 54) are required to confirm this holds under BC-5.39.001's literal
+3-CLEAN standard.
+
+**Index reconciliation (state-manager, this burst):** none required — BC-INDEX v5.15, STORY-INDEX
+v4.392, VP-INDEX v2.79, ARCH-INDEX v3.91 all UNCHANGED (no artifact touched this pass, per the
+CLEAN-pass discipline: do NOT bump versions or recompute input-hashes when nothing was edited).
+
+**Input-hash recompute:** NOT PERFORMED — no artifact content changed this burst; the stored
+input-hashes (ADR-046 `cb428ff`, BC-4.17.001 `0edc756`, BC-5.40.001 `a21ce60`, BC-7.07.001
+`673078a`) remain valid and unchanged, confirmed via literal `grep` re-read (burst-log.md Block 5).
+Cyclic-hash TD `[D-1082]` UNCHANGED, NOT re-opened, NOT chased further — the 3 companion BCs' 1-hop
+residuals from pass-51's roles-reversed recompute remain ACCEPTED, unchanged this burst.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-51" as the current/NEXT pass or to a
+streak value other than the correct post-advance `1/3` — matches confined to PRESERVED HISTORICAL
+rows (D-1057..D-1108 entries correctly describing their own contemporaneous pass numbers/streak
+values) and this same burst's own new content. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3→**1/3** (ADVANCES, first clean pass against the corrected set);
+Current Artifact Versions UNCHANGED (ADR-046 v1.21, BC-4.17.001 v1.24, BC-5.40.001 v1.20,
+BC-7.07.001 v1.37); Blocking Issues ADR-046-gate row updated (streak 1/3, pass-52 CLEAN, fresh
+pass-53 NEXT); Session Resume Checkpoint refreshed (§2 streak 1/3, fresh pass-53 NEXT against the
+unchanged frozen set, history appends 52C; §3 versions UNCHANGED; §7 resume command updated); Phase
+Progress + Current Phase Steps rows added for D-1109 (Current Phase Steps table trimmed to keep
+only the last 5 — D-1104 row archived off, already fully preserved in decision-log.md/
+burst-log.md). Trajectory tail unchanged (Wave-7 not touched this burst — →1→1→0→1, LENGTH=4
+carries forward).
+
+Summary: ADR-046 spec-convergence pass-52 COMPLETE. **VERDICT: CLEAN — zero findings at any
+severity.** This is the first clean pass against the O-P51-001-corrected set, directly re-verifying
+the exact dimension pass-51's own finding targeted. BC-5.39.001 3-CLEAN streak ADVANCES 0/3 →
+**1/3**. No spec artifact edited; no version bump; no input-hash recompute; no 4-INDEX change.
+Fresh pass-53 is the documented NEXT action against the SAME unchanged frozen set; needs 2 more
+consecutive clean passes (53, 54) for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-52.md, VERDICT: CLEAN), state-manager
+(adv-adr-046-pass-52.md persist + decision-log D-1109 + lessons codification + burst-log +
+STATE.md streak advance; no other specialist dispatched — no artifact required a fix)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.15 | v5.15 (UNCHANGED) |
+| STORY-INDEX | v4.392 | v4.392 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.91 | v3.91 (UNCHANGED) |
+
+### Phase
+
+D-1109-ADR046-PASS52-SPEC-CONVERGENCE-CLEAN
+
+### Date
+
+2026-08-27
+
+---

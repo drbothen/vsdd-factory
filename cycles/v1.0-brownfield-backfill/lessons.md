@@ -1159,3 +1159,39 @@ literal-3-CLEAN count restarts fresh at pass-52 against the newly-edited set, pe
 own discipline (any spec edit, even a fix, requires re-review of the edited artifact before it can
 count toward a clean streak).
 `[process-observation][convergence-observation][meta; D-1108; adr-046-gate; pass-51]`
+
+---
+
+**[convergence-progress] Pass-52 re-applied all fifteen now-codified convergence-technique
+disciplines proactively — including the ninth discipline's D-1108 extension to illustrative
+example-enumerations, the exact dimension pass-51's own finding (O-P51-001) targeted — and found
+the entire O-P51-001-corrected frozen set clean on every dimension; streak ADVANCES 0/3 → 1/3, the
+first clean pass against the corrected set.**
+
+Pass-52 dispatched fresh-context, information-asymmetric per the Iron Law, against the frozen set
+ADR-046 v1.21 / BC-4.17.001 v1.24 / BC-5.40.001 v1.20 / BC-7.07.001 v1.37 — the set produced by the
+pass-51 fix burst. Zero findings at any severity. Most directly, ADR-046 §Decision 5's illustrative
+"analogous to T-NNN" enumeration (fixed by architect at D-1108 to read "T-001/T-004/T-005/T-007")
+was independently re-derived and confirmed matching BC-4.17.001's own authoritative basis, with a
+fresh within-artifact sweep finding no sibling recurrence anywhere else. All fourteen prior
+disciplines (comprehensive-sibling-sweep, 4-leg parity, grep-complete inputs, ADR anchor audit,
+minimal-prose discipline, arm-parity sweep, sibling-sweep-includes-VPs, AC-attribution
+cross-reference, illustrative-quote verbatim accuracy, record-why-not-just-checked,
+cluster-wide-audit scope, verbatim-absence grep, summary-enumeration accuracy, CITATION→INPUT
+PARITY, catalog-membership-verification) also re-verified holding with zero regression. The
+behavioral core (write-composition, five-outcome table, identity-gating, event-sourcing) remains
+independently re-verified CLEAN for the 26th consecutive pass (since pass-27).
+
+**Disposition:** Recorded as `[convergence-progress]`, the same tag used for D-1093's pass-36 and
+D-1095's pass-38 confirmations, distinguished by scope: this entry is the first direct EVIDENCE
+that the ninth discipline's D-1108 extension (illustrative example-enumerations, not only verbatim
+quotes) holds under a fresh adversary's independent re-derivation — evidence, not yet proof, since
+a single clean pass is not itself a confirmation the way three consecutive passes would be. Per
+BC-5.39.001, this is 1 of 3 required CONSECUTIVE clean passes — the streak requires 2 further
+consecutive clean passes (53, 54), and any finding OR spec edit on either would reset the streak to
+0/3 again. The correct disposition for passes 53 and 54 is to CONTINUE applying all fifteen
+disciplines proactively without relaxing rigor on the theory that "the illustrative-enumeration
+extension is now proven safe" — one clean pass on a freshly-extended discipline is progress, not
+closure. `[convergence-progress; fifteen-disciplines; ninth-discipline-extension-reconfirmed;
+first-clean-pass-post-O-P51-001; D-1109; adr-046-gate; pending-pass-53-54-confirmation;
+not-yet-converged]`
