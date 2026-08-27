@@ -1108,3 +1108,54 @@ story-ID-shaped token sweep (`S-[0-9]+\.[0-9]+`) alongside the existing file-pat
 sweeps, not treat story citations as a separate, lower-priority class.
 `[codified][process-gap][citation-input-parity-extension; D-1107; adr-046-gate; F-P50-002;
 fourteenth-discipline-extension]`
+
+---
+
+**[content-defect-discipline] Illustrative "analogous to T-NNN" enumerations must match the
+authoritative implementing-BC's own basis — an extension of the ninth discipline (D-1101) from
+verbatim quotes to illustrative example-lists**
+
+At pass-51 (O-P51-001), ADR-046's own §Decision 5 per-element reconciliation table illustratively
+enumerated BC-4.17.001's migrated VP-row analogs as "analogous to T-001/T-002/T-003/T-004/T-007."
+This was IMPRECISE: T-002/T-003 are BC-5.40.001's staleness-BLOCK tests with no stamper analog
+(the always-allow-and-correct stamper never blocks, so they were never migrated), and T-005
+(`extract_frontmatter`/no-delimiter fail-open) was omitted despite being migrated. BC-4.17.001's
+own §Verification Properties note cites the exact set "T-001/T-004/T-005/T-007" as the
+authoritative migrated-analog basis (VP-TBD-7/8/9) — the sibling BC had it right; only ADR-046's
+own illustrative parenthetical carried the imprecise enumeration.
+
+**Disposition:** this is NOT a new standalone discipline — it is a content-defect instance of the
+existing NINTH discipline (D-1101), which required illustrative "verbatim quote" content attached
+to a fix's own disposition prose to cite the ACTUAL text of the cited source, cross-checked via
+sibling-parity. O-P51-001 demonstrates the same underlying obligation applies to a DIFFERENT
+illustrative-content shape: an "analogous to <ID-list>" example enumeration, not only a quoted
+string. Standing mandate (extended): any illustrative content in an ADR/BC that references another
+artifact's own basis for a claim — whether a verbatim quote OR an enumerated ID-list — MUST be
+cross-checked against that other artifact's own authoritative statement of the same claim before
+being asserted independently, and any within-artifact sibling instances of the same illustrative
+reference MUST be swept for the identical defect (this pass's T-NNN sweep found none, confirming
+the defect was confined to this single locus).
+`[codified][process-gap][content-defect-discipline][ninth-discipline-extension; D-1108;
+adr-046-gate; O-P51-001]`
+
+---
+
+**[process-observation][convergence-observation][meta] Pass-51 zero-BLOCKER/HIGH/MED result
+confirms the substance and all fourteen prior metadata-layer disciplines continue holding**
+
+Pass-51 is the cleanest pass this gate has produced since the last clean streak (pass-45): zero
+BLOCKER/HIGH/MED findings, only a single LOW illustrative-enumeration observation (O-P51-001),
+itself an instance of an already-codified discipline (the ninth, D-1101) rather than a new failure
+mode. The behavioral core (write-composition table, five-outcome table, identity-gating logic,
+event-sourcing struct-variant text) remains independently re-verified CLEAN for the 25th
+consecutive pass (since pass-27). None of the fourteen previously-codified convergence-technique
+disciplines (comprehensive-sibling-sweep, 4-leg parity, grep-complete inputs, ADR anchor audit,
+minimal-prose discipline, arm-parity sweep, sibling-sweep-includes-VPs, AC-attribution
+cross-reference, illustrative-quote accuracy, record-why-not-just-checked, cluster-wide-audit
+scope, verbatim-absence grep, summary-enumeration accuracy, CITATION→INPUT PARITY) regressed this
+pass. **Disposition:** because ADR-046 itself was edited this burst (O-P51-001's fix), the
+BC-5.39.001 3-CLEAN streak does NOT advance on the strength of this clean-of-blockers result — the
+literal-3-CLEAN count restarts fresh at pass-52 against the newly-edited set, per BC-5.39.001's
+own discipline (any spec edit, even a fix, requires re-review of the edited artifact before it can
+count toward a clean streak).
+`[process-observation][convergence-observation][meta; D-1108; adr-046-gate; pass-51]`

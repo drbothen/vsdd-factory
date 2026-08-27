@@ -5444,3 +5444,124 @@ D-1107-ADR046-PASS50-SPEC-CONVERGENCE-REMEDIATION
 2026-08-27
 
 ---
+
+## D-1108
+
+**D-1108-ADR046-PASS51-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1107 (this cycle's decision-log.md). D-1108 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 51 dispatched against the frozen set
+(ADR-046 v1.20 + BC-4.17.001 v1.24 + BC-5.40.001 v1.20 + BC-7.07.001 v1.37). **VERDICT: NO
+BLOCKER/HIGH/MED findings; 1 LOW observation (O-P51-001), fixed same-burst.** The behavioral core
+remains re-confirmed converged for the 25th consecutive pass (stable since pass-27) — this is the
+cleanest pass this gate has produced since the last clean streak (pass-45).
+
+**O-P51-001 (LOW, POLICY 4, illustrative-enumeration imprecision).** ADR-046 §Decision 5's
+per-element reconciliation table VP-rows disposition row illustratively enumerated BC-4.17.001's
+migrated VP-row analogs as "analogous to T-001/T-002/T-003/T-004/T-007." This was IMPRECISE:
+T-002/T-003 are BC-5.40.001's staleness-BLOCK tests with no stamper analog (the always-allow-
+and-correct stamper never blocks, so they were never migrated), and T-005
+(`extract_frontmatter`/no-delimiter fail-open) was omitted despite being migrated. BC-4.17.001's
+own §Verification Properties note cites the exact set "T-001/T-004/T-005/T-007" as the
+authoritative migrated-analog basis (VP-TBD-7/8/9) — the sibling BC had it right; only ADR-046's
+own illustrative parenthetical carried the imprecise enumeration. **Fixed by architect**: ADR-046
+v1.20→v1.21, §Decision 5's enumeration corrected to "T-001/T-004/T-005/T-007," matching
+BC-4.17.001's own authoritative basis exactly; a within-artifact T-NNN sweep confirmed all other 6
+T-references are accurate — no sibling recurrence. This is a content-defect instance of the
+existing NINTH discipline (D-1101, illustrative-content-accuracy + sibling-parity cross-check),
+extended from its original verbatim-QUOTE scope to an illustrative "analogous to
+<ID-list>"/example ENUMERATION — not a new standalone discipline.
+
+**GOVERNANCE (fix-vs-accept, D-1101 precedent):** the LOW observation was FIXED rather than
+accepted/banked as a partial 1/3 streak advance, because at streak-floor 0/3 the fix costs no
+streak AND it is a fresh live-body inaccuracy the sibling BC already had correct (not PRESERVED
+HISTORICAL content) — same disposition class as O-P44-001.
+
+**BC-5.39.001 3-CLEAN streak STAYS 0/3.** Because ADR-046 was edited this burst (the reviewed set
+is no longer the current set), pass-51's own zero-BLOCKER/HIGH/MED result does NOT advance the
+streak to 1/3 — the fresh literal-3-CLEAN count begins at pass-52 against the newly-edited set.
+Full record: `adv-adr-046-pass-51.md`.
+
+**Index reconciliation (state-manager, this burst):** ARCH-INDEX v3.90→**v3.91** (ADR-046 row
+bumped v1.20→v1.21; bracket-delta self-consistency re-verified, `[Prior:` count 179→180 matched by
+trailing-bracket run 27→28, tracked historical delta unchanged at 152). BC-INDEX v5.15,
+STORY-INDEX v4.392, VP-INDEX v2.79 all **UNCHANGED** (no companion-BC/story/VP edit this pass).
+
+**Input-hash recompute (cyclic-hash TD [D-1082] — re-triggered again this pass, NOT reopened;
+only ADR-046 edited, the 3 companion BCs UNCHANGED-in-file):** `compute-input-hash` run for
+ADR-046 via the sanctioned default/`--check` modes, pre- and post-edit: **ADR-046 input-hash
+`a07142a`→`cb428ff` (SETTLED — `--check` exit 0 against ADR-046's own post-edit content; no
+`--resolve` MISSING inputs found)**. Because ADR-046 is itself listed in each of the 3 companion
+BCs' own `inputs:` arrays, editing ADR-046 makes THEIR stored hashes go stale relative to
+ADR-046's new v1.21 content even though none of the 3 BC files were touched: `--check` against
+each post-edit confirms DRIFT — BC-4.17.001 `0edc756`≠computed`5797021`, BC-5.40.001
+`a21ce60`≠computed`ca0f4c5`, BC-7.07.001 `673078a`≠computed`a306463` (all exit 2). This is the same
+cyclic ping-pong [D-1082] documents, roles reversed from pass-49/pass-50 (there the BCs were
+edited and ADR-046 went stale; here ADR-046 is edited and the 3 BCs go stale). Per established
+convention these 3 fresh residuals are ACCEPTED and NOT re-chased this burst; the tangle itself
+remains cross-referenced, NOT reopened or force-converged, per standing convention.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, STORY-INDEX.md, STATE.md, ARCH-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-50" as the current/NEXT pass or to a
+streak value other than the correct post-pass-51 `0/3` — matches confined to PRESERVED HISTORICAL
+rows (D-1057..D-1107 entries correctly describing their own contemporaneous pass numbers/streak
+values) and this same burst's own new content. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3→**STAYS 0/3** (a spec edit supersedes the clean-of-blockers result;
+fresh pass-52 NEXT); Current Artifact Versions ADR-046 v1.21 (BC-4.17.001 v1.24, BC-5.40.001
+v1.20, BC-7.07.001 v1.37 all UNCHANGED); ARCH-INDEX v3.91; Blocking Issues ADR-046-gate row
+updated (streak 0/3, pass-51 zero-BLOCKER/HIGH/MED with 1 LOW obs fixed, fresh pass-52 NEXT
+against the newly-frozen set); Session Resume Checkpoint refreshed (§2 streak 0/3, fresh pass-52
+NEXT, history appends 51obsfix:
+35R→36C→37R→38C→39R→40f→41C→42C→43R→44obsfix→45C→46R→47f→48f→49f→50f→51obsfix; §3 versions updated
+to ADR-046 v1.21 [BCs UNCHANGED]); Phase Progress + Current Phase Steps rows added for D-1108
+(Current Phase Steps table trimmed to keep only the last 5 — D-1103 row archived off, already
+fully preserved in decision-log.md/burst-log.md). Trajectory tail unchanged (Wave-7 not touched
+this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+**CODIFICATION — one new lesson this burst:** illustrative "analogous to T-NNN"/example
+enumerations in an ADR must match the authoritative implementing-BC's own basis for the identical
+claim (BC-4.17.001 got it right; the ADR parenthetical didn't) — a content-defect-discipline
+instance extending the ninth discipline (D-1101) from verbatim quotes to illustrative
+enumerations, not a new standalone discipline. **Also META (brief):** pass-51's zero-BLOCKER/
+HIGH/MED result confirms the substance (behavioral core, 25 consecutive clean passes since
+pass-27) and all fourteen previously-drained/codified metadata-layer disciplines continue holding
+— the ONLY defect found was a fresh illustrative-content-accuracy instance, itself an already-
+codified discipline class (ninth), not a new failure mode.
+
+Summary: ADR-046 spec-convergence pass-51 COMPLETE. **VERDICT: NO BLOCKER/HIGH/MED findings; 1 LOW
+observation (O-P51-001), fixed same-burst.** O-P51-001 closed an illustrative-enumeration
+imprecision in ADR-046's own §Decision 5 disposition prose by architect (v1.20→v1.21), matching
+BC-4.17.001's own already-correct basis. BC-5.39.001 3-CLEAN streak **STAYS 0/3** — the spec edit
+supersedes the clean result; fresh literal-3-CLEAN count begins at pass-52. ADR-046 v1.21;
+BC-4.17.001/BC-5.40.001/BC-7.07.001 all UNCHANGED; ARCH-INDEX v3.91. Fresh pass-52 is the
+documented NEXT action, against the newly-frozen set.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-51.md, VERDICT: NO BLOCKER/HIGH/MED, 1 LOW
+observation), architect (ADR-046 v1.20→v1.21, O-P51-001 fix), state-manager (adv-adr-046-pass-51.md
+persist + decision-log D-1108 + 1 lesson codified + burst-log + ARCH-INDEX reconciliation +
+input-hash recompute (ADR-046 only) + STATE.md streak-stays refresh + Session Resume Checkpoint
+refresh)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.15 | v5.15 (UNCHANGED) |
+| STORY-INDEX | v4.392 | v4.392 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.90 | v3.91 |
+
+### Phase
+
+D-1108-ADR046-PASS51-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-27
+
+---
