@@ -8788,4 +8788,4 @@ Story files: input-hashes resettled only. No behavioral changes to any BC or ADR
 **Block 8: factory-artifacts commit**
 
 Parent SHA: `add9a3f4` (Phase C — S-17.05 v1.2 + S-17.06/S-17.07 v1.0 NEW).
-This burst commit SHA: PENDING_PUSH — will be updated via D-449(e) SHA-patch follow-up after push.
+This burst commit SHA: `4e8b5301` — D-449(e) SHA-patch applied post-push 2026-08-27.

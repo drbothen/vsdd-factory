@@ -108,7 +108,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **6993138b** | rc.24 sync-develop back-merge (merge commit, ancestry preserved). CI-GREEN. |
-| factory-artifacts | **`PENDING_PUSH`** | D-1125-ADR046-WAVE5-DECOMP-CASCADE-COMPLETE. ACTIVE. Wave-5 decomp cascade COMPLETE; STORY-INDEX v4.394; BC-INDEX v5.19; ARCH-INDEX v3.95; 141 stories; blocking issue 'S-17.05 wave decomp required' CLOSED. SHA patched via D-449(e) after push. ADR-045 v1.3 ratification burst still OWED; E-23 STALE. |
+| factory-artifacts | **`4e8b5301`** | D-1125-ADR046-WAVE5-DECOMP-CASCADE-COMPLETE. ACTIVE. Wave-5 decomp cascade COMPLETE; STORY-INDEX v4.394; BC-INDEX v5.19; ARCH-INDEX v3.95; 141 stories; blocking issue 'S-17.05 wave decomp required' CLOSED. SHA patched via D-449(e) after push. ADR-045 v1.3 ratification burst still OWED; E-23 STALE. |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
 | fix/policy15-empty-range-inert | a6a15e1d | MERGED PR #779 2026-08-16. |
@@ -277,7 +277,7 @@ commit f323b5e2 2026-08-27; fix executes when S-17.05 enters TDD).
 
 - `main`: `89f6f87c` — rc.24 bundle commit, tagged v1.0.0-rc.24.
 - `develop`: `6993138b` — rc.24 sync-develop back-merge, CI-GREEN.
-- `factory-artifacts`: `PENDING_PUSH` — D-1125 Phase D burst. SHA patched via D-449(e) after push.
+- `factory-artifacts`: `4e8b5301` — D-1125 Phase D burst. SHA patched via D-449(e) after push.
 
 ### Resume Command
 
