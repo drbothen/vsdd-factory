@@ -3508,3 +3508,140 @@ D-1091-ADR046-PASS34-SPEC-CONVERGENCE-CLEAN
 2026-08-26
 
 ---
+
+## D-1092
+
+**D-1092-ADR046-PASS35-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1091 (this cycle's decision-log.md). D-1092 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 35 dispatched against the frozen set
+(ADR-046 v1.16 + BC-4.17.001 v1.15 + BC-7.07.001 v1.33 + BC-5.40.001 v1.14). **VERDICT: FINDINGS
+(2: 1 HIGH + 1 MED), 0 LOW observations.** A NEWLY-REVEALED audit dimension no prior audit on this
+gate had covered — ADR §Decision/section-anchor correctness (as opposed to BC-to-BC `§Section`
+cross-reference correctness, which every prior comprehensive audit confined itself to). **BC-5.39.001
+3-CLEAN streak RESETS 1/3 → 0/3** (a finding after the pass-34 clean pass resets the counter). Fixed
+by product-owner. Full record: `adv-adr-046-pass-35.md`.
+
+**F-P35-001 (HIGH, POLICY 4, semantic-anchoring-integrity) — FIXED.** 3 loci across 2 companion BCs
+(BC-4.17.001 §Precondition 4, BC-5.40.001 §Precondition 6, BC-5.40.001 §Architecture Anchors)
+mis-cited `ADR-025 §Decision 12 §12.5` ("Shared parse logic — no duplication" — the
+`factory-lock-parse` crate-extraction decision, stating no byte-cap value) as the decision
+establishing the 256 KiB `STATE_MD_MAX_BYTES` read cap. The decision that actually raised the cap
+65536→262144 is `§Decision 14` ("verify-factory-lock read-cap 262144 + frontmatter-only parse"),
+whose own "Normative twin" line names `BC-4.13.001 §Precondition 3 (Phase-A)` — the same BC all 3
+loci already cross-cite. Corrected all 3 loci to `ADR-025 §Decision 14`. The 262144 VALUE itself was
+correct at all 3 loci throughout — this is a mis-anchor (wrong decision number), not a wrong figure.
+BC-5.40.001's separate `§Decision 7 fail-open` clause was independently re-verified against ADR-025
+§Decision 7 and confirmed CORRECT, left unchanged.
+
+**F-P35-002 (MED, POLICY 18, `inputs:` completeness) — FIXED.** BC-4.17.001's `inputs:` frontmatter
+omitted ADR-025 despite §Precondition 4 citing it as a load-bearing cap-sourcing authority (the same
+sentence F-P35-001 corrected); sibling BC-5.40.001 and BC-7.07.001 both already list it. Added
+`.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md`
+to BC-4.17.001's `inputs:` array.
+
+**Mandatory comprehensive ADR §Decision anchor audit (mandatory, in-scope, newly-revealed
+dimension):** architect independently audited ADR-046 for the same dimension — ADR-046's only
+cross-ADR anchor (ADR-025 §Decision 12 §12.2, byte-comparison semantics) verified correct against
+ADR-025's actual text — **CLEAN, no edit, ADR-046 stays v1.16 UNCHANGED.** Product-owner audited
+BC-7.07.001 for the same dimension — CLEAN, no mis-anchor found, no edit. Product-owner's audit
+confirms only the 3 F-P35-001 loci (across all 3 companion BCs) were mis-anchored on this dimension
+— no other ADR-025/ADR-046 `§Decision`/`§N.M` citation anywhere in the frozen set is wrong.
+
+BC-4.17.001 v1.15→**v1.16**. BC-5.40.001 v1.14→**v1.15**. ADR-046/BC-7.07.001 UNCHANGED at
+v1.16/v1.33 (both audited, confirmed clean, no edit).
+
+**Novelty assessment (recorded, see lessons.md):** every prior comprehensive cross-anchor audit on
+this gate (D-1088's cross-anchor semantic audit, D-1090/D-1091's grep-complete inputs audits)
+checked BC-to-BC `§Section`/`PCn`/`Invariant-N` references and `inputs:`-array completeness, but
+none independently re-derived "which ADR-025 `§Decision N` actually established this cap" from
+ADR-025's own section content — they verified the BC's PARAPHRASE of the cited decision's content
+was accurate (and correctly found that clean), never that the decision NUMBER itself was correct.
+This pass is the first to extend anchor-correctness discipline to ADR §Decision/`§N.M` citations
+themselves, structurally distinct from the BC-to-BC `§Section` citation class every prior
+comprehensive audit (F-P31-002 class) already covers. **CODIFIED this burst** (see lessons.md,
+tagged `[codified][process-gap]`): comprehensive cross-anchor audits MUST validate BOTH `BC→BC
+§Section` anchors AND `ADR §Decision`/`§N.M` anchors against the cited target's actual content —
+the two are structurally distinct citation classes and a clean result on one does not imply the
+other is clean.
+
+**Meta-observation (recorded, see lessons.md, NOT a fix, decision-relevant for the human's
+continue-vs-accept-provisional choice):** the gate reached 1/3 at pass-34 (the first literal-CLEAN
+result in this gate's 34-pass history) and then RESET at pass-35 on a previously-unaudited lens.
+This is empirical confirmation — not merely a hypothesis — of the asymptotic-floor reality already
+recorded at D-1091: a fresh-context adversary pass can reveal a genuinely new dimension the prior
+codified disciplines did not cover, even immediately following a literal zero-finding CLEAN result.
+The substance stayed clean throughout — both findings this pass are the same cap-migration-lineage
+citation cluster defect, not a behavioral or write-composition regression.
+
+**Index reconciliation (state-manager, this burst):**
+
+- **BC-INDEX v5.04→v5.05:** BC-4.17.001 row version-chain cell +v1.16; BC-5.40.001 row
+  version-chain cell +v1.15.
+- ARCH-INDEX v3.86 UNCHANGED — ADR-046 not touched this pass. STORY-INDEX v4.391 UNCHANGED. VP-INDEX
+  v2.79 UNCHANGED.
+
+**Input-hash recompute (state-manager, this burst, literal shell):** BC-4.17.001 `5012d14`→`a88dde0`;
+BC-5.40.001 `da34eb2`→`2da1abb`. Cyclic-hash TD `[D-1082]` UNCHANGED/settled — neither BC's `inputs:`
+array gained a new edge into the existing 4-artifact tangle (BC-4.17.001 gained ADR-025, which is
+outside the tangle's participant set); NOT reopened, NOT chased further.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-34" as the current/NEXT pass, to
+streak value `1/3`, or to the superseded `ADR-025 §Decision 12 §12.5` citation string — matches
+confined to PRESERVED HISTORICAL rows (D-1082..D-1091 entries correctly describing their own
+contemporaneous pass numbers/streak values/citations at the time) and this same burst's own new
+content. No propagation gap found.
+
+**STATE.md vNext:** streak 1/3→**0/3** (RESETS, explicitly recorded); Current Artifact Versions
+BC-4.17.001 v1.15→v1.16, BC-5.40.001 v1.14→v1.15, ADR-046/BC-7.07.001 UNCHANGED v1.16/v1.33;
+BC-INDEX version cell v5.04→v5.05; Blocking Issues ADR-046-gate row updated (streak RESET 0/3,
+pass-35 2 findings found+fixed, fresh pass-36 NEXT); new Drift Item recording the codified
+ADR-anchor audit dimension plus the asymptotic-floor meta-observation; Session Resume Checkpoint
+refreshed (§2 streak 0/3 RESET, fresh pass-36 NEXT against the newly-frozen set, human decision to
+CONTINUE looping recorded; §3 versions updated; §7 resume command updated); Phase Progress +
+Current Phase Steps rows added for D-1092 (Current Phase Steps table trimmed to keep only the last
+5 — D-1087 row archived off, already fully preserved in decision-log.md/burst-log.md). Trajectory
+tail unchanged (Wave-7 not touched this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-35 COMPLETE. **VERDICT: FINDINGS (2: 1 HIGH + 1 MED), 0 LOW
+observations.** BC-5.39.001 3-CLEAN streak **RESETS 1/3 → 0/3.** Both findings FIXED same-burst by
+product-owner: F-P35-001 (HIGH) 3-locus ADR-025 §Decision 12-vs-14 mis-anchor corrected;
+F-P35-002 (MED) BC-4.17.001 `inputs:` completed with ADR-025. Newly-revealed audit dimension
+(ADR §Decision anchor correctness) CODIFIED this burst as a mandatory comprehensive-audit
+discipline, alongside the three prior convergence-technique disciplines. Architect independently
+confirmed ADR-046 itself clean on this dimension (no edit). Meta-observation recorded: the
+pass-34-to-pass-35 clean-then-reset sequence empirically confirms the asymptotic-floor reality —
+decision-relevant for the human's continue-vs-accept-provisional choice. Fresh pass-36 is the
+documented NEXT action against the newly-frozen set; needs 3 consecutive clean passes for literal
+3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-35.md, VERDICT: FINDINGS (2)), product-owner
+(BC-4.17.001 v1.16: F-P35-001 locus 1 + F-P35-002 fixed; BC-5.40.001 v1.15: F-P35-001 loci 2+3
+fixed; BC-7.07.001 audited, confirmed clean, no edit), architect (ADR-046 audited for the new
+ADR-anchor dimension, confirmed clean, no edit — ADR-046 stays v1.16), state-manager
+(adv-adr-046-pass-35.md persist + BC-INDEX v5.05 + input-hash recompute + decision-log D-1092 +
+lessons codification + burst-log + STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.04 | v5.05 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.86 | v3.86 (UNCHANGED) |
+
+### Phase
+
+D-1092-ADR046-PASS35-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-26
+
+---

@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-20T00:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "d02cafe"
+input-hash: "e5c8b08"
 traces_to: STATE.md
 ---
 
@@ -2664,3 +2664,190 @@ Convergence-confirmation lesson CODIFIED (empirical confirmation of the three pr
 (ADR-046 v1.16 + BC-4.17.001 v1.15 + BC-5.40.001 v1.14 + BC-7.07.001 v1.33); needs 2 further
 consecutive clean passes (35, 36) for literal 3-CLEAN convergence. S-17.05 TDD implementation
 remains gated on convergence.
+
+## D-1092-ADR046-PASS35-SPEC-CONVERGENCE-REMEDIATION
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1092 < D-9000 ceiling
+```
+
+(Gate run AFTER D-1092 was appended to decision-log.md this burst, confirming D-1092 is the correct
+next allocation — max cited is D-1092 itself.) **Parent-commit:** the D-1091 pass-34 burst commit
+(factory-artifacts HEAD at burst start; actual parent SHA captured at Block 8 commit time below).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` spec-convergence pass-35 dispatched against the pass-34 CLEAN
+frozen set (ADR-046 v1.16 + BC-4.17.001 v1.15 + BC-7.07.001 v1.33 + BC-5.40.001 v1.14). **Verdict:
+FINDINGS (2: 1 HIGH + 1 MED), 0 LOW observations.** A NEWLY-REVEALED audit dimension no prior pass
+on this gate had covered — ADR §Decision/section-anchor correctness, distinct from the BC-to-BC
+`§Section` cross-reference class every prior comprehensive audit already checks. **BC-5.39.001
+3-CLEAN streak RESETS 1/3 → 0/3** (a finding after the pass-34 clean pass resets the counter).
+F-P35-001 (HIGH, POLICY 4): 3 loci across BC-4.17.001 §Precondition 4 + BC-5.40.001 §Precondition 6
++ BC-5.40.001 §Architecture Anchors mis-cited `ADR-025 §Decision 12 §12.5` (states no byte-cap
+value) for the 256 KiB `STATE_MD_MAX_BYTES` cap; the actual source is `§Decision 14`. F-P35-002
+(MED, POLICY 18): BC-4.17.001 `inputs:` omitted ADR-025 despite citing it as load-bearing. Both
+FIXED same-burst by product-owner. Architect independently audited ADR-046 for the same dimension —
+CLEAN, no edit (ADR-046's sole cross-ADR anchor, ADR-025 §Decision 12 §12.2, verified correct).
+Product-owner audited BC-7.07.001 — CLEAN, no edit. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-adr-046-pass-35.md`.
+
+**Block 3: Files touched**
+
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md` — v1.15→v1.16 (product-owner,
+  pre-burst; F-P35-001 locus 1 `ADR-025 §Decision 12 §12.5`→`§Decision 14`; F-P35-002 `inputs:`
+  completed with ADR-025); input-hash `5012d14`→`a88dde0` (state-manager, this burst)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md` — v1.14→v1.15 (product-owner,
+  pre-burst; F-P35-001 loci 2+3 `ADR-025 §Decision 12 §12.5`→`§Decision 14` at Precondition 6 +
+  Architecture Anchors); input-hash `da34eb2`→`2da1abb` (state-manager, this burst)
+- `.factory/specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md`
+  — **UNCHANGED** at v1.16 (architect audited for the new ADR-anchor dimension, confirmed clean,
+  no edit)
+- `.factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md` — **UNCHANGED** at v1.33 (audited,
+  confirmed clean, no edit)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — BC-4.17.001 row version-chain cell +v1.16;
+  BC-5.40.001 row version-chain cell +v1.15; version v5.04→v5.05
+- `.factory/specs/architecture/ARCH-INDEX.md` — **UNCHANGED** at v3.86 (ADR-046 not touched)
+- `.factory/cycles/v1.0-brownfield-backfill/adv-adr-046-pass-35.md` — new (pass-35 FINDINGS record)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1092 appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 2 new entries appended
+  (`[codified][process-gap]` ADR-anchor-audit-dimension codification; `[process-observation]`
+  asymptotic-floor meta-observation)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (streak 1/3→0/3 RESET, Current Artifact Versions, BC-INDEX
+  version cell, Blocking Issues, 2 new Drift Items, Session Resume Checkpoint, version bump)
+
+**Block 4: Codifications**
+
+Two new lesson entries codified in `lessons.md`: (1) `[codified][process-gap]` — comprehensive
+cross-anchor audits on this gate had only ever validated `BC→BC §Section` citations, never
+`ADR §Decision`/`§N.M` citations against the cited ADR's own section content; CODIFIED as a MANDATORY
+discipline that both citation classes must be validated, not one assumed to cover the other — the
+FOURTH distinct convergence-technique discipline this gate's history has produced, alongside the
+version-stable-directive (D-1085), 4-leg parity (D-1089), and grep-complete inputs audit (D-1090).
+(2) `[process-observation]` — the gate reached its first literal-CLEAN result at pass-34 (streak
+1/3) and RESET at pass-35 on this newly-revealed dimension: empirical confirmation of the
+asymptotic-floor reality recorded at D-1091, decision-relevant for the human's
+continue-vs-accept-provisional choice, not itself a fix or a codification.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+Input-hash recompute (literal shell, D-449(a)):
+
+```
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md --update
+a88dde0
+compute-input-hash: updated /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md input-hash → a88dde0
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md --update
+2da1abb
+compute-input-hash: updated /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md input-hash → 2da1abb
+```
+
+Cyclic-hash TD `[D-1082]` UNCHANGED/settled — neither BC's `inputs:` array gained a new edge into
+the existing 4-artifact tangle (BC-4.17.001 gained ADR-025, outside the tangle's participant set);
+NOT reopened, NOT chased further.
+
+BC-INDEX version/row verification gate (literal shell):
+
+```
+$ grep -n '^version:' specs/behavioral-contracts/BC-INDEX.md | head -1
+4:version: "5.05"
+$ grep -c "input-hash 5012d14→a88dde0" specs/behavioral-contracts/BC-INDEX.md
+1
+$ grep -c "input-hash da34eb2→2da1abb" specs/behavioral-contracts/BC-INDEX.md
+1
+```
+
+Frontmatter verification gate (literal shell):
+
+```
+$ grep -n '^version:\|^status:\|^input-hash:' specs/behavioral-contracts/ss-04/BC-4.17.001.md
+4:version: "1.16"
+5:status: draft
+23:input-hash: "a88dde0"
+$ grep -n '^version:\|^status:\|^input-hash:' specs/behavioral-contracts/ss-05/BC-5.40.001.md
+4:version: "1.15"
+5:status: active
+25:input-hash: "2da1abb"
+```
+
+D-448(a) source-attestation parity gate (decision-log D-1092 finding-ID set vs
+adv-adr-046-pass-35.md Part A finding-ID set):
+
+```
+$ grep -oE "F-P35-[0-9]{3}" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-35.md | sort -u
+F-P35-001
+F-P35-002
+$ sed -n '/^## D-1092/,/^---$/p' cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE "F-P35-[0-9]{3}" | sort -u
+F-P35-001
+F-P35-002
+```
+
+Sets match exactly — decision-log D-1092's finding-ID set is a faithful description of
+adv-adr-046-pass-35.md Part A.
+
+Streak-reset verification gate (literal shell):
+
+```
+$ grep -c "1/3 → \*\*RESETS to 0/3\*\*" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-35.md
+1
+$ grep -c "1/3 → RESETS to 0/3" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-35.md
+1
+```
+
+**Block 6 (Dim-5): Closes**
+
+- **`F-P35-001`** (HIGH, 3-locus ADR-025 §Decision 12-vs-14 mis-anchor) — **FIXED**: BC-4.17.001
+  v1.16 (locus 1), BC-5.40.001 v1.15 (loci 2+3).
+- **`F-P35-002`** (MED, `inputs:` completeness) — **FIXED**: BC-4.17.001 v1.16, ADR-025 added.
+- **`BC-5.39.001 3-CLEAN streak`** — **RESETS 1/3 → 0/3.** NOT a closure — fresh pass-36 is the
+  documented NEXT action; needs 3 consecutive clean passes.
+- **ADR-§Decision-anchor-audit-dimension codification** — CLOSED via `[codified][process-gap]`
+  lesson entry; FOURTH distinct convergence-technique discipline this gate has produced.
+- **Asymptotic-floor meta-observation** — CLOSED via `[process-observation]` lesson entry
+  (recorded for human decision-relevance, not a fix).
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1092-ADR046-PASS35-SPEC-CONVERGENCE-REMEDIATION` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation
+gate: literal-shell diff captured in Block 5 — finding-ID sets match exactly between decision-log
+D-1092 and adv-adr-046-pass-35.md Part A (both `{F-P35-001, F-P35-002}`). D-449(a)
+literal-shell-execution SELF-APPLICATION: POLICY 16 gate, input-hash recompute (×2), BC-INDEX
+version/row verification, frontmatter verification (×2), D-448(a) source-attestation check, and the
+streak-reset verification gate all use actual shell with verbatim stdout captured (Block 5) — no
+pseudocode, no estimated counts, no trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (pass-35) — content-bearing, 2 findings (1 HIGH + 1 MED)
+  fixed, 0 LOW observations.
+- Streak: **RESETS 1/3 → 0/3.** Fresh pass-36 is NEXT.
+- 4-INDEX: ARCH v3.86 (UNCHANGED) / BC v5.04→v5.05 / VP v2.79 (UNCHANGED) / STORY v4.391
+  (UNCHANGED).
+- policies.yaml UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` — unaffected by this burst. Wave-7 substantive state UNCHANGED — this burst is
+  orthogonal to the Wave-7 cascade (trajectory-tail unchanged, →1→1→0→1, LENGTH=4).
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed
+  via plain push (no force required — fast-forward from parent).
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `d78831c3` (the D-1091
+  pass-34 burst commit) — actual commit SHA this burst produces captured at push time.
+
+**Closes:** Pass-35 FINDINGS verdict persisted (`adv-adr-046-pass-35.md`); F-P35-001 (HIGH) 3-locus
+ADR-025 §Decision 12-vs-14 mis-anchor FIXED; F-P35-002 (MED) BC-4.17.001 `inputs:` completeness
+FIXED. 0 LOW observations. BC-5.39.001 streak **RESETS 1/3 → 0/3.** Newly-revealed ADR §Decision
+anchor audit dimension CODIFIED as the FOURTH convergence-technique discipline; asymptotic-floor
+meta-observation recorded. **NEXT ACTION:** dispatch fresh-context adversary pass-36 against the
+newly-frozen set (ADR-046 v1.16 + BC-4.17.001 v1.16 + BC-5.40.001 v1.15 + BC-7.07.001 v1.33); needs
+3 consecutive clean passes (36, 37, 38) for literal 3-CLEAN convergence, applying all four
+convergence-technique disciplines proactively. S-17.05 TDD implementation remains gated on
+convergence.
