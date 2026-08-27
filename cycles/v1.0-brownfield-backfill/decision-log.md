@@ -3284,3 +3284,135 @@ D-1089-ADR046-PASS32-SPEC-CONVERGENCE-REMEDIATION
 2026-08-26
 
 ---
+
+## D-1090
+
+**D-1090-ADR046-PASS33-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1089 (this cycle's decision-log.md). D-1090 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 33 dispatched against the frozen set
+(ADR-046 v1.15 + BC-4.17.001 v1.15 + BC-7.07.001 v1.33 + BC-5.40.001 v1.14). **VERDICT: FINDINGS
+(1 MED), 0 HIGH, 0 LOW observations.** BC-5.39.001 3-CLEAN streak REMAINS 0/3 (already reset at
+pass-25; a finding does not reset an already-0/3 streak further). Adversary explicitly stated:
+absent this one item the set would be CLEAN — all other dimensions confirmed clean. Fixed by
+architect. Full record: `adv-adr-046-pass-33.md`.
+
+**F-P33-001 (MED, POLICY 18, `inputs:` completeness) — FIXED.** ADR-046's own `inputs:`
+frontmatter array omitted `crates/hook-sdk/src/result.rs`, cited by exact path in §Context's
+central PostToolUse-vs-PreToolUse feasibility claim ("`HookResult` ... is `Continue | Block
+{ reason } | Error { message }` — there is no modified-input path"), the load-bearing fact this
+ADR's whole Decision rests on. Architect added `crates/hook-sdk/src/result.rs` to `inputs:`, in the
+same crate-path form already used for the ADR's other `crates/hook-sdk` citation.
+
+**Mandatory GREP-COMPLETE audit (architect, this burst):** per explicit task direction that passes
+28/30/31 had each still shed exactly one straggler despite believing themselves complete, a
+MECHANICAL `grep -noE` sweep (not a read-through) was run across every file-path-shaped token class
+in the document body. This found exactly one further genuine, non-padding omission of the same
+parity-gap character: `.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md` — cited ~20 times
+through the document (Decision 2/F-005, Decision 5's reconciliation table, Companion Amendment 1's
+"mirror verbatim into BC-4.17.001," a dedicated File-Change Plan row, and a specific current-state
+negative-space claim) yet never added even when its three sibling downstream BCs were already
+present. Added, same path form. A full enumerated audit table (every distinct file/artifact this
+ADR cites as a current-state claim, with disposition) is recorded in the ADR's own v1.16 Changelog
+entry.
+
+The same sweep's mandatory bracket-balance verification of ADR-046's own `last_amended` field
+additionally surfaced a **latent pre-existing defect**, mechanically discovered rather than
+adversary-flagged: the v1.14 `[Prior:` nesting bracket opened at the start of that entry was never
+closed across the v1.13→v1.15 lineage — invisible without a stack-based bracket count. Closed by
+adding one additional trailing `]` (a stack-based parse of the corrected field now confirms zero
+unmatched opens and zero unmatched closes).
+
+ADR-046 v1.15→**v1.16**. BC-4.17.001/BC-5.40.001/BC-7.07.001 UNCHANGED at v1.15/v1.14/v1.33 (all
+three audited, confirmed clean, no edit).
+
+**Novelty assessment (recorded, see lessons.md):** the substantive behavioral spec for this ADR/BC
+cluster remains converged — seven passes running (27-33), the defect surface has been entirely
+`inputs:`-completeness/cross-reference/frontmatter-hygiene integrity, never logic or spec-vs-code
+contradiction. This pass's finding IS an `inputs:`-completeness item (the same class passes
+28/30/31 each addressed), but this is the first time the GREP-COMPLETE mechanical audit method —
+as opposed to a read-through — was applied to this specific check, and it is what finally drained
+it, catching the flagged item plus 2 further audit-extras in the same sweep.
+
+**CODIFICATION — inputs-completeness audits MUST be GREP-COMPLETE, not human read-throughs:**
+passes 28, 30, and 31 each ran an "inputs-completeness audit" that its own authoring agent believed
+was complete, yet each still shed exactly one straggler discovered only on the NEXT pass (pass-28's
+sweep missed 2 files pass-30 caught; pass-30's sweep missed the S-17.05/`policies.yaml` items
+pass-31... — pattern: prose-narrative "I read the whole document and found every citation" audits
+are not exhaustive). CODIFIED this burst: an inputs-completeness audit is only valid if it is
+GREP-COMPLETE — mechanical file-path-token enumeration via `grep -noE` across pattern classes
+(`crates/[...]\.rs`, `plugins/[...]\.(sh|toml)`, `.factory/[...]\.(md|yaml)`, bare basenames,
+backtick-quoted path literals, `(BC|ADR|VP|DI)-[...]` identifiers), with the resulting per-path
+disposition recorded in an auditable table (as done in ADR-046's own v1.16 Changelog entry) — not
+a human read-through, however careful. This joins the version-stable-directive (O-P28-002, D-1085)
+and 4-leg-parity (D-1089) codifications as the THIRD distinct convergence-technique discipline this
+gate's history has produced. Codified in `lessons.md` tagged `[codified][process-gap]`.
+
+**Index reconciliation (state-manager, this burst):**
+
+- **ARCH-INDEX v3.85→v3.86:** ADR-046 row bumped v1.15→v1.16; pass-31/32 (ADR-unchanged) + pass-33
+  summaries appended.
+- BC-INDEX v5.04 UNCHANGED — no BC touched this pass. STORY-INDEX v4.391 UNCHANGED. VP-INDEX v2.79
+  UNCHANGED.
+
+**Input-hash recompute (state-manager, this burst, literal shell):** ADR-046 `b18f058`→`16255a0`.
+Adding `BC-4.17.001.md` to ADR-046's own `inputs:` extends the `[D-1082]` 4-artifact cyclic-hash
+tangle with a new mutual edge (BC-4.17.001 already cited ADR-046 in its own `inputs:`; ADR-046 now
+also cites BC-4.17.001) — settled, cross-referenced against `[D-1082]`, NOT reopened, NOT chased
+further (BC-4.17.001's own stored input-hash `5012d14` is unaffected — its `inputs:` array itself
+did not change this burst).
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md for the superseded version string `ADR-046.*v1\.15\b` (anchored to the artifact-ID
+context to avoid bare-number false positives) — matches confined to PRESERVED HISTORICAL dated
+changelog/`last_amended` rows (correctly immutable, not a propagation gap) and the STATE.md loci
+updated in this same burst. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3→0/3 (REMAINS 0/3, explicitly recorded as no-further-reset); Current
+Artifact Versions ADR-046 v1.15→v1.16, BC-4.17.001/BC-5.40.001/BC-7.07.001 UNCHANGED; ARCH-INDEX
+version cell v3.85→v3.86; Blocking Issues ADR-046-gate row updated (streak 0/3, pass-33 1 MED
+finding found+fixed, fresh pass-34 NEXT); new Drift Item recording the codified grep-complete-audit
+discipline; Session Resume Checkpoint refreshed (§2 streak 0/3 REMAINS, fresh pass-34 NEXT, human
+decision to CONTINUE looping recorded; §3 ADR-046 v1.16/BC-4.17.001 v1.15/BC-5.40.001 v1.14/
+BC-7.07.001 v1.33; §7 resume command); Phase Progress + Current Phase Steps rows added for D-1090
+(Current Phase Steps table trimmed to keep only the last 5 — D-1085 row archived off, already
+fully preserved in decision-log.md/burst-log.md). Trajectory tail unchanged (Wave-7 not touched
+this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-33 COMPLETE. 1 MED finding (F-P33-001, `inputs:`
+completeness) plus 2 audit-extra stragglers (BC-4.17.001.md `inputs:` gap, ADR-046 bracket-balance
+defect) found and fixed same-burst by architect via a MANDATORY GREP-COMPLETE mechanical audit,
+newly CODIFIED this burst as the standing discipline for all future inputs-completeness audits;
+0 HIGH, 0 LOW observations. Adversary confirms: absent this one item the set would be CLEAN — all
+other dimensions explicitly confirmed clean. No spec-vs-code contradictions. Streak REMAINS 0/3
+(no further reset — was already 0/3 entering this pass). Fresh pass-34 is the documented NEXT
+action; needs 3 consecutive clean passes for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-33.md), architect (ADR-046 v1.16: F-P33-001
+`inputs:` completed with `result.rs` + `BC-4.17.001.md`; latent bracket-balance defect fixed;
+BC-4.17.001/BC-5.40.001/BC-7.07.001 audited, confirmed clean, no edit), state-manager
+(adv-adr-046-pass-33.md persist + ARCH-INDEX v3.86 + input-hash recompute + decision-log D-1090 +
+lessons codification + burst-log + STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.04 | v5.04 (UNCHANGED) |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.85 | v3.86 |
+
+### Phase
+
+D-1090-ADR046-PASS33-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-26
+
+---
