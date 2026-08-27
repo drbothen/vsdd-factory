@@ -8675,4 +8675,4 @@ Dim-7 attestation:
 **Block 8: factory-artifacts commit**
 
 Parent SHA: `16652bb5` (D-1123 burst).
-This burst commit SHA: TBD — filled by SHA-patch after push (D-449(e) convention).
+This burst commit SHA: `1ded5745` — state(D-1124): ADR-046 3-CLEAN CONVERGED-VALIDATED + perimeter audit PERIMETER-GAPS + wave-decomposition decision [pushed 2026-08-27]

@@ -108,7 +108,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **6993138b** | rc.24 sync-develop back-merge (merge commit, ancestry preserved). CI-GREEN. |
-| factory-artifacts | **`TBD-D1124`** | D-1124-ADR046-3CLEAN-CONVERGED-PERIMETER-AUDIT-WAVE-DECOMPOSITION-DECISION. ACTIVE. ADR-046 gate CONVERGED-VALIDATED; perimeter audit PERIMETER-GAPS (story-level); human wave-decomposition S-17.05/06/07. S-17.05 TDD NOT READY — decomposition cascade NEXT. ADR-045 v1.3 ratification burst still OWED; E-23 STALE. |
+| factory-artifacts | **`1ded5745`** | D-1124-ADR046-3CLEAN-CONVERGED-PERIMETER-AUDIT-WAVE-DECOMPOSITION-DECISION. ACTIVE. ADR-046 gate CONVERGED-VALIDATED; perimeter audit PERIMETER-GAPS (story-level); human wave-decomposition S-17.05/06/07. S-17.05 TDD NOT READY — decomposition cascade NEXT. ADR-045 v1.3 ratification burst still OWED; E-23 STALE. |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
 | fix/policy15-empty-range-inert | a6a15e1d | MERGED PR #779 2026-08-16. |
@@ -271,7 +271,7 @@ commit f323b5e2 2026-08-27; fix executes when S-17.05 enters TDD, after decompos
 
 - `main`: `89f6f87c` — rc.24 bundle commit, tagged v1.0.0-rc.24.
 - `develop`: `6993138b` — rc.24 sync-develop back-merge, CI-GREEN.
-- `factory-artifacts`: `TBD-D1124` — D-1124 burst (2026-08-27). SHA patched post-push.
+- `factory-artifacts`: `1ded5745` — D-1124 burst (2026-08-27). SHA patched post-push.
 
 ### Resume Command
 
