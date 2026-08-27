@@ -6466,3 +6466,113 @@ D-1116-ADR046-PASS59-SPEC-CONVERGENCE-REMEDIATION
 2026-08-27
 
 ---
+
+## D-1117
+
+**D-1117-ADR046-PASS60-SPEC-CONVERGENCE-CLEAN**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1116 (this cycle's decision-log.md). D-1117 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 60 dispatched against the pass-59-corrected
+frozen set (ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39; streak
+entered at 0/3, at floor from pass-58/59 FINDINGS). **VERDICT: CLEAN — zero blocking findings at
+any severity.** Full record: `adv-adr-046-pass-60.md`.
+
+This pass was a **substantive** clean: the adversary read all four frozen-set artifacts in full and
+independently verified every behavioral claim against actual code at
+`crates/factory-lock-parse/src/lib.rs` (`parse_factory_lock`, `extract_frontmatter`,
+`extract_yaml_string_value`), `crates/factory-lock/src/lib.rs` (`renew_lock_with_now`,
+`has_factory_lock_key`), `crates/hook-plugins/verify-factory-lock/src/lib.rs` (`is_expired`,
+`parse_iso8601`), `crates/hook-plugins/precompact-flush/src/lib.rs` (Step-4 `renew_lock`), and
+`plugins/vsdd-factory/bin/factory-lock-write.sh` (TTL literal `2700`). **All eight code claims
+MATCH.**
+
+**BC-5.39.001 3-CLEAN streak ADVANCES 0/3 → 1/3** — the first clean pass against the
+pass-59-corrected frozen set (itself the first clean pass since the pass-58 reset at the eighth
+reset of this session).
+
+**Two non-blocking observations considered and adjudicated NON-DEFECT, tracked:**
+
+- **O-P60-001 (LOW, robustness note):** `extract_frontmatter` (BC-4.17.001 PC4/Invariant 7)
+  detects only the closing `\n---\n` delimiter and assumes byte 0 is the opening delimiter. A
+  pathological input lacking an opening `---\n` but containing a stray `\n---\n` could be
+  mis-identified as having a "located fence." Adjudicated NON-DEFECT: PC2's `parse_factory_lock`
+  independently enforces the opening-delimiter requirement upstream, making the pathological input
+  unreachable for real STATE.md content. ACCEPTED-tracked; anchored to the S-17.05 implementer to
+  either add an explicit opening-fence validation inside `extract_frontmatter` or document the
+  heuristic in the function's doc-comment. Non-blocking.
+- **O-P60-002 (NON-DEFECT, adjudicated):** BC-5.40.001 §Traceability cites `trim_git_email`
+  (ADR-046 Decision 2/F-004) in its cross-reference column. One could read this as an implicit
+  §Decision 2 participation not enumerated in the ADR-Decision coverage row. Adjudicated NON-DEFECT:
+  `trim_git_email` appears as a functional-dependency cross-reference, not a migration-participant
+  relationship; BC-5.40.001 was never a TARGET or SOURCE of the §Decision 2 identity-mechanism
+  changes. The §Traceability enumeration is complete. No action.
+
+**This is a CLEAN pass, NOT a fix burst.** No spec artifact was edited this burst — the frozen set
+is UNCHANGED at ADR-046 v1.23 / BC-4.17.001 v1.26 / BC-5.40.001 v1.21 / BC-7.07.001 v1.39. No
+version bump, no input-hash recompute, no 4-INDEX version-cell change.
+
+**Novelty assessment:** LOW. All seventeen codified convergence-technique disciplines re-verified
+holding, zero regression. O-P60-001 applies a new robustness lens (opening-fence assumption in
+`extract_frontmatter`), analogous to O-P57-001's cross-BC EC-coverage-symmetry lens; not a new
+discipline. See adv-adr-046-pass-60.md §Novelty Assessment for the full seventeen-discipline list.
+
+**Index reconciliation (state-manager, this burst):** none required — BC-INDEX v5.18, STORY-INDEX
+v4.392, VP-INDEX v2.79, ARCH-INDEX v3.93 all UNCHANGED (no artifact touched this pass, per the
+CLEAN-pass discipline: do NOT bump versions or recompute input-hashes when nothing was edited).
+
+**Input-hash recompute:** NOT PERFORMED — no artifact content changed this burst; the stored
+input-hashes (ADR-046 `3335ad4`, BC-4.17.001 `6b0b35c`, BC-5.40.001 `6a9cc08`, BC-7.07.001
+`e73bc01`) remain valid and unchanged. Cyclic-hash TD `[D-1082]` UNCHANGED, NOT re-opened.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-59" as the current/NEXT pass or to a
+streak value other than the correct post-advance `1/3` — matches confined to PRESERVED HISTORICAL
+rows (D-1057..D-1116 entries correctly describing their own contemporaneous pass numbers/streak
+values) and this burst's own new content. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3→**1/3** (ADVANCES, first clean pass against the pass-59-corrected
+set); pipeline PAUSED→ACTIVE; version 9.06→9.07; Current Artifact Versions UNCHANGED; Blocking
+Issues ADR-046-gate row updated (streak 1/3, pass-60 CLEAN, fresh pass-61 NEXT against the SAME
+unchanged frozen set); Blocking Issues rc.24 marketplace PR #19 row CLOSED (PR merged 2026-08-27);
+Drift Items gains O-P60-001 (robustness note, accepted non-blocking) alongside O-P42-001,
+O-P53-DESC-NOOP, O-P57-001, O-P58-001/O-P58-002 (all UNCHANGED-status, tracked); Session Resume
+Checkpoint refreshed (§2 streak 1/3, fresh pass-61 NEXT against the unchanged frozen set, history
+appends 60C; §3 versions UNCHANGED; §7 resume command updated; §8 accepted-tracked items adds
+O-P60-001/O-P60-002); Phase Progress + Current Phase Steps rows added for D-1117 (Current Phase
+Steps table trimmed to keep only the last 5). Trajectory tail unchanged (Wave-7 not touched this
+burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-60 COMPLETE. **VERDICT: CLEAN — zero blocking findings.**
+This is the first clean pass against the pass-59-corrected set. Two adversary-adjudicated
+non-blocking observations (O-P60-001/O-P60-002) both NON-DEFECT, ACCEPTED-tracked, not fixed.
+**BC-5.39.001 3-CLEAN streak ADVANCES 0/3 → 1/3.** No spec artifact edited; no version bump; no
+input-hash recompute; no 4-INDEX change. Fresh pass-61 is the documented NEXT action against the
+SAME unchanged frozen set; needs 2 more consecutive clean passes (61, 62) for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-60.md, VERDICT: CLEAN), state-manager
+(adv-adr-046-pass-60.md persist + decision-log D-1117 + lessons codification + Drift Items entry
+for O-P60-001 + burst-log + STATE.md streak advance; no other specialist dispatched — no artifact
+required a fix)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.18 | v5.18 (UNCHANGED) |
+| STORY-INDEX | v4.392 | v4.392 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.93 | v3.93 (UNCHANGED) |
+
+### Phase
+
+D-1117-ADR046-PASS60-SPEC-CONVERGENCE-CLEAN
+
+### Date
+
+2026-08-27
+
+---
