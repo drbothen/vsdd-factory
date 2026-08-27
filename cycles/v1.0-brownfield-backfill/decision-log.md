@@ -3737,3 +3737,141 @@ D-1093-ADR046-PASS36-SPEC-CONVERGENCE-CLEAN
 2026-08-26
 
 ---
+
+## D-1094
+
+**D-1094-ADR046-PASS37-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1093 (this cycle's decision-log.md). D-1094 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 37 dispatched against the SAME unchanged
+frozen set (ADR-046 v1.16 + BC-4.17.001 v1.16 + BC-5.40.001 v1.15 + BC-7.07.001 v1.33). **VERDICT:
+FINDINGS (1 MED), 0 HIGH, 1 LOW observation.** **BC-5.39.001 3-CLEAN streak RESETS 1/3 → 0/3** — the
+SECOND reset of the session (first at pass-35 on a genuinely new audit dimension; this one on a
+bookkeeping error inside that dimension's own remediation narrative). Fixed by product-owner. Full
+record: `adv-adr-046-pass-37.md`.
+
+**F-P37-001 (MED, POLICY 4, semantic-anchoring-integrity) — FIXED.** BC-4.17.001 v1.16's and
+BC-5.40.001 v1.15's own `modified:`/`last_amended`/Changelog amendment prose (the pass-35
+remediation's OWN audit-narrative text describing its mandatory ADR §Decision anchor audit, 3 loci
+each) falsely asserted ADR-046 has "a flat `## Decision` list, 1–5, ... read in full, all correct."
+ADR-046's `## Decision` section is actually a flat numbered list of **6** items — item 6 (same-
+release ship + CI-gating registry-invariant XOR check,
+`has_entry(verify-state-timestamp-refresh) XOR has_entry(stamp-state-timestamp)`) was silently
+omitted from both BCs' self-attested "read in full" count. This is a citation-COUNT defect confined
+to the remediation's own bookkeeping narrative — every actual `ADR-046 Decision N` citation in both
+BCs' live body text (Decision 1/1(a)/1(b), 2, 4, 5) remains correctly numbered and independently
+re-verified unaffected. Corrected the decision-count assertion from "1–5" to "1–6" across all 6
+loci (3 in BC-4.17.001 v1.16→v1.17, 3 in BC-5.40.001 v1.15→v1.16), naming item 6 explicitly, with
+MINIMAL factual disposition prose — no new completeness certification substituted in its place.
+
+**O-P37-001 ([process-gap], LOW) — recorded, not a fix.** Self-attested "read in full, all correct"
+audit-narrative claims have no mechanical backing — nothing greps the cited artifact's actual
+section-list cardinality against the prose's own count assertion at write-time. See lessons.md for
+the mitigation this triggers.
+
+**Latent defect additionally drained (proactive, PO-surfaced, not a fresh finding):** BC-5.40.001's
+own `last_amended` field carried a pre-existing nested-history bracket-count defect (16 `[Prior:`
+opens vs. 13 closing `]`s), predating this pass and unrelated to F-P37-001; corrected to 16/16
+balanced in the same v1.16 bump. Cosmetic only — no parse-tooling reads `last_amended` as anything
+but an opaque string.
+
+BC-4.17.001 v1.16→**v1.17**. BC-5.40.001 v1.15→**v1.16**. ADR-046/BC-7.07.001 UNCHANGED at
+v1.16/v1.33 (neither carries the defective narrative — not touched).
+
+**Novelty assessment (recorded, see lessons.md):** NOT a newly-revealed dimension the way pass-35
+was (pass-35 discovered ADR §Decision anchor-correctness as an entirely unaudited citation CLASS).
+Pass-37's finding is a factual miscount inside a narrative description of a fully-covered,
+already-codified dimension (the ADR §Decision anchor audit itself, D-1092) — the audit discipline
+is sound; this particular instance of applying it (at pass-35) mis-stated its own cardinality.
+**CODIFIED this burst** (see lessons.md, tagged `[codified][process-gap]`): fix-burst disposition
+prose that makes a sweeping self-attested completeness claim ("read in full, all correct") is
+itself falsifiable attack surface for a fresh-context adversary; the MITIGATION now in force is
+that fix-burst disposition prose must be MINIMAL and factual, and self-attested audits need
+mechanical (greppable) backing rather than a bare completeness assertion.
+
+**Meta-observation (recorded, see lessons.md, NOT a fix, decision-relevant for the human's
+continue-vs-accept-provisional choice):** the gate has now reached 1/3 twice (pass-34, pass-36) and
+RESET twice (pass-35 on the ADR-anchor dimension, pass-37 on the remediation-prose bookkeeping of
+that same dimension) — the SECOND reset came from the remediation's OWN bookkeeping rather than
+from a fresh spec-vs-code defect, empirically strengthening the "prose-only codification → literal
+3-CLEAN structurally fragile" reality already recorded at D-1091/D-1092 (cf. F5-cycle
+L-EDP1-007/051/061). The human RE-AFFIRMED "CONTINUE looping toward literal 3-CLEAN" at this
+decision point — accept-provisional under D-386 Option C was offered and declined again, the second
+such reaffirmation this session.
+
+**Index reconciliation (state-manager, this burst):**
+
+- **BC-INDEX v5.05→v5.06:** BC-4.17.001 row version-chain cell +v1.17; BC-5.40.001 row
+  version-chain cell +v1.16.
+- ARCH-INDEX v3.86 UNCHANGED — ADR-046 not touched this pass. STORY-INDEX v4.391 UNCHANGED. VP-INDEX
+  v2.79 UNCHANGED.
+
+**Input-hash recompute (state-manager, this burst, literal shell):** BC-4.17.001
+`a88dde0`→`a663cb5`→`4970575` — settled after a second recompute made necessary by BC-5.40.001's own
+same-burst `modified:`/`last_amended` prose change, since BC-4.17.001 cites BC-5.40.001.md.
+BC-5.40.001 `2da1abb`→`4e4f7a0` — computed after BC-4.17.001's first-round change; a one-hop
+residual drift now exists between BC-5.40.001's stored hash and a fresh recompute against
+BC-4.17.001's FINAL value, exactly the same cyclic-hash TD [D-1082] tangle behavior recorded at
+D-1085/D-1088/D-1090 — NOT chased further (chasing it would ping-pong indefinitely; the tangle
+itself is the accepted, cross-referenced TD).
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-36" as the current/NEXT pass, to
+streak value `1/3`, or to the superseded "1–5" ADR-046 decision-count assertion — matches confined
+to PRESERVED HISTORICAL rows (D-1082..D-1093 entries correctly describing their own contemporaneous
+pass numbers/streak values/citations at the time) and this same burst's own new content. No
+propagation gap found.
+
+**STATE.md vNext:** streak 1/3→**0/3** (RESETS, explicitly recorded, 2nd reset this session);
+Current Artifact Versions BC-4.17.001 v1.16→v1.17, BC-5.40.001 v1.15→v1.16, ADR-046/BC-7.07.001
+UNCHANGED v1.16/v1.33; BC-INDEX version cell v5.05→v5.06; Blocking Issues ADR-046-gate row updated
+(streak RESET 0/3, pass-37 1 finding found+fixed, fresh pass-38 NEXT); new Drift Item recording the
+minimal-prose + mechanical-audit-backing codification; Session Resume Checkpoint refreshed (§2
+streak 0/3 RESET, fresh pass-38 NEXT against the newly-frozen set, records the 34→35reset→36→37reset
+streak history, human decision to CONTINUE looping recorded again; §3 versions updated; §7 resume
+command updated); Phase Progress + Current Phase Steps rows added for D-1094 (Current Phase Steps
+table trimmed to keep only the last 5 — D-1089 row archived off, already fully preserved in
+decision-log.md/burst-log.md). Trajectory tail unchanged (Wave-7 not touched this burst — →1→1→0→1,
+LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-37 COMPLETE. **VERDICT: FINDINGS (1 MED), 0 HIGH, 1 LOW
+observation.** BC-5.39.001 3-CLEAN streak **RESETS 1/3 → 0/3** (2nd reset this session). F-P37-001
+(MED) FIXED same-burst by product-owner: ADR-046 decision-count 1–5→1–6 corrected across both BCs'
+own v1.15/v1.16 amendment narratives (6 loci total). O-P37-001 ([process-gap], LOW) recorded — no
+mechanical backing for self-attested audit completeness claims. Latent bracket-balance defect
+(16/13→16/16) additionally drained on BC-5.40.001. CODIFIED this burst: fix-burst disposition prose
+must be MINIMAL and factual — no sweeping self-attested completeness certifications. Meta-observation
+recorded: the gate has now reached 1/3 twice and RESET twice, the second reset from the
+remediation's own bookkeeping rather than a fresh spec-vs-code defect — empirical strengthening of
+the asymptotic-floor reality. Human RE-AFFIRMED CONTINUE looping toward literal 3-CLEAN (declined
+accept-provisional again). Fresh pass-38 is the documented NEXT action against the newly-frozen set;
+needs 3 consecutive clean passes for literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-37.md, VERDICT: FINDINGS (1 MED), 1 LOW
+observation), product-owner (BC-4.17.001 v1.17: F-P37-001 fixed; BC-5.40.001 v1.16: F-P37-001 mirror
+fixed + latent bracket-balance drain; ADR-046/BC-7.07.001 not touched, do not carry the defective
+narrative), state-manager (adv-adr-046-pass-37.md persist + BC-INDEX v5.06 + input-hash recompute +
+decision-log D-1094 + lessons codification (2 entries) + burst-log + STATE.md)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.05 | v5.06 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.86 | v3.86 (UNCHANGED) |
+
+### Phase
+
+D-1094-ADR046-PASS37-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-26
+
+---
