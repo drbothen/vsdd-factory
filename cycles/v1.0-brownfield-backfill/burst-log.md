@@ -4360,3 +4360,173 @@ pass-27). **NEXT ACTION:** dispatch fresh-context adversary pass-44 against the 
 (ADR-046 v1.17 + BC-4.17.001 v1.20 + BC-5.40.001 v1.17 + BC-7.07.001 v1.34), starting a new streak
 toward literal 3-CLEAN, applying all eight now-codified convergence-technique disciplines
 proactively from the start. S-17.05 TDD implementation remains gated on convergence.
+
+## D-1101-ADR046-PASS44-SPEC-CONVERGENCE-OBSERVATION-FIX
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1101 < D-9000 ceiling
+```
+
+(Gate run AFTER D-1101 was appended to decision-log.md this burst, confirming D-1101 is the
+correct next allocation.) **Parent-commit:** the D-1100 pass-43 burst commit (factory-artifacts
+HEAD at burst start; actual parent SHA captured at Block 8 commit time below).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` spec-convergence pass-44 dispatched against the
+newly-frozen set produced by the pass-43 fix burst (ADR-046 v1.17 + BC-4.17.001 v1.20 +
+BC-5.40.001 v1.17 + BC-7.07.001 v1.34). **Verdict: NO BLOCKER/HIGH/MED findings — ONE
+non-blocking LOW observation (O-P44-001), FIXED this burst.** The adversary explicitly
+characterized the reviewed set as "substantively CONVERGED"; the behavioral core (write-
+composition, five-outcome table, identity-gating, event-sourcing) was independently
+re-verified CLEAN for the 18th consecutive pass (since pass-27). O-P44-001 (POLICY 4/5,
+illustrative-quote misattribution) — BC-5.40.001's v1.17 `last_amended` disposition prose
+illustrated its F-P43-001 `capabilities.md` `inputs:` fix with a parenthetical purporting to
+quote CAP-031's verbatim description, but the quoted text was in fact this BC's own
+Capability Anchor Justification prose, not CAP-031's actual description ("Enforce
+single-writer cross-session exclusivity on factory-artifacts state"). Sibling-parity check (in
+scope): BC-4.17.001 v1.20's and BC-7.07.001 v1.34's own analogous illustrative quotes were both
+independently re-verified against capabilities.md and confirmed CORRECT — the misattribution
+is confined to BC-5.40.001 alone. Persisted verbatim as
+`cycles/v1.0-brownfield-backfill/adv-adr-046-pass-44.md`.
+
+**THIS IS A FIX BURST (governance-elected, not required for the streak).** Only BC-5.40.001
+edited: v1.17→v1.18 (O-P44-001 fix, product-owner). Input-hash recomputed for BC-5.40.001
+only: `b711178`→`e5499da`. 4-INDEX: BC-INDEX v5.09→v5.10; ARCH-INDEX/STORY-INDEX/VP-INDEX
+UNCHANGED (only BC-5.40.001 touched this burst).
+
+**Block 3: Files touched**
+
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md` — **v1.17→v1.18** (O-P44-001 fix,
+  product-owner); input-hash `b711178`→`e5499da` (settled exactly — sole artifact edited this
+  burst, no cyclic-tangle re-entry since the other three cluster artifacts are unchanged)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — **v5.09→v5.10** (BC-5.40.001 row
+  version-chain cell +v1.18 appended)
+- `.factory/cycles/v1.0-brownfield-backfill/adv-adr-046-pass-44.md` — new (pass-44 record: NO
+  BLOCKING findings, 1 LOW observation fixed)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1101 appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 2 new lessons appended
+  (`[content-defect-discipline]` illustrative-quote-verbatim-accuracy + sibling-parity-check;
+  `[convergence-governance]` fix-vs-accept disposition rule)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (streak 0/3 STAYS, Current Artifact Versions BC-5.40.001
+  v1.18, Blocking Issues, Drift Items, Session Resume Checkpoint, version bump v8.89→v8.90)
+
+**Block 4: Codifications**
+
+Two new lessons codified in `lessons.md`: (1) `[content-defect-discipline]` — an illustrative
+"verbatim quote" attached to a fix's own disposition prose must cite the ACTUAL text of the
+cited source, not the fix's own paraphrase, checked via sibling-parity across every disposition
+narrative touched in the same burst — the ninth distinct convergence-technique discipline this
+gate has produced; (2) `[convergence-governance]` — fix-vs-accept disposition for a LOW
+non-blocking observation: FIX when the streak is already at 0/3 (zero cost) AND the item is a
+fresh, in-session, sibling-confirmed-correctable defect; reserve accept-and-track (the
+O-P42-001/D-1099 precedent) for genuinely pre-existing, out-of-perimeter, dated-historical
+items.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 allocator-ceiling gate: captured in Block 1 above (`PASS: global max D-1101 < D-9000
+ceiling`).
+
+D-448(a) source-attestation parity gate (decision-log D-1101 observation-ID set vs
+adv-adr-046-pass-44.md Part A observation-ID set — both MUST match exactly):
+
+```
+$ grep -oE "O-P44-[0-9]{3}" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-44.md | sort -u
+O-P44-001
+$ sed -n '/^## D-1101/,/^---$/p' cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE "O-P44-[0-9]{3}" | sort -u
+O-P44-001
+```
+
+Both commands produce the identical 1-element set `O-P44-001` — confirming decision-log D-1101's
+observation-set claim faithfully describes adv-adr-046-pass-44.md Part A. Sets match exactly.
+(No F-P44-NNN blocking findings exist this pass — zero BLOCKER/HIGH/MED, matching the "NO
+BLOCKER/HIGH/MED findings" verdict claim.)
+
+Streak-stays verification gate (literal shell):
+
+```
+$ grep -c "STAYS 0/3" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-44.md
+2
+```
+
+Input-hash final-state verification gate (literal shell, confirms BC-5.40.001's frontmatter
+carries the value this entry claims, and confirms the other three cluster artifacts carry NO
+diff this burst):
+
+```
+$ grep -h "^input-hash:" specs/behavioral-contracts/ss-05/BC-5.40.001.md
+input-hash: "e5499da"
+$ git -C .factory diff --stat -- specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md
+(no output — zero diff on all three)
+```
+
+**Block 6 (Dim-5): Closes**
+
+- **Pass-44 verdict** — persisted verbatim as `adv-adr-046-pass-44.md`; NO BLOCKER/HIGH/MED
+  findings; 1 LOW observation (O-P44-001) FIXED same-burst.
+- **`BC-5.39.001 3-CLEAN streak`** — **STAYS 0/3** (governance-fix pass, not a counted clean
+  pass, not a reset — the fix supersedes the exact set pass-44 reviewed). Fresh 3-clean count
+  begins at pass-45 against the corrected set.
+- **O-P44-001** — CLOSED via illustrative-quote correction on BC-5.40.001 (product-owner),
+  sibling-parity-confirmed on BC-4.17.001/BC-7.07.001 (no edit required there).
+- **BC-INDEX reconciliation** — CLOSED: v5.10, row-level and frontmatter-level.
+- **Input-hash recompute** — CLOSED for BC-5.40.001; other three artifacts confirmed
+  byte-unchanged (zero diff), so their stored input-hashes remain correctly UNCHANGED.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1101-ADR046-PASS44-SPEC-CONVERGENCE-OBSERVATION-FIX`
+present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a)
+source-attestation gate: literal-shell diff captured in Block 5 — decision-log D-1101 and
+adv-adr-046-pass-44.md Part A observation-ID sets confirmed matching exactly via literal grep
+with captured stdout. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate, the
+D-448(a) source-attestation check, the streak-stays verification gate, and the input-hash
+final-state verification gate (including the other-three-artifacts-unchanged diff check) all
+use actual shell with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts,
+no trusted-but-unverified claims. Per TD-FACTORY-HOOK-BYPASS-001 P0, all `.factory` content
+mutations this burst used the Edit/Write tools exclusively; the only Bash invocations were
+READ-ONLY (`git diff --stat`/`grep`/`sed -n ... | grep` preflight and gate checks, plus the
+`compute-input-hash` plugin-source binary invocation used strictly to COMPUTE and then
+`--update` BC-5.40.001's own frontmatter `input-hash` field — the sanctioned tool documented in
+CLAUDE.md's Tooling section for exactly this mechanical recompute operation, distinct from the
+forbidden Python/sed/echo content-bypass pattern TD-FACTORY-HOOK-BYPASS-001 P0 targets) — no
+`sed -i`/content-mutating shell command was run against `.factory` content directly.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (pass-44) — NO BLOCKER/HIGH/MED findings; 1 LOW
+  observation (O-P44-001), FIXED same-burst by governance election.
+- Streak: STAYS 0/3 (governance-fix pass; neither a reset nor a counted advance). Fresh pass-45
+  is NEXT, against the newly-corrected set (ADR-046 v1.17 + BC-4.17.001 v1.20 + BC-5.40.001
+  v1.18 + BC-7.07.001 v1.34).
+- 4-INDEX: BC v5.10 (bumped) / ARCH v3.87 (UNCHANGED) / VP v2.79 (UNCHANGED) / STORY v4.391
+  (UNCHANGED).
+- policies.yaml UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` — unaffected by this burst. Wave-7 substantive state UNCHANGED — this burst is
+  orthogonal to the Wave-7 cascade (trajectory-tail unchanged, →1→1→0→1, LENGTH=4).
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE,
+  pushed via plain push (no force required — fast-forward from parent, unless remote has
+  diverged).
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** the D-1100 pass-43
+  burst commit — actual commit SHA this burst produces captured at push time.
+
+**Closes:** Pass-44 verdict persisted (`adv-adr-046-pass-44.md`); NO BLOCKER/HIGH/MED findings;
+O-P44-001 fixed same-burst (BC-5.40.001 v1.17→v1.18). BC-INDEX v5.10. BC-5.39.001 streak
+**STAYS 0/3** — governance-elected fix at zero streak cost, fresh 3-clean count begins at
+pass-45. Behavioral core independently re-verified CLEAN for the 18th consecutive pass (since
+pass-27). **NEXT ACTION:** dispatch fresh-context adversary pass-45 against the newly-corrected
+set (ADR-046 v1.17 + BC-4.17.001 v1.20 + BC-5.40.001 v1.18 + BC-7.07.001 v1.34), starting a
+fresh 3-clean count toward literal 3-CLEAN, applying all nine now-codified
+convergence-technique disciplines proactively from the start. S-17.05 TDD implementation
+remains gated on convergence.

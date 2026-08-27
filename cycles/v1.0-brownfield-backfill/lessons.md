@@ -696,3 +696,85 @@ against the gate's validity.** Fresh pass-44 starts a new streak with one more d
 provably clean than pass-43 started with.
 `[process-observation; convergence-observation; substantive-reset; not-gaming; D-1100; adr-046-gate;
 fourth-reset; bc-inputs-perimeter-drained; convergence-progress]`
+
+---
+
+**[content-defect-discipline] An illustrative "verbatim quote" attached to a fix's own
+disposition prose must cite the ACTUAL text of the cited source, not the fix's own paraphrase or
+justification sentence — check sibling-parity across every disposition narrative touched in the
+same burst**
+
+At pass-44, O-P44-001 found that BC-5.40.001's v1.17 `last_amended` disposition (the entry
+recording pass-43's F-P43-001 `capabilities.md` `inputs:` fix) illustrated the newly-added
+citation with a parenthetical claiming to quote CAP-031's verbatim description — but the quoted
+text, `'this BC defines the authoritative lock state data structure...'`, was in fact this BC's
+own Capability Anchor Justification sentence (this BC's argument for why CAP-031 is its correct
+anchor), not any text appearing in `capabilities.md`'s CAP-031 entry itself. The underlying
+`inputs:` fix was correct throughout — `capabilities.md` genuinely is load-bearing and CAP-031
+genuinely is this BC's correct capability anchor — the defect is narrowly that the illustrative
+quote-snippet attached to the disposition prose cited the wrong source.
+
+What makes this catchable in-burst rather than only in hindsight: BC-4.17.001 v1.20 and
+BC-7.07.001 v1.34 received the IDENTICAL class of fix in the SAME pass-43 burst (each adding
+`capabilities.md` to `inputs:` with an illustrative quote of their own respective CAP's
+description/title), and BOTH siblings' equivalent illustrative quotes were verbatim-accurate
+against their cited capability's actual text. A sibling-parity check — comparing all three BCs'
+analogous disposition paragraphs for the same fix class, in the same burst — would have caught
+BC-5.40.001's misattribution immediately, since the correct pattern was directly available two
+files over.
+
+**Disposition:** When any fix's own disposition prose illustrates a claim with a "verbatim
+quote" of a cited source (a capability description, an ADR §Decision text, another BC's PC/
+Invariant text, etc.), the quote MUST be checked against the actual cited source's text, not
+assumed correct because the surrounding reasoning (which source to cite, why it applies) is
+sound. When the same fix class is applied to multiple sibling artifacts in the same burst, their
+analogous illustrative quotes must be cross-checked against EACH OTHER as well as against the
+source — a correct sibling pattern sitting two files away, unconsulted, is itself evidence the
+check was skipped. This is the ninth distinct convergence-technique discipline this gate has
+produced, and a specific sub-class of citation-accuracy discipline distinct from ADR §Decision
+anchor correctness (D-1092, which concerns *which section* is cited) — this concerns whether the
+*quoted text itself* is genuinely present in the cited section.
+`[content-defect-discipline; illustrative-quote-verbatim-accuracy; sibling-parity-check; D-1101;
+adr-046-gate; O-P44-001; ninth-discipline]`
+
+---
+
+**[convergence-governance] Fix-vs-accept disposition for a LOW non-blocking observation: FIX
+when the streak is at 0/3 (zero cost) AND the item is a fresh, in-session, sibling-confirmed-
+correctable defect; reserve accept-and-track for genuinely pre-existing, out-of-perimeter,
+dated-historical items**
+
+At D-1099 (pass-42), O-P42-001 (a pre-existing, pre-ADR-046 `modified:`-array documentary
+asymmetry in BC-5.40.001's oldest historical rows) was correctly ACCEPTED-and-tracked rather
+than fixed: the streak was at 2/3, fixing would have required editing one of the four frozen-set
+artifacts, breaking the byte-unchanged invariant the 2/3 streak depended on and forfeiting 2
+already-banked clean passes for a cosmetic item that predated this gate's entire history and
+carried zero operative risk. That was the correct call under BC-5.39.001's discipline.
+
+At D-1101 (pass-44), O-P44-001 presented superficially the same shape — a LOW, non-blocking
+observation on BC-5.40.001 found by a CLEAN-otherwise adversary pass — but the governance facts
+were materially different: (a) the streak was ALREADY at 0/3 entering this pass (pass-43's own
+FINDINGS verdict had already reset it), so editing the frozen set here costs ZERO additional
+streak — there was no banked-clean-passes value to protect; (b) O-P44-001 is a FRESH defect
+introduced in THIS SESSION'S OWN pass-43 remediation prose, not inherited pre-existing history
+predating the gate; and (c) the two sibling BCs' equivalent disposition prose, edited in the
+SAME pass-43 burst, got the analogous quote right — proving the correct pattern was known and
+simply unapplied to this one BC, not a genuinely ambiguous or hard-to-verify claim. Under
+CLAUDE.md's Canonical Principle Rule 4 (AI-built defects are the AI's responsibility to fix; the
+default action is to fix in scope, not defer), and given the fix cost nothing in streak terms,
+the correct call here was FIX, not accept-and-track.
+
+**Disposition:** When this gate (or any BC-5.39.001-governed convergence gate) finds a LOW
+non-blocking observation, the governance call is FIX (not accept-and-track) when ALL of: (i) the
+streak is already at 0/3 (so the fix costs no banked clean passes), AND (ii) the item is a
+fresh, in-session-introduced, correctable inaccuracy rather than pre-existing dated-historical
+content, AND (iii) — where applicable — a correct sibling pattern in the same burst demonstrates
+the fix is mechanical and low-risk, not a judgment call requiring a new design decision. Reserve
+accept-and-track (the O-P42-001/D-1099 pattern) for observations that are genuinely
+PRE-EXISTING, OUT-OF-PERIMETER (predating the current feature's own history), and whose fix
+would cost banked streak progress for no operative gain. This is a governance-DECISION lesson,
+not a mechanical validator — the state-manager applies this disposition rule at each future LOW
+observation, consulting the streak position and the item's provenance (fresh vs. inherited)
+before defaulting to either accept or fix.
+`[convergence-governance; fix-vs-accept; zero-streak-cost; fresh-vs-inherited; D-1101;
+adr-046-gate; O-P44-001; O-P42-001-contrast]`

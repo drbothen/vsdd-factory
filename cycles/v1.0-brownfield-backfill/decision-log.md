@@ -4563,3 +4563,126 @@ D-1100-ADR046-PASS43-SPEC-CONVERGENCE-REMEDIATION
 2026-08-27
 
 ---
+
+## D-1101
+
+**D-1101-ADR046-PASS44-SPEC-CONVERGENCE-OBSERVATION-FIX**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1100 (this cycle's decision-log.md). D-1101 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 44 dispatched against the newly-frozen set
+produced by the pass-43 fix burst (ADR-046 v1.17 + BC-4.17.001 v1.20 + BC-5.40.001 v1.17 +
+BC-7.07.001 v1.34). **VERDICT: NO BLOCKER/HIGH/MED findings; ONE non-blocking LOW observation
+(O-P44-001), FIXED this burst by governance choice (not required for streak).** The adversary
+explicitly characterized the reviewed set as "substantively CONVERGED" and stated the
+observation "does not reset a clean streak." The behavioral core was independently re-verified
+CLEAN for the 18th consecutive pass (since pass-27).
+
+**O-P44-001 (LOW, POLICY 4/5, illustrative-quote misattribution, fixed).** BC-5.40.001's v1.17
+`last_amended` disposition prose (the entry recording the pass-43 F-P43-001 `capabilities.md`
+`inputs:` fix) illustrated the newly-added citation with a parenthetical purporting to quote
+CAP-031's verbatim description text, but the quoted phrase — "this BC defines the authoritative
+lock state data structure..." — was in fact this BC's OWN Capability Anchor Justification
+prose, not any text appearing in capabilities.md's CAP-031 entry. Ground truth
+(`.factory/specs/domain-spec/capabilities.md` §CAP-031): the capability's actual verbatim
+description opens "Enforce single-writer cross-session exclusivity on factory-artifacts state."
+Sibling-parity check (in-scope, this pass): BC-4.17.001 v1.20's own analogous illustrative quote
+("TTL is 45 minutes with mid-burst renewal") and BC-7.07.001 v1.34's own analogous illustrative
+quote (CAP-032's title) were both independently re-verified against their cited CAP's actual
+text in capabilities.md and confirmed CORRECT — neither sibling required an edit; only
+BC-5.40.001 carried the misattribution. Fixed same-burst by product-owner: BC-5.40.001
+v1.17→v1.18; `capabilities.md` remains correctly listed in `inputs:` (that substance is
+unchanged — only the illustrative quote-snippet inside the dated historical prose is
+corrected). No PC/Invariant/EC renumbered (append-only numbering preserved — POLICY 1).
+
+**Fix-vs-accept governance call (in-scope, this pass — distinct from the O-P42-001 precedent at
+D-1099).** Unlike O-P42-001 (a pre-existing, pre-ADR-046, dated-historical `modified:` array
+asymmetry, correctly ACCEPTED-and-tracked at D-1099 because fixing it mid-2/3-streak would have
+broken the byte-unchanged invariant the 2/3 streak then depended on, forfeiting 2 already-banked
+clean passes for a pre-existing item unrelated to that burst), O-P44-001 is: (a) a FRESH
+misattribution introduced in OUR OWN pass-43 remediation prose this session (not inherited
+pre-existing history), (b) a defect the two sibling BCs' own equivalent prose got RIGHT,
+evidencing the correct pattern was known and simply not followed here, and (c) found while the
+streak was ALREADY at 0/3 (pass-43's FINDINGS reset had already spent the streak before this
+pass ran) — so fixing it costs ZERO additional streak, unlike a fix mid-2/3-streak which would
+cost 2 already-banked clean passes. Under CLAUDE.md's production-grade default (Canonical
+Principle Rule 4 — AI-built defects are the AI's responsibility to fix; the default action is to
+FIX in scope, not defer), the correct governance call here is FIX, not accept-and-track.
+
+**Streak effect: STAYS at 0/3 — does NOT advance to 1/3.** Editing BC-5.40.001 changes the
+frozen set pass-44 reviewed; per BC-5.39.001's literal-3-CLEAN discipline, a clean-pass
+streak-advance can only be claimed against a set that stays BYTE-UNCHANGED through the review.
+Because the fix supersedes the exact bytes pass-44 evaluated, pass-44's clean read does not
+carry forward into a continuing streak — it is recorded as a governance-fix pass, not a counted
+clean pass (it also does not count as a RESET — zero BLOCKING findings occurred). A FRESH
+3-clean count begins at pass-45, against the newly-corrected set (ADR-046 v1.17 + BC-4.17.001
+v1.20 + BC-5.40.001 v1.18 + BC-7.07.001 v1.34).
+
+**Index reconciliation (state-manager, this burst):** BC-INDEX v5.09→**v5.10** (BC-5.40.001 row
+version-chain cell +v1.18 appended). ARCH-INDEX v3.87, STORY-INDEX v4.391, and VP-INDEX v2.79
+UNCHANGED (only BC-5.40.001 touched this burst — no ADR/story/VP content changed).
+
+**Input-hash recompute:** BC-5.40.001 only (the sole artifact edited this burst): `b711178` →
+`e5499da`, confirmed via `compute-input-hash --check`/`--update` round-trip (exit 0 post-update).
+ADR-046/BC-4.17.001/BC-7.07.001 input-hashes UNCHANGED — this burst does not re-enter the
+[D-1082] 4-artifact cyclic tangle, since only one of the four cluster artifacts was edited this
+burst (no cross-citation shift propagates to the other three).
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, decision-log.md for
+any stale reference to "pass-43" as the current/NEXT pass or to a streak value other than the
+correct `0/3` — matches confined to PRESERVED HISTORICAL rows (D-1082..D-1100 entries correctly
+describing their own contemporaneous pass numbers/streak values) and this same burst's own new
+content. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3 UNCHANGED (governance-fix pass, not a counted clean pass, not a
+reset); Current Artifact Versions BC-5.40.001 v1.18 (ADR-046 v1.17/BC-4.17.001 v1.20/BC-7.07.001
+v1.34 unchanged); Blocking Issues ADR-046-gate row updated (streak 0/3, pass-44
+fix-and-stay-at-0/3, fresh pass-45 NEXT against the newly-corrected set); Drift Items: two new
+lessons recorded — (a) illustrative-quote verbatim-source-accuracy discipline (ninth
+convergence-technique discipline), checked via sibling-parity across all cluster disposition
+narratives, and (b) `[convergence-governance]` fix-vs-accept disposition rule for a fresh,
+in-session, sibling-confirmed-correctable LOW observation at 0/3 (distinct from the D-1099
+accept-and-track precedent for pre-existing out-of-perimeter items); O-P42-001 stays tracked,
+UNCHANGED, unaffected by this burst; Session Resume Checkpoint refreshed (§2 streak 0/3, fresh
+pass-45 NEXT against the newly-corrected set, notes full history
+34C→35R→36C→37R→38C→39R→40f→41C→42C→43R→44-obs-fixed, human decision to CONTINUE looping
+recorded again; §3 versions updated to BC-5.40.001 v1.18; §7 resume command updated); Phase
+Progress + Current Phase Steps rows added for D-1101 (Current Phase Steps table trimmed to keep
+only the last 5 — D-1097 row archived off, already fully preserved in
+decision-log.md/burst-log.md). Trajectory tail unchanged (Wave-7 not touched this burst —
+→1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-44 COMPLETE. **VERDICT: NO BLOCKING FINDINGS; 1 LOW
+observation (O-P44-001), FIXED (governance choice, zero streak cost at 0/3).** Behavioral core
+independently re-verified CLEAN for the 18th consecutive pass (since pass-27). BC-5.40.001
+v1.17→v1.18; BC-INDEX v5.09→v5.10; input-hash recomputed. **Streak STAYS 0/3** — the fix
+supersedes the exact set pass-44 reviewed, so a fresh 3-clean count begins at pass-45 against
+the newly-corrected set. Fresh pass-45 is the documented NEXT action.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-44.md, VERDICT: no blocking findings, 1
+LOW observation), product-owner (BC-5.40.001 v1.17→v1.18, O-P44-001 fix), state-manager
+(adv-adr-046-pass-44.md persist + decision-log D-1101 + lessons codification + burst-log +
+BC-INDEX reconciliation + input-hash recompute + STATE.md streak-stays update + Session Resume
+Checkpoint refresh)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.09 | v5.10 |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.87 | v3.87 (UNCHANGED) |
+
+### Phase
+
+D-1101-ADR046-PASS44-SPEC-CONVERGENCE-OBSERVATION-FIX
+
+### Date
+
+2026-08-27
+
+---
