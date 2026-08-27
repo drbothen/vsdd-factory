@@ -108,7 +108,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **6993138b** | rc.24 sync-develop back-merge (merge commit, ancestry preserved). CI-GREEN. |
-| factory-artifacts | **`[D-449(e)-SHA-patch-pending]`** | D-1123-ADR046-PASS65-SPEC-CONVERGENCE-3CLEAN-ACHIEVED. ACTIVE. pass-65 CLEAN; 14 spec-vs-code MATCH; LITERAL 3-CLEAN ACHIEVED (63/64/65); streak ADVANCES 2/3→3/3; closure PENDING consistency audit + human approval. Frozen set UNCHANGED. ADR-045 v1.3 accepted (ratification burst still OWED); E-23 STALE. |
+| factory-artifacts | **`16652bb5`** | D-1123-ADR046-PASS65-SPEC-CONVERGENCE-3CLEAN-ACHIEVED. ACTIVE. pass-65 CLEAN; 14 spec-vs-code MATCH; LITERAL 3-CLEAN ACHIEVED (63/64/65); streak ADVANCES 2/3→3/3; closure PENDING consistency audit + human approval. Frozen set UNCHANGED. ADR-045 v1.3 accepted (ratification burst still OWED); E-23 STALE. |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
 | fix/policy15-empty-range-inert | a6a15e1d | MERGED PR #779 2026-08-16. |
@@ -265,7 +265,7 @@ Passes 25→65 run (41 fresh-context adversary passes). **9 streak resets** occu
 
 - `main`: `89f6f87c` — rc.24 bundle commit, tagged v1.0.0-rc.24. Marketplace PR #19 MERGED — rc.24 delivered to operators.
 - `develop`: `6993138b` — rc.24 sync-develop back-merge, CI-GREEN.
-- `factory-artifacts`: `[D-449(e)-SHA-patch-pending]` — D-1123 pass-65 CLEAN burst (2026-08-27).
+- `factory-artifacts`: `16652bb5` — D-1123 pass-65 CLEAN burst (2026-08-27).
 
 ### Resume Command
 
