@@ -106,7 +106,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **6993138b** | rc.24 sync-develop back-merge (merge commit, ancestry preserved). CI-GREEN. |
-| factory-artifacts | **TBD (D-1121 SHA-patch pending)** | D-1121-ADR046-PASS63-SPEC-CONVERGENCE-CLEAN. ACTIVE. pass-63 CLEAN; 17 spec-vs-code MATCH; F-P62-001 RETIRED confirmed; streak ADVANCES 0/3→1/3. Frozen set UNCHANGED. ADR-045 v1.3 accepted (ratification burst still OWED); E-23 STALE. |
+| factory-artifacts | **`4c490c3b`** | D-1121-ADR046-PASS63-SPEC-CONVERGENCE-CLEAN. ACTIVE. pass-63 CLEAN; 17 spec-vs-code MATCH; F-P62-001 RETIRED confirmed; streak ADVANCES 0/3→1/3. Frozen set UNCHANGED. ADR-045 v1.3 accepted (ratification burst still OWED); E-23 STALE. |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
 | fix/policy15-empty-range-inert | a6a15e1d | MERGED PR #779 2026-08-16. |
@@ -272,7 +272,7 @@ Passes 25→63 run (39 fresh-context adversary passes). **9 streak resets** occu
 
 - `main`: `89f6f87c` — rc.24 bundle commit, tagged v1.0.0-rc.24. Marketplace PR #19 MERGED — rc.24 delivered to operators.
 - `develop`: `6993138b` — rc.24 sync-develop back-merge, CI-GREEN.
-- `factory-artifacts`: TBD (D-1121 pass-63 CLEAN burst; SHA-patch pending after commit).
+- `factory-artifacts`: `4c490c3b` — D-1121 pass-63 CLEAN burst (pushed 2026-08-27).
 
 ### Resume Command
 
