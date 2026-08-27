@@ -551,3 +551,49 @@ proactively without relaxing rigor on the theory that "the two most recent dimen
 safe" — one clean pass covering two previously-found dimensions is progress, not closure.
 `[convergence-progress; codified; sixth-and-seventh-dimensions-reconfirmed; fourth-clean-pass;
 D-1098; adr-046-gate; pending-pass-42-43-confirmation; not-yet-converged]`
+
+---
+
+**[convergence-governance] At 2/3, a pre-existing dated-historical cosmetic observation is accepted
+as documentary-historical-deferred rather than fixed, because touching the frozen set to fix a
+non-defect out of the feature perimeter would reset a live convergence streak — the correct
+governance call is accept-and-track, not fix-and-reset**
+
+At D-1099 (ADR-046 pass-42), fresh-context adversary review against the SAME unchanged frozen set
+(ADR-046 v1.16 + BC-4.17.001 v1.19 + BC-5.40.001 v1.16 + BC-7.07.001 v1.33) returned **VERDICT:
+CLEAN — zero BLOCKING findings**, the SECOND CONSECUTIVE clean pass (following pass-41), advancing
+the BC-5.39.001 streak 1/3 → 2/3. The pass also surfaced ONE non-blocking observation, O-P42-001: a
+pre-existing cosmetic asymmetry in BC-5.40.001's oldest `modified:` frontmatter array entries
+(v1.1–v1.4 bare version/date strings vs. v1.5–v1.16 full disposition prose) — a defect that predates
+ADR-046 entirely, breaks no head-parity check, and carries no operative risk.
+
+The disposition question this pass raised: should O-P42-001 be fixed in-scope (per the project's
+general production-grade default), or accepted as a tracked non-blocking item? The answer is
+accept-and-track, for a reason specific to this gate's mechanics: fixing O-P42-001 requires editing
+BC-5.40.001 — one of the four artifacts in the FROZEN set this streak's byte-unchanged invariant
+depends on. Editing ANY of the four frozen artifacts, for ANY reason, resets the convergence context
+this streak is measuring (the next pass would then be reviewing a DIFFERENT frozen set, and the
+2/3 progress toward literal 3-CLEAN would no longer be "3 consecutive clean passes against the same
+set" — it would be a new streak against a new set). The observation itself is out of the feature
+perimeter (a pre-existing dated-historical row, not something ADR-046 introduced or is responsible
+for) and non-blocking (no head-parity violation, no propagation gap, no operative risk). Under these
+specific conditions — pre-existing, out-of-perimeter, non-blocking, and fixing it would cost a live
+convergence streak for no correctness gain — the correct call is to accept it as a tracked item
+(recorded in STATE.md Drift Items, anchored to a concrete future touch-point: the next maintenance
+sweep or the S-15.03 PRIORITY-A historical-row backfill automation) rather than fix it now.
+
+**Disposition:** Recorded as `[convergence-governance]`, a NEW tag distinguishing this class of
+decision (a disposition call about WHETHER to fix something found mid-streak) from
+`[convergence-progress]` (evidence a discipline holds) and `[codified][process-gap]` (a new
+convergence-technique discipline). This is not a general license to defer fixable defects found
+during this gate's passes — the default remains fix-in-scope. The narrow condition that justifies
+deferral here is the CONJUNCTION of all four factors above (pre-existing, out-of-perimeter,
+non-blocking, and touching the frozen set would cost the streak) — any BLOCKING finding, or any
+observation that IS caused by or contemporaneous with ADR-046's own content, must still be fixed
+same-burst per this gate's established practice (F-P37-001 through F-P40-001 were all fixed
+same-burst, none deferred). The correct disposition for pass-43 is to continue applying all seven
+convergence-technique disciplines proactively, treating O-P42-001 as an already-accepted item (not
+re-litigating it as a fresh finding), and to fix in-scope any NEW blocking finding pass-43 might
+surface (which would reset the streak, as any genuine finding always has).
+`[convergence-governance; accept-and-track; documentary-historical-deferred; O-P42-001; streak-2of3;
+D-1099; adr-046-gate; frozen-set-preservation; out-of-perimeter]`

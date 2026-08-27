@@ -4319,3 +4319,111 @@ D-1098-ADR046-PASS41-SPEC-CONVERGENCE-CLEAN
 2026-08-27
 
 ---
+
+## D-1099
+
+**D-1099-ADR046-PASS42-SPEC-CONVERGENCE-CLEAN**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1098 (this cycle's decision-log.md). D-1099 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 42 dispatched against the SAME unchanged
+frozen set produced by the pass-40 fix burst and re-confirmed at pass-41 (ADR-046 v1.16 +
+BC-4.17.001 v1.19 + BC-5.40.001 v1.16 + BC-7.07.001 v1.33). **VERDICT: CLEAN — zero BLOCKING
+findings at any severity.** ONE non-blocking observation surfaced: **O-P42-001 (LOW,
+documentary-historical-deferred)** — BC-5.40.001's `modified:` frontmatter array entries for
+v1.4–v1.1 are bare version/date strings without disposition prose, whereas v1.5–v1.16 and the
+`## Changelog` table carry full prose. This is a PRE-EXISTING cosmetic asymmetry confined to the
+oldest, PRE-ADR-046 historical rows — it breaks no 4-leg head-parity check (D-1089 scopes that check
+to the array HEAD, not every entry), introduces no propagation gap, and is not caused by or
+contemporaneous with ADR-046 or any burst in this gate's history. Same class as the O-P28-001
+stale-type-in-history observation and the STORY-INDEX changelog-migration deferral. **ACCEPTED as a
+tracked non-blocking documentary-historical item** — see disposition below. Every other now-codified
+dimension (arm-parity sweep D-1096, locus-class extension D-1097, ADR §Decision/§N.M anchor
+correctness D-1092, self-attested cardinality/completeness-claim discipline D-1094, code claims,
+cross-anchors, 4-leg parity, brackets, cardinality, status/lifecycle pairs) was independently
+re-verified TRUE against source, the SECOND CONSECUTIVE pass to do so (following pass-41). **This is
+the FIFTH clean pass this gate has produced this session** (after pass-34, pass-36, pass-38, and
+pass-41), and the SECOND consecutive one, directly following pass-41's own re-confirmation of both
+the sixth and seventh convergence-technique disciplines together. **BC-5.39.001 3-CLEAN streak
+ADVANCES 1/3 → 2/3.** Full record: `adv-adr-046-pass-42.md`.
+
+**This is a CLEAN pass, NOT a fix burst.** No spec artifact was edited this burst — the frozen set is
+UNCHANGED at ADR-046 v1.16 / BC-4.17.001 v1.19 / BC-5.40.001 v1.16 / BC-7.07.001 v1.33. No version
+bump, no input-hash recompute, no 4-INDEX version-cell change. Fixing O-P42-001 would require editing
+BC-5.40.001 — one of the four frozen-set artifacts — which would break the byte-unchanged invariant
+this streak depends on, for a cosmetic asymmetry in dated historical rows predating ADR-046 entirely
+and carrying no operative risk. **The correct governance call at 2/3 is accept-and-track, not
+fix-and-reset** — touching the frozen set to fix a non-defect out of the feature perimeter would
+needlessly reset a live convergence streak. This burst's sole content is: persist the pass-42 record,
+formally accept O-P42-001 as documentary-historical-deferred, advance the streak counter, and
+re-codify that the sixth and seventh disciplines continue to hold under a SECOND consecutive
+independent fresh-context re-derivation.
+
+**Novelty assessment (recorded, see lessons.md):** pass-42 re-applied every now-codified
+convergence-technique discipline proactively from the start, including the two most-recently-codified
+dimensions. Zero blocking findings; one pre-existing non-blocking observation formally accepted.
+**CODIFIED this burst** (see lessons.md, tagged `[convergence-governance]`): at 2/3, a pre-existing
+dated-historical cosmetic observation is accepted as documentary-historical-deferred rather than
+fixed, because touching the frozen set to fix a non-defect out of the feature perimeter would reset a
+live convergence streak — the correct governance call is accept-and-track, not fix-and-reset.
+
+**Index reconciliation (state-manager, this burst):** none required — BC-INDEX v5.08, ARCH-INDEX
+v3.86, VP-INDEX v2.79, STORY-INDEX v4.391 all UNCHANGED (no artifact touched this pass, per the
+CLEAN-pass discipline: do NOT bump versions or recompute input-hashes when nothing was edited).
+
+**Input-hash recompute:** NOT PERFORMED — no artifact content changed this burst; the stored
+input-hashes (ADR-046 `16255a0`, BC-4.17.001 `4970575`, BC-5.40.001 `4e4f7a0`, BC-7.07.001 `eabeda0`)
+remain valid and unchanged. Cyclic-hash TD `[D-1082]` UNCHANGED, NOT re-opened, NOT chased further.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, ARCH-INDEX.md, STATE.md, STORY-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-41" as the current/NEXT pass or to a
+streak value other than the correct post-advance `2/3` — matches confined to PRESERVED HISTORICAL
+rows (D-1082..D-1098 entries correctly describing their own contemporaneous pass numbers/streak
+values) and this same burst's own new content. No propagation gap found.
+
+**STATE.md vNext:** streak 1/3→**2/3** (ADVANCES, 5th clean pass this session, 2nd CONSECUTIVE);
+Current Artifact Versions UNCHANGED (ADR-046 v1.16, BC-4.17.001 v1.19, BC-5.40.001 v1.16,
+BC-7.07.001 v1.33); Blocking Issues ADR-046-gate row updated (streak 2/3, pass-42 CLEAN with
+O-P42-001 accepted, fresh pass-43 NEXT — the convergence pass); Drift Items O-P42-001 row added
+(accepted non-blocking, documentary-historical, anchored next maintenance sweep / S-15.03
+PRIORITY-A); Session Resume Checkpoint refreshed (§2 streak 2/3, fresh pass-43 NEXT against the
+unchanged frozen set, notes full history 34C→35R→36C→37R→38C→39R→40f→41C→42C, human decision to
+CONTINUE looping recorded again; §3 versions UNCHANGED; §7 resume command updated); Phase Progress +
+Current Phase Steps rows added for D-1099 (Current Phase Steps table trimmed to keep only the last
+5 — D-1094 row archived off, already fully preserved in decision-log.md/burst-log.md). Trajectory
+tail unchanged (Wave-7 not touched this burst — →1→1→0→1, LENGTH=4 carries forward).
+
+Summary: ADR-046 spec-convergence pass-42 COMPLETE. **VERDICT: CLEAN — zero BLOCKING findings at any
+severity; ONE non-blocking observation (O-P42-001) formally ACCEPTED as documentary-historical-
+deferred.** This is the FIFTH clean pass this gate has produced this session, and the SECOND
+CONSECUTIVE one. BC-5.39.001 3-CLEAN streak ADVANCES 1/3 → **2/3**. No spec artifact edited; no
+version bump; no input-hash recompute; no 4-INDEX change. Fresh pass-43 is the documented NEXT
+action against the SAME unchanged frozen set — this is the CONVERGENCE pass: 1 more consecutive CLEAN
+result reaches literal 3-CLEAN.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-42.md, VERDICT: CLEAN, 1 non-blocking
+observation), state-manager (adv-adr-046-pass-42.md persist + decision-log D-1099 + lessons
+codification + burst-log + STATE.md streak advance + O-P42-001 Drift Item tracking; no other
+specialist dispatched — no artifact required a fix)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.08 | v5.08 (UNCHANGED) |
+| STORY-INDEX | v4.391 | v4.391 (UNCHANGED) |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.86 | v3.86 (UNCHANGED) |
+
+### Phase
+
+D-1099-ADR046-PASS42-SPEC-CONVERGENCE-CLEAN
+
+### Date
+
+2026-08-27
+
+---
