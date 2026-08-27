@@ -5310,3 +5310,137 @@ D-1106-ADR046-PASS49-SPEC-CONVERGENCE-REMEDIATION
 2026-08-27
 
 ---
+
+## D-1107
+
+**D-1107-ADR046-PASS50-SPEC-CONVERGENCE-REMEDIATION**
+
+Allocated as the next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1106 (this cycle's decision-log.md). D-1107 is allocated cleanly above the true max.
+
+ADR-046 fresh-context adversary spec-convergence pass 50 dispatched against the frozen set
+(ADR-046 v1.20 + BC-4.17.001 v1.23 + BC-5.40.001 v1.19 + BC-7.07.001 v1.36). **VERDICT: FINDINGS
+(2 MED), both fixed same-burst.** The behavioral core remains re-confirmed converged for the 24th
+consecutive pass (stable since pass-27) — both findings are confined to the traceability/
+catalog-membership and inputs-completeness perimeters, not the behavioral core.
+
+**F-P50-001 (MED, POLICY 4, false-'verified present' traceability defect).** BC-4.17.001's own
+§Story Anchor and ADR-046's own §File-Change Plan asserted S-17.05 — the ADR-046 implementing
+story — "verified present in STORY-INDEX.md" / "is its catalog entry." This was FALSE: STORY-INDEX's
+E-17 roster ended at S-17.04 (epic marked "COMPLETE"); S-17.05 existed as a drafted story FILE but
+was never REGISTERED as a catalog row. The false claim traces to the pass-25 F-P25-002
+remediation, which resolved the BC prose's `[pending]`→S-17.05 anchor but never performed the
+actual STORY-INDEX membership check the "verified present" wording asserts — the implementing
+story was orphaned from the catalog for ~48 passes because no prior audit type (inputs-
+completeness, AC-attribution) checks catalog-row EXISTENCE. **Fixed by state-manager**: S-17.05
+REGISTERED in STORY-INDEX (v4.391→v4.392) — E-17 roster reconciled (story_count 4→5, points
+26→34, waves 1-4→1-5; waves 1-4 remain MERGED/COMPLETE per issue #170, wave 5 draft/pending). This
+makes the BC-4.17.001/ADR-046 catalog-presence claim TRUE without editing either frozen-set spec —
+the defect was in the catalog, not the citing prose.
+
+**F-P50-002 (MED, POLICY 18, inputs:-completeness — extends the fourteenth discipline to
+exact-path story citations).** S-17.05 is cited by exact file path and content claims (§Story
+Anchor) in all three companion BCs' live bodies, but was absent from all three BCs' `inputs:`
+arrays. This is the CITATION→INPUT PARITY discipline (fourteenth, D-1106) applied to a citation
+TYPE its initial codification did not explicitly enumerate (exact-path STORY citations, as
+distinct from file/BC/ADR citations). **Fixed by product-owner**: S-17.05 added to `inputs:` in
+BC-4.17.001 (v1.23→v1.24), BC-5.40.001 (v1.19→v1.20), BC-7.07.001 (v1.36→v1.37). BC-5.40.001's own
+cross-check additionally found and fixed a sibling gap in the same sweep: S-17.01 (cited with
+content claims since PR #181/D-544, 2026-06-11) was ALSO missing from BC-5.40.001's `inputs:` —
+added same-burst. ADR-046 v1.20 **UNCHANGED** — it already listed S-17.05 in its own `inputs:`;
+only the three companion BCs carried this straggler.
+
+**BC-5.39.001 3-CLEAN streak STAYS 0/3** (already 0/3 from pass-46's reset — either MEDIUM finding
+alone is sufficient to keep it there). Full record: `adv-adr-046-pass-50.md`.
+
+**Index reconciliation (state-manager, this burst):** BC-INDEX v5.14→**v5.15** (BC-4.17.001/
+BC-5.40.001/BC-7.07.001 row version-chain cells appended — pass-50 fix notes; bracket-delta
+self-consistency re-verified, `[Prior:` count 277→278 matched by trailing-bracket run 36→37,
+tracked historical delta unchanged at 241). STORY-INDEX v4.391→**v4.392** (bumped by story-writer
+this burst — S-17.05 registration, F-P50-001 fix). ARCH-INDEX v3.90 and VP-INDEX v2.79 UNCHANGED
+(ADR-046 not edited this pass).
+
+**Input-hash recompute (cyclic-hash TD [D-1082] — settled, NOT reopened; 3 of 4 cluster artifacts
+edited this burst, ADR-046 UNCHANGED):** `compute-input-hash` run for the three edited BCs via the
+sanctioned `--check`/`--update` tool, in edit order BC-4.17.001→BC-5.40.001→BC-7.07.001
+(last-updated artifact settles against the other three's final content; the other two BCs plus
+the unedited ADR-046 each carry a 1-hop residual since a sibling changed after their own hash was
+last written — the same non-convergent ping-pong [D-1082] documents): **BC-7.07.001 input-hash
+`e2062c6`→`673078a` (SETTLED — `--check` exit 0, verified via literal shell)**. **BC-4.17.001
+input-hash `bf9748a`→`0edc756` (1-hop residual accepted)**. **BC-5.40.001 input-hash
+`7394d84`→`a21ce60` (1-hop residual accepted)**. **ADR-046 input-hash `a07142a` UNCHANGED-in-file
+but now stale relative to the 3 edited BCs (1-hop residual, not re-stamped — ADR-046's own body/
+frontmatter untouched this burst, per this burst's explicit instruction; cyclic-hash TD [D-1082]
+cross-referenced, NOT reopened)**.
+
+**STORY-INDEX stale-aggregate drift (accepted non-blocking, NOT fixed this burst):**
+story-writer's own F-P50-001 registration burst flagged that STORY-INDEX's headline "131 stories
+across 20 epics" text and its §Status Summary counts are PRE-EXISTING stale drift predating
+E-18/E-19/E-21 growth — out of F-P50-001's own perimeter (scoped to E-17's S-17.05 registration
+only). Recorded as a NEW tracked Drift Item this burst: anchor is the next maintenance sweep OR a
+full STORY-INDEX headline/Status-Summary reconciliation pass, whichever comes first.
+
+**Defensive sweep (S-7.02):** grepped BC-INDEX.md, STORY-INDEX.md, STATE.md, ARCH-INDEX.md,
+VP-INDEX.md, decision-log.md for any stale reference to "pass-49" as the current/NEXT pass or to a
+streak value other than the correct post-pass-50 `0/3` — matches confined to PRESERVED HISTORICAL
+rows (D-1057..D-1106 entries correctly describing their own contemporaneous pass numbers/streak
+values) and this same burst's own new content. No propagation gap found.
+
+**STATE.md vNext:** streak 0/3→**STAYS 0/3** (both findings keep it there); Current Artifact
+Versions BC-4.17.001 v1.24, BC-5.40.001 v1.20, BC-7.07.001 v1.37 (ADR-046 v1.20 UNCHANGED);
+STORY-INDEX v4.392; BC-INDEX v5.15; Blocking Issues ADR-046-gate row updated (streak 0/3, pass-50
+FINDINGS with 2 MED, both fixed, fresh pass-51 NEXT against the newly-frozen set); Drift Items:
+the mechanical-catalog-membership-check codification + the STORY-INDEX-stale-aggregate drift note
+recorded; O-P42-001 stays tracked, unaffected; Session Resume Checkpoint refreshed (§2 streak 0/3,
+fresh pass-51 NEXT against the newly-frozen set, history appends 50f:
+34C→35R→36C→37R→38C→39R→40f→41C→42C→43R→44obsfix→45C→46R→47f→48f→49f→50f; §3 versions updated to
+BC-4.17.001 v1.24 / BC-5.40.001 v1.20 / BC-7.07.001 v1.37 [ADR-046 v1.20 UNCHANGED]); Phase
+Progress + Current Phase Steps rows added for D-1107 (Current Phase Steps table trimmed to keep
+only the last 5 — D-1102 row archived off, already fully preserved in decision-log.md/
+burst-log.md). Trajectory tail unchanged (Wave-7 not touched this burst — →1→1→0→1, LENGTH=4
+carries forward).
+
+**CODIFICATION — two new lessons this burst (both are distinct disciplines, neither folds into
+the other):** (a) a "verified present in STORY-INDEX" / "is its catalog entry" claim in spec prose
+MUST be backed by a mechanical STORY-INDEX membership check, not asserted from a BC-prose-only
+Traceability fix; mandate: register implementing stories in STORY-INDEX at draft time, and any
+story-anchor "present-in-index" assertion requires the membership check. (b) CITATION→INPUT PARITY
+(fourteenth discipline, D-1106) is confirmed to extend to exact-path STORY citations, not merely
+file/BC/ADR citations — the same same-burst `inputs:` obligation applies.
+
+Summary: ADR-046 spec-convergence pass-50 COMPLETE. **VERDICT: FINDINGS (2 MED), both fixed
+same-burst.** F-P50-001 closed a ~48-pass-old false-'verified present in STORY-INDEX' traceability
+defect by registering S-17.05 in the catalog (state-manager). F-P50-002 extended the fourteenth
+discipline to exact-path story citations, closed by adding S-17.05 (+ S-17.01 sibling gap on
+BC-5.40.001) to all three companion BCs' `inputs:` (product-owner). BC-5.39.001 3-CLEAN streak
+**STAYS 0/3** (already at floor from pass-46's reset). BC-4.17.001 v1.24; BC-5.40.001 v1.20;
+BC-7.07.001 v1.37; ADR-046 v1.20 UNCHANGED; STORY-INDEX v4.392; BC-INDEX v5.15. Fresh pass-51 is
+the documented NEXT action, against the newly-frozen set.
+
+### Agents
+
+adversary (fresh-context — results in adv-adr-046-pass-50.md, VERDICT: FINDINGS, 2 MED),
+story-writer (STORY-INDEX v4.391→v4.392, F-P50-001 S-17.05 registration + E-17 reconcile),
+product-owner (BC-4.17.001 v1.23→v1.24, BC-5.40.001 v1.19→v1.20, BC-7.07.001 v1.36→v1.37, F-P50-002
++ S-17.01 cross-check sibling gap), state-manager (adv-adr-046-pass-50.md persist + decision-log
+D-1107 + 2 lessons codified + burst-log + BC-INDEX reconciliation + input-hash recompute (3
+artifacts) + STATE.md streak-stays refresh + Session Resume Checkpoint refresh)
+
+### 4-INDEX
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v5.14 | v5.15 |
+| STORY-INDEX | v4.391 | v4.392 |
+| VP-INDEX | v2.79 | v2.79 (UNCHANGED) |
+| ARCH-INDEX | v3.90 | v3.90 (UNCHANGED) |
+
+### Phase
+
+D-1107-ADR046-PASS50-SPEC-CONVERGENCE-REMEDIATION
+
+### Date
+
+2026-08-27
+
+---

@@ -1051,3 +1051,60 @@ the initiating finding named — directly applying the D-1104 eleventh-disciplin
 to this fourteenth discipline's own re-audit.
 `[codified; process-gap; citation-input-parity; cluster-wide-reaudit; D-1106; adr-046-gate;
 F-P49-001; fourteenth-discipline]`
+
+---
+
+**[codified][process-gap] "Verified present in STORY-INDEX" claims require a mechanical
+membership check, not a BC-prose-only Traceability fix**
+
+At pass-50 (F-P50-001), BC-4.17.001's own §Story Anchor and ADR-046's own §File-Change Plan both
+asserted that S-17.05 (the ADR-046 implementing story) was "verified present in STORY-INDEX.md" /
+"is its catalog entry." This claim was FALSE: STORY-INDEX's E-17 roster ended at S-17.04, marked
+"COMPLETE"; S-17.05 existed as a drafted story FILE (authored by story-writer earlier this
+session) but was never REGISTERED as a STORY-INDEX catalog row. The false "verified present"
+language traces to the pass-25 F-P25-002 remediation (2026-08-26), which resolved the
+Traceability `[pending]`→S-17.05 anchor in the BC's own prose but never performed — nor claimed to
+perform — the actual STORY-INDEX membership check the "verified present" wording asserts. The gap
+survived ~24 further passes (pass-26 through pass-49) because every intervening audit type
+(grep-complete `inputs:`-completeness, AC-attribution cross-reference) checks CITATION
+correctness, not INDEX-ROW EXISTENCE — a claim can cite a story by exact path, quote its content
+correctly, and still be lying about whether that story is catalogued anywhere.
+
+**Disposition:** any spec-prose assertion of the form "X is verified present in <INDEX>" or "X is
+<INDEX>'s catalog entry" is NOT self-certifying — it MUST be backed by an actual mechanical
+index-membership check (e.g. `grep -c "^| X |" <INDEX>.md`) performed at or before the time the
+assertion is written, not inferred from a sibling Traceability-row edit in a DIFFERENT artifact.
+Standing mandate: (i) any newly-drafted implementing story MUST be registered in STORY-INDEX at
+draft time, not deferred until its own PR; (ii) any BC/ADR/spec §Story Anchor or similar
+"present-in-index" assertion about a story, BC, VP, or ADR requires the citing agent (or the
+state-manager burst that reconciles it) to run the membership check and record that it was run,
+not merely assert the conclusion. This is distinct from CITATION→INPUT PARITY (fourteenth
+discipline, D-1106): that discipline governs whether a citation's SOURCE is listed in `inputs:`;
+this discipline governs whether an "present-in-<INDEX>" CLAIM about that source is actually true.
+`[codified][process-gap][catalog-membership-verification; D-1107; adr-046-gate; F-P50-001;
+fifteenth-discipline]`
+
+---
+
+**[codified][process-gap] CITATION→INPUT PARITY (fourteenth discipline) extends to exact-path
+STORY citations, not merely file/BC/ADR citations**
+
+At pass-50 (F-P50-002), all three ADR-046 companion BCs (BC-4.17.001, BC-5.40.001, BC-7.07.001)
+cited S-17.05 by exact file path and content claims (§Story Anchor: E-17 Wave 5, 8pts, `tdd_mode:
+strict`) in their live bodies, but S-17.05 was absent from all three BCs' `inputs:` arrays. This is
+a direct instance of the CITATION→INPUT PARITY discipline (fourteenth, D-1106) — a body edit that
+adds a verbatim or exact-path citation of a source MUST add that source to `inputs:` in the SAME
+burst — applied to a citation TYPE the discipline's initial codification did not explicitly
+enumerate: exact-path STORY citations, as distinct from the file/BC/ADR citations D-1106's own
+finding set covered. BC-5.40.001's own cross-check (product-owner, in-scope this pass) additionally
+found and fixed a sibling gap of the identical class: S-17.01, cited with content claims since
+PR #181/D-544 (2026-06-11), was ALSO missing from BC-5.40.001's `inputs:`.
+
+**Disposition:** the fourteenth discipline's perimeter is CONFIRMED to cover every citation TYPE
+that makes a load-bearing claim about a source's content — file paths, BC/ADR references, AND
+story IDs cited by exact path — not merely the file/BC/ADR subset D-1106's own finding happened to
+instantiate. Future grep-complete `inputs:` audits at this gate must explicitly include a
+story-ID-shaped token sweep (`S-[0-9]+\.[0-9]+`) alongside the existing file-path and BC/ADR-ID
+sweeps, not treat story citations as a separate, lower-priority class.
+`[codified][process-gap][citation-input-parity-extension; D-1107; adr-046-gate; F-P50-002;
+fourteenth-discipline-extension]`

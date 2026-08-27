@@ -5589,3 +5589,253 @@ BC-4.17.001 v1.23 + BC-5.40.001 v1.19 + BC-7.07.001 v1.36), starting a new strea
 3-CLEAN, applying all thirteen now-codified convergence-technique disciplines plus the new
 fourteenth (CITATION→INPUT PARITY) discipline proactively from the start. S-17.05 TDD
 implementation remains gated on convergence.
+
+## D-1107-ADR046-PASS50-SPEC-CONVERGENCE-REMEDIATION
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1107 < D-9000 ceiling
+```
+
+(Gate run AFTER D-1107 was appended to decision-log.md this burst, confirming D-1107 is the
+correct next allocation.) **Parent-commit:** the D-1106 pass-49 burst commit `7088c07c`
+(factory-artifacts HEAD at burst start; actual parent SHA re-confirmed at Block 8 commit time
+below).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` spec-convergence pass-50 dispatched against the frozen set
+(ADR-046 v1.20 + BC-4.17.001 v1.23 + BC-5.40.001 v1.19 + BC-7.07.001 v1.36). **Verdict: FINDINGS
+(2 MED), both fixed same-burst.** F-P50-001 (MED, POLICY 4, false-'verified present' traceability
+defect) — BC-4.17.001's own §Story Anchor and ADR-046's own §File-Change Plan asserted S-17.05
+was "verified present in STORY-INDEX.md" / "is its catalog entry," but STORY-INDEX's E-17 roster
+ended at S-17.04 ("COMPLETE") — S-17.05 was never a catalog row. Traces to the pass-25 F-P25-002
+remediation, which fixed the BC's own Traceability prose but never performed the actual
+STORY-INDEX membership check the wording asserts; survived ~24 further passes because no
+inputs/AC-attribution audit checks catalog-row EXISTENCE. Fixed same-burst by state-manager:
+S-17.05 REGISTERED in STORY-INDEX (v4.391→v4.392), E-17 reconciled (4→5 stories, 26→34 pts,
+waves 1-4→1-5). F-P50-002 (MED, POLICY 18, inputs:-completeness — extends the fourteenth
+discipline to exact-path story citations) — S-17.05 cited by exact path/content in all three
+companion BCs' §Story Anchor sections, absent from all three `inputs:` arrays. Fixed same-burst
+by product-owner: S-17.05 added to BC-4.17.001 (v1.23→v1.24), BC-5.40.001 (v1.19→v1.20),
+BC-7.07.001 (v1.36→v1.37); BC-5.40.001's own cross-check additionally found and fixed a sibling
+gap (S-17.01, missing since PR #181/D-544). ADR-046 v1.20 **UNCHANGED** — already listed S-17.05
+in `inputs:`. **The behavioral core remains independently re-verified CLEAN for the 24th
+consecutive pass (since pass-27)** — both findings are confined to the traceability/
+catalog-membership and inputs-completeness perimeters. **BC-5.39.001 3-CLEAN streak STAYS 0/3**
+(already 0/3 from pass-46's reset; either MEDIUM finding alone keeps it there). Persisted
+verbatim as `cycles/v1.0-brownfield-backfill/adv-adr-046-pass-50.md`.
+
+**THIS IS A FIX BURST.** Three of four frozen-set artifacts edited (ADR-046 UNCHANGED):
+BC-4.17.001 v1.23→v1.24 (F-P50-002, product-owner), BC-5.40.001 v1.19→v1.20 (F-P50-002 +
+S-17.01 cross-check sibling gap, product-owner), BC-7.07.001 v1.36→v1.37 (F-P50-002,
+product-owner). STORY-INDEX v4.391→v4.392 (F-P50-001, story-writer). Input-hash recomputed via
+`compute-input-hash --check`/`--update` (cyclic-hash TD [D-1082], 3 of 4 cluster artifacts edited
+same burst, edit order BC-4.17.001→BC-5.40.001→BC-7.07.001): BC-7.07.001 `e2062c6`→`673078a`
+(SETTLED — matches its own `--check` against the other artifacts' final content, exit 0),
+BC-4.17.001 `bf9748a`→`0edc756`, BC-5.40.001 `7394d84`→`a21ce60` (both 1-HOP RESIDUALS ACCEPTED),
+ADR-046 `a07142a` UNCHANGED-in-file but stale relative to the 3 edited BCs (1-hop residual, not
+re-stamped — file untouched this burst). 4-INDEX: BC-INDEX v5.14→v5.15; STORY-INDEX
+v4.391→v4.392; ARCH-INDEX v3.90 UNCHANGED; VP-INDEX v2.79 UNCHANGED.
+
+**Block 3: Files touched**
+
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md` — **v1.23→v1.24** (F-P50-002,
+  product-owner); input-hash `bf9748a`→`0edc756` (1-hop residual accepted)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md` — **v1.19→v1.20** (F-P50-002 +
+  S-17.01 cross-check sibling gap, product-owner); input-hash `7394d84`→`a21ce60` (1-hop
+  residual accepted)
+- `.factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md` — **v1.36→v1.37** (F-P50-002,
+  product-owner); input-hash `e2062c6`→`673078a` (SETTLED)
+- `.factory/stories/STORY-INDEX.md` — **v4.391→v4.392** (F-P50-001, S-17.05 registered + E-17
+  roster reconciled, story-writer)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — **v5.14→v5.15** (BC-4.17.001/BC-5.40.001/
+  BC-7.07.001 row version-chain cells appended; frontmatter `last_amended` prepended,
+  self-balanced bracket-delta verified unchanged relative to pre-existing D-1073-tracked drift,
+  241)
+- `.factory/cycles/v1.0-brownfield-backfill/adv-adr-046-pass-50.md` — new (pass-50 FINDINGS
+  record, 2 MED, both fixed)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1107 appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 2 new lessons appended
+  (`[codified][process-gap]` catalog-membership-verification, fifteenth discipline;
+  `[codified][process-gap]` CITATION→INPUT PARITY exact-path-story extension, fourteenth
+  discipline extension)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (streak 0/3 STAYS, Current Artifact Versions BC-4.17.001
+  v1.24/BC-5.40.001 v1.20/BC-7.07.001 v1.37 [ADR-046 v1.20 UNCHANGED], STORY-INDEX v4.392,
+  BC-INDEX v5.15, Blocking Issues, Drift Items, Session Resume Checkpoint, version bump
+  v8.95→v8.96)
+
+**Block 4: Codifications**
+
+Two new lessons codified in `lessons.md`: (a) `[codified][process-gap]` catalog-membership
+verification (fifteenth discipline) — a "verified present in <INDEX>" claim in spec prose MUST be
+backed by a mechanical index-membership check, not inferred from a sibling Traceability-row edit
+in a different artifact; mandate: register implementing stories in STORY-INDEX at draft time, and
+any "present-in-index" assertion requires the membership check to have actually been run. (b)
+`[codified][process-gap]` CITATION→INPUT PARITY (fourteenth discipline, D-1106) extension — the
+discipline's perimeter is confirmed to cover exact-path STORY citations, not merely file/BC/ADR
+citations; future grep-complete `inputs:` audits at this gate must explicitly sweep story-ID-shaped
+tokens (`S-[0-9]+\.[0-9]+`) alongside file-path and BC/ADR-ID sweeps.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 allocator-ceiling gate: captured in Block 1 above (`PASS: global max D-1107 <
+D-9000 ceiling`).
+
+D-448(a) source-attestation parity gate (decision-log D-1107 BLOCKING finding-ID set vs
+adv-adr-046-pass-50.md Part A BLOCKING finding-ID set — both MUST match exactly):
+
+```
+$ grep -oE "F-P50-[0-9]{3}" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-50.md | sort -u
+F-P50-001
+F-P50-002
+$ sed -n '/^## D-1107/,/^---$/p' cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE "F-P50-[0-9]{3}" | sort -u
+F-P50-001
+F-P50-002
+```
+
+Both commands produce the identical 2-element set `F-P50-001, F-P50-002` — confirming
+decision-log D-1107's finding-set claim faithfully describes adv-adr-046-pass-50.md Part A. Sets
+match exactly.
+
+Streak-stays verification gate (literal shell):
+
+```
+$ grep -c "STAYS 0/3" cycles/v1.0-brownfield-backfill/adv-adr-046-pass-50.md
+3
+```
+
+STORY-INDEX membership check (literal shell, F-P50-001's own mechanical-verification obligation
+applied to itself — confirming the fix actually landed):
+
+```
+$ grep -c "^| S-17.05 |" stories/STORY-INDEX.md
+1
+```
+
+Input-hash + version final-state verification gate (literal shell, confirms all four frontmatter
+fields carry the values this entry claims):
+
+```
+$ for f in specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-05/BC-5.40.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md; do echo -n "$f: "; grep "^input-hash:" "$f"; done
+specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md: input-hash: "a07142a"
+specs/behavioral-contracts/ss-04/BC-4.17.001.md: input-hash: "0edc756"
+specs/behavioral-contracts/ss-05/BC-5.40.001.md: input-hash: "a21ce60"
+specs/behavioral-contracts/ss-07/BC-7.07.001.md: input-hash: "673078a"
+$ for f in specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-05/BC-5.40.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md; do echo -n "$f: "; grep "^version:" "$f"; done
+specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md: version: "1.20"
+specs/behavioral-contracts/ss-04/BC-4.17.001.md: version: "1.24"
+specs/behavioral-contracts/ss-05/BC-5.40.001.md: version: "1.20"
+specs/behavioral-contracts/ss-07/BC-7.07.001.md: version: "1.37"
+```
+
+Bracket-delta self-consistency gate (literal shell, confirms this burst's BC-INDEX frontmatter
+edit did not regress the pre-existing D-1073-tracked historical bracket-nesting condition;
+STORY-INDEX included for completeness since story-writer touched it this burst):
+
+```
+$ python3 -c "
+import re
+for path in ['specs/behavioral-contracts/BC-INDEX.md', 'stories/STORY-INDEX.md']:
+    with open(path, encoding='utf-8') as f:
+        line = f.readlines()[7].rstrip('\n')
+    pc = line.count('[Prior:')
+    m = re.search(r'(\]+)\"\$', line)
+    tr = len(m.group(1)) if m else None
+    print(path, 'prior_count=', pc, 'trailing_run=', tr, 'delta=', pc - tr)
+"
+specs/behavioral-contracts/BC-INDEX.md prior_count= 278 trailing_run= 37 delta= 241
+stories/STORY-INDEX.md prior_count= 510 trailing_run= 76 delta= 434
+```
+
+BC-INDEX's `[Prior:` count and trailing bracket run each advanced by a matched +1/+1 delta
+(277→278 / 36→37), so the tracked delta itself remains 241, unchanged from the pre-edit baseline
+— confirming this burst's frontmatter edit is self-balanced and introduces zero new
+bracket-nesting regression. STORY-INDEX's own delta (434) is story-writer's pre-existing tracked
+value, unchanged by this state-manager burst (state-manager made no STORY-INDEX edits this
+burst — the file was already finalized by story-writer before this burst began); the
+pre-existing deltas remain the tracked, OPEN [D-1073] drift item (BC-INDEX only — STORY-INDEX is
+not itself D-1073-tracked), unchanged and NOT remediated by this burst (out of scope; anchored to
+the S-15.03 PRIORITY-A compaction burst).
+
+**Block 6 (Dim-5): Closes**
+
+- **Pass-50 FINDINGS verdict** — persisted verbatim as `adv-adr-046-pass-50.md`; 2 MED findings
+  (F-P50-001, F-P50-002), both fixed same-burst.
+- **`BC-5.39.001 3-CLEAN streak`** — **STAYS 0/3** (already at floor from pass-46's reset). A
+  new streak starts at pass-51 against the newly-frozen set.
+- **F-P50-001** — CLOSED via S-17.05 STORY-INDEX registration (state-manager), E-17 roster
+  reconciled.
+- **F-P50-002** — CLOSED via `inputs:` completion (S-17.05) on all 3 companion BCs
+  (product-owner); the triggered cross-check's 1 additional sibling gap (S-17.01 on
+  BC-5.40.001) also closed same-burst.
+- **4-INDEX reconciliation** — CLOSED: BC-INDEX v5.15 (row-level and frontmatter-level);
+  STORY-INDEX v4.392 (row-level and frontmatter-level, story-writer).
+- **Input-hash recompute** — CLOSED for the three edited BCs per the settled/1-hop-residual
+  convention (1 settled, 2 residuals accepted; ADR-046 carries a 3rd residual from being
+  unedited-but-stale); cyclic-hash TD [D-1082] cross-referenced, explicitly NOT reopened per
+  this burst's instruction.
+- **STORY-INDEX stale-aggregate drift** — NOT CLOSED this burst (explicitly out of scope);
+  recorded as a NEW tracked Drift Item, anchored next maintenance sweep OR full STORY-INDEX
+  reconciliation pass.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1107-ADR046-PASS50-SPEC-CONVERGENCE-REMEDIATION` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a)
+source-attestation gate: literal-shell diff captured in Block 5 — decision-log D-1107 and
+adv-adr-046-pass-50.md Part A BLOCKING finding-ID sets are confirmed matching exactly via literal
+grep with captured stdout. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate,
+D-448(a) source-attestation check, the streak-stays verification gate, the STORY-INDEX
+membership-check gate, the input-hash + version final-state verification gate, and the
+bracket-delta self-consistency gate all use actual shell with verbatim stdout captured (Block 5)
+— no pseudocode, no estimated counts, no trusted-but-unverified claims. Per
+TD-FACTORY-HOOK-BYPASS-001 P0, all `.factory` content mutations this burst used the Edit/Write
+tools exclusively; the only Bash invocations were READ-ONLY (`git status`/`git log`/`grep`/
+`python3` preflight and gate checks, plus the `compute-input-hash` sanctioned tool's
+`--check`/`--update` modes, whose sole effect is reading or writing the computed `input-hash`
+frontmatter field — the canonical, CLAUDE.md-documented tool for this mechanical operation, not a
+bypass) — no `sed -i` or other content-mutating shell command was run against `.factory` content;
+every prose/version/table edit used the Edit/Write tool.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (pass-50) — FINDINGS (2 MED), both fixed same-burst.
+- Streak: STAYS 0/3 (already at floor from pass-46's reset). Fresh pass-51 is NEXT, against the
+  newly-frozen set (ADR-046 v1.20 [UNCHANGED] + BC-4.17.001 v1.24 + BC-5.40.001 v1.20 +
+  BC-7.07.001 v1.37).
+- 4-INDEX: BC v5.15 (bumped) / STORY v4.392 (bumped) / VP v2.79 (UNCHANGED) / ARCH v3.90
+  (UNCHANGED).
+- policies.yaml UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` — unaffected by this burst. Wave-7 substantive state UNCHANGED — this burst is
+  orthogonal to the Wave-7 cascade (trajectory-tail unchanged, →1→1→0→1, LENGTH=4).
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE,
+  pushed via plain push (no force required — fast-forward from parent, unless remote has
+  diverged).
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `7088c07c` (the
+  D-1106 pass-49 burst commit) — actual commit SHA this burst produces captured at push time.
+
+**Closes:** Pass-50 FINDINGS verdict persisted (`adv-adr-046-pass-50.md`); 2 MED findings
+(F-P50-001, F-P50-002), both fixed same-burst — F-P50-001 closed a ~48-pass-old false-'verified
+present in STORY-INDEX' traceability defect by registering S-17.05 in the catalog (state-manager);
+F-P50-002 extended the fourteenth discipline (CITATION→INPUT PARITY) to exact-path story
+citations, closed by adding S-17.05 (+ S-17.01 sibling gap) to all three companion BCs' `inputs:`
+(product-owner). BC-4.17.001 v1.24; BC-5.40.001 v1.20; BC-7.07.001 v1.37; ADR-046 v1.20 UNCHANGED.
+STORY-INDEX v4.392; BC-INDEX v5.15. BC-5.39.001 streak **STAYS 0/3** (already at floor from
+pass-46's reset), traceability/inputs-completeness class, behavioral core unaffected (24
+consecutive clean passes on the design substance since pass-27). **NEXT ACTION:** dispatch
+fresh-context adversary pass-51 against the newly-frozen set (ADR-046 v1.20 [UNCHANGED] +
+BC-4.17.001 v1.24 + BC-5.40.001 v1.20 + BC-7.07.001 v1.37), starting a new streak toward literal
+3-CLEAN, applying all fourteen now-codified convergence-technique disciplines (the fourteenth now
+confirmed to cover exact-path story citations) plus the new fifteenth
+(catalog-membership-verification) discipline proactively from the start. S-17.05 TDD
+implementation remains gated on convergence.
