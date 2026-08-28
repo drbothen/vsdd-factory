@@ -110,7 +110,10 @@ pub struct FactoryLock {
 ///    (regardless of fence shape), return `Ok(RenewOutcome::NoOp)` immediately.
 ///    This matches bash parity — bash checks `factory_lock:` presence first.
 /// 2. Call `factory_lock_parse::parse_factory_lock(content)`.
-///    - `Ok(None)` (key absent or holder null/absent) → `Ok(RenewOutcome::NoOp)`.
+///    - `Ok(None)` — block absent or fully-null → `Ok(RenewOutcome::NoOp)`.
+///      NOTE: per F-P56-001, `Ok(None)` is returned ONLY when the block is absent
+///      or fully-null (null-value holder); an empty/absent holder with sibling fields
+///      present returns `Err(MalformedLockBlock)` instead.
 ///    - `Err(MalformedLockBlock)` (key present but malformed) → `Err(LockError::Malformed)`.
 ///    - `Ok(Some(lock_state))` (key present, holder non-empty) → proceed to step 3.
 /// 3. Compute `new_expires_at = Utc::now() + 2700s`, formatted as
@@ -156,7 +159,8 @@ where
     let lock_state = match flp::parse_factory_lock(state_md_content) {
         Ok(Some(ls)) => ls,
         Ok(None) => {
-            // Key was present but lock is null/absent holder → NoOp.
+            // Block absent or fully-null → NoOp (F-P56-001).
+            // Empty/absent holder with siblings present routes to Err(Malformed) instead.
             return Ok(RenewOutcome::NoOp);
         }
         Err(flp::LockParseError::MalformedLockBlock(msg)) => {
@@ -315,7 +319,9 @@ pub fn clear_lock(_state_md_content: &str) -> Result<String, LockError> {
 /// # Returns
 ///
 /// - `Ok(Some(FactoryLock))` — key present, holder non-empty, all fields valid.
-/// - `Ok(None)` — key absent or `holder` is null/absent/empty.
+/// - `Ok(None)` — block absent or fully-null (per F-P56-001: `Ok(None)` is returned
+///   ONLY for absent-or-fully-null block; empty/absent holder with sibling fields
+///   present returns `Err(Malformed)` instead).
 /// - `Err(LockError::Malformed)` — key present but block is malformed.
 pub fn parse_lock(state_md_content: &str) -> Result<Option<FactoryLock>, LockError> {
     match flp::parse_factory_lock(state_md_content) {
@@ -403,9 +409,22 @@ pub enum SkipReason {
 ///
 /// Pure function; no I/O. WASM-hermetic.
 pub fn classify_identity_resolution(
-    _exec_result: Result<(i32, String), String>,
+    exec_result: Result<(i32, String), String>,
 ) -> IdentityResolution {
-    todo!("S-17.06 AC-004")
+    match exec_result {
+        Err(e) => IdentityResolution::Failed(format!("exec error: {}", e)),
+        Ok((exit, _)) if exit != 0 => {
+            IdentityResolution::Failed(format!("exit {}: git config user.email failed", exit))
+        }
+        Ok((_, stdout)) => {
+            let email = trim_git_email(&stdout);
+            if email.is_empty() {
+                IdentityResolution::Failed("empty identity".to_string())
+            } else {
+                IdentityResolution::Resolved(email)
+            }
+        }
+    }
 }
 
 /// Renew the factory lock in STATE.md if and only if the caller is the current
@@ -444,15 +463,65 @@ pub fn classify_identity_resolution(
 /// Pure-core function; `resolve_identity` and `now_fn` are the only effectful
 /// surfaces (injected by caller). WASM-hermetic; no direct host I/O.
 pub fn renew_lock_if_holder<F, I>(
-    _content: &str,
-    _resolve_identity: I,
-    _now_fn: F,
+    content: &str,
+    resolve_identity: I,
+    now_fn: F,
 ) -> Result<(RenewOutcome, Option<SkipReason>), LockError>
 where
     F: Fn() -> DateTime<Utc>,
     I: FnOnce() -> IdentityResolution,
 {
-    todo!("S-17.06 AC-001/002/003")
+    // Cases 0 and 1: parse the factory_lock block.
+    // resolve_identity is NOT called for these two cases (AC-002 lazy-call invariant).
+    let lock_state = match flp::parse_factory_lock(content) {
+        Ok(None) => {
+            // Case 0: block absent/fully-null → NoOp, no skip reason.
+            return Ok((RenewOutcome::NoOp, None));
+        }
+        Err(flp::LockParseError::MalformedLockBlock(msg)) => {
+            // Case 1: key present but block malformed → propagate error.
+            return Err(LockError::Malformed(msg));
+        }
+        Ok(Some(ls)) => ls,
+    };
+
+    // Case 2: check expiry before calling resolve_identity (AC-002 lazy-call invariant).
+    // parse_iso8601 on expires_at — failure means the block is malformed (case 1 extension).
+    let expires_at_dt = flp::parse_iso8601(&lock_state.expires_at)
+        .map_err(|flp::LockParseError::MalformedLockBlock(msg)| LockError::Malformed(msg))?;
+
+    let now = now_fn();
+    if now >= expires_at_dt {
+        // Case 2: already expired — resolve_identity is NOT called.
+        return Ok((RenewOutcome::NoOp, Some(SkipReason::AlreadyExpired)));
+    }
+
+    // Identity step: call resolve_identity EXACTLY ONCE (AC-002 at-most-once).
+    // Reached only when lock is present, valid, and not expired.
+    match resolve_identity() {
+        IdentityResolution::Failed(reason) => {
+            // Case 4: identity resolution failed — populate all four struct fields from LockState.
+            Ok((
+                RenewOutcome::NoOp,
+                Some(SkipReason::IdentityResolutionFailed {
+                    reason,
+                    holder: lock_state.holder,
+                    locked_at: lock_state.locked_at,
+                    expires_at: lock_state.expires_at,
+                }),
+            ))
+        }
+        IdentityResolution::Resolved(email) => {
+            if email != lock_state.holder {
+                // Case 3: different identity — not the holder.
+                Ok((RenewOutcome::NoOp, Some(SkipReason::NotHolder)))
+            } else {
+                // Case 5: identity matches — delegate to renew_lock_with_now.
+                let outcome = renew_lock_with_now(content, now_fn)?;
+                Ok((outcome, None))
+            }
+        }
+    }
 }
 
 /// Trim trailing whitespace (including `\n`) from a git subprocess stdout line.
@@ -462,8 +531,8 @@ where
 /// previously contained a local copy of this function (e.g.,
 /// `crates/hook-plugins/verify-factory-lock/src/lib.rs`) MUST delegate to this
 /// function. No re-implementation permitted in any crate.
-pub fn trim_git_email(_raw: &str) -> String {
-    todo!("S-17.06 AC-005")
+pub fn trim_git_email(raw: &str) -> String {
+    raw.trim_end().to_string()
 }
 
 // ---------------------------------------------------------------------------

@@ -269,8 +269,11 @@ pub fn is_expired(
 }
 
 /// Trim trailing whitespace (including `\n`) from a git subprocess stdout line.
+///
+/// Delegates to `factory_lock::trim_git_email` — the canonical home per
+/// F-P7-001 single-canonical-home principle (AC-005 / ADR-046 Decision 2).
 pub fn trim_git_email(raw: &str) -> String {
-    raw.trim_end().to_string()
+    factory_lock::trim_git_email(raw)
 }
 
 // ---------------------------------------------------------------------------
