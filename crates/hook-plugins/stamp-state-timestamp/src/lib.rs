@@ -144,16 +144,16 @@ where
     NF: FnOnce() -> DateTime<Utc>,
 {
     use factory_lock::{
-        classify_identity_resolution, renew_lock_with_now, trim_git_email, IdentityResolution,
-        RenewOutcome,
+        IdentityResolution, RenewOutcome, classify_identity_resolution, renew_lock_with_now,
+        trim_git_email,
     };
 
     // Step 1 (PC3): read STATE.md — fail-open on host error.
-    let raw_bytes =
-        match (callbacks.read_file)(".factory/STATE.md", flp::STATE_MD_MAX_BYTES, 5000) {
-            Ok(bytes) => bytes,
-            Err(_) => return HookResult::Continue,
-        };
+    let raw_bytes = match (callbacks.read_file)(".factory/STATE.md", flp::STATE_MD_MAX_BYTES, 5000)
+    {
+        Ok(bytes) => bytes,
+        Err(_) => return HookResult::Continue,
+    };
 
     // Step 2 (PC3): validate UTF-8 — fail-open on non-UTF-8 content.
     let content = match String::from_utf8(raw_bytes) {
@@ -182,7 +182,7 @@ where
         0usize
     } else {
         match fm_body.find("\ntimestamp:") {
-            Some(p) => p + 1, // step over the '\n' to point at 't'
+            Some(p) => p + 1,                    // step over the '\n' to point at 't'
             None => return HookResult::Continue, // PC3: no timestamp anchor
         }
     };
