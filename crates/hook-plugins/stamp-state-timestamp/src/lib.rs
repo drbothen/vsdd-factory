@@ -2774,4 +2774,150 @@ mod tests {
              Got warnings:\n{all_warnings:?}"
         );
     }
+
+    // -----------------------------------------------------------------------
+    // F-S1705-P7-001: CRLF self-lock renewal end-to-end through guard_logic
+    // (EC-017 / BC-4.17.001 PC4/AC-010 Invariant 5)
+    // -----------------------------------------------------------------------
+
+    /// test_crlf_self_lock_renewal_preserves_crlf_body
+    ///
+    /// F-S1705-P7-001 / EC-017 / BC-4.17.001 PC4/AC-010 Invariant 5:
+    /// When `guard_logic` processes a fully-CRLF STATE.md with a self-held
+    /// (identity-matching), far-future (unexpired) `factory_lock`, both PC1
+    /// (timestamp restamp) and PC2 (expires_at renewal) fire. The written output MUST:
+    ///   (a) have `timestamp:` restamped to `fixed_now()` (2026-08-27T12:00:00Z);
+    ///   (b) have `expires_at:` renewed to `fixed_now() + TTL_SECONDS`
+    ///       (2026-08-27T12:45:00Z);
+    ///   (c) have the body after the closing fence byte-preserved with `\r\n`
+    ///       (not converted to bare `\n`);
+    ///   (d) have the rewritten `timestamp:` line end with `\r\n` (not bare `\n`);
+    ///   (e) have the rewritten `expires_at:` line end with `\r\n` (not bare `\n`);
+    ///   (f) have at most two frontmatter lines changed (timestamp + expires_at).
+    ///
+    /// MUTATION-KILL A (whole-file CRLF normalization before renew_lock_if_holder):
+    /// inserting `content_after_pc1.replace("\r\n", "\n")` before the PC2 call →
+    /// body bytes lose their `\r` → assertion (c) fails.
+    ///
+    /// MUTATION-KILL B (timestamp terminator in stamp logic):
+    /// dropping the `\r` from the `crlf_line` branch in the PC1 rewrite →
+    /// the rewritten `timestamp:` line ends with bare `\n` → assertion (d) fails.
+    ///
+    /// MUTATION-KILL C (expires_at terminator in rewrite_expires_at):
+    /// reverting `rewrite_expires_at` to emit bare `\n` instead of the detected
+    /// `\r\n` → assertion (e) fails.
+    #[test]
+    fn test_crlf_self_lock_renewal_preserves_crlf_body() {
+        // CRLF STATE.md with self-held lock (holder == "caller@example.com"),
+        // far-future expires_at (2099 → not expired at fixed_now 2026), and a CRLF body.
+        // Single-line string so two-space YAML sub-field indentation is exact.
+        let content: Vec<u8> = b"---\r\ndocument_type: state\r\ntimestamp: 2020-01-01T00:00:00Z\r\nphase: test\r\nfactory_lock:\r\n  holder: caller@example.com\r\n  locked_at: 2026-01-01T10:00:00Z\r\n  expires_at: 2099-01-01T00:00:00Z\r\n---\r\n\r\n# STATE BODY\r\nExtra body line.\r\n".to_vec();
+
+        let written = Arc::new(Mutex::new(None::<Vec<u8>>));
+        let w = written.clone();
+
+        // expected_expires = fixed_now() + TTL_SECONDS = 2026-08-27T12:00:00Z + 2700s
+        //                  = 2026-08-27T12:45:00Z
+        let expected_expires = (fixed_now() + Duration::seconds(i64::from(flp::TTL_SECONDS)))
+            .format("%Y-%m-%dT%H:%M:%SZ")
+            .to_string();
+        assert_eq!(
+            expected_expires, "2026-08-27T12:45:00Z",
+            "test fixture sanity: expected_expires must equal fixed_now + TTL_SECONDS"
+        );
+
+        let _result = guard_logic(
+            payload_for_post_tool_use("Edit"),
+            StampCallbacks {
+                read_file: move |_path, _max, _timeout| Ok(content),
+                write_file: move |_path, bytes| {
+                    *w.lock().unwrap() = Some(bytes.to_vec());
+                    Ok(())
+                },
+                // Identity MATCHES lock holder: "caller@example.com" == "caller@example.com".
+                exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
+            },
+        );
+
+        let written_bytes = written.lock().unwrap().clone().expect(
+            "F-S1705-P7-001: write_file must be called — PC1 restamps + PC2 renews on self-lock",
+        );
+        let written_str = String::from_utf8(written_bytes.clone())
+            .expect("F-S1705-P7-001: written content must be valid UTF-8");
+
+        // (a) PC1: timestamp restamped to fixed_now().
+        assert!(
+            written_str.contains("timestamp: 2026-08-27T12:00:00Z"),
+            "F-S1705-P7-001 (a) PC1: timestamp must be restamped to fixed_now(). \
+             Got:\n{written_str:?}"
+        );
+        assert!(
+            !written_str.contains("timestamp: 2020-01-01T00:00:00Z"),
+            "F-S1705-P7-001 (a): stale timestamp must be gone. Got:\n{written_str:?}"
+        );
+
+        // (b) PC2: expires_at renewed to fixed_now() + TTL_SECONDS.
+        assert!(
+            written_str.contains(&format!("  expires_at: {expected_expires}")),
+            "F-S1705-P7-001 (b) PC2: expires_at must be renewed to {expected_expires}. \
+             Got:\n{written_str:?}"
+        );
+        assert!(
+            !written_str.contains("2099-01-01T00:00:00Z"),
+            "F-S1705-P7-001 (b): stale fixture expires_at (2099) must be replaced. \
+             Got:\n{written_str:?}"
+        );
+
+        // (c) Body after closing fence is byte-preserved with CRLF.
+        // MUTATION-KILL A: whole-file \r\n→\n normalization before PC2 →
+        // body lines become bare-LF → written_bytes no longer ends with the
+        // original CRLF body bytes → this fails.
+        assert!(
+            written_bytes.ends_with(b"---\r\n\r\n# STATE BODY\r\nExtra body line.\r\n"),
+            "F-S1705-P7-001 (c): closing fence + body must be byte-preserved with CRLF. \
+             Got tail (last 40 bytes): {:02X?}",
+            &written_bytes[written_bytes.len().saturating_sub(40)..]
+        );
+
+        // (d) Rewritten timestamp: line ends with \r\n.
+        // MUTATION-KILL B: dropping the \r from the crlf_line branch in PC1 rewrite →
+        // the timestamp line ends with bare \n → this fails.
+        assert!(
+            written_str.contains("timestamp: 2026-08-27T12:00:00Z\r\n"),
+            "F-S1705-P7-001 (d): rewritten timestamp: line must end with \\r\\n (CRLF). \
+             Got:\n{written_str:?}"
+        );
+
+        // (e) Rewritten expires_at: line ends with \r\n.
+        // MUTATION-KILL C: rewrite_expires_at emits bare \n instead of detected \r\n →
+        // the expires_at line ends with bare \n → this fails.
+        assert!(
+            written_str.contains(&format!("  expires_at: {expected_expires}\r\n")),
+            "F-S1705-P7-001 (e): rewritten expires_at: line must end with \\r\\n (CRLF). \
+             Got:\n{written_str:?}"
+        );
+
+        // (f) At most 2 frontmatter lines changed (timestamp + expires_at).
+        let orig = "---\r\ndocument_type: state\r\ntimestamp: 2020-01-01T00:00:00Z\r\nphase: test\r\nfactory_lock:\r\n  holder: caller@example.com\r\n  locked_at: 2026-01-01T10:00:00Z\r\n  expires_at: 2099-01-01T00:00:00Z\r\n---\r\n\r\n# STATE BODY\r\nExtra body line.\r\n";
+        let orig_segments: Vec<&str> = orig.split_inclusive('\n').collect();
+        let new_segments: Vec<&str> = written_str.split_inclusive('\n').collect();
+        let changed: usize = orig_segments
+            .iter()
+            .zip(new_segments.iter())
+            .filter(|(a, b)| a != b)
+            .count();
+        assert!(
+            changed <= 2,
+            "F-S1705-P7-001 (f): at most 2 lines may change (timestamp + expires_at), \
+             but {changed} changed. Got:\n{written_str:?}"
+        );
+        assert!(
+            changed >= 1,
+            "F-S1705-P7-001 (f): at least 1 line must change (timestamp restamp). \
+             Got:\n{written_str:?}"
+        );
+    }
 }
