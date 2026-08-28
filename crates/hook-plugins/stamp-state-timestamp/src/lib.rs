@@ -6,8 +6,13 @@
 //! On each invocation the hook:
 //!   1. Reads the on-disk `.factory/STATE.md` via `host::read_file` (full content,
 //!      post-write — the tool's write has already landed by the time PostToolUse fires).
-//!   2. Validates frontmatter (UTF-8, opening + closing `---` delimiters, `timestamp:`
-//!      anchor line present). On any failure: fail-open (no write) per PC3.
+//!   2. Validates frontmatter: UTF-8, opening `---\n` / `---\r\n` fence
+//!      (`content.starts_with`), and closing `---` delimiter (via
+//!      `factory_lock_parse::extract_frontmatter`). On any structural failure
+//!      (non-UTF-8, opening fence absent, closing delimiter absent): fail-open
+//!      (no write, `StampingSkipped` advisory) per PC3a.
+//!      When frontmatter is valid but lacks a `timestamp:` anchor line: PC1 is
+//!      suppressed (GAP-1 advisory emitted) while PC2 still runs (AC-016 / EC-013).
 //!   3. PC1 (unconditional timestamp re-stamp): replaces the `timestamp:` line with
 //!      `timestamp: <now_fn() formatted as YYYY-MM-DDTHH:MM:SSZ>`, regardless of what
 //!      the agent's own write proposed.
@@ -273,6 +278,21 @@ where
         }
     };
 
+    // F-S1705-P6-001 (AC-008): opening-fence validation.
+    // PC3a structural fail-open: content MUST begin with "---\n" (LF) or "---\r\n" (CRLF).
+    // If the opening fence is absent, emit a distinct StampingSkipped advisory and return
+    // Continue. This complements the closing-fence check above (which fires when
+    // extract_frontmatter returns the full input unchanged, i.e., no closing delimiter).
+    // Example: "garbage\n---\n" has a closing-delimiter pattern but no opening fence —
+    // the closing-fence check passes but this opening-fence check catches it.
+    if !content.starts_with("---\n") && !content.starts_with("---\r\n") {
+        log_warn(
+            "stamp-state-timestamp: StampingSkipped: \
+             missing/invalid frontmatter delimiters (opening fence absent)",
+        );
+        return HookResult::Continue;
+    }
+
     // EC-017: CRLF-aware opening-fence offset.
     // `---\r\n` = 5 bytes; `---\n` = 4 bytes.
     // All fm_body slices use fence_len instead of the hardcoded 4 so that CRLF-checked-out
@@ -283,10 +303,17 @@ where
     // bounded by fm_bytes_len from extract_frontmatter (CRLF-safe byte boundary).
     // fence_len (4 for LF, 5 for CRLF) skips the opening `---\n` or `---\r\n`.
     //
+    // F-S1705-P6-001 invariant guard: empty-frontmatter case.
+    // extract_frontmatter("---\n---\n") returns 3 bytes (fm_bytes_len=3 < fence_len=4):
+    // the `\n` ending the opening fence IS the leading `\n` of the `\n---\n` closing
+    // pattern, so there is zero content between the fences. Using fence_len.min(fm_bytes_len)
+    // as the slice start yields an empty &str without panicking on start > end.
+    //
     // Locate the "timestamp:" key line within fm_body.
     // Scoped block ensures the fm_body borrow ends before content is conditionally moved.
     let ts_pos_opt: Option<usize> = {
-        let fm_body = &content[fence_len..fm_bytes_len];
+        let fm_start = fence_len.min(fm_bytes_len);
+        let fm_body = &content[fm_start..fm_bytes_len];
         if fm_body.starts_with("timestamp:") {
             Some(0)
         } else {
