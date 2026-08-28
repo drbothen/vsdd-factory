@@ -465,3 +465,484 @@ where
 pub fn trim_git_email(_raw: &str) -> String {
     todo!("S-17.06 AC-005")
 }
+
+// ---------------------------------------------------------------------------
+// S-17.06 Red Gate tests (BC-4.17.001 / BC-5.38.001 strict tdd_mode)
+//
+// All 13 tests MUST fail before implementation exists (Red Gate armed).
+// Each test calls a real production function (POLICY 11: no vacuous assertions).
+// Red Gate failure mode: todo!() panic for fns 1-13; source-scan assertion
+// failure for test 14 (in verify-factory-lock crate).
+//
+// Test naming follows the Red Gate Test Table in S-17.06 spec (authoritative).
+// ---------------------------------------------------------------------------
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
+
+    use super::*;
+    use chrono::{DateTime, Utc};
+
+    // -----------------------------------------------------------------------
+    // Fixture builders (pure STATE.md content strings)
+    // -----------------------------------------------------------------------
+
+    /// STATE.md with NO factory_lock block — case 0 input (absent/fully-null block).
+    fn fixture_no_lock() -> &'static str {
+        concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"test\"\n",
+            "phase: test\n",
+            "---\n\n# STATE\n",
+        )
+    }
+
+    /// STATE.md with malformed factory_lock block (holder = "" → MalformedLockBlock).
+    /// Case 1 input.
+    fn fixture_malformed_lock() -> &'static str {
+        concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"test\"\n",
+            "phase: test\n",
+            "factory_lock:\n",
+            "  holder: \"\"\n",
+            "  locked_at: \"2026-01-01T10:00:00Z\"\n",
+            "  expires_at: \"2026-01-01T10:45:00Z\"\n",
+            "---\n\n# STATE\n",
+        )
+    }
+
+    /// STATE.md with a valid factory_lock block but expires_at is in the past (2020).
+    /// Case 2 input — now_past() (2026) >= expires_at (2020) → AlreadyExpired.
+    fn fixture_expired_lock() -> &'static str {
+        concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"test\"\n",
+            "phase: test\n",
+            "factory_lock:\n",
+            "  holder: \"holder@example.com\"\n",
+            "  locked_at: \"2020-01-01T10:00:00Z\"\n",
+            "  expires_at: \"2020-01-01T10:45:00Z\"\n",
+            "---\n\n# STATE\n",
+        )
+    }
+
+    /// STATE.md with a valid unexpired factory_lock block (expires_at 2099).
+    /// Cases 3/4/5 input — now_past() (2026) < expires_at (2099) → identity step reached.
+    /// holder = "holder@example.com"; locked_at = "2026-01-01T10:00:00Z".
+    fn fixture_valid_unexpired_lock() -> &'static str {
+        concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"test\"\n",
+            "phase: test\n",
+            "factory_lock:\n",
+            "  holder: \"holder@example.com\"\n",
+            "  locked_at: \"2026-01-01T10:00:00Z\"\n",
+            "  expires_at: \"2099-01-01T10:45:00Z\"\n",
+            "---\n\n# STATE\n",
+        )
+    }
+
+    /// Injectable clock returning 2026-08-27 12:00:00Z.
+    /// After expired fixture (2020) but before valid fixture (2099): discriminates cases 2 vs 3/4/5.
+    fn now_past() -> DateTime<Utc> {
+        "2026-08-27T12:00:00Z"
+            .parse::<DateTime<Utc>>()
+            .expect("fixture timestamp must parse as DateTime<Utc>")
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-001 tests — renew_lock_if_holder 6-case decision tree (BC-4.17.001 PC2)
+    // -----------------------------------------------------------------------
+
+    /// Case 0: parse_factory_lock returns Ok(None) → Ok((NoOp, None)).
+    /// resolve_identity MUST NOT be called (AC-002 lazy-call invariant).
+    /// Red Gate: todo!() panics before any return.
+    #[test]
+    fn test_renew_lock_if_holder_absent_block_no_op() {
+        let result = renew_lock_if_holder(
+            fixture_no_lock(),
+            || panic!("resolve_identity must NOT be called for absent block (AC-002, case 0)"),
+            now_past,
+        );
+        let (outcome, skip) = result.expect("case 0 (absent block) must return Ok");
+        match outcome {
+            RenewOutcome::NoOp => {}
+            RenewOutcome::Renewed(_) => panic!("case 0 must return NoOp, not Renewed"),
+        }
+        assert!(
+            skip.is_none(),
+            "case 0 must return None skip reason, got: {:?}",
+            skip
+        );
+    }
+
+    /// Case 1: parse_factory_lock returns Err(MalformedLockBlock) → Err(LockError::Malformed).
+    /// resolve_identity MUST NOT be called (AC-002 lazy-call invariant).
+    /// Red Gate: todo!() panics before any return.
+    #[test]
+    fn test_renew_lock_if_holder_malformed_no_resolve() {
+        let result = renew_lock_if_holder(
+            fixture_malformed_lock(),
+            || panic!("resolve_identity must NOT be called for malformed block (AC-002, case 1)"),
+            now_past,
+        );
+        match result {
+            Err(LockError::Malformed(_)) => {}
+            Ok((_, _)) => panic!("case 1 (malformed block) must return Err(Malformed), not Ok"),
+        }
+    }
+
+    /// Case 2: lock present but now >= expires_at → Ok((NoOp, Some(AlreadyExpired))).
+    /// resolve_identity MUST NOT be called (AC-002 lazy-call invariant).
+    /// Red Gate: todo!() panics before any return.
+    #[test]
+    fn test_renew_lock_if_holder_already_expired_no_resolve() {
+        let result = renew_lock_if_holder(
+            fixture_expired_lock(),
+            || panic!("resolve_identity must NOT be called for expired lock (AC-002, case 2)"),
+            now_past,
+        );
+        let (outcome, skip) = result.expect("case 2 (already expired) must return Ok");
+        match outcome {
+            RenewOutcome::NoOp => {}
+            RenewOutcome::Renewed(_) => panic!("case 2 must return NoOp, not Renewed"),
+        }
+        match skip.expect("case 2 must carry a skip reason") {
+            SkipReason::AlreadyExpired => {}
+            other => panic!("case 2 must return AlreadyExpired, got: {:?}", other),
+        }
+    }
+
+    /// Case 3: identity resolved, email != holder (after trim_git_email) → Ok((NoOp, Some(NotHolder))).
+    /// Red Gate: todo!() panics before any return.
+    #[test]
+    fn test_renew_lock_if_holder_not_holder_no_renewal() {
+        let result = renew_lock_if_holder(
+            fixture_valid_unexpired_lock(),
+            || IdentityResolution::Resolved("other@example.com".to_string()),
+            now_past,
+        );
+        let (outcome, skip) = result.expect("case 3 (not holder) must return Ok");
+        match outcome {
+            RenewOutcome::NoOp => {}
+            RenewOutcome::Renewed(_) => panic!("case 3 (not holder) must return NoOp, not Renewed"),
+        }
+        match skip.expect("case 3 must carry a skip reason") {
+            SkipReason::NotHolder => {}
+            other => panic!("case 3 must return NotHolder, got: {:?}", other),
+        }
+    }
+
+    /// Case 4: identity resolution returns Failed(reason) →
+    /// Ok((NoOp, Some(IdentityResolutionFailed { reason, holder, locked_at, expires_at }))).
+    /// All four SkipReason fields must be populated from the parsed LockState (AC-003).
+    /// Red Gate: todo!() panics before any return.
+    #[test]
+    fn test_renew_lock_if_holder_identity_resolution_failed_no_renewal() {
+        let result = renew_lock_if_holder(
+            fixture_valid_unexpired_lock(),
+            || IdentityResolution::Failed("git config failed".to_string()),
+            now_past,
+        );
+        let (outcome, skip) = result.expect("case 4 (resolution failed) must return Ok");
+        match outcome {
+            RenewOutcome::NoOp => {}
+            RenewOutcome::Renewed(_) => {
+                panic!("case 4 (resolution failed) must return NoOp, not Renewed")
+            }
+        }
+        match skip.expect("case 4 must carry a skip reason") {
+            SkipReason::IdentityResolutionFailed {
+                reason,
+                holder,
+                locked_at,
+                expires_at,
+            } => {
+                assert_eq!(
+                    reason, "git config failed",
+                    "reason must match Failed variant payload"
+                );
+                assert_eq!(
+                    holder, "holder@example.com",
+                    "holder must come from parsed LockState"
+                );
+                assert_eq!(
+                    locked_at, "2026-01-01T10:00:00Z",
+                    "locked_at must come from parsed LockState"
+                );
+                assert_eq!(
+                    expires_at, "2099-01-01T10:45:00Z",
+                    "expires_at must come from parsed LockState"
+                );
+            }
+            other => panic!(
+                "case 4 must return IdentityResolutionFailed, got: {:?}",
+                other
+            ),
+        }
+    }
+
+    /// Case 5: identity matches (email == holder after trim_git_email), now < expires_at →
+    /// Ok((Renewed(new_content), None)) with expires_at advanced by TTL_SECONDS.
+    /// Red Gate: todo!() panics before any return.
+    #[test]
+    fn test_renew_lock_if_holder_identity_match_renewed() {
+        let result = renew_lock_if_holder(
+            fixture_valid_unexpired_lock(),
+            || IdentityResolution::Resolved("holder@example.com".to_string()),
+            now_past,
+        );
+        let (outcome, skip) = result.expect("case 5 (identity match) must return Ok");
+        match outcome {
+            RenewOutcome::Renewed(new_content) => {
+                assert!(
+                    new_content.contains("expires_at:"),
+                    "Renewed content must contain an updated expires_at line"
+                );
+                assert!(
+                    new_content.contains("holder@example.com"),
+                    "Renewed content must preserve the holder field"
+                );
+            }
+            RenewOutcome::NoOp => panic!("case 5 (identity match) must return Renewed, not NoOp"),
+        }
+        assert!(
+            skip.is_none(),
+            "case 5 (success) must return None skip reason, got: {:?}",
+            skip
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-002 test — lazy identity evaluation: resolve_identity called at most once
+    // -----------------------------------------------------------------------
+
+    /// resolve_identity must be called AT MOST ONCE per invocation and MUST NOT
+    /// be called for cases 0, 1, or 2. For case 5 (success) it is called exactly once.
+    ///
+    /// Red Gate: todo!() panics on the first call to renew_lock_if_holder; the
+    /// counter assertions are unreachable. The test fails due to panic (correct Red Gate).
+    #[test]
+    fn test_resolve_identity_called_at_most_once() {
+        use std::sync::{Arc, Mutex};
+
+        // Part A: case 0 (absent block) — resolve_identity must NOT be called.
+        let count_0 = Arc::new(Mutex::new(0u32));
+        let c0 = count_0.clone();
+        let result_0 = renew_lock_if_holder(
+            fixture_no_lock(),
+            move || {
+                *c0.lock().unwrap() += 1;
+                IdentityResolution::Resolved("test@example.com".to_string())
+            },
+            now_past,
+        );
+        assert!(result_0.is_ok(), "case 0 must return Ok");
+        assert_eq!(
+            *count_0.lock().unwrap(),
+            0,
+            "resolve_identity must NOT be called for absent block (AC-002 case 0)"
+        );
+
+        // Part B: case 5 (identity match) — resolve_identity must be called exactly once.
+        let count_5 = Arc::new(Mutex::new(0u32));
+        let c5 = count_5.clone();
+        let result_5 = renew_lock_if_holder(
+            fixture_valid_unexpired_lock(),
+            move || {
+                *c5.lock().unwrap() += 1;
+                IdentityResolution::Resolved("holder@example.com".to_string())
+            },
+            now_past,
+        );
+        assert!(result_5.is_ok(), "case 5 must return Ok");
+        assert_eq!(
+            *count_5.lock().unwrap(),
+            1,
+            "resolve_identity must be called exactly once for case 5 (AC-002 at-most-once)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-003 test — SkipReason::IdentityResolutionFailed carries all four fields
+    // -----------------------------------------------------------------------
+
+    /// SkipReason::IdentityResolutionFailed must be a struct variant with exactly
+    /// four fields (reason, holder, locked_at, expires_at), all populated from the
+    /// parsed LockState — NOT from caller-supplied data (F-P21-001 / AC-003).
+    ///
+    /// Red Gate: todo!() panics before case 4 return.
+    #[test]
+    fn test_skip_reason_identity_resolution_failed_carries_four_fields() {
+        let result = renew_lock_if_holder(
+            fixture_valid_unexpired_lock(),
+            || IdentityResolution::Failed("identity error reason".to_string()),
+            now_past,
+        );
+        let (_, skip) = result.expect("case 4 must return Ok");
+        match skip.expect("case 4 must carry a skip reason") {
+            SkipReason::IdentityResolutionFailed {
+                reason,
+                holder,
+                locked_at,
+                expires_at,
+            } => {
+                // All four fields non-empty and sourced from the parsed LockState fixture.
+                assert!(!reason.is_empty(), "reason must be non-empty (AC-003)");
+                assert!(
+                    !holder.is_empty(),
+                    "holder must be populated from LockState (AC-003, F-P21-001)"
+                );
+                assert!(
+                    !locked_at.is_empty(),
+                    "locked_at must be populated from LockState (AC-003, F-P21-001)"
+                );
+                assert!(
+                    !expires_at.is_empty(),
+                    "expires_at must be populated from LockState (AC-003, F-P21-001)"
+                );
+                // Exact field values match the parsed fixture — NOT caller-supplied data.
+                assert_eq!(holder, "holder@example.com");
+                assert_eq!(locked_at, "2026-01-01T10:00:00Z");
+                assert_eq!(expires_at, "2099-01-01T10:45:00Z");
+            }
+            other => panic!(
+                "Expected SkipReason::IdentityResolutionFailed, got: {:?}",
+                other
+            ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-004 tests — classify_identity_resolution 4-shape rule (BC-4.17.001 PC2/Precondition 2)
+    // -----------------------------------------------------------------------
+
+    /// Shape 1: Err(_) → IdentityResolution::Failed("exec error: ...")
+    /// Red Gate: todo!() panics.
+    #[test]
+    fn test_classify_identity_resolution_exec_error_maps_failed() {
+        let result = classify_identity_resolution(Err("process spawn failed".to_string()));
+        match result {
+            IdentityResolution::Failed(reason) => {
+                assert!(
+                    reason.starts_with("exec error"),
+                    "exec Err shape must produce Failed starting with 'exec error', got: {:?}",
+                    reason
+                );
+            }
+            IdentityResolution::Resolved(v) => {
+                panic!("exec Err must produce Failed, not Resolved({:?})", v)
+            }
+        }
+    }
+
+    /// Shape 2: Ok((exit_code != 0, _)) → IdentityResolution::Failed("exit N: ...")
+    /// Red Gate: todo!() panics.
+    #[test]
+    fn test_classify_identity_resolution_nonzero_exit_maps_failed() {
+        let result = classify_identity_resolution(Ok((1, "error output".to_string())));
+        match result {
+            IdentityResolution::Failed(reason) => {
+                assert!(
+                    reason.starts_with("exit 1"),
+                    "nonzero exit shape must produce Failed starting with 'exit 1', got: {:?}",
+                    reason
+                );
+            }
+            IdentityResolution::Resolved(v) => {
+                panic!("nonzero exit must produce Failed, not Resolved({:?})", v)
+            }
+        }
+    }
+
+    /// Shape 3: Ok((0, stdout)) where trim_git_email(stdout).is_empty() →
+    /// IdentityResolution::Failed("empty identity")
+    /// Red Gate: todo!() panics.
+    #[test]
+    fn test_classify_identity_resolution_empty_stdout_maps_failed() {
+        let result = classify_identity_resolution(Ok((0, "\n".to_string())));
+        match result {
+            IdentityResolution::Failed(reason) => {
+                assert_eq!(
+                    reason, "empty identity",
+                    "empty stdout shape must produce Failed(\"empty identity\"), got: {:?}",
+                    reason
+                );
+            }
+            IdentityResolution::Resolved(v) => {
+                panic!("empty stdout must produce Failed, not Resolved({:?})", v)
+            }
+        }
+    }
+
+    /// Shape 4: Ok((0, non-empty stdout)) →
+    /// IdentityResolution::Resolved(trim_git_email(stdout))
+    /// Red Gate: todo!() panics.
+    #[test]
+    fn test_classify_identity_resolution_nonempty_stdout_maps_resolved() {
+        let result = classify_identity_resolution(Ok((0, "user@example.com\n".to_string())));
+        match result {
+            IdentityResolution::Resolved(email) => {
+                assert_eq!(
+                    email, "user@example.com",
+                    "valid stdout shape must produce Resolved with trimmed email, got: {:?}",
+                    email
+                );
+            }
+            IdentityResolution::Failed(reason) => {
+                panic!(
+                    "valid stdout must produce Resolved, not Failed({:?})",
+                    reason
+                )
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-005 test — trim_git_email canonical home in factory_lock crate
+    // -----------------------------------------------------------------------
+
+    /// factory_lock::trim_git_email must strip trailing whitespace/newlines.
+    /// Canonical home per F-P7-001 single-canonical-home principle (AC-005 / ADR-046 Decision 2).
+    ///
+    /// Red Gate: todo!() panics.
+    #[test]
+    fn test_trim_git_email_canonical_in_factory_lock() {
+        // Trailing newline stripped.
+        let r1 = trim_git_email("user@example.com\n");
+        assert_eq!(
+            r1, "user@example.com",
+            "trim_git_email must strip trailing newline, got: {:?}",
+            r1
+        );
+
+        // Trailing whitespace + newline stripped.
+        let r2 = trim_git_email("user@example.com  \n");
+        assert_eq!(
+            r2, "user@example.com",
+            "trim_git_email must strip trailing whitespace+newline, got: {:?}",
+            r2
+        );
+
+        // Email without trailing whitespace preserved as-is.
+        let r3 = trim_git_email("user@example.com");
+        assert_eq!(
+            r3, "user@example.com",
+            "trim_git_email must preserve email with no trailing whitespace, got: {:?}",
+            r3
+        );
+
+        // Bare newline → empty string (EC-008: stdout = "\n" → Failed("empty identity")).
+        let r4 = trim_git_email("\n");
+        assert_eq!(
+            r4, "",
+            "trim_git_email(\"\\n\") must return empty string (EC-008), got: {:?}",
+            r4
+        );
+    }
+}

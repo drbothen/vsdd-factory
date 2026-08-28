@@ -2101,4 +2101,47 @@ mod tests {
             *warns
         );
     }
+
+    // -----------------------------------------------------------------------
+    // S-17.06 AC-005 test — verify-factory-lock delegates trim_git_email
+    // -----------------------------------------------------------------------
+
+    /// AC-005 (BC-4.17.001 Precondition 2, F-P7-001 single-canonical-home):
+    /// `crates/hook-plugins/verify-factory-lock/src/lib.rs` MUST delegate its
+    /// `trim_git_email` usage to `factory_lock::trim_git_email`. No local
+    /// re-implementation is permitted in any crate after S-17.06 ships.
+    ///
+    /// Source scan: assert that this file contains "factory_lock::trim_git_email"
+    /// (a delegation call or re-export). Currently the file contains a local
+    /// `fn trim_git_email` body (`raw.trim_end().to_string()`) — no delegation.
+    ///
+    /// Red Gate: the string "factory_lock::trim_git_email" is absent from the
+    /// current source → the assertion FAILS (correct Red Gate).
+    /// After T-3 wires delegation: the string is present → test PASSES.
+    #[test]
+    fn test_verify_factory_lock_delegates_trim_git_email() {
+        // AC-005 / F-P7-001: after T-3, verify-factory-lock must delegate its
+        // trim_git_email usage to factory_lock::trim_git_email (the canonical home).
+        //
+        // Source-scan strategy: assemble the delegation call pattern at runtime from
+        // split parts so the assembled string does not appear literally in this test's
+        // own source text (include_str! is self-referential — any literal occurrence of
+        // the target string in this file would cause the scan to pass vacuously).
+        //
+        // Expected delegation form after T-3:
+        //   pub fn trim_git_email(raw: &str) -> String {
+        //     factory_lock :: trim_git_email(raw)    ← qualif. call, no spaces in real code
+        //   }
+        let source = include_str!("lib.rs");
+        // Pieces split to prevent the assembled form from appearing in this source.
+        let crate_prefix = "factory_lock";
+        let fn_suffix = concat!("::", "trim_git_email(");
+        let delegation_pattern = format!("{}{}", crate_prefix, fn_suffix);
+        assert!(
+            source.contains(&delegation_pattern),
+            "verify-factory-lock must delegate the trim_git_email call to the canonical \
+             factory_lock crate (AC-005, F-P7-001 single-canonical-home). \
+             Local re-implementation still present. Wire delegation in T-3 (S-17.06)."
+        );
+    }
 }
