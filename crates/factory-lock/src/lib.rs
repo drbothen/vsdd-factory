@@ -1274,7 +1274,7 @@ mod tests {
                 called += 1;
                 IdentityResolution::Resolved("anyone@example.com".to_string())
             },
-            || chrono::Utc::now(),
+            chrono::Utc::now,
         );
         assert_eq!(result, Ok((RenewOutcome::NoOp, None)));
         assert_eq!(
@@ -1315,7 +1315,7 @@ mod tests {
         let result = renew_lock_if_holder(
             &content,
             || IdentityResolution::Resolved("holder@example.com".to_string()),
-            || chrono::Utc::now(),
+            chrono::Utc::now,
         );
         match result {
             Ok((RenewOutcome::Renewed(_), None)) => {} // expected
