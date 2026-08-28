@@ -9078,4 +9078,4 @@ feature/S-17.05 HEAD UNCHANGED at `a8d85160` (no code change this burst). PASS.
 **Block 8: factory-artifacts commit**
 
 Parent SHA: `4df7c0e7` (S1705-P9-FIX-BURST 2026-08-28).
-This burst commit SHA: TBD — D-449(e) SHA-patch to be applied post-push.
+This burst commit SHA: `63fe7172` (factory-artifacts; S1705-P10-CLEAN-BURST; D-449(e) SHA-patch applied post-push).

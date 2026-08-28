@@ -105,7 +105,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **3200149d** | S-17.06 MERGED PR #787 2026-08-28. Chain: 6993138b→PR #786 fc7cbccb (orphan-WASM + release.yml-exclude)→PR #787 3200149d (S-17.06). CI-GREEN. |
-| factory-artifacts | **TBD** | S1705-P10-CLEAN-BURST 2026-08-28 (commit SHA TBD — D-449(e) patch post-push). Prior: 4df7c0e7 (S1705-P9-FIX-BURST). |
+| factory-artifacts | **`63fe7172`** | S1705-P10-CLEAN-BURST 2026-08-28. Prior: 4df7c0e7 (S1705-P9-FIX-BURST). |
 | feature/S-17.05 | **a8d85160** | IN FLIGHT — mid local BC-5.39.001 3-CLEAN (streak 0/3; pass 9 FINDINGS→all fixed; pass 10 next). PUSHED to origin. Prior: fcc0fb7f (pass 8 CLEAN). |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
@@ -264,7 +264,7 @@ Non-blocking pass-10 observations (do NOT re-litigate):
 
 - `develop`: **`3200149d`** (S-17.06 MERGED PR #787 2026-08-28).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
-- `factory-artifacts`: **TBD** — run `git -C .factory log -1 --format='%H'` for actual SHA.
+- `factory-artifacts`: **`63fe7172`** (S1705-P10-CLEAN-BURST 2026-08-28).
 - `feature/S-17.05`: **`a8d85160`** (PUSHED to origin; UNCHANGED this burst — no code change).
 - `feature/S-17.06`: merged+deleted.
 
