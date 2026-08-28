@@ -210,21 +210,24 @@ where
     let raw_bytes = match read_file(".factory/STATE.md", flp::STATE_MD_MAX_BYTES, 5000) {
         Ok(bytes) => bytes,
         Err(e) => {
-            // GAP 7 (EC-015 OutputTooLarge advisory):
-            // When the error indicates an oversized read rejection, emit an advisory
-            // log_warn before returning Continue (the continue outcome is already
-            // correct per PC3 fail-open; this adds explicit observability).
+            // GAP 7 (EC-015 / EC-005): emit StampingSkipped advisory on all read-error paths.
+            // OutputTooLarge keeps its distinct cause string; all other read errors use
+            // "read error: {e}" (EC-005 structural fail-open observability requirement).
             if e.contains("OutputTooLarge") {
                 log_warn(&format!(
                     "stamp-state-timestamp: StateReadError/StampingSkipped: \
                      OutputTooLarge — {e}",
+                ));
+            } else {
+                log_warn(&format!(
+                    "stamp-state-timestamp: StampingSkipped: read error: {e}",
                 ));
             }
             return HookResult::Continue;
         }
     };
 
-    // GAP 4 (Invariant 8 soft-warn / AC-016):
+    // GAP 4 (Invariant 8 soft-warn / AC-018):
     // STATE.md is approaching the read cap (262144 bytes). Emit an advisory event
     // so operators can compact the file before reads start failing (OutputTooLarge).
     // Does NOT suppress PC1/PC2 (observability only).
@@ -248,6 +251,11 @@ where
         let len = fm.len();
         if len == raw_bytes_len {
             // Fence not located: structural fail-open (PC3a — both PC1 and PC2 suppressed).
+            // EC-005: emit StampingSkipped advisory so the path is observable.
+            log_warn(
+                "stamp-state-timestamp: StampingSkipped: \
+                 missing/invalid frontmatter delimiters",
+            );
             return HookResult::Continue;
         }
         len
@@ -258,17 +266,27 @@ where
     // raw_bytes is consumed here; fm_bytes_len retains the byte boundary.
     let content = match String::from_utf8(raw_bytes) {
         Ok(s) => s,
-        Err(_) => return HookResult::Continue,
+        Err(_) => {
+            // EC-005: emit StampingSkipped advisory on non-UTF-8 structural fail-open.
+            log_warn("stamp-state-timestamp: StampingSkipped: STATE.md not valid UTF-8");
+            return HookResult::Continue;
+        }
     };
 
-    // fm_body: frontmatter text between opening `---\n` and the closing delimiter,
+    // EC-017: CRLF-aware opening-fence offset.
+    // `---\r\n` = 5 bytes; `---\n` = 4 bytes.
+    // All fm_body slices use fence_len instead of the hardcoded 4 so that CRLF-checked-out
+    // STATE.md files are handled correctly. LF (the repo default) is unchanged.
+    let fence_len: usize = if content.starts_with("---\r\n") { 5 } else { 4 };
+
+    // fm_body: frontmatter text between opening fence and the closing delimiter,
     // bounded by fm_bytes_len from extract_frontmatter (CRLF-safe byte boundary).
-    // Offset 4 skips the opening `---\n`.
+    // fence_len (4 for LF, 5 for CRLF) skips the opening `---\n` or `---\r\n`.
     //
     // Locate the "timestamp:" key line within fm_body.
     // Scoped block ensures the fm_body borrow ends before content is conditionally moved.
     let ts_pos_opt: Option<usize> = {
-        let fm_body = &content[4..fm_bytes_len];
+        let fm_body = &content[fence_len..fm_bytes_len];
         if fm_body.starts_with("timestamp:") {
             Some(0)
         } else {
@@ -295,8 +313,11 @@ where
     let (content_after_pc1, has_timestamp) = match ts_pos_opt {
         Some(ts_pos) => {
             // Nominal PC1 path: replace the timestamp: line.
-            let ts_line_end_in_fm = {
-                let fm_body = &content[4..fm_bytes_len];
+            // Returns (ts_line_end_in_fm, crlf_line) where:
+            //   ts_line_end_in_fm: position of '\n' at end of the old timestamp line (in fm_body coords)
+            //   crlf_line: true if the old timestamp line ended with '\r\n' (EC-017)
+            let (ts_line_end_in_fm, crlf_line) = {
+                let fm_body = &content[fence_len..fm_bytes_len];
 
                 // GAP 6 (EC-014 duplicate timestamp: advisory):
                 // After locating the first timestamp: line, scan for a second one.
@@ -310,21 +331,27 @@ where
                     );
                 }
 
-                match fm_body[ts_pos..].find('\n') {
+                let ts_line_end = match fm_body[ts_pos..].find('\n') {
                     Some(rel) => ts_pos + rel,
                     None => fm_body.len(), // timestamp: is the last line (no trailing '\n')
-                }
+                };
+                // EC-017: detect CRLF line ending on the timestamp line.
+                // ts_line_end points at '\n'; if the preceding byte is '\r', preserve it.
+                let crlf =
+                    ts_line_end > 0 && fm_body.as_bytes().get(ts_line_end - 1) == Some(&b'\r');
+                (ts_line_end, crlf)
             };
             // fm_body borrow ends here.
 
-            // content[..4+ts_pos]       → "---\n" + fm prefix before old timestamp: line
-            // new_ts_line               → "timestamp: <now>"
-            // content[4+ts_line_end..]  → rest from '\n' after old timestamp: line + body
+            // content[..fence_len+ts_pos]         → opening fence + fm prefix before old timestamp: line
+            // new_ts_line (+ optional '\r')        → "timestamp: <now>" with original line terminator
+            // content[fence_len+ts_line_end_in_fm..] → '\n' (or '\r\n' tail) after old line + body
+            let ts_line_with_term = format!("{}{}", new_ts_line, if crlf_line { "\r" } else { "" });
             let new_content = format!(
                 "{}{}{}",
-                &content[..4 + ts_pos],
-                new_ts_line,
-                &content[4 + ts_line_end_in_fm..],
+                &content[..fence_len + ts_pos],
+                ts_line_with_term,
+                &content[fence_len + ts_line_end_in_fm..],
             );
             (new_content, true)
         }
@@ -480,18 +507,17 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 }
 
 // ---------------------------------------------------------------------------
-// S-17.05 Red Gate test suite (BC-5.38.001 strict tdd_mode)
+// S-17.05 v1.5 test suite (BC-5.38.001 strict tdd_mode)
 //
-// 17 Rust unit tests covering BC-4.17.001 PC1–PC5 + AC-001..AC-012.
-// Every test calls guard_logic(), which is todo!() in the stub phase.
-// ALL 17 tests MUST FAIL (via todo!() panic) before any implementation.
-// After S-17.05 T-3 is complete, all 17 tests MUST PASS (Green Gate).
+// 31 unit tests covering BC-4.17.001 PC1–PC5 + AC-001..AC-018 + EC-013..EC-017.
+// Each test calls guard_logic() with injected callbacks.
+// ALL 31 tests MUST PASS (Green Gate) after S-17.05 T-3 implementation.
 //
 // Plus 2 source-scan / constant-equality tests that do NOT call guard_logic:
-//   - test_ttl_seconds_constant_equals_2700 (FAILS: stub TTL_SECONDS = 0)
-//   - test_ttl_seconds_is_imported_not_redeclared (PASSES: no duplicate in stub)
+//   - test_ttl_seconds_constant_equals_2700
+//   - test_ttl_seconds_is_imported_not_redeclared
 //
-// Test naming follows the S-17.05 v1.3 Red Gate Test Table (authoritative).
+// Test naming follows the S-17.05 v1.5 Red Gate Test Table (authoritative).
 // ---------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
