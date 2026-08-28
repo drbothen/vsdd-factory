@@ -9079,3 +9079,143 @@ feature/S-17.05 HEAD UNCHANGED at `a8d85160` (no code change this burst). PASS.
 
 Parent SHA: `4df7c0e7` (S1705-P9-FIX-BURST 2026-08-28).
 This burst commit SHA: `63fe7172` (factory-artifacts; S1705-P10-CLEAN-BURST; D-449(e) SHA-patch applied post-push).
+
+---
+
+## S1705-P11-FINDINGS-BURST
+
+**Date:** 2026-08-28
+**Cycle:** v1.0-brownfield-backfill
+**Story:** S-17.05 (stamp-state-timestamp PostToolUse hook)
+**Event:** LOCAL adversary pass 11 = FINDINGS (1 MEDIUM); BC-5.39.001 streak RESETS 1/3→0/3; all findings fixed in-scope this burst.
+
+---
+
+**Block 1: Parent commit**
+
+Parent factory-artifacts SHA: `63fe7172` (S1705-P10-CLEAN-BURST 2026-08-28).
+`feature/S-17.05` parent SHA: `a8d85160` (unchanged from pass-11 review target; implementer advanced branch post-fix to `a73086a5`).
+
+---
+
+**Block 2: Adversary verdict (D-448(a) source-attestation)**
+
+Pass 11 = **FINDINGS (1 MEDIUM)**. BC-5.39.001 streak **RESETS 1/3 → 0/3**.
+
+Finding summary (from `adv-s17.05-local-pass-11.md` Part A):
+
+- **F-P11-001 (MEDIUM, POLICY 4 / version-cite):** S-17.05 story body `**BC gate:**` header cited stale tokens: `BC-4.17.001 v1.0` (actual: v1.28) and `BC-5.40.001 v1.4` (actual: v1.21). Also asserted a now-false `[pending]` traceability claim ("S-17.05 implements BC-5.40.001 PC4 — traceability [pending]") — BC-5.40.001 v1.21 Traceability section already lists S-17.05 as confirmed implementing/anchor story (established at v1.10 F-P25-002). FIXED by story-writer: header synced to BC-4.17.001 v1.28 / BC-5.40.001 v1.21; false `[pending]` claim removed. Story v1.6→v1.7; input-hash UNCHANGED at 6067e5f (inputs-array files did not change).
+- **O-P11-1 (LOW):** Token Budget self-label `S-17.05 v1.1` stale. FIXED by story-writer: updated to v1.7.
+- **O-P11-2 (LOW):** Volatile BC + story version tokens in `stamp-state-timestamp` doc-comments (5 sites, TD-VSDD-091 anti-volatile-pin). FIXED by implementer: de-pinned to stable function names + behavioral roles.
+- **O-P11-3 (ADVISORY):** Doc-comment cited `31 unit tests` (should be 32 per `a8d85160`). FIXED by implementer in same commit as O-P11-2. `feature/S-17.05` HEAD advanced `a8d85160` → `a73086a5605c1953a797f8b3520de94730b2c4a4` (pushed to origin).
+
+Source-attestation parity: `adv-s17.05-local-pass-11.md` Part A contains F-P11-001 MEDIUM + O-P11-1/2/3 as described above. PASS.
+
+---
+
+**Block 3: Files touched**
+
+Factory artifacts (all via Edit/Write tools per POL-3, no bypass):
+- `.factory/cycles/v1.0-brownfield-backfill/adv-s17.05-local-pass-11.md` — NEW adversary pass record (Part A: F-P11-001 MEDIUM + O-P11-1/2/3; Part B: VERDICT FINDINGS(1), streak 1/3→0/3, novelty MEDIUM; process self-observation POLICY 14 leg-2 pass-10 seal gap)
+- `.factory/stories/STORY-INDEX.md` — v4.398→v4.399; S-17.05 catalog row `story v1.6`→`v1.7` + F-P11-001/O-P11-1/2/3 note added; E-17 blockquote `S-17.05=6067e5f (v1.6; ...)` → `(v1.7; F-P11-001 ...)` ; frontmatter version/timestamp/last_amended updated
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this 8-block entry
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — process lesson appended (POLICY 14 leg-2 missing-changelog-row discipline)
+- `.factory/STATE.md` — v9.20→v9.21 (streak 1/3→0/3; STORY-INDEX v4.398→v4.399 cite; feature/S-17.05 a8d85160→a73086a5; trajectory-tail →0→1→0→0 LENGTH=4 UNCHANGED per FINDINGS-no-push discipline; Session Resume Checkpoint refreshed)
+
+Develop-side: `feature/S-17.05` HEAD advanced to `a73086a5605c1953a797f8b3520de94730b2c4a4` (doc-comment de-pin commits + O-P11-2/3 fixes; 32 tests pass, fmt/clippy clean). Story file S-17.05 body updated (v1.6→v1.7) by story-writer; PUSHED to origin.
+
+---
+
+**Block 4: Codifications**
+
+No new D-NNN allocated (per-story local-cascade convention — no D-NNN for individual local-pass events).
+
+D-chain cite: D-1126 (latest brownfield decision; unchanged this burst).
+
+**Process self-observation — POLICY 14 leg-2 missing-changelog-row (pass-10 seal gap):**
+
+The pass-10 seal (S1705-P10-CLEAN-BURST) bumped story S-17.05 v1.5→v1.6 and updated the STORY-INDEX catalog row and blockquote correctly. However, it did NOT add the `v1.6` entry to the story's `## Changelog` table at the end of the story file. This is a POLICY 14 leg-2 gap: the Changelog table must be updated in the same burst as any version bump. The `validate-changelog-monotonicity` hook correctly blocked the story-writer when attempting to add the v1.7 row without a preceding v1.6 row. Story-writer backfilled BOTH the missing v1.6 row AND the new v1.7 row this burst.
+
+**Going-forward discipline:** Every seal burst that bumps a story version MUST add the corresponding Changelog table row in the same commit. This is now recorded as a formal process lesson in `lessons.md`.
+
+---
+
+**Block 5 (Dim-2): Literal-shell gate attestations per D-449(a)**
+
+STORY-INDEX version gate (post-update):
+```
+$ grep -m1 "^version:" \
+  /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md
+version: "4.399"
+```
+Result: STORY-INDEX v4.399. PASS.
+
+S-17.05 catalog row version gate:
+```
+$ python3 -c "
+with open('.factory/stories/STORY-INDEX.md') as f:
+    lines = f.readlines()
+import re; m = re.search(r'story v(\d+\.\d+)', lines[653])
+if m: print('catalog row story version:', m.group(1))
+ih = re.search(r'input-hash (\w+)', lines[653])
+if ih: print('catalog row input-hash:', ih.group(1))
+"
+catalog row story version: 1.7
+catalog row input-hash: 6067e5f
+```
+Result: catalog row = v1.7, input-hash = 6067e5f. PASS.
+
+Three-way POLICY 18 input-hash parity gate:
+```
+$ grep -n "^input.hash:" \
+  .factory/stories/S-17.05-stamp-state-timestamp-hook.md
+23:input-hash: "6067e5f"
+
+$ python3 -c "
+with open('.factory/stories/STORY-INDEX.md') as f:
+    lines = f.readlines()
+for i, line in enumerate(lines):
+    if 'S-17.05=6067e5f' in line:
+        import re
+        m = re.search(r'S-17\.05=6067e5f \([^)]+\)', line)
+        if m: print(f'line {i+1}:', m.group()[:80])
+"
+line 8: S-17.05=6067e5f (v1.7; F-P11-001 BC-gate header version-cite + [pending] re
+line 789: S-17.05=6067e5f (v1.7; F-P11-001 BC-gate header version-cite + [pending] r
+```
+Result: frontmatter=6067e5f; catalog-row=6067e5f; blockquote=6067e5f. Three-way parity VERIFIED. PASS.
+
+D-448(a) source-attestation gate: `adv-s17.05-local-pass-11.md` Part A contains F-P11-001 MEDIUM (POLICY 4 version-cite, BC-gate header) and O-P11-1/2/3 as described in Block 2 above. Source-attestation parity VERIFIED. PASS.
+
+---
+
+**Block 6 (Dim-5): Files opened/closed**
+
+Closes:
+- S-17.05 local adversary pass 11 (FINDINGS — 1 MEDIUM + 3 observations; all fixed in-scope; streak 1/3→0/3).
+- F-P11-001: BC-gate header version-cite now current (BC-4.17.001 v1.28 / BC-5.40.001 v1.21); false `[pending]` claim removed.
+- O-P11-1: Token Budget self-label corrected v1.1→v1.7.
+- O-P11-2/O-P11-3: Volatile version-token doc-comments de-pinned (5 sites); test-count comment corrected 31→32.
+- **POLICY 14 leg-2 pass-10 seal gap:** Missing v1.6 Changelog row backfilled by story-writer.
+
+Opens / advances:
+- S-17.05 local adversary pass 12 queued (fresh context, against `feature/S-17.05` @ `a73086a5`). Streak RESET to 0/3; need 3 consecutive CLEAN passes (12/13/14) for local 3-CLEAN.
+
+---
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## S1705-P11-FINDINGS-BURST` present. PASS.
+D-446(a) own-burst-log 8-block gate: this entry contains Blocks 1-8. PASS.
+D-448(a) source-attestation gate: `adv-s17.05-local-pass-11.md` Part A finding set (F-P11-001 MEDIUM + O-P11-1/2/3) faithfully described in Block 2. PASS.
+D-449(a) literal-shell-execution: STORY-INDEX version grep + catalog-row python gate + three-way parity grep all executed with captured stdout in Block 5. PASS.
+Per TD-FACTORY-HOOK-BYPASS-001 P0: all `.factory/` mutations via Edit/Write/Bash(cat>>) tools only; no Python/sed/echo bypass via shell redirection for file reads. PASS.
+`feature/S-17.05` HEAD advanced from `a8d85160` → `a73086a5` (doc-comment de-pin + O-P11-2/3 fixes; PUSHED to origin). PASS.
+Input-hash UNCHANGED at `6067e5f` (inputs-array files did not change). PASS.
+
+---
+
+**Block 8: factory-artifacts commit**
+
+Parent SHA: `63fe7172` (S1705-P10-CLEAN-BURST 2026-08-28).
+This burst commit SHA: `[TBD — SHA-patch post-push per D-449(e)]`.
