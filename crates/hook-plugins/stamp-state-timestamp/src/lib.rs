@@ -534,7 +534,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 }
 
 // ---------------------------------------------------------------------------
-// S-17.05 v1.5 test suite (BC-5.38.001 strict tdd_mode)
+// S-17.05 stamp-state-timestamp test suite (BC-5.38.001 strict tdd_mode)
 //
 // 32 unit tests: 30 exercise guard_logic() with injected callbacks, covering
 // BC-4.17.001 PC1–PC5 + AC-001..AC-018 + EC-013..EC-017;
@@ -542,7 +542,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 //   - test_ttl_seconds_constant_equals_2700
 //   - test_ttl_seconds_is_imported_not_redeclared
 //
-// Test naming follows the S-17.05 v1.5 Red Gate Test Table (authoritative).
+// Test naming follows the S-17.05 Red Gate Test Table (authoritative).
 // ---------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
@@ -695,7 +695,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // Additional fixture helpers added in S-17.05 v1.5 (8 consolidated-conformance tests)
+    // Additional fixture helpers (8 consolidated-conformance tests)
     // -----------------------------------------------------------------------
 
     /// Build a valid STATE.md byte-vec of exactly `total_len` bytes.
