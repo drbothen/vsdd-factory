@@ -155,9 +155,12 @@ pub fn renew_lock(state_md_content: &str) -> Result<RenewOutcome, LockError> {
 /// (ADR-028 §Decision 16 F-R3-005) without relying on wall-clock timing.
 ///
 /// `renew_lock` delegates to this with `|| Utc::now()`.
+///
+/// `now_fn` is called exactly once per invocation; the `FnOnce` bound encodes
+/// this invariant at the type level.
 pub fn renew_lock_with_now<F>(state_md_content: &str, now_fn: F) -> Result<RenewOutcome, LockError>
 where
-    F: Fn() -> DateTime<Utc>,
+    F: FnOnce() -> DateTime<Utc>,
 {
     // Step 1: presence pre-check — bash parity (F-NW2-006 / ADR-028 §Decision 9).
     // If factory_lock: key is NOT present (regardless of fence shape), return NoOp.
@@ -468,8 +471,9 @@ pub fn classify_identity_resolution(
 /// - `content` — full STATE.md content (pure content-in/content-out; no I/O).
 /// - `resolve_identity` — lazy `FnOnce` closure that resolves the caller's git
 ///   identity. Called only when the lock is present, valid, and not expired.
-/// - `now_fn` — injectable clock closure; use `|| Utc::now()` in production.
-///   Enables deterministic testing without wall-clock timing.
+/// - `now_fn` — injectable clock closure (`FnOnce`); use `|| Utc::now()` in production.
+///   Enables deterministic testing without wall-clock timing. Called exactly once
+///   per invocation (SEC-004 / B-3 compile-time safety gate).
 ///
 /// Pure-core function; `resolve_identity` and `now_fn` are the only effectful
 /// surfaces (injected by caller). WASM-hermetic; no direct host I/O.
@@ -479,9 +483,18 @@ pub fn renew_lock_if_holder<F, I>(
     now_fn: F,
 ) -> Result<(RenewOutcome, Option<SkipReason>), LockError>
 where
-    F: Fn() -> DateTime<Utc>,
+    F: FnOnce() -> DateTime<Utc>,
     I: FnOnce() -> IdentityResolution,
 {
+    // B-1 pre-check: if factory_lock: key absent, return NoOp immediately.
+    // Matches bash parity (F-NW2-006 / ADR-028 §Decision 9) — same guard used by
+    // renew_lock_with_now. Without this, parse_factory_lock returns Err(Malformed)
+    // for any STATE.md with no closing --- delimiter even when factory_lock: is absent.
+    // resolve_identity is NOT called (AC-002 lazy-call invariant).
+    if !has_factory_lock_key(content) {
+        return Ok((RenewOutcome::NoOp, None));
+    }
+
     // Cases 0 and 1: parse the factory_lock block.
     // resolve_identity is NOT called for these two cases (AC-002 lazy-call invariant).
     let lock_state = match flp::parse_factory_lock(content) {
@@ -523,8 +536,10 @@ where
             ))
         }
         IdentityResolution::Resolved(email) => {
-            if email != lock_state.holder {
-                // Case 3: different identity — not the holder.
+            if email != trim_git_email(&lock_state.holder) {
+                // Case 3: different identity — not the holder (comparison after trim_git_email
+                // on both sides per AC-001; email already trimmed by classify_identity_resolution,
+                // holder trimmed here to handle raw YAML-parsed whitespace — B-2).
                 Ok((RenewOutcome::NoOp, Some(SkipReason::NotHolder)))
             } else {
                 // Case 5: identity matches — delegate to renew_lock_with_now.
@@ -1158,6 +1173,70 @@ mod tests {
                 "F-P1-003: now==expires_at must return AlreadyExpired, got: {:?}",
                 other
             ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // B-1 test — has_factory_lock_key pre-check in renew_lock_if_holder
+    // -----------------------------------------------------------------------
+
+    /// B-1: plain STATE.md body with no factory_lock section →
+    /// Ok((RenewOutcome::NoOp, None)). resolve_identity must NOT be called.
+    ///
+    /// Without the B-1 pre-check, parse_factory_lock would return Err(Malformed)
+    /// for a STATE.md with no closing --- delimiter, even when factory_lock: is absent.
+    #[test]
+    fn test_renew_lock_if_holder_no_factory_lock_key_returns_noop() {
+        // fixture_no_lock() is a plain STATE.md with no factory_lock section.
+        let result = renew_lock_if_holder(
+            fixture_no_lock(),
+            || panic!("resolve_identity must NOT be called when factory_lock: key is absent (B-1 pre-check)"),
+            now_past,
+        );
+        let (outcome, skip) = result.expect("no factory_lock key must return Ok");
+        match outcome {
+            RenewOutcome::NoOp => {}
+            RenewOutcome::Renewed(_) => {
+                panic!("no factory_lock key must return NoOp, not Renewed (B-1)")
+            }
+        }
+        assert!(
+            skip.is_none(),
+            "no factory_lock key must return None skip reason, got: {:?}",
+            skip
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // B-3 test — now_fn called exactly once in case 5 (SEC-004 / FnOnce gate)
+    // -----------------------------------------------------------------------
+
+    /// B-3: now_fn must be called exactly once in the case 5 (success) path.
+    /// The FnOnce bound on now_fn encodes this invariant at the type level —
+    /// re-passing now_fn directly to renew_lock_with_now becomes a compile error.
+    #[test]
+    fn test_renew_lock_if_holder_now_fn_called_exactly_once() {
+        use std::sync::{Arc, Mutex};
+
+        let count = Arc::new(Mutex::new(0u32));
+        let c = count.clone();
+        let result = renew_lock_if_holder(
+            fixture_valid_unexpired_lock(),
+            || IdentityResolution::Resolved("holder@example.com".to_string()),
+            move || {
+                *c.lock().unwrap() += 1;
+                now_past()
+            },
+        );
+        assert!(result.is_ok(), "case 5 must return Ok");
+        assert_eq!(
+            *count.lock().unwrap(),
+            1,
+            "now_fn must be called exactly once for case 5 (SEC-004 / B-3)"
+        );
+        match result.unwrap().0 {
+            RenewOutcome::Renewed(_) => {}
+            RenewOutcome::NoOp => panic!("case 5 must return Renewed, not NoOp (B-3)"),
         }
     }
 }
