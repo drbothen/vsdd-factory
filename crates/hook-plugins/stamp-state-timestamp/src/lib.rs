@@ -28,11 +28,11 @@
 //!
 //! # Behavioral Contracts
 //!
-//! - BC-4.17.001 v1.27: stamp-state-timestamp PostToolUse hook — unconditional
+//! - BC-4.17.001 — stamp-state-timestamp PostToolUse hook — unconditional
 //!   `timestamp:` re-stamp (PC1), identity-gated `expires_at` renewal (PC2),
 //!   fail-open (PC3), idempotent frontmatter-only rewrite (PC4), no lock-lifecycle
 //!   involvement (PC5).
-//! - BC-5.40.001 v1.21 PC4: mid-burst TTL keep-alive — actor reassigned to this hook.
+//! - BC-5.40.001 PC4: mid-burst TTL keep-alive — actor reassigned to this hook.
 //!
 //! # Architecture compliance
 //!
@@ -536,11 +536,9 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 // ---------------------------------------------------------------------------
 // S-17.05 v1.5 test suite (BC-5.38.001 strict tdd_mode)
 //
-// 31 unit tests covering BC-4.17.001 PC1–PC5 + AC-001..AC-018 + EC-013..EC-017.
-// Each test calls guard_logic() with injected callbacks.
-// ALL 31 tests MUST PASS (Green Gate) after S-17.05 T-3 implementation.
-//
-// Plus 2 source-scan / constant-equality tests that do NOT call guard_logic:
+// 32 unit tests: 30 exercise guard_logic() with injected callbacks, covering
+// BC-4.17.001 PC1–PC5 + AC-001..AC-018 + EC-013..EC-017;
+// 2 assert on canonical constants (do NOT call guard_logic):
 //   - test_ttl_seconds_constant_equals_2700
 //   - test_ttl_seconds_is_imported_not_redeclared
 //
