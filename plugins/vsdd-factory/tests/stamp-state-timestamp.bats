@@ -176,7 +176,7 @@ EOF
 _write_state_self_lock() {
   local git_email
   git_email="$(git config user.email 2>/dev/null || echo "testuser@example.com")"
-  local expires_at="${1:-2026-08-27T12:45:00Z}"
+  local expires_at="${1:-2099-01-01T00:45:00Z}"
   mkdir -p "$WORK/.factory"
   cat > "$WORK/.factory/STATE.md" <<EOF
 ---
@@ -418,10 +418,12 @@ _run_dispatcher() {
   _require_artifacts
   _write_full_registry
 
-  # Fixture expires_at: a value in the past (already stale at any invocation time).
-  # After the hook runs, expires_at must be refreshed to approximately NOW + 2700s.
-  local stale_expires="2026-08-27T12:45:00Z"
-  _write_state_self_lock "$stale_expires"
+  # Fixture expires_at: FAR-FUTURE value — valid (unexpired) at any invocation time.
+  # The lock must be valid so Case-5 (identity-match + not-expired → renewal fires) applies.
+  # An expired fixture would trigger Case-2 (AlreadyExpired → NoOp), which is the opposite
+  # of AC-014's intent and is tested separately by test_expired_self_held_lock_never_renewed.
+  local fixture_expires="2099-01-01T00:45:00Z"
+  _write_state_self_lock "$fixture_expires"
 
   # Record the timestamp of the initial STATE.md for later comparison.
   local initial_state
@@ -431,7 +433,12 @@ _run_dispatcher() {
   local envelope
   envelope="{\"event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"session_id\":\"t-ac014\",\"dispatcher_trace_id\":\"ac014-trace\",\"tool_input\":{\"file_path\":\".factory/STATE.md\",\"content\":\"(already-written)\"}}"
 
+  # Bracket the dispatcher call to compute the expected post-renewal expires_at window.
+  local before_epoch
+  before_epoch="$(date -u +%s)"
   _run_dispatcher "$envelope"
+  local after_epoch
+  after_epoch="$(date -u +%s)"
 
   # PostToolUse hooks do not block; dispatcher must exit 0.
   [ "$status" -eq 0 ] || {
@@ -444,15 +451,14 @@ _run_dispatcher() {
   local actual_state
   actual_state="$(cat "$WORK/.factory/STATE.md")"
 
-  # AC-014 PC2 / BC-5.40.001 PC4: expires_at MUST have changed.
-  # The hook must have renewed the lock to now + TTL_SECONDS (2700s).
-  # We check that the stale fixture value is no longer present.
-  echo "$actual_state" | grep -q "expires_at: \"${stale_expires}\"" && {
+  # AC-014 PC2 / BC-5.40.001 PC4: fixture value must be gone (renewal fired).
+  # The far-future fixture (${fixture_expires}) must be replaced by now + TTL_SECONDS (2700s).
+  echo "$actual_state" | grep -q "expires_at: \"${fixture_expires}\"" && {
     echo "FAIL: AC-014 PC2 / BC-5.40.001 PC4 — expires_at was NOT renewed."
-    echo "Stale fixture value ${stale_expires} is still present after hook invocation."
+    echo "Fixture value ${fixture_expires} is still present after hook invocation."
     echo "Expected: expires_at renewed to approximately NOW + 2700s."
     echo "This means either the hook did not fire (WASM not loaded), identity resolution"
-    echo "failed, or the stub has not implemented PC2 renewal logic."
+    echo "failed, or renewal logic is not implemented."
     echo "Actual STATE.md after hook:"
     echo "$actual_state"
     return 1
@@ -473,6 +479,33 @@ _run_dispatcher() {
     echo "The factory_lock block must retain all three fields (holder, locked_at, expires_at)."
     echo "Actual STATE.md after hook:"
     echo "$actual_state"
+    return 1
+  }
+
+  # O-S1705-P1-001 (positive coverage): verify the NEW expires_at is approximately now + 2700s.
+  # This assertion prevents false-green if expires_at were accidentally dropped or left
+  # with an incidentally different value rather than properly renewed to now + TTL_SECONDS.
+  # Renewed value must fall in [before_epoch+2700, after_epoch+2700+5] (5s fudge for CI).
+  local new_expires
+  new_expires="$(echo "$actual_state" | grep 'expires_at:' | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z')"
+  local new_expires_epoch
+  new_expires_epoch="$(date -juf "%Y-%m-%dT%H:%M:%SZ" "$new_expires" +%s 2>/dev/null)" || {
+    echo "FAIL: AC-014 O-S1705-P1-001 — cannot parse renewed expires_at as UTC ISO-8601: '${new_expires}'"
+    echo "Expected a value approximately equal to now + 2700s (before_epoch=${before_epoch})."
+    return 1
+  }
+  local expected_min=$(( before_epoch + 2700 ))
+  local expected_max=$(( after_epoch + 2700 + 5 ))
+  [ "$new_expires_epoch" -ge "$expected_min" ] || {
+    echo "FAIL: AC-014 O-S1705-P1-001 — renewed expires_at (${new_expires}, epoch=${new_expires_epoch})"
+    echo "  is earlier than expected minimum before_epoch(${before_epoch})+2700=${expected_min}."
+    echo "  Renewal must set expires_at = now + TTL_SECONDS (2700s)."
+    return 1
+  }
+  [ "$new_expires_epoch" -le "$expected_max" ] || {
+    echo "FAIL: AC-014 O-S1705-P1-001 — renewed expires_at (${new_expires}, epoch=${new_expires_epoch})"
+    echo "  exceeds expected maximum after_epoch(${after_epoch})+2700+5=${expected_max}."
+    echo "  Clock skew or systematic TTL offset exceeds tolerance."
     return 1
   }
 }
