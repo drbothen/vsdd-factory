@@ -616,6 +616,24 @@ mod tests {
         )
     }
 
+    /// STATE.md with a factory_lock block whose expires_at is present-but-unparseable.
+    /// holder is non-empty so parse_factory_lock returns Ok(Some(ls)), but expires_at
+    /// = "not-a-timestamp" makes parse_iso8601 fail → Err(LockError::Malformed(_)).
+    /// F-P1-002 / EC-007 input.
+    fn fixture_unparseable_expires_at_lock() -> &'static str {
+        concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"test\"\n",
+            "phase: test\n",
+            "factory_lock:\n",
+            "  holder: \"holder@example.com\"\n",
+            "  locked_at: \"2026-01-01T10:00:00Z\"\n",
+            "  expires_at: \"not-a-timestamp\"\n",
+            "---\n\n# STATE\n",
+        )
+    }
+
     /// Injectable clock returning 2026-08-27 12:00:00Z.
     /// After expired fixture (2020) but before valid fixture (2099): discriminates cases 2 vs 3/4/5.
     fn now_past() -> DateTime<Utc> {
@@ -1013,5 +1031,104 @@ mod tests {
             "trim_git_email(\"\\n\") must return empty string (EC-008), got: {:?}",
             r4
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P1-002 — mutation-killing coverage: case-1 extension, unparseable expires_at (EC-007)
+    // -----------------------------------------------------------------------
+
+    /// F-P1-002 (EC-007): expires_at present-but-unparseable routes to Err(Malformed).
+    ///
+    /// fixture_unparseable_expires_at_lock() carries holder="holder@example.com"
+    /// (non-empty) and expires_at="not-a-timestamp" (non-empty). parse_factory_lock
+    /// returns Ok(Some(ls)) because the holder field is valid; the block is structurally
+    /// well-formed. parse_iso8601("not-a-timestamp") then fails in renew_lock_if_holder,
+    /// and map_err(...)? propagates Err(LockError::Malformed(_)) before the identity step.
+    ///
+    /// resolve_identity MUST NOT be called (AC-002 lazy-call: case-1 extension
+    /// short-circuits before the identity step). The panic closure enforces this.
+    ///
+    /// Mutant killed: dropping the `?` or the map_err on the parse_iso8601 call would
+    /// allow execution to fall through past the error and either panic on an unwrap or
+    /// proceed to the identity step (hitting the panic closure). Either way the test fails
+    /// on the mutant.
+    #[test]
+    fn test_renew_lock_if_holder_malformed_expires_at_returns_err() {
+        let result = renew_lock_if_holder(
+            fixture_unparseable_expires_at_lock(),
+            || {
+                panic!(
+                    "resolve_identity must NOT be called when expires_at is unparseable \
+                 (F-P1-002, AC-002 case-1 extension)"
+                )
+            },
+            now_past,
+        );
+        match result {
+            Err(LockError::Malformed(_)) => {}
+            Ok((_, _)) => panic!(
+                "F-P1-002: unparseable expires_at must return Err(LockError::Malformed), not Ok"
+            ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P1-003 — mutation-killing coverage: case-2 boundary now == expires_at (BC-4.17.001 PC2)
+    // -----------------------------------------------------------------------
+
+    /// F-P1-003: boundary now == expires_at is treated as AlreadyExpired (load-bearing `>=`).
+    ///
+    /// The fixture carries expires_at="2026-06-15T08:30:00Z"; now_fn returns exactly
+    /// that same instant. The condition `now >= expires_at_dt` is true at the boundary
+    /// point → Ok((NoOp, Some(AlreadyExpired))). resolve_identity MUST NOT be called
+    /// (AC-002 lazy-call: case 2 short-circuits before the identity step).
+    ///
+    /// Mutant killed: flipping `>=` → `>` makes `now == expires_at_dt` evaluate to
+    /// false. Execution would then fall through to the identity step and hit the panic
+    /// closure, failing the test on the mutant.
+    #[test]
+    fn test_renew_lock_if_holder_now_equals_expires_at_is_expired() {
+        let content = concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"test\"\n",
+            "phase: test\n",
+            "factory_lock:\n",
+            "  holder: \"holder@example.com\"\n",
+            "  locked_at: \"2026-01-01T10:00:00Z\"\n",
+            "  expires_at: \"2026-06-15T08:30:00Z\"\n",
+            "---\n\n# STATE\n",
+        );
+        // now_fn returns EXACTLY expires_at — the boundary instant.
+        let now_exact = || {
+            "2026-06-15T08:30:00Z"
+                .parse::<DateTime<Utc>>()
+                .expect("boundary timestamp must parse as DateTime<Utc>")
+        };
+        let result = renew_lock_if_holder(
+            content,
+            || {
+                panic!(
+                    "resolve_identity must NOT be called when now == expires_at \
+                 (F-P1-003, AC-002 case 2 boundary)"
+                )
+            },
+            now_exact,
+        );
+        let (outcome, skip) =
+            result.expect("F-P1-003: now==expires_at must return Ok (AlreadyExpired)");
+        match outcome {
+            RenewOutcome::NoOp => {}
+            RenewOutcome::Renewed(_) => {
+                panic!("F-P1-003: now==expires_at must return NoOp, not Renewed")
+            }
+        }
+        match skip.expect("F-P1-003: now==expires_at must carry a skip reason") {
+            SkipReason::AlreadyExpired => {}
+            other => panic!(
+                "F-P1-003: now==expires_at must return AlreadyExpired, got: {:?}",
+                other
+            ),
+        }
     }
 }
