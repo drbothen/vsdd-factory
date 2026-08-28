@@ -8984,4 +8984,4 @@ Per TD-FACTORY-HOOK-BYPASS-001 P0: all `.factory/` mutations via Edit/Write tool
 **Block 8: factory-artifacts commit**
 
 Parent SHA: `f4c018b2` (D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY + SESSION-WRAP-PAUSE).
-This burst commit SHA: TBD — D-449(e) SHA-patch to be applied post-push.
+This burst commit SHA: `4df7c0e7` — D-449(e) SHA-patch applied post-push 2026-08-28.

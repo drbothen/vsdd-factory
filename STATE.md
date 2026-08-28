@@ -104,7 +104,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **3200149d** | S-17.06 MERGED PR #787 2026-08-28. Chain: 6993138b→PR #786 fc7cbccb (orphan-WASM + release.yml-exclude)→PR #787 3200149d (S-17.06). CI-GREEN. |
-| factory-artifacts | **TBD** | S1705-P9-FIX-BURST 2026-08-28 (this commit). Prior: f4c018b2 (D-1126). |
+| factory-artifacts | **4df7c0e7** | S1705-P9-FIX-BURST 2026-08-28. Prior: f4c018b2 (D-1126). |
 | feature/S-17.05 | **a8d85160** | IN FLIGHT — mid local BC-5.39.001 3-CLEAN (streak 0/3; pass 9 FINDINGS→all fixed; pass 10 next). PUSHED to origin. Prior: fcc0fb7f (pass 8 CLEAN). |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
