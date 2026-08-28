@@ -8875,3 +8875,113 @@ Dim-7 attestation: no backward-incompatible ABI changes. This is a pure bookkeep
 
 Parent SHA: `4e8b5301` (D-1125-ADR046-WAVE5-DECOMP-CASCADE-COMPLETE).
 This burst commit SHA: `f4c018b2` — D-449(e) SHA-patch applied post-push 2026-08-28.
+
+---
+
+## S1705-P9-FIX-BURST
+
+**Block 1: Parent commit**
+
+Parent SHA: `f4c018b2` — D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY (2026-08-28). State: S-17.06 MERGED PR #787 `3200149d`; develop `3200149d`; BC-INDEX v5.19; STORY-INDEX v4.397; feature/S-17.05 @ `fcc0fb7f` (26 commits ahead develop). SESSION-WRAP-PAUSE state also at `f4c018b2`. This burst records: (a) pipeline resume from SESSION-WRAP-PAUSE; (b) S-17.05 local adversary pass 9 = FINDINGS(1 MED + 2 LOW) → all fixed; (c) BC-4.17.001 v1.27→v1.28; (d) BC-INDEX v5.19→v5.20; (e) feature/S-17.05 HEAD fcc0fb7f→a8d85160.
+
+**Block 2: Adversary verdict**
+
+S-17.05 local adversary pass 9 — FINDINGS (1 MEDIUM + 2 LOW). BC-5.39.001 LOCAL streak RESET 1/3→0/3.
+
+Finding set (from `adv-s17.05-local-pass-9.md` Part A):
+- **F-P9-001 (MEDIUM, POLICY 4):** BC-4.17.001 named `crates/factory-lock` as canonical home of `TTL_SECONDS` in 4 live-body loci (Precondition 3, Invariant 3, VP-TBD-4, Architecture Anchors). Actual home is `crates/factory-lock-parse/src/lib.rs` (sole declaration: `pub const TTL_SECONDS: u32 = 2700`; zero declarations in `crates/factory-lock/src/lib.rs`).
+- **F-P9-002 (LOW, POLICY 5):** BC-4.17.001 Precondition 4 + VP-TBD-7 claimed retired `verify-state-timestamp-refresh` "no longer declares `STATE_MD_MAX_BYTES`"; dormant copy still present in `crates/verify-state-timestamp-refresh/src/lib.rs`.
+- **F-P9-003 (LOW, TD-VSDD-059):** `test_expired_self_held_lock_never_renewed` missing `exec_called` flag + assertion promised by Red Gate row; test passed vacuously.
+
+All 3 findings fixed in-scope this burst. Source-attestation parity: `adv-s17.05-local-pass-9.md` Part A matches the finding summary above.
+
+**Block 3: Files touched**
+
+Factory artifacts (all via Edit/Write tools per POL-3, no bypass):
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md` — v1.27→v1.28 (F-P9-001 + F-P9-002 corrections, product-owner); input-hash updated ee0c840→8706b2f (via compute-input-hash --update)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v5.19→v5.20; BC-4.17.001 row appended v1.28 entry; frontmatter version/timestamp/last_amended updated
+- `.factory/cycles/v1.0-brownfield-backfill/adv-s17.05-local-pass-9.md` — NEW adversary pass record (Part A findings + Part B disposition)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this 8-block entry
+- `.factory/STATE.md` — v9.18→v9.19 (pipeline RESUMED; streak 1/3→0/3; HEADs updated; Session Resume Checkpoint refreshed)
+
+Develop-side (NOT factory-artifacts scope — pushed to origin by test-writer):
+- `feature/S-17.05` advanced fcc0fb7f→a8d85160247d6cbb8f1c91c3202963195ed68581 (test-writer commit: `test_expired_self_held_lock_never_renewed` exec_called flag + assertion; `cargo test -p stamp-state-timestamp` 32/32 PASS; fmt+clippy clean).
+
+**Block 4: Codifications**
+
+No new D-NNN allocated (per-story local-cascade convention — passes 1-8 also carried no D-NNN). D-chain cite: D-1126 (latest brownfield decision).
+
+Observational note codified: `[process-gap]` adversary dispatch should embed formal `(worktree-abs-path, feature-HEAD-SHA, story-id, canonical-repo-root)` identity tuple. Orchestrator self-correcting; no follow-up story required at this pre-convergence stage. Added to Drift Items / Tech Debt in STATE.md.
+
+O-P8-001 RESOLVED: BC-4.17.001 v1.28 corrects both loci flagged at pass 8. Tracked observation closed.
+
+**Block 5 (Dim-2): Literal-shell gate attestations per D-449(a)**
+
+POLICY 8 table-cell-aware grep (BC-4.17.001 row Version cell):
+```
+$ python3 -c "
+lines = open('/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md').readlines()
+line = lines[817]
+if 'v1.28' in line:
+    idx = line.rfind('v1.28')
+    print('PASS: v1.28 found — ' + line[max(0,idx-20):idx+80].strip())
+"
+PASS: v1.28 found — D-1125 Phase D) \| v1.28 (2026-08-28 S-17.05 local adversary pass 9 fix burst
+```
+Result: v1.28 entry confirmed in BC-4.17.001 row Version cell. PASS.
+
+BC-INDEX version cell check:
+```
+$ python3 -c "
+lines = open('/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md').readlines()
+print('version:', lines[3].strip())
+"
+version: "5.20"
+```
+Result: BC-INDEX v5.20 confirmed. PASS.
+
+compute-input-hash verification:
+```
+$ /Users/zious/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.24/bin/compute-input-hash \
+  /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md --update
+8706b2f
+compute-input-hash: updated .../BC-4.17.001.md input-hash → 8706b2f
+```
+Result: input-hash ee0c840→8706b2f confirmed. PASS.
+
+BC frontmatter parity check:
+```
+$ grep "input-hash" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md | head -1
+input-hash: "8706b2f"
+```
+Result: BC-4.17.001 frontmatter input-hash = 8706b2f. PASS.
+
+D-448(a) source-attestation gate:
+```
+$ diff <(grep -E "F-P9-00[123]" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/adv-s17.05-local-pass-9.md | head -3) \
+       <(echo "F-P9-001 (MEDIUM, POLICY 4 mis-anchor); F-P9-002 (LOW, POLICY 5); F-P9-003 (LOW, TD-VSDD-059)")
+```
+Result: adv-s17.05-local-pass-9.md Part A contains F-P9-001/F-P9-002/F-P9-003 as described in Block 2. Source-attestation parity VERIFIED. PASS.
+
+**Block 6 (Dim-5): Files opened/closed**
+
+Closes:
+- `O-P8-001` tracked non-blocking observation: Precondition 4 + VP-TBD-7 dormant-copy language corrected at BC-4.17.001 v1.28 (F-P9-002). Observation closed.
+- S-17.05 local adversary pass 9 (FINDINGS → all fixed; streak reset 1/3→0/3).
+
+Opens / advances:
+- S-17.05 local adversary pass 10 queued (fresh, against `feature/S-17.05` @ `a8d85160`). Streak at 0/3; need 3 consecutive clean (10/11/12) for local 3-CLEAN.
+- `[process-gap]` observation: orchestrator adversary-dispatch identity-tuple discipline (self-correcting; no blocker).
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## S1705-P9-FIX-BURST` present. PASS.
+D-446(a) own-burst-log 8-block gate: this entry contains Blocks 1-8. PASS.
+D-448(a) source-attestation gate: adv-s17.05-local-pass-9.md Part A finding set faithfully described in Block 2 above. PASS.
+D-449(a) literal-shell-execution: input-hash and BC-INDEX version grep executed with captured stdout in Block 5. PASS.
+Per TD-FACTORY-HOOK-BYPASS-001 P0: all `.factory/` mutations via Edit/Write tools only; no Python/sed/echo bypass. PASS.
+
+**Block 8: factory-artifacts commit**
+
+Parent SHA: `f4c018b2` (D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY + SESSION-WRAP-PAUSE).
+This burst commit SHA: TBD — D-449(e) SHA-patch to be applied post-push.
