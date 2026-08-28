@@ -60,7 +60,7 @@ use factory_lock_parse as flp;
 /// - `Renewed(String)` — lock was held and `expires_at` was updated to
 ///   `now + 2700s`. The `String` contains the new full STATE.md content.
 ///   The caller MUST call `host::write_file(".factory/STATE.md", content)`.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum RenewOutcome {
     /// Lock was absent (or key absent regardless of fence shape) — STATE.md unchanged.
     NoOp,
@@ -1241,6 +1241,85 @@ mod tests {
         match result.unwrap().0 {
             RenewOutcome::Renewed(_) => {}
             RenewOutcome::NoOp => panic!("case 5 must return Renewed, not NoOp (B-3)"),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // BLOCKING-2 discriminating test — unclosed fence without factory_lock key
+    // -----------------------------------------------------------------------
+
+    /// BLOCKING-2: STATE.md with an unclosed frontmatter fence and NO factory_lock: key →
+    /// Ok((RenewOutcome::NoOp, None)).
+    ///
+    /// Without the has_factory_lock_key guard, parse_factory_lock would return
+    /// Err(Malformed("missing closing --- delimiter")), making this Err(LockError::Malformed).
+    /// With the guard, the function short-circuits to Ok((NoOp, None)).
+    ///
+    /// This is the discriminating input that distinguishes the B-1 pre-check from
+    /// the weaker fixture_no_lock() (which already returns Ok(None) via Case 0 even
+    /// without the pre-check, because parse_factory_lock returns Ok(None) for a
+    /// well-formed frontmatter with no lock key).
+    #[test]
+    fn test_renew_lock_if_holder_unclosed_fence_no_lock_key_returns_noop() {
+        // Content has an unclosed frontmatter fence but no factory_lock: key.
+        // Without the has_factory_lock_key guard, parse_factory_lock would return
+        // Err(Malformed("missing closing --- delimiter")), making this Err(LockError::Malformed).
+        // With the guard, the function short-circuits to Ok((NoOp, None)).
+        let content =
+            "---\ndocument_type: state\nphase: test\n\n# STATE body without closing fence";
+        let mut called = 0u32;
+        let result = renew_lock_if_holder(
+            content,
+            || {
+                called += 1;
+                IdentityResolution::Resolved("anyone@example.com".to_string())
+            },
+            || chrono::Utc::now(),
+        );
+        assert_eq!(result, Ok((RenewOutcome::NoOp, None)));
+        assert_eq!(
+            called, 0,
+            "resolve_identity must not be called when factory_lock key is absent"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // BLOCKING-3 discriminating test — holder with trailing whitespace still matches
+    // -----------------------------------------------------------------------
+
+    /// BLOCKING-3: holder field in the YAML has trailing whitespace; resolve_identity
+    /// returns the trimmed email (no trailing whitespace) → Case 5 fires: Renewed.
+    ///
+    /// Without trim_git_email(&state.holder), the comparison fails (Case 3: NotHolder).
+    /// With the fix, both sides are trimmed and Case 5 fires: Renewed.
+    ///
+    /// This is the discriminating test for the B-2 fix in renew_lock_if_holder:
+    /// all existing fixtures have clean holder values so reverting the trim leaves
+    /// all prior tests green. This test fails on the revert.
+    #[test]
+    fn test_renew_lock_if_holder_holder_with_trailing_whitespace_still_matches() {
+        // The holder field in the YAML has trailing whitespace.
+        // resolve_identity returns the trimmed email (no trailing whitespace).
+        // Without trim_git_email(&state.holder), the comparison fails (Case 3: NotHolder).
+        // With the fix, both sides are trimmed and Case 5 fires: Renewed.
+        //
+        // Build fixture content with holder that has trailing whitespace.
+        // Use a fixed far-future expires_at (2099) so Case 2 doesn't fire AND the
+        // spurious-renewal guard (new_expires_at == existing expires_at) cannot fire —
+        // now_fn() + 2700s is always ~2026+45min, never 2099.
+        let locked_at = "2026-08-28T00:00:00Z";
+        let expires_str = "2099-01-01T10:45:00Z";
+        let content = format!(
+            "---\ndocument_type: state\nfactory_lock:\n  holder: holder@example.com   \n  locked_at: {locked_at}\n  expires_at: {expires_str}\n---\n"
+        );
+        let result = renew_lock_if_holder(
+            &content,
+            || IdentityResolution::Resolved("holder@example.com".to_string()),
+            || chrono::Utc::now(),
+        );
+        match result {
+            Ok((RenewOutcome::Renewed(_), None)) => {} // expected
+            other => panic!("Expected Renewed but got {:?}", other),
         }
     }
 }
