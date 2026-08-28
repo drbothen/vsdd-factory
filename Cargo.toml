@@ -48,6 +48,7 @@ members = [
     "crates/sink-datadog",
     "crates/sink-honeycomb",
     "crates/factory-lock",
+    "crates/hook-plugins/stamp-state-timestamp",
     "crates/hook-plugins/precompact-flush",
     "crates/hook-plugins/read-prefix-fixture",
     "crates/hook-plugins/validate-cross-site-correspondence",

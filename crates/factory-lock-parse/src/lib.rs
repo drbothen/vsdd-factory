@@ -28,6 +28,39 @@
 #![cfg_attr(not(kani), allow(unexpected_cfgs))]
 
 // ---------------------------------------------------------------------------
+// Canonical shared constants (S-17.05 T-2 / ADR-046 F-006 / BC-4.17.001 Precondition 3)
+// ---------------------------------------------------------------------------
+
+/// Canonical TTL in seconds for `factory_lock.expires_at` renewal.
+///
+/// Cross-references `plugins/vsdd-factory/bin/factory-lock-write.sh` `TTL_SECONDS=2700`.
+/// Both must remain in sync (BC-4.17.001 Invariant 3 / ADR-046 F-006 single-canonical-TTL-source).
+/// Imported by `stamp-state-timestamp` for PC2 renewal (`expires_at = now + TTL_SECONDS`);
+/// also used to migrate `crates/factory-lock/renew_lock_with_now`'s bare `2700` literal (T-2).
+///
+/// STUB VALUE: set to 0. Implementer MUST change to 2700 (S-17.05 T-2).
+/// BC-5.38.001: non-trivial constant — implementer sets the correct value; test
+/// `test_ttl_seconds_constant_equals_2700` asserts `TTL_SECONDS == 2700` and MUST fail
+/// against this stub value, preserving Red Gate discipline.
+// TODO(S-17.05 T-2): set to 2700 (seconds) — see test_ttl_seconds_constant_equals_2700.
+pub const TTL_SECONDS: u32 = 0;
+
+/// Canonical STATE.md byte read-cap shared across the hook family.
+///
+/// Single canonical home per ADR-046 Decision 5 / F-P5-001.
+/// Imported by `stamp-state-timestamp` as the `max_bytes` argument to
+/// `host::read_file(".factory/STATE.md", STATE_MD_MAX_BYTES, timeout_ms)`.
+/// Parity with BC-5.40.001 / BC-4.13.001 cap-parity requirement (formerly a
+/// per-crate local constant `STATE_MD_MAX_BYTES = 262144` in `verify-state-timestamp-refresh`).
+///
+/// STUB VALUE: set to 0. Implementer MUST change to 262144 (bytes).
+/// BC-5.38.001: non-trivial constant — implementer sets the correct value; test
+/// `test_state_md_max_bytes_constant_equals_262144` asserts `STATE_MD_MAX_BYTES == 262144`
+/// and MUST fail against this stub value, preserving Red Gate discipline.
+// TODO(S-17.05 T-2): set to 262144 (bytes) — see test_state_md_max_bytes_constant_equals_262144.
+pub const STATE_MD_MAX_BYTES: u32 = 0;
+
+// ---------------------------------------------------------------------------
 // Error variants
 // ---------------------------------------------------------------------------
 
