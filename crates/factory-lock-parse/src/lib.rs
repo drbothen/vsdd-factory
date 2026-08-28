@@ -38,10 +38,8 @@
 /// Imported by `stamp-state-timestamp` for PC2 renewal (`expires_at = now + TTL_SECONDS`);
 /// also used to migrate `crates/factory-lock/renew_lock_with_now`'s bare `2700` literal (T-2).
 ///
-/// STUB VALUE: set to 0. Implementer MUST change to 2700 (S-17.05 T-2).
-/// BC-5.38.001: non-trivial constant — implementer sets the correct value; test
-/// `test_ttl_seconds_constant_equals_2700` asserts `TTL_SECONDS == 2700` and MUST fail
-/// against this stub value, preserving Red Gate discipline.
+/// BC-5.38.001: `test_ttl_seconds_constant_equals_2700` asserts `TTL_SECONDS == 2700`
+/// (S-17.05 T-2 / ADR-046 F-006).
 pub const TTL_SECONDS: u32 = 2700;
 
 /// Canonical STATE.md byte read-cap shared across the hook family.
@@ -52,10 +50,8 @@ pub const TTL_SECONDS: u32 = 2700;
 /// Parity with BC-5.40.001 / BC-4.13.001 cap-parity requirement (formerly a
 /// per-crate local constant `STATE_MD_MAX_BYTES = 262144` in `verify-state-timestamp-refresh`).
 ///
-/// STUB VALUE: set to 0. Implementer MUST change to 262144 (bytes).
-/// BC-5.38.001: non-trivial constant — implementer sets the correct value; test
-/// `test_state_md_max_bytes_constant_equals_262144` asserts `STATE_MD_MAX_BYTES == 262144`
-/// and MUST fail against this stub value, preserving Red Gate discipline.
+/// BC-5.38.001: `test_state_md_max_bytes_constant_equals_262144` asserts
+/// `STATE_MD_MAX_BYTES == 262144` (ADR-046 Decision 5 / F-P5-001).
 pub const STATE_MD_MAX_BYTES: u32 = 262_144;
 
 // ---------------------------------------------------------------------------
