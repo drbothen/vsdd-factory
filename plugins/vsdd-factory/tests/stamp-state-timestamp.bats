@@ -237,8 +237,12 @@ _run_dispatcher() {
   # PostToolUse Write envelope: simulates a completed Write to .factory/STATE.md.
   # The hook reads STATE.md from disk; the tool_input content field is not used
   # for decision logic (PostToolUse reads on-disk post-write state).
+  # tool_response is required: guard_logic GAP-3 (BC F-013 Precondition-1) returns
+  # Continue immediately when tool_response is absent/null — simulating a write that
+  # did not complete.  A successful PostToolUse Write carries tool_response with no
+  # "error" key.  Unit tests use "tool_response": {} for the same reason.
   local envelope
-  envelope="{\"event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"session_id\":\"t-ac006\",\"dispatcher_trace_id\":\"ac006-trace\",\"tool_input\":{\"file_path\":\".factory/STATE.md\",\"content\":\"(already-written)\"}}"
+  envelope="{\"event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"session_id\":\"t-ac006\",\"dispatcher_trace_id\":\"ac006-trace\",\"tool_input\":{\"file_path\":\".factory/STATE.md\",\"content\":\"(already-written)\"},\"tool_response\":{}}"
 
   _run_dispatcher "$envelope"
 
@@ -430,8 +434,9 @@ _run_dispatcher() {
   initial_state="$(cat "$WORK/.factory/STATE.md")"
 
   # PostToolUse Write envelope: simulates a completed Write to .factory/STATE.md.
+  # tool_response required — same rationale as AC-006 (GAP-3 / BC F-013 gate).
   local envelope
-  envelope="{\"event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"session_id\":\"t-ac014\",\"dispatcher_trace_id\":\"ac014-trace\",\"tool_input\":{\"file_path\":\".factory/STATE.md\",\"content\":\"(already-written)\"}}"
+  envelope="{\"event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"session_id\":\"t-ac014\",\"dispatcher_trace_id\":\"ac014-trace\",\"tool_input\":{\"file_path\":\".factory/STATE.md\",\"content\":\"(already-written)\"},\"tool_response\":{}}"
 
   # Bracket the dispatcher call to compute the expected post-renewal expires_at window.
   local before_epoch
