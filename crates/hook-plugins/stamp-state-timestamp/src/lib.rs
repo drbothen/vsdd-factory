@@ -112,16 +112,15 @@ where
 ///   2. Validate UTF-8, opening `---\n`, closing `---` delimiter, `timestamp:`
 ///      anchor line present. On any failure: return Continue (PC3).
 ///   3. PC1: replace `timestamp:` line → `timestamp: <now formatted YYYY-MM-DDTHH:MM:SSZ>`.
-///   4. PC2: call `exec_subprocess(["git", "config", "user.email"])`, classify via
-///      `factory_lock::classify_identity_resolution`.  If identity matches holder,
-///      call `factory_lock::renew_lock_with_now` to rewrite
-///      `factory_lock.expires_at = now + TTL_SECONDS`.
-///      Identity-mismatch, absent lock, or identity-resolution failure →
-///      `expires_at` left byte-identical (SAFETY-CRITICAL for AC-006).
-///      NOTE: renewal is purely identity-gated (BC-4.17.001 PC2 truth table has no expiry
-///      gate row).  `renew_lock_if_holder` is intentionally NOT used here because its
-///      Case-2 expiry gate would suppress mid-burst renewal of expired-but-self-held locks
-///      (BC-5.40.001 PC4 keep-alive requirement).
+///   4. PC2: build a lazy `resolve_identity` closure wrapping `exec_subprocess` +
+///      `factory_lock::classify_identity_resolution`, then call
+///      `factory_lock::renew_lock_if_holder(&content_after_pc1, resolve_identity, || now)`.
+///      The canonical 6-case decision tree (ADR-046 Decision 1(b)) handles:
+///      Case 0 (absent/null → NoOp), Case 1 (malformed → Err → fail-open write PC1 only),
+///      Case 2 (already expired → NoOp; ADR-046 anti-resurrection; SAFETY-CRITICAL),
+///      Case 3 (not holder → NoOp), Case 4 (resolution failed → NoOp),
+///      Case 5 (identity matches + not expired → Renewed).
+///      An expired self-held lock is NEVER renewed even when identity matches.
 ///   5. Call `write_file(".factory/STATE.md", reconstructed_full_content)`.
 ///      On write error: swallow (PC3 fail-open; agent's write is not reverted).
 ///   6. Return `HookResult::Continue` (Invariant 4: no `block_intent` capability).
@@ -144,8 +143,7 @@ where
     NF: FnOnce() -> DateTime<Utc>,
 {
     use factory_lock::{
-        IdentityResolution, RenewOutcome, classify_identity_resolution, renew_lock_with_now,
-        trim_git_email,
+        LockError, RenewOutcome, classify_identity_resolution, renew_lock_if_holder,
     };
 
     // Step 1 (PC3): read STATE.md — fail-open on host error.
@@ -214,28 +212,24 @@ where
         &content[4 + ts_line_end..],
     );
 
-    // Step 5 (PC2): identity-gated expires_at renewal.
-    // Purely identity-gated: no expiry gate (BC-4.17.001 PC2 truth table).
-    // renew_lock_with_now is called only when identity matches holder.
-    let exec_result = (callbacks.exec_subprocess)(&["git", "config", "user.email"]);
-    let identity = classify_identity_resolution(exec_result);
-    let content_after_pc2 = match identity {
-        IdentityResolution::Failed(_) => content_after_pc1,
-        IdentityResolution::Resolved(email) => {
-            match flp::parse_factory_lock(&content_after_pc1) {
-                Ok(Some(lock_state)) if email == trim_git_email(&lock_state.holder) => {
-                    // Identity matches holder — renew expires_at unconditionally.
-                    // Capture `now` (already-evaluated once by now_fn above) to satisfy
-                    // FnOnce: renew_lock_with_now calls its now_fn exactly once internally.
-                    match renew_lock_with_now(&content_after_pc1, move || now) {
-                        Ok(RenewOutcome::Renewed(new_content)) => new_content,
-                        _ => content_after_pc1, // NoOp (spurious-renewal guard) or error
-                    }
-                }
-                _ => content_after_pc1, // absent/null/malformed block or identity mismatch
-            }
-        }
-    };
+    // Step 5 (PC2): identity-gated expires_at renewal via canonical renew_lock_if_holder.
+    // The 6-case decision tree (ADR-046 Decision 1(b)) is fully encapsulated inside
+    // renew_lock_if_holder — including the expiry gate (Case 2):
+    //   Case 0 (absent/null) → NoOp
+    //   Case 1 (malformed)   → Err(Malformed) → fail-open: write PC1 timestamp only
+    //   Case 2 (already expired) → NoOp; ADR-046 anti-resurrection (SAFETY-CRITICAL)
+    //   Case 3 (not holder)  → NoOp
+    //   Case 4 (identity resolution failed) → NoOp
+    //   Case 5 (identity matches, not expired) → Renewed
+    let exec_subprocess = callbacks.exec_subprocess;
+    let resolve_identity =
+        move || classify_identity_resolution(exec_subprocess(&["git", "config", "user.email"]));
+    let content_after_pc2 =
+        match renew_lock_if_holder(&content_after_pc1, resolve_identity, move || now) {
+            Ok((RenewOutcome::Renewed(new_content), _)) => new_content,
+            Ok((RenewOutcome::NoOp, _)) => content_after_pc1, // cases 0/2/3/4 → PC1 timestamp only
+            Err(LockError::Malformed(_)) => content_after_pc1, // case 1 → PC3 fail-open: PC1 only
+        };
 
     // Step 6 (PC3): write back — fail-open on write error (agent's write not reverted).
     let _ = (callbacks.write_file)(".factory/STATE.md", content_after_pc2.as_bytes());
