@@ -528,7 +528,11 @@ where
                 Ok((RenewOutcome::NoOp, Some(SkipReason::NotHolder)))
             } else {
                 // Case 5: identity matches — delegate to renew_lock_with_now.
-                let outcome = renew_lock_with_now(content, now_fn)?;
+                // SEC-004 (CWE-362): pass `|| now` (capturing the already-evaluated
+                // `now`) instead of re-passing `now_fn`. This ensures `now_fn` is
+                // called exactly once per invocation and the same instant is used for
+                // both the expiry check (above) and the renewal timestamp.
+                let outcome = renew_lock_with_now(content, || now)?;
                 Ok((outcome, None))
             }
         }
