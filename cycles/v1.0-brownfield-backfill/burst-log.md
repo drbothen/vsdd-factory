@@ -8789,3 +8789,89 @@ Story files: input-hashes resettled only. No behavioral changes to any BC or ADR
 
 Parent SHA: `add9a3f4` (Phase C — S-17.05 v1.2 + S-17.06/S-17.07 v1.0 NEW).
 This burst commit SHA: `4e8b5301` — D-449(e) SHA-patch applied post-push 2026-08-27.
+
+---
+
+## D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY
+
+**Block 1: Parent commit**
+
+Parent SHA: `4e8b5301` — D-1125-ADR046-WAVE5-DECOMP-CASCADE-COMPLETE (2026-08-27). State: Wave-5 decomp cascade COMPLETE; STORY-INDEX v4.394; BC-INDEX v5.19; ARCH-INDEX v3.95; E-17 7 stories 44pts; develop `6993138b`. This burst records S-17.06 delivery (PR #787, merge `3200149d`) + two governance decisions (D-1126a PR #787 self-approval ratification; D-1126b autonomous-merge policy authorization).
+
+**Block 2: Adversary verdict**
+
+N/A — delivery-recording and governance burst. No fresh-context adversary was dispatched for this bookkeeping burst. S-17.06's per-story adversary cascade (local 3-CLEAN: passes 2/3/4 clean) was performed during S-17.06 TDD delivery as part of the per-story BC-5.39.001 protocol; those findings are recorded in the S-17.06 story delivery artifacts (`docs/demo-evidence/S-17.06/`). Source-attestation gate D-448(a) is not applicable for non-adversary bookkeeping bursts.
+
+**Block 3: Files touched**
+
+Factory artifacts (all via Edit/Write/Bash-append per POL-3, no bypass):
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — D-1125 checkpoint archived verbatim from STATE.md
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1126 block appended (Parts 1-4 + canonical 6-column row)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this 8-block entry
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — governance note appended
+- `.factory/stories/sprint-state.yaml` — S-17.06 added to stories list (status: merged) + detailed entry in Per-story status entries section (pr 787, merge_sha 3200149d, merged_at 2026-08-28, note with merged_count 111→112 + POL-14 exception)
+- `.factory/STATE.md` — v9.15→v9.16
+
+Develop-side (NOT factory-artifacts scope — already landed on develop branch):
+- PR #786 `fc7cbccb`: `plugins/vsdd-factory/hook-plugins/policy15-attestation-gate.wasm` removed + `.github/workflows/release.yml --exclude policy15-attestation-gate` added
+- PR #787 `3200149d`: S-17.06 implementation (crates/factory-lock-parse/, crates/factory-lock/, plugins/vsdd-factory/)
+
+**Block 4: Codifications**
+
+D-1126 codified: `D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY`
+- (a) S-17.06 MERGED PR #787 `3200149d`; merged_count 111→112; develop `6993138b`→`3200149d`
+- (b) POL-14 exception: BC-4.17.001 held at draft (co-implemented Wave-5 group; promotes when S-17.05 + wave-integration gate lands)
+- (c) PR #787 self-approval RATIFIED by human 2026-08-28 (on-the-record risk acceptance)
+- (d) Autonomous-merge policy AUTHORIZED by human 2026-08-28 for this session (pr-manager: story/fix PRs on clean diverse-model review + CI-green; human retains veto-after; excludes release PRs + P0 security + meta-docs)
+
+**Block 5 (Dim-2): Literal-shell gate attestations per D-449(a)**
+
+POLICY 16 ceiling grep (section headers only):
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE "[0-9]+" | sort -n | tail -3
+1123
+1124
+1125
+```
+Result: max D-NNN before D-1126 allocation was D-1125. D-1126 allocated cleanly above ceiling. PASS.
+
+D-446(a) own-burst-log 8-block heading check:
+```
+$ grep "^## D-1126-S1706" .factory/cycles/v1.0-brownfield-backfill/burst-log.md
+## D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY
+```
+Result: h2 heading present. PASS.
+
+Develop HEAD cross-check:
+```
+$ git rev-parse origin/develop
+3200149deb7ebc29c234e97b48de832d126f0c02
+```
+Result: `3200149d` matches STATE.md Active Branches develop row. PASS.
+
+D-448(a) source-attestation gate: N/A (no adversary review file for this bookkeeping burst).
+
+**Block 6 (Dim-5): Files opened/closed**
+
+Closes:
+- `[NEW 2026-08-26] rc.24 fast-follows` blocking issue: release.yml --exclude recurrence-prevention sub-item RESOLVED (PR #786 `fc7cbccb`). Remaining fast-follow sub-items (POLICY-15 release-PR scoping; toolchain-pin + rust-cache; HD-1/HD-2 self-review hook defects; PRs #777/#778/#779 CHANGELOG rows; O-P17-001) remain OPEN.
+- S-17.06 delivery complete (1 of 3 E-17 Wave-5 stories merged).
+
+Opens / advances:
+- S-17.05 spec-boundary correction NEXT (story-writer task: migrate `Duration::seconds(2700)` → `factory_lock_parse::TTL_SECONDS` literal reference in S-17.05; this task belongs in S-17.05, not S-17.06, because S-17.06 creates TTL_SECONDS and S-17.05 uses it).
+- Worktree `.worktrees/S-17.06` cleanup OWED (devops).
+- S-17.05 + S-17.07 TDD UNBLOCKED (both depend on S-17.06 = now merged).
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY` present in Block 5 grep output. PASS.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8 per D-444(c). PASS.
+D-448(a) source-attestation gate: N/A — no adversary review file (bookkeeping burst). N/A.
+D-449(a) literal-shell-execution self-application: POLICY 16 ceiling grep, D-446(a) heading grep, and develop HEAD cross-check all use literal shell with captured stdout in Block 5 — no pseudocode. Per TD-FACTORY-HOOK-BYPASS-001 P0, all `.factory` content mutations used Edit/Write/Bash-append tools; Bash invocations were read-only (grep, rev-parse) or verification-only. PASS.
+
+Dim-7 attestation: no backward-incompatible ABI changes. This is a pure bookkeeping/delivery-recording burst. Spec files (ADR-046/BC-4.17.001/BC-5.40.001/BC-7.07.001) are UNCHANGED. 4-index files (ARCH-INDEX/BC-INDEX/VP-INDEX/STORY-INDEX) are UNCHANGED in this burst (no new BCs, no new VPs, no new index rows required for a delivery-only recording). Behavioral contracts affected: BC-4.17.001 status held at draft per POL-14 exception (no code change — bookkeeping only).
+
+**Block 8: factory-artifacts commit**
+
+Parent SHA: `4e8b5301` (D-1125-ADR046-WAVE5-DECOMP-CASCADE-COMPLETE).
+This burst commit SHA: TBD — D-449(e) SHA-patch to be applied post-push.

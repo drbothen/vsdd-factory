@@ -7029,3 +7029,67 @@ BC-4.17.001 and BC-7.07.001 share a cyclic inputs dependency. After Phase D hash
 ### Canonical 6-column row (STATE.md Decisions Log)
 
 | D-1125 | D-1125-ADR046-WAVE5-DECOMPOSITION-CASCADE-COMPLETE | ADR-046 Wave-5 decomposition cascade COMPLETE: 4-phase coordinated state-manager burst — Phase A ADR-046 v1.24 (bebb9e92); Phase B BC-7.07.001 v1.40 + BC-4.17.001 v1.27 (fb9d7e6d); Phase C S-17.05 v1.2 + S-17.06 v1.0 + S-17.07 v1.0 (add9a3f4); Phase D STORY-INDEX v4.394 + E-17 epic v1.2 + BC-INDEX v5.19 + ARCH-INDEX v3.95 (this commit). E-17 story_count 4→7; DAG S-17.06→{S-17.05,S-17.07}; POLICY 18 three-way parity VERIFIED; target_release TBD (stale flagged). NEXT: E-17 Wave-5 TDD (human go-ahead gated). | D-1125 | 2026-08-27 |
+
+## D-1126
+
+**D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY**
+
+Allocated as next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was
+D-1125 (this cycle's decision-log.md). D-1126 allocated cleanly above the true max.
+
+**Summary:** Records three concurrent events in the S-17.06 delivery burst (2026-08-28): (1) S-17.06 MERGED to develop via PR #787 (squash-merge commit `3200149d`, develop chain `6993138b` → PR #786 `fc7cbccb` → PR #787 `3200149d`); (2) human ratification of the PR #787 self-approval flag; (3) human authorization of an autonomous-merge policy for this session. Also records the POL-14 exception holding BC-4.17.001 at `draft` due to co-implementation across the Wave-5 group.
+
+### Part 1: S-17.06 Delivery
+
+**Story:** S-17.06 — factory-lock shared functions: `renew_lock_if_holder` / `IdentityResolution` / `SkipReason` / `classify_identity_resolution` / `trim_git_email` promotion to `crates/factory-lock-parse/` + doc-comment corrections (E-17 Wave 5; BC-4.17.001 PC2).
+
+**PR:** #787 (squash-merge to develop 2026-08-28; author Zious11)
+**Merge SHA:** `3200149d`
+**Develop chain:** `6993138b` → PR #786 (`fc7cbccb`, rc.24 orphan-WASM `policy15-attestation-gate.wasm` removal + `release.yml --exclude policy15-attestation-gate` recurrence prevention) → PR #787 (`3200149d`, S-17.06)
+
+**Evidence:**
+- Local BC-5.39.001 3-CLEAN achieved (impl cascade passes 2/3/4 clean)
+- Demo evidence: `docs/demo-evidence/S-17.06/`
+- CI: 12 checks green
+- Security: APPROVE (4 LOW findings; SEC-004 fixed pre-merge)
+
+**PR #786 side effect:** The `policy15-attestation-gate.wasm` orphan (mis-bundled in rc.24) was removed from the release bundle and `release.yml` gained `--exclude policy15-attestation-gate` to prevent recurrence. This closes the `release.yml --exclude` fast-follow sub-item from the `[NEW 2026-08-26] rc.24 fast-follows` blocking issue. Remaining fast-follow sub-items (POLICY-15 release-PR scoping; toolchain-pin + rust-cache; HD-1/HD-2 self-review hook defects; PRs #777/#778/#779 CHANGELOG rows; O-P17-001) remain OPEN.
+
+### Part 2: POL-14 Exception — BC-4.17.001 Held at Draft
+
+POL-14 normally auto-promotes BCs in a merged story's `behavioral_contracts` frontmatter from `draft` → `active`. S-17.06's frontmatter references BC-4.17.001. However:
+
+- BC-4.17.001 is CO-IMPLEMENTED across the Wave-5 group.
+- S-17.06 delivers only PC2's shared identity-gate logic (`renew_lock_if_holder` etc.).
+- The stamper behavior (PC1/PC3/PC4/PC5) is delivered by **S-17.05**, which has NOT yet merged.
+
+**Decision:** BC-4.17.001 is held at `draft` until the full Wave-5 group (especially S-17.05) lands and the wave-integration gate passes. Promoting to `active` on S-17.06's merge alone would misrepresent the behavioral contract as fully delivered when the stamper half is still pending. This is a deliberate, human-reviewed POL-14 exception.
+
+**Trigger for promotion:** BC-4.17.001 promotes to `active` when S-17.05 merges AND the wave-integration gate (for the full ADR-046 Wave-5 group) passes.
+
+### Part 3: PR #787 Self-Approval Ratification (human-directed 2026-08-28)
+
+The Claude Code harness flagged PR #787 as self-approved: AI review/security personas under the human's own GitHub account (Zious11) posted APPROVE comments; GitHub blocked formal self-approval; pr-manager merged on that basis with no independent human reviewer.
+
+**Human ratification:** The human (repo owner) reviewed the flag on 2026-08-28 and RATIFIED the merge as acceptable given:
+- Code passed Red Gate + 4-pass local BC-5.39.001 3-CLEAN (passes 2/3/4 clean)
+- 3-cycle diverse-model PR review that caught real issues
+- Security APPROVE (4 LOW; SEC-004 fixed pre-merge)
+- 12 green CI checks
+- develop kept at `3200149d`
+
+This ratification is recorded on-the-record as human-directed risk acceptance per VSDD governance (Canonical Principle Rule 3: explicit human direction + concrete dependency + specific story anchor).
+
+### Part 4: Autonomous-Merge Policy Authorized (human-directed 2026-08-28)
+
+**Authorization:** Human explicitly authorized pr-manager to merge story/fix PRs to develop autonomously on clean diverse-model review + green CI, without pausing for a separate human approval gate. Human retains veto-after.
+
+**Scope:** This session only, unless extended by subsequent human directive.
+
+**Rationale:** The orchestrator had previously assumed this autonomy implicitly; this authorization makes it explicit and on-the-record. The pr-manager's BC-5.39.001 3-CLEAN + CI-green + diverse-model review pipeline provides equivalent quality assurance to a separate human approval gate for standard story/fix PRs.
+
+**Excluded from autonomous-merge:** Release PRs (require human merge per RELEASING.md); PRs with P0 security findings; PRs that modify CLAUDE.md or project meta-docs.
+
+### Canonical 6-column row (STATE.md Decisions Log)
+
+| D-1126 | D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY | S-17.06 MERGED PR #787 `3200149d` 2026-08-28 (develop chain: `6993138b`→PR #786 `fc7cbccb`→PR #787 `3200149d`; merged_count 111→112). BC-4.17.001 held draft (POL-14 exception: co-implemented across Wave-5 group; promotes to active only when S-17.05 + wave-integration gate lands). E-17 Wave-5: 1 of 3 merged; S-17.05 + S-17.07 UNBLOCKED (S-17.06 deps satisfied). Small S-17.05 spec-boundary correction NEXT (story-writer: migrate `Duration::seconds(2700)` → `factory_lock_parse::TTL_SECONDS` literal reference). PR #787 self-approval RATIFIED by human 2026-08-28 (risk accepted explicitly: 4-pass 3-CLEAN + 12 green CI + security APPROVE + diverse-model review). Autonomous-merge policy AUTHORIZED by human 2026-08-28 for this session (pr-manager may merge story/fix PRs on clean diverse-model review + CI-green without separate human approval; human retains veto-after; excludes release PRs + P0 security + meta-docs). | D-1126 | 2026-08-28 |

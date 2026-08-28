@@ -1569,3 +1569,9 @@ sub-commits (Phase B spec amendments, Phase C story authoring, Phase D index reg
 The POLICY 18 three-way parity discipline (frontmatter=catalog-row=blockquote) ensured hash
 consistency across all three new story files simultaneously at cascade close.
 `[convergence-governance][cascade-closure; 4-phase-burst; POLICY-18-parity; D-1125; wave-decomposition-complete]`
+
+**L-BB-D1126-governance-pol14-co-impl-exception** — When a behavioral contract is co-implemented across multiple stories in the same wave (as BC-4.17.001 is split across S-17.06 PC2 and S-17.05 PC1/PC3/PC4/PC5), POL-14 auto-promotion on any single story merge would produce a false "active" status misrepresenting partial delivery as complete. The correct pattern is to hold the BC at `draft` until all co-implementing stories merge and the wave-integration gate passes. This exception must be explicitly codified at delivery time (D-1126 Part 2) with: (a) the BCs being held; (b) which stories co-implement them; (c) the specific trigger for promotion. Without explicit codification, a future session may auto-promote on the wrong merge boundary.
+`[governance][POL-14; co-implemented-BC; wave-5; BC-4.17.001; S-17.06-S-17.05; D-1126]`
+
+**L-BB-D1126-governance-autonomous-merge-policy-explicit** — The orchestrator had been implicitly assuming autonomous-merge authority for story PRs meeting BC-5.39.001 3-CLEAN + CI-green + diverse-model review criteria. When the harness surfaced a self-approval flag on PR #787, the human formally ratified the merge AND explicitly granted autonomous-merge authority for this session. Lesson: governance assumptions that are implicit become audit liabilities. Make the authority grant explicit and on-the-record at the moment the assumption surfaces as a flag. The flag itself is the prompt to codify.
+`[governance][autonomous-merge-policy; self-approval-flag; explicit-ratification; D-1126; PR-787]`

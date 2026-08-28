@@ -3569,3 +3569,25 @@ SOURCE↔TARGET. Novelty ZERO.
 
 **Resume Command (D-1123 checkpoint):** Await perimeter audit + human gate approval. Upon approval:
 dispatch S-17.05 TDD.
+
+---
+
+## Archived Session Checkpoint: D-1125 Wave-5 decomp cascade COMPLETE (2026-08-27)
+
+> Archived from STATE.md at D-1126 burst (S-17.06 delivery, 2026-08-28). See STATE.md for current checkpoint.
+
+**Position:** Brownfield cycle `v1.0-brownfield-backfill`. ADR-046 spec-convergence gate CONVERGED-VALIDATED (D-1124). Wave-5 decomposition cascade COMPLETE (D-1125). Frozen set: ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39 (UNCHANGED since pass-59 fix; 4-index: ARCH-INDEX v3.95, BC-INDEX v5.19, VP-INDEX v2.79, STORY-INDEX v4.394). Next phase: E-17 Wave-5 TDD — S-17.06 (factory-lock-fns, no deps) → S-17.05 (stamper, depends_on S-17.06) + S-17.07 (precompact-flush, depends_on S-17.06) in parallel. All three same wave/release (ADR-046 Rollout Note atomicity). NOTE: E-17 epic target_release may be stale (set to rc.24 before decomp decision) — verify before release-cut. Merged count 111.
+
+**Convergence summary:** 65 adversary passes (passes 25→65); 46 genuine BLOCKING findings found+fixed; 9 streak resets. Literal BC-5.39.001 3-CLEAN achieved at passes 63/64/65 (D-1121/D-1122/D-1123). Perimeter audit (D-1124) confirmed 3-CLEAN VALID; found 3 BLOCKS-CLOSURE story-scope gaps in S-17.05. Wave-5 decomp cascade (D-1125): 4 phases (A=bebb9e92, B=fb9d7e6d, C=add9a3f4, D=4e8b5301). ~29 decision codifications this session, D-1082..D-1125 (exhaustive).
+
+**Non-blocking items (17 ACCEPTED + 2 TRACKED-TO-FIX):** O-P42-001 through O-P65-003 — all accepted/tracked; O-P61-001/O-P62-001 CAPTURED in S-17.05 v1.2 Task T-8 (story commit f323b5e2 2026-08-27; fix executes when S-17.05 enters TDD).
+
+**Pending (as of D-1125):**
+1. E-17 Wave-5 TDD — NEXT (S-17.06 first per DAG, then S-17.05 + S-17.07 in parallel).
+2. ADR-045 v1.3 ratification-recording burst OWED.
+3. E-23 epic + S-23.01..S-23.14 re-scope to frozen-provenance model (ADR-045 v1.3).
+4. D-1082 cyclic-hash residual — one-round stop per D-1082 disposition.
+
+**HEADs (D-1125 checkpoint):** main `89f6f87c`; develop `6993138b`; factory-artifacts `4e8b5301`.
+
+**Resume Command (D-1125 checkpoint):** Dispatch E-17 Wave-5 TDD: S-17.06 (factory-lock shared-fns, no deps — start first); then S-17.05 (stamper + TTL) and S-17.07 (precompact-flush + identity-gate) in parallel after S-17.06 TDD completes.
