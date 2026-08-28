@@ -1287,6 +1287,119 @@ mod tests {
     // BLOCKING-3 discriminating test — holder with trailing whitespace still matches
     // -----------------------------------------------------------------------
 
+    // -----------------------------------------------------------------------
+    // S-17.05 Red Gate test — renew_lock_with_now literal migration (T-2 sub-task, D-1126)
+    // -----------------------------------------------------------------------
+
+    /// S-17.05 T-2 sub-task (D-1126 boundary correction) / BC-4.17.001 Invariant 3 / ADR-046 F-006:
+    /// renew_lock_with_now must use factory_lock_parse::TTL_SECONDS, NOT the bare literal 2700.
+    ///
+    /// Source-scan: grep crates/factory-lock/src/lib.rs for `Duration::seconds(2700)` inside
+    /// the renew_lock_with_now function body. Asserts no match — i.e., the migration from
+    /// `Duration::seconds(2700)` to `Duration::seconds(i64::from(factory_lock_parse::TTL_SECONDS))`
+    /// has been applied.
+    ///
+    /// RED GATE: stub still contains `Duration::seconds(2700)` at the bare-literal location
+    /// → assertion fails until implementer migrates in S-17.05 T-2.
+    /// GREEN after: `Duration::seconds(i64::from(factory_lock_parse::TTL_SECONDS))` replaces it.
+    #[test]
+    fn test_renew_lock_with_now_uses_ttl_seconds_not_bare_literal() {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let lib_path = std::path::Path::new(manifest_dir).join("src/lib.rs");
+        let source = std::fs::read_to_string(&lib_path)
+            .unwrap_or_else(|e| panic!("failed to read {:?}: {}", lib_path, e));
+
+        // Locate the renew_lock_with_now function body.
+        let fn_marker = "fn renew_lock_with_now<F>";
+        let fn_start = source
+            .find(fn_marker)
+            .unwrap_or_else(|| panic!("renew_lock_with_now not found in {:?}", lib_path));
+        let fn_body = &source[fn_start..];
+
+        // Assert that Duration::seconds(2700) (bare literal) is absent.
+        // After S-17.05 T-2 migration: Duration::seconds(i64::from(factory_lock_parse::TTL_SECONDS)).
+        assert!(
+            !fn_body.contains("Duration::seconds(2700)"),
+            "renew_lock_with_now in {:?} must NOT use the bare literal Duration::seconds(2700). \
+             Migrate to Duration::seconds(i64::from(factory_lock_parse::TTL_SECONDS)) per \
+             S-17.05 T-2 (D-1126 / BC-4.17.001 Invariant 3 / ADR-046 F-006). \
+             Found bare literal — Red Gate armed.",
+            lib_path
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // S-17.06 CR-003 coverage fold-in: Case 5 spurious-renewal guard
+    // (already-merged S-17.06 code; this test PASSES immediately)
+    // -----------------------------------------------------------------------
+
+    /// S-17.06 CR-003 (coverage fold-in, independent review):
+    /// renew_lock_if_holder Case 5 returns Ok((NoOp, None)) when expires_at is exactly
+    /// now + TTL_SECONDS at second precision (spurious-renewal guard, F-R3-005).
+    ///
+    /// Fixture: factory_lock with holder = "holder@example.com" (matches caller),
+    /// expires_at = base + 2700s (i.e., the precise value renew_lock_with_now would compute
+    /// from the same `base` now_fn). The lock is NOT expired (base < base + 2700s).
+    ///
+    /// Expected: Ok((RenewOutcome::NoOp, None)) — the spurious-renewal guard in
+    /// renew_lock_with_now suppresses the write (new_expires_at == existing expires_at).
+    ///
+    /// IMPORTANT: This is NOT a Case-0 absent-block misclassification. The lock block IS
+    /// present and valid, the identity DOES match, and now < expires_at. The NoOp arises
+    /// solely from the same-second recomputation guard (F-R3-005 / ADR-028 §Decision 16).
+    ///
+    /// PASSES immediately: S-17.06 code is live on develop (3200149d).
+    #[test]
+    fn test_renew_lock_if_holder_case5_spurious_renewal_guard_returns_noop() {
+        use chrono::Duration;
+
+        // Fixed base instant; expires_at is exactly base + 2700s formatted as YYYY-MM-DDTHH:MM:SSZ.
+        let base: DateTime<Utc> = "2026-08-28T10:00:00Z"
+            .parse::<DateTime<Utc>>()
+            .expect("base timestamp must parse");
+        let expires_str = (base + Duration::seconds(2700))
+            .format("%Y-%m-%dT%H:%M:%SZ")
+            .to_string();
+        // expires_str = "2026-08-28T10:45:00Z"
+
+        let content = format!(
+            concat!(
+                "---\n",
+                "document_type: state\n",
+                "version: \"test\"\n",
+                "phase: test\n",
+                "factory_lock:\n",
+                "  holder: \"holder@example.com\"\n",
+                "  locked_at: \"2026-08-28T10:00:00Z\"\n",
+                "  expires_at: \"{expires}\"\n",
+                "---\n\n# STATE\n",
+            ),
+            expires = expires_str,
+        );
+
+        // now_fn returns `base` — same instant used to build expires_str above.
+        // now (base) < expires_at (base + 2700s) → Case 5 identity step is reached.
+        // Inside renew_lock_with_now: new_expires_at = base + 2700s = expires_str → guard fires → NoOp.
+        let result = renew_lock_if_holder(
+            &content,
+            || IdentityResolution::Resolved("holder@example.com".to_string()),
+            move || base,
+        );
+
+        let (outcome, skip) = result.expect("Case 5 spurious-renewal must return Ok, not Err");
+        assert!(
+            matches!(outcome, RenewOutcome::NoOp),
+            "CR-003: spurious-renewal guard must return NoOp when expires_at == now + TTL_SECONDS \
+             (F-R3-005 / ADR-028 §Decision 16). \
+             This is NOT a Case-0 absent-block — the lock IS present and identity DOES match. \
+             Got: {outcome:?}"
+        );
+        assert!(
+            skip.is_none(),
+            "CR-003: Case 5 spurious-renewal path must return None skip reason. Got: {skip:?}"
+        );
+    }
+
     /// BLOCKING-3: holder field in the YAML has trailing whitespace; resolve_identity
     /// returns the trimmed email (no trailing whitespace) → Case 5 fires: Renewed.
     ///
