@@ -1270,6 +1270,8 @@ mod tests {
         let content = state_malformed_no_closing_delimiter();
         let write_called = Arc::new(Mutex::new(false));
         let wc = write_called.clone();
+        let warns: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+        let warns_clone = warns.clone();
 
         let _result = guard_logic(
             payload_for_post_tool_use("Edit"),
@@ -1281,7 +1283,9 @@ mod tests {
                 },
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
-                log_warn: |_msg| {},
+                log_warn: move |msg| {
+                    warns_clone.lock().unwrap().push(msg.to_string());
+                },
                 emit_event: |_event_type, _fields| {},
             },
         );
@@ -1289,6 +1293,15 @@ mod tests {
         assert!(
             !*write_called.lock().unwrap(),
             "AC-008 PC3: write_file must NOT be called when frontmatter is malformed (fail-open)"
+        );
+        // F-P5-001: StampingSkipped advisory must fire on the fence-not-found path.
+        // Mutation-kill: removing the log_warn call from the fence-not-found branch in
+        // guard_logic makes `warns` remain empty → `any(contains("StampingSkipped"))` fails.
+        let captured = warns.lock().unwrap();
+        assert!(
+            captured.iter().any(|m| m.contains("StampingSkipped")),
+            "F-P5-001: log_warn must fire with 'StampingSkipped' on fence-not-found \
+             (missing/invalid frontmatter delimiters) path. Got: {captured:?}"
         );
     }
 
@@ -1301,6 +1314,8 @@ mod tests {
     fn test_read_file_error_writes_nothing() {
         let write_called = Arc::new(Mutex::new(false));
         let wc = write_called.clone();
+        let warns: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+        let warns_clone = warns.clone();
 
         let _result = guard_logic(
             payload_for_post_tool_use("Edit"),
@@ -1314,7 +1329,9 @@ mod tests {
                 },
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
-                log_warn: |_msg| {},
+                log_warn: move |msg| {
+                    warns_clone.lock().unwrap().push(msg.to_string());
+                },
                 emit_event: |_event_type, _fields| {},
             },
         );
@@ -1322,6 +1339,15 @@ mod tests {
         assert!(
             !*write_called.lock().unwrap(),
             "AC-008 PC3: write_file must NOT be called when read_file fails (fail-open)"
+        );
+        // F-P5-001: StampingSkipped advisory must fire on the generic read-error path.
+        // Mutation-kill: removing the log_warn call from the read-error branch in
+        // guard_logic makes `warns` remain empty → `any(contains("StampingSkipped"))` fails.
+        let captured = warns.lock().unwrap();
+        assert!(
+            captured.iter().any(|m| m.contains("StampingSkipped")),
+            "F-P5-001: log_warn must fire with 'StampingSkipped' on generic read-error path. \
+             Got: {captured:?}"
         );
     }
 
@@ -1337,6 +1363,8 @@ mod tests {
             b"---\ntimestamp: 2020-01-01T00:00:00Z\nphase: test\n---\n\xFF\xFE".to_vec();
         let write_called = Arc::new(Mutex::new(false));
         let wc = write_called.clone();
+        let warns: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+        let warns_clone = warns.clone();
 
         let _result = guard_logic(
             payload_for_post_tool_use("Write"),
@@ -1348,7 +1376,9 @@ mod tests {
                 },
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
-                log_warn: |_msg| {},
+                log_warn: move |msg| {
+                    warns_clone.lock().unwrap().push(msg.to_string());
+                },
                 emit_event: |_event_type, _fields| {},
             },
         );
@@ -1356,6 +1386,15 @@ mod tests {
         assert!(
             !*write_called.lock().unwrap(),
             "AC-008 PC3: write_file must NOT be called when content is non-UTF-8 (fail-open)"
+        );
+        // F-P5-001: StampingSkipped advisory must fire on the non-UTF-8 path.
+        // Mutation-kill: removing the log_warn call from the from_utf8 Err branch in
+        // guard_logic makes `warns` remain empty → `any(contains("StampingSkipped"))` fails.
+        let captured = warns.lock().unwrap();
+        assert!(
+            captured.iter().any(|m| m.contains("StampingSkipped")),
+            "F-P5-001: log_warn must fire with 'StampingSkipped' on non-UTF-8 content path. \
+             Got: {captured:?}"
         );
     }
 
@@ -2473,15 +2512,27 @@ mod tests {
     // -----------------------------------------------------------------------
 
     /// test_crlf_frontmatter_delimiters_handled_correctly
-    /// (AC-010 / GAP-2 / EC-017)
+    /// (AC-010 / GAP-2 / EC-017 / O-1)
     ///
     /// BC-4.17.001 GAP-2 EC-017: STATE.md files with CRLF (`\r\n`) line endings
-    /// (Windows autocrlf = true) must have their frontmatter fences detected correctly
-    /// and the hook must re-stamp the timestamp (write_file called).
+    /// (Windows autocrlf = true) must have their frontmatter fences detected correctly,
+    /// the timestamp line re-stamped to exactly `fixed_now()`, the CRLF line terminator
+    /// preserved on the rewritten timestamp line, and the body after the closing fence
+    /// preserved byte-for-byte.
     ///
-    /// MUTATION-KILLING: revert extract_frontmatter usage to a `starts_with("---\n")`
-    /// hand-check → CRLF content (`---\r\n`) doesn't match → fence not found →
-    /// guard returns Continue before write → written.lock().unwrap().is_none() → assertion fails.
+    /// MUTATION-KILL 1 (fence detection): revert extract_frontmatter usage to a hand-rolled
+    /// `starts_with("---\n")` check → CRLF content (`---\r\n`) doesn't match → fence not
+    /// found → guard returns Continue before write → `written.is_none()` → first assertion fails.
+    ///
+    /// MUTATION-KILL 2 (PC1 restamp value): replace the `timestamp:` line with a
+    /// different or empty string → `contains("timestamp: 2026-08-27T12:00:00Z")` fails.
+    ///
+    /// MUTATION-KILL 3 (CRLF terminator): drop the `crlf_line` `\r` in ts_line_with_term
+    /// (hardcode `""` instead of `"\r"`) → timestamp line ends with bare `\n`, not `\r\n`
+    /// → `contains("timestamp: 2026-08-27T12:00:00Z\r\n")` fails.
+    ///
+    /// MUTATION-KILL 4 (body preservation): truncate or mutate the body suffix in the
+    /// write_file output → `ends_with("---\r\n\r\n# STATE\r\n")` fails.
     #[test]
     fn test_crlf_frontmatter_delimiters_handled_correctly() {
         let content = state_crlf_valid();
@@ -2503,11 +2554,45 @@ mod tests {
             },
         );
 
+        let written_bytes = written.lock().unwrap().clone().expect(
+            "O-1 / AC-010 GAP-2 EC-017: write_file must be called for CRLF-fenced STATE.md — \
+             extract_frontmatter must detect \\r\\n delimiters correctly",
+        );
+        let written_str = String::from_utf8(written_bytes.clone())
+            .expect("O-1: rewritten content must be valid UTF-8");
+
+        // O-1 assertion 1: PC1 actually restamped (value = fixed_now, not the old stale value).
+        // Mutation-kill 2: if the timestamp line is not rewritten, this fails.
         assert!(
-            written.lock().unwrap().is_some(),
-            "AC-010 GAP-2 EC-017: write_file must be called for CRLF-fenced STATE.md — \
-             extract_frontmatter must detect \\r\\n delimiters correctly. \
-             A hand-rolled starts_with(\"---\\n\") check would fail here."
+            written_str.contains("timestamp: 2026-08-27T12:00:00Z"),
+            "O-1 PC1: timestamp must be re-stamped to fixed_now() = 2026-08-27T12:00:00Z. \
+             Got:\n{written_str:?}"
+        );
+        assert!(
+            !written_str.contains("timestamp: 2020-01-01T00:00:00Z"),
+            "O-1 PC1: original stale timestamp must NOT remain in CRLF content. \
+             Got:\n{written_str:?}"
+        );
+
+        // O-1 assertion 2: CRLF line terminator preserved on the rewritten timestamp line.
+        // Pins the O-2 fix (crlf_line detection → ts_line_with_term includes `\r`).
+        // Mutation-kill 3: dropping the `\r` from crlf_line branch → bare `\n` terminator
+        // → this assertion fails.
+        assert!(
+            written_str.contains("timestamp: 2026-08-27T12:00:00Z\r\n"),
+            "O-1 EC-017: rewritten timestamp line must end with CRLF (\\r\\n), not bare \\n. \
+             Got (hex of first 120 bytes): {:02X?}",
+            &written_bytes[..written_bytes.len().min(120)]
+        );
+
+        // O-1 assertion 3: body after closing fence is byte-preserved.
+        // state_crlf_valid body = `\r\n# STATE\r\n` (CRLF throughout).
+        // Mutation-kill 4: any truncation or modification of the body suffix fails this.
+        assert!(
+            written_bytes.ends_with(b"---\r\n\r\n# STATE\r\n"),
+            "O-1 EC-017: closing fence + body must be byte-preserved in CRLF output. \
+             Got tail (last 30 bytes): {:02X?}",
+            &written_bytes[written_bytes.len().saturating_sub(30)..]
         );
     }
 }
