@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-28T18:56:44Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-17.05 && cargo test --workspace --all-targets 2>&1 | grep -E \"^(test result|FAILED|error)\" | head -20"}
+{"status":"pass","timestamp":"2026-08-28T21:39:44Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-17.05 && cargo test --workspace --all-targets 2>&1"}

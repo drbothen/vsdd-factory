@@ -3591,3 +3591,52 @@ dispatch S-17.05 TDD.
 **HEADs (D-1125 checkpoint):** main `89f6f87c`; develop `6993138b`; factory-artifacts `4e8b5301`.
 
 **Resume Command (D-1125 checkpoint):** Dispatch E-17 Wave-5 TDD: S-17.06 (factory-lock shared-fns, no deps — start first); then S-17.05 (stamper + TTL) and S-17.07 (precompact-flush + identity-gate) in parallel after S-17.06 TDD completes.
+
+---
+
+## Archived Session Checkpoint: D-1126 S-17.06 MERGED; E-17 Wave-5 1/3 done (2026-08-28)
+
+> Archived from STATE.md at SESSION-WRAP-PAUSE burst (2026-08-28). See STATE.md for current checkpoint.
+
+**SELF-SUFFICIENT RESUME CONTEXT.** S-17.06 (factory-lock shared functions) MERGED PR #787
+`3200149d` 2026-08-28 (D-1126). E-17 Wave-5: 1 of 3 stories merged; S-17.05 + S-17.07 now
+UNBLOCKED. BC-4.17.001 held at `draft` (POL-14 exception: co-implemented across Wave-5 group;
+promotes only when S-17.05 + wave-integration gate land). Autonomous-merge policy AUTHORIZED
+by human 2026-08-28 for this session (D-1126b). develop: `6993138b`→`3200149d`.
+Prior checkpoint archived to `cycles/v1.0-brownfield-backfill/session-checkpoints.md`.
+
+**Position:** Brownfield cycle `v1.0-brownfield-backfill`. ADR-046 spec-convergence gate CONVERGED-VALIDATED
+(D-1124). S-17.06 MERGED (D-1126). E-17 Wave-5: 1/3 stories merged (S-17.06 done;
+S-17.05 and S-17.07 UNBLOCKED). Frozen spec set: ADR-046 v1.23 + BC-4.17.001 v1.26 +
+BC-5.40.001 v1.21 + BC-7.07.001 v1.39 (UNCHANGED since pass-59 fix). 4-index: ARCH-INDEX
+v3.95, BC-INDEX v5.19, VP-INDEX v2.79, STORY-INDEX v4.397. trajectory-tail →1→0→0→0 LENGTH=4.
+Merged count: 112 (S-17.06 + prior 111).
+
+**Convergence summary:** 65 adversary passes (passes 25→65); 46 genuine BLOCKING findings found+fixed; 9 streak resets.
+Literal BC-5.39.001 3-CLEAN achieved at passes 63/64/65 (D-1121/D-1122/D-1123). Perimeter audit
+(D-1124) confirmed 3-CLEAN VALID. Wave-5 decomp cascade (D-1125): A=bebb9e92, B=fb9d7e6d,
+C=add9a3f4, D=4e8b5301. S-17.06 delivery (D-1126): PR #787 3200149d.
+
+**Non-blocking items (17 ACCEPTED + 2 TRACKED-TO-FIX):** O-P42-001 through O-P65-003 — all accepted/tracked; full list in
+prior session-checkpoints.md entries. O-P61-001/O-P62-001 CAPTURED in S-17.05 v1.2 Task T-8
+(story commit f323b5e2 2026-08-27; fix executes when S-17.05 enters TDD).
+
+**Governance decisions in effect:**
+- Autonomous-merge policy AUTHORIZED (D-1126b, 2026-08-28): pr-manager may merge story/fix PRs on clean diverse-model review + CI-green; human retains veto-after. Excludes: release PRs, P0 security, meta-docs.
+- BC-4.17.001 held at draft (POL-14 exception, D-1126): promotes when S-17.05 + wave-integration gate land.
+- PR #787 self-approval RATIFIED by human 2026-08-28 (D-1126a).
+
+**Pending (as of D-1126):**
+1. S-17.05 spec-boundary correction (story-writer: Duration::seconds(2700)→TTL_SECONDS) — NEXT.
+2. S-17.05 + S-17.07 TDD — both UNBLOCKED (S-17.06 = merged); can run in parallel after spec-boundary correction.
+3. ADR-045 v1.3 ratification-recording burst OWED.
+4. E-23 epic + S-23.01..S-23.14 re-scope to frozen-provenance model (ADR-045 v1.3).
+5. Worktree .worktrees/S-17.06 cleanup OWED (devops).
+6. rc.24 fast-follow sub-items remain OPEN.
+
+**HEADs (D-1126 checkpoint):** main `89f6f87c`; develop `3200149d`; factory-artifacts `f4c018b2`; feature/S-17.06 merged+deleted.
+
+**Resume Command (D-1126 checkpoint):** Dispatch story-writer to add spec-boundary correction to S-17.05:
+migrate `Duration::seconds(2700)` → `factory_lock_parse::TTL_SECONDS` literal. After correction:
+dispatch TDD for S-17.05 (stamper + TTL) and S-17.07 (precompact-flush + identity-gate) in parallel.
+ADR-046 frozen spec set confirmed: ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39.
