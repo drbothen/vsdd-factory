@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-25T20:59:54Z","command":"grep -n \"Test (cargo)\\|run_tests\\|cargo test\" /Users/zious/Documents/GITHUB/vsdd-factory/.github/workflows/ci.yml | head -40"}
+{"status":"pass","timestamp":"2026-08-28T05:54:33Z","command":"cd /tmp/s1706v2 && cargo test -p factory-lock -p verify-factory-lock 2>&1 | grep -E \"test result|FAILED\" "}
