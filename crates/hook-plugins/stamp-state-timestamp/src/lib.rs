@@ -815,6 +815,96 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // PC2 Case-2 safety: expired-BUT-SELF-HELD → NoOp (ADR-046 anti-resurrection)
+    // -----------------------------------------------------------------------
+
+    /// test_expired_self_held_lock_never_renewed
+    ///
+    /// BC-5.40.001 PC4 condition (c) / ADR-046 anti-resurrection (SAFETY-CRITICAL):
+    /// an ALREADY-EXPIRED lock whose `holder` byte-equals the writer's resolved identity
+    /// MUST NOT be renewed. The stamp hook must leave `expires_at` byte-identical to the
+    /// expired value even though identity matches.
+    ///
+    /// This test is additive — it covers the SELF-held expired case.
+    /// `test_lock_expired_admitted_non_holder_writer_never_renews` covers only the
+    /// NON-holder expired case (different identity). Both expired cases must be pinned.
+    ///
+    /// RED GATE: current guard_logic calls renew_lock_with_now purely on identity match
+    /// (no expiry gate) → for an expired self-held lock, new_expires_at = now + TTL_SECONDS
+    /// != expired_expires → Renewed(new_content) → expires_at changes → this assertion FAILS.
+    /// After implementer rework (add expiry gate in guard_logic for Case-2), this test PASSES.
+    #[test]
+    fn test_expired_self_held_lock_never_renewed() {
+        // Expired lock: holder == caller identity, expires_at well in the past.
+        // fixed_now() = 2026-08-27T12:00:00Z; expired_expires (2020) < now → expired.
+        let expired_expires = "2020-01-01T00:45:00Z";
+        let content = format!(
+            concat!(
+                "---\n",
+                "document_type: state\n",
+                "version: \"0.0.1-test\"\n",
+                "timestamp: 2020-01-01T00:00:00Z\n",
+                "phase: test\n",
+                "factory_lock:\n",
+                "  holder: \"caller@example.com\"\n",
+                "  locked_at: \"2020-01-01T00:00:00Z\"\n",
+                "  expires_at: \"{expires}\"\n",
+                "---\n",
+                "\n# STATE (expired self-held lock)\n",
+            ),
+            expires = expired_expires,
+        );
+        let written = Arc::new(Mutex::new(None::<Vec<u8>>));
+        let w = written.clone();
+
+        let _result = guard_logic(
+            payload_for_post_tool_use("Write"),
+            StampCallbacks {
+                read_file: move |_path, _max, _timeout| Ok(content.into_bytes()),
+                write_file: move |_path, bytes| {
+                    *w.lock().unwrap() = Some(bytes.to_vec());
+                    Ok(())
+                },
+                // Identity MATCHES the lock holder — but the lock is already expired.
+                exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                now_fn: fixed_now,
+            },
+        );
+
+        let written_bytes = written
+            .lock()
+            .unwrap()
+            .clone()
+            .expect("write_file must be called — PC1 always stamps timestamp");
+        let written_str = String::from_utf8_lossy(&written_bytes);
+
+        // PC1: timestamp MUST be re-stamped (unconditional — no identity or expiry gate).
+        assert!(
+            written_str.contains("timestamp: 2026-08-27T12:00:00Z"),
+            "PC1: timestamp must be re-stamped even for expired self-held lock. \
+             Got:\n{written_str:?}"
+        );
+
+        // PC2 Case-2 / ADR-046 anti-resurrection (SAFETY-CRITICAL):
+        // expires_at MUST remain byte-identical to the expired value.
+        assert!(
+            written_str.contains(expired_expires),
+            "PC2 Case-2 (BC-5.40.001 PC4 condition (c), ADR-046 anti-resurrection, \
+             SAFETY-CRITICAL): expired self-held lock's expires_at must remain \
+             byte-identical — NEVER resurrected. Got:\n{written_str:?}"
+        );
+        // Belt-and-suspenders: confirm the renewed value is NOT present.
+        let renewed = (fixed_now() + Duration::seconds(i64::from(flp::TTL_SECONDS)))
+            .format("%Y-%m-%dT%H:%M:%SZ")
+            .to_string();
+        assert!(
+            !written_str.contains(&format!("expires_at: {renewed}")),
+            "PC2 Case-2 (ADR-046): expires_at must NOT be advanced to now+TTL_SECONDS \
+             for an expired self-held lock. Got:\n{written_str:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
     // AC-007: PC2 + PC3 — identity-resolution failure → skip renewal, still stamp
     // -----------------------------------------------------------------------
 

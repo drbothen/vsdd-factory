@@ -336,10 +336,13 @@ _run_dispatcher() {
   }
 
   # Assert the correct tool matcher is present.
-  echo "$section" | grep -q 'tool = "\^\(Edit|Write|MultiEdit\)\$"' || \
-  echo "$section" | grep -q "tool = \"^\(Edit|Write|MultiEdit\)\$\"" || {
+  # Use -F (fixed-string) to match the exact literal value including parentheses and
+  # pipe characters. BRE grep treats \( / \) as grouping metacharacters and | as a
+  # literal — neither form reliably matches the canonical tool = "^(Edit|Write|MultiEdit)$"
+  # value from the registry (AC-011 / BC-4.17.001 PC5).
+  echo "$section" | grep -qF 'tool = "^(Edit|Write|MultiEdit)$"' || {
     echo "FAIL: stamp-state-timestamp tool matcher is not the canonical value."
-    echo "Required: tool = \"^(Edit|Write|MultiEdit)$\""
+    echo "Required: tool = \"^(Edit|Write|MultiEdit)\$\""
     echo "Actual tool line: $(echo "$section" | grep '^tool = ')"
     return 1
   }

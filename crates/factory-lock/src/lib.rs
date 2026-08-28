@@ -1315,13 +1315,27 @@ mod tests {
         let fn_start = source
             .find(fn_marker)
             .unwrap_or_else(|| panic!("renew_lock_with_now not found in {:?}", lib_path));
-        let fn_body = &source[fn_start..];
+        // Bound the search to just the renew_lock_with_now function body — NOT to EOF.
+        // Without this bound, the slice captures the test module's own source, which
+        // contains the very string being searched for in the contains() call below,
+        // causing a false-positive self-match regardless of production code state.
+        // Find the next `\npub fn ` boundary after the function signature start.
+        let after_sig = fn_start + fn_marker.len();
+        let fn_end = source[after_sig..]
+            .find("\npub fn ")
+            .or_else(|| source[after_sig..].find("\nfn "))
+            .map(|rel| after_sig + rel)
+            .unwrap_or(source.len());
+        let fn_body = &source[fn_start..fn_end];
 
-        // Assert that Duration::seconds(2700) (bare literal) is absent.
+        // Assert that the bare literal `Duration::seconds(` followed by `2700)` is absent.
         // After S-17.05 T-2 migration: Duration::seconds(i64::from(factory_lock_parse::TTL_SECONDS)).
+        // The searched literal is assembled here to prevent this test's own source
+        // from appearing in fn_body if the boundary calculation is ever widened.
+        let bare_literal = format!("Duration::seconds({})", 2700u32);
         assert!(
-            !fn_body.contains("Duration::seconds(2700)"),
-            "renew_lock_with_now in {:?} must NOT use the bare literal Duration::seconds(2700). \
+            !fn_body.contains(&bare_literal),
+            "renew_lock_with_now in {:?} must NOT use the bare-literal TTL form. \
              Migrate to Duration::seconds(i64::from(factory_lock_parse::TTL_SECONDS)) per \
              S-17.05 T-2 (D-1126 / BC-4.17.001 Invariant 3 / ADR-046 F-006). \
              Found bare literal — Red Gate armed.",
