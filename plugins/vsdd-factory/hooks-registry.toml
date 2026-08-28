@@ -709,6 +709,34 @@ path_allow = [
   ".factory/stories/",
 ]
 
+# ---------- stamp-state-timestamp (PostToolUse, Edit|Write|MultiEdit) ----------
+# S-17.05 / ADR-046 / BC-4.17.001: hook-authored STATE.md wall-clock stamping.
+# PC1 unconditional timestamp re-stamp; PC2 identity-gated factory_lock.expires_at
+# renewal (mid-burst TTL keep-alive per BC-5.40.001 PC4); PC3 fail-open; PC5 no
+# lock-lifecycle involvement. async=false required (ADR-019; ADR-046; BC-4.17.001).
+# Replaces verify-state-timestamp-refresh (PreToolUse guard, S-17.04) per ADR-046
+# Decision 3: PostToolUse hook-authored stamping supersedes PreToolUse verification.
+
+[[hooks]]
+name = "stamp-state-timestamp"
+event = "PostToolUse"
+tool = "^(Edit|Write|MultiEdit)$"
+plugin = "hook-plugins/stamp-state-timestamp.wasm"
+priority = 470
+timeout_ms = 5000
+on_error = "continue"
+async = false
+
+[hooks.capabilities.read_file]
+path_allow = [".factory/STATE.md"]
+
+[hooks.capabilities.write_file]
+path_allow = [".factory/STATE.md"]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["git"]
+env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
+
 # ---------- PreToolUse ----------
 
 [[hooks]]
@@ -1433,28 +1461,6 @@ path_allow = [".factory/STATE.md"]
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["git"]
 env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
-
-# ---------- verify-state-timestamp-refresh (PreToolUse, Edit|Write|MultiEdit) ----------
-# S-17.04: PreToolUse guard — blocks Edit/Write/MultiEdit to .factory/STATE.md when
-# proposed content (reconstructed for Edit/MultiEdit) does not advance timestamp:
-# frontmatter (every write) or factory_lock.expires_at (when lock held).
-# Decision 12 / BC-5.40.001 PC4.
-# Trigger (v1.6 env-free): normalised path == ".factory/STATE.md" OR ends with
-# "/.factory/STATE.md" — covers absolute paths from Claude Code production (AC-018).
-# async = false REQUIRED — see ADR-019 + ADR-025 Decision 12
-
-[[hooks]]
-name = "verify-state-timestamp-refresh"
-event = "PreToolUse"
-tool = "^(Edit|Write|MultiEdit)$"
-plugin = "hook-plugins/verify-state-timestamp-refresh.wasm"
-priority = 143
-timeout_ms = 5000
-on_error = "continue"
-async = false
-
-[hooks.capabilities.read_file]
-path_allow = [".factory/STATE.md"]
 
 # ---------- PreCompact (S-18.00) ----------
 # check-harness-version: verify Claude Code harness >= v2.1.105 before compaction.
