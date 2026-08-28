@@ -380,7 +380,8 @@ mod tests {
         clippy::expect_used,
         clippy::unwrap_used,
         clippy::panic,
-        clippy::missing_panics_doc
+        clippy::missing_panics_doc,
+        clippy::type_complexity
     )]
 
     use super::*;
@@ -1425,6 +1426,390 @@ mod tests {
              Found in {:?}:\n{:?}",
             lib_path,
             violations
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-015: BC-4.17.001 PC3b renewal-indeterminate diagnostic
+    // -----------------------------------------------------------------------
+
+    /// test_renewal_indeterminate_emits_event_and_log_warn_on_identity_resolution_failure
+    /// (AC-015 / BC-4.17.001 PC3b)
+    ///
+    /// PC3b positive path: Case-4 (SkipReason::IdentityResolutionFailed) MUST:
+    ///   (a) call emit_event exactly once with type "factory.lock.renewal_indeterminate"
+    ///       and all 5 required fields: plugin, holder, locked_at, expires_at,
+    ///       resolution_error — with lock-sourced field values matching the fixture;
+    ///   (b) call log_warn at least once (advisory);
+    ///   (c) still re-stamp timestamp: (PC1 unconditional);
+    ///   (d) leave expires_at byte-identical (NoOp on PC2).
+    ///
+    /// Fixture: NOT-expired lock (far-future expires_at, holder present) +
+    ///          exec_subprocess returns Err → classify_identity_resolution →
+    ///          IdentityResolution::Failed → SkipReason::IdentityResolutionFailed.
+    ///
+    /// MUTATION-KILLING: delete emit_event call → events.len() == 0 → assertion (a) fails.
+    #[test]
+    fn test_renewal_indeterminate_emits_event_and_log_warn_on_identity_resolution_failure() {
+        // Fixture: valid NOT-expired lock; exec fails → Case-4.
+        let lock_holder = "holder@example.com";
+        let lock_locked_at = "2026-01-01T10:00:00Z";
+        let lock_expires_at = "2099-01-01T00:00:00Z"; // far future, NOT expired
+        let content = format!(
+            concat!(
+                "---\n",
+                "document_type: state\n",
+                "version: \"0.0.1-test\"\n",
+                "timestamp: 2020-01-01T00:00:00Z\n",
+                "phase: test\n",
+                "factory_lock:\n",
+                "  holder: \"{holder}\"\n",
+                "  locked_at: \"{locked_at}\"\n",
+                "  expires_at: \"{expires_at}\"\n",
+                "---\n",
+                "\n# STATE\n",
+                "Body content here.\n",
+            ),
+            holder = lock_holder,
+            locked_at = lock_locked_at,
+            expires_at = lock_expires_at,
+        );
+
+        let event_calls: Arc<Mutex<Vec<(String, Vec<(String, String)>)>>> =
+            Arc::new(Mutex::new(vec![]));
+        let ec = event_calls.clone();
+        let warn_calls: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(vec![]));
+        let wc = warn_calls.clone();
+        let written: Arc<Mutex<Option<Vec<u8>>>> = Arc::new(Mutex::new(None));
+        let wr = written.clone();
+
+        let _result = guard_logic(
+            payload_for_post_tool_use("Edit"),
+            StampCallbacks {
+                read_file: move |_path, _max, _timeout| Ok(content.into_bytes()),
+                write_file: move |_path, bytes| {
+                    *wr.lock().unwrap() = Some(bytes.to_vec());
+                    Ok(())
+                },
+                // exec_subprocess FAILS → IdentityResolution::Failed → Case-4.
+                exec_subprocess: |_argv| Err("git config user.email: exit code 128".to_string()),
+                now_fn: fixed_now,
+                log_warn: move |msg: &str| {
+                    wc.lock().unwrap().push(msg.to_string());
+                },
+                emit_event: move |event_type: &str, fields: &[(&str, &str)]| {
+                    let owned: Vec<(String, String)> = fields
+                        .iter()
+                        .map(|&(k, v)| (k.to_string(), v.to_string()))
+                        .collect();
+                    ec.lock().unwrap().push((event_type.to_string(), owned));
+                },
+            },
+        );
+
+        // (a) emit_event called exactly once with the correct event type and all 5 fields.
+        {
+            let events = event_calls.lock().unwrap();
+            assert_eq!(
+                events.len(),
+                1,
+                "AC-015 PC3b: emit_event must be called exactly once on Case-4. Got {} calls.",
+                events.len()
+            );
+            let (event_type, fields) = &events[0];
+            assert_eq!(
+                event_type, "factory.lock.renewal_indeterminate",
+                "AC-015 PC3b: event type must be \"factory.lock.renewal_indeterminate\". \
+                 Got: {event_type:?}"
+            );
+            // All 5 required field keys must be present.
+            let required_keys = [
+                "plugin",
+                "holder",
+                "locked_at",
+                "expires_at",
+                "resolution_error",
+            ];
+            for key in &required_keys {
+                assert!(
+                    fields.iter().any(|(k, _)| k == key),
+                    "AC-015 PC3b: emit_event fields must contain key {:?}. Got: {:?}",
+                    key,
+                    fields
+                );
+            }
+            // Field values for lock-sourced fields must match the fixture exactly.
+            let field_map: std::collections::HashMap<&str, &str> = fields
+                .iter()
+                .map(|(k, v)| (k.as_str(), v.as_str()))
+                .collect();
+            assert_eq!(
+                field_map.get("plugin").copied(),
+                Some("stamp-state-timestamp"),
+                "AC-015: 'plugin' field must be \"stamp-state-timestamp\""
+            );
+            assert_eq!(
+                field_map.get("holder").copied(),
+                Some(lock_holder),
+                "AC-015: 'holder' field must match lock's holder"
+            );
+            assert_eq!(
+                field_map.get("locked_at").copied(),
+                Some(lock_locked_at),
+                "AC-015: 'locked_at' field must match lock's locked_at"
+            );
+            assert_eq!(
+                field_map.get("expires_at").copied(),
+                Some(lock_expires_at),
+                "AC-015: 'expires_at' field must match lock's expires_at"
+            );
+            assert!(
+                !field_map.get("resolution_error").unwrap_or(&"").is_empty(),
+                "AC-015: 'resolution_error' field must be non-empty"
+            );
+        } // events guard dropped
+
+        // (b) log_warn called at least once.
+        {
+            let warns = warn_calls.lock().unwrap();
+            assert!(
+                !warns.is_empty(),
+                "AC-015 PC3b: log_warn must be called at least once on Case-4. Got 0 calls."
+            );
+        }
+
+        // (c) PC1: timestamp still re-stamped unconditionally.
+        // (d) expires_at unchanged (NoOp on PC2 — resolution failed, renewal skipped).
+        let written_bytes = written
+            .lock()
+            .unwrap()
+            .clone()
+            .expect("write_file must be called — PC1 still stamps on Case-4");
+        let written_str = String::from_utf8_lossy(&written_bytes);
+        assert!(
+            written_str.contains("timestamp: 2026-08-27T12:00:00Z"),
+            "AC-015 PC1: timestamp must still be re-stamped on Case-4. Got:\n{written_str:?}"
+        );
+        assert!(
+            written_str.contains(lock_expires_at),
+            "AC-015 PC3b: expires_at must remain byte-identical on Case-4 (NoOp). \
+             Got:\n{written_str:?}"
+        );
+    }
+
+    /// test_no_renewal_indeterminate_event_for_not_holder_or_already_expired_or_absent
+    /// (AC-015 / BC-4.17.001 PC3b non-goal)
+    ///
+    /// PC3b NON-GOAL: "factory.lock.renewal_indeterminate" MUST NOT be emitted for
+    /// Cases 0, 2, or 3. Three sub-fixtures, one per disallowed case:
+    ///   Sub-case 1 — NotHolder (Case-3): valid non-expired lock, exec returns DIFFERENT email.
+    ///   Sub-case 2 — AlreadyExpired (Case-2): self-held lock with past expires_at.
+    ///   Sub-case 3 — Absent (Case-0): no factory_lock block.
+    /// For each: emit_event must not be called; PC1 timestamp still re-stamped.
+    ///
+    /// MUTATION-KILLING: if the implementation also emits the event for Case-3 or Case-2
+    /// or Case-0 (e.g., unconditional emit_event), event_calls becomes non-empty → fails.
+    #[test]
+    fn test_no_renewal_indeterminate_event_for_not_holder_or_already_expired_or_absent() {
+        // Sub-case 1: NotHolder — valid NOT-expired lock, exec returns DIFFERENT email.
+        {
+            let content = state_with_foreign_lock("2099-01-01T00:00:00Z"); // not expired
+            let event_calls: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(vec![]));
+            let ec = event_calls.clone();
+            let written: Arc<Mutex<Option<Vec<u8>>>> = Arc::new(Mutex::new(None));
+            let wr = written.clone();
+
+            let _result = guard_logic(
+                payload_for_post_tool_use("Edit"),
+                StampCallbacks {
+                    read_file: move |_path, _max, _timeout| Ok(content.into_bytes()),
+                    write_file: move |_path, bytes| {
+                        *wr.lock().unwrap() = Some(bytes.to_vec());
+                        Ok(())
+                    },
+                    // "caller@example.com" != "holder@example.com" → Case-3 (NotHolder).
+                    exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                    now_fn: fixed_now,
+                    log_warn: |_msg| {},
+                    emit_event: move |event_type: &str, _fields: &[(&str, &str)]| {
+                        ec.lock().unwrap().push(event_type.to_string());
+                    },
+                },
+            );
+
+            assert!(
+                event_calls.lock().unwrap().is_empty(),
+                "AC-015 PC3b: emit_event must NOT be called for Case-3 (NotHolder). \
+                 Got: {:?}",
+                *event_calls.lock().unwrap()
+            );
+            let written_bytes = written
+                .lock()
+                .unwrap()
+                .clone()
+                .expect("write_file must be called — PC1 stamps for NotHolder");
+            let written_str = String::from_utf8_lossy(&written_bytes);
+            assert!(
+                written_str.contains("timestamp: 2026-08-27T12:00:00Z"),
+                "NotHolder sub-case: PC1 must still stamp timestamp. Got:\n{written_str:?}"
+            );
+        }
+
+        // Sub-case 2: AlreadyExpired — self-held lock with PAST expires_at.
+        // fixed_now() = 2026-08-27T12:00:00Z > 2020-01-01T00:45:00Z → AlreadyExpired.
+        {
+            let expired_content = concat!(
+                "---\n",
+                "document_type: state\n",
+                "version: \"0.0.1-test\"\n",
+                "timestamp: 2020-01-01T00:00:00Z\n",
+                "phase: test\n",
+                "factory_lock:\n",
+                "  holder: \"caller@example.com\"\n",
+                "  locked_at: \"2020-01-01T00:00:00Z\"\n",
+                "  expires_at: \"2020-01-01T00:45:00Z\"\n", // past → AlreadyExpired
+                "---\n",
+                "\n# STATE\n",
+            )
+            .to_string();
+            let event_calls: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(vec![]));
+            let ec = event_calls.clone();
+            let written: Arc<Mutex<Option<Vec<u8>>>> = Arc::new(Mutex::new(None));
+            let wr = written.clone();
+
+            let _result = guard_logic(
+                payload_for_post_tool_use("Write"),
+                StampCallbacks {
+                    read_file: move |_path, _max, _timeout| Ok(expired_content.into_bytes()),
+                    write_file: move |_path, bytes| {
+                        *wr.lock().unwrap() = Some(bytes.to_vec());
+                        Ok(())
+                    },
+                    // Identity matches but resolve_identity is NOT called for AlreadyExpired
+                    // (Case-2 short-circuits before calling it — AC-002 lazy-call invariant).
+                    exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                    now_fn: fixed_now,
+                    log_warn: |_msg| {},
+                    emit_event: move |event_type: &str, _fields: &[(&str, &str)]| {
+                        ec.lock().unwrap().push(event_type.to_string());
+                    },
+                },
+            );
+
+            assert!(
+                event_calls.lock().unwrap().is_empty(),
+                "AC-015 PC3b: emit_event must NOT be called for Case-2 (AlreadyExpired). \
+                 Got: {:?}",
+                *event_calls.lock().unwrap()
+            );
+            let written_bytes = written
+                .lock()
+                .unwrap()
+                .clone()
+                .expect("write_file must be called — PC1 stamps for AlreadyExpired");
+            let written_str = String::from_utf8_lossy(&written_bytes);
+            assert!(
+                written_str.contains("timestamp: 2026-08-27T12:00:00Z"),
+                "AlreadyExpired sub-case: PC1 must still stamp timestamp. Got:\n{written_str:?}"
+            );
+        }
+
+        // Sub-case 3: Absent — no factory_lock block → Case-0.
+        {
+            let content = state_no_lock_old_ts();
+            let event_calls: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(vec![]));
+            let ec = event_calls.clone();
+            let written: Arc<Mutex<Option<Vec<u8>>>> = Arc::new(Mutex::new(None));
+            let wr = written.clone();
+
+            let _result = guard_logic(
+                payload_for_post_tool_use("Edit"),
+                StampCallbacks {
+                    read_file: move |_path, _max, _timeout| Ok(content.into_bytes()),
+                    write_file: move |_path, bytes| {
+                        *wr.lock().unwrap() = Some(bytes.to_vec());
+                        Ok(())
+                    },
+                    exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                    now_fn: fixed_now,
+                    log_warn: |_msg| {},
+                    emit_event: move |event_type: &str, _fields: &[(&str, &str)]| {
+                        ec.lock().unwrap().push(event_type.to_string());
+                    },
+                },
+            );
+
+            assert!(
+                event_calls.lock().unwrap().is_empty(),
+                "AC-015 PC3b: emit_event must NOT be called for Case-0 (absent lock). \
+                 Got: {:?}",
+                *event_calls.lock().unwrap()
+            );
+            let written_bytes = written
+                .lock()
+                .unwrap()
+                .clone()
+                .expect("write_file must be called — PC1 stamps for absent lock");
+            let written_str = String::from_utf8_lossy(&written_bytes);
+            assert!(
+                written_str.contains("timestamp: 2026-08-27T12:00:00Z"),
+                "Absent sub-case: PC1 must still stamp timestamp. Got:\n{written_str:?}"
+            );
+        }
+    }
+
+    /// test_malformed_lock_block_case1_emits_advisory_log_warn_not_event
+    /// (AC-015 / BC-4.17.001 PC2 case-1 / PC3b)
+    ///
+    /// Case-1 (malformed block → Err(LockError::Malformed)):
+    ///   - log_warn MUST be called (advisory; PC3b case-1 arm);
+    ///   - emit_event must NOT be called (renewal_indeterminate is Case-4 only).
+    ///
+    /// Fixture: factory_lock block with empty holder → parse_factory_lock returns
+    ///          Err(MalformedLockBlock) → guard_logic Case-1 → log_warn only.
+    ///
+    /// MUTATION-KILLING:
+    ///   Drop case-1 log_warn call → warn_calls remains empty → first assert fails.
+    ///   Add emit_event to case-1 arm → event_calls becomes non-empty → second assert fails.
+    #[test]
+    fn test_malformed_lock_block_case1_emits_advisory_log_warn_not_event() {
+        // Empty holder triggers LockParseError::MalformedLockBlock → Case-1 in guard_logic.
+        let content = state_with_empty_holder();
+
+        let warn_calls: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(vec![]));
+        let wc = warn_calls.clone();
+        let event_calls: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(vec![]));
+        let ec = event_calls.clone();
+
+        let _result = guard_logic(
+            payload_for_post_tool_use("Edit"),
+            StampCallbacks {
+                read_file: move |_path, _max, _timeout| Ok(content.into_bytes()),
+                write_file: |_path, _bytes| Ok(()),
+                exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                now_fn: fixed_now,
+                log_warn: move |msg: &str| {
+                    wc.lock().unwrap().push(msg.to_string());
+                },
+                emit_event: move |event_type: &str, _fields: &[(&str, &str)]| {
+                    ec.lock().unwrap().push(event_type.to_string());
+                },
+            },
+        );
+
+        // log_warn MUST be called (advisory) for the malformed block.
+        assert!(
+            !warn_calls.lock().unwrap().is_empty(),
+            "AC-015 PC3b Case-1: log_warn must be called at least once for malformed block. \
+             Got 0 calls."
+        );
+
+        // emit_event must NOT be called — renewal_indeterminate is Case-4 only.
+        assert!(
+            event_calls.lock().unwrap().is_empty(),
+            "AC-015 PC3b Case-1: emit_event must NOT be called for malformed block. \
+             renewal_indeterminate is Case-4 only. Got: {:?}",
+            *event_calls.lock().unwrap()
         );
     }
 }
