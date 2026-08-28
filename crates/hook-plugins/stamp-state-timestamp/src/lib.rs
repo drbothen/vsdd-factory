@@ -1166,6 +1166,10 @@ mod tests {
         );
         let written = Arc::new(Mutex::new(None::<Vec<u8>>));
         let w = written.clone();
+        // F-P9-003: track whether exec_subprocess is invoked.
+        // Case-2 (already expired) must short-circuit before identity resolution,
+        // so exec_subprocess must NOT be called even though identity would match.
+        let exec_called = Arc::new(Mutex::new(false));
 
         let _result = guard_logic(
             payload_for_post_tool_use("Write"),
@@ -1176,11 +1180,28 @@ mod tests {
                     Ok(())
                 },
                 // Identity MATCHES the lock holder — but the lock is already expired.
-                exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                // exec_called is set to true if the closure is invoked; for Case-2 it must
+                // remain false (expiry gate fires before identity resolution per ADR-046).
+                exec_subprocess: {
+                    let ec = exec_called.clone();
+                    move |_argv| {
+                        *ec.lock().unwrap() = true;
+                        Ok((0, "caller@example.com\n".to_string()))
+                    }
+                },
                 now_fn: fixed_now,
                 log_warn: |_msg| {},
                 emit_event: |_event_type, _fields| {},
             },
+        );
+
+        // F-P9-003 Red Gate contract: exec_subprocess must NOT be called for an
+        // already-expired lock (PC2 Case-2 resolves before identity resolution).
+        assert!(
+            !*exec_called.lock().unwrap(),
+            "PC2 Case-2 (F-P9-003, ADR-046 anti-resurrection): exec_subprocess must NOT be \
+             called — the expiry gate must short-circuit before identity resolution. \
+             Got: exec_subprocess was invoked."
         );
 
         let written_bytes = written
