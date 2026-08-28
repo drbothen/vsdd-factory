@@ -70,14 +70,18 @@ pub const HOST_ABI_VERSION: u32 = 1;
 /// In production (`on_post_tool_use`), these are wired to real vsdd_hook_sdk host fns.
 ///
 /// Mirrors `verify-factory-lock`'s `GuardCallbacks` pattern, extended with
-/// `write_file` (PostToolUse write-back) and `now_fn` (injectable clock for
-/// deterministic testing of AC-003/AC-010 timestamp-equality assertions).
-pub struct StampCallbacks<R, W, E, NF>
+/// `write_file` (PostToolUse write-back), `now_fn` (injectable clock for
+/// deterministic testing of AC-003/AC-010 timestamp-equality assertions),
+/// `log_warn` and `emit_event` (PC3b observability for Case-4 identity-resolution
+/// failure and Case-1 malformed-block advisory; BC-4.17.001 PC3b).
+pub struct StampCallbacks<R, W, E, NF, LW, EV>
 where
     R: FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
     W: FnOnce(&str, &[u8]) -> Result<(), String>,
     E: FnOnce(&[&str]) -> Result<(i32, String), String>,
     NF: FnOnce() -> DateTime<Utc>,
+    LW: FnOnce(&str),
+    EV: FnOnce(&str, &[(&str, &str)]),
 {
     /// Read the full content of `.factory/STATE.md` via `host::read_file`.
     /// `(path, max_bytes, timeout_ms)` → `Ok(bytes)` or `Err(host_error_description)`.
@@ -95,6 +99,14 @@ where
     /// Production: `Utc::now`. Tests: inject a fixed timestamp for deterministic
     /// AC-003/AC-010 `expires_at = now + TTL_SECONDS` assertions.
     pub now_fn: NF,
+    /// Emit an advisory warn-level log line via `host::log_warn` (best-effort; PC3b).
+    /// Called on Case-4 (IdentityResolutionFailed) and Case-1 (Malformed) paths.
+    /// Production: `|msg| host::log_warn(msg)`. Tests: no-op or capturing closure.
+    pub log_warn: LW,
+    /// Emit a structured observability event via `host::emit_event` (best-effort; PC3b).
+    /// Called on Case-4 (IdentityResolutionFailed) path only.
+    /// Production: `|et, fields| host::emit_event(et, fields)`. Tests: no-op or capturing.
+    pub emit_event: EV,
 }
 
 // ---------------------------------------------------------------------------
@@ -125,25 +137,37 @@ where
 ///      On write error: swallow (PC3 fail-open; agent's write is not reverted).
 ///   6. Return `HookResult::Continue` (Invariant 4: no `block_intent` capability).
 ///
+/// PC3b observability (BC-4.17.001 PC3b / F-S1705-P3-001):
+///   On Case-4 (`Ok((NoOp, Some(SkipReason::IdentityResolutionFailed { ... })))`):
+///   - `emit_event("factory.lock.renewal_indeterminate", &[("plugin", ...), ("holder", ...),
+///     ("locked_at", ...), ("expires_at", ...), ("resolution_error", ...)])`, AND
+///   - `log_warn(<human-readable message naming holder + reason>)`.
+///   On Case-1 (`Err(LockError::Malformed(_))`): `log_warn` advisory only; no emit.
+///   `NotHolder`, `AlreadyExpired`, `(NoOp, None)`: no diagnostic (PC3b non-goal).
+///   The emit/log calls are best-effort; fail-open PC3 maintained regardless.
+///
 /// # BC traces
 /// - BC-4.17.001 PC1: unconditional `timestamp:` re-stamp (AC-001, AC-002)
 /// - BC-4.17.001 PC2: identity-gated `factory_lock.expires_at` renewal (AC-003..AC-007)
 /// - BC-4.17.001 PC3: fail-open on any read/parse/UTF-8/write error (AC-008, AC-009)
+/// - BC-4.17.001 PC3b: renewal_indeterminate emit+log on Case-4; advisory log on Case-1
 /// - BC-4.17.001 PC4: idempotent, frontmatter-only rewrite (AC-010)
 /// - BC-4.17.001 PC5: no acquire/release/CAS involvement (AC-011)
 /// - BC-5.40.001 PC4: mid-burst TTL keep-alive (AC-014)
-pub fn guard_logic<R, W, E, NF>(
+pub fn guard_logic<R, W, E, NF, LW, EV>(
     _payload: HookPayload,
-    callbacks: StampCallbacks<R, W, E, NF>,
+    callbacks: StampCallbacks<R, W, E, NF, LW, EV>,
 ) -> HookResult
 where
     R: FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
     W: FnOnce(&str, &[u8]) -> Result<(), String>,
     E: FnOnce(&[&str]) -> Result<(i32, String), String>,
     NF: FnOnce() -> DateTime<Utc>,
+    LW: FnOnce(&str),
+    EV: FnOnce(&str, &[(&str, &str)]),
 {
     use factory_lock::{
-        LockError, RenewOutcome, classify_identity_resolution, renew_lock_if_holder,
+        LockError, RenewOutcome, SkipReason, classify_identity_resolution, renew_lock_if_holder,
     };
 
     // Step 1 (PC3): read STATE.md — fail-open on host error.
@@ -212,24 +236,65 @@ where
         &content[4 + ts_line_end..],
     );
 
-    // Step 5 (PC2): identity-gated expires_at renewal via canonical renew_lock_if_holder.
+    // Step 5 (PC2 + PC3b): identity-gated expires_at renewal via canonical renew_lock_if_holder.
     // The 6-case decision tree (ADR-046 Decision 1(b)) is fully encapsulated inside
     // renew_lock_if_holder — including the expiry gate (Case 2):
-    //   Case 0 (absent/null) → NoOp
-    //   Case 1 (malformed)   → Err(Malformed) → fail-open: write PC1 timestamp only
-    //   Case 2 (already expired) → NoOp; ADR-046 anti-resurrection (SAFETY-CRITICAL)
-    //   Case 3 (not holder)  → NoOp
-    //   Case 4 (identity resolution failed) → NoOp
+    //   Case 0 (absent/null) → NoOp, None
+    //   Case 1 (malformed)   → Err(Malformed) → advisory log_warn; fail-open: write PC1 only
+    //   Case 2 (already expired) → NoOp, Some(AlreadyExpired); ADR-046 anti-resurrection
+    //   Case 3 (not holder)  → NoOp, Some(NotHolder)
+    //   Case 4 (identity resolution failed) → NoOp, Some(IdentityResolutionFailed{..})
+    //     → PC3b: emit_event("factory.lock.renewal_indeterminate") + log_warn (best-effort)
     //   Case 5 (identity matches, not expired) → Renewed
     let exec_subprocess = callbacks.exec_subprocess;
+    let log_warn = callbacks.log_warn;
+    let emit_event = callbacks.emit_event;
     let resolve_identity =
         move || classify_identity_resolution(exec_subprocess(&["git", "config", "user.email"]));
-    let content_after_pc2 =
-        match renew_lock_if_holder(&content_after_pc1, resolve_identity, move || now) {
-            Ok((RenewOutcome::Renewed(new_content), _)) => new_content,
-            Ok((RenewOutcome::NoOp, _)) => content_after_pc1, // cases 0/2/3/4 → PC1 timestamp only
-            Err(LockError::Malformed(_)) => content_after_pc1, // case 1 → PC3 fail-open: PC1 only
-        };
+    let content_after_pc2 = match renew_lock_if_holder(
+        &content_after_pc1,
+        resolve_identity,
+        move || now,
+    ) {
+        Ok((RenewOutcome::Renewed(new_content), _)) => new_content,
+        // Case 4 — PC3b: identity-resolution failure → emit renewal_indeterminate event
+        // and advisory log_warn. Best-effort observability; fail-open PC3 maintained.
+        Ok((
+            RenewOutcome::NoOp,
+            Some(SkipReason::IdentityResolutionFailed {
+                reason,
+                holder,
+                locked_at,
+                expires_at,
+            }),
+        )) => {
+            (emit_event)(
+                "factory.lock.renewal_indeterminate",
+                &[
+                    ("plugin", "stamp-state-timestamp"),
+                    ("holder", &holder),
+                    ("locked_at", &locked_at),
+                    ("expires_at", &expires_at),
+                    ("resolution_error", &reason),
+                ],
+            );
+            (log_warn)(&format!(
+                "stamp-state-timestamp: renewal_indeterminate — holder: {holder}, reason: {reason}",
+            ));
+            content_after_pc1
+        }
+        // Cases 0, 2, 3 — no diagnostic (PC3b non-goal).
+        Ok((RenewOutcome::NoOp, Some(SkipReason::NotHolder)))
+        | Ok((RenewOutcome::NoOp, Some(SkipReason::AlreadyExpired)))
+        | Ok((RenewOutcome::NoOp, None)) => content_after_pc1,
+        // Case 1 — malformed block: advisory log_warn only; no emit.
+        Err(LockError::Malformed(msg)) => {
+            (log_warn)(&format!(
+                "stamp-state-timestamp: malformed factory_lock block (advisory): {msg}",
+            ));
+            content_after_pc1
+        }
+    };
 
     // Step 6 (PC3): write back — fail-open on write error (agent's write not reverted).
     let _ = (callbacks.write_file)(".factory/STATE.md", content_after_pc2.as_bytes());
@@ -287,6 +352,10 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
                 None => Err("exec_subprocess: empty argv".to_string()),
             },
             now_fn: Utc::now,
+            // PC3b: wire best-effort observability callbacks to host functions.
+            // These are fire-and-forget; host::log_warn and host::emit_event always succeed.
+            log_warn: |msg| host::log_warn(msg),
+            emit_event: |event_type, fields| host::emit_event(event_type, fields),
         },
     )
 }
@@ -478,6 +547,8 @@ mod tests {
                 },
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -527,6 +598,8 @@ mod tests {
                 // Identity MISMATCH: "caller@example.com" != "holder@example.com"
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -579,6 +652,8 @@ mod tests {
                 // Identity MATCH: "caller@example.com" == holder "caller@example.com"
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -634,6 +709,8 @@ mod tests {
                 },
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -677,6 +754,8 @@ mod tests {
                 },
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -726,6 +805,8 @@ mod tests {
                 // "caller@example.com" != "holder@example.com" → MISMATCH
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -791,6 +872,8 @@ mod tests {
                 // Non-holder writer admitted via expired lock (different identity)
                 exec_subprocess: |_argv| Ok((0, "newwriter@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -862,6 +945,8 @@ mod tests {
                 // Identity MATCHES the lock holder — but the lock is already expired.
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -941,6 +1026,8 @@ mod tests {
                 // Identity resolution FAILURE
                 exec_subprocess: |_argv| Err("git config user.email failed".to_string()),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -988,6 +1075,8 @@ mod tests {
                 },
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -1019,6 +1108,8 @@ mod tests {
                 },
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -1051,6 +1142,8 @@ mod tests {
                 },
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -1082,6 +1175,8 @@ mod tests {
                 },
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -1112,6 +1207,8 @@ mod tests {
                 write_file: |_path, _bytes| Ok(()),
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -1129,6 +1226,8 @@ mod tests {
                 },
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
         assert!(
@@ -1166,6 +1265,8 @@ mod tests {
                 // Identity match → both timestamp + expires_at change
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
@@ -1235,6 +1336,8 @@ mod tests {
                 },
                 exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
                 now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
             },
         );
 
