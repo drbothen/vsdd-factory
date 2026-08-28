@@ -2622,4 +2622,156 @@ mod tests {
             &written_bytes[written_bytes.len().saturating_sub(30)..]
         );
     }
+
+    // -----------------------------------------------------------------------
+    // F-S1705-P6-001 / AC-016: empty valid frontmatter — no panic, no write
+    // -----------------------------------------------------------------------
+
+    /// test_empty_valid_frontmatter_no_panic_no_write (F-S1705-P6-001 / AC-016)
+    ///
+    /// Degenerate case: input STATE.md = exactly `"---\n---\n"` (valid opening
+    /// + closing fence, empty body, no `timestamp:` anchor, no `factory_lock`).
+    ///
+    /// Expected:
+    ///   - `guard_logic` returns `HookResult::Continue` WITHOUT panicking (PC3
+    ///     fail-open; the `fm_start = fence_len.min(fm_bytes_len)` clamp prevents
+    ///     a start>end slice panic when `fm_bytes_len=3 < fence_len=4`).
+    ///   - `write_file` NOT called (PC2 NoOp — no lock; PC1 suppressed — no
+    ///     timestamp anchor; `has_timestamp=false` + `Ok((NoOp, None))` →
+    ///     `content_to_write = None`; Invariant-9 row 4).
+    ///
+    /// MUTATION-KILL: reverting Guard 2 (the `fence_len.min(fm_bytes_len)` clamp)
+    /// back to the unguarded `content[fence_len..fm_bytes_len]` = `content[4..3]`
+    /// causes a start-greater-than-end slice panic that aborts the test thread.
+    /// The test MUST reach the `write_file` assertion without panicking — a panic
+    /// is detected as a test failure, proving the clamp is load-bearing.
+    #[test]
+    fn test_empty_valid_frontmatter_no_panic_no_write() {
+        // "---\n---\n": valid opening fence, valid closing fence, zero content between.
+        // extract_frontmatter returns 3 bytes (fm_bytes_len=3 < fence_len=4):
+        // the `\n` at byte-position 3 is shared between the opening fence end and
+        // the `\n---\n` closing delimiter pattern, leaving zero fm_body bytes.
+        let content = "---\n---\n".to_string();
+        let written = Arc::new(Mutex::new(None::<Vec<u8>>));
+        let w = written.clone();
+
+        // Must NOT panic — if the `fence_len.min(fm_bytes_len)` clamp is absent,
+        // guard_logic panics with a start>end slice index here.
+        let result = guard_logic(
+            payload_for_post_tool_use("Edit"),
+            StampCallbacks {
+                read_file: move |_path, _max, _timeout| Ok(content.into_bytes()),
+                write_file: move |_path, bytes| {
+                    *w.lock().unwrap() = Some(bytes.to_vec());
+                    Ok(())
+                },
+                exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                now_fn: fixed_now,
+                // log_warn will fire for GAP-1 TimestampAnchorMissing; silently discard.
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
+            },
+        );
+
+        // Invariant 4 / PC5: hook always returns Continue (no block_intent path).
+        assert!(
+            matches!(result, HookResult::Continue),
+            "F-S1705-P6-001 AC-016: guard_logic must return HookResult::Continue on \
+             empty-frontmatter input"
+        );
+
+        // Invariant-9 row 4: has_timestamp=false + PC2=Ok((NoOp, None)) → no write.
+        assert!(
+            written.lock().unwrap().is_none(),
+            "F-S1705-P6-001 AC-016 (Invariant-9 row 4): write_file must NOT be called — \
+             has_timestamp=false and PC2=NoOp(None) → content_to_write=None"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S1705-P6-001 / AC-008: opening fence absent — fail-open with advisory
+    // -----------------------------------------------------------------------
+
+    /// test_opening_fence_absent_fails_open_with_advisory (F-S1705-P6-001 / AC-008)
+    ///
+    /// Input: content with NO opening `---\n` fence but with an inline `\n---\n`
+    /// pattern that satisfies the closing-delimiter check (e.g., `"garbage
+    /// line\n---\nmore\n"`).
+    ///
+    /// `extract_frontmatter` finds the `\n---\n` and returns a shorter slice
+    /// (fm_bytes_len < raw_bytes_len), so the *closing*-fence structural check
+    /// passes (fence IS located). The subsequent opening-fence guard (Guard 1,
+    /// F-S1705-P6-001) catches that content does not start with `---\n` or
+    /// `---\r\n` and emits the distinct `StampingSkipped (opening fence absent)`
+    /// advisory, then returns Continue.
+    ///
+    /// Expected:
+    ///   - `write_file` NOT called (PC3a fail-open).
+    ///   - `log_warn` called with a message containing BOTH `"StampingSkipped"`
+    ///     AND `"opening fence absent"` — distinct from the closing-delimiter
+    ///     advisory (`"missing/invalid frontmatter delimiters"` without the
+    ///     `"opening fence absent"` suffix).
+    ///
+    /// MUTATION-KILL: removing Guard 1 (the `starts_with` check + advisory
+    /// return) causes execution to continue into the fm_body slice computation.
+    /// Without a `timestamp:` line in the mis-parsed fm_body, `log_warn` is
+    /// called with a `TimestampAnchorMissing` message — which contains neither
+    /// `"StampingSkipped"` nor `"opening fence absent"`. The advisory assertion
+    /// therefore fails, detecting the missing guard.
+    #[test]
+    fn test_opening_fence_absent_fails_open_with_advisory() {
+        // Content starts with "garbage line" — no opening "---\n" or "---\r\n" fence.
+        // The inline "\n---\n" at position 12 satisfies extract_frontmatter's
+        // closing-delimiter search (fm_bytes_len=12 < raw_bytes_len=22), so the
+        // closing-fence structural check passes; only Guard 1 catches the missing
+        // opening fence.
+        let content = "garbage line\n---\nmore\n".to_string();
+        let written = Arc::new(Mutex::new(None::<Vec<u8>>));
+        let w = written.clone();
+        let warnings: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+        let warn_capture = warnings.clone();
+
+        let result = guard_logic(
+            payload_for_post_tool_use("Edit"),
+            StampCallbacks {
+                read_file: move |_path, _max, _timeout| Ok(content.into_bytes()),
+                write_file: move |_path, bytes| {
+                    *w.lock().unwrap() = Some(bytes.to_vec());
+                    Ok(())
+                },
+                exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                now_fn: fixed_now,
+                log_warn: move |msg| {
+                    warn_capture.lock().unwrap().push(msg.to_string());
+                },
+                emit_event: |_event_type, _fields| {},
+            },
+        );
+
+        // Invariant 4 / PC5: hook always returns Continue.
+        assert!(
+            matches!(result, HookResult::Continue),
+            "F-S1705-P6-001 AC-008: guard_logic must return HookResult::Continue when \
+             opening fence is absent"
+        );
+
+        // PC3a fail-open: no write when structural validation fails.
+        assert!(
+            written.lock().unwrap().is_none(),
+            "F-S1705-P6-001 AC-008: write_file must NOT be called when opening fence is absent"
+        );
+
+        // PC3b / EC-005: the distinct opening-fence StampingSkipped advisory must be
+        // emitted. This is the mutation-kill assertion: Guard 1 removed → log_warn
+        // fires for TimestampAnchorMissing (no "StampingSkipped" + "opening fence
+        // absent") → this assertion fails, detecting the missing guard.
+        let all_warnings = warnings.lock().unwrap().join("\n");
+        assert!(
+            all_warnings.contains("StampingSkipped")
+                && all_warnings.contains("opening fence absent"),
+            "F-S1705-P6-001 AC-008: log_warn must be called with a message containing \
+             both 'StampingSkipped' and 'opening fence absent'. \
+             Got warnings:\n{all_warnings:?}"
+        );
+    }
 }
