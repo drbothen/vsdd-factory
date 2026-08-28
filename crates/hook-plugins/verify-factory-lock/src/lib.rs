@@ -268,14 +268,6 @@ pub fn is_expired(
     now >= expires_at
 }
 
-/// Trim trailing whitespace (including `\n`) from a git subprocess stdout line.
-///
-/// Delegates to `factory_lock::trim_git_email` — the canonical home per
-/// F-P7-001 single-canonical-home principle (AC-005 / ADR-046 Decision 2).
-pub fn trim_git_email(raw: &str) -> String {
-    factory_lock::trim_git_email(raw)
-}
-
 // ---------------------------------------------------------------------------
 // Core guard logic (injectable callbacks — testable without WASM runtime)
 // ---------------------------------------------------------------------------
@@ -472,7 +464,9 @@ where
     };
 
     // Step 7: Trim trailing newline from git email output.
-    let caller_email = trim_git_email(&git_email_raw);
+    // Delegates to factory_lock::trim_git_email — the canonical home per
+    // F-P7-001 single-canonical-home principle (AC-005 / ADR-046 Decision 2).
+    let caller_email = factory_lock::trim_git_email(&git_email_raw);
 
     // Step 8: If holder == caller_email: return Continue (PC3 self-held).
     if lock.holder == caller_email {
@@ -1373,7 +1367,7 @@ mod tests {
     /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_trim_git_email_strips_trailing_newline() {
-        let result = trim_git_email("dev@example.com\n");
+        let result = factory_lock::trim_git_email("dev@example.com\n");
         assert_eq!(result, "dev@example.com");
     }
 
@@ -1382,7 +1376,7 @@ mod tests {
     /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_trim_git_email_unchanged_when_no_newline() {
-        let result = trim_git_email("dev@example.com");
+        let result = factory_lock::trim_git_email("dev@example.com");
         assert_eq!(result, "dev@example.com");
     }
 

@@ -301,7 +301,7 @@ pub fn acquire_lock(
 /// Clear the factory lock in STATE.md frontmatter content.
 ///
 /// Pure content-in/content-out; no `std::fs`.
-/// Removes the `factory_lock:` block (or nulls `holder`) so subsequent
+/// Removes the `factory_lock:` block (or writes it fully null) so subsequent
 /// `renew_lock()` calls return `Ok(RenewOutcome::NoOp)`.
 pub fn clear_lock(_state_md_content: &str) -> Result<String, LockError> {
     todo!("clear_lock: scoped to S-18.04b")
