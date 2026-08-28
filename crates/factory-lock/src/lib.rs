@@ -328,3 +328,140 @@ pub fn parse_lock(state_md_content: &str) -> Result<Option<FactoryLock>, LockErr
         Err(flp::LockParseError::MalformedLockBlock(msg)) => Err(LockError::Malformed(msg)),
     }
 }
+
+// ---------------------------------------------------------------------------
+// S-17.06: IdentityResolution, SkipReason, renew_lock_if_holder,
+//          classify_identity_resolution, trim_git_email
+// (BC-4.17.001 PC2 — ADR-046 Decision 1(b)/2)
+// ---------------------------------------------------------------------------
+
+/// The result of resolving the caller's git identity for lock renewal.
+///
+/// Produced by [`classify_identity_resolution`] from the output of a
+/// `git config user.email` subprocess invocation.
+///
+/// - `Resolved(email)` — subprocess returned exit 0 and a non-empty email after
+///   trimming. Contains the trimmed git email string.
+/// - `Failed(reason)` — identity could not be resolved (exec error, non-zero exit,
+///   or empty stdout after trimming via [`trim_git_email`]).
+///
+/// ADR-046 Decision 2 / BC-4.17.001 Precondition 2.
+#[derive(Debug, Clone, PartialEq)]
+pub enum IdentityResolution {
+    /// Identity resolved successfully; contains the trimmed git email.
+    Resolved(String),
+    /// Identity resolution failed; contains a human-readable reason string.
+    Failed(String),
+}
+
+/// The reason a [`renew_lock_if_holder`] call was skipped without renewing.
+///
+/// Returned alongside [`RenewOutcome::NoOp`] when the skip has a diagnosable
+/// cause (Cases 2, 3, 4 of the 6-case decision tree). Cases 0 and 1 do not
+/// produce a `SkipReason` — they are returned as `None`.
+///
+/// BC-4.17.001 PC2 / ADR-046 Decision 1(b).
+#[derive(Debug, Clone, PartialEq)]
+pub enum SkipReason {
+    /// Case 3: Lock is valid and unexpired, but held by a different identity.
+    NotHolder,
+    /// Case 2: Lock exists but `now >= expires_at`; renewal skipped (lock expired).
+    AlreadyExpired,
+    /// Case 4: Identity resolution failed; cannot determine whether caller is the holder.
+    ///
+    /// All four fields are populated from the parsed `LockState` (AC-003 / F-P21-001).
+    /// No field may be absent — they are required by the 4-field struct invariant.
+    IdentityResolutionFailed {
+        /// Human-readable reason the identity resolution failed.
+        reason: String,
+        /// Email of the current lock holder (from parsed `LockState`).
+        holder: String,
+        /// ISO-8601 timestamp when the lock was acquired (from parsed `LockState`).
+        locked_at: String,
+        /// ISO-8601 expiry timestamp of the lock (from parsed `LockState`).
+        expires_at: String,
+    },
+}
+
+/// Classify the result of a `git config user.email` subprocess invocation into
+/// an [`IdentityResolution`].
+///
+/// Implements the 4-shape mapping defined in ADR-046 Decision 2 / BC-4.17.001
+/// Precondition 2 (F-006):
+///
+/// 1. `Err(_)` → `IdentityResolution::Failed("exec error: <description>")`
+/// 2. `Ok((exit_code, _))` where `exit_code != 0` → `IdentityResolution::Failed("exit N: <stdout>")`
+/// 3. `Ok((0, stdout))` where `trim_git_email(&stdout).is_empty()` →
+///    `IdentityResolution::Failed("empty identity")`
+/// 4. `Ok((0, stdout))` where `!trim_git_email(&stdout).is_empty()` →
+///    `IdentityResolution::Resolved(trim_git_email(&stdout))`
+///
+/// # Parameters
+///
+/// - `exec_result` — `Ok((exit_code, stdout))` on subprocess success,
+///   `Err(host_error_description)` on exec/host failure.
+///
+/// Pure function; no I/O. WASM-hermetic.
+pub fn classify_identity_resolution(
+    _exec_result: Result<(i32, String), String>,
+) -> IdentityResolution {
+    todo!("S-17.06 AC-004")
+}
+
+/// Renew the factory lock in STATE.md if and only if the caller is the current
+/// lock holder (identity-gated renewal).
+///
+/// Implements the 6-case decision tree from BC-4.17.001 PC2 / ADR-046 Decision 1(b):
+///
+/// - **Case 0 (absent/null block):** `parse_factory_lock` returns `Ok(None)` →
+///   `Ok((RenewOutcome::NoOp, None))`. `resolve_identity` is NOT called.
+/// - **Case 1 (malformed block):** `parse_factory_lock` returns `Err(Malformed)` →
+///   `Err(LockError::Malformed)`. `resolve_identity` is NOT called.
+/// - **Case 2 (already expired):** lock present, `now >= expires_at` →
+///   `Ok((RenewOutcome::NoOp, Some(SkipReason::AlreadyExpired)))`.
+///   `resolve_identity` is NOT called.
+/// - **Case 3 (not holder):** identity resolved, email != holder (after
+///   [`trim_git_email`]) → `Ok((RenewOutcome::NoOp, Some(SkipReason::NotHolder)))`.
+/// - **Case 4 (identity resolution failed):** `resolve_identity` returns
+///   `IdentityResolution::Failed(reason)` →
+///   `Ok((RenewOutcome::NoOp, Some(SkipReason::IdentityResolutionFailed { reason, holder, locked_at, expires_at })))`.
+///   All four struct fields are populated from the parsed `LockState`.
+/// - **Case 5 (success):** identity matches, `now < expires_at` →
+///   `Ok((RenewOutcome::Renewed(new_content), None))` with
+///   `expires_at = now + TTL_SECONDS`, formatted as `YYYY-MM-DDTHH:MM:SSZ`.
+///
+/// `resolve_identity` is called AT MOST ONCE per invocation and MUST NOT be
+/// called for Cases 0, 1, or 2 (AC-002 lazy-call constraint).
+///
+/// # Parameters
+///
+/// - `content` — full STATE.md content (pure content-in/content-out; no I/O).
+/// - `resolve_identity` — lazy `FnOnce` closure that resolves the caller's git
+///   identity. Called only when the lock is present, valid, and not expired.
+/// - `now_fn` — injectable clock closure; use `|| Utc::now()` in production.
+///   Enables deterministic testing without wall-clock timing.
+///
+/// Pure-core function; `resolve_identity` and `now_fn` are the only effectful
+/// surfaces (injected by caller). WASM-hermetic; no direct host I/O.
+pub fn renew_lock_if_holder<F, I>(
+    _content: &str,
+    _resolve_identity: I,
+    _now_fn: F,
+) -> Result<(RenewOutcome, Option<SkipReason>), LockError>
+where
+    F: Fn() -> DateTime<Utc>,
+    I: FnOnce() -> IdentityResolution,
+{
+    todo!("S-17.06 AC-001/002/003")
+}
+
+/// Trim trailing whitespace (including `\n`) from a git subprocess stdout line.
+///
+/// Canonical home for this function per F-P7-001 single-canonical-home principle
+/// (AC-005 / ADR-046 Decision 2). After AC-005 implementation, any crate that
+/// previously contained a local copy of this function (e.g.,
+/// `crates/hook-plugins/verify-factory-lock/src/lib.rs`) MUST delegate to this
+/// function. No re-implementation permitted in any crate.
+pub fn trim_git_email(_raw: &str) -> String {
+    todo!("S-17.06 AC-005")
+}
