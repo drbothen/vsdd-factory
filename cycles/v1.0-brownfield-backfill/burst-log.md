@@ -8874,4 +8874,4 @@ Dim-7 attestation: no backward-incompatible ABI changes. This is a pure bookkeep
 **Block 8: factory-artifacts commit**
 
 Parent SHA: `4e8b5301` (D-1125-ADR046-WAVE5-DECOMP-CASCADE-COMPLETE).
-This burst commit SHA: TBD — D-449(e) SHA-patch to be applied post-push.
+This burst commit SHA: `f4c018b2` — D-449(e) SHA-patch applied post-push 2026-08-28.

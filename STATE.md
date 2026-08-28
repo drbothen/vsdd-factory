@@ -102,7 +102,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **3200149d** | S-17.06 MERGED PR #787 2026-08-28. Chain: 6993138b→PR #786 fc7cbccb (orphan-WASM + release.yml-exclude)→PR #787 3200149d (S-17.06). CI-GREEN. |
-| factory-artifacts | **TBD** | D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY burst. SHA to be patched via D-449(e) after push. |
+| factory-artifacts | **f4c018b2** | D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY burst (pushed 2026-08-28). |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
 | fix/policy15-empty-range-inert | a6a15e1d | MERGED PR #779 2026-08-16. |
