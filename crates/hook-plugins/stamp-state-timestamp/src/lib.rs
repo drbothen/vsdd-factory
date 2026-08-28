@@ -644,6 +644,62 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // Additional fixture helpers added in S-17.05 v1.5 (8 consolidated-conformance tests)
+    // -----------------------------------------------------------------------
+
+    /// Build a valid STATE.md byte-vec of exactly `total_len` bytes.
+    /// Frontmatter is minimal (timestamp line + LF fences); body is padded with 'A'.
+    /// Used for soft-warn boundary tests (AC-018 / Invariant 8 / GAP-4).
+    fn state_padded_to(total_len: usize) -> Vec<u8> {
+        let header: &[u8] = b"---\ntimestamp: 2020-01-01T00:00:00Z\n---\n";
+        assert!(
+            total_len >= header.len(),
+            "total_len {total_len} must be >= header len {}",
+            header.len()
+        );
+        let mut content = header.to_vec();
+        content.resize(total_len, b'A');
+        content
+    }
+
+    /// Valid frontmatter with NO `timestamp:` line but WITH a self-held, far-future lock.
+    /// Used by EC-013 Invariant-9 row 3 test (PC2-only write when no timestamp anchor).
+    fn state_no_timestamp_self_lock_far_future() -> String {
+        concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"0.0.1-test\"\n",
+            "phase: test\n",
+            "factory_lock:\n",
+            "  holder: \"caller@example.com\"\n",
+            "  locked_at: \"2026-01-01T10:00:00Z\"\n",
+            "  expires_at: \"2099-01-01T00:00:00Z\"\n",
+            "---\n",
+            "\n# STATE\n",
+        )
+        .to_string()
+    }
+
+    /// Frontmatter with two `timestamp:` lines (EC-014 duplicate-timestamp advisory).
+    fn state_duplicate_timestamp() -> String {
+        concat!(
+            "---\n",
+            "document_type: state\n",
+            "timestamp: 2020-01-01T00:00:00Z\n",
+            "timestamp: 2021-06-15T00:00:00Z\n",
+            "phase: test\n",
+            "---\n",
+            "\n# STATE\n",
+        )
+        .to_string()
+    }
+
+    /// STATE.md with CRLF (`\r\n`) line endings including the fence lines (EC-017).
+    fn state_crlf_valid() -> Vec<u8> {
+        b"---\r\ndocument_type: state\r\ntimestamp: 2020-01-01T00:00:00Z\r\nphase: test\r\n---\r\n\r\n# STATE\r\n".to_vec()
+    }
+
+    // -----------------------------------------------------------------------
     // AC-001: PC1 unconditional timestamp re-stamp (no lock present)
     // -----------------------------------------------------------------------
 
@@ -1277,14 +1333,24 @@ mod tests {
         );
     }
 
-    /// test_missing_timestamp_anchor_writes_nothing (AC-008)
+    // -----------------------------------------------------------------------
+    // EC-013 Invariant-9 row 4: no timestamp + no lock → write nothing
+    // Replaces the RETIRED `test_missing_timestamp_anchor_writes_nothing`.
+    // That test conflated structural-fail (PC3a) with the EC-013 scoped exception (GAP-1).
+    // The row 3 counter-case (no-ts + matching lock → write) is covered by
+    // `test_no_timestamp_anchor_with_matching_lock_renews_expires_at` (new, below).
+    // -----------------------------------------------------------------------
+
+    /// test_no_timestamp_anchor_no_lock_writes_nothing
+    /// (EC-013 / GAP-1 / Invariant-9 row 4)
     ///
-    /// BC-4.17.001 PC3: valid frontmatter delimiters but no `timestamp:` anchor line →
-    /// hook writes NOTHING (no line to replace → fail-open).
+    /// BC-4.17.001 GAP-1 EC-013 row 4: valid frontmatter, NO `timestamp:` line,
+    /// NO `factory_lock` block → PC1 is a no-op, PC2 is NoOp → write_file NOT called.
     ///
-    /// RED GATE: guard_logic is todo!() → panics.
+    /// MUTATION-KILLING: if the GAP-1 path writes unconditionally even without a PC2
+    /// Renewed outcome, write_file would be called → assertion fails.
     #[test]
-    fn test_missing_timestamp_anchor_writes_nothing() {
+    fn test_no_timestamp_anchor_no_lock_writes_nothing() {
         let content = state_no_timestamp_line();
         let write_called = Arc::new(Mutex::new(false));
         let wc = write_called.clone();
@@ -1306,7 +1372,8 @@ mod tests {
 
         assert!(
             !*write_called.lock().unwrap(),
-            "AC-008 PC3: write_file must NOT be called when no timestamp: anchor line is present (fail-open)"
+            "EC-013 Invariant-9 row 4: write_file must NOT be called when no timestamp: \
+             anchor and no lock block — PC1=no-op, PC2=NoOp → write suppressed."
         );
     }
 
@@ -1933,6 +2000,488 @@ mod tests {
             "AC-015 PC3b Case-1: emit_event must NOT be called for malformed block. \
              renewal_indeterminate is Case-4 only. Got: {:?}",
             *event_calls.lock().unwrap()
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-016 / EC-013 / Invariant-9 row 3: no timestamp + matching lock → renews
+    // -----------------------------------------------------------------------
+
+    /// test_no_timestamp_anchor_with_matching_lock_renews_expires_at
+    /// (AC-016 / EC-013 / Invariant-9 row 3)
+    ///
+    /// BC-4.17.001 GAP-1 EC-013 row 3: valid frontmatter, NO `timestamp:` line, plus a
+    /// factory_lock block whose holder == mock identity (far-future expires_at, not expired).
+    ///
+    /// Expected:
+    ///   - write_file IS called (PC2 Renewed → write even though PC1 is no-op).
+    ///   - Written content has renewed expires_at = fixed_now() + TTL_SECONDS.
+    ///   - NO `timestamp:` line is inserted (PC1 never invents a key).
+    ///
+    /// MUTATION-KILLING: if the pre-fix early-return-on-no-timestamp is still in place
+    /// (old code returned Continue before reaching PC2), write_file is NOT called →
+    /// the expect() panics → test fails.
+    #[test]
+    fn test_no_timestamp_anchor_with_matching_lock_renews_expires_at() {
+        let content = state_no_timestamp_self_lock_far_future();
+        let written = Arc::new(Mutex::new(None::<Vec<u8>>));
+        let w = written.clone();
+        let expected_expires = (fixed_now() + Duration::seconds(i64::from(flp::TTL_SECONDS)))
+            .format("%Y-%m-%dT%H:%M:%SZ")
+            .to_string();
+
+        let _result = guard_logic(
+            payload_for_post_tool_use("Edit"),
+            StampCallbacks {
+                read_file: move |_path, _max, _timeout| Ok(content.into_bytes()),
+                write_file: move |_path, bytes| {
+                    *w.lock().unwrap() = Some(bytes.to_vec());
+                    Ok(())
+                },
+                // Identity MATCH: caller@example.com == holder caller@example.com
+                exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
+            },
+        );
+
+        let written_bytes = written.lock().unwrap().clone().expect(
+            "AC-016 EC-013 row 3: write_file MUST be called when no-timestamp + \
+                 identity-match lock → PC2 Renewed requires write even though PC1 is no-op",
+        );
+        let written_str = String::from_utf8_lossy(&written_bytes);
+
+        // PC2: expires_at renewed to now + TTL_SECONDS.
+        assert!(
+            written_str.contains(&format!("expires_at: {expected_expires}")),
+            "AC-016 EC-013 row 3: expires_at must be renewed to now + TTL_SECONDS \
+             ({expected_expires}). Got:\n{written_str:?}"
+        );
+        // PC1 no-op: NO timestamp: line must be inserted.
+        assert!(
+            !written_str.contains("timestamp:"),
+            "AC-016 EC-013 row 3: PC1 no-op must NOT insert a timestamp: line. \
+             Got:\n{written_str:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-017 / Precondition 1 / F-013: tool_response error gate
+    // -----------------------------------------------------------------------
+
+    /// test_failed_tool_write_skips_both_arms
+    /// (AC-017 / Precondition 1 / F-013)
+    ///
+    /// BC-4.17.001 Precondition 1 (GAP-3 / F-013 tool-write-success gate):
+    /// sub-case A — tool_response with non-null "error" key → read_file NOT called.
+    /// sub-case B — tool_response absent (None) → read_file NOT called.
+    ///
+    /// MUTATION-KILLING: remove the GAP-3 gate entirely → read_file IS called for
+    /// both sub-cases → Arc<Mutex<bool>> flips true → assertions fail.
+    #[test]
+    fn test_failed_tool_write_skips_both_arms() {
+        // Sub-case A: non-null "error" key in tool_response.
+        {
+            let payload_with_error: HookPayload = serde_json::from_value(json!({
+                "event_name": "PostToolUse",
+                "tool_name": "Write",
+                "session_id": "test-session",
+                "dispatcher_trace_id": "test-trace",
+                "tool_input": { "file_path": ".factory/STATE.md" },
+                "tool_response": { "error": "Disk full — write not committed" }
+            }))
+            .expect("fixture must deserialize");
+
+            let read_called = Arc::new(Mutex::new(false));
+            let rc = read_called.clone();
+
+            let _result = guard_logic(
+                payload_with_error,
+                StampCallbacks {
+                    read_file: move |_path, _max, _timeout| {
+                        *rc.lock().unwrap() = true;
+                        Ok(vec![])
+                    },
+                    write_file: |_path, _bytes| Ok(()),
+                    exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                    now_fn: fixed_now,
+                    log_warn: |_msg| {},
+                    emit_event: |_event_type, _fields| {},
+                },
+            );
+
+            assert!(
+                !*read_called.lock().unwrap(),
+                "AC-017 Precondition 1 sub-case A: read_file must NOT be called when \
+                 tool_response contains non-null 'error' key (F-013 gate)"
+            );
+        }
+
+        // Sub-case B: tool_response absent → None in HookPayload.
+        {
+            let payload_no_response: HookPayload = serde_json::from_value(json!({
+                "event_name": "PostToolUse",
+                "tool_name": "Write",
+                "session_id": "test-session",
+                "dispatcher_trace_id": "test-trace",
+                "tool_input": { "file_path": ".factory/STATE.md" }
+            }))
+            .expect("fixture must deserialize");
+
+            let read_called = Arc::new(Mutex::new(false));
+            let rc = read_called.clone();
+
+            let _result = guard_logic(
+                payload_no_response,
+                StampCallbacks {
+                    read_file: move |_path, _max, _timeout| {
+                        *rc.lock().unwrap() = true;
+                        Ok(vec![])
+                    },
+                    write_file: |_path, _bytes| Ok(()),
+                    exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                    now_fn: fixed_now,
+                    log_warn: |_msg| {},
+                    emit_event: |_event_type, _fields| {},
+                },
+            );
+
+            assert!(
+                !*read_called.lock().unwrap(),
+                "AC-017 Precondition 1 sub-case B: read_file must NOT be called when \
+                 tool_response is absent/None (F-013 gate)"
+            );
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-018 / Invariant 8 / GAP-4: soft-warn when approaching read cap
+    // -----------------------------------------------------------------------
+
+    /// test_approaching_cap_emits_soft_warn_event (AC-018 / Invariant 8)
+    ///
+    /// BC-4.17.001 GAP-4 Invariant 8: content length 200001 bytes (in the range
+    /// (200000, 262144]) must trigger emit_event("state_md_approaching_cap", …) with
+    /// fields bytes_read="200001" and cap_bytes="262144". PC1 must still proceed.
+    ///
+    /// MUTATION-KILLING: remove the emit_event call or raise the lower bound above 200001 →
+    /// event_calls empty → soft_warn.is_some() assertion fails.
+    #[test]
+    fn test_approaching_cap_emits_soft_warn_event() {
+        let content = state_padded_to(200_001);
+        let event_calls: Arc<Mutex<Vec<(String, Vec<(String, String)>)>>> =
+            Arc::new(Mutex::new(vec![]));
+        let ec = event_calls.clone();
+        let written = Arc::new(Mutex::new(None::<Vec<u8>>));
+        let wr = written.clone();
+
+        let _result = guard_logic(
+            payload_for_post_tool_use("Write"),
+            StampCallbacks {
+                read_file: move |_path, _max, _timeout| Ok(content),
+                write_file: move |_path, bytes| {
+                    *wr.lock().unwrap() = Some(bytes.to_vec());
+                    Ok(())
+                },
+                exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: move |event_type: &str, fields: &[(&str, &str)]| {
+                    let owned: Vec<(String, String)> = fields
+                        .iter()
+                        .map(|&(k, v)| (k.to_string(), v.to_string()))
+                        .collect();
+                    ec.lock().unwrap().push((event_type.to_string(), owned));
+                },
+            },
+        );
+
+        let events = event_calls.lock().unwrap();
+        let soft_warn = events
+            .iter()
+            .find(|(et, _)| et == "state_md_approaching_cap");
+        assert!(
+            soft_warn.is_some(),
+            "AC-018 Invariant 8: emit_event('state_md_approaching_cap') must be called \
+             when content is 200001 bytes (> 200000 && <= 262144). Got events: {:?}",
+            events.iter().map(|(et, _)| et).collect::<Vec<_>>()
+        );
+        let (_, fields) = soft_warn.unwrap();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
+        assert_eq!(
+            field_map.get("bytes_read").copied(),
+            Some("200001"),
+            "AC-018: bytes_read field must be \"200001\""
+        );
+        assert_eq!(
+            field_map.get("cap_bytes").copied(),
+            Some("262144"),
+            "AC-018: cap_bytes field must be \"262144\""
+        );
+        drop(events);
+
+        // PC1 must still proceed (soft-warn is observability only, not a suppression gate).
+        assert!(
+            written.lock().unwrap().is_some(),
+            "AC-018: write_file must still be called after soft-warn (PC1 not suppressed)"
+        );
+    }
+
+    /// test_at_cap_boundary_emits_soft_warn (AC-018)
+    ///
+    /// BC-4.17.001 Invariant 8: the upper bound is INCLUSIVE — content exactly 262144 bytes
+    /// must still trigger the soft-warn event.
+    ///
+    /// MUTATION-KILLING: change `<= 262_144` to `< 262_144` in the guard →
+    /// 262144 bytes no longer triggers → event_calls empty → assertion fails.
+    #[test]
+    fn test_at_cap_boundary_emits_soft_warn() {
+        let content = state_padded_to(262_144);
+        let event_calls: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(vec![]));
+        let ec = event_calls.clone();
+
+        let _result = guard_logic(
+            payload_for_post_tool_use("Write"),
+            StampCallbacks {
+                read_file: move |_path, _max, _timeout| Ok(content),
+                write_file: |_path, _bytes| Ok(()),
+                exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: move |event_type: &str, _fields: &[(&str, &str)]| {
+                    ec.lock().unwrap().push(event_type.to_string());
+                },
+            },
+        );
+
+        assert!(
+            event_calls
+                .lock()
+                .unwrap()
+                .iter()
+                .any(|et| et == "state_md_approaching_cap"),
+            "AC-018: soft-warn must fire at exactly 262144 bytes (inclusive upper bound). \
+             Got events: {:?}",
+            *event_calls.lock().unwrap()
+        );
+    }
+
+    /// test_below_threshold_no_soft_warn (AC-018 negative)
+    ///
+    /// BC-4.17.001 Invariant 8: the lower bound is EXCLUSIVE — content exactly 200000 bytes
+    /// must NOT trigger the soft-warn event.
+    ///
+    /// MUTATION-KILLING: change `> 200_000` to `>= 200_000` in the guard →
+    /// 200000 bytes now triggers → event_calls non-empty → assertion fails.
+    #[test]
+    fn test_below_threshold_no_soft_warn() {
+        let content = state_padded_to(200_000);
+        let event_calls: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(vec![]));
+        let ec = event_calls.clone();
+
+        let _result = guard_logic(
+            payload_for_post_tool_use("Write"),
+            StampCallbacks {
+                read_file: move |_path, _max, _timeout| Ok(content),
+                write_file: |_path, _bytes| Ok(()),
+                exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: move |event_type: &str, _fields: &[(&str, &str)]| {
+                    ec.lock().unwrap().push(event_type.to_string());
+                },
+            },
+        );
+
+        assert!(
+            !event_calls
+                .lock()
+                .unwrap()
+                .iter()
+                .any(|et| et == "state_md_approaching_cap"),
+            "AC-018 negative: soft-warn must NOT fire at exactly 200000 bytes \
+             (lower bound is exclusive: > 200000). Got events: {:?}",
+            *event_calls.lock().unwrap()
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-019 / EC-014 / GAP-6: duplicate timestamp: advisory
+    // -----------------------------------------------------------------------
+
+    /// test_duplicate_timestamp_rewrites_first_emits_advisory
+    /// (AC-019 / EC-014 / GAP-6)
+    ///
+    /// BC-4.17.001 GAP-6 EC-014: frontmatter with two `timestamp:` lines →
+    ///   - log_warn called with message containing "DuplicateTimestampKey".
+    ///   - First timestamp: line is rewritten to fixed_now.
+    ///   - Second timestamp: line is left byte-identical (untouched).
+    ///
+    /// MUTATION-KILLING:
+    ///   Remove the log_warn("DuplicateTimestampKey…") call → warns empty → first assert fails.
+    ///   Rewrite both timestamps → second original timestamp absent → third assert fails.
+    #[test]
+    fn test_duplicate_timestamp_rewrites_first_emits_advisory() {
+        let content = state_duplicate_timestamp();
+        let written = Arc::new(Mutex::new(None::<Vec<u8>>));
+        let w = written.clone();
+        let warn_calls: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(vec![]));
+        let wc = warn_calls.clone();
+
+        let _result = guard_logic(
+            payload_for_post_tool_use("Edit"),
+            StampCallbacks {
+                read_file: move |_path, _max, _timeout| Ok(content.into_bytes()),
+                write_file: move |_path, bytes| {
+                    *w.lock().unwrap() = Some(bytes.to_vec());
+                    Ok(())
+                },
+                exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                now_fn: fixed_now,
+                log_warn: move |msg: &str| {
+                    wc.lock().unwrap().push(msg.to_string());
+                },
+                emit_event: |_event_type, _fields| {},
+            },
+        );
+
+        // log_warn must contain "DuplicateTimestampKey".
+        {
+            let warns = warn_calls.lock().unwrap();
+            assert!(
+                warns.iter().any(|w| w.contains("DuplicateTimestampKey")),
+                "AC-019 EC-014: log_warn must be called with a message containing \
+                 'DuplicateTimestampKey'. Got warns: {:?}",
+                &*warns
+            );
+        }
+
+        let written_bytes = written
+            .lock()
+            .unwrap()
+            .clone()
+            .expect("write_file must be called — PC1 restamps the first timestamp");
+        let written_str = String::from_utf8_lossy(&written_bytes);
+
+        // First timestamp: replaced with fixed_now.
+        assert!(
+            written_str.contains("timestamp: 2026-08-27T12:00:00Z"),
+            "AC-019: first timestamp: must be replaced with fixed_now. \
+             Got:\n{written_str:?}"
+        );
+        // Original first timestamp must be gone.
+        assert!(
+            !written_str.contains("timestamp: 2020-01-01T00:00:00Z"),
+            "AC-019: original first timestamp must be replaced. \
+             Got:\n{written_str:?}"
+        );
+        // Second timestamp: must remain byte-identical.
+        assert!(
+            written_str.contains("timestamp: 2021-06-15T00:00:00Z"),
+            "AC-019 EC-014: second timestamp: line must remain byte-identical \
+             (only first is rewritten). Got:\n{written_str:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-008 / EC-015 / GAP-7: OutputTooLarge advisory
+    // -----------------------------------------------------------------------
+
+    /// test_output_too_large_writes_nothing_with_advisory
+    /// (AC-008 / EC-015 / GAP-7)
+    ///
+    /// BC-4.17.001 GAP-7 EC-015: when read_file returns Err containing "OutputTooLarge",
+    /// log_warn must be called with an advisory message and write_file must NOT be called
+    /// (PC3 fail-open). This is a structured advisory — not a silent skip.
+    ///
+    /// MUTATION-KILLING:
+    ///   Remove the `if e.contains("OutputTooLarge") { log_warn(…) }` block →
+    ///   warns empty → first assert fails.
+    ///   Remove the fail-open return after log_warn → write_file called → second assert fails.
+    #[test]
+    fn test_output_too_large_writes_nothing_with_advisory() {
+        let warn_calls: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(vec![]));
+        let wc = warn_calls.clone();
+        let write_called = Arc::new(Mutex::new(false));
+        let wf = write_called.clone();
+
+        let _result = guard_logic(
+            payload_for_post_tool_use("Edit"),
+            StampCallbacks {
+                read_file: |_path, _max, _timeout| {
+                    Err("OutputTooLarge: read_file cap exceeded (262144 bytes)".to_string())
+                },
+                write_file: move |_path, _bytes| {
+                    *wf.lock().unwrap() = true;
+                    Ok(())
+                },
+                exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                now_fn: fixed_now,
+                log_warn: move |msg: &str| {
+                    wc.lock().unwrap().push(msg.to_string());
+                },
+                emit_event: |_event_type, _fields| {},
+            },
+        );
+
+        // log_warn must be called (advisory observability).
+        assert!(
+            !warn_calls.lock().unwrap().is_empty(),
+            "AC-008 EC-015 GAP-7: log_warn must be called when read_file returns OutputTooLarge. \
+             Got 0 warn calls."
+        );
+        // write_file must NOT be called (PC3 fail-open).
+        assert!(
+            !*write_called.lock().unwrap(),
+            "AC-008 EC-015 GAP-7: write_file must NOT be called when read_file returns \
+             OutputTooLarge (PC3 fail-open)."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-010 / GAP-2 / EC-017: CRLF frontmatter delimiters handled correctly
+    // -----------------------------------------------------------------------
+
+    /// test_crlf_frontmatter_delimiters_handled_correctly
+    /// (AC-010 / GAP-2 / EC-017)
+    ///
+    /// BC-4.17.001 GAP-2 EC-017: STATE.md files with CRLF (`\r\n`) line endings
+    /// (Windows autocrlf = true) must have their frontmatter fences detected correctly
+    /// and the hook must re-stamp the timestamp (write_file called).
+    ///
+    /// MUTATION-KILLING: revert extract_frontmatter usage to a `starts_with("---\n")`
+    /// hand-check → CRLF content (`---\r\n`) doesn't match → fence not found →
+    /// guard returns Continue before write → written.lock().unwrap().is_none() → assertion fails.
+    #[test]
+    fn test_crlf_frontmatter_delimiters_handled_correctly() {
+        let content = state_crlf_valid();
+        let written = Arc::new(Mutex::new(None::<Vec<u8>>));
+        let w = written.clone();
+
+        let _result = guard_logic(
+            payload_for_post_tool_use("Edit"),
+            StampCallbacks {
+                read_file: move |_path, _max, _timeout| Ok(content),
+                write_file: move |_path, bytes| {
+                    *w.lock().unwrap() = Some(bytes.to_vec());
+                    Ok(())
+                },
+                exec_subprocess: |_argv| Ok((0, "caller@example.com\n".to_string())),
+                now_fn: fixed_now,
+                log_warn: |_msg| {},
+                emit_event: |_event_type, _fields| {},
+            },
+        );
+
+        assert!(
+            written.lock().unwrap().is_some(),
+            "AC-010 GAP-2 EC-017: write_file must be called for CRLF-fenced STATE.md — \
+             extract_frontmatter must detect \\r\\n delimiters correctly. \
+             A hand-rolled starts_with(\"---\\n\") check would fail here."
         );
     }
 }
