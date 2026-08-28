@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-28T16:44:13Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-17.05 && cargo test -p stamp-state-timestamp test_expired_self_held_lock_never_renewed 2>&1"}
+{"status":"pass","timestamp":"2026-08-28T17:20:31Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-17.05 && cargo test --workspace --all-targets 2>&1 | grep \"FAILED\" | wc -l"}
