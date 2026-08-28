@@ -32,8 +32,11 @@
 //! - `expires_at` MUST be formatted as `YYYY-MM-DDTHH:MM:SSZ` (UTC, second precision,
 //!   uppercase Z suffix) using `chrono::format("%Y-%m-%dT%H:%M:%SZ")` — NOT
 //!   `to_rfc3339()` (AC-018 F-NW-008 / BC-5.40.001 §Invariant 2).
-//! - LF-only output; CRLF normalization is performed by `parse_factory_lock()` before
-//!   rewriting (F-NW-009).
+//! - CRLF-preserving output: `parse_factory_lock()` normalizes CRLF internally for its
+//!   own parsing, but the input content is passed untouched to `rewrite_expires_at`,
+//!   which preserves every line's original terminator (`\r\n` or `\n`) byte-for-byte.
+//!   Only the `expires_at` line value is rewritten; its original terminator is mirrored
+//!   (EC-017 CRLF input class / BC-4.17.001 PC4/AC-010 Invariant 5).
 //! - `Err(LockError::Malformed)` ONLY when `factory_lock:` key IS present AND block
 //!   is malformed. Malformed fence WITHOUT the lock key → `Ok(RenewOutcome::NoOp)`.
 
@@ -135,8 +138,12 @@ pub struct FactoryLock {
 /// 5. Rewrite the `expires_at:` line in the frontmatter block; preserve `holder` and
 ///    `locked_at` unchanged. Return `Ok(RenewOutcome::Renewed(new_content))`.
 ///
-/// CRLF normalization: `parse_factory_lock()` calls `content.replace("\r\n", "\n")`
-/// internally; the output is always LF-only (F-NW-009).
+/// CRLF handling: `parse_factory_lock()` normalizes CRLF internally for its own parsing
+/// (so parsed values — holder, locked_at, expires_at — are always clean). The input
+/// `state_md_content` is passed untouched to `rewrite_expires_at`, which preserves every
+/// line's original terminator byte-for-byte. Only the `expires_at` line value is replaced;
+/// its original `\r\n` or `\n` terminator is mirrored in the output
+/// (EC-017 CRLF input class / BC-4.17.001 PC4/AC-010 Invariant 5).
 ///
 /// # Errors
 ///
@@ -194,9 +201,11 @@ where
     }
 
     // Step 5: rewrite expires_at in the frontmatter, preserving holder and locked_at.
-    // CRLF normalization: replace \r\n with \n first (F-NW-009).
-    let normalized = state_md_content.replace("\r\n", "\n");
-    let new_content = rewrite_expires_at(&normalized, &new_expires_at);
+    // Pass state_md_content directly — rewrite_expires_at preserves all line terminators
+    // byte-for-byte (EC-017 CRLF input class; BC-4.17.001 PC4/AC-010 Invariant 5).
+    // parse_factory_lock() normalizes CRLF internally for parsing; the content string
+    // itself is untouched, so we pass it straight through for surgical rewriting.
+    let new_content = rewrite_expires_at(state_md_content, &new_expires_at);
 
     Ok(RenewOutcome::Renewed(new_content))
 }
@@ -248,7 +257,9 @@ pub fn has_factory_lock_key(state_md_content: &str) -> bool {
 /// Rewrite the `expires_at:` sub-field inside the `factory_lock:` block.
 ///
 /// Finds the first occurrence of `  expires_at:` (2-space indent) and replaces
-/// its value. Content before and after is preserved byte-for-byte.
+/// its value. Content before and after is preserved byte-for-byte, including each
+/// line's original terminator (`\r\n` or `\n`). The rewritten `expires_at` line
+/// mirrors its own original terminator (EC-017 CRLF / BC-4.17.001 PC4/AC-010 Invariant 5).
 ///
 /// Internal helper for `renew_lock_with_now`.
 fn rewrite_expires_at(content: &str, new_expires_at: &str) -> String {
@@ -269,12 +280,18 @@ fn rewrite_expires_at(content: &str, new_expires_at: &str) -> String {
         if in_factory_lock && !expires_at_rewritten {
             // Look for `  expires_at:` with exactly 2-space indent.
             if trimmed.starts_with("  expires_at:") {
-                // Replace value while preserving leading whitespace and any trailing newline.
-                let has_lf = line.ends_with('\n');
+                // Replace value while preserving the original line terminator byte-for-byte.
+                // MUST check \r\n before \n — every CRLF line also ends with \n (EC-017).
+                // This satisfies BC-4.17.001 PC4/AC-010 Invariant 5 for CRLF input.
+                let terminator = if line.ends_with("\r\n") {
+                    "\r\n"
+                } else if line.ends_with('\n') {
+                    "\n"
+                } else {
+                    ""
+                };
                 result.push_str(&format!("  expires_at: {new_expires_at}"));
-                if has_lf {
-                    result.push('\n');
-                }
+                result.push_str(terminator);
                 expires_at_rewritten = true;
                 continue;
             }
