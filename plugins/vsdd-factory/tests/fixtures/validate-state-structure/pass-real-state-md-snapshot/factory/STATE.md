@@ -1,3 +1,8 @@
+<!--
+  STATE.md SIZE BUDGET (per D-421(c)):
+  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 433 = 67 (D-446(c) dual-margin form). 433 lines (wc-l).
+  Hard cap: 500 lines.
+-->
 ---
 document_type: pipeline-state
 level: ops
