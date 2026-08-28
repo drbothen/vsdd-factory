@@ -181,9 +181,10 @@ where
         }
     };
 
-    // Step 3: compute new expires_at = now + 2700s, formatted as YYYY-MM-DDTHH:MM:SSZ.
+    // Step 3: compute new expires_at = now + TTL_SECONDS, formatted as YYYY-MM-DDTHH:MM:SSZ.
     // MUST use format("%Y-%m-%dT%H:%M:%SZ") — NOT to_rfc3339() (AC-018 F-NW-008).
-    let new_expires_at = (now_fn() + Duration::seconds(2700))
+    // TTL_SECONDS canonical source: factory-lock-parse::TTL_SECONDS (AC-012/ADR-046 F-006).
+    let new_expires_at = (now_fn() + Duration::seconds(i64::from(flp::TTL_SECONDS)))
         .format("%Y-%m-%dT%H:%M:%SZ")
         .to_string();
 

@@ -42,8 +42,7 @@
 /// BC-5.38.001: non-trivial constant — implementer sets the correct value; test
 /// `test_ttl_seconds_constant_equals_2700` asserts `TTL_SECONDS == 2700` and MUST fail
 /// against this stub value, preserving Red Gate discipline.
-// TODO(S-17.05 T-2): set to 2700 (seconds) — see test_ttl_seconds_constant_equals_2700.
-pub const TTL_SECONDS: u32 = 0;
+pub const TTL_SECONDS: u32 = 2700;
 
 /// Canonical STATE.md byte read-cap shared across the hook family.
 ///
@@ -57,8 +56,7 @@ pub const TTL_SECONDS: u32 = 0;
 /// BC-5.38.001: non-trivial constant — implementer sets the correct value; test
 /// `test_state_md_max_bytes_constant_equals_262144` asserts `STATE_MD_MAX_BYTES == 262144`
 /// and MUST fail against this stub value, preserving Red Gate discipline.
-// TODO(S-17.05 T-2): set to 262144 (bytes) — see test_state_md_max_bytes_constant_equals_262144.
-pub const STATE_MD_MAX_BYTES: u32 = 0;
+pub const STATE_MD_MAX_BYTES: u32 = 262_144;
 
 // ---------------------------------------------------------------------------
 // Error variants

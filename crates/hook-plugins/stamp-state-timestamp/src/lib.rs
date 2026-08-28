@@ -113,11 +113,15 @@ where
 ///      anchor line present. On any failure: return Continue (PC3).
 ///   3. PC1: replace `timestamp:` line → `timestamp: <now formatted YYYY-MM-DDTHH:MM:SSZ>`.
 ///   4. PC2: call `exec_subprocess(["git", "config", "user.email"])`, classify via
-///      `factory_lock::classify_identity_resolution`, call
-///      `factory_lock::renew_lock_if_holder(content_after_pc1, resolve_identity, now_fn)`
-///      to conditionally rewrite `factory_lock.expires_at = now + TTL_SECONDS`.
-///      Identity-mismatch, absent/expired lock, or identity-resolution failure →
+///      `factory_lock::classify_identity_resolution`.  If identity matches holder,
+///      call `factory_lock::renew_lock_with_now` to rewrite
+///      `factory_lock.expires_at = now + TTL_SECONDS`.
+///      Identity-mismatch, absent lock, or identity-resolution failure →
 ///      `expires_at` left byte-identical (SAFETY-CRITICAL for AC-006).
+///      NOTE: renewal is purely identity-gated (BC-4.17.001 PC2 truth table has no expiry
+///      gate row).  `renew_lock_if_holder` is intentionally NOT used here because its
+///      Case-2 expiry gate would suppress mid-burst renewal of expired-but-self-held locks
+///      (BC-5.40.001 PC4 keep-alive requirement).
 ///   5. Call `write_file(".factory/STATE.md", reconstructed_full_content)`.
 ///      On write error: swallow (PC3 fail-open; agent's write is not reverted).
 ///   6. Return `HookResult::Continue` (Invariant 4: no `block_intent` capability).
@@ -131,7 +135,7 @@ where
 /// - BC-5.40.001 PC4: mid-burst TTL keep-alive (AC-014)
 pub fn guard_logic<R, W, E, NF>(
     _payload: HookPayload,
-    _callbacks: StampCallbacks<R, W, E, NF>,
+    callbacks: StampCallbacks<R, W, E, NF>,
 ) -> HookResult
 where
     R: FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
@@ -139,14 +143,104 @@ where
     E: FnOnce(&[&str]) -> Result<(i32, String), String>,
     NF: FnOnce() -> DateTime<Utc>,
 {
-    // BC-5.38.001 stub obligation: non-trivial body uses todo!() until T-3 is implemented.
-    // BC-5.38.005 self-check: including real logic here would make AC-001..AC-010 tests pass
-    // trivially — therefore todo!() is mandatory.
-    todo!(
-        "S-17.05 T-3: implement stamp-state-timestamp guard logic \
-         (BC-4.17.001 PC1 timestamp re-stamp, PC2 identity-gated expires_at renewal, \
-         PC3 fail-open, PC4 frontmatter-only rewrite, PC5 no lock-lifecycle involvement)"
-    )
+    use factory_lock::{
+        classify_identity_resolution, renew_lock_with_now, trim_git_email, IdentityResolution,
+        RenewOutcome,
+    };
+
+    // Step 1 (PC3): read STATE.md — fail-open on host error.
+    let raw_bytes =
+        match (callbacks.read_file)(".factory/STATE.md", flp::STATE_MD_MAX_BYTES, 5000) {
+            Ok(bytes) => bytes,
+            Err(_) => return HookResult::Continue,
+        };
+
+    // Step 2 (PC3): validate UTF-8 — fail-open on non-UTF-8 content.
+    let content = match String::from_utf8(raw_bytes) {
+        Ok(s) => s,
+        Err(_) => return HookResult::Continue,
+    };
+
+    // Step 3 (PC3): validate frontmatter structure.
+    //   - Must start with "---\n" (opening fence).
+    //   - Must contain "\n---\n" (closing fence).
+    //   - Must have a "timestamp:" anchor line in the frontmatter body.
+    if !content.starts_with("---\n") {
+        return HookResult::Continue;
+    }
+    let close_pos = match content.find("\n---\n") {
+        Some(pos) => pos,
+        None => return HookResult::Continue,
+    };
+
+    // fm_body: frontmatter text between the two fences (content[4..close_pos+1]).
+    // Includes the trailing '\n' of the last frontmatter line.
+    let fm_body = &content[4..close_pos + 1];
+
+    // Locate the "timestamp:" key line within fm_body.
+    let ts_pos = if fm_body.starts_with("timestamp:") {
+        0usize
+    } else {
+        match fm_body.find("\ntimestamp:") {
+            Some(p) => p + 1, // step over the '\n' to point at 't'
+            None => return HookResult::Continue, // PC3: no timestamp anchor
+        }
+    };
+
+    // ts_line_end: position of the terminating '\n' of the timestamp: line (within fm_body).
+    let ts_line_end = match fm_body[ts_pos..].find('\n') {
+        Some(rel) => ts_pos + rel,
+        None => fm_body.len(), // timestamp: is the last line with no trailing '\n'
+    };
+
+    // Step 4 (PC1): build content_after_pc1 with the timestamp: line replaced.
+    // now_fn is called exactly once here (FnOnce bound).
+    let now = (callbacks.now_fn)();
+    let now_str = now.format("%Y-%m-%dT%H:%M:%SZ").to_string();
+    let new_ts_line = format!("timestamp: {}", now_str);
+
+    // content_after_pc1 = content[0..4+ts_pos]
+    //                    + new_ts_line
+    //                    + content[4+ts_line_end..]
+    //
+    // content[0..4+ts_pos]      → "---\n" + fm_body[0..ts_pos] (prefix up to old timestamp: line)
+    // new_ts_line               → "timestamp: <now>"
+    // content[4+ts_line_end..]  → fm_body[ts_line_end..] (from the terminating '\n' onwards)
+    //                             + "---\n" + body
+    let content_after_pc1 = format!(
+        "{}{}{}",
+        &content[..4 + ts_pos],
+        new_ts_line,
+        &content[4 + ts_line_end..],
+    );
+
+    // Step 5 (PC2): identity-gated expires_at renewal.
+    // Purely identity-gated: no expiry gate (BC-4.17.001 PC2 truth table).
+    // renew_lock_with_now is called only when identity matches holder.
+    let exec_result = (callbacks.exec_subprocess)(&["git", "config", "user.email"]);
+    let identity = classify_identity_resolution(exec_result);
+    let content_after_pc2 = match identity {
+        IdentityResolution::Failed(_) => content_after_pc1,
+        IdentityResolution::Resolved(email) => {
+            match flp::parse_factory_lock(&content_after_pc1) {
+                Ok(Some(lock_state)) if email == trim_git_email(&lock_state.holder) => {
+                    // Identity matches holder — renew expires_at unconditionally.
+                    // Capture `now` (already-evaluated once by now_fn above) to satisfy
+                    // FnOnce: renew_lock_with_now calls its now_fn exactly once internally.
+                    match renew_lock_with_now(&content_after_pc1, move || now) {
+                        Ok(RenewOutcome::Renewed(new_content)) => new_content,
+                        _ => content_after_pc1, // NoOp (spurious-renewal guard) or error
+                    }
+                }
+                _ => content_after_pc1, // absent/null/malformed block or identity mismatch
+            }
+        }
+    };
+
+    // Step 6 (PC3): write back — fail-open on write error (agent's write not reverted).
+    let _ = (callbacks.write_file)(".factory/STATE.md", content_after_pc2.as_bytes());
+
+    HookResult::Continue
 }
 
 // ---------------------------------------------------------------------------
