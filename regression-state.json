@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-28T05:54:33Z","command":"cd /tmp/s1706v2 && cargo test -p factory-lock -p verify-factory-lock 2>&1 | grep -E \"test result|FAILED\" "}
+{"status":"pass","timestamp":"2026-08-28T16:44:13Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-17.05 && cargo test -p stamp-state-timestamp test_expired_self_held_lock_never_renewed 2>&1"}
