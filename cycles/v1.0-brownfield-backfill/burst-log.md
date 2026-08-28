@@ -8985,3 +8985,97 @@ Per TD-FACTORY-HOOK-BYPASS-001 P0: all `.factory/` mutations via Edit/Write tool
 
 Parent SHA: `f4c018b2` (D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY + SESSION-WRAP-PAUSE).
 This burst commit SHA: `4df7c0e7` — D-449(e) SHA-patch applied post-push 2026-08-28.
+
+---
+
+## S1705-P10-CLEAN-BURST
+
+**Block 1: Parent commit**
+
+Parent SHA: `4df7c0e7` — S1705-P9-FIX-BURST 2026-08-28. State at parent: S-17.05 local adversary pass 9 = FINDINGS (1 MED + 2 LOW), all fixed; BC-4.17.001 v1.27→v1.28; BC-INDEX v5.19→v5.20; feature/S-17.05 HEAD `a8d85160` (test-writer commit: exec_called assertion for `test_expired_self_held_lock_never_renewed`). STORY-INDEX v4.397. STATE.md v9.19. Streak 0/3.
+
+**Block 2: Adversary verdict**
+
+S-17.05 local adversary pass 10 — CLEAN (zero MEDIUM+ findings). BC-5.39.001 LOCAL streak ADVANCES **0/3 → 1/3**.
+
+Finding set (from `adv-s17.05-local-pass-10.md` Part A):
+- **F-P10-001 (LOW, POLICY 8 table-cell propagation):** S-17.05 story body `## Behavioral Contracts` table Version cell for BC-4.17.001 still cited `1.27`; BC-4.17.001 was sealed at v1.28 in the pass-9 burst (`4df7c0e7`). Incomplete leg-5 propagation. Fixed in-scope this burst (story body cell 1.27→1.28; story v1.5→v1.6; input-hash e8b9395→6067e5f; STORY-INDEX v4.397→v4.398).
+
+Observations (non-blocking; do NOT re-litigate):
+- **O-P10-001 (LOW):** `STATE_MD_MAX_BYTES = 262144` dormant copy in retired `verify-state-timestamp-refresh` crate (ADR-046 Decision 2 intentional) + AC-018-sanctioned test boundary literals. Latent TD-VSDD-060 smell; no current defect.
+- **O-P10-002 (LOW):** 32 Rust unit tests vs. 31 mandated minimum (over-coverage). Not a defect.
+
+Source-attestation parity: `adv-s17.05-local-pass-10.md` Part A contains F-P10-001 + O-P10-001/002 as described above. PASS.
+
+**Block 3: Files touched**
+
+Factory artifacts (all via Edit/Write tools per POL-3, no bypass):
+- `.factory/stories/S-17.05-stamp-state-timestamp-hook.md` — v1.5→v1.6; body BC table `1.27`→`1.28`; frontmatter version "1.5"→"1.6"; last_amended prepended v1.6 entry; modified[] v1.6 entry added; input-hash e8b9395→6067e5f (compute-input-hash --update)
+- `.factory/stories/STORY-INDEX.md` — v4.397→v4.398; S-17.05 catalog row "story v1.5, input-hash e8b9395, BC-4.17.001 v1.27"→"story v1.6, input-hash 6067e5f, BC-4.17.001 v1.28"; E-17 blockquote "S-17.05=e8b9395 (v1.5)"→"S-17.05=6067e5f (v1.6)"; frontmatter version/timestamp/last_amended updated
+- `.factory/cycles/v1.0-brownfield-backfill/adv-s17.05-local-pass-10.md` — NEW adversary pass record (Part A: F-P10-001 LOW + O-P10-001/002; Part B: VERDICT CLEAN, streak 0/3→1/3, novelty LOW)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this 8-block entry
+- `.factory/STATE.md` — v9.19→v9.20 (streak 0/3→1/3; STORY-INDEX v4.397→v4.398 cite; trajectory-tail →0→1→0→0; Session Resume Checkpoint refreshed)
+
+Develop-side: `feature/S-17.05` HEAD **UNCHANGED at `a8d85160`** (no code change this burst — F-P10-001 was a story-body metadata fix only; no Rust/bats changes required).
+
+**Block 4: Codifications**
+
+No new D-NNN allocated (per-story local-cascade convention — passes 1-9 also carried no D-NNN). D-chain cite: D-1126 (latest brownfield decision).
+
+Observations O-P10-001/O-P10-002 codified as non-blocking carry-over observations. Added to STATE.md Blocking Issues section under pass-10 carry-over designation.
+
+Story version event (v1.5→v1.6) applied: input-hash changed (e8b9395→6067e5f) due to body-table edit; per POLICY 18 three-way parity discipline, STORY-INDEX must reflect current input-hash. Story version bump accompanies STORY-INDEX update for complete audit trail. Rationale for version event vs. pure downstream propagation: the story file was genuinely amended (body change triggers input-hash drift); the modified[] convention records all spec file amendments; POLICY 18 mandates input-hash parity across three locations (frontmatter=catalog-row=blockquote).
+
+**Block 5 (Dim-2): Literal-shell gate attestations per D-449(a)**
+
+F-P10-001 table-cell-aware grep (post-fix, story body):
+```
+$ grep -nE '\| *BC-4\.17\.001 *\|[^|]+\| *v?1\.' \
+  /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/S-17.05-stamp-state-timestamp-hook.md
+97:| BC-4.17.001 | `stamp-state-timestamp` PostToolUse hook — unconditional `timestamp:` re-stamp,
+    identity-gated `expires_at` renewal, fail-open, frontmatter-only, no lock-lifecycle
+    involvement | 1.28 | PC1 (unconditional re-stamp), PC2 (identity-gated renewal), ...
+```
+Result: line 97 shows Version cell = `1.28`. PASS.
+
+Story input-hash verification:
+```
+$ /Users/zious/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.24/bin/compute-input-hash \
+  /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/S-17.05-stamp-state-timestamp-hook.md \
+  --update
+compute-input-hash: already current (6067e5f)
+```
+Result: story frontmatter input-hash 6067e5f confirmed current. PASS.
+
+STORY-INDEX version cell check:
+```
+$ grep -m1 "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md
+version: "4.398"
+```
+Result: STORY-INDEX v4.398. PASS.
+
+D-448(a) source-attestation gate: adv-s17.05-local-pass-10.md Part A contains F-P10-001 LOW (POLICY 8 table-cell propagation) and observations O-P10-001/O-P10-002 as described in Block 2 above. Source-attestation parity VERIFIED. PASS.
+
+**Block 6 (Dim-5): Files opened/closed**
+
+Closes:
+- S-17.05 local adversary pass 10 (CLEAN; F-P10-001 LOW fixed in-scope; streak 0/3→1/3).
+- F-P10-001: leg-5 propagation gap — BC-4.17.001 v1.28 cite now current in story body.
+
+Opens / advances:
+- S-17.05 local adversary pass 11 queued (fresh, against `feature/S-17.05` @ `a8d85160`). Streak at 1/3; need 2 more consecutive CLEAN passes (11/12) for local 3-CLEAN.
+- O-P10-001/O-P10-002: non-blocking carry-over observations added to STATE.md.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## S1705-P10-CLEAN-BURST` present. PASS.
+D-446(a) own-burst-log 8-block gate: this entry contains Blocks 1-8. PASS.
+D-448(a) source-attestation gate: adv-s17.05-local-pass-10.md Part A finding set (F-P10-001 LOW + O-P10-001/002) faithfully described in Block 2. PASS.
+D-449(a) literal-shell-execution: table-cell grep and input-hash commands executed with captured stdout in Block 5. PASS.
+Per TD-FACTORY-HOOK-BYPASS-001 P0: all `.factory/` mutations via Edit/Write tools only; no Python/sed/echo bypass. PASS.
+feature/S-17.05 HEAD UNCHANGED at `a8d85160` (no code change this burst). PASS.
+
+**Block 8: factory-artifacts commit**
+
+Parent SHA: `4df7c0e7` (S1705-P9-FIX-BURST 2026-08-28).
+This burst commit SHA: TBD — D-449(e) SHA-patch to be applied post-push.

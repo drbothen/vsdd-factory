@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "ada4d15"
+input-hash: "1ae69b0"
 traces_to: STATE.md
 ---
 
@@ -3640,3 +3640,28 @@ prior session-checkpoints.md entries. O-P61-001/O-P62-001 CAPTURED in S-17.05 v1
 migrate `Duration::seconds(2700)` → `factory_lock_parse::TTL_SECONDS` literal. After correction:
 dispatch TDD for S-17.05 (stamper + TTL) and S-17.07 (precompact-flush + identity-gate) in parallel.
 ADR-046 frozen spec set confirmed: ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39.
+
+---
+
+## Archived Checkpoint: S1705-P9-FIX-BURST (2026-08-28)
+
+> Archived from STATE.md during S1705-P10-CLEAN-BURST. Replaced by S1705-P10-CLEAN-BURST checkpoint.
+
+### §1. Position
+
+Brownfield cycle `v1.0-brownfield-backfill`. ADR-046 spec gate CONVERGED-VALIDATED (D-1124). E-17 Wave-5 TDD IN FLIGHT. S-17.06 MERGED (PR #787 3200149d). S-17.05 IN FLIGHT — mid local BC-5.39.001 3-CLEAN, streak **0/3** (pass 9 FINDINGS→all fixed; pass 10 next). `feature/S-17.05` @ `a8d85160` (PUSHED). S-17.07 queued.
+
+### §2. Convergence counter
+
+Streak = **0/3** (pass 9 FINDINGS → RESET). Passes 1–9 history: 1–7 FINDINGS (all fixed), 8 CLEAN, 9 FINDINGS (all fixed). NEED passes 10/11/12 consecutive CLEAN for local 3-CLEAN.
+
+### §3. HEADs at archive
+
+- `develop`: `3200149d` (S-17.06 MERGED PR #787 2026-08-28)
+- `main`: `89f6f87c` (v1.0.0-rc.24)
+- `factory-artifacts`: `4df7c0e7` (S1705-P9-FIX-BURST)
+- `feature/S-17.05`: `a8d85160` (PUSHED)
+
+### §4. Resume command at archive
+
+`/vsdd-factory:next-step` → re-run S-17.05 local adversary pass 10 (fresh, against `feature/S-17.05` @ `a8d85160`), streak 0/3.
