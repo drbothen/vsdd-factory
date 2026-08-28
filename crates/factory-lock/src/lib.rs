@@ -7,6 +7,16 @@
 //!   - [`FactoryLock`] — parsed representation of a held factory lock.
 //!   - [`renew_lock(state_md_content: &str) -> Result<RenewOutcome, LockError>`]
 //!     — pure content-in/content-out renewal; no std::fs; WASM-hermetic.
+//!   - [`renew_lock_if_holder`] — identity-gated renewal (6-case decision tree,
+//!     BC-4.17.001 PC2 / ADR-046 Decision 1(b); S-17.06).
+//!   - [`IdentityResolution`] — result of resolving caller git identity for
+//!     lock renewal (Resolved(email) or Failed(reason); S-17.06).
+//!   - [`SkipReason`] — reason a `renew_lock_if_holder` call was skipped
+//!     (NotHolder, AlreadyExpired, or IdentityResolutionFailed; S-17.06).
+//!   - [`classify_identity_resolution`] — pure 4-shape classifier for
+//!     `git config user.email` subprocess results (S-17.06).
+//!   - [`trim_git_email`] — canonical home for trimming trailing whitespace from
+//!     git subprocess stdout (F-P7-001 single-canonical-home; S-17.06).
 //!   - [`acquire_lock`] — stub (S-18.04b scope).
 //!   - [`clear_lock`] — stub (S-18.04b scope).
 //!
@@ -363,8 +373,9 @@ pub enum IdentityResolution {
 /// The reason a [`renew_lock_if_holder`] call was skipped without renewing.
 ///
 /// Returned alongside [`RenewOutcome::NoOp`] when the skip has a diagnosable
-/// cause (Cases 2, 3, 4 of the 6-case decision tree). Cases 0 and 1 do not
-/// produce a `SkipReason` — they are returned as `None`.
+/// cause (Cases 2, 3, 4 of the 6-case decision tree). Case 0 returns
+/// `Ok((RenewOutcome::NoOp, None))`. Case 1 returns `Err(LockError::Malformed)`
+/// — there is no `Option` at all for case 1 (it is not an `Ok` return).
 ///
 /// BC-4.17.001 PC2 / ADR-046 Decision 1(b).
 #[derive(Debug, Clone, PartialEq)]
@@ -396,7 +407,7 @@ pub enum SkipReason {
 /// Precondition 2 (F-006):
 ///
 /// 1. `Err(_)` → `IdentityResolution::Failed("exec error: <description>")`
-/// 2. `Ok((exit_code, _))` where `exit_code != 0` → `IdentityResolution::Failed("exit N: <stdout>")`
+/// 2. `Ok((exit_code, _))` where `exit_code != 0` → `IdentityResolution::Failed("exit N: git config user.email failed")`
 /// 3. `Ok((0, stdout))` where `trim_git_email(&stdout).is_empty()` →
 ///    `IdentityResolution::Failed("empty identity")`
 /// 4. `Ok((0, stdout))` where `!trim_git_email(&stdout).is_empty()` →
@@ -794,6 +805,20 @@ mod tests {
                 assert!(
                     new_content.contains("holder@example.com"),
                     "Renewed content must preserve the holder field"
+                );
+                // Mutation-killing: assert expires_at actually ADVANCED.
+                // The fixture's stale timestamp (2099-01-01T10:45:00Z) must be gone …
+                assert!(
+                    !new_content.contains("2099-01-01T10:45:00Z"),
+                    "Renewed content must NOT still contain the stale fixture expires_at \
+                     (2099-01-01T10:45:00Z) — rewrite_expires_at may have been suppressed"
+                );
+                // … and the expected value from now_past() + 2700s must be present.
+                // now_past() = 2026-08-27T12:00:00Z; + 2700 s = 2026-08-27T12:45:00Z.
+                assert!(
+                    new_content.contains("2026-08-27T12:45:00Z"),
+                    "Renewed content must contain the expected advanced expires_at \
+                     (now_past() + 2700s = 2026-08-27T12:45:00Z)"
                 );
             }
             RenewOutcome::NoOp => panic!("case 5 (identity match) must return Renewed, not NoOp"),

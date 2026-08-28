@@ -2140,5 +2140,34 @@ mod tests {
              factory_lock crate (AC-005, F-P7-001 single-canonical-home). \
              Local re-implementation still present. Wire delegation in T-3 (S-17.06)."
         );
+
+        // AC-005 hardening: also assert that NO local fn trim_git_email definition
+        // exists in this source (absence-of-local-body). Kills a mutant where a future
+        // developer re-introduces a local wrapper that silently bypasses the canonical home.
+        //
+        // Strategy: strip comment lines (lines starting with `///` or `//`) before scanning
+        // so that the `pub fn trim_git_email(raw: &str)` line in the doc-comment block above
+        // does not cause a false-positive. The fn-definition pattern is split into two variables
+        // so the assembled form does not appear literally in this test's own source text (the
+        // same technique as the delegation_pattern above).
+        let non_comment_source: String = source
+            .lines()
+            .filter(|line| {
+                let t = line.trim_start();
+                !t.starts_with("//")
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        // Split the fn-definition pattern to prevent self-referential false-match.
+        let fn_kw = "fn ";
+        let fn_name_part = concat!("trim_git_email", "(");
+        let local_def_pattern = format!("{}{}", fn_kw, fn_name_part);
+        assert!(
+            !non_comment_source.contains(&local_def_pattern),
+            "verify-factory-lock must NOT define a local fn trim_git_email — \
+             delegation to factory_lock::trim_git_email is the only permitted form \
+             (AC-005, F-P7-001 single-canonical-home). A local re-introduction would \
+             silently bypass the canonical home."
+        );
     }
 }
