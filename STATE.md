@@ -1,12 +1,12 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "9.16"
+version: "9.17"
 status: draft
 producer: state-manager
-timestamp: 2026-08-28T06:00:00Z
+timestamp: 2026-08-28T07:30:00Z
 phase: "ACTIVE 2026-08-28. ADR-046 CONVERGED-VALIDATED (D-1124). S-17.06 MERGED PR #787 3200149d (D-1126). E-17 Wave-5: 1/3 stories merged; S-17.05 + S-17.07 UNBLOCKED. BC-4.17.001 held draft (POL-14 exception). Autonomous-merge policy AUTHORIZED (D-1126b). NEXT: S-17.05 spec-boundary correction (story-writer), then S-17.05 + S-17.07 TDD."
-last_amended: "2026-08-28 (v9.16) — D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY (state-manager; single-commit, TD-VSDD-053): S-17.06 MERGED PR #787 3200149d; develop 6993138b→3200149d; merged_count 111→112; BC-4.17.001 held draft (POL-14 exception); PR #787 self-approval RATIFIED; autonomous-merge policy AUTHORIZED; rc.24 fast-follow (release.yml-exclude) RESOLVED. v9.15→v9.16. Prior: 2026-08-27 (v9.15) — D-1125-ADR046-WAVE5-DECOMP-CASCADE-COMPLETE. [Full chain: decision-log.md/burst-log.md D-1057..D-1126 (exhaustive); pre-D-1057: session-checkpoints.md]"
+last_amended: "2026-08-28 (v9.17) — S1705-V15-BINDING (state-manager; single-commit burst, TD-VSDD-053): STORY-INDEX v4.396→v4.397 — S-17.05 v1.4→v1.5 (AC↔BC-4.17.001 reconciliation, 19 ACs, 35 Red Gate [31+4]; input-hash e8b9395 unchanged; POLICY 18 three-way parity VERIFIED). Stale STORY-INDEX cite in Identifier Conventions + E-17 Wave-5 note + Active Branches + Session Resume §1 refreshed (v4.394→v4.397). v9.16→v9.17. Prior: 2026-08-28 (v9.16) — D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY (state-manager; single-commit, TD-VSDD-053): S-17.06 MERGED PR #787 3200149d; develop 6993138b→3200149d; merged_count 111→112; BC-4.17.001 held draft (POL-14 exception); PR #787 self-approval RATIFIED; autonomous-merge policy AUTHORIZED; rc.24 fast-follow (release.yml-exclude) RESOLVED. v9.15→v9.16. Prior: 2026-08-27 (v9.15) — D-1125-ADR046-WAVE5-DECOMP-CASCADE-COMPLETE. [Full chain: decision-log.md/burst-log.md D-1057..D-1126 (exhaustive); pre-D-1057: session-checkpoints.md]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
@@ -80,7 +80,7 @@ dtu_services: []
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
 | Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,988 (BC-INDEX v5.19 at D-1125; total_bcs UNCHANGED 1988, no new BC at D-1126; see decision-log.md for history) |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 102 (VP-INDEX v2.79 UNCHANGED; see decision-log.md for history) |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 141 file-resident + 17 stub IDs = 158 total (STORY-INDEX v4.394 at D-1125; S-17.06 MERGED D-1126; S-17.05 v1.2 REGISTERED (draft, stamper+TTL, depends_on S-17.06); S-17.07 v1.0 REGISTERED (draft, precompact-flush identity-gate, depends_on S-17.06); see decision-log.md for history) |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 141 file-resident + 17 stub IDs = 158 total (STORY-INDEX v4.397 at S1705-V15-BINDING; S-17.06 MERGED D-1126; S-17.05 v1.5 REGISTERED (draft, 19 ACs, 35 Red Gate, AC↔BC reconciliation complete, depends_on S-17.06=MERGED); S-17.07 v1.0 REGISTERED (draft, precompact-flush identity-gate, depends_on S-17.06); see decision-log.md for history) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 23 (E-0..E-9, E-10..E-19, E-21 active, E-22 dissolved-retained D-962(f), E-23 STALE — re-scope OWED) |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 46 (ADR-046 v1.23 UNCHANGED; ADR-045 v1.3 ACCEPTED; see decision-log.md for history) |
 | **Merged Count** | merged_count | `stories/sprint-state.yaml` | **112** (S-17.06 MERGED PR #787 `3200149d` 2026-08-28; D-1126) |
@@ -92,7 +92,7 @@ dtu_services: []
 - **Merged (112):** S-17.06 MERGED PR #787 2026-08-28 (D-1126). S-21.10 MERGED PR #780; S-21.12 MERGED PR #781; S-21.07 MERGED PR #776; S-21.09 MERGED PR #775. Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **In-Flight (0):** none.
 - **E-21 active (Wave-7 HELD, unchanged this burst):** S-21.19 (v1.11, BC-1.03.017 v1.27, streak 0/3, R8 NOT-CLEAN); S-21.20 (v1.9, BC-1.03.017 v1.27, streak 0/3 — pass-9 NOT-CLEAN); S-21.21 (v1.10, BC-1.03.017 v1.27, streak 0/3 — pass-9 NOT-CLEAN); S-21.22 (v1.10, BC-1.03.017 v1.27, streak **1/3** — pass-9 CLEAN); S-21.23 (v1.8, BC-1.03.018 v1.6, streak 0/3 — pass-9 NOT-CLEAN); S-21.24 (v1.11, BC-1.03.017 v1.27 + BC-1.03.018 v1.6, Wave 8, STRICTLY LAST); S-21.25 (CONVERGED 3/3, awaiting TDD sequencing). S-21.11 SUPERSEDED D-1057. Wave-7 cascade remains HELD pending the ADR-045 ratification-recording burst.
-- **E-17 Wave 5 (D-1126 update 2026-08-28): S-17.06 MERGED** (1 of 3; factory-lock shared fns + BC-4.17.001 PC2). BC-4.17.001 held draft (POL-14 exception: co-implemented across Wave-5 group; promotes when S-17.05 + wave-integration gate land). S-17.05 v1.2 (stamper+TTL, depends_on S-17.06 = MERGED, UNBLOCKED; spec-boundary correction NEXT before TDD: story-writer to migrate Duration::seconds(2700)→TTL_SECONDS literal). S-17.07 v1.0 (precompact-flush identity-gate, depends_on S-17.06 = MERGED, UNBLOCKED). STORY-INDEX v4.394; E-17 v1.2 (7 stories, 44pts). All 3 same wave/release (ADR-046 Rollout Note atomicity). Worktree .worktrees/S-17.06 cleanup OWED (devops).
+- **E-17 Wave 5 (D-1126 update 2026-08-28): S-17.06 MERGED** (1 of 3; factory-lock shared fns + BC-4.17.001 PC2). BC-4.17.001 held draft (POL-14 exception: co-implemented across Wave-5 group; promotes when S-17.05 + wave-integration gate land). S-17.05 v1.5 (AC↔BC-4.17.001 reconciliation complete, 19 ACs, 35 Red Gate [31+4]; depends_on S-17.06 = MERGED, UNBLOCKED; TDD READY). S-17.07 v1.0 (precompact-flush identity-gate, depends_on S-17.06 = MERGED, UNBLOCKED). STORY-INDEX v4.397; E-17 v1.2 (7 stories, 44pts). All 3 same wave/release (ADR-046 Rollout Note atomicity). Worktree .worktrees/S-17.06 cleanup OWED (devops).
 - **E-23 new draft (STALE):** S-23.01..S-23.14 — must be RE-SCOPED to the frozen-provenance model (ADR-045 v1.3) before use.
 - **Draft (39), Partial (2), Withdrawn (1):** see prior session checkpoints.
 
@@ -121,7 +121,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **ACTIVE (D-1126 S-17.06 MERGED; S-17.05 spec-correction + S-17.05+S-17.07 TDD NEXT)** | S-17.06 MERGED PR #787 3200149d (D-1126); develop 6993138b→3200149d. merged_count 112. BC-4.17.001 held draft (POL-14 exception). Autonomous-merge AUTHORIZED (D-1126b). rc.24 SHIPPED (marketplace PR #19 MERGED 2026-08-27). ADR-046 gate CONVERGED-VALIDATED (D-1124). Frozen set UNCHANGED: ADR-046 v1.23+BC-4.17.001 v1.26+BC-5.40.001 v1.21+BC-7.07.001 v1.39. ADR-045 v1.3 ACCEPTED (ratification-recording burst OWED). Wave-7 HELD; S-21.22 streak 1/3. E-23 STALE. STORY-INDEX v4.394, VP-INDEX v2.79, ARCH-INDEX v3.95, BC-INDEX v5.19. trajectory-tail →1→0→0→0 LENGTH=4. |
+| v1.0-brownfield-backfill | brownfield | **ACTIVE (D-1126 S-17.06 MERGED; S-17.05 v1.5 TDD NEXT)** | S-17.06 MERGED PR #787 3200149d (D-1126); develop 6993138b→3200149d. merged_count 112. BC-4.17.001 held draft (POL-14 exception). Autonomous-merge AUTHORIZED (D-1126b). rc.24 SHIPPED (marketplace PR #19 MERGED 2026-08-27). ADR-046 gate CONVERGED-VALIDATED (D-1124). Frozen set UNCHANGED: ADR-046 v1.23+BC-4.17.001 v1.26+BC-5.40.001 v1.21+BC-7.07.001 v1.39. ADR-045 v1.3 ACCEPTED (ratification-recording burst OWED). Wave-7 HELD; S-21.22 streak 1/3. E-23 STALE. STORY-INDEX v4.397, VP-INDEX v2.79, ARCH-INDEX v3.95, BC-INDEX v5.19. trajectory-tail →1→0→0→0 LENGTH=4. |
 | v1.0-feature-engine-discipline-pass-1 | feature | PAUSED | F5 pass-75 D-510. META-LEVEL-30 CANDIDATE-CONFIRMED. trajectory-tail →7→9→7→9 LENGTH=4. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -217,9 +217,8 @@ dtu_services: []
 > promotes only when S-17.05 + wave-integration gate land). Autonomous-merge policy AUTHORIZED
 > by human 2026-08-28 for this session (D-1126b). develop: `6993138b`→`3200149d`.
 > Prior checkpoint archived to `cycles/v1.0-brownfield-backfill/session-checkpoints.md`.
-> **NEXT action:** (1) S-17.05 spec-boundary correction (story-writer: migrate
-> `Duration::seconds(2700)` → `factory_lock_parse::TTL_SECONDS` literal reference); then (2)
-> S-17.05 + S-17.07 TDD in parallel (both now unblocked).
+> **NEXT action:** S-17.05 + S-17.07 TDD in parallel (both unblocked; S-17.05 v1.5 spec-boundary
+> correction already complete — AC↔BC-4.17.001 reconciliation done, 19 ACs, 35 Red Gate).
 
 ### §1. Position
 
@@ -227,7 +226,7 @@ Brownfield cycle `v1.0-brownfield-backfill`. ADR-046 spec-convergence gate **CON
 (D-1124)**. S-17.06 **MERGED** (D-1126). E-17 Wave-5: **1/3 stories merged** (S-17.06 done;
 S-17.05 and S-17.07 UNBLOCKED). Frozen spec set: **ADR-046 v1.23 + BC-4.17.001 v1.26 +
 BC-5.40.001 v1.21 + BC-7.07.001 v1.39** (UNCHANGED since pass-59 fix). 4-index: ARCH-INDEX
-v3.95, BC-INDEX v5.19, VP-INDEX v2.79, STORY-INDEX v4.394. trajectory-tail →1→0→0→0 LENGTH=4.
+v3.95, BC-INDEX v5.19, VP-INDEX v2.79, STORY-INDEX v4.397. trajectory-tail →1→0→0→0 LENGTH=4.
 Merged count: **112** (S-17.06 + prior 111).
 
 ### §2. Convergence summary
