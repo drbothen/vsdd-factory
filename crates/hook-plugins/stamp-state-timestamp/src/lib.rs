@@ -74,14 +74,21 @@ pub const HOST_ABI_VERSION: u32 = 1;
 /// deterministic testing of AC-003/AC-010 timestamp-equality assertions),
 /// `log_warn` and `emit_event` (PC3b observability for Case-4 identity-resolution
 /// failure and Case-1 malformed-block advisory; BC-4.17.001 PC3b).
+///
+/// `log_warn` and `emit_event` use `Fn` (not `FnOnce`) because guard_logic may call
+/// each more than once: `log_warn` is called for both GAP-1 `TimestampAnchorMissing`
+/// and PC2 Case-1 malformed advisory; `emit_event` is called for both GAP-4
+/// `state_md_approaching_cap` and PC2 Case-4 `renewal_indeterminate`. S-17.07
+/// precompact-flush uses the same `Fn` bound for consistency (adjudicated by
+/// orchestrator per story spec).
 pub struct StampCallbacks<R, W, E, NF, LW, EV>
 where
     R: FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
     W: FnOnce(&str, &[u8]) -> Result<(), String>,
     E: FnOnce(&[&str]) -> Result<(i32, String), String>,
     NF: FnOnce() -> DateTime<Utc>,
-    LW: FnOnce(&str),
-    EV: FnOnce(&str, &[(&str, &str)]),
+    LW: Fn(&str),
+    EV: Fn(&str, &[(&str, &str)]),
 {
     /// Read the full content of `.factory/STATE.md` via `host::read_file`.
     /// `(path, max_bytes, timeout_ms)` → `Ok(bytes)` or `Err(host_error_description)`.
@@ -100,12 +107,15 @@ where
     /// AC-003/AC-010 `expires_at = now + TTL_SECONDS` assertions.
     pub now_fn: NF,
     /// Emit an advisory warn-level log line via `host::log_warn` (best-effort; PC3b).
-    /// Called on Case-4 (IdentityResolutionFailed) and Case-1 (Malformed) paths.
+    /// Called on Case-4 (IdentityResolutionFailed), Case-1 (Malformed), GAP-1
+    /// (TimestampAnchorMissing), and GAP-7 (OutputTooLarge) paths.
     /// Production: `|msg| host::log_warn(msg)`. Tests: no-op or capturing closure.
+    /// `Fn` (not `FnOnce`): may be called more than once per invocation.
     pub log_warn: LW,
     /// Emit a structured observability event via `host::emit_event` (best-effort; PC3b).
-    /// Called on Case-4 (IdentityResolutionFailed) path only.
+    /// Called on Case-4 (IdentityResolutionFailed) and GAP-4 (state_md_approaching_cap).
     /// Production: `|et, fields| host::emit_event(et, fields)`. Tests: no-op or capturing.
+    /// `Fn` (not `FnOnce`): may be called more than once per invocation.
     pub emit_event: EV,
 }
 
@@ -155,7 +165,7 @@ where
 /// - BC-4.17.001 PC5: no acquire/release/CAS involvement (AC-011)
 /// - BC-5.40.001 PC4: mid-burst TTL keep-alive (AC-014)
 pub fn guard_logic<R, W, E, NF, LW, EV>(
-    _payload: HookPayload,
+    payload: HookPayload,
     callbacks: StampCallbacks<R, W, E, NF, LW, EV>,
 ) -> HookResult
 where
@@ -163,78 +173,170 @@ where
     W: FnOnce(&str, &[u8]) -> Result<(), String>,
     E: FnOnce(&[&str]) -> Result<(i32, String), String>,
     NF: FnOnce() -> DateTime<Utc>,
-    LW: FnOnce(&str),
-    EV: FnOnce(&str, &[(&str, &str)]),
+    LW: Fn(&str),
+    EV: Fn(&str, &[(&str, &str)]),
 {
     use factory_lock::{
         LockError, RenewOutcome, SkipReason, classify_identity_resolution, renew_lock_if_holder,
     };
 
-    // Step 1 (PC3): read STATE.md — fail-open on host error.
-    let raw_bytes = match (callbacks.read_file)(".factory/STATE.md", flp::STATE_MD_MAX_BYTES, 5000)
+    // Destructure callbacks — allows `Fn` types to be called multiple times by borrow.
+    let StampCallbacks {
+        read_file,
+        write_file,
+        exec_subprocess,
+        now_fn,
+        log_warn,
+        emit_event,
+    } = callbacks;
+
+    // GAP 3 (Precondition 1 / F-013 tool-write-success):
+    // Inspect payload.tool_response BEFORE reading the file.
+    // Skip if tool_response is absent/null (None) or is an object with a non-null
+    // top-level "error" key — both indicate the prior tool write did not succeed.
+    // Accepted residual: a tool response present but with NO "error" key is treated
+    // as success (harmless spurious re-stamp on ambiguous responses; BC-4.17.001 PC3).
     {
+        let ok = match &payload.tool_response {
+            None => false,
+            Some(v) => v.get("error").is_none_or(|e| e.is_null()),
+        };
+        if !ok {
+            return HookResult::Continue;
+        }
+    }
+
+    // Step 1 (PC3): read STATE.md — fail-open on host error.
+    let raw_bytes = match read_file(".factory/STATE.md", flp::STATE_MD_MAX_BYTES, 5000) {
         Ok(bytes) => bytes,
-        Err(_) => return HookResult::Continue,
+        Err(e) => {
+            // GAP 7 (EC-015 OutputTooLarge advisory):
+            // When the error indicates an oversized read rejection, emit an advisory
+            // log_warn before returning Continue (the continue outcome is already
+            // correct per PC3 fail-open; this adds explicit observability).
+            if e.contains("OutputTooLarge") {
+                log_warn(&format!(
+                    "stamp-state-timestamp: StateReadError/StampingSkipped: \
+                     OutputTooLarge — {e}",
+                ));
+            }
+            return HookResult::Continue;
+        }
     };
 
+    // GAP 4 (Invariant 8 soft-warn / AC-016):
+    // STATE.md is approaching the read cap (262144 bytes). Emit an advisory event
+    // so operators can compact the file before reads start failing (OutputTooLarge).
+    // Does NOT suppress PC1/PC2 (observability only).
+    let raw_bytes_len = raw_bytes.len();
+    if raw_bytes_len > 200_000 && raw_bytes_len <= 262_144 {
+        let bytes_read_str = raw_bytes_len.to_string();
+        emit_event(
+            "state_md_approaching_cap",
+            &[("bytes_read", &bytes_read_str), ("cap_bytes", "262144")],
+        );
+    }
+
+    // GAP 2 (Architecture Rule 6 / EC-017 CRLF):
+    // Delegate fence detection to factory_lock_parse::extract_frontmatter instead of
+    // a hand-rolled `starts_with("---\n")` / `find("\n---\n")` check.
+    // extract_frontmatter handles LF inline (`\n---\n`), CRLF inline (`\r\n---\r\n`),
+    // LF-EOF (`\n---`), and CRLF-EOF (`\r\n---`) delimiters (EC-017 Windows autocrlf).
+    // When no delimiter is found it returns the full input — structural fail-open (PC3a).
+    let fm_bytes_len = {
+        let fm = flp::extract_frontmatter(&raw_bytes);
+        let len = fm.len();
+        if len == raw_bytes_len {
+            // Fence not located: structural fail-open (PC3a — both PC1 and PC2 suppressed).
+            return HookResult::Continue;
+        }
+        len
+    };
+    // raw_bytes is still owned here; fm borrow has ended (block scope above).
+
     // Step 2 (PC3): validate UTF-8 — fail-open on non-UTF-8 content.
+    // raw_bytes is consumed here; fm_bytes_len retains the byte boundary.
     let content = match String::from_utf8(raw_bytes) {
         Ok(s) => s,
         Err(_) => return HookResult::Continue,
     };
 
-    // Step 3 (PC3): validate frontmatter structure.
-    //   - Must start with "---\n" (opening fence).
-    //   - Must contain "\n---\n" (closing fence).
-    //   - Must have a "timestamp:" anchor line in the frontmatter body.
-    if !content.starts_with("---\n") {
-        return HookResult::Continue;
-    }
-    let close_pos = match content.find("\n---\n") {
-        Some(pos) => pos,
-        None => return HookResult::Continue,
-    };
-
-    // fm_body: frontmatter text between the two fences (content[4..close_pos+1]).
-    // Includes the trailing '\n' of the last frontmatter line.
-    let fm_body = &content[4..close_pos + 1];
-
+    // fm_body: frontmatter text between opening `---\n` and the closing delimiter,
+    // bounded by fm_bytes_len from extract_frontmatter (CRLF-safe byte boundary).
+    // Offset 4 skips the opening `---\n`.
+    //
     // Locate the "timestamp:" key line within fm_body.
-    let ts_pos = if fm_body.starts_with("timestamp:") {
-        0usize
-    } else {
-        match fm_body.find("\ntimestamp:") {
-            Some(p) => p + 1,                    // step over the '\n' to point at 't'
-            None => return HookResult::Continue, // PC3: no timestamp anchor
+    // Scoped block ensures the fm_body borrow ends before content is conditionally moved.
+    let ts_pos_opt: Option<usize> = {
+        let fm_body = &content[4..fm_bytes_len];
+        if fm_body.starts_with("timestamp:") {
+            Some(0)
+        } else {
+            fm_body.find("\ntimestamp:").map(|p| p + 1)
         }
     };
+    // fm_body borrow ends here.
 
-    // ts_line_end: position of the terminating '\n' of the timestamp: line (within fm_body).
-    let ts_line_end = match fm_body[ts_pos..].find('\n') {
-        Some(rel) => ts_pos + rel,
-        None => fm_body.len(), // timestamp: is the last line with no trailing '\n'
-    };
-
-    // Step 4 (PC1): build content_after_pc1 with the timestamp: line replaced.
+    // Step 4 (PC1): build content_after_pc1.
     // now_fn is called exactly once here (FnOnce bound).
-    let now = (callbacks.now_fn)();
+    let now = now_fn();
     let now_str = now.format("%Y-%m-%dT%H:%M:%SZ").to_string();
-    let new_ts_line = format!("timestamp: {}", now_str);
+    let new_ts_line = format!("timestamp: {now_str}");
 
-    // content_after_pc1 = content[0..4+ts_pos]
-    //                    + new_ts_line
-    //                    + content[4+ts_line_end..]
-    //
-    // content[0..4+ts_pos]      → "---\n" + fm_body[0..ts_pos] (prefix up to old timestamp: line)
-    // new_ts_line               → "timestamp: <now>"
-    // content[4+ts_line_end..]  → fm_body[ts_line_end..] (from the terminating '\n' onwards)
-    //                             + "---\n" + body
-    let content_after_pc1 = format!(
-        "{}{}{}",
-        &content[..4 + ts_pos],
-        new_ts_line,
-        &content[4 + ts_line_end..],
-    );
+    // GAP 1 (EC-013 / PC3a scoped exception):
+    // When frontmatter is VALID but has NO `timestamp:` anchor line:
+    //   - PC1 is a no-op (content_after_pc1 = content unchanged; no timestamp rewrite).
+    //   - Emit an advisory log_warn (best-effort).
+    //   - PC2 still evaluated via renew_lock_if_holder (lock renewal may still occur).
+    //   - On PC2 Renewed  → write Renewed content    (Invariant-9 row 3).
+    //   - On PC2 NoOp     → write nothing            (Invariant-9 row 4).
+    // Structural failures (no fence / non-UTF-8 / read error) STILL take the PC3
+    // fail-open path (return Continue above) — those paths are unchanged.
+    let (content_after_pc1, has_timestamp) = match ts_pos_opt {
+        Some(ts_pos) => {
+            // Nominal PC1 path: replace the timestamp: line.
+            let ts_line_end_in_fm = {
+                let fm_body = &content[4..fm_bytes_len];
+
+                // GAP 6 (EC-014 duplicate timestamp: advisory):
+                // After locating the first timestamp: line, scan for a second one.
+                // If found, log an advisory (only the first is rewritten; no data loss).
+                let after_first_ts = &fm_body[ts_pos + "timestamp:".len()..];
+                if after_first_ts.contains("\ntimestamp:") {
+                    log_warn(
+                        "stamp-state-timestamp: DuplicateTimestampKey: multiple \
+                         `timestamp:` lines found in frontmatter (only the first \
+                         will be rewritten)",
+                    );
+                }
+
+                match fm_body[ts_pos..].find('\n') {
+                    Some(rel) => ts_pos + rel,
+                    None => fm_body.len(), // timestamp: is the last line (no trailing '\n')
+                }
+            };
+            // fm_body borrow ends here.
+
+            // content[..4+ts_pos]       → "---\n" + fm prefix before old timestamp: line
+            // new_ts_line               → "timestamp: <now>"
+            // content[4+ts_line_end..]  → rest from '\n' after old timestamp: line + body
+            let new_content = format!(
+                "{}{}{}",
+                &content[..4 + ts_pos],
+                new_ts_line,
+                &content[4 + ts_line_end_in_fm..],
+            );
+            (new_content, true)
+        }
+        None => {
+            // GAP 1 (EC-013): valid frontmatter, no timestamp: anchor → PC1 no-op.
+            log_warn(
+                "stamp-state-timestamp: TimestampAnchorMissing: no `timestamp:` line found \
+                 in frontmatter — PC1 skipped; lock renewal (PC2) will still run",
+            );
+            (content, false) // content moved here — no clone needed
+        }
+    };
 
     // Step 5 (PC2 + PC3b): identity-gated expires_at renewal via canonical renew_lock_if_holder.
     // The 6-case decision tree (ADR-046 Decision 1(b)) is fully encapsulated inside
@@ -246,17 +348,17 @@ where
     //   Case 4 (identity resolution failed) → NoOp, Some(IdentityResolutionFailed{..})
     //     → PC3b: emit_event("factory.lock.renewal_indeterminate") + log_warn (best-effort)
     //   Case 5 (identity matches, not expired) → Renewed
-    let exec_subprocess = callbacks.exec_subprocess;
-    let log_warn = callbacks.log_warn;
-    let emit_event = callbacks.emit_event;
     let resolve_identity =
         move || classify_identity_resolution(exec_subprocess(&["git", "config", "user.email"]));
-    let content_after_pc2 = match renew_lock_if_holder(
-        &content_after_pc1,
-        resolve_identity,
-        move || now,
-    ) {
-        Ok((RenewOutcome::Renewed(new_content), _)) => new_content,
+    let pc2_result = renew_lock_if_holder(&content_after_pc1, resolve_identity, move || now);
+
+    // Determine what to write (Invariant-9 write rules):
+    //   has_timestamp=true  + any PC2 outcome → write content_after_pc2
+    //                         (PC1 already changed content; always write)
+    //   has_timestamp=false + Renewed         → write Renewed content (PC2-only change)
+    //   has_timestamp=false + NoOp/Err        → write nothing (row 4; no net change)
+    let content_to_write: Option<String> = match pc2_result {
+        Ok((RenewOutcome::Renewed(new_content), _)) => Some(new_content),
         // Case 4 — PC3b: identity-resolution failure → emit renewal_indeterminate event
         // and advisory log_warn. Best-effort observability; fail-open PC3 maintained.
         Ok((
@@ -268,7 +370,7 @@ where
                 expires_at,
             }),
         )) => {
-            (emit_event)(
+            emit_event(
                 "factory.lock.renewal_indeterminate",
                 &[
                     ("plugin", "stamp-state-timestamp"),
@@ -278,26 +380,43 @@ where
                     ("resolution_error", &reason),
                 ],
             );
-            (log_warn)(&format!(
-                "stamp-state-timestamp: renewal_indeterminate — holder: {holder}, reason: {reason}",
+            log_warn(&format!(
+                "stamp-state-timestamp: renewal_indeterminate — holder: {holder}, \
+                 reason: {reason}",
             ));
-            content_after_pc1
+            if has_timestamp {
+                Some(content_after_pc1)
+            } else {
+                None
+            }
         }
         // Cases 0, 2, 3 — no diagnostic (PC3b non-goal).
         Ok((RenewOutcome::NoOp, Some(SkipReason::NotHolder)))
         | Ok((RenewOutcome::NoOp, Some(SkipReason::AlreadyExpired)))
-        | Ok((RenewOutcome::NoOp, None)) => content_after_pc1,
+        | Ok((RenewOutcome::NoOp, None)) => {
+            if has_timestamp {
+                Some(content_after_pc1)
+            } else {
+                None
+            }
+        }
         // Case 1 — malformed block: advisory log_warn only; no emit.
         Err(LockError::Malformed(msg)) => {
-            (log_warn)(&format!(
+            log_warn(&format!(
                 "stamp-state-timestamp: malformed factory_lock block (advisory): {msg}",
             ));
-            content_after_pc1
+            if has_timestamp {
+                Some(content_after_pc1)
+            } else {
+                None
+            }
         }
     };
 
     // Step 6 (PC3): write back — fail-open on write error (agent's write not reverted).
-    let _ = (callbacks.write_file)(".factory/STATE.md", content_after_pc2.as_bytes());
+    if let Some(content_final) = content_to_write {
+        let _ = write_file(".factory/STATE.md", content_final.as_bytes());
+    }
 
     HookResult::Continue
 }
@@ -401,7 +520,11 @@ mod tests {
             "tool_name": tool_name,
             "session_id": "test-session",
             "dispatcher_trace_id": "test-trace",
-            "tool_input": { "file_path": ".factory/STATE.md" }
+            "tool_input": { "file_path": ".factory/STATE.md" },
+            // Minimal successful tool_response: present (non-null), no "error" key.
+            // Satisfies GAP-3 Precondition-1 check (F-013 tool-write-success gate).
+            // test-writer will add dedicated fixtures for the failure-response paths.
+            "tool_response": {}
         }))
         .expect("fixture HookPayload must deserialize")
     }
