@@ -1190,7 +1190,11 @@ mod tests {
         // fixture_no_lock() is a plain STATE.md with no factory_lock section.
         let result = renew_lock_if_holder(
             fixture_no_lock(),
-            || panic!("resolve_identity must NOT be called when factory_lock: key is absent (B-1 pre-check)"),
+            || {
+                panic!(
+                    "resolve_identity must NOT be called when factory_lock: key is absent (B-1 pre-check)"
+                )
+            },
             now_past,
         );
         let (outcome, skip) = result.expect("no factory_lock key must return Ok");
