@@ -106,7 +106,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **3200149d** | S-17.06 MERGED PR #787 2026-08-28. Chain: 6993138b→PR #786 fc7cbccb (orphan-WASM + release.yml-exclude)→PR #787 3200149d (S-17.06). CI-GREEN. |
-| factory-artifacts | **`[TBD — SHA-patch post-push]`** | S1705-P11-FINDINGS-BURST 2026-08-28. Prior: 63fe7172 (S1705-P10-CLEAN-BURST). |
+| factory-artifacts | **`34ed29cb`** | S1705-P11-FINDINGS-BURST 2026-08-28. Prior: 2020bd57 (S1705-P10-CLEAN-BURST SHA-patch). |
 | feature/S-17.05 | **a73086a5** | IN FLIGHT — mid local BC-5.39.001 3-CLEAN (streak 0/3; pass 11 FINDINGS→all fixed; pass 12 next). PUSHED to origin. Prior: a8d85160 (pass 10 CLEAN). |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
@@ -279,7 +279,7 @@ Non-blocking pass-10 carry-over observations (do NOT re-litigate):
 
 - `develop`: **`3200149d`** (S-17.06 MERGED PR #787 2026-08-28).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
-- `factory-artifacts`: **`[TBD — SHA-patch post-push]`** (S1705-P11-FINDINGS-BURST 2026-08-28).
+- `factory-artifacts`: **`34ed29cb`** (S1705-P11-FINDINGS-BURST 2026-08-28).
 - `feature/S-17.05`: **`a73086a5`** (PUSHED to origin; doc-comment de-pin + O-P11-2/3 fixes this burst).
 - `feature/S-17.06`: merged+deleted.
 

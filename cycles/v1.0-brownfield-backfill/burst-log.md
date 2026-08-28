@@ -9218,4 +9218,4 @@ Input-hash UNCHANGED at `6067e5f` (inputs-array files did not change). PASS.
 **Block 8: factory-artifacts commit**
 
 Parent SHA: `63fe7172` (S1705-P10-CLEAN-BURST 2026-08-28).
-This burst commit SHA: `[TBD — SHA-patch post-push per D-449(e)]`.
+This burst commit SHA: `34ed29cb` (factory-artifacts; S1705-P11-FINDINGS-BURST; D-449(e) SHA-patch applied post-push).
