@@ -10,25 +10,21 @@
     unused_imports,
     unused_variables
 )]
-//! Red Gate integration tests for precompact-flush (S-18.04a T-2).
+//! Integration tests for precompact-flush (S-18.04a T-2).
 //!
 //! All tests in this file correspond to rows in the Red Gate Test Table in
-//! `S-18.04a-precompact-flush-sh-core.md`. All must FAIL against stubs
-//! (todo!() bodies); they will pass only after the implementer completes T-5..T-9.
+//! `S-18.04a-precompact-flush-sh-core.md`. All tests pass against the
+//! implemented precompact-flush plugin (S-18.04a T-5..T-9 complete).
 //!
 //! # Test strategy
 //!
 //! Pure-logic functions in `precompact_flush` are tested directly (no WASM
 //! runtime needed). These tests import and call the pure functions exported
-//! from `precompact_flush::` (lib.rs); they fail because all pure functions
-//! contain `todo!()`.
+//! from `precompact_flush::` (lib.rs).
 //!
 //! Effectful `run_plugin` tests use `run_plugin_with_mock` — an injectable
-//! variant that the implementer must add to lib.rs (see MockHostContext below).
-//! These tests define the expected injectable API surface the implementer must
-//! create. All tests fail now because `run_plugin_with_mock` does not yet exist
-//! (compile error on missing symbol is the Red Gate) OR because `run_plugin`
-//! still contains `todo!()`.
+//! variant of `run_plugin` that accepts mock closures for host::read_file,
+//! host::write_file, and host::exec_subprocess (defined in lib.rs).
 //!
 //! # BC / ADR traces
 //!

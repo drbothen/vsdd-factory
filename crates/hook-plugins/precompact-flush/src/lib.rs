@@ -273,8 +273,10 @@ pub fn is_diff_empty(git_diff_cached_output: &str) -> bool {
 }
 
 /// Step-4 identity-gate: resolve caller identity, call
-/// [`factory_lock::renew_lock_if_holder`], and dispatch the 6-case outcome
-/// decision — returning the STATE.md content to use for the flush.
+/// [`factory_lock::renew_lock_if_holder`], and map the result to the 6
+/// BC-7.07.001 outcomes, plus a defensive exhaustiveness wildcard
+/// (structurally unreachable per BC-5.40.001) — returning the STATE.md
+/// content to use for the flush.
 ///
 /// Pure-core (callback-injectable) per S-17.07 Purity Classification. All
 /// effectful operations are injected via closures, enabling all 5 Rust unit
@@ -948,13 +950,12 @@ where
 }
 
 // ---------------------------------------------------------------------------
-// S-17.07 Red Gate unit tests — step4_renewal_gate (BC-7.07.001 PC3 / Invariants 3/3b)
+// S-17.07 unit tests — step4_renewal_gate (BC-7.07.001 PC3 / Invariants 3/3b)
 //
-// All 5 tests MUST FAIL before implementation exists (Red Gate, BC-8.30.001 strict
-// tdd_mode). The stub body is todo!() which panics unconditionally.
-//
-// Test naming follows the Red Gate Test Table in S-17.07 v1.2 (authoritative).
-// Each test uses injected counter/capture closures — no WASM runtime needed.
+// All 5 tests exercise the implemented step4_renewal_gate function (S-17.07
+// complete). Test naming follows the Red Gate Test Table in S-17.07 v1.2
+// (authoritative). Each test uses injected counter/capture closures — no WASM
+// runtime needed.
 // ---------------------------------------------------------------------------
 #[cfg(test)]
 mod step4_tests {
@@ -1042,8 +1043,9 @@ mod step4_tests {
     // AC-001: AlreadyExpired → NO resolve_identity call (count==0), flush returns
     //         ORIGINAL content, no write_state_md call.
     //
-    // Red Gate condition: todo!() panics on the step4_renewal_gate call; all
-    // subsequent assertions are unreachable. Test fails with "not yet implemented".
+    // Verifies: step4_renewal_gate returns original content and does NOT invoke
+    // resolve_identity or write_state_md on the AlreadyExpired path
+    // (BC-7.07.001 PC3 Case 2).
     // -----------------------------------------------------------------------
 
     /// test_BC_7_07_001_AC001 — AlreadyExpired path: no exec subprocess, original content returned.
@@ -1098,7 +1100,8 @@ mod step4_tests {
     // AC-002: identity match → write_state_md called with RENEWED content,
     //         expires_at advanced by TTL, flush returns renewed content.
     //
-    // Red Gate condition: todo!() panics; all assertions unreachable.
+    // Verifies: step4_renewal_gate calls write_state_md once with expires_at
+    // advanced by TTL and returns the renewed content (BC-7.07.001 PC3 Case 5).
     // -----------------------------------------------------------------------
 
     /// test_BC_7_07_001_AC002 — identity match: write_state_md called, expires_at advanced.
@@ -1164,7 +1167,8 @@ mod step4_tests {
     // AC-003: NotHolder → no renewal, expires_at byte-identical, flush returns
     //         original content, no abort.
     //
-    // Red Gate condition: todo!() panics; all assertions unreachable.
+    // Verifies: step4_renewal_gate returns original content with expires_at
+    // byte-identical and does NOT call write_state_md (BC-7.07.001 PC3 Case 3).
     // -----------------------------------------------------------------------
 
     /// test_BC_7_07_001_AC003 — not holder: expires_at unchanged, flush proceeds.
@@ -1213,7 +1217,9 @@ mod step4_tests {
     //         factory.lock.renewal_indeterminate + 5-field payload,
     //         log_warn_fn called, flush proceeds with original content.
     //
-    // Red Gate condition: todo!() panics; all assertions unreachable.
+    // Verifies: step4_renewal_gate emits event + log_warn and returns original
+    // content without renewal on IdentityResolutionFailed
+    // (BC-7.07.001 PC3 Case 4 / ADR-046 Decision 4).
     // -----------------------------------------------------------------------
 
     /// test_BC_7_07_001_AC004 — IdentityResolutionFailed: event emitted, log_warn called.
@@ -1362,8 +1368,9 @@ mod step4_tests {
     //         SECONDARY — Ok((RenewOutcome::NoOp, None)) absent lock:
     //           resolve_identity NOT called, no event emitted, flush proceeds.
     //
-    // Red Gate condition: todo!() panics on the first step4_renewal_gate call;
-    // all subsequent assertions are unreachable. Test fails with "not yet implemented".
+    // Verifies: step4_renewal_gate emits MANDATORY log_warn (and no event) on
+    // Malformed; and neither calls resolve_identity nor write_state_md on
+    // absent lock (BC-7.07.001 PC3 Case 1 / EC-004 / Case 0).
     // -----------------------------------------------------------------------
 
     /// test_BC_7_07_001_AC005 — Malformed + absent-lock: MANDATORY log_warn, no exec, no write.
