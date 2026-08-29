@@ -519,12 +519,31 @@ _run_dispatcher() {
   # Renewed value must fall in [before_epoch+2700, after_epoch+2700+5] (5s fudge for CI).
   local new_expires
   new_expires="$(echo "$actual_state" | grep 'expires_at:' | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z')"
-  local new_expires_epoch
-  new_expires_epoch="$(date -juf "%Y-%m-%dT%H:%M:%SZ" "$new_expires" +%s 2>/dev/null)" || {
+
+  # Validate ISO-8601 shape with bash regex — platform-portable; avoids GNU/BSD date
+  # divergence for the format-validity gate.  grep -oE above already strips YAML quotes,
+  # but the regex provides a load-bearing assertion and works identically on Linux and macOS.
+  [[ "$new_expires" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]] || {
     echo "FAIL: AC-014 O-S1705-P1-001 — cannot parse renewed expires_at as UTC ISO-8601: '${new_expires}'"
     echo "Expected a value approximately equal to now + 2700s (before_epoch=${before_epoch})."
     return 1
   }
+
+  # Convert ISO-8601 string to epoch for window comparison.
+  # Platform-portable: detect GNU vs BSD date and use the correct invocation for each.
+  #   GNU date (Linux/CI): date -u -d "YYYY-MM-DDTHH:MM:SSZ" +%s  (-d parses the string;
+  #                         GNU date understands the Z suffix as UTC natively)
+  #   BSD date (macOS):    date -juf "%Y-%m-%dT%H:%M:%SZ" "..." +%s  (-j = don't set date,
+  #                         -u = UTC, -f = input format)
+  # Detection: `date --version` succeeds on GNU (prints to stdout), exits non-zero on BSD.
+  local new_expires_epoch
+  if date --version >/dev/null 2>&1; then
+    # GNU date (Linux/CI)
+    new_expires_epoch="$(date -u -d "$new_expires" +%s)"
+  else
+    # BSD date (macOS)
+    new_expires_epoch="$(date -juf "%Y-%m-%dT%H:%M:%SZ" "$new_expires" +%s)"
+  fi
   local expected_min=$(( before_epoch + 2700 ))
   local expected_max=$(( after_epoch + 2700 + 5 ))
   [ "$new_expires_epoch" -ge "$expected_min" ] || {
