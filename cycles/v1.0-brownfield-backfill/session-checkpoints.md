@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "5b70a80"
+input-hash: "19bb0d7"
 traces_to: STATE.md
 ---
 
@@ -3753,3 +3753,60 @@ Batched observations at archive:
 ### §4. Resume command at archive
 
 `/vsdd-factory:next-step` → re-run S-17.05 local adversary pass 14 (fresh, against `feature/S-17.05` @ `a73086a5`), streak 2/3.
+
+---
+
+## Archived Checkpoint: S1705-DELIVERY-BURST (2026-08-29)
+
+**Archived by:** SESSION-WRAP-PAUSE-2026-08-29 (state-manager)
+**STATE.md version at archive:** v9.27
+
+### §1. Position at archive
+
+Brownfield cycle `v1.0-brownfield-backfill`. ADR-046 "fix-state-writes" spec gate
+**CONVERGED-VALIDATED (D-1124)**. E-17 Wave-5 TDD implementation (state+timestamp hooks).
+
+- **S-17.06** — MERGED PR #787 `3200149d` 2026-08-28 (D-1126).
+- **S-17.05** — MERGED PR #798 `a4b24601` 2026-08-29T13:45:46Z (D-1129). Branch DELETED. merged_count 112→113.
+- **S-17.07** — NOT started; NEXT queued.
+
+### §2. S-17.05 delivery status at archive
+
+MERGED (D-1129). LOCAL 3-CLEAN converged D-1128 (passes 12/13/14). Finalization doc-sweep COMPLETE
+(D-1127; story v1.8). PR review APPROVE at `ec1ea2ef` (0 blocking; 3 non-blocking cosmetic:
+orphaned crate ADVISORY + 2 LOW doc-comment drift). 6 CI-only failures fixed before merge.
+PG-CI-1/2/3 process-gaps codified (D-1129).
+
+Non-blocking carry-over observations:
+- O-P10-001 LOW: `STATE_MD_MAX_BYTES=262144` dormant copy. No defect.
+- O-P10-002 LOW: 32 Rust unit tests vs. 31 mandated. Over-coverage.
+- PG-CI-1/2/3 OPEN: follow-up OWED before convergence gate.
+
+### §3. Governance at archive
+
+- Autonomous-merge policy AUTHORIZED (D-1126b, 2026-08-28).
+- BC-4.17.001 held at draft (POL-14 exception, D-1126).
+- D-1127 LOW-only doc findings BATCHED (human-ratified 2026-08-28).
+- PR #787 self-approval RATIFIED by human 2026-08-28 (D-1126a).
+- BC-7.07.001 re-anchored to S-17.07 (D-1124/D-1125 cascade).
+
+### §4. HEADs at archive
+
+- `develop`: `a4b24601` (S-17.05 MERGED PR #798 2026-08-29).
+- `main`: `89f6f87c` (v1.0.0-rc.24).
+- `factory-artifacts`: `27cbcba6` (S1705-DELIVERY-BURST-2026-08-29; SHA-patch applied).
+- `feature/S-17.05`: MERGED+DELETED.
+- `feature/S-17.06`: MERGED+DELETED.
+
+### §5. Pending at archive
+
+1. `.worktrees/` permission-prompt fix — awaiting human decision.
+2. S-17.07 AC↔BC-7.07.001 spot-check before delivery (human-directed).
+3. PG-CI-1/2/3 follow-up OWED before convergence gate.
+4. ADR-045 v1.3 ratification-recording burst (blocks Wave-7).
+5. E-23 re-scope to frozen-provenance model.
+
+### §6. Resume command at archive
+
+`/vsdd-factory:next-step` → resumes E-17 Wave-5: S-17.07 (precompact-flush Step-4 identity-gate
+amendment). BEFORE starting: AC↔BC-7.07.001 reconciliation spot-check (human-directed).

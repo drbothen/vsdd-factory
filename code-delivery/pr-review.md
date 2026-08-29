@@ -1,47 +1,43 @@
-# PR #780 — Final Fresh-Eyes Review
+# PR #798 — Fresh-Eyes Pre-Merge Review
 
-- **PR:** #780 `feat(S-21.10): failure_policy registry schema extension (ADR-039 Phase 1 — schema only, no enforcement change)`
-- **Branch:** `feature/S-21.10` → `develop`
-- **Reviewed HEAD:** `58c0435e62894523135d1d9d4ac8374259a20182`
-- **Story:** S-21.10 (E-21 Wave 5) — ADR-039 Phase 1 schema leg
-- **BC:** BC-1.01.016 v1.3 (PC1–PC7, EC-001..EC-007, 15 TDD tests)
+**PR:** feat(S-17.05): stamp-state-timestamp PostToolUse WASM hook (ADR-046, BC-4.17.001)
+**Head:** feature/S-17.05 @ `bdb659472228e3efa8ab01cfacb46a11d2016fb4`
+**Base:** develop
+**Reviewer:** pr-reviewer (fresh-eyes diff review)
+**Date:** 2026-08-28
 
-## Verdict: REQUEST_CHANGES
+## VERDICT: REQUEST_CHANGES
 
-Code content is approved on the merits, but merge is blocked by a red required check caused by an empty tip commit. No `covered_sha` is emitted because the fix changes the HEAD SHA.
+The diff itself has **0 blocking findings** and is production-grade. However, the required CI check `cargo-host (ubuntu-latest)` is currently **RED**, so the PR is **not safe to merge yet**. The failing tests are NOT caused by this diff (see Blocking section).
 
-## Code content — APPROVED
+covered_sha: `bdb659472228e3efa8ab01cfacb46a11d2016fb4`
 
-The substantive diff is production-grade and correct:
+---
 
-1. **`FailurePolicy` enum** (`registry.rs`) — `#[serde(rename_all = "kebab-case")]`, `#[default]` on `FailOpen`, `Copy`/`Eq` derives. Doc comment correctly flags the kebab-vs-snake hazard: copying the sibling `OnError`'s `snake_case` would have silently accepted `fail_closed` and opened a bypass.
-2. **`RegistryEntry.failure_policy`** — `#[serde(default)]`; doc comment explicitly warns against refactoring to `Option<FailurePolicy>` and documents the per-plugin (not `RegistryDefaults`) design decision per ADR-039 §Decision 2 / SR-003.
-3. **PC7 no-enforcement boundary respected** — `plugin_fail_closed` in `executor.rs` is unchanged; it appears only in doc comments in the diff. The RED-gate test `fail_closed_timeout_with_on_error_continue_is_open` is untouched.
-4. **All `RegistryEntry` struct literals updated** — `executor.rs`, `partition.rs` kani proof, and 5 integration test files (`async_partition_integration.rs`, `executor_integration.rs`, `executor_resolver_integration.rs`, `full_stack_plugin_invocation.rs`, `resolver_error_isolation_test.rs`) all add `failure_policy`. Confirmed by clean `cargo-host` on linux + macos.
-5. **15 TDD tests** in `mod s21_10_bc_1_01_016_failure_policy`, each traced to a BC-1.01.016 PC/EC. Verified coverage: PC1 (fail-closed parse), PC2 (fail-open parse), PC3 (unknown → Err), PC4 (absent → FailOpen), PC5/EC-006 (continue + fail-closed simultaneous), PC6/EC-007 (production registry all-FailOpen), PC7 (registry-side scope guard: `on_error()` accessor unaffected by `failure_policy`), EC-001 (wrong case), EC-002 (empty string), EC-003 (underscore, both variants), EC-005 (block + fail-open), plus round-trip serialize and `default()` invariant. EC-004 (duplicate key) correctly documented as a TOML-parser-layer concern, out of registry-unit scope.
-6. **Prior findings resolved** — FINDING 1 (lib.rs re-export of `FailurePolicy`) and FINDING 2 (module comment EC range "EC-001..EC-003, EC-005..EC-007" with EC-004 note) confirmed fixed; the module-comment coverage claim is accurate against the actual tests.
-7. **CHANGELOG** updated with the S-21.10 Added entry.
+## Diff Review — 0 blocking findings
 
-## MERGE BLOCKER — empty tip commit trips POLICY 15 gate
+Verified across spec-fidelity (BC-4.17.001 / BC-5.40.001), code quality, test completeness, and security:
 
-Required check `policy-15-attestation-location` is **RED** (exit 2). Root cause is not the code — it is the empty tip commit:
+- **`guard_logic`** (`crates/hook-plugins/stamp-state-timestamp/src/lib.rs`): PC1 unconditional `timestamp:` re-stamp; PC2 identity-gated renewal delegated to `factory_lock::renew_lock_if_holder`; PC3 fail-open on every read / parse / non-UTF-8 / write error; GAP-3 `tool_response` success gate; GAP-1 no-timestamp-anchor path; CRLF-aware opening-fence offset and empty-frontmatter guard. Correct.
+- **Anti-resurrection (SAFETY-CRITICAL, Invariant 2):** expired self-held locks (Case 2), foreign holders (Case 3), and resolution failures (Case 4) are never renewed. Logic delegated, not reimplemented.
+- **CRLF preservation** (`crates/factory-lock/src/lib.rs` `rewrite_expires_at`): switched from whole-file `\r\n`→`\n` normalization to `split_inclusive('\n')` with per-line terminator mirroring. Byte-for-byte preserving for all lines; only the `expires_at` value line changes. Confirmed by `renew.rs` mutation-kill tests (terminator preservation + whole-file-normalization regressions).
+- **Canonical constants** moved to `factory-lock-parse` (`TTL_SECONDS=2700`, `STATE_MD_MAX_BYTES=262144`); `renew_lock_with_now` migrated off the bare `2700` literal. Single-source respected (Architecture Compliance Rule 7).
+- **`hooks-registry.toml`:** `stamp-state-timestamp` added (PostToolUse, `^(Edit|Write|MultiEdit)$`, `on_error=continue`, `async=false`, `read_file`/`write_file` path_allow scoped to `.factory/STATE.md`, `exec_subprocess` binary_allow=`[git]`, env scoped). `verify-state-timestamp-refresh` entry removed. Docs (`state-manager.md`, `state-burst/SKILL.md`, `factory-lock-write.sh`) updated consistently.
+- **Tests:** this PR's crates all pass in CI (stamp-state-timestamp unit suites, factory-lock `renew.rs` CRLF tests, factory-lock-parse constant tests).
+- **Security:** fail-open PostToolUse (no block capability), no user-controlled input to subprocess (`git config user.email` only), WASM path sandbox, identity compared by exact string equality. Sound.
 
-```
-58c0435e ci(S-21.10): retrigger CI after factory-artifacts corpus-gate fix (D-1023)
-```
+### Non-blocking nit (optional)
+The GAP-4 soft-warn band in `lib.rs` hardcodes `262_144` / `"262144"` as literals instead of reusing `flp::STATE_MD_MAX_BYTES`. Cosmetic only; does not affect correctness.
 
-`git diff --name-only 58c0435e^1 58c0435e` is empty. The POLICY 15 gate (`crates/policy15-attestation-gate/src/lib.rs:344-350`, introduced in #777) walks every commit in `merge-base..HEAD` and flags any single-parent commit with an empty diff as `EMPTY-or-UNREACHABLE: unmeasurable diff`, unconditionally, before the pinned-crate (`crates/hook-plugins/validate-cross-site-correspondence`) activation check. The gate log reads `unmeasurable diff at commit 58c0435e6289`.
+---
 
-**Remediation:** drop the empty commit so HEAD becomes `e6e86ba6` (`git rebase` to drop `58c0435e`, or `git reset --soft HEAD~1` then re-push). All remaining commits have non-empty diffs and none touch the pinned crate, so the gate resolves to a clean pass. Re-review at the new HEAD before merge.
+## BLOCKING for merge — NOT caused by this diff
 
-## CI status
+CI check **`cargo-host (ubuntu-latest)` = FAIL**. The `cargo test (workspace, all targets)` step failed on 2 tests in `crates/hook-plugins/validate-state-structure/src/lib.rs` — a crate this PR does not touch:
 
-- `policy-15-attestation-location`: **FAIL** (empty tip commit — see above)
-- `cargo-host` (ubuntu-latest, macos-latest): PASS
-- `bats-full-suite` (linux), `bats-darwin-leg`, `bats-wave-handoff`: PASS
-- `build-dispatcher` (linux-x64, linux-arm64): PASS; darwin/windows legs pending at review time
-- `SAST (Semgrep)`, `validate`, `platforms-drift`, `attestation-gate-non-vacuity-controls`: PASS
+- `test_BC_5_39_005_f_p1_001_real_state_md_banner_wc_passes` (lib.rs:2548)
+- `test_BC_5_39_005_full_validation_against_real_state_md` (lib.rs:2291)
 
-## Covered SHA
+Both read the live mounted `.factory/STATE.md` and assert its SIZE BUDGET banner contains an `N lines (wc-l)` claim (per D-421(c)+D-422(c)+D-424(b)+D-428(d)+D-438(a)+D-440(d)+D-442(d)). The current STATE.md banner lacks that pattern, so the assertions panic. This is a STATE.md-content issue on `factory-artifacts` — environmental to any PR's CI right now — not a defect in the S-17.05 diff.
 
-None — verdict is REQUEST_CHANGES. Will re-verify and approve at the new HEAD once the empty commit is dropped and CI is green.
+**Recommended route:** `state-manager` restores the STATE.md SIZE BUDGET banner's `N lines (wc-l)` claim (or confirms these real-STATE.md-coupled tests are a tracked pre-existing failure), then re-run CI. Once `cargo-host` is green (and the pending `build-dispatcher` / `bats-full-suite` jobs pass), the diff is approvable as-is at `bdb659472228e3efa8ab01cfacb46a11d2016fb4` — no code changes to S-17.05 required.
