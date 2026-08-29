@@ -24,7 +24,7 @@ dtu_services: []
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
   Soft target: <=415 lines; hard cap: 500 lines (validate-state-md-size hook enforcement).
-  D-446(c) dual-margin: hard cap margin = 500 - 415 = 85; actual margin = 500 - 300 = 200.
+  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 318 = 182 (D-446(c) dual-margin form). 318 lines (wc-l .factory/STATE.md; S-17.05 PR prep).
   Historical content belongs in cycle files, NOT here.
   D-1057..D-1076 (exhaustive) banner-history paragraphs extracted 2026-08-23 to cycles/v1.0-brownfield-backfill/burst-log.md.
   Pre-D-1058 history: git -C .factory log -p -- STATE.md + burst-log.md + decision-log.md.
