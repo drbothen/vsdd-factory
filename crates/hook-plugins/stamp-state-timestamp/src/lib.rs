@@ -1702,6 +1702,10 @@ mod tests {
         let lib_path = std::path::Path::new(manifest_dir).join("src/lib.rs");
         let source = std::fs::read_to_string(&lib_path)
             .unwrap_or_else(|e| panic!("failed to read {:?}: {}", lib_path, e));
+        // Normalize CRLF → LF so the test-module boundary search is platform-agnostic.
+        // Without this, `source.find("#[cfg(test)]\nmod tests")` returns None on
+        // Windows CRLF checkouts, leaving the test module included in the scan.
+        let source = source.replace("\r\n", "\n");
 
         // Restrict scan to production code only: strip the test module.
         let non_test_source = if let Some(test_mod_pos) = source.find("#[cfg(test)]\nmod tests") {
@@ -1710,13 +1714,23 @@ mod tests {
             source.as_str()
         };
 
-        // Collect non-comment production lines containing `= 2700`.
-        // A violation would be e.g. `const TTL_SECONDS: u32 = 2700;` (redeclaration) or
-        // `let ttl = 2700;` (bare literal). Doc comments (`///`) are excluded (start with `//`).
+        // A genuine redeclaration of TTL_SECONDS looks like:
+        //   `const TTL_SECONDS: u32 = 2700;`  (or `static`, or with a visibility modifier)
+        // Matching bare `= 2700` alone is too broad: it self-matches this test's own
+        // filter-predicate string literal and its error-message string literal on any
+        // platform where the test module is not stripped.  Requiring `const TTL_SECONDS`
+        // or `static TTL_SECONDS` AND `= 2700` on the same line is declaration-shaped:
+        // those two substrings never appear together on any single line of this test code,
+        // so no self-match is possible on any platform regardless of line-ending style.
         let violations: Vec<&str> = non_test_source
             .lines()
             .filter(|line| !line.trim_start().starts_with("//"))
-            .filter(|line| line.contains("= 2700"))
+            .filter(|line| {
+                let is_decl =
+                    line.contains("const TTL_SECONDS") || line.contains("static TTL_SECONDS");
+                let has_val = line.contains("= 2700");
+                is_decl && has_val
+            })
             .collect();
 
         assert!(
