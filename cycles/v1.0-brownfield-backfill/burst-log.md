@@ -9427,4 +9427,134 @@ Input-hash UNCHANGED at `6067e5f` (story/BC inputs files not modified). PASS.
 **Block 8: factory-artifacts commit**
 
 Parent SHA: `29baac32` (S1705-P12-CLEAN-BURST SHA-patch 2026-08-28).
+Commit SHA: `e37d2bd6` (S1705-P13-CLEAN-BURST main commit 2026-08-28).
+SHA-patch: `bc1f3256` (Active Branches + burst-log Block 8 cite e37d2bd6; D-449(e) 2026-08-28).
+
+---
+
+## S1705-P14-3CLEAN-CONVERGED-BURST
+
+**Date:** 2026-08-28
+**Agent:** state-manager
+**Burst type:** Pass-14 adversary CLEAN + LOCAL BC-5.39.001 3-CLEAN CONVERGENCE certification (bookkeeping only)
+
+---
+
+**Block 1: Parent commit**
+
+Parent SHA: `bc1f3256` (S1705-P13-CLEAN-BURST SHA-patch 2026-08-28).
+
+---
+
+**Block 2: Adversary verdict**
+
+S-17.05 local adversary **pass 14** = **CLEAN** (zero MEDIUM+ findings). BC-5.39.001 LOCAL streak
+**ADVANCES 2/3 → 3/3**. **LOCAL BC-5.39.001 3-CLEAN ACHIEVED (passes 12/13/14).**
+
+adv-s17.05-local-pass-14.md Part A finding set: zero MEDIUM+. One advisory observation (F-P14-001)
+recorded: `guard_logic` Step-6 write-back fail-open arm (`let _ = write_file(...)`) emits no `log_warn`
+on write failure, unlike the read-side fail-open arms. SPEC-PERMITTED (BC-4.17.001 PC3/Invariant 4
+mandates swallow-on-write-error; no AC/PC/EC/VP requires write-failure observability). Default
+disposition: ACCEPT. Batched to finalization-doc-sweep.md per D-1127. NOT a streak-reset event.
+
+Novelty: LOW (observability gap class; analogous to prior dormant-constant observations). All prior
+findings confirmed fixed. Three consecutive clean passes (12/13/14) on frozen `feature/S-17.05` @
+`a73086a5` (story v1.7) constitute LOCAL BC-5.39.001 3-CLEAN per D-1128.
+
+---
+
+**Block 3: Files touched**
+
+New files created:
+- `.factory/cycles/v1.0-brownfield-backfill/adv-s17.05-local-pass-14.md` (pass-14 adversary record)
+
+Files updated:
+- `.factory/cycles/v1.0-brownfield-backfill/finalization-doc-sweep.md` (appended F-P14-001 ADVISORY OPTIONAL-HARDENING; updated Status table: F-P12-001 open, O-P13-1 open, F-P14-001 open/default-ACCEPT)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (appended D-1128 full codification + canonical 6-column row)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry: Block 8 SHA backfill for P13 + this 8-block P14 entry)
+- `.factory/STATE.md` (v9.23→v9.24; streak 2/3→3/3 CONVERGED; Session Resume Checkpoint refresh; Phase Progress new row; Current Phase Steps updated)
+
+NOT modified (perimeter FROZEN):
+- `stories/S-17.05-stamp-state-timestamp.md` — UNCHANGED
+- `specs/behavioral-contracts/` — UNCHANGED
+- `feature/S-17.05` worktree — UNCHANGED (no code touched)
+
+---
+
+**Block 4 (Dim-2): Codifications**
+
+D-1128 allocated and codified in decision-log.md: S-17.05 LOCAL BC-5.39.001 3-CLEAN CONVERGED.
+Precedent basis: D-1123 (ADR-046 spec-convergence 3-CLEAN got D-NNN). Per-story convergence event
+is same milestone class. Individual CLEAN passes continue to use D-chain cite (no new D-NNN per
+per-story local CLEAN pass convention).
+
+F-P14-001 recorded in finalization-doc-sweep.md as OPTIONAL-HARDENING with default disposition ACCEPT
+(spec-permitted; BC-4.17.001 PC3/Invariant 4; hardening re-opens frozen perimeter). No new story
+created (hardening deferred to finalization decision, default ACCEPT).
+
+STATE.md Session Resume Checkpoint §2 updated: streak 3/3 CONVERGED (passes 12/13/14 all CLEAN).
+STATE.md §7 finalization backlog now 3 items: F-P12-001 MANDATORY + O-P13-1 OPTIONAL + F-P14-001 OPTIONAL.
+STATE.md §8 resume command updated: next = finalization doc-sweep → demo-recorder per-AC → pr-manager PR.
+
+---
+
+**Block 5 (Dim-5): Frozen-artifact attestation**
+
+D-449(a) literal-shell-execution evidence:
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "4.399"
+```
+STORY-INDEX version UNCHANGED at v4.399. PASS.
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "5.20"
+```
+BC-INDEX version UNCHANGED at v5.20. PASS.
+
+```
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory log --oneline feature/S-17.05 2>/dev/null | head -1
+a73086a5 docs(S-17.05): de-pin residual story-version comments (O-P11-2 sibling-sweep)
+```
+feature/S-17.05 HEAD FROZEN at a73086a5 (no code changes this burst). PASS.
+
+Feature branch FROZEN — no code, story, or BC files modified. Adversary perimeter identical across
+passes 12/13/14. 3-CLEAN CERTIFIED on the frozen artifact.
+
+---
+
+**Block 6 (Dim-6): Files opened/closed**
+
+Closes:
+- S-17.05 local adversary pass 14 (CLEAN — zero MEDIUM+; BC-5.39.001 streak ADVANCES 2/3→3/3).
+- S-17.05 LOCAL BC-5.39.001 3-CLEAN cascade: **CONVERGED** (passes 12/13/14 — D-1128).
+- F-P14-001: BATCHED as OPTIONAL-HARDENING in finalization-doc-sweep.md (default disposition ACCEPT; not closed; decide at finalization).
+
+Opens / advances:
+- Finalization doc-sweep queued (F-P12-001 MANDATORY + O-P13-1 OPTIONAL + F-P14-001 OPTIONAL/default-ACCEPT).
+- Demo-recorder per-AC queued (after finalization doc-sweep).
+- pr-manager PR queued (after demo-recorder).
+- Autonomous-merge queued (D-1126b, after PR review + CI green).
+- S-17.07 queued after S-17.05 merge + wave gate.
+
+---
+
+**Block 7 (Dim-7): Gate attestation**
+
+D-444(c) burst-log h2 heading `## S1705-P14-3CLEAN-CONVERGED-BURST` present. PASS.
+D-446(a) own-burst-log 8-block gate: this entry contains Blocks 1-8. PASS.
+D-448(a) source-attestation gate: `adv-s17.05-local-pass-14.md` Part A finding set (zero MEDIUM+; F-P14-001 ADVISORY spec-permitted batched; 3-CLEAN ACHIEVED) faithfully described in Block 2. PASS.
+D-449(a) literal-shell-execution: STORY-INDEX version grep + BC-INDEX version grep + feature/S-17.05 git-log all executed with captured stdout in Block 5. PASS.
+Per TD-FACTORY-HOOK-BYPASS-001 P0: all `.factory/` mutations via Edit/Write tools only; no Python/sed/echo bypass. PASS.
+`feature/S-17.05` HEAD FROZEN at `a73086a5` (no changes this burst). PASS.
+Input-hash UNCHANGED at `6067e5f` (story/BC input files not modified). PASS.
+BC-5.39.001 LOCAL 3-CLEAN CERTIFIED: three consecutive CLEAN passes (12/13/14) on frozen `a73086a5`. PASS.
+
+---
+
+**Block 8: factory-artifacts commit**
+
+Parent SHA: `bc1f3256` (S1705-P13-CLEAN-BURST SHA-patch 2026-08-28).
 This burst commit SHA: `e37d2bd6` (factory-artifacts; S1705-P13-CLEAN-BURST; D-449(e) SHA-patch applied post-push).

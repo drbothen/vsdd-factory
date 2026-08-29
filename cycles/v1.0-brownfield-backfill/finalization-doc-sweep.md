@@ -51,11 +51,29 @@ submitting the S-17.05 PR. Routing: story-writer dispatched by orchestrator.
 
 ---
 
+### F-P14-001 — `guard_logic` write-back fail-open arm has no `log_warn` (optional hardening)
+
+| Field | Value |
+|-------|-------|
+| **Finding ID** | F-P14-001 |
+| **Severity** | ADVISORY / OPTIONAL-HARDENING |
+| **Source pass** | Pass 14 (adv-s17.05-local-pass-14.md) |
+| **File** | `crates/verify-state-timestamp-refresh/src/guard_logic.rs` |
+| **Observation** | The Step-6 write-back fail-open arm (`let _ = write_file(...)`) swallows write errors without emitting any observability event (`log_warn` or equivalent). The read-side fail-open arms (GAP-2 / GAP-3) do emit observability annotations. This creates an asymmetry on the write path. |
+| **Spec status** | SPEC-PERMITTED — BC-4.17.001 PC3/Invariant 4 mandates swallow-on-write-error; no AC, PC, EC, or VP requires write-failure observability. The implementation exactly matches its specification. |
+| **Default disposition** | ACCEPT — "spec mandates swallow-on-write-error; no observability obligation in current BC/AC/VP; write-side fail-open intentional per PC3/Invariant 4." |
+| **Hardening option** | Add `log_warn!("STATE.md write failed: {err}")` at the write-back fail-open locus. NOTE: hardening re-opens the frozen code perimeter and requires a new 3-CLEAN cascade — cost is high. Default is ACCEPT unless human/architect directs otherwise. |
+| **Routing** | Decide at finalization: accept (story-writer: add rationale note) OR harden (human/architect direction required given perimeter re-open cost). |
+| **Blocking?** | No — ADVISORY only; does NOT affect convergence (3-CLEAN already ACHIEVED). |
+
+---
+
 ## Status
 
 | Item | Status | Resolved by |
 |------|--------|-------------|
-| F-P12-001 | OPEN — awaiting pass 14 CLEAN (1 of 2 remaining) | story-writer finalization doc-sweep |
+| F-P12-001 | OPEN — **3-CLEAN ACHIEVED (passes 12/13/14)**; execute sweep before S-17.05 PR | story-writer finalization doc-sweep |
 | O-P13-1 | OPEN (OPTIONAL) — decide at finalization: harden or accept | implementer (harden) or story-writer (accept) |
+| F-P14-001 | OPEN (OPTIONAL) — **DEFAULT ACCEPT** (spec-permitted; hardening re-opens perimeter); confirm at finalization | story-writer (accept) or human/architect (harden) |
 
-*Last updated: 2026-08-28 (S1705-P13-CLEAN-BURST)*
+*Last updated: 2026-08-28 (S1705-P14-3CLEAN-CONVERGED-BURST)*

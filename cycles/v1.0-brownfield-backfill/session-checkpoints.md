@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "0c12ac1"
+input-hash: "5b70a80"
 traces_to: STATE.md
 ---
 
@@ -3719,3 +3719,37 @@ Pass 12 observation BATCHED: F-P12-001 LOW/documentary — story §Red Gate pros
 ### §4. Resume command at archive
 
 `/vsdd-factory:next-step` → re-run S-17.05 local adversary pass 13 (fresh, against `feature/S-17.05` @ `a73086a5`), streak 1/3.
+
+---
+
+## Archived Checkpoint: S1705-P13-CLEAN-BURST (2026-08-28)
+
+**Archived by:** S1705-P14-3CLEAN-CONVERGED-BURST (state-manager)
+**STATE.md version at archive:** v9.23
+
+### §1. Position at archive
+
+S-17.05 IN FLIGHT — mid local BC-5.39.001 3-CLEAN cascade. Streak = 2/3 (pass 13 CLEAN → ADVANCES
+from 1/3). `feature/S-17.05` @ `a73086a5` (PUSHED, FROZEN). Story v1.7 (19 ACs, 35 Red Gate;
+BC-4.17.001 v1.28 / BC-5.40.001 v1.21; input-hash 6067e5f). S-17.06 MERGED (PR #787, `3200149d`).
+
+### §2. Convergence state at archive
+
+Passes 1–13: P1–P7 FINDINGS (all fixed), P8 CLEAN, P9 FINDINGS (all fixed), P10 CLEAN, P11
+FINDINGS (all fixed), P12 CLEAN, P13 CLEAN (zero MEDIUM+; O-P13-1 ADVISORY spec-conformant BATCHED
+per D-1127). Streak = 2/3. NEED 1 more consecutive CLEAN pass (14) for local 3-CLEAN.
+
+Batched observations at archive:
+- F-P12-001 LOW/documentary: story §Red Gate prose tally sentence 28/31 vs. 30/32.
+- O-P13-1 ADVISORY: guard_logic GAP-4 hardcoded 262_144 literal; AC-018-mandated; optional hardening.
+
+### §3. HEADs at archive
+
+- `develop`: `3200149d` (S-17.06 MERGED PR #787 2026-08-28)
+- `main`: `89f6f87c` (v1.0.0-rc.24)
+- `factory-artifacts`: `e37d2bd6` (S1705-P13-CLEAN-BURST main) / `bc1f3256` (SHA-patch)
+- `feature/S-17.05`: `a73086a5` (FROZEN — no changes at passes 12/13)
+
+### §4. Resume command at archive
+
+`/vsdd-factory:next-step` → re-run S-17.05 local adversary pass 14 (fresh, against `feature/S-17.05` @ `a73086a5`), streak 2/3.

@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "9.23"
+version: "9.24"
 status: draft
 producer: state-manager
-timestamp: 2026-08-28T15:05:00Z
-phase: "IN PROGRESS 2026-08-28. E-17 Wave-5 TDD IN FLIGHT. S-17.06 MERGED (D-1126). S-17.05 mid local BC-5.39.001 3-CLEAN cascade, streak 2/3 (pass 13 CLEAN → ADVANCES; pass 14 next fresh). feature/S-17.05 @ a73086a5 FROZEN. S-17.07 queued after S-17.05. BC-4.17.001 held draft (POL-14 exception). Autonomous-merge AUTHORIZED (D-1126b). D-1127: LOW-only doc findings BATCHED for finalization post-3-CLEAN."
-last_amended: "2026-08-28 (v9.23) — S1705-P13-CLEAN-BURST (state-manager; single-commit TD-VSDD-053): S-17.05 local adversary pass 13 = CLEAN (zero MEDIUM+); BC-5.39.001 streak ADVANCES 1/3→2/3; O-P13-1 ADVISORY spec-conformant BATCHED per D-1127 (optional hardening; finalization-doc-sweep.md); trajectory-tail →0→0→0→0 LENGTH=4 (CLEAN pass; advance from →1→0→0→0); feature/S-17.05 @ a73086a5 FROZEN (UNCHANGED). v9.22→v9.23. | 2026-08-28 (v9.22) — S1705-P12-CLEAN-BURST (state-manager; single-commit TD-VSDD-053, D-1127): S-17.05 local adversary pass 12 = CLEAN (zero MEDIUM+); BC-5.39.001 streak ADVANCES 0/3→1/3; F-P12-001 LOW BATCHED per D-1127 governance ruling; trajectory-tail →1→0→0→0 LENGTH=4; feature/S-17.05 @ a73086a5 FROZEN. v9.21→v9.22. | Prior: [Full chain: decision-log.md/burst-log.md D-1057..D-1127 (exhaustive); pre-D-1057: session-checkpoints.md]"
+timestamp: 2026-08-28T16:00:00Z
+phase: "IN PROGRESS 2026-08-28. E-17 Wave-5 TDD IN FLIGHT. S-17.06 MERGED (D-1126). S-17.05 LOCAL BC-5.39.001 3-CLEAN CONVERGED (passes 12/13/14 — D-1128). feature/S-17.05 @ a73086a5 FROZEN. Finalization doc-sweep queued (F-P12-001 MANDATORY + O-P13-1/F-P14-001 OPTIONAL). S-17.07 queued after S-17.05. BC-4.17.001 held draft (POL-14 exception). Autonomous-merge AUTHORIZED (D-1126b)."
+last_amended: "2026-08-28 (v9.24) — S1705-P14-3CLEAN-CONVERGED-BURST (state-manager; single-commit TD-VSDD-053): S-17.05 local adversary pass 14 = CLEAN (zero MEDIUM+); BC-5.39.001 streak ADVANCES 2/3→3/3; LOCAL 3-CLEAN ACHIEVED (passes 12/13/14) D-1128; F-P14-001 ADVISORY spec-permitted BATCHED per D-1127 (write-back fail-open no log_warn; default ACCEPT; finalization-doc-sweep.md); trajectory-tail →0→0→0→0 LENGTH=4 (CLEAN pass; UNCHANGED); feature/S-17.05 @ a73086a5 FROZEN. v9.23→v9.24. | 2026-08-28 (v9.23) — S1705-P13-CLEAN-BURST (state-manager; single-commit TD-VSDD-053): S-17.05 local adversary pass 13 = CLEAN (zero MEDIUM+); BC-5.39.001 streak ADVANCES 1/3→2/3; O-P13-1 ADVISORY spec-conformant BATCHED per D-1127; trajectory-tail →0→0→0→0 LENGTH=4; feature/S-17.05 @ a73086a5 FROZEN. v9.22→v9.23. | Prior: [Full chain: decision-log.md/burst-log.md D-1057..D-1128 (exhaustive); pre-D-1057: session-checkpoints.md]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: IN PROGRESS
-current_step: "S1705-P13-CLEAN-BURST-2026-08-28: S-17.05 local adversary pass 13 = CLEAN (zero MEDIUM+); BC-5.39.001 streak ADVANCES 1/3→2/3. O-P13-1 ADVISORY spec-conformant BATCHED per D-1127 (optional hardening; finalization-doc-sweep.md). feature/S-17.05 @ a73086a5 FROZEN (no code/story/BC changes). STORY-INDEX v4.399 UNCHANGED; BC-INDEX v5.20 UNCHANGED. D-chain cite D-1127 (no new D-NNN; per-story local CLEAN pass). trajectory-tail →0→0→0→0 LENGTH=4 (CLEAN pass; advance from →1→0→0→0). NEXT: /vsdd-factory:next-step → re-run S-17.05 local adversary pass 14 (fresh, against feature/S-17.05 @ a73086a5; streak 2/3; 1 more CLEAN pass achieves local BC-5.39.001 3-CLEAN)."
+current_step: "S1705-P14-3CLEAN-CONVERGED-BURST-2026-08-28: S-17.05 local adversary pass 14 = CLEAN (zero MEDIUM+); BC-5.39.001 streak ADVANCES 2/3→3/3. LOCAL BC-5.39.001 3-CLEAN ACHIEVED (passes 12/13/14 all CLEAN). D-chain cite D-1128 (S-17.05 LOCAL BC-5.39.001 3-CLEAN CONVERGED milestone). F-P14-001 ADVISORY spec-permitted BATCHED per D-1127 (write-back fail-open arm no log_warn; BC-4.17.001 PC3/Invariant 4 mandates swallow; default ACCEPT; finalization-doc-sweep.md). feature/S-17.05 @ a73086a5 FROZEN (no code/story/BC changes). STORY-INDEX v4.399 UNCHANGED; BC-INDEX v5.20 UNCHANGED. trajectory-tail →0→0→0→0 LENGTH=4 (CLEAN pass; UNCHANGED). NEXT: /vsdd-factory:next-step → finalization doc-sweep (F-P12-001 MANDATORY + O-P13-1/F-P14-001 OPTIONAL decisions) → demo-recorder per-AC → pr-manager PR → autonomous-merge (D-1126b) → S-17.07."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -43,8 +43,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-08-28 — **S1705-P13-CLEAN-BURST** (state-manager). S-17.05 local adversary pass 13 = CLEAN (zero MEDIUM+); BC-5.39.001 streak ADVANCES 1/3→2/3; O-P13-1 ADVISORY spec-conformant BATCHED per D-1127; feature/S-17.05 @ a73086a5 FROZEN. trajectory-tail →0→0→0→0 LENGTH=4 (CLEAN pass advance). v9.22→v9.23. |
-| **Current Phase** | **IN PROGRESS. E-17 Wave-5 TDD IN FLIGHT.** S-17.06 MERGED (D-1126, PR #787 `3200149d`). S-17.05 mid local BC-5.39.001 3-CLEAN cascade (streak 2/3; pass 13 CLEAN → ADVANCES; pass 14 next fresh). `feature/S-17.05` @ `a73086a5` FROZEN. S-17.07 queued after S-17.05. NEXT: `/vsdd-factory:next-step` → re-run pass 14 fresh. |
+| **Last Updated** | 2026-08-28 — **S1705-P14-3CLEAN-CONVERGED-BURST** (state-manager). S-17.05 local adversary pass 14 = CLEAN (zero MEDIUM+); BC-5.39.001 streak ADVANCES 2/3→3/3; LOCAL BC-5.39.001 3-CLEAN ACHIEVED (passes 12/13/14) D-1128; F-P14-001 ADVISORY spec-permitted BATCHED per D-1127; trajectory-tail →0→0→0→0 LENGTH=4 (CLEAN; UNCHANGED). v9.23→v9.24. |
+| **Current Phase** | **IN PROGRESS. E-17 Wave-5 TDD IN FLIGHT.** S-17.06 MERGED (D-1126, PR #787 `3200149d`). S-17.05 LOCAL BC-5.39.001 **3-CLEAN CONVERGED** (D-1128; passes 12/13/14 all CLEAN). `feature/S-17.05` @ `a73086a5` FROZEN. Finalization doc-sweep queued (F-P12-001 MANDATORY + O-P13-1/F-P14-001 OPTIONAL). S-17.07 queued after S-17.05. NEXT: `/vsdd-factory:next-step` → finalization doc-sweep. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -66,6 +66,7 @@ dtu_services: []
 | **S1705-P11-FINDINGS-BURST-2026-08-28** | **COMPLETE** | S-17.05 local adversary pass 11 = FINDINGS (1 MEDIUM F-P11-001). BC-5.39.001 streak RESETS 1/3→0/3. F-P11-001 MEDIUM: BC-gate header version-cite synced (BC-4.17.001 v1.28 / BC-5.40.001 v1.21; false [pending] removed); O-P11-1/2/3 fixed in-scope. story v1.6→v1.7; input-hash 6067e5f UNCHANGED; STORY-INDEX v4.398→v4.399. feature/S-17.05 a8d85160→a73086a5 PUSHED. POLICY 14 leg-2 seal gap: missing v1.6 Changelog row backfilled. adv-s17.05-local-pass-11.md persisted. trajectory-tail →0→1→0→0 LENGTH=4 (UNCHANGED). v9.20→v9.21. |
 | **S1705-P12-CLEAN-BURST-2026-08-28** | **COMPLETE** | S-17.05 local adversary pass 12 = CLEAN (zero MEDIUM+). BC-5.39.001 streak ADVANCES 0/3→1/3. F-P12-001 LOW BATCHED per D-1127 governance ruling (no mid-run fix; anchor in finalization-doc-sweep.md; swept after 3-CLEAN). feature/S-17.05 @ a73086a5 FROZEN (no code/story/BC changes). adv-s17.05-local-pass-12.md persisted. trajectory-tail →1→0→0→0 LENGTH=4 (CLEAN pass advance from →0→1→0→0). v9.21→v9.22. |
 | **S1705-P13-CLEAN-BURST-2026-08-28** | **COMPLETE** | S-17.05 local adversary pass 13 = CLEAN (zero MEDIUM+). BC-5.39.001 streak ADVANCES 1/3→2/3. O-P13-1 ADVISORY spec-conformant BATCHED per D-1127 (hardcoded `262_144` literal in guard_logic GAP-4; AC-018-mandated verbatim boundary; optional hardening; finalization-doc-sweep.md). feature/S-17.05 @ a73086a5 FROZEN (no code/story/BC changes). adv-s17.05-local-pass-13.md persisted. trajectory-tail →0→0→0→0 LENGTH=4 (CLEAN pass advance from →1→0→0→0). v9.22→v9.23. |
+| **S1705-P14-3CLEAN-CONVERGED-BURST-2026-08-28** | **COMPLETE** | S-17.05 local adversary pass 14 = CLEAN (zero MEDIUM+). BC-5.39.001 streak ADVANCES 2/3→3/3. **LOCAL BC-5.39.001 3-CLEAN ACHIEVED (passes 12/13/14) — D-1128.** F-P14-001 ADVISORY spec-permitted BATCHED per D-1127 (write-back fail-open arm no log_warn; BC-4.17.001 PC3/Invariant 4 mandates swallow; default ACCEPT; finalization-doc-sweep.md). feature/S-17.05 @ a73086a5 FROZEN (no code/story/BC changes). adv-s17.05-local-pass-14.md persisted. trajectory-tail →0→0→0→0 LENGTH=4 (CLEAN pass; UNCHANGED). Finalization backlog: F-P12-001 MANDATORY + O-P13-1/F-P14-001 OPTIONAL. v9.23→v9.24. |
 
 ## Current Phase Steps
 
@@ -73,11 +74,11 @@ dtu_services: []
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
+| S1705-P14-3CLEAN-CONVERGED-BURST-2026-08-28 | state-manager | COMPLETE | S-17.05 local adversary pass 14 = CLEAN (zero MEDIUM+). BC-5.39.001 streak ADVANCES 2/3→3/3. **LOCAL BC-5.39.001 3-CLEAN ACHIEVED (passes 12/13/14) — D-1128.** F-P14-001 ADVISORY spec-permitted BATCHED per D-1127 (write-back fail-open no log_warn; default ACCEPT). feature/S-17.05 @ a73086a5 FROZEN. STORY-INDEX v4.399, BC-INDEX v5.20 UNCHANGED. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.23→v9.24. |
 | S1705-P13-CLEAN-BURST-2026-08-28 | state-manager | COMPLETE | S-17.05 local adversary pass 13 = CLEAN (zero MEDIUM+). BC-5.39.001 streak ADVANCES 1/3→2/3. O-P13-1 ADVISORY spec-conformant BATCHED per D-1127 (guard_logic 262_144 literal; AC-018-mandated; optional hardening). feature/S-17.05 @ a73086a5 FROZEN. STORY-INDEX v4.399, BC-INDEX v5.20 UNCHANGED. trajectory-tail →0→0→0→0 LENGTH=4. v9.22→v9.23. |
 | S1705-P12-CLEAN-BURST-2026-08-28 | state-manager | COMPLETE | S-17.05 local adversary pass 12 = CLEAN (zero MEDIUM+). BC-5.39.001 streak ADVANCES 0/3→1/3. F-P12-001 LOW BATCHED per D-1127 governance ruling (no mid-run fix; anchor finalization-doc-sweep.md). feature/S-17.05 @ a73086a5 FROZEN. STORY-INDEX v4.399, BC-INDEX v5.20 UNCHANGED. trajectory-tail →1→0→0→0 LENGTH=4. v9.21→v9.22. |
 | S1705-P11-FINDINGS-BURST-2026-08-28 | state-manager | COMPLETE | S-17.05 local adversary pass 11 = FINDINGS (1 MEDIUM F-P11-001); streak RESETS 1/3→0/3. F-P11-001 MEDIUM (BC-gate header version-cite BC-4.17.001 v1.28 / BC-5.40.001 v1.21; [pending] removed); O-P11-1 (Token Budget self-label v1.1→v1.7); O-P11-2/3 (doc-comment de-pin + test-count). All fixed. story v1.6→v1.7; input-hash 6067e5f UNCHANGED; STORY-INDEX v4.398→v4.399; feature/S-17.05 a8d85160→a73086a5. POLICY 14 leg-2 backfill: missing v1.6 Changelog row added. trajectory-tail →0→1→0→0 UNCHANGED. v9.20→v9.21. |
 | S1705-P10-CLEAN-BURST-2026-08-28 | state-manager | COMPLETE | S-17.05 local adversary pass 10 = CLEAN (zero MEDIUM+). BC-5.39.001 streak ADVANCES 0/3→1/3. F-P10-001 LOW: BC-4.17.001 body-table cite 1.27→1.28 fixed in-scope (story v1.5→v1.6; input-hash e8b9395→6067e5f; STORY-INDEX v4.397→v4.398). feature/S-17.05 @ a8d85160 UNCHANGED. adv-s17.05-local-pass-10.md persisted. trajectory-tail →0→1→0→0 LENGTH=4. v9.19→v9.20. |
-| S1705-P9-FIX-BURST-2026-08-28 | state-manager | COMPLETE | Resumed from SESSION-WRAP-PAUSE. S-17.05 local adversary pass 9 FINDINGS (1 MED + 2 LOW): F-P9-001 MEDIUM (BC-4.17.001 TTL_SECONDS mis-anchor factory-lock→factory-lock-parse, 4 loci); F-P9-002 LOW (verify-state-timestamp-refresh dormant STATE_MD_MAX_BYTES reword); F-P9-003 LOW (test exec_called assertion missing). All fixed. BC-4.17.001 v1.27→v1.28; BC-INDEX v5.19→v5.20; feature/S-17.05 fcc0fb7f→a8d85160. D-chain D-1126. v9.18→v9.19. |
 
 ## Identifier Conventions
 
@@ -96,9 +97,9 @@ dtu_services: []
 141 file-resident + 17 stub IDs = 158 stories. E-18 EPIC COMPLETE D-744. E-22 DISSOLVED D-961 (file RETAINED per human ruling 2026-08-06). E-23 NEW this session (STALE — strip-model stories S-23.01..S-23.14, re-scope OWED to frozen-provenance model).
 
 - **Merged (112):** S-17.06 MERGED PR #787 2026-08-28 (D-1126). S-21.10 MERGED PR #780; S-21.12 MERGED PR #781; S-21.07 MERGED PR #776; S-21.09 MERGED PR #775. Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
-- **In-Flight (1):** S-17.05 mid local BC-5.39.001 3-CLEAN cascade, streak 2/3 (pass 13 CLEAN → ADVANCES; `feature/S-17.05` @ `a73086a5`, PUSHED FROZEN).
+- **In-Flight (1):** S-17.05 LOCAL BC-5.39.001 **3-CLEAN CONVERGED** (D-1128; passes 12/13/14 all CLEAN). `feature/S-17.05` @ `a73086a5` FROZEN. Awaiting finalization doc-sweep (F-P12-001 MANDATORY + O-P13-1/F-P14-001 OPTIONAL decisions) → demo-recorder → PR.
 - **E-21 active (Wave-7 HELD, unchanged this burst):** S-21.19 (v1.11, BC-1.03.017 v1.27, streak 0/3, R8 NOT-CLEAN); S-21.20 (v1.9, BC-1.03.017 v1.27, streak 0/3 — pass-9 NOT-CLEAN); S-21.21 (v1.10, BC-1.03.017 v1.27, streak 0/3 — pass-9 NOT-CLEAN); S-21.22 (v1.10, BC-1.03.017 v1.27, streak **1/3** — pass-9 CLEAN); S-21.23 (v1.8, BC-1.03.018 v1.6, streak 0/3 — pass-9 NOT-CLEAN); S-21.24 (v1.11, BC-1.03.017 v1.27 + BC-1.03.018 v1.6, Wave 8, STRICTLY LAST); S-21.25 (CONVERGED 3/3, awaiting TDD sequencing). S-21.11 SUPERSEDED D-1057. Wave-7 cascade remains HELD pending the ADR-045 ratification-recording burst.
-- **E-17 Wave 5 (S1705-P13-CLEAN-BURST 2026-08-28): S-17.06 MERGED** (1 of 3). BC-4.17.001 held draft (POL-14 exception). S-17.05 v1.7 mid local 3-CLEAN cascade (streak 2/3; pass 13 CLEAN → ADVANCES; pass 14 next fresh @ a73086a5 FROZEN). F-P12-001 LOW + O-P13-1 ADVISORY spec-conformant BATCHED per D-1127 (finalization-doc-sweep.md; 2 items). S-17.07 v1.0 queued after S-17.05. STORY-INDEX v4.399; E-17 v1.2 (7 stories, 44pts).
+- **E-17 Wave 5 (S1705-P14-3CLEAN-CONVERGED-BURST 2026-08-28): S-17.06 MERGED** (1 of 3). BC-4.17.001 held draft (POL-14 exception). S-17.05 v1.7 LOCAL 3-CLEAN **CONVERGED** (D-1128; passes 12/13/14 all CLEAN; `a73086a5` FROZEN). F-P12-001 MANDATORY + O-P13-1/F-P14-001 OPTIONAL BATCHED per D-1127 (finalization-doc-sweep.md; 3 items). S-17.07 v1.0 queued after S-17.05. STORY-INDEX v4.399; E-17 v1.2 (7 stories, 44pts).
 - **E-23 new draft (STALE):** S-23.01..S-23.14 — must be RE-SCOPED to frozen-provenance model (ADR-045 v1.3) before use.
 - **Draft (39), Partial (2), Withdrawn (1):** see prior session checkpoints.
 
@@ -128,16 +129,17 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **IN PROGRESS (S1705-P13-CLEAN-BURST 2026-08-28; E-17 Wave-5 S-17.05 local 3-CLEAN streak 2/3)** | S-17.06 MERGED PR #787 3200149d (D-1126); develop 6993138b→3200149d. merged_count 112. BC-4.17.001 held draft (POL-14 exception). Autonomous-merge AUTHORIZED (D-1126b). rc.24 SHIPPED (marketplace PR #19 MERGED 2026-08-27). ADR-046 gate CONVERGED-VALIDATED (D-1124). S-17.05 v1.7 mid local BC-5.39.001 3-CLEAN, streak 2/3 (pass 13 CLEAN → ADVANCES; pass 14 next @ a73086a5 FROZEN; D-1127 governance ruling; F-P12-001 LOW + O-P13-1 ADVISORY BATCHED). STORY-INDEX v4.399, VP-INDEX v2.79, ARCH-INDEX v3.95, BC-INDEX v5.20. trajectory-tail →0→0→0→0 LENGTH=4 (CLEAN pass advance). |
+| v1.0-brownfield-backfill | brownfield | **IN PROGRESS (S1705-P14-3CLEAN-CONVERGED-BURST 2026-08-28; E-17 Wave-5 S-17.05 LOCAL 3-CLEAN CONVERGED D-1128)** | S-17.06 MERGED PR #787 3200149d (D-1126); develop 6993138b→3200149d. merged_count 112. BC-4.17.001 held draft (POL-14 exception). Autonomous-merge AUTHORIZED (D-1126b). rc.24 SHIPPED (marketplace PR #19 MERGED 2026-08-27). ADR-046 gate CONVERGED-VALIDATED (D-1124). S-17.05 v1.7 LOCAL BC-5.39.001 3-CLEAN **CONVERGED** (passes 12/13/14 all CLEAN; D-1128; a73086a5 FROZEN; F-P12-001 MANDATORY + O-P13-1/F-P14-001 OPTIONAL BATCHED per D-1127). STORY-INDEX v4.399, VP-INDEX v2.79, ARCH-INDEX v3.95, BC-INDEX v5.20. trajectory-tail →0→0→0→0 LENGTH=4 (CLEAN pass; UNCHANGED). |
 | v1.0-feature-engine-discipline-pass-1 | feature | PAUSED | F5 pass-75 D-510. META-LEVEL-30 CANDIDATE-CONFIRMED. trajectory-tail →7→9→7→9 LENGTH=4. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
-> D-001..D-606 (exhaustive): decision-log.md + decisions-log-archive.md. D-379..D-454 (exhaustive) (F5): cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md. D-607..D-1127 (exhaustive): decision-log.md SoT. D-999 SKIPPED. Backfill OWED: D-1011/D-1012, D-1016..D-1042 (exhaustive), D-1068..D-1076, ADR-046 creation history, ADR-045 pivot, rc.24 release-burst (D-1081..D-1082 gap).
+> D-001..D-606 (exhaustive): decision-log.md + decisions-log-archive.md. D-379..D-454 (exhaustive) (F5): cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md. D-607..D-1128 (exhaustive): decision-log.md SoT. D-999 SKIPPED. Backfill OWED: D-1011/D-1012, D-1016..D-1042 (exhaustive), D-1068..D-1076, ADR-046 creation history, ADR-045 pivot, rc.24 release-burst (D-1081..D-1082 gap).
 
 | ID | Decision | Summary | Phase | Date |
 |----|----------|---------|-------|------|
+| D-1128 | D-1128-S1705-LOCAL-BC539001-3CLEAN-CONVERGED | S-17.05 LOCAL BC-5.39.001 3-CLEAN CONVERGED 2026-08-28. Pass 14 CLEAN (zero MEDIUM+); three consecutive clean passes on frozen artifact `feature/S-17.05` @ `a73086a5` (story v1.7): pass-12 CLEAN, pass-13 CLEAN, pass-14 CLEAN. BC-5.39.001 streak 2/3→3/3. F-P14-001 ADVISORY spec-permitted (write-back fail-open no log_warn; BC-4.17.001 PC3/Invariant 4 mandates swallow; default ACCEPT; finalization-doc-sweep.md). Batched items: F-P12-001 MANDATORY (Red Gate prose tally 28/31→30/32; story-writer) + O-P13-1 OPTIONAL (guard_logic 262_144 literal; spec-conformant; decide at finalization) + F-P14-001 OPTIONAL (write-side observability; spec-permitted; default ACCEPT). NEXT: finalization doc-sweep → demo-recorder per-AC → pr-manager PR → autonomous-merge (D-1126b) → S-17.07. | D-1128 | 2026-08-28 |
 | D-1127 | D-1127-S1705-LOW-DOC-FINDINGS-BATCH-GOVERNANCE | Human-ratified governance ruling (2026-08-28): LOW-only documentary findings during the S-17.05 local BC-5.39.001 3-CLEAN run are BATCHED and swept in a single finalization doc-sweep after local 3-CLEAN is reached — NOT fixed mid-run. MEDIUM+ findings still reset the streak immediately (unchanged). Rationale: fixing LOW doc items mid-run triggers the frozen-artifact-reset trap (L-EDP1-007/051/061). Scope: S-17.05 local 3-CLEAN cascade passes 12/13/14. Anchor: `cycles/v1.0-brownfield-backfill/finalization-doc-sweep.md` (F-P12-001 listed; routing story-writer). | D-1127 | 2026-08-28 |
 | D-1126 | D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY | S-17.06 MERGED PR #787 `3200149d` 2026-08-28 (develop chain: `6993138b`→PR #786 `fc7cbccb`→PR #787 `3200149d`; merged_count 111→112). BC-4.17.001 held draft (POL-14 exception: co-implemented across Wave-5 group; promotes to active only when S-17.05 + wave-integration gate lands). E-17 Wave-5: 1 of 3 merged; S-17.05 + S-17.07 UNBLOCKED. PR #787 self-approval RATIFIED by human 2026-08-28. Autonomous-merge policy AUTHORIZED by human 2026-08-28. | D-1126 | 2026-08-28 |
 | D-1125 | D-1125-ADR046-WAVE5-DECOMP-CASCADE-COMPLETE | Phase D index+STATE advance completing the ADR-046 Wave-5 decomposition cascade. STORY-INDEX v4.393→v4.394 (S-17.05/06/07 rows; E-17 blockquote DAG; aggregation 5→7 stories 34→44pts). E-17 epic v1.1→v1.2. BC-INDEX v5.18→v5.19. ARCH-INDEX v3.94→v3.95. POLICY 18 three-way parity verified. Blocking issue 'S-17.05 wave decomp required' CLOSED. CASCADE PHASES: A=bebb9e92, B=fb9d7e6d, C=add9a3f4, D=4e8b5301. Full: decision-log.md D-1125. | D-1125 | 2026-08-27 |
@@ -206,7 +208,7 @@ dtu_services: []
 | **[D-1081] Wave-7 version/ADR-pin propagation tail (pass-9 residual)** | **OPEN 2026-08-24** | Root cause: grep-based validators; fix: ADR-045 stable-anchor migration after E-23 re-scope. |
 | **[NEW 2026-08-28] STATE.md pre-frontmatter HTML comment — hook frontmatter_region() compatibility** | **RESOLVED 2026-08-28 (this burst)** | validate-trajectory-tail-cell-completeness hook requires `---` on line 1. Fixed: HTML comment moved to document body. |
 | **[NEW 2026-08-28] S-17.05 adversary dispatch identity-tuple gap [process-gap]** | **OBSERVED — self-correcting** | Orchestrator adversary-dispatch should embed formal `(worktree-abs-path, feature-HEAD-SHA, story-id, canonical-repo-root)` identity tuple in dispatch package. Orchestrator is self-correcting going forward. No follow-up story required at this pre-convergence stage. |
-| **[D-1127] S-17.05 finalization doc-sweep OPEN** | **OPEN — anchored `cycles/v1.0-brownfield-backfill/finalization-doc-sweep.md`** | Batched LOW/documentary + ADVISORY findings to sweep AFTER local 3-CLEAN (pass 14 needed), BEFORE S-17.05 PR. Currently 2 items: F-P12-001 MANDATORY (Red Gate prose tally 28/31→30/32; story-writer) + O-P13-1 OPTIONAL (guard_logic 262_144 literal; AC-018-conformant; decide: harden or accept). Per D-1127 governance ruling. |
+| **[D-1127/D-1128] S-17.05 finalization doc-sweep OPEN** | **OPEN — anchored `cycles/v1.0-brownfield-backfill/finalization-doc-sweep.md`** | 3-CLEAN ACHIEVED (D-1128). Sweep 3 items BEFORE S-17.05 PR: F-P12-001 MANDATORY (Red Gate prose tally 28/31→30/32; story-writer) + O-P13-1 OPTIONAL (guard_logic 262_144 literal; AC-018-conformant; decide: harden or accept) + F-P14-001 OPTIONAL (write-back fail-open no log_warn; spec-permitted; default ACCEPT unless human/architect directs harden). Per D-1127 governance ruling. |
 | **[S-15.17-CR-001/002]** | ACCEPTED-DEFERRED 2026-05-31 | check_index_sites + rows_after_heading advisory-arm defects. |
 
 ## Historical Content
@@ -221,10 +223,10 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`
 
-## Session Resume Checkpoint (2026-08-28 — S1705-P13-CLEAN-BURST; E-17 Wave-5 S-17.05 local 3-CLEAN streak 2/3)
+## Session Resume Checkpoint (2026-08-28 — S1705-P14-3CLEAN-CONVERGED-BURST; E-17 Wave-5 S-17.05 LOCAL 3-CLEAN CONVERGED D-1128)
 
-> **SELF-SUFFICIENT RESUME CONTEXT.** S1705-P13-CLEAN-BURST 2026-08-28.
-> Prior checkpoint (S1705-P12-CLEAN-BURST 2026-08-28) archived to
+> **SELF-SUFFICIENT RESUME CONTEXT.** S1705-P14-3CLEAN-CONVERGED-BURST 2026-08-28.
+> Prior checkpoint (S1705-P13-CLEAN-BURST 2026-08-28) archived to
 > `cycles/v1.0-brownfield-backfill/session-checkpoints.md`.
 
 ### §1. Position
@@ -235,28 +237,28 @@ state+timestamp hooks). Wave-5 = 3 stories, ONE release, atomicity via wave gate
 
 - **S-17.06** (factory-lock shared fns: renew_lock_if_holder/IdentityResolution/SkipReason/
   classify_identity_resolution/trim_git_email) — **MERGED** to develop (PR #787, squash `3200149d`).
-- **S-17.05** (stamp-state-timestamp PostToolUse hook) — **IN FLIGHT**, mid local BC-5.39.001
-  3-CLEAN cascade. Branch `feature/S-17.05` @ HEAD **`a73086a5`** (PUSHED, FROZEN). Story v1.7
-  (19 ACs, 35 Red Gate; BC-4.17.001 v1.28 / BC-5.40.001 v1.21 cites current; input-hash 6067e5f).
-  All gates green.
+- **S-17.05** (stamp-state-timestamp PostToolUse hook) — **LOCAL 3-CLEAN CONVERGED** (D-1128;
+  passes 12/13/14 all CLEAN). Branch `feature/S-17.05` @ HEAD **`a73086a5`** (PUSHED, FROZEN).
+  Story v1.7 (19 ACs, 35 Red Gate; BC-4.17.001 v1.28 / BC-5.40.001 v1.21 cites current;
+  input-hash 6067e5f). Awaiting finalization doc-sweep → demo-recorder → PR.
 - **S-17.07** (precompact-flush Step-4 identity-gate amendment) — **NOT started**; queued after
   S-17.05. Human-directed: run an AC↔BC-7.07.001 reconciliation spot-check BEFORE S-17.07
   delivery (mirroring S-17.05's reconciliation, which found 7 AC/BC gaps).
 
 ### §2. Convergence counter (S-17.05 local BC-5.39.001 3-CLEAN)
 
-Streak = **2/3** (pass 13 CLEAN → ADVANCES from 1/3). Passes 1–13 history: P1–P7 FINDINGS
-(all fixed), P8 CLEAN, P9 FINDINGS (all fixed), P10 CLEAN, P11 FINDINGS (all fixed), P12 CLEAN,
-**P13 CLEAN** (this burst; zero MEDIUM+; O-P13-1 ADVISORY spec-conformant BATCHED per D-1127).
-NEED 1 more consecutive CLEAN pass (14) for local 3-CLEAN.
+Streak = **3/3 CONVERGED** (pass 14 CLEAN → ADVANCES from 2/3). Passes 1–14 history: P1–P7
+FINDINGS (all fixed), P8 CLEAN, P9 FINDINGS (all fixed), P10 CLEAN, P11 FINDINGS (all fixed),
+P12 CLEAN, P13 CLEAN, **P14 CLEAN** (this burst; zero MEDIUM+; F-P14-001 ADVISORY spec-permitted
+BATCHED per D-1127). **LOCAL BC-5.39.001 3-CLEAN ACHIEVED (passes 12✓/13✓/14✓ — D-1128).**
 
-Observations BATCHED (do NOT fix mid-run — D-1127 governance ruling):
-- **F-P12-001** LOW/documentary: story §Red Gate prose tally sentence cites stale counts (28/31
-  vs. actual 30/32). The normative Red Gate TABLE is met in full. MANDATORY sweep at finalization.
-  Routing: story-writer.
-- **O-P13-1** ADVISORY/spec-conformant: `guard_logic` GAP-4 uses hardcoded `262_144` literal
-  instead of `flp::STATE_MD_MAX_BYTES`. AC-018 mandates the verbatim value; no behavioral gap.
-  OPTIONAL HARDENING — decide at finalization: harden (replace literal) or mark accepted.
+Finalization backlog (sweep BEFORE S-17.05 PR — D-1127 governance ruling):
+- **F-P12-001** MANDATORY: story §Red Gate prose tally sentence 28/31 → 30/32. Routing: story-writer.
+- **O-P13-1** OPTIONAL: decide — harden `guard_logic` `262_144` literal to `flp::STATE_MD_MAX_BYTES`
+  (implementer, ~5 min) OR accept (spec mandates verbatim boundary; no behavioral gap).
+- **F-P14-001** OPTIONAL / **DEFAULT ACCEPT**: write-back fail-open arm no `log_warn`. BC-4.17.001
+  PC3/Invariant 4 mandates swallow-on-write-error. Hardening re-opens frozen perimeter → requires new
+  3-CLEAN cascade. Default: ACCEPT unless human/architect directs otherwise.
 
 Non-blocking carry-over observations (do NOT re-litigate on resume):
 - **O-P10-001** LOW: `STATE_MD_MAX_BYTES=262144` dormant copy (ADR-046 D2) + AC-018-sanctioned. No defect.
@@ -280,15 +282,17 @@ Non-blocking carry-over observations (do NOT re-litigate on resume):
 
 - `develop`: **`3200149d`** (S-17.06 MERGED PR #787 2026-08-28).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
-- `factory-artifacts`: **`e37d2bd6`** (S1705-P13-CLEAN-BURST 2026-08-28).
-- `feature/S-17.05`: **`a73086a5`** (PUSHED, FROZEN — no changes this burst or for pass 14).
+- `factory-artifacts`: **`bc1f3256`** (S1705-P13-CLEAN-BURST SHA-patch 2026-08-28 — pre this burst; SHA-patch for this burst pending).
+- `feature/S-17.05`: **`a73086a5`** (PUSHED, FROZEN — no changes this burst).
 - `feature/S-17.06`: merged+deleted.
 
 ### §5. Pending human decisions / open threads
 
 1. **`.worktrees/` permission-prompt fix** — awaiting human decision (see prior checkpoint for full description).
 2. **S-17.07 AC↔BC-7.07.001 spot-check** before S-17.07 delivery (human-directed).
-3. **Pre-existing OWED (unchanged this session):** ADR-045 v1.3 ratification-recording burst
+3. **F-P14-001 OPTIONAL HARDENING decision** — default ACCEPT (spec-permitted; hardening re-opens frozen
+   perimeter). Human/architect may elect to harden instead; that requires new story + 3-CLEAN cascade.
+4. **Pre-existing OWED (unchanged this session):** ADR-045 v1.3 ratification-recording burst
    (blocks Wave-7 cascade); E-23 re-scope to frozen-provenance; other pre-existing blocking-issues rows.
 
 ### §6. POL-14 status
@@ -297,20 +301,19 @@ BC-4.17.001 remains **draft** (POL-14 exception — co-implemented across Wave-5
 active only when the full wave lands + the Wave-5 integration gate passes).
 BC-7.07.001 re-anchored to S-17.07.
 
-### §7. Finalization backlog (post-3-CLEAN, before PR)
+### §7. Finalization backlog (3-CLEAN ACHIEVED; execute before PR)
 
-`cycles/v1.0-brownfield-backfill/finalization-doc-sweep.md` — 2 items:
+`cycles/v1.0-brownfield-backfill/finalization-doc-sweep.md` — 3 items:
 - **F-P12-001** MANDATORY: story §Red Gate prose tally sentence 28/31 → 30/32 (story-writer; ~5 min).
 - **O-P13-1** OPTIONAL: decide at finalization — harden `guard_logic` `262_144` literal to
-  `flp::STATE_MD_MAX_BYTES` (implementer, ~5 min) OR mark accepted (story-writer note: spec mandates
-  verbatim boundary value).
+  `flp::STATE_MD_MAX_BYTES` (implementer, ~5 min) OR mark accepted (spec mandates verbatim boundary).
+- **F-P14-001** OPTIONAL / **DEFAULT ACCEPT**: write-back fail-open no `log_warn` (BC-4.17.001
+  PC3/Invariant 4 mandates swallow; hardening re-opens frozen perimeter; default ACCEPT).
 
 ### §8. Resume command
 
-`/vsdd-factory:next-step` — resumes E-17 Wave-5: re-run S-17.05 local adversary **pass 14**
-(fresh context, against `feature/S-17.05` @ `a73086a5` FROZEN, story v1.7), streak 2/3.
-On pass 14 CLEAN → local BC-5.39.001 3-CLEAN ACHIEVED (passes 12✓/13✓/14) → finalization
-doc-sweep (F-P12-001 MANDATORY + O-P13-1 OPTIONAL decision) → demo-recorder per-AC → push
-(already pushed) → pr-manager PR → auto-merge (review-APPROVE + green CI) → then S-17.07
-(AC↔BC spot-check → full delivery) → E-17 Wave-5 integration gate → promote
-BC-4.17.001 + BC-7.07.001 to active.
+`/vsdd-factory:next-step` — resumes E-17 Wave-5: **finalization doc-sweep** (story-writer sweeps
+F-P12-001 MANDATORY tally correction + O-P13-1/F-P14-001 OPTIONAL decisions on `feature/S-17.05`
+@ `a73086a5`) → demo-recorder per-AC → push (already pushed) → pr-manager PR → autonomous-merge
+(D-1126b; review-APPROVE + green CI) → then S-17.07 (AC↔BC spot-check → full delivery) →
+E-17 Wave-5 integration gate → promote BC-4.17.001 + BC-7.07.001 to active.

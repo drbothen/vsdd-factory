@@ -7094,3 +7094,46 @@ This ratification is recorded on-the-record as human-directed risk acceptance pe
 
 | D-1126 | D-1126-S1706-DELIVERY-AND-AUTONOMOUS-MERGE-POLICY | S-17.06 MERGED PR #787 `3200149d` 2026-08-28 (develop chain: `6993138b`→PR #786 `fc7cbccb`→PR #787 `3200149d`; merged_count 111→112). BC-4.17.001 held draft (POL-14 exception: co-implemented across Wave-5 group; promotes to active only when S-17.05 + wave-integration gate lands). E-17 Wave-5: 1 of 3 merged; S-17.05 + S-17.07 UNBLOCKED (S-17.06 deps satisfied). Small S-17.05 spec-boundary correction NEXT (story-writer: migrate `Duration::seconds(2700)` → `factory_lock_parse::TTL_SECONDS` literal reference). PR #787 self-approval RATIFIED by human 2026-08-28 (risk accepted explicitly: 4-pass 3-CLEAN + 12 green CI + security APPROVE + diverse-model review). Autonomous-merge policy AUTHORIZED by human 2026-08-28 for this session (pr-manager may merge story/fix PRs on clean diverse-model review + CI-green without separate human approval; human retains veto-after; excludes release PRs + P0 security + meta-docs). | D-1126 | 2026-08-28 |
 | D-1127 | D-1127-S1705-LOW-DOC-FINDINGS-BATCH-GOVERNANCE | Human-ratified governance ruling (2026-08-28): LOW-only documentary findings during the S-17.05 local BC-5.39.001 3-CLEAN run are BATCHED and swept in a single finalization doc-sweep after local 3-CLEAN is reached — NOT fixed mid-run. MEDIUM+ findings still reset the streak and are fixed immediately (unchanged). Rationale: fixing LOW doc items mid-run bumps the story version and input-hash, which forces the frozen-artifact-reset trap (L-EDP1-007/051/061) — pass N+1 would be reviewing a freshly-modified artifact rather than the converged implementation. The batching approach reaches 3-CLEAN on the converged artifact and sweeps cosmetic documentation in one post-convergence pass, eliminating spurious streak resets. Scope: S-17.05 local 3-CLEAN cascade passes 12/13/14. Anchor: `cycles/v1.0-brownfield-backfill/finalization-doc-sweep.md` (F-P12-001 listed; routing story-writer; executed before S-17.05 PR). | D-1127 | 2026-08-28 |
+
+## D-1128
+
+**D-1128-S1705-LOCAL-BC539001-3CLEAN-CONVERGED**
+
+Allocated as next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was D-1127
+(this cycle's decision-log.md). D-1128 allocated cleanly above the true max.
+
+**Summary:** Records the S-17.05 LOCAL BC-5.39.001 3-CLEAN CONVERGENCE milestone (2026-08-28).
+Pass 14 returned CLEAN (zero MEDIUM+); three consecutive clean passes (12/13/14) on the frozen
+artifact at `feature/S-17.05` @ `a73086a5` (story v1.7). BC-5.39.001 LOCAL streak ADVANCES 2/3 → 3/3.
+S-17.05 local adversarial cascade is CONVERGED per BC-5.39.001.
+
+### Convergence Evidence
+
+- **Pass 12** (adv-s17.05-local-pass-12.md): CLEAN — zero MEDIUM+. F-P12-001 LOW (Red Gate prose tally
+  stale) BATCHED per D-1127. Streak: 0/3 → 1/3.
+- **Pass 13** (adv-s17.05-local-pass-13.md): CLEAN — zero MEDIUM+. O-P13-1 ADVISORY spec-conformant
+  (guard_logic 262_144 literal; AC-018-mandated) BATCHED per D-1127. Streak: 1/3 → 2/3.
+- **Pass 14** (adv-s17.05-local-pass-14.md): CLEAN — zero MEDIUM+. F-P14-001 ADVISORY spec-permitted
+  (write-back fail-open arm no log_warn; BC-4.17.001 PC3/Invariant 4 mandates swallow; default ACCEPT)
+  BATCHED per D-1127. Streak: 2/3 → 3/3. **3-CLEAN ACHIEVED.**
+
+All passes ran fresh-context against the frozen artifact `feature/S-17.05` @ `a73086a5` (story v1.7).
+No code, story, or BC changes were made during passes 12/13/14.
+
+### D-NNN Precedent Basis
+
+Per-story local BC-5.39.001 3-CLEAN convergence events warrant a D-NNN milestone record, following
+the precedent of D-1123 (ADR-046 spec-convergence 3-CLEAN). Individual CLEAN passes during the cascade
+do NOT get D-NNNs (established by the D-chain convention "no new D-NNN; per-story local CLEAN pass"
+used in passes 9–13). The convergence event itself is the milestone.
+
+### Next Steps
+
+1. Finalization doc-sweep: story-writer sweeps F-P12-001 (MANDATORY tally correction), decides O-P13-1
+   + F-P14-001 (both OPTIONAL; default ACCEPT for F-P14-001; O-P13-1 decide harden-or-accept).
+2. Demo-recorder per-AC.
+3. pr-manager PR → autonomous-merge (D-1126b) → S-17.07.
+
+### Canonical 6-column row (STATE.md Decisions Log)
+
+| D-1128 | D-1128-S1705-LOCAL-BC539001-3CLEAN-CONVERGED | S-17.05 LOCAL BC-5.39.001 3-CLEAN CONVERGED 2026-08-28. Pass 14 CLEAN (zero MEDIUM+); three consecutive clean passes on frozen artifact `feature/S-17.05` @ `a73086a5` (story v1.7): pass-12 CLEAN, pass-13 CLEAN, pass-14 CLEAN. BC-5.39.001 streak 2/3→3/3. F-P14-001 ADVISORY spec-permitted (write-back fail-open no log_warn; BC-4.17.001 PC3/Invariant 4 mandates swallow; default ACCEPT; finalization-doc-sweep.md). Batched items: F-P12-001 MANDATORY (Red Gate prose tally 28/31→30/32; story-writer) + O-P13-1 OPTIONAL (guard_logic 262_144 literal; spec-conformant; decide at finalization) + F-P14-001 OPTIONAL (write-side observability; spec-permitted; default ACCEPT). NEXT: finalization doc-sweep → demo-recorder per-AC → pr-manager PR → autonomous-merge (D-1126b) → S-17.07. | D-1128 | 2026-08-28 |
