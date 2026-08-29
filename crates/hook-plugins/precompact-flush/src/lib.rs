@@ -319,8 +319,7 @@ pub fn is_diff_empty(git_diff_cached_output: &str) -> bool {
 ///
 /// "If I include this real implementation, will the test for this function
 /// pass trivially without any implementer work?" YES — the 6-branch decision
-/// tree with conditional I/O callbacks makes this non-trivial. Body is
-/// `todo!()` per BC-5.38.001 strict `tdd_mode`.
+/// tree with conditional I/O callbacks makes this non-trivial.
 pub fn step4_renewal_gate<RI, WS, LW, EE, NF>(
     state_md_content: &str,
     resolve_identity: RI,
@@ -341,11 +340,14 @@ where
         Ok((RenewOutcome::Renewed(new_content), None)) => {
             if let Err(e) = write_state_md(&new_content) {
                 // Write failure is advisory — flush proceeds with un-renewed content.
-                eprintln!(
+                // Route through log_warn_fn (injectable advisory channel) so the failure
+                // is visible to the dispatcher telemetry pipeline. No eprintln! in
+                // production paths per CLAUDE.md conventions.
+                log_warn_fn(&format!(
                     "precompact-flush: advisory: STATE.md renewal write failed: {}; \
                     proceeding with flush commit using un-renewed content.",
                     e
-                );
+                ));
                 state_md_content.to_string()
             } else {
                 new_content
@@ -673,8 +675,8 @@ where
     };
 
     // -------------------------------------------------------------------------
-    // Step 4: identity-gated renewal via step4_renewal_gate (S-17.07 / AC-003, AC-018).
-    // Replaces the old renew_lock() call per ADR-046 Decision 3.
+    // Step 4: identity-gated renewal via step4_renewal_gate / renew_lock_if_holder
+    // (S-17.07 / AC-003, AC-018 / ADR-046 Decision 3).
     //
     // resolve_identity is lazy: called at most once, only when lock is present,
     // valid, and not expired (AC-002 lazy-call invariant).
@@ -1485,5 +1487,77 @@ mod step4_tests {
                 "AC-005 SECONDARY: flush must proceed with original content on absent lock"
             );
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // O-2: Renewed arm write-failure routes through log_warn_fn (advisory channel)
+    //      and returns un-renewed content (fail-open semantics preserved).
+    //
+    // Traces to: step4_renewal_gate Renewed arm write-failure branch (O-2 finding).
+    // BC-7.07.001 does not mandate a specific behavior for renewal-write-failure —
+    // fail-open-with-advisory is the production-grade choice.
+    // -----------------------------------------------------------------------
+
+    /// test_step4_renewed_write_failure_routes_log_warn_and_returns_original
+    ///
+    /// When `write_state_md` returns `Err(...)` on the `Renewed` arm:
+    /// - `log_warn_fn` MUST be called (advisory emitted to dispatcher telemetry).
+    /// - The returned content MUST be the original un-renewed STATE.md.
+    /// - Flush proceeds (fail-open — this test exercises the branch;
+    ///   caller tests verify the flush continues to commit/push).
+    ///
+    /// This closes the untested branch identified in the O-2 finding.
+    #[test]
+    fn test_step4_renewed_write_failure_routes_log_warn_and_returns_original() {
+        let content = fixture_valid_unexpired_lock();
+
+        let log_warn_calls = Arc::new(Mutex::new(0u32));
+        let lw_count = log_warn_calls.clone();
+        let logged_messages: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+        let lm = logged_messages.clone();
+
+        let result = step4_renewal_gate(
+            content,
+            // resolve_identity: identity matches holder → Renewed outcome attempted.
+            || IdentityResolution::Resolved("holder@example.com".to_string()),
+            // write_state_md: returns Err — simulates a filesystem write failure.
+            |_new_content: &str| -> Result<(), String> {
+                Err("write_file: CAPABILITY_DENIED: disk full".to_string())
+            },
+            // log_warn_fn: MUST be called when write_state_md fails on Renewed arm.
+            move |msg: &str| {
+                *lw_count.lock().unwrap() += 1;
+                lm.lock().unwrap().push(msg.to_string());
+            },
+            |_event: &str, _fields: &[(&str, &str)]| {},
+            now_2026,
+        );
+
+        // O-2: log_warn_fn MUST be called exactly once (advisory channel, not eprintln!).
+        assert_eq!(
+            *log_warn_calls.lock().unwrap(),
+            1,
+            "O-2: log_warn_fn must be called exactly once when write_state_md fails on \
+            Renewed arm (advisory channel — NOT eprintln! / raw stderr)"
+        );
+
+        // O-2: the advisory message must mention the failure.
+        {
+            let msgs = logged_messages.lock().unwrap();
+            let msg = msgs
+                .first()
+                .expect("O-2: log_warn_fn must have received a message");
+            assert!(
+                msg.contains("advisory") || msg.contains("write failed") || msg.contains("renewal"),
+                "O-2: advisory message must describe the write failure; got: {msg:?}"
+            );
+        }
+
+        // O-2: fail-open — return original (un-renewed) content, not the new content.
+        assert_eq!(
+            result, content,
+            "O-2: step4_renewal_gate must return original un-renewed content when \
+            write_state_md fails (fail-open semantics preserved)"
+        );
     }
 }
