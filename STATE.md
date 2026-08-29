@@ -110,7 +110,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **3200149d** | S-17.06 MERGED PR #787 2026-08-28. Chain: 6993138b→PR #786 fc7cbccb (orphan-WASM + release.yml-exclude)→PR #787 3200149d (S-17.06). CI-GREEN. |
-| factory-artifacts | **`5eb8d677`** | S1705-P14-3CLEAN-CONVERGED-BURST 2026-08-28. Prior: bc1f3256 (S1705-P13-CLEAN-BURST SHA-patch). |
+| factory-artifacts | **`64a33321`** | S1705-D1127-FINALIZATION-DOC-SWEEP-COMPLETE 2026-08-28. Prior: f24c7367 (S1705-P14-3CLEAN-CONVERGED SHA-patch). |
 | feature/S-17.05 | **bdb65947** | LOCAL 3-CLEAN CONVERGED (D-1128; passes 12/13/14 CLEAN). Finalization doc-sweep COMPLETE (D-1127; story v1.8). Demo evidence recorded (docs/demo-evidence/S-17.05/). **READY-FOR-PR.** Prior: a73086a5 (frozen after pass-14 CLEAN). |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
@@ -282,7 +282,7 @@ Non-blocking carry-over observations (do NOT re-litigate on resume):
 
 - `develop`: **`3200149d`** (S-17.06 MERGED PR #787 2026-08-28).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
-- `factory-artifacts`: **`[this commit]`** (S1705-D1127-FINALIZATION-DOC-SWEEP-COMPLETE 2026-08-28; see `git -C .factory log -1 --format='%h %s'` for actual SHA).
+- `factory-artifacts`: **`64a33321`** (S1705-D1127-FINALIZATION-DOC-SWEEP-COMPLETE 2026-08-28).
 - `feature/S-17.05`: **`bdb65947`** (PUSHED — demo evidence + doc-sweep commit; certified code UNCHANGED; READY-FOR-PR).
 - `feature/S-17.06`: merged+deleted.
 
