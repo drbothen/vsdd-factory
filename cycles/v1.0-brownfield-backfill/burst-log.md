@@ -9557,4 +9557,5 @@ BC-5.39.001 LOCAL 3-CLEAN CERTIFIED: three consecutive CLEAN passes (12/13/14) o
 **Block 8: factory-artifacts commit**
 
 Parent SHA: `bc1f3256` (S1705-P13-CLEAN-BURST SHA-patch 2026-08-28).
+Commit SHA: `5eb8d677` (S1705-P14-3CLEAN-CONVERGED-BURST main commit 2026-08-28).
 This burst commit SHA: `e37d2bd6` (factory-artifacts; S1705-P13-CLEAN-BURST; D-449(e) SHA-patch applied post-push).

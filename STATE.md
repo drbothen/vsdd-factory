@@ -109,7 +109,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **3200149d** | S-17.06 MERGED PR #787 2026-08-28. Chain: 6993138b→PR #786 fc7cbccb (orphan-WASM + release.yml-exclude)→PR #787 3200149d (S-17.06). CI-GREEN. |
-| factory-artifacts | **`e37d2bd6`** | S1705-P13-CLEAN-BURST 2026-08-28. Prior: ae41c050 (S1705-P12-CLEAN-BURST). |
+| factory-artifacts | **`5eb8d677`** | S1705-P14-3CLEAN-CONVERGED-BURST 2026-08-28. Prior: bc1f3256 (S1705-P13-CLEAN-BURST SHA-patch). |
 | feature/S-17.05 | **a73086a5** | IN FLIGHT — mid local BC-5.39.001 3-CLEAN (streak 2/3; pass 13 CLEAN → ADVANCES; pass 14 next). PUSHED, FROZEN. Prior passes: P10 CLEAN (1/3), P11 FINDINGS→reset, P12 CLEAN (1/3), P13 CLEAN (2/3). |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
@@ -282,7 +282,7 @@ Non-blocking carry-over observations (do NOT re-litigate on resume):
 
 - `develop`: **`3200149d`** (S-17.06 MERGED PR #787 2026-08-28).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
-- `factory-artifacts`: **`bc1f3256`** (S1705-P13-CLEAN-BURST SHA-patch 2026-08-28 — pre this burst; SHA-patch for this burst pending).
+- `factory-artifacts`: **`5eb8d677`** (S1705-P14-3CLEAN-CONVERGED-BURST main 2026-08-28).
 - `feature/S-17.05`: **`a73086a5`** (PUSHED, FROZEN — no changes this burst).
 - `feature/S-17.06`: merged+deleted.
 
