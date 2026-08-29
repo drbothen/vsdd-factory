@@ -1288,31 +1288,48 @@ mod step4_tests {
                 fields.len(),
                 fields
             );
-            let field_names: Vec<&str> = fields.iter().map(|(k, _v)| k.as_str()).collect();
-            assert!(
-                field_names.contains(&"plugin"),
-                "AC-004: event payload must contain 'plugin' field; got: {:?}",
-                field_names
+            // AC-004: assert ORDER + VALUES — POLICY 12 makes field order and
+            // value-sourcing contractual (F-P3-001). The fixture is
+            // fixture_valid_unexpired_lock(); the injected reason string is
+            // "git config user.email failed (exit 1)".
+            assert_eq!(
+                fields[0],
+                ("plugin".to_string(), "precompact-flush".to_string()),
+                "AC-004: fields[0] must be (\"plugin\", \"precompact-flush\") — \
+                ORDER+VALUE contractual per POLICY 12 (F-P3-001); got: {:?}",
+                fields[0]
             );
-            assert!(
-                field_names.contains(&"holder"),
-                "AC-004: event payload must contain 'holder' field; got: {:?}",
-                field_names
+            assert_eq!(
+                fields[1],
+                ("holder".to_string(), "holder@example.com".to_string()),
+                "AC-004: fields[1] must be (\"holder\", \"holder@example.com\") \
+                from fixture_valid_unexpired_lock (F-P3-001); got: {:?}",
+                fields[1]
             );
-            assert!(
-                field_names.contains(&"locked_at"),
-                "AC-004: event payload must contain 'locked_at' field; got: {:?}",
-                field_names
+            assert_eq!(
+                fields[2],
+                ("locked_at".to_string(), "2026-01-01T10:00:00Z".to_string()),
+                "AC-004: fields[2] must be (\"locked_at\", \"2026-01-01T10:00:00Z\") \
+                from fixture_valid_unexpired_lock (F-P3-001); got: {:?}",
+                fields[2]
             );
-            assert!(
-                field_names.contains(&"expires_at"),
-                "AC-004: event payload must contain 'expires_at' field; got: {:?}",
-                field_names
+            assert_eq!(
+                fields[3],
+                ("expires_at".to_string(), "2099-01-01T10:45:00Z".to_string()),
+                "AC-004: fields[3] must be (\"expires_at\", \"2099-01-01T10:45:00Z\") \
+                from fixture_valid_unexpired_lock (F-P3-001); got: {:?}",
+                fields[3]
             );
-            assert!(
-                field_names.contains(&"resolution_error"),
-                "AC-004: event payload must contain 'resolution_error' field; got: {:?}",
-                field_names
+            assert_eq!(
+                fields[4],
+                (
+                    "resolution_error".to_string(),
+                    "git config user.email failed (exit 1)".to_string()
+                ),
+                "AC-004: fields[4] must be (\"resolution_error\", \
+                \"git config user.email failed (exit 1)\") — injected reason string \
+                (F-P3-001); got: {:?}",
+                fields[4]
             );
         } // MutexGuard on emitted_events released here
 
@@ -1424,6 +1441,16 @@ mod step4_tests {
                 result, content,
                 "AC-005 PRIMARY: flush must proceed with original content on Malformed path \
                 (must not abort or exit 2)"
+            );
+            // AC-005 PRIMARY: NO factory.lock.renewal_indeterminate event must be emitted
+            // on Malformed arm (BC-7.07.001 Invariant 3b / PC3 case 1 mandate NO event
+            // on Malformed; event is ONLY for IdentityResolutionFailed — O-1).
+            assert_eq!(
+                *emit_event_calls.lock().unwrap(),
+                0,
+                "AC-005 PRIMARY: no factory.lock.renewal_indeterminate event must be emitted \
+                on Malformed arm (BC-7.07.001 Invariant 3b / PC3 case 1 — event is exclusive \
+                to IdentityResolutionFailed path; O-1)"
             );
         }
 
