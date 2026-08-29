@@ -114,7 +114,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **a4b24601** | S-17.05 MERGED PR #798 2026-08-29. Chain: 6993138b→PR #786 fc7cbccb→PR #787 3200149d (S-17.06)→PR #798 a4b24601 (S-17.05). CI-GREEN. |
-| factory-artifacts | **`fe264d49`** | SHA-patch commit 2026-08-29 (patching SESSION-WRAP-PAUSE-2026-08-29 `5f7f063e`). Reconciled this burst. SHA updated to new burst commit by SHA-patch follow-up. |
+| factory-artifacts | **`20d0505d`** | S1707-PRE-TDD-RECONCILIATION-BURST-2026-08-29 (main burst commit). Prior: fe264d49 (SHA-patch of SESSION-WRAP-PAUSE-2026-08-29 `5f7f063e`). |
 | feature/S-17.05 | **MERGED+DELETED** | PR #798 squash-merged `a4b24601` 2026-08-29T13:45:46Z. Branch deleted post-merge. D-1129. |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
@@ -272,7 +272,7 @@ S-17.05 worktree removed; local `feature/S-17.05` deleted. 2 stale worktrees rem
 
 - `develop`: **`a4b24601`** (S-17.05 MERGED PR #798 2026-08-29).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
-- `factory-artifacts`: **`fe264d49`** (SHA-patch of SESSION-WRAP-PAUSE-2026-08-29 `5f7f063e`; reconciled this burst; SHA-patch follow-up will cite this burst's new commit SHA per D-449(e)).
+- `factory-artifacts`: **`20d0505d`** (S1707-PRE-TDD-RECONCILIATION-BURST-2026-08-29; reconciled prior SHA discrepancy `5f7f063e`→`fe264d49`→`20d0505d`).
 - `feature/S-17.05`: MERGED+DELETED (PR #798 `a4b24601` 2026-08-29).
 - `feature/S-17.06`: MERGED+DELETED (PR #787 `3200149d` 2026-08-28).
 

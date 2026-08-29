@@ -9868,6 +9868,6 @@ input-hash 028002a UNCHANGED (S-17.07 story inputs unchanged across v1.0→v1.2)
 **Block 8: factory-artifacts commit**
 
 Parent SHA: `fe264d49` (factory(sha-patch): SESSION-WRAP-PAUSE-2026-08-29).
-Commit SHA: [SHA-patch follow-up will cite this burst's actual commit per D-449(e)]
+Commit SHA: `20d0505d` (S1707-PRE-TDD-RECONCILIATION-BURST-2026-08-29; D-449(e) SHA-patch applied).
 
 ---
