@@ -6,6 +6,10 @@
      ### Fixed. Drained into the next `## <version>` section at release time
      (RELEASING.md Step 2). Keep this heading in place and empty after a drain. -->
 
+### Changed
+
+- **S-17.07 — precompact-flush Step-4 identity gate** (BC-7.07.001 v1.40, S-17.07 v1.2, ADR-046 Decision 3/4): precompact-flush Step-4 lock renewal upgraded from the identity-blind `renew_lock` to `renew_lock_if_holder` — renewal is now skipped when the lock is expired (`AlreadyExpired`), when the current committer is not the lock holder (`NotHolder`), or when git identity resolution fails; `factory.lock.renewal_indeterminate` event emitted with 5-field payload (`plugin`, `holder`, `locked_at`, `expires_at`, `resolution_error`) on identity-resolution failure; `Malformed` lock blocks are advisory-logged and flush proceeds unblocked. `step4_renewal_gate<RI,WS,LW,EE,NF>` wired into `run_plugin_with_mock_and_cwd` with injectable `log_warn_fn`/`emit_event_fn` closures; production path delegates to `host::log_warn`/`host::emit_event`.
+
 ## 1.0.0-rc.24 — wasmtime 46.0.2 + RUSTSEC clearances + POLICY 15 gate (2026-08-25)
 
 Ships the E-21 wave-5 security and governance hardening set: the wasmtime sandbox runtime is bumped to 46.0.2 clearing five outstanding RUSTSEC advisories (including a `FilePerms` capability-bypass CVE), a new `cargo deny check advisories` CI gate closes the detection gap that let those advisories sit undetected across multiple release candidates, and the new POLICY 15 attestation-location gate (crate + required CI job) lands with an in-cycle false-FAIL fix. Also ships the `validate-cross-site-correspondence` cross-document consistency guard, the `validate-factory-path-staging` WASM artifact restore, the `failure_policy` dispatcher registry schema extension (ADR-039 Phase 1), and CI reliability hardening that restores full-workspace test execution in the release pipeline.
