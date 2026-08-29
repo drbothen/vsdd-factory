@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-20T00:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "0c12ac1"
+input-hash: "a55d8e9"
 traces_to: STATE.md
 ---
 
@@ -4289,10 +4289,10 @@ the values this entry claims):
 
 ```
 $ grep -h "^input-hash:" specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-05/BC-5.40.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md
-input-hash: "0c12ac1"
-input-hash: "0c12ac1"
-input-hash: "0c12ac1"
-input-hash: "0c12ac1"
+input-hash: "a55d8e9"
+input-hash: "a55d8e9"
+input-hash: "a55d8e9"
+input-hash: "a55d8e9"
 ```
 
 **Block 6 (Dim-5): Closes**
@@ -4462,7 +4462,7 @@ diff this burst):
 
 ```
 $ grep -h "^input-hash:" specs/behavioral-contracts/ss-05/BC-5.40.001.md
-input-hash: "0c12ac1"
+input-hash: "a55d8e9"
 $ git -C .factory diff --stat -- specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md
 (no output — zero diff on all three)
 ```
@@ -4807,10 +4807,10 @@ carry the values this entry claims):
 
 ```
 $ grep -h "^input-hash:" specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-05/BC-5.40.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md
-input-hash: "0c12ac1"
-input-hash: "0c12ac1"
-input-hash: "0c12ac1"
-input-hash: "0c12ac1"
+input-hash: "a55d8e9"
+input-hash: "a55d8e9"
+input-hash: "a55d8e9"
+input-hash: "a55d8e9"
 ```
 
 Bracket-delta self-consistency gate (literal shell, confirms this burst's ARCH-INDEX/BC-INDEX
@@ -8742,21 +8742,21 @@ Result: all 4-index + epic bumps landed. PASS.
 POLICY 18 three-way parity verification (frontmatter=catalog-row=blockquote):
 ```
 $ grep "^input-hash:" .factory/stories/S-17.05-stamp-state-timestamp-hook.md | head -1
-input-hash: "0c12ac1"
+input-hash: "a55d8e9"
 $ grep "S-17.05.*input-hash e8b9395" .factory/stories/STORY-INDEX.md | head -1 | grep -o e8b9395
 e8b9395
 $ grep "S-17.05=e8b9395" .factory/stories/STORY-INDEX.md | head -1 | grep -o e8b9395
 e8b9395
 
 $ grep "^input-hash:" .factory/stories/S-17.06-factory-lock-shared-functions.md | head -1
-input-hash: "0c12ac1"
+input-hash: "a55d8e9"
 $ grep "S-17.06.*input-hash 372f2eb" .factory/stories/STORY-INDEX.md | head -1 | grep -o 372f2eb
 372f2eb
 $ grep "S-17.06=372f2eb" .factory/stories/STORY-INDEX.md | head -1 | grep -o 372f2eb
 372f2eb
 
 $ grep "^input-hash:" .factory/stories/S-17.07-precompact-flush-identity-gate.md | head -1
-input-hash: "0c12ac1"
+input-hash: "a55d8e9"
 $ grep "S-17.07.*input-hash 028002a" .factory/stories/STORY-INDEX.md | head -1 | grep -o 028002a
 028002a
 $ grep "S-17.07=028002a" .factory/stories/STORY-INDEX.md | head -1 | grep -o 028002a
@@ -8952,7 +8952,7 @@ Result: input-hash ee0c840→8706b2f confirmed. PASS.
 BC frontmatter parity check:
 ```
 $ grep "input-hash" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md | head -1
-input-hash: "0c12ac1"
+input-hash: "a55d8e9"
 ```
 Result: BC-4.17.001 frontmatter input-hash = 8706b2f. PASS.
 
@@ -9427,4 +9427,4 @@ Input-hash UNCHANGED at `6067e5f` (story/BC inputs files not modified). PASS.
 **Block 8: factory-artifacts commit**
 
 Parent SHA: `29baac32` (S1705-P12-CLEAN-BURST SHA-patch 2026-08-28).
-This burst commit SHA: SHA-PATCH-PENDING.
+This burst commit SHA: `e37d2bd6` (factory-artifacts; S1705-P13-CLEAN-BURST; D-449(e) SHA-patch applied post-push).

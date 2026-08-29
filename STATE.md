@@ -4,7 +4,7 @@ level: ops
 version: "9.23"
 status: draft
 producer: state-manager
-timestamp: 2026-08-28T15:00:00Z
+timestamp: 2026-08-28T15:05:00Z
 phase: "IN PROGRESS 2026-08-28. E-17 Wave-5 TDD IN FLIGHT. S-17.06 MERGED (D-1126). S-17.05 mid local BC-5.39.001 3-CLEAN cascade, streak 2/3 (pass 13 CLEAN → ADVANCES; pass 14 next fresh). feature/S-17.05 @ a73086a5 FROZEN. S-17.07 queued after S-17.05. BC-4.17.001 held draft (POL-14 exception). Autonomous-merge AUTHORIZED (D-1126b). D-1127: LOW-only doc findings BATCHED for finalization post-3-CLEAN."
 last_amended: "2026-08-28 (v9.23) — S1705-P13-CLEAN-BURST (state-manager; single-commit TD-VSDD-053): S-17.05 local adversary pass 13 = CLEAN (zero MEDIUM+); BC-5.39.001 streak ADVANCES 1/3→2/3; O-P13-1 ADVISORY spec-conformant BATCHED per D-1127 (optional hardening; finalization-doc-sweep.md); trajectory-tail →0→0→0→0 LENGTH=4 (CLEAN pass; advance from →1→0→0→0); feature/S-17.05 @ a73086a5 FROZEN (UNCHANGED). v9.22→v9.23. | 2026-08-28 (v9.22) — S1705-P12-CLEAN-BURST (state-manager; single-commit TD-VSDD-053, D-1127): S-17.05 local adversary pass 12 = CLEAN (zero MEDIUM+); BC-5.39.001 streak ADVANCES 0/3→1/3; F-P12-001 LOW BATCHED per D-1127 governance ruling; trajectory-tail →1→0→0→0 LENGTH=4; feature/S-17.05 @ a73086a5 FROZEN. v9.21→v9.22. | Prior: [Full chain: decision-log.md/burst-log.md D-1057..D-1127 (exhaustive); pre-D-1057: session-checkpoints.md]"
 inputs: []
@@ -108,7 +108,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **3200149d** | S-17.06 MERGED PR #787 2026-08-28. Chain: 6993138b→PR #786 fc7cbccb (orphan-WASM + release.yml-exclude)→PR #787 3200149d (S-17.06). CI-GREEN. |
-| factory-artifacts | **`ae41c050`** | S1705-P12-CLEAN-BURST 2026-08-28. Prior: 34ed29cb (S1705-P11-FINDINGS-BURST). |
+| factory-artifacts | **`e37d2bd6`** | S1705-P13-CLEAN-BURST 2026-08-28. Prior: ae41c050 (S1705-P12-CLEAN-BURST). |
 | feature/S-17.05 | **a73086a5** | IN FLIGHT — mid local BC-5.39.001 3-CLEAN (streak 2/3; pass 13 CLEAN → ADVANCES; pass 14 next). PUSHED, FROZEN. Prior passes: P10 CLEAN (1/3), P11 FINDINGS→reset, P12 CLEAN (1/3), P13 CLEAN (2/3). |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
@@ -280,7 +280,7 @@ Non-blocking carry-over observations (do NOT re-litigate on resume):
 
 - `develop`: **`3200149d`** (S-17.06 MERGED PR #787 2026-08-28).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
-- `factory-artifacts`: SHA-patch pending (S1705-P13-CLEAN-BURST 2026-08-28; run `git -C .factory log -1` for current HEAD).
+- `factory-artifacts`: **`e37d2bd6`** (S1705-P13-CLEAN-BURST 2026-08-28).
 - `feature/S-17.05`: **`a73086a5`** (PUSHED, FROZEN — no changes this burst or for pass 14).
 - `feature/S-17.06`: merged+deleted.
 
