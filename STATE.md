@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "9.28"
+version: "9.29"
 status: draft
 producer: state-manager
-timestamp: 2026-08-29T14:07:07Z
-phase: "PAUSED 2026-08-29. Human /wrap at clean boundary post S-17.05 merge. E-17 Wave-5: S-17.06 + S-17.05 MERGED (2 of 3). S-17.07 NEXT (precompact-flush identity-gate; AC↔BC-7.07.001 spot-check first per human directive). BC-4.17.001 held draft (POL-14 exception). CI-hardening PG-CI-1/2/3 OWED before convergence gate."
-last_amended: "2026-08-29 (v9.28) — SESSION-WRAP-PAUSE (state-manager; single-commit TD-VSDD-053): Human /wrap at clean boundary post S-17.05 merge. pipeline IN PROGRESS→PAUSED. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.27→v9.28. | 2026-08-29 (v9.27) — S1705-DELIVERY-BURST (state-manager; single-commit TD-VSDD-053): S-17.05 MERGED PR #798 a4b24601 2026-08-29. merged_count 112→113. develop 3200149d→a4b24601. feature/S-17.05 DELETED. BC-4.17.001 STAYS draft (POL-14 exception D-1126). D-1129 allocated (S-17.05 delivery + CI-hardening PG-CI-1/2/3 codification). trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.26→v9.27. | Prior: [Full chain: decision-log.md/burst-log.md D-1057..D-1129 (exhaustive); pre-D-1057: session-checkpoints.md]"
+timestamp: 2026-08-29T16:30:00Z
+phase: "PAUSED 2026-08-29. S-17.07 v1.2 AC↔BC-7.07.001 reconciliation COMPLETE (CLEAN) 2026-08-29. READY-FOR-TDD; awaiting human go-ahead. S-17.06 + S-17.05 MERGED (2 of 3). BC-4.17.001 held draft (POL-14 exception). CI-hardening PG-CI-1/2/3 OWED before convergence gate."
+last_amended: "2026-08-29 (v9.29) — S1707-PRE-TDD-RECONCILIATION-BURST (state-manager; single-commit TD-VSDD-053): S-17.07 v1.0→v1.2 AC↔BC-7.07.001 reconciliation CLEAN 2026-08-29 (4 findings: 2 BLOCKER + 2 LOW — all closed). READY-FOR-TDD. STORY-INDEX v4.400→v4.401. factory-artifacts SHA reconciled fe264d49. §2 stale-worktrees 5→2. v9.28→v9.29. | 2026-08-29 (v9.28) — SESSION-WRAP-PAUSE (state-manager; single-commit TD-VSDD-053): Human /wrap at clean boundary post S-17.05 merge. pipeline IN PROGRESS→PAUSED. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.27→v9.28. | Prior: [Full chain: decision-log.md/burst-log.md D-1057..D-1129 (exhaustive); pre-D-1057: session-checkpoints.md]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: PAUSED
-current_step: "SESSION-WRAP-PAUSE-2026-08-29: Human /wrap at clean boundary post S-17.05 merge. D-chain cite D-1129 (latest brownfield). pipeline IN PROGRESS→PAUSED. E-17 Wave-5 S-17.06+S-17.05 MERGED (2 of 3). S-17.07 NEXT (precompact-flush identity-gate; AC↔BC-7.07.001 spot-check first per human directive). BC-4.17.001 held draft (POL-14 exception D-1126). CI-hardening PG-CI-1/2/3 OWED before convergence gate. No gate D-NNN (bookkeeping-only). trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). STATE.md v9.27→v9.28."
+current_step: "S1707-PRE-TDD-RECONCILIATION-BURST-2026-08-29: S-17.07 v1.2 AC↔BC-7.07.001 reconciliation COMPLETE (CLEAN — 4 findings: 2 BLOCKER + 2 LOW — all closed). story-writer v1.0→v1.2 (AC-005, 5th Red Gate, Purity Classification, BC-table traceability, SHALL/SHOULD corrections). READY-FOR-TDD; awaiting human go-ahead to enter TDD delivery. D-chain cite D-1129 (latest brownfield). STORY-INDEX v4.400→v4.401. factory-artifacts SHA reconciled to fe264d49. §2 stale-worktrees corrected 5→2. No gate D-NNN (bookkeeping+pre-TDD reconciliation). trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). STATE.md v9.28→v9.29."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -24,7 +24,7 @@ dtu_services: []
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
   Soft target: <=415 lines; hard cap: 500 lines (validate-state-md-size hook enforcement).
-  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 295 = 205 (D-446(c) dual-margin form). 295 lines (wc-l .factory/STATE.md; SESSION-WRAP-PAUSE v9.27→v9.28).
+  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 298 = 202 (D-446(c) dual-margin form). 298 lines (wc-l .factory/STATE.md; S1707-PRE-TDD-RECONCILIATION-BURST-2026-08-29 v9.28→v9.29).
   Historical content belongs in cycle files, NOT here.
   D-1057..D-1076 (exhaustive) banner-history paragraphs extracted 2026-08-23 to cycles/v1.0-brownfield-backfill/burst-log.md.
   Pre-D-1058 history: git -C .factory log -p -- STATE.md + burst-log.md + decision-log.md.
@@ -43,8 +43,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-08-29 — **SESSION-WRAP-PAUSE** (state-manager). Human /wrap at clean boundary post S-17.05 merge. pipeline IN PROGRESS→PAUSED. E-17 Wave-5 S-17.06+S-17.05 MERGED (2 of 3). S-17.07 NEXT. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.27→v9.28. |
-| **Current Phase** | **PAUSED — Human /wrap 2026-08-29 at clean E-17 Wave-5 boundary.** S-17.06 MERGED (D-1126, PR #787 `3200149d`). **S-17.05 MERGED** (D-1129, PR #798 `a4b24601` 2026-08-29). BC-4.17.001 held draft (POL-14 exception). **S-17.07 NEXT**: precompact-flush Step-4 identity-gate amendment. AC↔BC-7.07.001 spot-check BEFORE S-17.07 delivery (human-directed). PG-CI-1/2/3 OWED before convergence gate. |
+| **Last Updated** | 2026-08-29 — **S1707-PRE-TDD-RECONCILIATION-BURST** (state-manager). S-17.07 v1.0→v1.2 AC↔BC-7.07.001 reconciliation CLEAN. READY-FOR-TDD. STORY-INDEX v4.400→v4.401. factory-artifacts SHA reconciled fe264d49. §2 stale-worktrees 5→2. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.28→v9.29. |
+| **Current Phase** | **PAUSED — S-17.07 READY-FOR-TDD (awaiting human go-ahead).** S-17.06 MERGED (D-1126, PR #787 `3200149d`). S-17.05 MERGED (D-1129, PR #798 `a4b24601` 2026-08-29). BC-4.17.001 held draft (POL-14 exception). **S-17.07 v1.2**: precompact-flush Step-4 identity-gate amendment. AC↔BC-7.07.001 reconciliation CLEAN 2026-08-29 (4 findings: 2 BLOCKER + 2 LOW — all closed; 5 ACs, 5 Red Gate tests). READY-FOR-TDD; awaiting human go-ahead. PG-CI-1/2/3 OWED before convergence gate. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -71,6 +71,7 @@ dtu_services: []
 | **BC539005-LESSON-2026-08-28** | **COMPLETE** | BC-5.39.005 banner seal discipline lesson recorded (L-BB-BC539005-banner-seal-discipline). CI regression `bab12dbc` documented: STATE.md rewrites v9.18→v9.25 dropped banner wc-l+dual-margin phrases. Going-forward discipline: wc-l claim MUST match actual line count on every STATE.md edit (BC-5.39.005). trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.25→v9.26. |
 | **S1705-DELIVERY-BURST-2026-08-29** | **COMPLETE** | S-17.05 MERGED PR #798 `a4b24601` 2026-08-29. merged_count 112→113. develop `3200149d`→`a4b24601`. `feature/S-17.05` DELETED. BC-4.17.001 STAYS draft (POL-14 exception D-1126). D-1129 allocated: CI-hardening PG-CI-1/2/3 codified. PR review APPROVE `ec1ea2ef` (0 blocking; 3 non-blocking: ADVISORY orphaned crate + 2 LOW cosmetic). 6 CI-only failures fixed before merge. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.26→v9.27. |
 | **SESSION-WRAP-PAUSE-2026-08-29** | **COMPLETE** | Human /wrap; pipeline paused at clean E-17 Wave-5 boundary post S-17.05 merge. S-17.07 NEXT. No gate D-NNN (bookkeeping-only). trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.27→v9.28. |
+| **S1707-PRE-TDD-RECONCILIATION-BURST-2026-08-29** | **COMPLETE** | S-17.07 v1.0→v1.2 AC↔BC-7.07.001 reconciliation CLEAN (4 findings: 2 BLOCKER + 2 LOW — all closed). story-writer v1.0→v1.2 (AC-005, 5th Red Gate test, SHALL/SHOULD corrections, Purity Classification section, BC-table traceability). READY-FOR-TDD. D-chain cite D-1129. STORY-INDEX v4.400→v4.401. factory-artifacts SHA reconciled fe264d49. §2 stale-worktrees 5→2. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.28→v9.29. |
 
 ## Current Phase Steps
 
@@ -78,11 +79,11 @@ dtu_services: []
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
+| S1707-PRE-TDD-RECONCILIATION-BURST-2026-08-29 | state-manager | COMPLETE | S-17.07 v1.0→v1.2 AC↔BC-7.07.001 reconciliation CLEAN (4 findings: 2 BLOCKER + 2 LOW — all closed). READY-FOR-TDD. STORY-INDEX v4.400→v4.401. factory-artifacts SHA reconciled fe264d49. §2 stale-worktrees 5→2. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.28→v9.29. |
 | SESSION-WRAP-PAUSE-2026-08-29 | state-manager | COMPLETE | Human /wrap; pipeline paused post S-17.05 merge. pipeline IN PROGRESS→PAUSED. E-17 Wave-5 S-17.06+S-17.05 MERGED (2 of 3). S-17.07 NEXT. BC-4.17.001 held draft. No gate D-NNN. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.27→v9.28. |
 | S1705-DELIVERY-BURST-2026-08-29 | state-manager | COMPLETE | S-17.05 MERGED PR #798 `a4b24601` 2026-08-29. merged_count 112→113. develop `3200149d`→`a4b24601`. BC-4.17.001 STAYS draft (POL-14 exception D-1126). D-1129 allocated (CI-hardening PG-CI-1/2/3 codified). PR review APPROVE `ec1ea2ef` (0 blocking). trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.26→v9.27. |
 | BC539005-LESSON-2026-08-28 | state-manager | COMPLETE | BC-5.39.005 banner seal discipline lesson recorded. STATE.md v9.25→v9.26. Banner wc-l updated to 319 lines (actual; BC-5.39.005 going-forward discipline). D-chain cite D-1128. CI regression bab12dbc documented. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). |
 | S1705-D1127-FINALIZATION-DOC-SWEEP-COMPLETE-2026-08-28 | state-manager | COMPLETE | S-17.05 finalization doc-sweep COMPLETE (D-1127). Story v1.7→v1.8 (doc-only; post-3-CLEAN D-1128; certified code UNCHANGED). F-P12-001 RESOLVED. O-P13-1 ACCEPTED won't-fix. F-P14-001 ACCEPTED won't-fix. STORY-INDEX v4.399→v4.400. feature/S-17.05 a73086a5→bdb65947 (demo evidence). S-17.05 READY-FOR-PR. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.24→v9.25. |
-| S1705-P14-3CLEAN-CONVERGED-BURST-2026-08-28 | state-manager | COMPLETE | S-17.05 local adversary pass 14 = CLEAN (zero MEDIUM+). BC-5.39.001 streak ADVANCES 2/3→3/3. **LOCAL BC-5.39.001 3-CLEAN ACHIEVED (passes 12/13/14) — D-1128.** F-P14-001 ADVISORY spec-permitted BATCHED per D-1127 (write-back fail-open no log_warn; default ACCEPT). feature/S-17.05 @ a73086a5 FROZEN. STORY-INDEX v4.399, BC-INDEX v5.20 UNCHANGED. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.23→v9.24. |
 
 ## Identifier Conventions
 
@@ -91,7 +92,7 @@ dtu_services: []
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
 | Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,988 (BC-INDEX v5.19 at D-1125; total_bcs UNCHANGED 1988, no new BC at D-1126; see decision-log.md for history) |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 102 (VP-INDEX v2.79 UNCHANGED; see decision-log.md for history) |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 141 file-resident + 17 stub IDs = 158 total (STORY-INDEX v4.400 at S1705-D1127-FINALIZATION-DOC-SWEEP-COMPLETE; S-17.06 MERGED D-1126; S-17.05 v1.8 READY-FOR-PR (19 ACs, 39 Red Gate, BC-4.17.001 v1.28 cite current, input-hash 6067e5f, finalization doc-sweep COMPLETE D-1127, feature/S-17.05 bdb65947); S-17.07 v1.0 REGISTERED (draft, precompact-flush identity-gate, depends_on S-17.06); see decision-log.md for history) |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 141 file-resident + 17 stub IDs = 158 total (STORY-INDEX v4.401 at S1707-PRE-TDD-RECONCILIATION-BURST-2026-08-29; S-17.06 MERGED D-1126; S-17.05 v1.8 MERGED PR #798 D-1129; S-17.07 v1.2 READY-FOR-TDD (5 ACs, 5 Red Gate, BC-7.07.001 v1.40 cite current, input-hash 028002a, AC↔BC reconciliation CLEAN 2026-08-29); see decision-log.md for history) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 23 (E-0..E-9, E-10..E-19, E-21 active, E-22 dissolved-retained D-962(f), E-23 STALE — re-scope OWED) |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 46 (ADR-046 v1.23 UNCHANGED; ADR-045 v1.3 ACCEPTED; see decision-log.md for history) |
 | **Merged Count** | merged_count | `stories/sprint-state.yaml` | **113** (S-17.05 MERGED PR #798 `a4b24601` 2026-08-29; D-1129) |
@@ -103,7 +104,7 @@ dtu_services: []
 - **Merged (113):** S-17.05 MERGED PR #798 `a4b24601` 2026-08-29 (D-1129). S-17.06 MERGED PR #787 2026-08-28 (D-1126). S-21.10 MERGED PR #780; S-21.12 MERGED PR #781; S-21.07 MERGED PR #776; S-21.09 MERGED PR #775. Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **In-Flight (0):** None. S-17.05 MERGED 2026-08-29.
 - **E-21 active (Wave-7 HELD, unchanged this burst):** S-21.19 (v1.11, BC-1.03.017 v1.27, streak 0/3, R8 NOT-CLEAN); S-21.20 (v1.9, BC-1.03.017 v1.27, streak 0/3 — pass-9 NOT-CLEAN); S-21.21 (v1.10, BC-1.03.017 v1.27, streak 0/3 — pass-9 NOT-CLEAN); S-21.22 (v1.10, BC-1.03.017 v1.27, streak **1/3** — pass-9 CLEAN); S-21.23 (v1.8, BC-1.03.018 v1.6, streak 0/3 — pass-9 NOT-CLEAN); S-21.24 (v1.11, BC-1.03.017 v1.27 + BC-1.03.018 v1.6, Wave 8, STRICTLY LAST); S-21.25 (CONVERGED 3/3, awaiting TDD sequencing). S-21.11 SUPERSEDED D-1057. Wave-7 cascade remains HELD pending the ADR-045 ratification-recording burst.
-- **E-17 Wave 5 (S1705-DELIVERY-BURST 2026-08-29): S-17.06 + S-17.05 MERGED** (2 of 3). BC-4.17.001 held draft (POL-14 exception; promotes when S-17.07 + integration gate pass). S-17.07 v1.0 queued NEXT (precompact-flush identity-gate; human-directed AC↔BC-7.07.001 spot-check BEFORE delivery). STORY-INDEX v4.400; E-17 v1.2 (7 stories, 44pts).
+- **E-17 Wave 5 (S1705-DELIVERY-BURST 2026-08-29): S-17.06 + S-17.05 MERGED** (2 of 3). BC-4.17.001 held draft (POL-14 exception; promotes when S-17.07 + integration gate pass). **S-17.07 v1.2 READY-FOR-TDD** (precompact-flush identity-gate; AC↔BC-7.07.001 reconciliation CLEAN 2026-08-29; 5 ACs, 5 Red Gate tests; awaiting human go-ahead). STORY-INDEX v4.401; E-17 v1.2 (7 stories, 44pts).
 - **E-23 new draft (STALE):** S-23.01..S-23.14 — must be RE-SCOPED to frozen-provenance model (ADR-045 v1.3) before use.
 - **Draft (39), Partial (2), Withdrawn (1):** see prior session checkpoints.
 
@@ -113,7 +114,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **a4b24601** | S-17.05 MERGED PR #798 2026-08-29. Chain: 6993138b→PR #786 fc7cbccb→PR #787 3200149d (S-17.06)→PR #798 a4b24601 (S-17.05). CI-GREEN. |
-| factory-artifacts | **`5f7f063e`** | SESSION-WRAP-PAUSE-2026-08-29 (SHA-patch applied). Prior: 27cbcba6 S1705-DELIVERY-BURST-2026-08-29. |
+| factory-artifacts | **`fe264d49`** | SHA-patch commit 2026-08-29 (patching SESSION-WRAP-PAUSE-2026-08-29 `5f7f063e`). Reconciled this burst. SHA updated to new burst commit by SHA-patch follow-up. |
 | feature/S-17.05 | **MERGED+DELETED** | PR #798 squash-merged `a4b24601` 2026-08-29T13:45:46Z. Branch deleted post-merge. D-1129. |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
@@ -133,7 +134,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **PAUSED (SESSION-WRAP-PAUSE 2026-08-29; E-17 Wave-5 S-17.05+S-17.06 MERGED; S-17.07 NEXT)** | S-17.05 MERGED PR #798 a4b24601 (D-1129); S-17.06 MERGED PR #787 3200149d (D-1126); develop a4b24601. merged_count 113. BC-4.17.001 held draft (POL-14 exception). Autonomous-merge AUTHORIZED (D-1126b). rc.24 SHIPPED (marketplace PR #19 MERGED 2026-08-27). ADR-046 gate CONVERGED-VALIDATED (D-1124). CI-hardening PG-CI-1/2/3 codified (D-1129); follow-up OWED before convergence gate. STORY-INDEX v4.400, VP-INDEX v2.79, ARCH-INDEX v3.95, BC-INDEX v5.20. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). |
+| v1.0-brownfield-backfill | brownfield | **PAUSED (S1707-PRE-TDD-RECONCILIATION-BURST 2026-08-29; S-17.07 v1.2 READY-FOR-TDD)** | S-17.05 MERGED PR #798 a4b24601 (D-1129); S-17.06 MERGED PR #787 3200149d (D-1126); develop a4b24601. merged_count 113. S-17.07 v1.2 READY-FOR-TDD (AC↔BC-7.07.001 CLEAN). BC-4.17.001 held draft (POL-14 exception). Autonomous-merge AUTHORIZED (D-1126b). rc.24 SHIPPED (marketplace PR #19 MERGED 2026-08-27). ADR-046 gate CONVERGED-VALIDATED (D-1124). CI-hardening PG-CI-1/2/3 codified (D-1129); follow-up OWED before convergence gate. STORY-INDEX v4.401, VP-INDEX v2.79, ARCH-INDEX v3.95, BC-INDEX v5.20. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). |
 | v1.0-feature-engine-discipline-pass-1 | feature | PAUSED | F5 pass-75 D-510. META-LEVEL-30 CANDIDATE-CONFIRMED. trajectory-tail →7→9→7→9 LENGTH=4. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -229,30 +230,32 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`
 
-## Session Resume Checkpoint (2026-08-29 — SESSION-WRAP-PAUSE; E-17 Wave-5 paused post S-17.05 merge; S-17.07 NEXT)
+## Session Resume Checkpoint (2026-08-29 — S1707-PRE-TDD-RECONCILIATION-BURST; S-17.07 v1.2 READY-FOR-TDD; awaiting human go-ahead)
 
-> **SELF-SUFFICIENT RESUME CONTEXT.** SESSION-WRAP-PAUSE 2026-08-29. Human /wrap at clean boundary.
-> Prior checkpoint (S1705-DELIVERY-BURST 2026-08-29) archived to
+> **SELF-SUFFICIENT RESUME CONTEXT.** S1707-PRE-TDD-RECONCILIATION-BURST 2026-08-29. AC↔BC-7.07.001 reconciliation CLEAN.
+> Prior checkpoint (SESSION-WRAP-PAUSE 2026-08-29) archived to
 > `cycles/v1.0-brownfield-backfill/session-checkpoints.md`.
 
 ### §1. Position
 
-Brownfield cycle `v1.0-brownfield-backfill`. Pipeline **PAUSED** at a clean boundary immediately
-after S-17.05 merged. Human `/wrap` 2026-08-29.
+Brownfield cycle `v1.0-brownfield-backfill`. Pipeline **PAUSED** at a clean boundary after
+S-17.07 v1.2 AC↔BC-7.07.001 reconciliation CLEAN 2026-08-29. Awaiting human go-ahead for S-17.07 TDD.
 
 E-17 Wave-5 = 3 stories, ONE release, atomicity via wave gate:
 
 - **S-17.06** (factory-lock shared fns) — **MERGED** PR #787 `3200149d` 2026-08-28 (D-1126).
 - **S-17.05** (stamp-state-timestamp PostToolUse hook) — **MERGED** PR #798 `a4b24601`
   2026-08-29 (D-1129). merged_count 112→113. Branch `feature/S-17.05` DELETED. Worktree removed.
-- **S-17.07** (precompact-flush Step-4 identity-gate amendment) — **NOT started**; NEXT.
-  Human-directed: run AC↔BC-7.07.001 reconciliation spot-check BEFORE S-17.07 delivery.
+- **S-17.07** (precompact-flush Step-4 identity-gate amendment) — **v1.2 READY-FOR-TDD**.
+  AC↔BC-7.07.001 reconciliation CLEAN 2026-08-29 (4 findings: 2 BLOCKER + 2 LOW — all closed;
+  5 ACs, 5 Red Gate tests, input-hash 028002a UNCHANGED). Awaiting human go-ahead.
 
 ### §2. No in-flight work
 
 No story mid-TDD, no open PRs awaiting action, no running sub-agents, no abandoned steps.
-S-17.05 worktree removed; local `feature/S-17.05` deleted. 5 stale worktrees remain
-(d999-migration, fix-flaky-async-e2e, fuel-cap, fuel-loud, S-21.04) — inert, human aware.
+S-17.05 worktree removed; local `feature/S-17.05` deleted. 2 stale worktrees remain
+(`fix/d999-sentinel-code-migration`, `feature/S-21.04`) — inert, human aware.
+(3 merged worktrees removed by factory-worktree-health check 2026-08-29: fix-flaky-async-e2e, fuel-cap, fuel-loud.)
 
 ### §3. Governance decisions in effect
 
@@ -269,7 +272,7 @@ S-17.05 worktree removed; local `feature/S-17.05` deleted. 5 stale worktrees rem
 
 - `develop`: **`a4b24601`** (S-17.05 MERGED PR #798 2026-08-29).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
-- `factory-artifacts`: **`5f7f063e`** (SESSION-WRAP-PAUSE-2026-08-29; SHA-patch applied).
+- `factory-artifacts`: **`fe264d49`** (SHA-patch of SESSION-WRAP-PAUSE-2026-08-29 `5f7f063e`; reconciled this burst; SHA-patch follow-up will cite this burst's new commit SHA per D-449(e)).
 - `feature/S-17.05`: MERGED+DELETED (PR #798 `a4b24601` 2026-08-29).
 - `feature/S-17.06`: MERGED+DELETED (PR #787 `3200149d` 2026-08-28).
 
@@ -279,7 +282,7 @@ S-17.05 worktree removed; local `feature/S-17.05` deleted. 5 stale worktrees rem
    covering: workflow-reference sibling-sweep on test-file deletion (PG-CI-1); cross-platform
    portability discipline POSIX/`str::lines()`/platform-detect (PG-CI-2); pr-manager
    all-checks-COMPLETED + authoritative-rollup gate (POLICY 22, PG-CI-3). Or justified deferrals.
-2. **S-17.07 AC↔BC-7.07.001 spot-check** (human-directed) — BEFORE S-17.07 delivery.
+2. **S-17.07 TDD delivery go-ahead** (human decision) — AC↔BC-7.07.001 reconciliation CLEAN 2026-08-29. READY-FOR-TDD; human go-ahead needed to enter TDD delivery.
 3. **`.worktrees/` permission-prompt fix** — awaiting human decision.
 4. **ADR-045 v1.3 ratification burst** — blocks Wave-7 cascade (S-21.19/20/21/23 HELD).
 5. **E-23 re-scope** — STALE, must be scoped to frozen-provenance model before use.
@@ -287,9 +290,9 @@ S-17.05 worktree removed; local `feature/S-17.05` deleted. 5 stale worktrees rem
 
 ### §6. Resume command
 
-`/vsdd-factory:next-step` — resumes E-17 Wave-5 at **S-17.07** (precompact-flush Step-4
-identity-gate amendment). Start with AC↔BC-7.07.001 reconciliation spot-check (human-directed;
-mirrors S-17.05's reconciliation which found 7 AC/BC gaps). Apply CI-matrix portability lessons
-(PG-CI-1/2/3) up front in test authoring and adversary rubric.
+`/vsdd-factory:next-step` — resumes E-17 Wave-5 at **S-17.07 TDD delivery** (precompact-flush
+Step-4 identity-gate amendment). S-17.07 v1.2 READY-FOR-TDD; AC↔BC-7.07.001 reconciliation
+CLEAN 2026-08-29. Human go-ahead needed to enter TDD delivery. Apply CI-matrix portability
+lessons (PG-CI-1/2/3) up front in test authoring and adversary rubric.
 After S-17.07 delivery + merge: E-17 Wave-5 integration gate → promote BC-4.17.001 +
 BC-7.07.001 to active. Address PG-CI-1/2/3 follow-up before declaring E-17/cycle converged.

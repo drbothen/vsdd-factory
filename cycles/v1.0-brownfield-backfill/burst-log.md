@@ -9711,3 +9711,163 @@ merged_count updated to 113 in STATE.md + sprint-state.yaml. PASS.
 
 Parent SHA: `bab12dbc` (BC539005-LESSON-2026-08-28 fix(ci) banner wc-l+dual-margin 2026-08-28).
 Commit SHA: `27cbcba6` (S1705-DELIVERY-BURST-2026-08-29; D-449(e) SHA-patch applied post-push).
+
+---
+
+## S1707-PRE-TDD-RECONCILIATION-BURST-2026-08-29
+
+**Date:** 2026-08-29
+**Agent:** state-manager
+**Burst type:** S-17.07 pre-TDD AC↔BC-7.07.001 reconciliation bookkeeping (single-commit TD-VSDD-053; v1.0-brownfield-backfill). Also: factory-artifacts SHA reconciliation + stale-worktree list correction.
+
+---
+
+**Block 1: Parent commit**
+
+Parent SHA: `fe264d49` (factory(sha-patch): SESSION-WRAP-PAUSE-2026-08-29 — patch factory-artifacts HEAD 5f7f063e 2026-08-29).
+
+---
+
+**Block 2: Adversary verdict**
+
+No adversary pass this burst. Brownfield-cycle bookkeeping burst only.
+
+consistency-validator (fresh context) ran AC↔BC-7.07.001 reconciliation spot-check on S-17.07 v1.0
+→ **FAIL** (2 BLOCKER + 2 LOW):
+- **F1 BLOCKER:** Malformed arm (BC-7.07.001 PC3 case 1 / EC-004 / Invariant 3 step 3) had no AC and
+  no Red Gate test.
+- **F2 BLOCKER:** SHALL/SHOULD inversion — mandatory `host::log_warn` called "optional" in Task T-2,
+  EC-006, Architecture Compliance Rule 3.
+- **F3 LOW:** BC body table "PCs/Invariants Exercised" column omitted PC3 case 1/EC-004 +
+  PC3 0th case/EC-009.
+- **F4 LOW:** no AC/test for the 0th case (absent/null factory_lock → NoOp).
+
+story-writer revised S-17.07 v1.0→v1.1 (all 4 findings closed: added AC-005 +
+`test_precompact_flush_step4_malformed_lock_emits_log_warn_no_exec` + corrected 3 SHALL/SHOULD
+inversion sites to MANDATORY + completed BC-table traceability column). Then v1.1→v1.2 (Purity
+Classification section added; pre-existing template-compliance gap fixed in-scope; all AC/test/task/
+BC-table content byte-identical to v1.1).
+
+consistency-validator (fresh context) re-verified → **CLEAN**: all 4 findings closed, zero new.
+S-17.07 v1.2 is BC-7.07.001-conformant and **READY-FOR-TDD**.
+
+Trajectory-tail: →0→0→0→0 LENGTH=4 (UNCHANGED — no adversary pass ran this burst).
+
+---
+
+**Block 3: Files touched**
+
+New files created:
+- None.
+
+Files updated:
+- `.factory/stories/S-17.07-precompact-flush-identity-gate.md` (story-writer; v1.0→v1.1→v1.2;
+  5 ACs, 5 Red Gate tests, Purity Classification section, BC-table traceability completed,
+  SHALL/SHOULD corrections, input-hash 028002a UNCHANGED)
+- `.factory/stories/STORY-INDEX.md` (v4.400→v4.401; S-17.07 catalog row v1.0→v1.2 READY-FOR-TDD;
+  E-17 blockquote Wave 5 DECOMPOSITION updated to S-17.07 v1.2 READY-FOR-TDD)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry; S1705-P14 row archived from
+  STATE.md Current Phase Steps — full content already in this file at line 9435)
+- `.factory/STATE.md` (v9.28→v9.29; factory-artifacts SHA reconciled 5f7f063e→fe264d49; §2
+  stale-worktree list corrected 5→2 entries; Phase Progress new row; Current Phase Steps: S1705-P14
+  evicted, S1707 added; current_step + Current Phase updated; STORY-INDEX cite v4.400→v4.401;
+  Session Resume Checkpoint refresh: §1 position, §2 worktrees, §4 factory-artifacts SHA, §5/§6
+  S-17.07 status; Concurrent Cycles row updated)
+
+NOT modified:
+- `.factory/specs/behavioral-contracts/` — UNCHANGED (BC-7.07.001 v1.40 unchanged; the BC was not
+  edited this burst)
+- BC-INDEX — UNCHANGED (no new BC; v5.20)
+- VP-INDEX, ARCH-INDEX — UNCHANGED
+
+---
+
+**Block 4 (Dim-2): Codifications**
+
+No new D-NNN (bookkeeping + pre-TDD reconciliation burst). D-chain cite: D-1129 (latest brownfield).
+
+STATE.md Active Branches: factory-artifacts SHA reconciled from `5f7f063e` (stale wrap-commit cite)
+to `fe264d49` (actual HEAD — sha-patch commit per D-419(b)/D-449(e) convention). SHA-patch follow-up
+for THIS burst's new commit SHA to be applied after push per D-449(e).
+
+STATE.md §2 stale-worktree list corrected: 5 entries → 2 entries. Removed: fix-flaky-async-e2e,
+fuel-cap, fuel-loud (3 merged worktrees removed by factory-worktree-health check 2026-08-29).
+Remaining: `fix/d999-sentinel-code-migration` + `feature/S-21.04`.
+
+STORY-INDEX v4.400→v4.401: S-17.07 catalog row bumped v1.0→v1.2 (5 ACs, 5 Red Gate tests,
+input-hash 028002a UNCHANGED, READY-FOR-TDD). E-17 blockquote Wave 5 DECOMPOSITION paragraph
+updated to reflect S-17.07 v1.2 READY-FOR-TDD status.
+
+---
+
+**Block 5 (Dim-5): Frozen-artifact attestation**
+
+D-449(a) literal-shell-execution evidence:
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "4.401"
+```
+STORY-INDEX bumped to v4.401. PASS.
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "5.20"
+```
+BC-INDEX UNCHANGED at v5.20 (no new BCs this burst). PASS.
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/S-17.07-precompact-flush-identity-gate.md | head -1
+version: "1.2"
+```
+S-17.07 story at v1.2 (story-writer revisions complete). PASS.
+
+```
+$ grep "input-hash:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/S-17.07-precompact-flush-identity-gate.md | head -1
+input-hash: "028002a"
+```
+S-17.07 input-hash 028002a UNCHANGED (inputs unchanged across v1.0→v1.2). PASS.
+
+BC-7.07.001 NOT modified this burst. BC-INDEX v5.20 UNCHANGED. PASS.
+
+---
+
+**Block 6 (Dim-6): Files opened/closed**
+
+Closes:
+- S-17.07 AC↔BC-7.07.001 pre-TDD reconciliation spot-check: **CLEAN** (all 4 findings closed;
+  2 BLOCKER + 2 LOW). S-17.07 v1.2 READY-FOR-TDD.
+- STATE.md factory-artifacts SHA discrepancy (cited `5f7f063e`, actual `fe264d49`): **RECONCILED**.
+- STATE.md §2 stale-worktree count discrepancy (5 listed vs 2 actual): **CORRECTED**.
+
+Opens / advances:
+- **S-17.07 TDD delivery** UNBLOCKED; awaiting human go-ahead.
+- E-17 Wave-5 integration gate queued after S-17.07 merge.
+- BC-4.17.001 + BC-7.07.001 promotion queued after Wave-5 gate.
+- SHA-patch follow-up queued for this burst's new commit SHA per D-449(e).
+
+---
+
+**Block 7 (Dim-7): Gate attestation**
+
+D-444(c) burst-log h2 heading `## S1707-PRE-TDD-RECONCILIATION-BURST-2026-08-29` present. PASS.
+D-446(a) own-burst-log 8-block gate: this entry contains Blocks 1-8. PASS.
+D-448(a) source-attestation gate: consistency-validator FAIL→CLEAN verdict faithfully described in
+Block 2 (F1/F2 BLOCKER + F3/F4 LOW found; story-writer revised v1.0→v1.1→v1.2; re-verify CLEAN;
+no new findings). PASS.
+D-449(a) literal-shell-execution: STORY-INDEX version grep + BC-INDEX version grep + S-17.07
+version grep + input-hash grep all executed with captured stdout in Block 5. PASS.
+Per TD-FACTORY-HOOK-BYPASS-001 P0: all `.factory/` mutations via Edit/Write tools only; no
+Python/sed/echo bypass. PASS.
+No adversary pass this burst — trajectory-tail UNCHANGED →0→0→0→0 LENGTH=4. PASS.
+No new D-NNN — cite D-1129 chain (bookkeeping-only burst). PASS.
+input-hash 028002a UNCHANGED (S-17.07 story inputs unchanged across v1.0→v1.2). PASS.
+
+---
+
+**Block 8: factory-artifacts commit**
+
+Parent SHA: `fe264d49` (factory(sha-patch): SESSION-WRAP-PAUSE-2026-08-29).
+Commit SHA: [SHA-patch follow-up will cite this burst's actual commit per D-449(e)]
+
+---
