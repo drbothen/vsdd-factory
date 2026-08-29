@@ -671,6 +671,13 @@ story_updates:
     merged_at: 2026-08-29
     note: "stamp-state-timestamp PostToolUse WASM hook (ADR-046, BC-4.17.001, BC-5.40.001) (E-17 Wave 5). LOCAL 3-CLEAN converged (D-1128; passes 12/13/14). Finalization doc-sweep COMPLETE (D-1127; story v1.8; F-P12-001 RESOLVED + O-P13-1/F-P14-001 ACCEPTED). Demo evidence under docs/demo-evidence/S-17.05/. PR review APPROVE at ec1ea2ef (0 blocking; 3 non-blocking: orphaned crate ADR-046-D2 deferred, TTL-guard doc-comment drift LOW, TTL-guard predicate-narrowing LOW). 6 CI-only failures surfaced + fixed (PG-CI-1/2/3 process-gap codified D-1129). PR #798 squash-merged a4b24601 2026-08-29. merged_count 112→113. BC-4.17.001 STAYS draft (POL-14 exception D-1126 — promotes only when S-17.07 lands + Wave-5 integration gate passes). D-1129."
 
+  S-17.07:
+    status: merged
+    pr: 800
+    merge_sha: 1fc8b9ee
+    merged_at: 2026-08-29
+    note: "precompact-flush Step-4 identity-gate amendment — renew_lock_if_holder call-site + 4-outcome test coverage (E-17 Wave 5). BC-7.07.001 v1.40 active (POL-14 active from S-18.04a; no re-promotion). LOCAL BC-5.39.001 3-CLEAN passed pre-merge. Wave-5 integration gate CONVERGED 3-CLEAN on da14fb94 (3 fresh-context passes). follow-up fix PR #801 (F-WG5-P2-001) MERGED squash da14fb94 2026-08-29 — removed dead LOCK_RENEWAL_TTL_SECS const (single-source TTL from factory_lock_parse::TTL_SECONDS). develop HEAD da14fb94 CI-GREEN (CI rerun 33272316659 bats-full-suite linux + all legs PASS). PR #800 squash-merged 1fc8b9ee 2026-08-29. merged_count 113→114. BC-4.17.001 v1.29 POL-14 active (promoted D-1130 this burst — E-17 Wave-5 COMPLETE + integration gate passed). D-1130."
+
   S-17.06:
     status: merged
     pr: 787
