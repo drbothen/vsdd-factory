@@ -9559,3 +9559,155 @@ BC-5.39.001 LOCAL 3-CLEAN CERTIFIED: three consecutive CLEAN passes (12/13/14) o
 Parent SHA: `bc1f3256` (S1705-P13-CLEAN-BURST SHA-patch 2026-08-28).
 Commit SHA: `5eb8d677` (S1705-P14-3CLEAN-CONVERGED-BURST main commit 2026-08-28).
 This burst commit SHA: `e37d2bd6` (factory-artifacts; S1705-P13-CLEAN-BURST; D-449(e) SHA-patch applied post-push).
+
+---
+
+## S1705-DELIVERY-BURST-2026-08-29
+
+**Block 1 (Dim-1): Adversary verdict**
+
+No adversary pass ran this burst. This is the post-merge delivery bookkeeping burst for S-17.05.
+S-17.05 LOCAL BC-5.39.001 3-CLEAN was CONVERGED at D-1128 (passes 12/13/14). The PR review cycle
+was executed by the pr-manager using the autonomous-merge policy (D-1126b).
+
+**PR review verdict** (fresh full-diff pr-review at `ec1ea2ef`, 2026-08-29): **APPROVE — 0 blocking**.
+
+Non-blocking findings:
+- **(a) ADVISORY** — orphaned `verify-state-timestamp-refresh` crate: present in workspace but not
+  bundled or published. Predates this certification; retained intentionally per ADR-046 Decision 2.
+  Deferred crate-deletion story required. Does not affect runtime behavior.
+- **(b) LOW** — TTL-guard doc-comment drift: the `warn_ttl_remaining` helper doc-comment references
+  an older TTL boundary. Cosmetic drift; guard predicate itself is correct and windows-safe. Accepted
+  as cosmetic in `finalization-doc-sweep.md`.
+- **(c) LOW** — TTL-guard predicate-narrowing note: the guard fires on a wider TTL window than
+  strictly necessary. Spec-permitted; no observable regression. Accepted as cosmetic in
+  `finalization-doc-sweep.md`.
+
+6 CI-only failures were surfaced during the PR merge process and fixed before merge. All 6 were
+missed by LOCAL verification and the perimeter-scoped adversary (passes 12/13/14) because local
+macOS environment + adversary never exercised the CI matrix (linux/windows/CRLF/GNU-date).
+Process-gaps PG-CI-1/PG-CI-2/PG-CI-3 codified in D-1129 and lessons.md. Follow-up stories or
+justified deferrals OWED before E-17/cycle convergence gate.
+
+PR #798 merged 2026-08-29T13:45:46Z; squash-merge commit `a4b24601` on develop.
+Feature branch `feature/S-17.05` DELETED post-merge.
+
+---
+
+**Block 2 (Dim-2): Files touched**
+
+Modified (this burst — factory-artifacts bookkeeping only):
+- `.factory/stories/sprint-state.yaml` — S-17.05 merged entry added (PR #798, `a4b24601`, 2026-08-29); merged_count 112→113.
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1129 codification block + canonical 6-column row appended.
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this burst entry (8 blocks; D-444(c)).
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 4 CI-hardening process-gap lessons appended (L-BB-D1129-PG-CI-1 through L-BB-D1129-PG-CI-3 + L-BB-BC539005-banner-reaffirm).
+- `.factory/STATE.md` — v9.26→v9.27: develop `3200149d`→`a4b24601`; merged_count 112→113; S-17.05 MERGED; Wave-5 2/3 merged; session resume checkpoint refreshed; Active Branches updated; Phase Progress row added; Current Phase Steps updated (last 5); banner wc-l updated.
+
+Source code NOT modified by this burst (S-17.05 delivery was squash-merged to develop from
+`feature/S-17.05` @ `bdb65947`; this burst is state-manager bookkeeping only).
+
+---
+
+**Block 3 (Dim-3): Codifications**
+
+D-1129 allocated and codified in decision-log.md: S-17.05 DELIVERY + CI-hardening process-gap
+codification. Canonical 6-column row added to STATE.md Decisions Log.
+
+PG-CI-1: adversary/TD-VSDD-060 sibling-sweep MUST include `.github/` workflow references when
+a story deletes/renames a test file (ci.yml ran deleted `verify-state-timestamp-refresh.bats`).
+
+PG-CI-2: local verification + adversarial passes do NOT reproduce the CI matrix; certified code
+carried GNU-vs-BSD `date` + windows-CRLF self-match bugs. Cross-platform/portability discipline
+(POSIX/`str::lines()`/platform-detect) added to test authoring + adversary check rubric.
+
+PG-CI-3: pr-manager must wait for ALL checks COMPLETED before declaring green (POLICY 22); must
+use `gh pr checks`/statusCheckRollup as authoritative source, NOT a watched subset of jobs.
+
+L-BB-BC539005-banner-seal-discipline reaffirmed: wc-l banner updated in STATE.md v9.26→v9.27.
+
+---
+
+**Block 4 (Dim-4): Governance**
+
+POL-14 BC hold CONFIRMED: BC-4.17.001 REMAINS `draft` (D-1126 Wave-5 exception). Per task
+instructions: BC-4.17.001 promotes to active ONLY when S-17.07 lands + Wave-5 integration gate
+passes. No POL-14 auto-promotion ran on this merge.
+
+Autonomous-merge policy (D-1126b) applied: S-17.05 PR #798 merged without separate human approval
+gate (diverse-model review APPROVE + 0 blocking + CI-green satisfied conditions).
+
+Drift/Blocking recorded in STATE.md: follow-up stories or justified deferrals for PG-CI-1/2/3 OWED
+before E-17/cycle convergence gate (per Cycle-Closing Checklist). Pipeline NOT marked converged
+until these are addressed.
+
+---
+
+**Block 5 (Dim-5): Frozen-artifact attestation**
+
+D-449(a) literal-shell-execution evidence:
+
+```
+$ grep -c "^  - id:.*merged" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/sprint-state.yaml
+(count confirms merged entries including S-17.05)
+```
+
+STORY-INDEX version check (unchanged this burst — no new story registered):
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "4.400"
+```
+STORY-INDEX at v4.400 (unchanged; S-17.05 was already registered). PASS.
+
+BC-INDEX version check (unchanged this burst — no new BCs):
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "5.20"
+```
+BC-INDEX at v5.20 (unchanged). PASS. BC-4.17.001 status confirmed draft (POL-14 hold).
+
+sprint-state.yaml S-17.05 entry check:
+```
+$ grep -A1 "id: S-17.05" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/sprint-state.yaml | head -2
+  - id: S-17.05
+    status: merged
+```
+PASS — S-17.05 status = merged.
+
+---
+
+**Block 6 (Dim-6): Files opened/closed**
+
+Closes:
+- S-17.05 delivery: PR #798 MERGED `a4b24601` 2026-08-29. `feature/S-17.05` DELETED.
+- merged_count 112→113. develop `3200149d`→`a4b24601`.
+- S-17.05 in-flight status CLEARED from Story Status / Active Branches.
+
+Opens / advances:
+- **S-17.07** queued next: precompact-flush Step-4 identity-gate amendment.
+  Human-directed: AC↔BC-7.07.001 reconciliation spot-check BEFORE S-17.07 delivery.
+- **E-17 Wave-5 integration gate** queued after S-17.07 merges (all 3 stories).
+- **BC-4.17.001 + BC-7.07.001 promotion** triggered by Wave-5 integration gate PASS.
+- **PG-CI-1/2/3 follow-up** OWED before E-17/cycle convergence gate.
+
+---
+
+**Block 7 (Dim-7): Gate attestation**
+
+D-444(c) burst-log h2 heading `## S1705-DELIVERY-BURST-2026-08-29` present. PASS.
+D-446(a) own-burst-log 8-block gate: this entry contains Blocks 1-8. PASS.
+D-448(a) source-attestation gate: adversary verdict paragraph (Block 1) faithfully describes the
+pr-review outcome at `ec1ea2ef` (APPROVE, 0 blocking, 3 non-blocking per task authoritatively
+confirmed facts). PASS.
+D-449(a) literal-shell-execution: STORY-INDEX version grep + BC-INDEX version grep + sprint-state
+S-17.05 merged status grep all executed with captured stdout in Block 5. PASS.
+Per TD-FACTORY-HOOK-BYPASS-001 P0: all `.factory/` mutations via Edit/Write tools only; no
+Python/sed/echo bypass. PASS.
+BC-4.17.001 status confirmed DRAFT (POL-14 exception D-1126). PASS.
+merged_count updated to 113 in STATE.md + sprint-state.yaml. PASS.
+
+---
+
+**Block 8: factory-artifacts commit**
+
+Parent SHA: `bab12dbc` (BC539005-LESSON-2026-08-28 fix(ci) banner wc-l+dual-margin 2026-08-28).
+Commit SHA: TBD — will be filled in via D-449(e) SHA-patch follow-up after push.

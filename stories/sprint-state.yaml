@@ -50,6 +50,8 @@ stories:
     status: merged
   - id: S-17.04
     status: merged
+  - id: S-17.05
+    status: merged
   - id: S-17.06
     status: merged
   - id: S-18.00
@@ -659,6 +661,13 @@ story_updates:
     step_4_5_convergence: true
     convergence_passes: 6
     note: "HOST_ABI Context Injection Contract (E-12). First platform story of E-12 expansion. First story in cycle history to complete Step 4.5 per-story adversary convergence (D-375). Decay 5→3→2→0→0→0 across 6 passes; 3 consecutive NITPICK_ONLY. 5 findings deferred to wave-gate/phase-5. Section 393L, factory-agnostic, BC-source-of-truth coherent. D-376."
+
+  S-17.05:
+    status: merged
+    pr: 798
+    merge_sha: a4b24601
+    merged_at: 2026-08-29
+    note: "stamp-state-timestamp PostToolUse WASM hook (ADR-046, BC-4.17.001, BC-5.40.001) (E-17 Wave 5). LOCAL 3-CLEAN converged (D-1128; passes 12/13/14). Finalization doc-sweep COMPLETE (D-1127; story v1.8; F-P12-001 RESOLVED + O-P13-1/F-P14-001 ACCEPTED). Demo evidence under docs/demo-evidence/S-17.05/. PR review APPROVE at ec1ea2ef (0 blocking; 3 non-blocking: orphaned crate ADR-046-D2 deferred, TTL-guard doc-comment drift LOW, TTL-guard predicate-narrowing LOW). 6 CI-only failures surfaced + fixed (PG-CI-1/2/3 process-gap codified D-1129). PR #798 squash-merged a4b24601 2026-08-29. merged_count 112→113. BC-4.17.001 STAYS draft (POL-14 exception D-1126 — promotes only when S-17.07 lands + Wave-5 integration gate passes). D-1129."
 
   S-17.06:
     status: merged
