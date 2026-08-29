@@ -9326,4 +9326,4 @@ Input-hash UNCHANGED at `6067e5f` (story/BC inputs files not modified). PASS.
 **Block 8: factory-artifacts commit**
 
 Parent SHA: `34ed29cb` (S1705-P11-FINDINGS-BURST 2026-08-28).
-This burst commit SHA: TBD — SHA-patch follow-up required after push per D-447(c)+D-449(e).
+This burst commit SHA: `ae41c050` (factory-artifacts; S1705-P12-CLEAN-BURST; D-449(e) SHA-patch applied post-push).
