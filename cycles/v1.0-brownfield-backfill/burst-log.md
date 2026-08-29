@@ -9219,3 +9219,111 @@ Input-hash UNCHANGED at `6067e5f` (inputs-array files did not change). PASS.
 
 Parent SHA: `63fe7172` (S1705-P10-CLEAN-BURST 2026-08-28).
 This burst commit SHA: `34ed29cb` (factory-artifacts; S1705-P11-FINDINGS-BURST; D-449(e) SHA-patch applied post-push).
+
+---
+
+## S1705-P12-CLEAN-BURST
+
+**Block 1 (Header):** S1705-P12-CLEAN-BURST — S-17.05 local adversary pass 12 CLEAN; BC-5.39.001 streak ADVANCES 0/3→1/3; D-1127 governance ruling codified; factory-artifacts single-commit TD-VSDD-053. 2026-08-28.
+
+---
+
+**Block 2 (Dim-2): Adversary verdict**
+
+Adversary pass 12 (fresh context, `feature/S-17.05` @ `a73086a5`, story v1.7):
+
+**VERDICT: CLEAN.** Zero MEDIUM+ findings. BC-5.39.001 LOCAL streak ADVANCES 0/3 → 1/3.
+
+Finding set per `adv-s17.05-local-pass-12.md` Part A:
+- MEDIUM+: NONE.
+- LOW (1 batched): F-P12-001 — story §Red Gate prose summary sentence cites stale test counts (28/31) vs. actual (30/32). The normative Red Gate TABLE is met in full. Batched per D-1127 governance ruling.
+
+Novelty: LOW (same class as prior stale-count documentary observations).
+
+---
+
+**Block 3 (Dim-3): Decisions codified**
+
+**D-1127** (human-ratified governance ruling, 2026-08-28): LOW-only documentary findings during the S-17.05 local BC-5.39.001 3-CLEAN run are BATCHED and swept in a single finalization doc-sweep after 3-CLEAN is reached — NOT fixed mid-run. MEDIUM+ findings continue to reset the streak immediately. Rationale: prevents the frozen-artifact-reset trap (L-EDP1-007/051/061). Anchor: `cycles/v1.0-brownfield-backfill/finalization-doc-sweep.md`.
+
+D-1127 codified in:
+- `cycles/v1.0-brownfield-backfill/decision-log.md` (canonical 6-column row appended)
+- `cycles/v1.0-brownfield-backfill/lessons.md` (L-BB-D1127 lesson appended)
+- `cycles/v1.0-brownfield-backfill/finalization-doc-sweep.md` (new file — F-P12-001 backlog anchor)
+- `STATE.md` Decisions Log (D-1127 row; v9.21→v9.22)
+
+---
+
+**Block 4 (Dim-4): Files touched**
+
+New files created:
+- `.factory/cycles/v1.0-brownfield-backfill/adv-s17.05-local-pass-12.md` — pass-12 adversary record (CLEAN verdict, F-P12-001 LOW batched)
+- `.factory/cycles/v1.0-brownfield-backfill/finalization-doc-sweep.md` — finalization doc-sweep backlog anchor (F-P12-001)
+
+Modified files:
+- `.factory/STATE.md` — v9.21→v9.22; streak 0/3→1/3; D-1127 Decisions Log row; Session Resume Checkpoint; Phase Progress; Current Phase Steps; Story Status; Concurrent Cycles trajectory-tail advance; Drift Items finalization note
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry appended
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1127 row appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-BB-D1127 lesson appended
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — S1705-P11 checkpoint archived
+
+NOT modified (frozen per human governance decision):
+- `stories/S-17.05-stamp-state-timestamp.md` — FROZEN
+- `specs/behavioral-contracts/` — FROZEN
+- `feature/S-17.05` worktree — FROZEN at `a73086a5`
+
+---
+
+**Block 5 (Dim-5): Gate attestations (literal shell)**
+
+D-449(a) literal-shell-execution evidence:
+
+```
+$ grep "version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "4.399"
+```
+STORY-INDEX version UNCHANGED at v4.399. PASS.
+
+```
+$ grep "version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "5.20"
+```
+BC-INDEX version UNCHANGED at v5.20. PASS.
+
+```
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory/feature/S-17.05 rev-parse HEAD 2>/dev/null || git -C /Users/zious/Documents/GITHUB/vsdd-factory log --oneline feature/S-17.05 2>/dev/null | head -1
+```
+feature/S-17.05 HEAD FROZEN at a73086a5 (no code changes this burst). PASS.
+
+Feature branch FROZEN — no code, story, or BC files modified. Adversary perimeter identical for passes 13/14 certification.
+
+---
+
+**Block 6 (Dim-5): Files opened/closed**
+
+Closes:
+- S-17.05 local adversary pass 12 (CLEAN — zero MEDIUM+; BC-5.39.001 streak ADVANCES 0/3→1/3).
+- D-1127: Human governance ruling codified (batch-LOW-doc-findings-during-3-CLEAN policy).
+- F-P12-001: BATCHED (not closed yet; anchor in finalization-doc-sweep.md for post-3-CLEAN sweep).
+
+Opens / advances:
+- S-17.05 local adversary pass 13 queued (fresh context, `feature/S-17.05` @ `a73086a5`, FROZEN). Streak = 1/3; need 2 more consecutive CLEAN passes (13, 14) for local BC-5.39.001 3-CLEAN.
+
+---
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## S1705-P12-CLEAN-BURST` present. PASS.
+D-446(a) own-burst-log 8-block gate: this entry contains Blocks 1-8. PASS.
+D-448(a) source-attestation gate: `adv-s17.05-local-pass-12.md` Part A finding set (zero MEDIUM+; F-P12-001 LOW batched) faithfully described in Block 2. PASS.
+D-449(a) literal-shell-execution: STORY-INDEX version grep + BC-INDEX version grep executed with captured commands in Block 5. PASS.
+Per TD-FACTORY-HOOK-BYPASS-001 P0: all `.factory/` mutations via Edit/Write tools only; no Python/sed/echo bypass. PASS.
+`feature/S-17.05` HEAD FROZEN at `a73086a5` (no changes this burst). PASS.
+Input-hash UNCHANGED at `6067e5f` (story/BC inputs files not modified). PASS.
+
+---
+
+**Block 8: factory-artifacts commit**
+
+Parent SHA: `34ed29cb` (S1705-P11-FINDINGS-BURST 2026-08-28).
+This burst commit SHA: TBD — SHA-patch follow-up required after push per D-447(c)+D-449(e).

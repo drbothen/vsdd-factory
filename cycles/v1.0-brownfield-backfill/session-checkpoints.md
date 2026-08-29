@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "1ae69b0"
+input-hash: "7eaf5b3"
 traces_to: STATE.md
 ---
 
@@ -3665,3 +3665,30 @@ Streak = **0/3** (pass 9 FINDINGS → RESET). Passes 1–9 history: 1–7 FINDIN
 ### §4. Resume command at archive
 
 `/vsdd-factory:next-step` → re-run S-17.05 local adversary pass 10 (fresh, against `feature/S-17.05` @ `a8d85160`), streak 0/3.
+
+---
+
+## Archived Checkpoint: S1705-P11-FINDINGS-BURST (2026-08-28)
+
+> Archived from STATE.md during S1705-P12-CLEAN-BURST. Replaced by S1705-P12-CLEAN-BURST checkpoint.
+
+### §1. Position
+
+Brownfield cycle `v1.0-brownfield-backfill`. ADR-046 spec gate CONVERGED-VALIDATED (D-1124). E-17 Wave-5 TDD IN FLIGHT. S-17.06 MERGED (PR #787 `3200149d`). S-17.05 IN FLIGHT — mid local BC-5.39.001 3-CLEAN, streak **0/3** (pass 11 FINDINGS→all fixed; pass 12 next). `feature/S-17.05` @ `a73086a5` (PUSHED). S-17.07 queued.
+
+### §2. Convergence counter
+
+Streak = **0/3** (pass 11 FINDINGS → RESET from 1/3). Passes 1–11: P1–P7 FINDINGS (all fixed), P8 CLEAN, P9 FINDINGS (all fixed), P10 CLEAN, P11 FINDINGS (F-P11-001 MEDIUM fixed in-scope). NEED passes 12/13/14 consecutive CLEAN for local 3-CLEAN.
+
+Pass 11 finding F-P11-001 MEDIUM: `**BC gate:**` header cited stale BC version tokens + false `[pending]` claim. Fixed by story-writer (story v1.6→v1.7; input-hash 6067e5f UNCHANGED). O-P11-1/2/3 fixed in-scope.
+
+### §3. HEADs at archive
+
+- `develop`: `3200149d` (S-17.06 MERGED PR #787 2026-08-28)
+- `main`: `89f6f87c` (v1.0.0-rc.24)
+- `factory-artifacts`: `34ed29cb` (S1705-P11-FINDINGS-BURST 2026-08-28)
+- `feature/S-17.05`: `a73086a5` (PUSHED; pass 11 doc-comment de-pin + O-P11-2/3 fixes)
+
+### §4. Resume command at archive
+
+`/vsdd-factory:next-step` → re-run S-17.05 local adversary pass 12 (fresh, against `feature/S-17.05` @ `a73086a5`), streak 0/3.
