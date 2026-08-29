@@ -72,8 +72,8 @@ submitting the S-17.05 PR. Routing: story-writer dispatched by orchestrator.
 
 | Item | Status | Resolved by |
 |------|--------|-------------|
-| F-P12-001 | OPEN — **3-CLEAN ACHIEVED (passes 12/13/14)**; execute sweep before S-17.05 PR | story-writer finalization doc-sweep |
-| O-P13-1 | OPEN (OPTIONAL) — decide at finalization: harden or accept | implementer (harden) or story-writer (accept) |
-| F-P14-001 | OPEN (OPTIONAL) — **DEFAULT ACCEPT** (spec-permitted; hardening re-opens perimeter); confirm at finalization | story-writer (accept) or human/architect (harden) |
+| F-P12-001 | **RESOLVED** 2026-08-28 — story v1.8 doc-sweep complete (story-writer); all stale Red Gate counts corrected: tally-sentence 28→32/31→35/35→39; T-1 18→32 + 22→39; T-7 27→39; T-3 18→32 (x2); Purity table 18→32; File Structure table 18→32; Out-of-Scope + T-7 `~28` verify-state-timestamp-refresh counts de-numbered (drift-resistant). input-hash `6067e5f` UNCHANGED. | story-writer finalization doc-sweep (v1.8) |
+| O-P13-1 | **ACCEPTED (won't-fix)** 2026-08-28 — spec-conformant: AC-018 / BC-4.17.001 Invariant 8 mandate the verbatim boundary `(200000, 262144]` and the verbatim `("cap_bytes","262144")` event; the literal `262144` IS the normative value; no silent drift path exists (a constant-change would require simultaneous spec amendment). Hardening would needlessly re-open the frozen 3-CLEAN-certified code perimeter. Recorded as optional future-hardening suggestion, not a defect. | story-writer 2026-08-28 |
+| F-P14-001 | **ACCEPTED (won't-fix)** 2026-08-28 — spec-permitted: BC-4.17.001 PC3/Invariant 4 mandates swallow-on-write-error; no AC, PC, EC, or VP requires write-failure observability; the write-side fail-open is intentional per PC3/Invariant 4. Hardening would needlessly re-open the frozen 3-CLEAN-certified code perimeter. Recorded as optional future-hardening suggestion, not a defect. | story-writer 2026-08-28 |
 
-*Last updated: 2026-08-28 (S1705-P14-3CLEAN-CONVERGED-BURST)*
+*Last updated: 2026-08-28 (S1705-D1127-FINALIZATION-DOC-SWEEP-COMPLETE — story v1.8; F-P12-001 RESOLVED; O-P13-1 + F-P14-001 ACCEPTED won't-fix)*
