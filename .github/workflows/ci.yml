@@ -275,7 +275,7 @@ jobs:
           ls plugins/vsdd-factory/hook-plugins/
 
       - name: Build factory-dispatcher (release, for e2e bats)
-        # The verify-state-timestamp-refresh e2e bats tests invoke the dispatcher binary
+        # The stamp-state-timestamp e2e bats tests invoke the dispatcher binary
         # at target/release/factory-dispatcher (set in bats setup() as $DISPATCHER).
         # The preceding WASM build steps use --target wasm32-wasip1 only and never
         # produce a native binary — cargo-host had no release dispatcher build at all.
@@ -286,15 +286,15 @@ jobs:
         # the final factory-dispatcher link step runs here (fast, ~10s).
         run: cargo build --release -p factory-dispatcher
 
-      - name: Run verify-state-timestamp-refresh e2e tests (P5-M1)
-        # P5-M1 (S-17.04): verify-state-timestamp-refresh.bats has 6 dispatcher+WASM
-        # e2e tests (T-1..T-6) that call _require_artifacts() and hard-fail under
+      - name: Run stamp-state-timestamp e2e tests (S-17.05)
+        # S-17.05: stamp-state-timestamp.bats exercises the stamp-state-timestamp guard
+        # (dispatcher+WASM e2e tests) that call _require_artifacts() and hard-fail under
         # CI_REQUIRE_ARTIFACTS=1 if either artifact is absent (no silent skip-pass).
         #
         # Artifact paths _require_artifacts() checks:
         #   $DISPATCHER  = <repo-root>/target/release/factory-dispatcher
         #                  (built by the preceding step)
-        #   $GUARD_WASM  = plugins/vsdd-factory/hook-plugins/verify-state-timestamp-refresh.wasm
+        #   $GUARD_WASM  = plugins/vsdd-factory/hook-plugins/stamp-state-timestamp.wasm
         #                  (staged by "Stage WASM plugins to hook-plugins directory" above)
         # Both are now guaranteed present before this step runs.
         shell: bash
@@ -302,7 +302,7 @@ jobs:
           CI_REQUIRE_ARTIFACTS: "1"
         run: |
           sudo apt-get install -y jq bats 2>/dev/null || brew install jq bats 2>/dev/null || true
-          bats plugins/vsdd-factory/tests/verify-state-timestamp-refresh.bats
+          bats plugins/vsdd-factory/tests/stamp-state-timestamp.bats
 
       - name: Run S-9.00 perf-baseline tests
         # Requires: Rust toolchain (for setup_file cargo build), jq, and .factory/

@@ -200,7 +200,7 @@ bash .factory/hooks/verify-sha-currency.sh
 | In-progress voice in narrative | Hook tense-flip WARN | Edit narrative to past-tense before push |
 | Cross-record SHA drift between STATE.md and wave-state.yaml | Hook DRIFT report | Fix the disagreeing record (per Schema Semantics in checklist) |
 | Develop SHA in STATE.md does not match actual develop HEAD | Hook FAIL | Update the develop cite to the current develop HEAD |
-| Skipping renew before `git add` while lock is held | `verify-state-timestamp-refresh` WASM guard blocks the subsequent STATE.md write (LockExpiryStale) | Run `bash plugins/vsdd-factory/bin/factory-lock-write.sh renew .factory/STATE.md`; then retry the Edit/Write/MultiEdit to STATE.md |
+| Skipping renew before `git add` while lock is held | `verify-state-timestamp-refresh` is retired (registry entry removed per ADR-046 Decision 2; no longer invoked, does not block). The `stamp-state-timestamp` PostToolUse hook now auto-stamps `timestamp:` and renews `factory_lock.expires_at` after every tool-mediated Edit/Write/MultiEdit to STATE.md (fail-open). | The mandatory `factory-lock-write.sh renew` step (see "Apply changes — mandatory renew step" above) remains required before `git add`. The `stamp-state-timestamp` PostToolUse hook mechanizes timestamp re-stamp and lock renewal ONLY for tool-mediated STATE.md edits (Edit/Write/MultiEdit). Non-tool-mediated writes — specifically the `factory-lock-write.sh` bash writer itself and git-layer state-burst pushes — do NOT trigger the PostToolUse hook, so the manual renew step before `git add` is the authoritative mechanism on those paths. |
 
 ## When to bypass
 

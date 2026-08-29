@@ -264,10 +264,15 @@ commits invoke renew, the burst-close ordering) is agent behavior described here
    `factory-lock-write.sh renew` step before `git add` (D10, S-17.04) is the
    executable equivalent of this prose obligation. See
    `plugins/vsdd-factory/skills/state-burst/SKILL.md` §"Apply changes — mandatory
-   renew step". The `verify-state-timestamp-refresh` WASM guard (D16, S-17.04)
-   enforces freshness at write-time: any Edit, Write, or MultiEdit to `.factory/STATE.md` that
-   does not advance `timestamp:` (and `factory_lock.expires_at` when a lock is held)
-   is blocked before the write lands on disk.
+   renew step". The `verify-state-timestamp-refresh` WASM guard (D16, S-17.04) has
+   been retired: its registry entry was removed per ADR-046 Decision 2 (crate source
+   retained but plugin no longer registered or invoked, so it does not block any
+   writes). Freshness is now mechanized by the `stamp-state-timestamp` PostToolUse
+   hook: after every tool-mediated Edit, Write, or MultiEdit to `.factory/STATE.md`,
+   the hook unconditionally re-stamps `timestamp:` to wall-clock now (PC1) and renews
+   `factory_lock.expires_at` iff the writer is the current lock holder and the lock is
+   not already expired (PC2). The hook is fail-open (PostToolUse — it never blocks the
+   preceding tool call).
 
 3. **Clear is atomic with the unlock-grant commit.** The `factory_lock` key MUST
    be removed in the same commit that records the unlock in STATE.md.

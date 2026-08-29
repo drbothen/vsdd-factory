@@ -32,8 +32,11 @@
 //! - `expires_at` MUST be formatted as `YYYY-MM-DDTHH:MM:SSZ` (UTC, second precision,
 //!   uppercase Z suffix) using `chrono::format("%Y-%m-%dT%H:%M:%SZ")` — NOT
 //!   `to_rfc3339()` (AC-018 F-NW-008 / BC-5.40.001 §Invariant 2).
-//! - LF-only output; CRLF normalization is performed by `parse_factory_lock()` before
-//!   rewriting (F-NW-009).
+//! - CRLF-preserving output: `parse_factory_lock()` normalizes CRLF internally for its
+//!   own parsing, but the input content is passed untouched to `rewrite_expires_at`,
+//!   which preserves every line's original terminator (`\r\n` or `\n`) byte-for-byte.
+//!   Only the `expires_at` line value is rewritten; its original terminator is mirrored
+//!   (EC-017 CRLF input class / BC-4.17.001 PC4/AC-010 Invariant 5).
 //! - `Err(LockError::Malformed)` ONLY when `factory_lock:` key IS present AND block
 //!   is malformed. Malformed fence WITHOUT the lock key → `Ok(RenewOutcome::NoOp)`.
 
@@ -135,8 +138,12 @@ pub struct FactoryLock {
 /// 5. Rewrite the `expires_at:` line in the frontmatter block; preserve `holder` and
 ///    `locked_at` unchanged. Return `Ok(RenewOutcome::Renewed(new_content))`.
 ///
-/// CRLF normalization: `parse_factory_lock()` calls `content.replace("\r\n", "\n")`
-/// internally; the output is always LF-only (F-NW-009).
+/// CRLF handling: `parse_factory_lock()` normalizes CRLF internally for its own parsing
+/// (so parsed values — holder, locked_at, expires_at — are always clean). The input
+/// `state_md_content` is passed untouched to `rewrite_expires_at`, which preserves every
+/// line's original terminator byte-for-byte. Only the `expires_at` line value is replaced;
+/// its original `\r\n` or `\n` terminator is mirrored in the output
+/// (EC-017 CRLF input class / BC-4.17.001 PC4/AC-010 Invariant 5).
 ///
 /// # Errors
 ///
@@ -181,9 +188,10 @@ where
         }
     };
 
-    // Step 3: compute new expires_at = now + 2700s, formatted as YYYY-MM-DDTHH:MM:SSZ.
+    // Step 3: compute new expires_at = now + TTL_SECONDS, formatted as YYYY-MM-DDTHH:MM:SSZ.
     // MUST use format("%Y-%m-%dT%H:%M:%SZ") — NOT to_rfc3339() (AC-018 F-NW-008).
-    let new_expires_at = (now_fn() + Duration::seconds(2700))
+    // TTL_SECONDS canonical source: factory-lock-parse::TTL_SECONDS (AC-012/ADR-046 F-006).
+    let new_expires_at = (now_fn() + Duration::seconds(i64::from(flp::TTL_SECONDS)))
         .format("%Y-%m-%dT%H:%M:%SZ")
         .to_string();
 
@@ -193,9 +201,11 @@ where
     }
 
     // Step 5: rewrite expires_at in the frontmatter, preserving holder and locked_at.
-    // CRLF normalization: replace \r\n with \n first (F-NW-009).
-    let normalized = state_md_content.replace("\r\n", "\n");
-    let new_content = rewrite_expires_at(&normalized, &new_expires_at);
+    // Pass state_md_content directly — rewrite_expires_at preserves all line terminators
+    // byte-for-byte (EC-017 CRLF input class; BC-4.17.001 PC4/AC-010 Invariant 5).
+    // parse_factory_lock() normalizes CRLF internally for parsing; the content string
+    // itself is untouched, so we pass it straight through for surgical rewriting.
+    let new_content = rewrite_expires_at(state_md_content, &new_expires_at);
 
     Ok(RenewOutcome::Renewed(new_content))
 }
@@ -247,7 +257,9 @@ pub fn has_factory_lock_key(state_md_content: &str) -> bool {
 /// Rewrite the `expires_at:` sub-field inside the `factory_lock:` block.
 ///
 /// Finds the first occurrence of `  expires_at:` (2-space indent) and replaces
-/// its value. Content before and after is preserved byte-for-byte.
+/// its value. Content before and after is preserved byte-for-byte, including each
+/// line's original terminator (`\r\n` or `\n`). The rewritten `expires_at` line
+/// mirrors its own original terminator (EC-017 CRLF / BC-4.17.001 PC4/AC-010 Invariant 5).
 ///
 /// Internal helper for `renew_lock_with_now`.
 fn rewrite_expires_at(content: &str, new_expires_at: &str) -> String {
@@ -268,12 +280,18 @@ fn rewrite_expires_at(content: &str, new_expires_at: &str) -> String {
         if in_factory_lock && !expires_at_rewritten {
             // Look for `  expires_at:` with exactly 2-space indent.
             if trimmed.starts_with("  expires_at:") {
-                // Replace value while preserving leading whitespace and any trailing newline.
-                let has_lf = line.ends_with('\n');
+                // Replace value while preserving the original line terminator byte-for-byte.
+                // MUST check \r\n before \n — every CRLF line also ends with \n (EC-017).
+                // This satisfies BC-4.17.001 PC4/AC-010 Invariant 5 for CRLF input.
+                let terminator = if line.ends_with("\r\n") {
+                    "\r\n"
+                } else if line.ends_with('\n') {
+                    "\n"
+                } else {
+                    ""
+                };
                 result.push_str(&format!("  expires_at: {new_expires_at}"));
-                if has_lf {
-                    result.push('\n');
-                }
+                result.push_str(terminator);
                 expires_at_rewritten = true;
                 continue;
             }
@@ -1286,6 +1304,133 @@ mod tests {
     // -----------------------------------------------------------------------
     // BLOCKING-3 discriminating test — holder with trailing whitespace still matches
     // -----------------------------------------------------------------------
+
+    // -----------------------------------------------------------------------
+    // S-17.05 Red Gate test — renew_lock_with_now literal migration (T-2 sub-task, D-1126)
+    // -----------------------------------------------------------------------
+
+    /// S-17.05 T-2 sub-task (D-1126 boundary correction) / BC-4.17.001 Invariant 3 / ADR-046 F-006:
+    /// renew_lock_with_now must use factory_lock_parse::TTL_SECONDS, NOT the bare literal 2700.
+    ///
+    /// Source-scan: grep crates/factory-lock/src/lib.rs for `Duration::seconds(2700)` inside
+    /// the renew_lock_with_now function body. Asserts no match — i.e., the migration from
+    /// `Duration::seconds(2700)` to `Duration::seconds(i64::from(factory_lock_parse::TTL_SECONDS))`
+    /// has been applied.
+    ///
+    /// RED GATE: stub still contains `Duration::seconds(2700)` at the bare-literal location
+    /// → assertion fails until implementer migrates in S-17.05 T-2.
+    /// GREEN after: `Duration::seconds(i64::from(factory_lock_parse::TTL_SECONDS))` replaces it.
+    #[test]
+    fn test_renew_lock_with_now_uses_ttl_seconds_not_bare_literal() {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let lib_path = std::path::Path::new(manifest_dir).join("src/lib.rs");
+        let source = std::fs::read_to_string(&lib_path)
+            .unwrap_or_else(|e| panic!("failed to read {:?}: {}", lib_path, e));
+
+        // Locate the renew_lock_with_now function body.
+        let fn_marker = "fn renew_lock_with_now<F>";
+        let fn_start = source
+            .find(fn_marker)
+            .unwrap_or_else(|| panic!("renew_lock_with_now not found in {:?}", lib_path));
+        // Bound the search to just the renew_lock_with_now function body — NOT to EOF.
+        // Without this bound, the slice captures the test module's own source, which
+        // contains the very string being searched for in the contains() call below,
+        // causing a false-positive self-match regardless of production code state.
+        // Find the next `\npub fn ` boundary after the function signature start.
+        let after_sig = fn_start + fn_marker.len();
+        let fn_end = source[after_sig..]
+            .find("\npub fn ")
+            .or_else(|| source[after_sig..].find("\nfn "))
+            .map(|rel| after_sig + rel)
+            .unwrap_or(source.len());
+        let fn_body = &source[fn_start..fn_end];
+
+        // Assert that the bare literal `Duration::seconds(` followed by `2700)` is absent.
+        // After S-17.05 T-2 migration: Duration::seconds(i64::from(factory_lock_parse::TTL_SECONDS)).
+        // The searched literal is assembled here to prevent this test's own source
+        // from appearing in fn_body if the boundary calculation is ever widened.
+        let bare_literal = format!("Duration::seconds({})", 2700u32);
+        assert!(
+            !fn_body.contains(&bare_literal),
+            "renew_lock_with_now in {:?} must NOT use the bare-literal TTL form. \
+             Migrate to Duration::seconds(i64::from(factory_lock_parse::TTL_SECONDS)) per \
+             S-17.05 T-2 (D-1126 / BC-4.17.001 Invariant 3 / ADR-046 F-006). \
+             Found bare literal — Red Gate armed.",
+            lib_path
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // S-17.06 CR-003 coverage fold-in: Case 5 spurious-renewal guard
+    // (already-merged S-17.06 code; this test PASSES immediately)
+    // -----------------------------------------------------------------------
+
+    /// S-17.06 CR-003 (coverage fold-in, independent review):
+    /// renew_lock_if_holder Case 5 returns Ok((NoOp, None)) when expires_at is exactly
+    /// now + TTL_SECONDS at second precision (spurious-renewal guard, F-R3-005).
+    ///
+    /// Fixture: factory_lock with holder = "holder@example.com" (matches caller),
+    /// expires_at = base + 2700s (i.e., the precise value renew_lock_with_now would compute
+    /// from the same `base` now_fn). The lock is NOT expired (base < base + 2700s).
+    ///
+    /// Expected: Ok((RenewOutcome::NoOp, None)) — the spurious-renewal guard in
+    /// renew_lock_with_now suppresses the write (new_expires_at == existing expires_at).
+    ///
+    /// IMPORTANT: This is NOT a Case-0 absent-block misclassification. The lock block IS
+    /// present and valid, the identity DOES match, and now < expires_at. The NoOp arises
+    /// solely from the same-second recomputation guard (F-R3-005 / ADR-028 §Decision 16).
+    ///
+    /// PASSES immediately: S-17.06 code is live on develop (3200149d).
+    #[test]
+    fn test_renew_lock_if_holder_case5_spurious_renewal_guard_returns_noop() {
+        use chrono::Duration;
+
+        // Fixed base instant; expires_at is exactly base + 2700s formatted as YYYY-MM-DDTHH:MM:SSZ.
+        let base: DateTime<Utc> = "2026-08-28T10:00:00Z"
+            .parse::<DateTime<Utc>>()
+            .expect("base timestamp must parse");
+        let expires_str = (base + Duration::seconds(2700))
+            .format("%Y-%m-%dT%H:%M:%SZ")
+            .to_string();
+        // expires_str = "2026-08-28T10:45:00Z"
+
+        let content = format!(
+            concat!(
+                "---\n",
+                "document_type: state\n",
+                "version: \"test\"\n",
+                "phase: test\n",
+                "factory_lock:\n",
+                "  holder: \"holder@example.com\"\n",
+                "  locked_at: \"2026-08-28T10:00:00Z\"\n",
+                "  expires_at: \"{expires}\"\n",
+                "---\n\n# STATE\n",
+            ),
+            expires = expires_str,
+        );
+
+        // now_fn returns `base` — same instant used to build expires_str above.
+        // now (base) < expires_at (base + 2700s) → Case 5 identity step is reached.
+        // Inside renew_lock_with_now: new_expires_at = base + 2700s = expires_str → guard fires → NoOp.
+        let result = renew_lock_if_holder(
+            &content,
+            || IdentityResolution::Resolved("holder@example.com".to_string()),
+            move || base,
+        );
+
+        let (outcome, skip) = result.expect("Case 5 spurious-renewal must return Ok, not Err");
+        assert!(
+            matches!(outcome, RenewOutcome::NoOp),
+            "CR-003: spurious-renewal guard must return NoOp when expires_at == now + TTL_SECONDS \
+             (F-R3-005 / ADR-028 §Decision 16). \
+             This is NOT a Case-0 absent-block — the lock IS present and identity DOES match. \
+             Got: {outcome:?}"
+        );
+        assert!(
+            skip.is_none(),
+            "CR-003: Case 5 spurious-renewal path must return None skip reason. Got: {skip:?}"
+        );
+    }
 
     /// BLOCKING-3: holder field in the YAML has trailing whitespace; resolve_identity
     /// returns the trimmed email (no trailing whitespace) → Case 5 fires: Renewed.
