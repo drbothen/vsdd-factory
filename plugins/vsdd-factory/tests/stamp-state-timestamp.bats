@@ -63,11 +63,37 @@ setup() {
     cp "$STAMP_WASM" "$WORK/hook-plugins/stamp-state-timestamp.wasm"
   fi
 
+  # Hermetic git identity (CI env-independence fix, PR #798).
+  #
+  # The hook's exec_subprocess capability shells out to `git config user.email`
+  # to resolve the writer identity for lock-renewal decisions (BC-4.17.001 PC2).
+  # On CI runners with no ambient git identity, this returns empty, causing
+  # IdentityResolutionFailed — the self-lock renewal test (AC-014) then fails
+  # because the hook cannot confirm a match.
+  #
+  # Fix: create a throwaway gitconfig in $WORK and export GIT_CONFIG_GLOBAL +
+  # GIT_CONFIG_NOSYSTEM + HOME so that (a) _write_state_self_lock captures the
+  # same identity as (b) the hook subprocess receives via env_allow.
+  #
+  # The hook registry declares env_allow = ["HOME", "GIT_CONFIG_GLOBAL",
+  # "XDG_CONFIG_HOME"], so both HOME and GIT_CONFIG_GLOBAL propagate into
+  # the WASM sandbox's git subprocess automatically.
+  #
+  # SAFETY: the foreign-lock fixture (AC-006) hardcodes holder@example.com,
+  # which will never match ci-hermetic@vsdd-factory.test — that test's
+  # no-renewal assertion remains intact.
+  git config --file "$WORK/gitconfig" user.email "ci-hermetic@vsdd-factory.test"
+  git config --file "$WORK/gitconfig" user.name "vsdd ci"
+  export GIT_CONFIG_GLOBAL="$WORK/gitconfig"
+  export GIT_CONFIG_NOSYSTEM=1
+  export HOME="$WORK"
+
   export CLAUDE_PROJECT_DIR="$WORK"
   export CLAUDE_PLUGIN_ROOT="$WORK"
 }
 
 teardown() {
+  # $WORK contains the hermetic gitconfig and hermetic $HOME; a single rm -rf covers all.
   rm -rf "$WORK"
 }
 
@@ -139,7 +165,7 @@ path_allow = [".factory/STATE.md"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["git"]
-env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
+env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME", "GIT_CONFIG_NOSYSTEM"]
 EOF
 }
 
