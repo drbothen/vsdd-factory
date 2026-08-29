@@ -739,9 +739,15 @@ fn make_state_md(cycle: &str, step: &str) -> String {
 }
 
 // Build a mock STATE.md with a held lock.
+//
+// expires_at is set to 2099 (far future) so the lock is NOT expired when
+// run under `renew_lock_if_holder` (S-17.07 / ADR-046 Decision 3). Prior
+// to S-17.07 the fixture used 2020 (expired), which happened to work with
+// the old identity-blind `renew_lock()` but is incorrect under the new
+// identity-gated gate that enforces the AlreadyExpired skip.
 fn make_state_md_with_lock(cycle: &str, step: &str) -> String {
     format!(
-        "---\ncurrent_cycle: {cycle}\ncurrent_step: {step}\nfactory_lock:\n  holder: agent@example.com\n  locked_at: 2026-06-01T10:00:00Z\n  expires_at: 2020-01-01T00:00:00Z\n---\n\n# STATE.md with lock\n"
+        "---\ncurrent_cycle: {cycle}\ncurrent_step: {step}\nfactory_lock:\n  holder: agent@example.com\n  locked_at: 2026-06-01T10:00:00Z\n  expires_at: 2099-01-01T00:00:00Z\n---\n\n# STATE.md with lock\n"
     )
 }
 
@@ -1438,6 +1444,13 @@ fn test_lock_held_renews_before_commit() {
                 }
                 if args.contains(&"-C") && args.contains(&"push") {
                     return Ok((0, String::new(), String::new()));
+                }
+                // S-17.07 / ADR-046 Decision 3: step4_renewal_gate calls
+                // `git config user.email` to resolve the committer identity
+                // for holder-check. Return the same email used in the fixture
+                // (make_state_md_with_lock sets holder: agent@example.com).
+                if args == ["config", "user.email"] {
+                    return Ok((0, "agent@example.com\n".to_string(), String::new()));
                 }
                 Ok((0, String::new(), String::new()))
             }
