@@ -9710,4 +9710,4 @@ merged_count updated to 113 in STATE.md + sprint-state.yaml. PASS.
 **Block 8: factory-artifacts commit**
 
 Parent SHA: `bab12dbc` (BC539005-LESSON-2026-08-28 fix(ci) banner wc-l+dual-margin 2026-08-28).
-Commit SHA: TBD — will be filled in via D-449(e) SHA-patch follow-up after push.
+Commit SHA: `27cbcba6` (S1705-DELIVERY-BURST-2026-08-29; D-449(e) SHA-patch applied post-push).

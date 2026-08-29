@@ -112,7 +112,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **a4b24601** | S-17.05 MERGED PR #798 2026-08-29. Chain: 6993138b→PR #786 fc7cbccb→PR #787 3200149d (S-17.06)→PR #798 a4b24601 (S-17.05). CI-GREEN. |
-| factory-artifacts | **`bab12dbc`** | fix(ci) banner wc-l+dual-margin 2026-08-28. Prior: abf77ccc (64a33321 SHA-patch). 64a33321: S1705-D1127-FINALIZATION-DOC-SWEEP-COMPLETE. SHA-patch OWED for v9.26 burst. |
+| factory-artifacts | **`27cbcba6`** | S1705-DELIVERY-BURST-2026-08-29 (D-1129; SHA-patch applied). Prior: bab12dbc fix(ci) banner 2026-08-28. |
 | feature/S-17.05 | **MERGED+DELETED** | PR #798 squash-merged `a4b24601` 2026-08-29T13:45:46Z. Branch deleted post-merge. D-1129. |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
 | fix/policy15-ci-wiring | 84a441a0 | MERGED PR #778 2026-08-16. |
@@ -279,7 +279,7 @@ Non-blocking carry-over observations (do NOT re-litigate on resume):
 
 - `develop`: **`a4b24601`** (S-17.05 MERGED PR #798 2026-08-29).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
-- `factory-artifacts`: **TBD** (this burst; SHA-patch follow-up per D-449(e); prior: `bab12dbc` fix(ci) banner wc-l+dual-margin 2026-08-28).
+- `factory-artifacts`: **`27cbcba6`** (S1705-DELIVERY-BURST-2026-08-29; D-449(e) SHA-patch. Prior: `bab12dbc` fix(ci) banner wc-l+dual-margin 2026-08-28).
 - `feature/S-17.05`: MERGED+DELETED (PR #798 `a4b24601` 2026-08-29).
 - `feature/S-17.06`: MERGED+DELETED (PR #787 `3200149d` 2026-08-28).
 
