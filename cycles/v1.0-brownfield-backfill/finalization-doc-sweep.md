@@ -34,10 +34,28 @@ submitting the S-17.05 PR. Routing: story-writer dispatched by orchestrator.
 
 ---
 
+### O-P13-1 — `guard_logic` GAP-4 literal vs. `STATE_MD_MAX_BYTES` (optional hardening)
+
+| Field | Value |
+|-------|-------|
+| **Finding ID** | O-P13-1 |
+| **Severity** | ADVISORY / OPTIONAL-HARDENING |
+| **Source pass** | Pass 13 (adv-s17.05-local-pass-13.md) |
+| **File** | `crates/verify-state-timestamp-refresh/src/guard_logic.rs` (or equivalent guard_logic module) |
+| **Observation** | The GAP-4 soft-warn upper-bound check uses the hardcoded literal `262_144` rather than `flp::STATE_MD_MAX_BYTES`. |
+| **Spec status** | SPEC-CONFORMANT — AC-018 / BC-4.17.001 Invariant 8 explicitly mandate the verbatim boundary `(200000, 262144]` and the verbatim `("cap_bytes","262144")` event. The literal IS the normative value; no behavioral discrepancy exists. |
+| **Hardening option** | Replace `262_144` literal in the GAP-4 comparison with `flp::STATE_MD_MAX_BYTES` to eliminate latent-drift risk if the constant is ever changed. |
+| **Won't-fix basis** | The spec mandates the verbatim boundary value, so a BC amendment to the constant would require updating both the constant AND the spec simultaneously — no silent drift path exists in practice. May be accepted at finalization without code change. |
+| **Routing** | Decide at finalization review: harden (implementer, ~5 min) OR mark accepted (story-writer: add "accepted — spec mandates verbatim literal" note). |
+| **Blocking?** | No — ADVISORY only; does NOT reset streak; does NOT affect convergence. |
+
+---
+
 ## Status
 
 | Item | Status | Resolved by |
 |------|--------|-------------|
-| F-P12-001 | OPEN — awaiting 3-CLEAN (passes 13 + 14) | story-writer finalization doc-sweep |
+| F-P12-001 | OPEN — awaiting pass 14 CLEAN (1 of 2 remaining) | story-writer finalization doc-sweep |
+| O-P13-1 | OPEN (OPTIONAL) — decide at finalization: harden or accept | implementer (harden) or story-writer (accept) |
 
-*Last updated: 2026-08-28 (S1705-P12-CLEAN-BURST)*
+*Last updated: 2026-08-28 (S1705-P13-CLEAN-BURST)*

@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "7eaf5b3"
+input-hash: "0c12ac1"
 traces_to: STATE.md
 ---
 
@@ -3692,3 +3692,30 @@ Pass 11 finding F-P11-001 MEDIUM: `**BC gate:**` header cited stale BC version t
 ### §4. Resume command at archive
 
 `/vsdd-factory:next-step` → re-run S-17.05 local adversary pass 12 (fresh, against `feature/S-17.05` @ `a73086a5`), streak 0/3.
+
+---
+
+## Archived Checkpoint: S1705-P12-CLEAN-BURST (2026-08-28)
+
+> Archived from STATE.md during S1705-P13-CLEAN-BURST. Replaced by S1705-P13-CLEAN-BURST checkpoint.
+
+### §1. Position
+
+Brownfield cycle `v1.0-brownfield-backfill`. ADR-046 spec gate CONVERGED-VALIDATED (D-1124). E-17 Wave-5 TDD IN FLIGHT. S-17.06 MERGED (PR #787 `3200149d`). S-17.05 IN FLIGHT — mid local BC-5.39.001 3-CLEAN, streak **1/3** (pass 12 CLEAN → ADVANCES from 0/3; pass 13 next). `feature/S-17.05` @ `a73086a5` (PUSHED, FROZEN). S-17.07 queued.
+
+### §2. Convergence counter
+
+Streak = **1/3** (pass 12 CLEAN → ADVANCES from 0/3). Passes 1–12: P1–P7 FINDINGS (all fixed), P8 CLEAN, P9 FINDINGS (all fixed), P10 CLEAN, P11 FINDINGS (F-P11-001 MEDIUM fixed in-scope), P12 CLEAN (F-P12-001 LOW BATCHED per D-1127). NEED 2 more consecutive CLEAN passes (13, 14) for local 3-CLEAN.
+
+Pass 12 observation BATCHED: F-P12-001 LOW/documentary — story §Red Gate prose tally sentence cites stale counts (28/31 vs. actual 30/32). Normative Red Gate TABLE met in full. Anchor: finalization-doc-sweep.md.
+
+### §3. HEADs at archive
+
+- `develop`: `3200149d` (S-17.06 MERGED PR #787 2026-08-28)
+- `main`: `89f6f87c` (v1.0.0-rc.24)
+- `factory-artifacts`: `29baac32` (S1705-P12-CLEAN-BURST SHA-patch 2026-08-28)
+- `feature/S-17.05`: `a73086a5` (FROZEN — no changes at pass 12)
+
+### §4. Resume command at archive
+
+`/vsdd-factory:next-step` → re-run S-17.05 local adversary pass 13 (fresh, against `feature/S-17.05` @ `a73086a5`), streak 1/3.

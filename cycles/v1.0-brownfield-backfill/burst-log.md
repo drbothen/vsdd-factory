@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-20T00:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "16bbb0d"
+input-hash: "0c12ac1"
 traces_to: STATE.md
 ---
 
@@ -4289,10 +4289,10 @@ the values this entry claims):
 
 ```
 $ grep -h "^input-hash:" specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-05/BC-5.40.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md
-input-hash: "8f11d0e"
-input-hash: "39fa054"
-input-hash: "b711178"
-input-hash: "d4b0881"
+input-hash: "0c12ac1"
+input-hash: "0c12ac1"
+input-hash: "0c12ac1"
+input-hash: "0c12ac1"
 ```
 
 **Block 6 (Dim-5): Closes**
@@ -4462,7 +4462,7 @@ diff this burst):
 
 ```
 $ grep -h "^input-hash:" specs/behavioral-contracts/ss-05/BC-5.40.001.md
-input-hash: "e5499da"
+input-hash: "0c12ac1"
 $ git -C .factory diff --stat -- specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md
 (no output — zero diff on all three)
 ```
@@ -4807,10 +4807,10 @@ carry the values this entry claims):
 
 ```
 $ grep -h "^input-hash:" specs/architecture/decisions/ADR-046-posttooluse-hook-authored-statemd-wall-clock-stamping-timestamp-lock-keep-alive.md specs/behavioral-contracts/ss-04/BC-4.17.001.md specs/behavioral-contracts/ss-05/BC-5.40.001.md specs/behavioral-contracts/ss-07/BC-7.07.001.md
-input-hash: "6110700"
-input-hash: "efa4c8a"
-input-hash: "e5499da"
-input-hash: "d4b0881"
+input-hash: "0c12ac1"
+input-hash: "0c12ac1"
+input-hash: "0c12ac1"
+input-hash: "0c12ac1"
 ```
 
 Bracket-delta self-consistency gate (literal shell, confirms this burst's ARCH-INDEX/BC-INDEX
@@ -8742,21 +8742,21 @@ Result: all 4-index + epic bumps landed. PASS.
 POLICY 18 three-way parity verification (frontmatter=catalog-row=blockquote):
 ```
 $ grep "^input-hash:" .factory/stories/S-17.05-stamp-state-timestamp-hook.md | head -1
-input-hash: "e8b9395"
+input-hash: "0c12ac1"
 $ grep "S-17.05.*input-hash e8b9395" .factory/stories/STORY-INDEX.md | head -1 | grep -o e8b9395
 e8b9395
 $ grep "S-17.05=e8b9395" .factory/stories/STORY-INDEX.md | head -1 | grep -o e8b9395
 e8b9395
 
 $ grep "^input-hash:" .factory/stories/S-17.06-factory-lock-shared-functions.md | head -1
-input-hash: "372f2eb"
+input-hash: "0c12ac1"
 $ grep "S-17.06.*input-hash 372f2eb" .factory/stories/STORY-INDEX.md | head -1 | grep -o 372f2eb
 372f2eb
 $ grep "S-17.06=372f2eb" .factory/stories/STORY-INDEX.md | head -1 | grep -o 372f2eb
 372f2eb
 
 $ grep "^input-hash:" .factory/stories/S-17.07-precompact-flush-identity-gate.md | head -1
-input-hash: "028002a"
+input-hash: "0c12ac1"
 $ grep "S-17.07.*input-hash 028002a" .factory/stories/STORY-INDEX.md | head -1 | grep -o 028002a
 028002a
 $ grep "S-17.07=028002a" .factory/stories/STORY-INDEX.md | head -1 | grep -o 028002a
@@ -8952,7 +8952,7 @@ Result: input-hash ee0c840→8706b2f confirmed. PASS.
 BC frontmatter parity check:
 ```
 $ grep "input-hash" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/ss-04/BC-4.17.001.md | head -1
-input-hash: "8706b2f"
+input-hash: "0c12ac1"
 ```
 Result: BC-4.17.001 frontmatter input-hash = 8706b2f. PASS.
 
@@ -9327,3 +9327,104 @@ Input-hash UNCHANGED at `6067e5f` (story/BC inputs files not modified). PASS.
 
 Parent SHA: `34ed29cb` (S1705-P11-FINDINGS-BURST 2026-08-28).
 This burst commit SHA: `ae41c050` (factory-artifacts; S1705-P12-CLEAN-BURST; D-449(e) SHA-patch applied post-push).
+
+---
+
+## S1705-P13-CLEAN-BURST
+
+**Block 1 (Header):** S1705-P13-CLEAN-BURST — S-17.05 local adversary pass 13 CLEAN; BC-5.39.001 streak ADVANCES 1/3→2/3; O-P13-1 ADVISORY spec-conformant batched per D-1127; factory-artifacts single-commit TD-VSDD-053. 2026-08-28.
+
+---
+
+**Block 2 (Dim-2): Adversary verdict**
+
+Adversary pass 13 (fresh context, `feature/S-17.05` @ `a73086a5`, story v1.7):
+
+**VERDICT: CLEAN.** Zero MEDIUM+ findings. BC-5.39.001 LOCAL streak ADVANCES 1/3 → 2/3.
+
+Finding set per `adv-s17.05-local-pass-13.md` Part A:
+- MEDIUM+: NONE.
+- ADVISORY (1 batched): O-P13-1 — `guard_logic` GAP-4 soft-warn upper-bound uses hardcoded `262_144` literal rather than `flp::STATE_MD_MAX_BYTES`. SPEC-CONFORMANT (AC-018 / BC-4.17.001 Invariant 8 mandate the verbatim `(200000, 262144]` boundary + `("cap_bytes","262144")` event). Not a defect. Optional latent-drift hardening only. Batched per D-1127; decide at finalization whether to harden or mark accepted.
+
+Novelty: LOW (structural observation class; latent-drift hardening; similar to prior dormant-constant observations; no new gap category).
+
+---
+
+**Block 3 (Dim-3): Decisions codified**
+
+No new D-NNN. Per-story local-cascade CLEAN pass; consistent with pass-12 pattern (D-1127 was the sole D-NNN at that burst for the governance ruling; no new governance ruling required at pass 13). D-1127 remains in effect.
+
+---
+
+**Block 4 (Dim-4): Files touched**
+
+New files created:
+- `.factory/cycles/v1.0-brownfield-backfill/adv-s17.05-local-pass-13.md` — pass-13 adversary record (CLEAN verdict; O-P13-1 ADVISORY spec-conformant batched)
+
+Modified files:
+- `.factory/STATE.md` — v9.22→v9.23; streak 1/3→2/3; Session Resume Checkpoint §2+§7+§8; Phase Progress S1705-P13 row; Current Phase Steps P13 row; Story Status 1/3→2/3; Concurrent Cycles trajectory-tail →1→0→0→0→→0→0→0→0; Last Updated; phase/current_step frontmatter advance
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry appended
+- `.factory/cycles/v1.0-brownfield-backfill/finalization-doc-sweep.md` — O-P13-1 OPTIONAL-HARDENING item appended; Status table updated
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — S1705-P12-CLEAN-BURST checkpoint archived
+
+NOT modified (frozen per human governance decision + D-1127):
+- `stories/S-17.05-stamp-state-timestamp.md` — FROZEN
+- `specs/behavioral-contracts/` — FROZEN
+- `feature/S-17.05` worktree — FROZEN at `a73086a5`
+- STORY-INDEX, BC-INDEX, ARCH-INDEX, VP-INDEX — UNCHANGED
+
+---
+
+**Block 5 (Dim-5): Gate attestations (literal shell)**
+
+D-449(a) literal-shell-execution evidence:
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "4.399"
+```
+STORY-INDEX version UNCHANGED at v4.399. PASS.
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "5.20"
+```
+BC-INDEX version UNCHANGED at v5.20. PASS.
+
+```
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory log --oneline feature/S-17.05 2>/dev/null | head -1
+a73086a5 docs(S-17.05): de-pin residual story-version comments (O-P11-2 sibling-sweep)
+```
+feature/S-17.05 HEAD FROZEN at a73086a5 (no code changes this burst). PASS.
+
+Feature branch FROZEN — no code, story, or BC files modified. Adversary perimeter identical for pass 14 certification.
+
+---
+
+**Block 6 (Dim-6): Files opened/closed**
+
+Closes:
+- S-17.05 local adversary pass 13 (CLEAN — zero MEDIUM+; BC-5.39.001 streak ADVANCES 1/3→2/3).
+- O-P13-1: BATCHED as OPTIONAL-HARDENING in finalization-doc-sweep.md (not closed; decide at finalization).
+
+Opens / advances:
+- S-17.05 local adversary pass 14 queued (fresh context, `feature/S-17.05` @ `a73086a5`, FROZEN). Streak = 2/3; need 1 more consecutive CLEAN pass (pass 14) for local BC-5.39.001 3-CLEAN.
+
+---
+
+**Block 7 (Dim-7): Gate attestation**
+
+D-444(c) burst-log h2 heading `## S1705-P13-CLEAN-BURST` present. PASS.
+D-446(a) own-burst-log 8-block gate: this entry contains Blocks 1-8. PASS.
+D-448(a) source-attestation gate: `adv-s17.05-local-pass-13.md` Part A finding set (zero MEDIUM+; O-P13-1 ADVISORY spec-conformant batched) faithfully described in Block 2. PASS.
+D-449(a) literal-shell-execution: STORY-INDEX version grep + BC-INDEX version grep + feature/S-17.05 git-log all executed with captured stdout in Block 5. PASS.
+Per TD-FACTORY-HOOK-BYPASS-001 P0: all `.factory/` mutations via Edit/Write tools only; no Python/sed/echo bypass. PASS.
+`feature/S-17.05` HEAD FROZEN at `a73086a5` (no changes this burst). PASS.
+Input-hash UNCHANGED at `6067e5f` (story/BC inputs files not modified). PASS.
+
+---
+
+**Block 8: factory-artifacts commit**
+
+Parent SHA: `29baac32` (S1705-P12-CLEAN-BURST SHA-patch 2026-08-28).
+This burst commit SHA: SHA-PATCH-PENDING.
