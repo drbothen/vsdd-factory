@@ -61,9 +61,6 @@ pub const LOG_PATH: &str = ".factory/hooks/precompact-flush-log";
 /// STATE.md path (relative to `.factory/` host write_file root).
 pub const STATE_MD_PATH: &str = ".factory/STATE.md";
 
-/// Lock renewal TTL in seconds (expires_at = now + 2700s per ADR-028 §Decision 9).
-pub const LOCK_RENEWAL_TTL_SECS: u64 = 2700;
-
 /// Commit message prefix. MUST begin with exactly `PreCompact flush ` (capital P,
 /// capital C, single space between words, trailing space) per BC-5.41.003 INV3 and
 /// BC-7.07.001 INV4. Used as exemption key by validate-burst-log.
