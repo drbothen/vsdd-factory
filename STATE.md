@@ -123,7 +123,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **9ab5a6f6** | PR #802 (S-24.01 vsdd-factory:wrap skill) squash-merged `9ab5a6f6` 2026-08-30 (D-1132). Prior: `da14fb94` (PR #801 F-WG5-P2-001 2026-08-29). CI-GREEN. |
-| factory-artifacts | **`[SHA-PENDING]`** | VALIDATION-INTEGRITY-CONSISTENCY-AUDIT-CORRECTIONS v9.35→v9.36 (this commit). Prior: 1dd177ad (VALIDATION-INTEGRITY-LAYER1-F1F2F3-SPEC-BURST). |
+| factory-artifacts | **`20c98d6b`** | VALIDATION-INTEGRITY-CONSISTENCY-AUDIT-CORRECTIONS v9.35→v9.36 (this commit). Prior: 1dd177ad (VALIDATION-INTEGRITY-LAYER1-F1F2F3-SPEC-BURST). |
 | feature/S-17.05 | **MERGED+DELETED** | PR #798 squash-merged `a4b24601` 2026-08-29T13:45:46Z. Branch deleted post-merge. D-1129. |
 | feature/S-17.07 | **MERGED+DELETED** | PR #800 squash-merged `1fc8b9ee` 2026-08-29. Branch deleted post-merge. D-1130. |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
@@ -285,7 +285,7 @@ No story mid-TDD, no open PRs awaiting action, no running sub-agents, no abandon
 
 - `develop`: **`9ab5a6f6`** (PR #802 S-24.01 squash-merged 2026-08-30). Prior: `da14fb94` (PR #801).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
-- `factory-artifacts`: **`[SHA-PENDING]`** (VALIDATION-INTEGRITY-CONSISTENCY-AUDIT-CORRECTIONS; this burst). Prior: `1dd177ad` (VALIDATION-INTEGRITY-LAYER1-F1F2F3-SPEC-BURST).
+- `factory-artifacts`: **`20c98d6b`** (VALIDATION-INTEGRITY-CONSISTENCY-AUDIT-CORRECTIONS; this burst). Prior: `1dd177ad` (VALIDATION-INTEGRITY-LAYER1-F1F2F3-SPEC-BURST).
 - `feature/S-17.05`: MERGED+DELETED (PR #798 2026-08-29).
 - `feature/S-17.07`: MERGED+DELETED (PR #800 2026-08-29).
 
