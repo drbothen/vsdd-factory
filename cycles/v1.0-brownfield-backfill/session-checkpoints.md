@@ -3810,3 +3810,55 @@ Non-blocking carry-over observations:
 
 `/vsdd-factory:next-step` → resumes E-17 Wave-5: S-17.07 (precompact-flush Step-4 identity-gate
 amendment). BEFORE starting: AC↔BC-7.07.001 reconciliation spot-check (human-directed).
+
+---
+
+## Archived: Session Resume Checkpoint (2026-08-30 — VALIDATION-INTEGRITY-CONSISTENCY-AUDIT-CORRECTIONS; S-25.01 v1.2; BC-3.08.001 v1.29; BC-1.18.004 v1.1; VP-INDEX v2.83; BC-INDEX v5.27; D-1133)
+
+> Archived from STATE.md v9.36 by SESSION-WRAP-PAUSE-2026-08-30 state-manager burst.
+
+### §1. Position at archive
+
+Brownfield cycle `v1.0-brownfield-backfill`. Pipeline PAUSED at clean boundary.
+E-17 Wave-5 DELIVERY COMPLETE. E-24 Wave-1 COMPLETE (S-24.01 MERGED). E-25 REGISTERED (D-1133).
+Convergence-gate-declaration BLOCKED on process-gap disposition (human deferred).
+S-25.01 READY-FOR-TDD (P0; 12 pts; W1; depends_on S-21.10 MERGED; CAP-041; ADR-047; input-hash 887539f).
+
+Active work: VALIDATION-INTEGRITY-CONSISTENCY-AUDIT-CORRECTIONS-2026-08-30 COMPLETE.
+S-25.01 v1.2 (F1/F3/F4/F5/F9/F10 + AC-006/AC-018/AC-019; input-hash 887539f). BC-3.08.001 v1.29 (F7 VP-079 staleness flag; POLICY 14 v1.28 row backfill). BC-1.18.004 v1.1 (F9 PC4). VP-INDEX v2.83 (F6 unit-test 50→51; 106 VPs). BC-INDEX v5.27 (1,993 BCs). STORY-INDEX v4.408 (162 stories; 25 epics). ARCH-INDEX v3.99 (47 ADRs). POLICY 18 VERIFIED (887539f). ADR-047 human-ratified (INDETERMINATE Outcome Model). CAP-041. BC-1.18.001/002/003 draft v1.0.
+
+### §2. No in-flight work at archive
+
+No story mid-TDD, no open PRs awaiting action, no running sub-agents, no abandoned steps.
+2 stale worktrees remain (`fix/d999-sentinel-code-migration`, `feature/S-21.04`) — inert, human aware.
+
+### §3. Governance at archive
+
+- BC-4.17.001 v1.29 ACTIVE (D-1130, POL-14 auto-promotion satisfied 2026-08-29).
+- BC-6.28.001 v1.3 ACTIVE (D-1132 + SPEC-HYGIENE-SWEEP-2026-08-30 EC-002 wording).
+- ADR-047 HUMAN-RATIFIED (POLICY 22, 2026-08-30; D-1133): INDETERMINATE Outcome Model.
+- Autonomous-merge policy AUTHORIZED (D-1126b, 2026-08-28).
+- D-1133: E-25 + BC-1.18.001-004 + BC-3.08.001 v1.29 + 4-index v5.27/v2.83/v4.408/v3.99.
+
+### §4. HEADs at archive
+
+- `develop`: `9ab5a6f6` (PR #802 S-24.01 squash-merged 2026-08-30).
+- `main`: `89f6f87c` (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
+- `factory-artifacts`: `20c98d6b` (VALIDATION-INTEGRITY-CONSISTENCY-AUDIT-CORRECTIONS v9.35→v9.36).
+- `feature/S-17.05`: MERGED+DELETED (PR #798 2026-08-29).
+- `feature/S-17.07`: MERGED+DELETED (PR #800 2026-08-29).
+
+### §5. Pending at archive
+
+1. PG-CI-1/2/3 follow-up OWED before E-17/cycle convergence gate (D-1129).
+2. F-WG5-001 disposition (D-1130).
+3. PR-MANAGER-MERGE-OVER-RED disposition (D-1130).
+4. `.worktrees/` permission-prompt fix — awaiting human decision.
+5. ADR-045 v1.3 ratification burst — blocks Wave-7 cascade (S-21.19/20/21/23 HELD).
+6. E-23 re-scope — STALE, must be scoped to frozen-provenance model before use.
+7. S-25.01 TDD readiness — READY-FOR-TDD v1.2 (P0; 12 pts; input-hash 887539f).
+
+### §6. Resume command at archive
+
+`/vsdd-factory:next-step` — E-25 registered. S-25.01 READY-FOR-TDD (P0; 12 pts; input-hash 887539f; D-1133).
+Next: (A) PG-CI-1/2/3 + process-gaps before convergence; (B) S-25.01 TDD; (C) ADR-045 ratification.
