@@ -1,11 +1,13 @@
 ---
 document_type: epic
+level: L3
+traces_to: .factory/stories/STORY-INDEX.md
 epic_id: "E-2"
-version: "1.0"
+version: "1.1"
 prd_capabilities: []
 status: closed
 story_count: 8
-last_amended: "v1.0 — initial"
+last_amended: "2026-08-30 (v1.1) — frontmatter normalization: add level: L3 + traces_to (story-writer spec-hygiene sweep)"
 modified:
   - "v1.0-initial"
 ---

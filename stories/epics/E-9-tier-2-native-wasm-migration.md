@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.53"
+version: "1.54"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -15,9 +15,10 @@ subsystems_affected: [SS-04, SS-07]
 producer: story-writer
 timestamp: 2026-05-03T00:00:00Z
 phase: 2
+level: L3
 traces_to: .factory/tech-debt-register.md#TD-014
 depends_on: ["E-8"]
-last_amended: "2026-05-06 (D-305 — pass-60 SUBSTANTIVE seal-and-fix: close MED-P60-001 (BC-035 TV-10 InvalidUtf8 witness), MED-P60-002 (BC-036 TV-20 PC-3 timing witness), MED-P60-003 (BC-036 TV-21/22/23 EC-013A boundaries), MED-P60-004 (BC-036 TV-24/25 EC-013B bifurcation), LOW-P60-001 (BC-036 TV-9 by-design NOTE); 7 CTV rows added; EIGHTH PO-authored burst cumulative)"
+last_amended: "2026-08-30 (v1.54) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 inputs:
   - .factory/specs/architecture/decisions/ADR-014-tier-2-native-wasm-migration.md
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
@@ -25,7 +26,7 @@ inputs:
   - .factory/specs/architecture/SS-02-hook-sdk.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/architecture/gap-analysis-w16-subprocess.md
-input-hash: "05c50b5"
+input-hash: "43c1a52"
 modified:
   - "v1.53 2026-05-06: D-305 pass-60 SUBSTANTIVE seal-and-fix"
 ---
@@ -462,6 +463,7 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 
 | Version | Date | Author | Summary |
 |---------|------|--------|---------|
+| 1.54 | 2026-08-30 | story-writer | Frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep). |
 | 1.0 | 2026-05-03 | story-writer | Initial authoring — Phase D-4 Burst 1. E-9 epic for W-16 Tier 2 native WASM migration (23 validate-*.sh hooks). 9-story scope: S-9.00 + S-9.30 + S-9.01..S-9.07. Based on ADR-014 (D-9.1/D-9.2/D-9.3), audit-w16.md, and BC-2.02.013. Follows E-8 v1.9 shape. |
 | 1.1 | 2026-05-03 | story-writer | Pass-1 fix burst (18 findings) + scope reduction per ADR-014 Amendment 2026-05-03. See details below. |
 | 1.2 | 2026-05-03 | story-writer | Pass-2 fix burst (12 findings from W-16-E-9-pass-2-adversary.md). See v1.2 changelog below. |

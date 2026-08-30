@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-8"
-version: "1.10"
+version: "1.11"
 title: "Native WASM Migration Completion"
 status: tier-1-shipped
 tech_debt_ref: TD-014
@@ -11,10 +11,11 @@ anchor_strategy: option-c-reuse-existing-bc-per-hook-behavior
 priority: P2
 target_release: "v1.1 (Tier 1 — shipped rc.4); v1.2 (Tier 2 — E-9); v1.3 (Tier 3 — future E-10)"
 story_count: 12
-last_amended: 2026-05-03
+last_amended: "2026-08-30 (v1.11) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 producer: architect
 timestamp: 2026-05-02T00:00:00Z
 phase: 2
+level: L3
 traces_to: .factory/tech-debt-register.md#TD-014
 inputs:
   - .factory/tech-debt-register.md#TD-014

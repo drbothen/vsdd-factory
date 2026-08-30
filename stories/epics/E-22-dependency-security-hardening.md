@@ -1,7 +1,9 @@
 ---
 document_type: epic
+level: L3
+traces_to: .factory/stories/STORY-INDEX.md
 epic_id: "E-22"
-version: "v1.1"
+version: "v1.2"
 status: dissolved
 title: "Dependency Security Hardening — wasmtime major-version move to clear RUSTSEC-2026-0188/CVE-2026-58494 + RUSTSEC-2026-0222, cargo-deny advisories CI gate"
 prd_capabilities: []
@@ -16,7 +18,7 @@ depends_on: []
 inputs:
   - .factory/research/dependency-vulnerability-triage-2026-08-06.md
 input-hash: "d532199"
-last_amended: "2026-08-08 (v1.1) — F-S2107-P9-005: epic dissolved; S-21.12 re-anchored to E-21 W4 per team-lead ruling 2026-08-07 (ADR-041); file retained per human ruling 2026-08-08 (supersedes D-961(c) deletion clause); story_count 1→0; status draft→dissolved; EAC-001..EAC-004 reframed as charter criteria; Stories roster cleared; Placement Justification marked superseded"
+last_amended: "2026-08-30 (v1.2) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 modified:
   - "v1.1 2026-08-08: Dissolution record (story-writer, F-S2107-P9-005) — S-21.12 re-anchored to E-21 W4 (team-lead ruling 2026-08-07, ADR-041); E-22 now has no active stories (story_count 0); status draft→dissolved; file retained for historical record per human ruling 2026-08-08 (supersedes D-961(c) deletion clause); charter obligations (SEC-001 sequencing constraint, RUSTSEC-2026-0204, 7 batched Dependabot alerts, EAC-002) preserved as future scope for whichever epic picks up dependency-security work; EAC-001..EAC-004 reframed accordingly; Stories roster cleared; Epic Placement Justification reframed as superseded history"
   - "v1.0 2026-08-06: Initial authoring (story-writer) — S-21.12 founding story; wasmtime 44.x → 46.0.2 upgrade; RUSTSEC-2026-0188/RUSTSEC-2026-0222 remediation; cargo-deny CI gate; SEC-001 sequencing constraint documented"
@@ -234,5 +236,6 @@ from S-21.12 to the unscheduled SEC-001 story is tracked under E-21.
 
 | Version | Date | Author | Summary |
 |---------|------|--------|---------|
+| v1.2 | 2026-08-30 | story-writer | Frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep). |
 | v1.1 | 2026-08-08 | story-writer | Dissolution record (F-S2107-P9-005). S-21.12 re-anchored to E-21 W4 (team-lead ruling 2026-08-07, ADR-041); story_count 1→0; status draft→dissolved; file retained for historical record per human ruling 2026-08-08 (supersedes D-961(c) deletion clause). Stories roster cleared; EAC-001..EAC-004 reframed as charter criteria (EAC-001/EAC-003/EAC-004 discharged by E-21 W4; EAC-002 live in STATE.md Drift Items). Placement Justification marked superseded-history. Charter obligations (SEC-001 sequencing, RUSTSEC-2026-0204, 7 batched Dependabot alerts) preserved as future scope. |
 | v1.0 | 2026-08-06 | story-writer | Initial authoring. Founding story S-21.12 (wasmtime 44.x to 46.0.2 upgrade, 8 pts, W1). Charter: CVE/RUSTSEC remediation and CI advisory gate. SEC-001 sequencing constraint documented. Known future scope: RUSTSEC-2026-0204 + 7 batched Dependabot alerts. Epic separated from E-21 (state hardening) as a recurring security maintenance axis. |

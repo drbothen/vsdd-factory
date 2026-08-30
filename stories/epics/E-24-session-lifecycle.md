@@ -1,7 +1,9 @@
 ---
 document_type: epic
+level: L3
+traces_to: .factory/stories/STORY-INDEX.md
 epic_id: "E-24"
-version: "v1.0"
+version: "v1.1"
 status: draft
 title: "Session Lifecycle Orchestration — wrap, pause, checkpoint, and future session-tooling"
 prd_capabilities: [CAP-040]
@@ -16,8 +18,8 @@ depends_on: [E-18]
 inputs:
   - .factory/feature-delta/wrap-skill/F1-delta-analysis.md
   - .factory/specs/behavioral-contracts/ss-06/BC-6.28.001.md
-input-hash: "88faa0e"
-last_amended: "2026-08-29 (v1.0) — initial authoring (story-writer; F3 feature-mode wrap-skill; CAP-040; S-24.01 as first story)"
+input-hash: "1d156d5"
+last_amended: "2026-08-30 (v1.1) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 modified: []
 ---
 
@@ -166,4 +168,5 @@ Topological order: W1 only. Acyclic confirmed (no intra-epic arcs).
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.1 | 2026-08-30 | story-writer | Frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep). |
 | v1.0 | 2026-08-29 | story-writer | Initial creation (F3 feature-mode wrap-skill E-24; CAP-040; BC-6.28.001; 1 story S-24.01; 5 pts; P1; SS-06; HOLDING epic per human direction). |

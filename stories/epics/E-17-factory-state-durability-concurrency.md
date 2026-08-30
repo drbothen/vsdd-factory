@@ -1,7 +1,9 @@
 ---
 document_type: epic
+level: L3
+traces_to: .factory/stories/STORY-INDEX.md
 epic_id: "E-17"
-version: "v1.2"
+version: "v1.3"
 status: draft
 title: "Factory State Durability and Concurrency — single-writer factory lock/lease (issue #170)"
 prd_capabilities: [CAP-031]
@@ -23,7 +25,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-06/BC-6.23.001.md
   - .factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md
 input-hash: "d29ab2a"
-last_amended: "2026-08-27 (v1.2 — D-1125 Wave-5 decomposition Phase D: S-17.05 v1.1→v1.2 + S-17.06 NEW + S-17.07 NEW; story_count 4→7; points 26→44)"
+last_amended: "2026-08-30 (v1.3) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 modified:
   - "v1.1 2026-06-11: S-17.04 added (ADR-025 v1.4 Decision 11)"
   - "v1.2 2026-08-27: Wave-5 decomposition (D-1124+D-1125): S-17.05 updated (depends_on [S-17.06]); S-17.06 NEW (factory-lock shared fns; 5pts; BC-4.17.001); S-17.07 NEW (precompact-flush identity gate; 5pts; BC-7.07.001). story_count 4→7; total pts 26→44."
@@ -192,6 +194,7 @@ Epic-level ACs are defined per-story in the per-story implementation specs. See:
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3 | 2026-08-30 | story-writer | Frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep). |
 | v1.2 | 2026-08-27 | state-manager | Wave-5 decomposition cascade Phase D (D-1124+D-1125): S-17.05 v1.1→v1.2 (depends_on []→[S-17.06]; input-hash 4702970→e8b9395; 23 Red Gate tests); S-17.06 NEW (factory-lock shared fns; 5pts; BC-4.17.001; depends_on []; blocks S-17.05+S-17.07; input-hash 372f2eb); S-17.07 NEW (precompact-flush identity gate; 5pts; BC-7.07.001; depends_on [S-17.06]; input-hash 028002a). story_count 4→7; total pts 26→44; DAG S-17.06→{S-17.05,S-17.07}. target_release stale note added. |
 | v1.1 | 2026-06-11 | story-writer | S-17.04 added (ADR-025 v1.4 Decision 11; BC-5.40.001 PC4 enforcement wiring; wave 4; 5 pts; depends_on []). story_count 3→4; total pts 21→26. BC-5.40.001 traceability updated. Dependency graph note added for S-17.04 no-deps placement. |
 | v1.0 | 2026-06-10 | story-writer | Initial authoring. brownfield-backfill issue #170; ADR-025 v1.2; D-540+D-541 codified. 3 stories S-17.01/02/03 spanning SS-04/SS-05/SS-06. |

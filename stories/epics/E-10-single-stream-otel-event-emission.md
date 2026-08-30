@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-10"
-version: "1.6"
+version: "1.7"
 title: "Single-stream OTel-aligned event emission (ADR-015)"
 status: draft
 anchored_adr: ADR-015
@@ -15,9 +15,10 @@ subsystems_affected: [SS-01, SS-02, SS-03, SS-04]
 producer: story-writer
 timestamp: 2026-05-04T00:00:00Z
 phase: 2
+level: L3
 traces_to: .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
 depends_on: []
-last_amended: 2026-05-06
+last_amended: "2026-08-30 (v1.7) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 inputs:
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
 input-hash: "49982f5"

@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-13"
-version: "1.0"
+version: "1.1"
 title: "Artifact Integrity — Path Discipline Single Source of Truth"
 status: draft
 prd_capabilities: [CAP-008, CAP-016, CAP-027]
@@ -14,14 +14,15 @@ subsystems_affected: [SS-04, SS-06]
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
 phase: 2
+level: L3
 traces_to: .factory/specs/architecture/decisions/ADR-016-artifact-path-registry-sot.md
 depends_on: []
-last_amended: "2026-05-06 (v1.0 — initial authoring for cycle v1.0-feature-engine-discipline-pass-1)"
+last_amended: "2026-08-30 (v1.1) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 inputs:
   - .factory/specs/architecture/decisions/ADR-016-artifact-path-registry-sot.md
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
-input-hash: "fb69975"
+input-hash: "2dfbcf0"
 modified:
   - "v1.0 2026-05-06: initial authoring for cycle v1.0-feature-engine-discipline-pass-1"
 ---

@@ -1,11 +1,13 @@
 ---
 document_type: epic
+level: L3
+traces_to: .factory/stories/STORY-INDEX.md
 epic_id: "E-1"
-version: "1.1.2"
+version: "1.1.3"
 prd_capabilities: []
 status: closed
 story_count: 9
-last_amended: 2026-05-14
+last_amended: "2026-08-30 (v1.1.3) — frontmatter normalization: add level: L3 + traces_to (story-writer spec-hygiene sweep)"
 producer: architect
 modified:
   - v1.0-initial
@@ -77,6 +79,7 @@ SS-03 (Event Emission (OTel-Aligned)).
 
 | Version | Date | Author | Notes |
 |---------|------|--------|-------|
+| 1.1.3 | 2026-08-30 | story-writer | Frontmatter normalization: add level: L3 + traces_to (story-writer spec-hygiene sweep). |
 | 1.1.2 | 2026-05-14 | architect | D-468 F-PASS13-001 closure: corrected citation D-350 → D-466 in v1.1 row (D-350 is F5-cycle S-13.01 merge decision; D-466 is brownfield E-10 pass-12 fix burst). Set B NN-2 frontmatter parity: added last_amended, producer, modified[] array. |
 | 1.1.1 | 2026-05-13 | architect | D-466 E-10 pass-12 fix burst F-2 closure: body Changelog row added per KK-2 tripartite parity discipline. |
 | 1.1 | 2026-05-13 | architect | D-464 E-10 pass-11 fix burst (post-renumber from D-348) F-3 closure: `SS-03 (Observability Sinks)` → `SS-03 (Event Emission (OTel-Aligned))` per ADR-015 D-15.1 + POLICY 6 canonical-name SoT. Frontmatter bumped to v1.1 in D-464 fix burst; body Changelog added in D-466 pass-12 fix burst (F-2 closure per KK-2 tripartite parity discipline). |

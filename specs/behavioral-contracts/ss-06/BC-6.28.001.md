@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: active
 producer: product-owner
 timestamp: 2026-08-29T00:00:00Z
@@ -22,6 +22,7 @@ introduced: v1.0-brownfield-backfill
 modified:
   - "2026-08-29 (v1.1) — Finding-4 correction: replace bats-harness verification-vehicle language with documentary-verification statement per human-directed decision 2026-08-29 (product-owner; consistency-audit)."
   - "2026-08-29 (v1.2) — POL-14 auto-promotion: lifecycle_status draft→active on S-24.01 PR #802 squash-merged 9ab5a6f6 (D-1132)."
+  - "2026-08-30 (v1.3) — Spec-hygiene: reword EC-002 to 'PC-1 through PC-15' for internal consistency with INV-2 and EC-003 (PC-16 is Step-7 report content, not a Step-6 gating check)."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,7 +31,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.28.001
 section: "6.28"
-last_amended: "2026-08-29 (v1.2) — POL-14 auto-promotion: lifecycle_status draft→active on S-24.01 PR #802 squash-merged 9ab5a6f6 (D-1132)."
+last_amended: "2026-08-30 (v1.3) — Spec-hygiene: reword EC-002 to 'PC-1 through PC-15' for internal consistency with INV-2 and EC-003 (PC-16 is Step-7 report content, not a Step-6 gating check)."
 ---
 
 # BC-6.28.001: `/vsdd-factory:wrap` MUST halt new work, persist all in-flight changes to durable branches, delegate STATE.md PAUSED transition and dated Session Resume Checkpoint to state-manager (never editing STATE.md directly), release the factory lock, verify a clean factory-artifacts working tree, and emit resume guidance that names `/vsdd-factory:rehydrate-wave` before `/vsdd-factory:next-step`
@@ -192,7 +193,7 @@ dispatch, and is permitted.
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
 | EC-001 | No factory lock held at wrap time | Step 5 factory-unlock is skipped silently; PC-14 satisfied via "not held" path; checkpoint notes "no lock held"; Step 7 report shows `Lock: not held` |
-| EC-002 | STATE.md health check (Step 2) returns NEEDS-COMPACT | `/vsdd-factory:compact-state` runs before state-manager pause delegation; checkpoint lands in the slimmed STATE.md; all 16 PCs verified against the compacted file |
+| EC-002 | STATE.md health check (Step 2) returns NEEDS-COMPACT | `/vsdd-factory:compact-state` runs before state-manager pause delegation; checkpoint lands in the slimmed STATE.md; PC-1 through PC-15 verified against the compacted file |
 | EC-003 | STATE.md missing or corrupted | `/vsdd-factory:recover-state` runs; human approval of the reconstruction is REQUIRED before continuing; wrap cannot proceed past Step 2 without a valid, human-approved STATE.md; Step 7 is NOT emitted until PC-1 through PC-15 are satisfied on the reconstructed file |
 | EC-004 | Sub-agent executing an in-progress step at Step 1 halt | Agent is allowed to complete its current atomic step (e.g., a micro-commit or a single test run); the exact state at halt is recorded in the checkpoint (PC-8 field (c)); the wrap does NOT kill running agents mid-step |
 | EC-005 | Story worktree has uncommitted changes that cannot be cleanly committed (mid-red-gate, merge conflict, build failure) | State documented in checkpoint (PC-8 field (c)) with exact description; no forced commit; PC-13 satisfied via documentation path; Step 7 shows the worktree name and its un-committed status |
@@ -263,6 +264,7 @@ S-24.01 — `vsdd-factory:wrap skill — session pause, checkpoint, and lock-rel
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3 | 2026-08-30 | product-owner | Spec-hygiene: reword EC-002 from "all 16 PCs verified against the compacted file" to "PC-1 through PC-15 verified against the compacted file" for internal consistency with INV-2 and EC-003 (PC-16 is the Step-7 report content itself, realized only at emission — it is not a Step-6 gating check). No other semantics changed. |
 | v1.2 | 2026-08-29 | state-manager | POL-14 auto-promotion: lifecycle_status draft→active on S-24.01 PR #802 squash-merged 9ab5a6f6 (D-1132). |
 | v1.1 | 2026-08-29 | product-owner | Finding-4 correction (consistency-audit): replace bats-harness verification-vehicle language in §VP Anchors, §Verification Properties, and §Canonical Test Vectors with documentary-verification statement per human-directed decision 2026-08-29 — no automated `tests/wrap-skill.bats` harness is built for this LLM-executed procedure skill. 16 Postconditions, 3 Invariants, 7 Edge Cases, H1 title, capability/subsystem anchors unchanged. |
 | v1.0 | 2026-08-29 | product-owner | Initial authoring (F2 feature-mode wrap-skill E-24; CAP-040; 4 Preconditions; 16 Postconditions PC-1..PC-16 exhaustively derived from state-manager pause machinery, STATE.md frontmatter conventions, BC-6.23.001 INV-5, BC-6.24.001, BC-5.39.005; 3 Invariants; 7 Edge Cases EC-001..EC-007; 4 Canonical Test Vectors; VP-TBD completeness harness stub; full Traceability + Related BCs + Architecture Anchors). lifecycle_status: draft (POL-14 auto-promotion on S-24.01 PR merge). |

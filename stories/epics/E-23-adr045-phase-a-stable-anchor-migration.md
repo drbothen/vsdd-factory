@@ -1,7 +1,9 @@
 ---
 document_type: epic
+level: L3
+traces_to: .factory/stories/STORY-INDEX.md
 epic_id: "E-23"
-version: "v1.0"
+version: "v1.1"
 status: draft
 title: "ADR-045 Phase A — Stable-Anchor Cross-Reference Migration: thin new-pin guard, Tier-1 INDEX-resolution, pre-commit normalization codemod, mechanical corpus migration (156 files / 6 document classes), and the Phase-B residual-leakage measurement gate"
 prd_capabilities: []
@@ -20,8 +22,8 @@ inputs:
   - .factory/stories/S-21.13-read-file-range-targeted-bc-index-row-lookup.md
   - .factory/stories/S-15.03-index-cite-refresh-hook.md
   - crates/hook-plugins/validate-stable-anchors/src/lib.rs
-input-hash: "9bb23d1"
-last_amended: "2026-08-25 (v1.0) — initial authoring by story-writer following human ratification of ADR-045 v1.2 (Phase A: Tier 1 stable-anchor cross-reference architecture). Epic created to carry ADR-045's Migration Plan Phase A + the Phase-B measurement gate. E-20 reserved (POLICY 1 gap, pre-existing); E-22 dissolved; E-23 is the next free epic ID."
+input-hash: "e9ecaa5"
+last_amended: "2026-08-30 (v1.1) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 modified:
   - "2026-08-25 (v1.0) — initial authoring (story-writer): 14 stories across 5 build stories (S-23.01..S-23.05), 8 mechanical-migration-execution stories (S-23.06..S-23.13), and 1 Phase-B measurement gate story (S-23.14). No BCs exist yet for this scope — all stories carry `behavioral_contracts: []` with the pending-PO-authorship marker per Spec-First Gate (BC-8.30.001); ACs trace to ADR-045 Decision/Migration-Plan clauses instead. Handoff to product-owner for BC authorship is itemized in the epic's Behavioral Contract Gap section below."
 ---

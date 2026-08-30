@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-6"
-version: "1.0"
+version: "1.1"
 prd_capabilities: [CAP-017]
 prd_frs: [FR-041]
 status: open
@@ -12,9 +12,10 @@ phase: 2
 inputs:
   - .factory/STATE.md
   - .factory/stories/S-6.01-create-adr-skill.md
-input-hash: "4985bcc"
+input-hash: "9f6e347"
+level: L3
 traces_to: .factory/STATE.md#D-005
-last_amended: "2026-04-25 (v1.0 — initial authoring)"
+last_amended: "2026-08-30 (v1.1) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 modified:
   - "v1.0-initial"
 ---

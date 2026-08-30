@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-7"
-version: "1.2"
+version: "1.3"
 prd_capabilities: [CAP-001, CAP-016]
 prd_frs: [FR-042, FR-043]
 status: open
@@ -14,9 +14,10 @@ inputs:
   - .factory/stories/S-6.01-create-adr-skill.md
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/s6.01-pass-1.md
   - .factory/stories/S-7.03-tdd-discipline-hardening.md
-input-hash: "95e2fdd"
+input-hash: "41f6e0a"
+level: L3
 traces_to: .factory/STATE.md#Lessons-Learned
-last_amended: "2026-04-27 (v1.2)"
+last_amended: "2026-08-30 (v1.3) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 modified:
   - "v1.2"
 ---

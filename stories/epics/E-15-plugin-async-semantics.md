@@ -1,7 +1,9 @@
 ---
 document_type: epic
+level: L3
+traces_to: .factory/stories/STORY-INDEX.md
 epic_id: "E-15"
-version: "1.3"
+version: "1.4"
 status: draft
 title: "Plugin Async Semantics — Registry-Layer Partition (single-shot delivery + cold-start follow-up)"
 prd_capabilities: [CAP-002, CAP-003, CAP-008]
@@ -25,8 +27,8 @@ inputs:
   - .factory/specs/verification-properties/VP-078.md
   - .factory/specs/verification-properties/VP-079.md
   - .factory/specs/domain-spec/invariants.md
-input-hash: "47b56eb"
-last_amended: "2026-05-09 (v1.3 — F-P25-001/004: dispatch loop + async_flag serde rename corrected)"
+input-hash: "d99dc7a"
+last_amended: "2026-08-30 (v1.4) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 modified:
   - "v1.3 2026-05-09: F-P25-001/004 dispatch loop + async_flag serde rename corrected"
 ---
@@ -269,6 +271,7 @@ E-11 (W-17) similarly adds native WASM entries; same non-overlapping analysis ap
 
 | Version | Date | Author | Summary |
 |---------|------|--------|---------|
+| 1.4 | 2026-08-30 | story-writer | Frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep). |
 | 1.3 | 2026-05-09 | implementer (F-P25-001 + F-P25-004: dispatch loop row run_event removed; async_flag serde rename) | F-P25-001: §Architecture Components row 3 dispatch loop component updated: `run_event` reference removed; now cites inlined dispatch in `main.rs::main` calling `executor.rs::execute_tiers`. Module column updated to `main.rs` + `executor.rs`. F-P25-004: §Architecture Components row 1: `async` field on `RegistryEntry` → `async_flag` field on `RegistryEntry` (with `#[serde(default, rename = "async")]` preserving wire-format compatibility). |
 | 1.2 | 2026-05-09 | implementer (F-P24-002/003/004 comprehensive fabricated-symbol sweep) | F-P24-002/003/004: §Architecture Components table line 241: `routing.rs or engine.rs` (fabricated anchor) → `partition.rs`; dispatch loop row: `engine.rs` → `executor.rs`; `execute_tiers` and `spawn_async_plugin` cited explicitly. Module column corrected to match production paths. |
 | 1.1 | 2026-05-08 | state-manager | F5 pass-1 path-A follow-up: S-15.02 added (dispatcher cold-start optimization — daemon mode + WASM AOT cache; draft, TBD pts, depends on S-15.01). story_count 1→2. ADR-020 established latency budget classes (Class A current binary-spawn budget 1500ms; Class B daemon-mode target TBD). Epic title amended to reflect follow-up story. S-15.01 status updated to merged (PR #106 at 453eee1). |

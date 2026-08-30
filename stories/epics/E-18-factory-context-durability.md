@@ -1,7 +1,9 @@
 ---
 document_type: epic
+level: L3
+traces_to: .factory/stories/STORY-INDEX.md
 epic_id: "E-18"
-version: "v1.3"
+version: "v1.4"
 status: draft
 title: "Factory Context Durability — wave-boundary checkpoint, PreCompact flush, and lossless intra-wave compaction (issue #173)"
 prd_capabilities: [CAP-032]
@@ -26,8 +28,8 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md
   - .factory/specs/behavioral-contracts/ss-07/BC-7.07.002.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.15.001.md
-input-hash: "fcf5bc7"
-last_amended: "2026-06-17 (v1.3 — BC-5.41.001/002 summaries corrected)"
+input-hash: "1c48620"
+last_amended: "2026-08-30 (v1.4) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 modified:
   - "v1.3 2026-06-17: BC-5.41.001/002 summaries corrected"
 ---
@@ -184,6 +186,7 @@ Topological order: W1→W2→W3→W4→W5→W6→W7→W8. No cycles. Acyclic con
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.4 | 2026-08-30 | story-writer | Frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep). |
 | v1.3 | 2026-06-17 | product-owner | (C-P6-005 GENUINE DEFECT FIXED) §Behavioral Contract Traceability: BC-5.41.001 and BC-5.41.002 editorial summaries were semantically inverted. BC-5.41.001 summary corrected: "wave-handoff skill — HANDOFF.md write + wave-state.yaml production" → "wave-gate skill — HANDOFF.md write + anti-fabrication cross-checks" (per BC-5.41.001 H1: "wave-gate writes verified HANDOFF.md with all 9 base required fields (+epic_status on EPIC-COMPLETE wave) and anti-fabrication cross-checks before declaring wave closed"). BC-5.41.002 summary corrected: "wave-gate skill — HANDOFF.md presence validation + wave close" → "wave-gate skill — wave-state.yaml manifest production (next-wave stories + spec deps)" (per BC-5.41.002 H1: "wave-gate produces curated wave-state.yaml manifest listing next-wave stories and spec deps — no RAG"). Both summaries now directionally match their respective BC H1s per POLICY 7. |
 | v1.2 | 2026-06-17 | story-writer | (F3/O-P4-002 completion) BC-1.15.001 title in Behavioral Contract Traceability table completed to full BC H1 verbatim: added missing "to registered plugins" → "Dispatcher routes PreCompact and PostCompact harness events to registered plugins (harness >= v2.1.105)". Editorial policy note: the OTHER 9 BC titles in this table are intentionally-abbreviated editorial summaries (tolerated per F-SP3-006 adjudication) — only BC-1.15.001 receives verbatim treatment because it was singled out by O-P4-002 for strict H1 alignment. |
 | v1.1 | 2026-06-17 | story-writer | (F-P4-002 MAJOR) Line 110: wave-4 backward dependency prose corrected — S-18.03 blocks S-18.06/S-18.07 (not depends on). (O-P4-001 LOW) Line 37: volatile ADR-026 version token de-versioned — "v1.5" → "§Decisions" per POLICY 19/TD-VSDD-091 anti-volatile-pin. (O-P4-002 LOW) BC-1.15.001 title in traceability table corrected to match BC H1 verbatim: "PostCompact and PreCompact hook events" → "PreCompact and PostCompact harness events (harness >= v2.1.105)". |

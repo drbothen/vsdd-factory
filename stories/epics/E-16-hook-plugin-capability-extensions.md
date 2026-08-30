@@ -1,7 +1,9 @@
 ---
 document_type: epic
+level: L3
+traces_to: .factory/stories/STORY-INDEX.md
 epic_id: "E-16"
-version: "v1.0"
+version: "v1.1"
 status: draft
 title: "Hook Plugin Capability Extensions — block-ai-attribution message-file arm"
 prd_capabilities: [CAP-008]
@@ -19,7 +21,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.095.md
   - .factory/specs/verification-properties/VP-080.md
 input-hash: "d0a0522"
-last_amended: "2026-05-12 (v1.0 — initial authoring)"
+last_amended: "2026-08-30 (v1.1) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 modified:
   - "v1.0 2026-05-12: initial authoring"
 ---
@@ -196,4 +198,5 @@ begins.
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.1 | 2026-08-30 | story-writer | Frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep). |
 | v1.0 | 2026-05-12 | product-owner | Initial authoring. F2 spec evolution for F-block-ai-attribution-message-file-arm. |

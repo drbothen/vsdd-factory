@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-11"
-version: "1.1"
+version: "1.2"
 title: "Tier 3 Native WASM Migration (W-17) — PreToolUse protections + process discipline"
 status: draft
 tech_debt_ref: TD-014
@@ -15,9 +15,10 @@ subsystems_affected: [SS-04, SS-07]
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
 phase: 2
+level: L3
 traces_to: .factory/tech-debt-register.md#TD-014
 depends_on: ["E-8", "E-9"]
-last_amended: "2026-05-06 (v1.1 — story IDs renumbered S-11.00..S-11.07 → S-11.01..S-11.08 due to S-11.00 collision with pre-existing verify-sha-currency stub; see CHANGELOG)"
+last_amended: "2026-08-30 (v1.2) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 inputs:
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/stories/epics/E-9-tier-2-native-wasm-migration.md
@@ -26,7 +27,7 @@ inputs:
   - .factory/specs/architecture/SS-07-hook-bash.md
   - .factory/specs/prd.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "1d3e7f0"
+input-hash: "d2f3a40"
 modified:
   - "v1.1 2026-05-06: story IDs renumbered S-11.00..S-11.07 → S-11.01..S-11.08"
 ---
@@ -490,6 +491,7 @@ TD-014 CLOSED
 
 | Version | Date | Author | Summary |
 |---------|------|--------|---------|
+| 1.2 | 2026-08-30 | story-writer | Frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep). |
 | 1.1 | 2026-05-06 | product-owner | Story ID renumber: S-11.00..S-11.07 → S-11.01..S-11.08 (collision resolution). See narrative below. |
 | 1.0 | 2026-05-06 | product-owner | Initial authoring to anchor 10 orphan hooks following E-10's reallocation to ADR-015 OTel emission per D-236 (2026-05-04). Supersedes the stale "future E-10" pointer in E-8 v1.10 CHANGELOG and S-8.20–S-8.27 retirement entries. 8 stories (S-11.00 + S-11.01..S-11.07). BC anchors confirmed from BC-INDEX survey. D-11.7 documents state-manager follow-up burst for STORY-INDEX pointer correction. |
 

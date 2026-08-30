@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-14"
-version: "1.2"
+version: "1.3"
 title: "Engine Discipline Pass-2 — Process-Gap Remediation"
 status: draft
 prd_capabilities: [CAP-016, CAP-026]
@@ -14,15 +14,16 @@ subsystems_affected: [SS-04, SS-05, SS-06]
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
 phase: 2
+level: L3
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-1.md
 depends_on: ["E-12", "E-13"]
-last_amended: "2026-05-11 (v1.2 — F-P8-002 fix burst: forward-ref note corrected — S-14.01 carries cycle pass-1 not pass-2 per D-355-AMEND and D-359; CHANGELOG v1.2 row added.)"
+last_amended: "2026-08-30 (v1.3) — frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep)"
 inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-1.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-1-fix-plan.md
   - .factory/stories/epics/E-12-engine-governance.md
   - .factory/stories/epics/E-13-artifact-integrity.md
-input-hash: "c13279d"
+input-hash: "5a7e554"
 modified:
   - "v1.2 2026-05-11: F-P8-002 fix burst — forward-ref note corrected"
 ---
@@ -164,6 +165,7 @@ See Stories Planned table above (S-14.01..S-14.09).
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.3 | 2026-08-30 | Frontmatter normalization: add level: L3 (story-writer spec-hygiene sweep). |
 | v1.2 | 2026-05-11 | F-P8-002 fix burst: forward-ref note corrected — S-14.01 carries `cycle: v1.0-feature-engine-discipline-pass-1` (not pass-2) per D-355-AMEND and D-359. The note now correctly identifies S-14.02–S-14.09 as the pass-2 forward references. |
 | v1.1 | 2026-05-11 | F-P7-002 fix burst: story_count 5→9 (S-14.06/07/08 filed in F-P6-002 fix burst; S-14.09 filed in F-P6-004 fix burst). Stories Planned table updated with all 9 stories. Forward-reference note added for `cycle: v1.0-feature-engine-discipline-pass-2` per F-P7-004. |
 | v1.0 | 2026-05-07 | Initial authoring (product-owner; B6 process-gap burst from F5 pass-1 adversarial review of v1.0-feature-engine-discipline-pass-1). Five stories authored: S-14.01 (P0 BLOCKING), S-14.02-05 (P1-P2 pass-2). Delivery order: S-14.01 before F7 close-out; S-14.02-05 in next cycle. |
