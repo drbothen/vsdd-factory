@@ -1,8 +1,14 @@
 ---
 name: wrap
-description: Pause the VSDD factory and make pipeline state durable so the session can be cleared and resumed. Use when the user says "wrap", "wrap up", "wrap the session", or wants to pause the factory / end the session mid-pipeline without losing progress.
+description: >
+  Pause the VSDD factory and make pipeline state durable so the session can be
+  cleared and resumed safely. Use when the user says "wrap", "wrap up", "wrap
+  the session", or wants to pause the factory / end the session mid-pipeline
+  without losing progress. Not for wrapping code or text (use standard
+  bash/editor tools for that). Distinct from /compact-state (which slims
+  STATE.md content, not the session) and /rehydrate-wave (which resumes after
+  a cleared session).
 allowed-tools: Bash, Read, Skill, Agent
-session_checkpoints_template: "${CLAUDE_PLUGIN_ROOT}/templates/session-checkpoints-template.md"
 ---
 
 # /vsdd-factory:wrap — Pause Factory & Checkpoint for Session Clear
@@ -28,6 +34,15 @@ test-writer, holdout-evaluator, etc.) are spawned after Step 1. The state-manage
 dispatch at Step 4 is the only agent delegation allowed post-halt; it is not a
 "pipeline sub-agent" — it is the checkpoint-write mechanism. The factory-unlock
 invocation at Step 5 is a skill call, not an agent dispatch, and is permitted.
+**Exemption:** The Step 2 health-remediation skills `/vsdd-factory:compact-state`
+and `/vsdd-factory:recover-state` are permitted to run as part of Step 2 triage —
+they are not pipeline sub-agents barred by INV-3.
+
+## Announce at Start
+
+Before any other action, say verbatim:
+
+> I'm using the wrap skill to pause the factory and make pipeline state durable for a session clear.
 
 ## Step 1 — Halt new work
 
@@ -42,11 +57,11 @@ Run `/vsdd-factory:check-state-health`.
 
 - **HEALTHY / WARNINGS:** proceed to Step 3.
 - **NEEDS-COMPACT:** run `/vsdd-factory:compact-state` first so the checkpoint
-  lands in a slim STATE.md. Verify all 16 postconditions against the compacted
-  file.
+  lands in a slim STATE.md. Verify all postconditions PC-1 through PC-16 against
+  the compacted file.
 - **STATE.md missing or corrupted:** run `/vsdd-factory:recover-state`, obtain
   human approval of the reconstruction, then continue. Step 7 is NOT emitted
-  until PC-1 through PC-15 are satisfied on the reconstructed file.
+  until PC-1 through PC-16 are satisfied on the reconstructed file.
 
 ## Step 3 — Persist uncommitted work
 
@@ -58,7 +73,8 @@ Nothing in-flight may live only in this conversation or in a dirty working tree.
    - **(a) Committable WIP:** commit to the story's feature branch (NEVER to
      `main`, `develop`, or the default branch) with a message prefixed
      `wip(<STORY-ID>): session wrap checkpoint — <what is half-done>`, then
-     push to remote if a remote is configured.
+     push to remote if a remote is configured. Note: the `wip(<STORY-ID>):` prefix
+     is the intentional checkpoint-commit convention (not a mistake).
    - **(b) Uncommittable state** (mid-red-gate, merge conflict, build failure):
      do NOT force a broken commit. Document the exact state explicitly in the
      Session Resume Checkpoint at Step 4 (PC-8 field (c)) instead. Step 7
@@ -67,11 +83,20 @@ Nothing in-flight may live only in this conversation or in a dirty working tree.
    artifact files (specs, stories, cycle files) are committed by state-manager
    at Step 4 along with STATE.md.
 3. **Push story branches** to remote if one is configured (`git push` per
-   branch), so the checkpoint survives loss of the machine, not just the
-   session. If push fails or no remote exists, note `pushed: no (<reason>)`;
-   the working-tree clean check at Step 6 still applies locally.
+   branch). Three outcomes are possible:
+   - **(a) Push succeeds:** note `pushed: yes` in the Step 7 report.
+   - **(b) No remote configured:** note `pushed: no (no remote configured)` in
+     the Step 7 report.
+   - **(c) Push rejected** (network error or remote reject against an existing
+     remote): note `pushed: no (push rejected — <reason>)` in the Step 7
+     report. This is distinct from (b): a remote exists but the push failed.
+     See Step 7 for the off-machine durability warning and acknowledgement gate.
 
 ## Step 4 — Pause + checkpoint via state-manager
+
+**Before delegating:** Read `.factory/STATE.md` (use the Read tool — this is a
+read-only operation) and record the current `version:` frontmatter value as
+`pre_pause_version`. This value is needed for the PC-6 verification at Step 6.
 
 Delegate to the `vsdd-factory:state-manager` agent (via the `Agent` tool) with
 the following instruction set. The wrap skill makes ZERO direct Write or Edit
@@ -91,7 +116,8 @@ State-manager MUST perform ALL of the following in a single burst
    justification-suffix injection (PC-4).
 5. Update `last_amended:` with today's date, version bump token, `state-manager`
    identity, and a single-line pause description (PC-5).
-6. Bump `version:` by exactly one point; no double-bump (PC-6; TD-VSDD-053).
+6. Bump `version:` by exactly one point from the current value; no double-bump
+   (PC-6; TD-VSDD-053).
 7. Update the banner `wc-l` claim and dual-margin to match the actual
    `wc -l .factory/STATE.md` after the pause commit (PC-7; BC-5.39.005).
 8. Archive the prior `## Session Resume Checkpoint` section to
@@ -113,8 +139,12 @@ State-manager MUST perform ALL of the following in a single burst
 11. Commit with subject prefix `factory(pause):` including the phase and
     one-line position string (single commit; TD-VSDD-053; PC-11).
 12. Push to remote (`git push origin factory-artifacts`) if a remote is
-    configured (PC-12). If no remote is configured, the checkpoint is
-    local-only; note `pushed: no (no remote configured)` in the Step 7 report.
+    configured (PC-12). Three outcomes:
+    - Push succeeds: report `pushed: yes`.
+    - Push rejected (network error / remote reject): report
+      `pushed: no (push rejected — <reason>)`.
+    - No remote configured: report `pushed: no (no remote configured)`.
+    In all cases the working-tree clean assertion (PC-12) still applies locally.
 
 ## Step 5 — Release the factory lock
 
@@ -128,23 +158,172 @@ a wrap failure.
 
 ## Step 6 — Verify durability
 
-All of the following MUST pass before declaring the wrap complete (INV-2).
-If any check fails, fix it (re-delegate to state-manager if STATE.md is wrong;
-re-run `git status` if the tree is dirty) and re-verify — do NOT report success
-with a failing check.
+**Read-only verification only.** All checks in this step use only the Read tool,
+`grep`, and `bash` (read-only commands such as `wc -l`, `git log`, `git status`).
+Do NOT edit STATE.md or any other file at this step. On any failed check:
+re-delegate the specific fix to `vsdd-factory:state-manager` (for STATE.md
+failures), or re-run `/vsdd-factory:factory-unlock` (for PC-14 lock failures),
+then re-run Step 6 from the beginning. Do NOT proceed to Step 7 while any check
+is failing (INV-2; EC-007).
 
-- [ ] `git -C .factory status --porcelain` returns empty (factory-artifacts
-      working tree clean; PC-12).
-- [ ] STATE.md frontmatter reads `pipeline: PAUSED` (PC-1).
-- [ ] Exactly one `## Session Resume Checkpoint` section exists in STATE.md and
-      reflects today's date (PC-8).
-- [ ] Product repo and all active story worktrees have no uncommitted changes
-      that were intended to be saved, or their state is explicitly documented
-      in the checkpoint (PC-8 field (c); PC-13 double-check).
+### PC-1 — `pipeline:` equals `PAUSED`
+
+```bash
+grep '^pipeline:' .factory/STATE.md
+```
+
+Expected: `pipeline: PAUSED`
+
+### PC-2 — `timestamp:` refreshed to today's date
+
+```bash
+grep '^timestamp:' .factory/STATE.md
+```
+
+Expected: an ISO-8601 string containing today's date (YYYY-MM-DD).
+
+### PC-3 — `phase:` begins with `PAUSED <YYYY-MM-DD>`
+
+```bash
+grep '^phase:' .factory/STATE.md
+```
+
+Expected: value begins with `PAUSED <YYYY-MM-DD>.` (today's date).
+
+### PC-4 — `current_step:` contains `SESSION-WRAP-PAUSE-<YYYY-MM-DD>`
+
+```bash
+grep '^current_step:' .factory/STATE.md
+```
+
+Expected: value contains `SESSION-WRAP-PAUSE-<YYYY-MM-DD>`.
+
+### PC-5 — `last_amended:` updated with today's date and `state-manager`
+
+```bash
+grep '^last_amended:' .factory/STATE.md
+```
+
+Expected: value begins with today's date (YYYY-MM-DD) and includes `state-manager`.
+
+### PC-6 — `version:` bumped by exactly one from pre-pause value
+
+```bash
+grep '^version:' .factory/STATE.md
+```
+
+Expected: the numeric value equals `pre_pause_version + 1` (captured at the start
+of Step 4). Confirm no double-bump (TD-VSDD-053).
+
+### PC-7 — banner `wc-l` claim matches actual line count (HIGH — EC-007)
+
+```bash
+wc -l .factory/STATE.md
+grep -E 'wc.l|margin from actual' .factory/STATE.md | head -5
+```
+
+Expected: the banner comment's claimed line count matches the actual `wc -l`
+output. The dual-margin `500 - <actual> = <margin>` must be arithmetically
+correct. A mismatch is HIGH severity (BC-5.39.005 banner seal discipline).
+
+### PC-8 — exactly one `## Session Resume Checkpoint`, dated today
+
+```bash
+grep -c '## Session Resume Checkpoint' .factory/STATE.md
+grep -A 2 '## Session Resume Checkpoint' .factory/STATE.md
+```
+
+Expected: count is exactly `1`; the checkpoint content includes today's date
+(YYYY-MM-DD).
+
+### PC-9 — Phase Progress row `SESSION-WRAP-PAUSE-<YYYY-MM-DD>` exists
+
+```bash
+grep 'SESSION-WRAP-PAUSE' .factory/STATE.md
+```
+
+Expected: at least one match; the row shows status `COMPLETE` and agent
+`state-manager`.
+
+### PC-10 — STATE.md mutations performed exclusively by state-manager
+
+Satisfied structurally: this skill has made zero direct Write/Edit calls on
+STATE.md at any step. No additional grep check required.
+
+### PC-11 — exactly one `factory(pause):` commit; no `backfill`/`Stage N` chain
+
+```bash
+git -C .factory log --oneline -3
+```
+
+Expected: the most recent commit subject begins with `factory(pause):`. Neither
+HEAD nor HEAD^ subject contains `backfill`, `Stage 1`, or `Stage 2`
+(TD-VSDD-053).
+
+### PC-12 — factory-artifacts working tree clean
+
+```bash
+git -C .factory status --porcelain
+```
+
+Expected: empty output (no staged, unstaged, or untracked files).
+
+### PC-13 — product repo and story worktrees committed or documented
+
+```bash
+git status --porcelain
+# For each active .worktrees/STORY-* directory:
+# git -C .worktrees/<STORY-ID> status --porcelain
+```
+
+Expected for each: empty output (all changes committed) OR the exact
+uncommittable state is explicitly documented in the Session Resume Checkpoint
+PC-8 field (c).
+
+### PC-14 — factory lock is FREE
+
+```bash
+grep '^factory_lock:' .factory/STATE.md && echo "LOCK HELD" || echo "LOCK FREE"
+```
+
+Expected: `LOCK FREE` — the `factory_lock:` key is absent from STATE.md
+frontmatter (factory-unlock removed it at Step 5, or no lock was held).
+If `LOCK HELD`: the lock is still present — wrap failure. Re-run
+`/vsdd-factory:factory-unlock`, then re-verify. The `Lock:` line in Step 7 is
+GATED on this verified state, not merely on Step 5 having run.
+
+### PC-15 — resume guidance names `rehydrate-wave` before `next-step`
+
+Verify structurally: the Step 7 report you are about to emit follows the template
+order — `/vsdd-factory:rehydrate-wave` appears before `/vsdd-factory:next-step`.
+A wrap report that lists only `next-step` without `rehydrate-wave` first is a
+behavioral violation (BC-6.24.001).
+
+---
+
+Once all checks above pass, proceed to Step 7.
 
 ## Step 7 — Report
 
 Only emit this report after Step 6 passes completely (INV-2).
+
+**If the factory-artifacts checkpoint was NOT pushed to remote** (Step 4 item 12
+or Step 3 item 3 reports `pushed: no` for either reason — no remote configured
+OR push rejected), you MUST perform the following before emitting the full report:
+
+1. Emit the warning line:
+   `⚠ Off-machine durability NOT guaranteed — checkpoint is local-only.`
+2. Ask the operator explicitly:
+   `The factory checkpoint exists only on this machine. If this machine is lost
+   before a push succeeds, the checkpoint will be unrecoverable. Type "acknowledge"
+   to confirm local-only mode and proceed.`
+3. Wait for the operator to type `acknowledge` (or equivalent explicit
+   confirmation).
+4. Only after acknowledgement, emit the full "Factory Wrapped" report below,
+   including `Safe to /clear or close this session.`
+
+Do NOT emit `Safe to /clear or close this session.` on an un-pushed checkpoint
+without explicit operator acknowledgement (BC-6.28.001 EC-006 / INV-2).
 
 ```
 ## Factory Wrapped
@@ -169,10 +348,13 @@ Report notes:
   frontmatter fields (PC-16a).
 - `committed <sha>` is the factory-artifacts commit SHA from Step 4 (PC-16b).
 - `pushed: yes` or `pushed: no (<reason>)` per actual push outcome (PC-16b).
+  When `pushed: no`, the `⚠ Off-machine durability NOT guaranteed` warning line
+  MUST appear and operator acknowledgement is required before `Safe to /clear`.
 - `WIP commits:` lists `<branch>@<sha>` for every branch committed at Step 3,
   or `none` if no WIP was in-flight (PC-16c).
 - `Lock:` is `released` if factory-unlock ran at Step 5, or `not held` if
-  Step 5 was skipped silently (PC-16d).
+  Step 5 was skipped silently (PC-16d). This value is VERIFIED by the PC-14
+  grep check in Step 6 — not merely assumed from Step 5 having run.
 - `Safe to /clear or close this session.` is the exact wording (PC-16e) — this
   is the human-facing signal that all postconditions have been verified.
 
@@ -181,3 +363,4 @@ Report notes:
 - Does NOT complete or merge in-flight stories — it checkpoints them.
 - Does NOT modify spec or story content.
 - Does NOT run compaction unless STATE.md health requires it (Step 2 routing).
+- Does NOT wrap code or text (use standard bash/editor tools for that).
