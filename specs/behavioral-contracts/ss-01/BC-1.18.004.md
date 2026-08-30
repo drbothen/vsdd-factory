@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
+last_amended: "2026-08-30 (v1.1) — consistency-audit finding 9 (product-owner): PC4 reworded to state Cohort A-IMMEDIATE / Cohort A-DEFERRED partition explicitly per ADR-047 §Decision 8a v1.3 and S-25.01 AC-016."
 status: draft
 producer: product-owner
 timestamp: 2026-08-30T00:00:00Z
@@ -18,7 +19,8 @@ subsystem: "SS-01"
 capability: "CAP-041"
 lifecycle_status: draft
 introduced: v1.0-feature-validation-integrity-layer1
-modified: []
+modified:
+  - "2026-08-30 (v1.1)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -68,11 +70,18 @@ fail-open plugins.
    normally.
 
 4. **ALL current plugins default to this path.** In Layer 1, exactly THREE Cohort A validators
-   receive `failure_policy = "fail-closed"` assignments: `validate-pr-merge-prerequisites`,
-   `validate-wave-gate-prerequisite`, and `validate-factory-path-staging` (ADR-047 §Decision 8a
-   — human-confirmed Cohort A; subject to ADR-039 §Decision 3 calibration confirmation before
-   activation). No other validator receives a fail-closed assignment in S-25.01 unless explicitly
-   confirmed by the human at the F3 spec gate.
+   receive `failure_policy = "fail-closed"` assignments (ADR-047 §Decision 8a — human-confirmed
+   Cohort A). These are partitioned by activation status:
+   - **`validate-factory-path-staging` — EFFECTIVE-NOW (Cohort A-IMMEDIATE):** No calibration
+     dependency. Active from S-25.01 delivery. Governs `.factory/` write-path PostToolUse hooks
+     on Edit/Write/MultiEdit/Bash artifacts targeting `.factory/` paths.
+   - **`validate-pr-merge-prerequisites` and `validate-wave-gate-prerequisite` — SET-BUT-LATENT
+     (Cohort A-DEFERRED):** `failure_policy = "fail-closed"` is set in the registry schema but
+     calibration-gated per ADR-039 §Decision 3. These validators activate at S-21.24
+     (calibration confirmation gate). Until activation, INDETERMINATE on these validators is
+     advisory-only (same effect as fail-open) despite the fail-closed registry entry.
+   No other validator receives a fail-closed assignment in S-25.01 unless explicitly confirmed
+   by the human at the F3 spec gate. (Source: S-25.01 AC-016; ADR-047 §Decision 8a v1.3.)
 
 5. **Backward-compat guard test preserved.** The implementation MUST include the test
    `test_BC_1_18_004_fail_open_default_preserves_advisory_behavior` (alternatively named
@@ -168,4 +177,5 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.1 | 2026-08-30 | product-owner | Consistency-audit finding 9 (MINOR): PC4 reworded to state Cohort A-IMMEDIATE / Cohort A-DEFERRED partition explicitly per ADR-047 §Decision 8a v1.3 and S-25.01 AC-016. `validate-factory-path-staging` = EFFECTIVE-NOW (no calibration gating); `validate-pr-merge-prerequisites` + `validate-wave-gate-prerequisite` = SET-BUT-LATENT (ADR-039 §Decision 3, activate at S-21.24). PC5 (DO-NOT-DELETE guard-test clause) and fail-open backward-compat anchor unchanged. |
 | 1.0 | 2026-08-30 | product-owner | Initial creation. F2 spec-evolution burst, validation-integrity-layer1. BC-1.18.004: fail-open advisory-only behavior, no-marker/no-gate, FailurePolicy::default()=FailOpen, Cohort A (3 validators only), canonical backward-compat guard test preservation obligation. VP-106 anchored. CAP-041 capability anchor. ADR-047 §D2/D7/D8a + ADR-039 §D1 citations. |
