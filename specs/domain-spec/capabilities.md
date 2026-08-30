@@ -2,18 +2,18 @@
 document_type: domain-spec-section
 level: L2
 section: capabilities
-version: "1.14"
+version: "1.15"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: 2026-08-29
+last_amended: 2026-08-30
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "bde1b12"
+input-hash: "65ddd1c"
 traces_to: L2-INDEX.md
 ---
 
@@ -320,10 +320,63 @@ by explicit human invocation. This capability covers the skill that orchestrates
 primitives into a single deterministic safe-pause sequence at the human's request. Append-only P1
 addition; CAP-039 is the prior entry.
 
+**CAP-041 — Validation Integrity: INDETERMINATE Outcome, Durable Mutation Marker, and Next-Advance Gate**
+When a fail-closed WASM validator plugin cannot complete — due to fuel exhaustion
+(`Trap::OutOfFuel`), epoch timeout (`Trap::Interrupt`), or host output too large
+(`PluginResult::Ok{exit_code:0}` with `host_output_too_large_seen == true`) — the dispatcher
+classifies the outcome as INDETERMINATE rather than silently passing. This closes the
+pre-Layer-1 CWE-754 (Improper Check for Exceptional Conditions) vulnerability where all three
+causes produced a false-PASS signal.
+For plugins with `failure_policy = "fail-closed"` (Layer 1 Cohort A: `validate-pr-merge-prerequisites`,
+`validate-wave-gate-prerequisite`, `validate-factory-path-staging`): (a) the dispatcher emits a
+`plugin.indeterminate` event to the OTel-aligned event log, (b) writes an atomic durable marker
+at `.factory/unvalidated-mutation.marker` (TOML format: `timestamp`, `plugin_name`,
+`artifact_path`, `cause` (fuel|epoch|output-too-large), `trace_id`), and (c) arms the
+next-advance gate: the two registered `validate-unvalidated-mutation-marker.wasm` entries block
+the subsequent `^Agent$` PreToolUse dispatch AND any `git commit`/`git push` Bash PreToolUse
+dispatch until the marker is cleared.
+For plugins with `failure_policy = "fail-open"` or absent `failure_policy` (default — all ~76
+current production plugins): INDETERMINATE is advisory-only. Only the `plugin.indeterminate`
+event is emitted; no marker is written and no gate is triggered. The canonical backward-
+compatibility guard test `test_BC_1_18_004_fail_open_default_preserves_advisory_behavior`
+MUST NOT be deleted (ADR-047 §Decision 7 preservation obligation).
+The marker is cleared by: (Condition A) the same named plugin producing a subsequent PASS
+(`DispatchOutcome::Pass`, exit_code=0, `host_output_too_large_seen=false`) on the same
+artifact — `delete_marker_if_pass` performs an idempotent `fs::remove_file`; or (Condition B)
+operator manual deletion via `rm .factory/unvalidated-mutation.marker` — a fully supported
+escape hatch requiring only shell access. Both conditions unblock both gate arms simultaneously.
+A FAIL re-validation preserves the marker; INDETERMINATE re-validation overwrites it
+(last-writer-wins, single-marker policy).
+Subsystems: SS-01 (dispatcher executor, marker write/clear, gate registration), SS-04
+(factory-artifacts path hosting the marker), SS-07 (registry `failure_policy` field routing).
+Outcome: after Layer 1, the dispatcher can never silently approve a mutation whose authoritative
+validator ran out of resources — the mutation is quarantined (marker + gate) until either the
+validator succeeds on a re-run or the operator explicitly overrides via `rm`. The fail-open path
+(~76 existing plugins) is unaffected: only Cohort A validators (exactly three human-confirmed
+entries) are gated in S-25.01. This satisfies NIST SA-8(24) Fail Secure for the bounded
+fail-closed cohort.
+Source: ADR-047 (§Decision 1 — outcome trichotomy; §Decision 2 — `failure_policy` reuse;
+§Decision 3 — durable marker format; §Decision 4 — next-advance gate Arm 1; §Decision 5 —
+marker-clear protocol; §Decision 7 — backward-compatibility contract; §Decision 8a — Cohort A
+three-validator enumeration; §Decision 9 — git commit/push Arm 2 extension);
+BC-1.18.001 (fail-closed INDETERMINATE + marker write); BC-1.18.002 (next-advance gate both
+arms); BC-1.18.003 (marker-clear protocol); BC-1.18.004 (fail-open advisory-only anchor);
+BC-3.08.001 Event 8 (SS-03 wire-format catalog for `plugin.indeterminate`); S-25.01.
+Justification: no existing capability covers the INDETERMINATE outcome class, durable mutation
+marker, or next-advance gate. CAP-003 covers the event-stream observability sink (the
+`plugin.indeterminate` event routes there, but the gate and marker lifecycle are distinct
+concerns not covered by sink observability). CAP-011 covers fuel/epoch budget enforcement as a
+block-or-pass decision axis — the INDETERMINATE path is a separate "cannot complete" axis that
+ADR-047 adds orthogonally to ADR-039's block/advisory axes. CAP-039 covers the break-glass
+override for self-locking gates — a complementary escape hatch for a different failure mode
+(gate itself wedges) rather than the marker quarantine this capability defines. Append-only P1
+addition; CAP-040 is the prior entry.
+
 ## CHANGELOG
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.15 | 2026-08-30 | F2 validation-integrity-layer1 (product-owner, orchestrator-dispatched): authored CAP-041 (P1 — Validation Integrity: INDETERMINATE Outcome, Durable Mutation Marker, and Next-Advance Gate; SS-01/SS-04/SS-07; ADR-047 §D1–D9; BC-1.18.001–004; BC-3.08.001 Event 8; S-25.01). Closes pre-Layer-1 CWE-754 false-PASS vulnerability. Cohort A = 3 human-confirmed fail-closed validators in S-25.01 Layer 1. Distinguishes from CAP-003 (sink observability), CAP-011 (fuel/epoch budget enforcement), CAP-039 (break-glass gate bypass). CAP count advance 40→41. |
 | v1.14 | 2026-08-29 | F2 feature-mode wrap-skill (product-owner, orchestrator-dispatched): authored CAP-040 (P1 — human-initiated factory session pause and resume checkpoint orchestration; SS-06; BC-6.28.001; BC-6.23.001 Invariant 5; BC-6.24.001; BC-5.39.005). Distinguishes from CAP-031 (raw lock acquire/release protocol) and CAP-032 (wave-boundary checkpoint / PreCompact flush). CAP count advance 39→40. |
 | v1.13 | 2026-08-20 | S-21.25 adversarial pass-2 fix (LOW; brownfield cycle v1.0-brownfield-backfill, product-owner, orchestrator-dispatched): CAP-011 body's ADR-042 section cite corrected "§Decision 2" → "§Decision 1". ADR-042 §Decision 1 ("New fuel budget value: 20,000,000 (20M), derivation from measured data") is the section that actually sets the 20M default; §Decision 2 covers a different concern ("Raise is global … not per-plugin"). The v1.12 fix (immediately below) introduced the wrong section number while correcting the stale "10M" figure; this row aligns the cite with `crates/factory-dispatcher/src/invoke.rs`'s `DEFAULT_FUEL_CAP` doc comment and BC-1.03.019 Precondition 2/Architecture Anchors, both of which already cite "§Decision 1" correctly. No capability semantics, subsystem mapping, or outcome statement altered — precision fix only. |
 | v1.12 | 2026-08-20 | F-S2125-P1-007 fix (LOW, pre-existing; S-21.25 adversarial review, brownfield cycle v1.0-brownfield-backfill, architect, orchestrator-dispatched): CAP-011 body corrected "default 10M operations" → "default 20M operations (per ADR-042 §Decision 2)". The 10M figure predated ADR-042's fuel-cap raise and had gone stale; BC-1.03.019 anchors to CAP-011, making the staleness load-bearing. No capability semantics, subsystem mapping, or outcome statement altered — precision fix only. |

@@ -2,12 +2,13 @@
 document_type: verification-coverage-matrix
 level: L4
 section: verification-coverage-matrix
-version: "1.9"
+version: "1.10"
 status: draft
 producer: architect
 timestamp: 2026-06-24T00:00:00Z
-last_amended: "2026-07-29 (v1.9) — D-943 S-21.04 pass-28 POLICY 9 propagation (state-manager): VP-097 SS-01 row title corrected — 'Cannot Escape' → 'Cannot Resolve Outside' (verbatim VP-097.md title since v1.0; POLICY 9 no-op: proof_method kani-proof unchanged); input-hash 015260d→16cc408. [Prior: 2026-07-16 (v1.8) — F-P2-001 POLICY 9 re-propagation (architect): VP-095 SS-04 catalog row title corrected to v1.3 H1 verbatim form (host::read_prefix(262144)); v1.7 propagated to VP-095 v1.2 Phase-B title (8192) which v1.3 superseded same-burst 2026-07-16; §3 SS-04 data row corrected U 4→5 I 7→6 (pre-existing omission from v1.7 partial update — §1 subtotal was correct; §3 data row not updated); input-hash f0fab9c→5279415. [Prior: 2026-07-16 (v1.7) — S-19.07 Phase-B POLICY 9 propagation (architect): VP-095 SS-04 row title updated to Phase-B form; ✓ moved from I column to U column; SS-04 subtotal U 4→5, I 7→6; Grand Total U 46→47, I 34→33; input-hash c9ec678→f0fab9c. [Prior: 2026-07-13 (v1.6) — pass-11 F-P11-001 POLICY 9 propagation (architect): VP-099 SS-07 row title updated to both-ends form ('Starts With ^' → 'Is Fully Anchored (^...$)'); input-hash 893a501→c9ec678. [Prior: 2026-07-08 (v1.5) — E-19 pass-28 VP-096 boundary-wording sync (architect): VP-096 SS-04 row title updated to exclusive form per BC-4.13.001 §Invariant 9 adjudication (D-781): 'Byte-Exact Prefix Through Second --- Delimiter' → 'Byte-Exact Prefix Up To (Excluding) Second --- Delimiter Line'. input-hash 7a7ac8c→893a501. [Prior: 2026-07-06 (v1.4) — E-19 VP package POLICY 9 propagation (architect): VP-094 added to SS-05 module table (I; BC-5.42.001); VP-095/096 added to SS-04 (I + P; BC-4.13.001); VP-097/098/100/101 added to SS-01 (K + I + I + I; BC-2.07.001+BC-2.02.011 + BC-2.07.001 + BC-3.08.001+DI-019 + BC-1.17.001); VP-099 added to SS-07 (I; no BC). SS-01 subtotal K 2→3 (+VP-097), I 7→10 (+VP-098/100/101), row total 32→36. SS-04 subtotal P 1→2 (+VP-096), I 6→7 (+VP-095), row total 13→15. SS-05 subtotal I 5→6 (+VP-094), row total 12→13. SS-07 subtotal I 4→5 (+VP-099), row total 11→12. Grand Total K 4→5, P 4→5, I 28→34, row total 93→101. Per-tool arithmetic 5+5+46+34+10+1=101 VERIFIED. Per-subsystem row-sum 36+5+14+15+13+5+12+1=101 VERIFIED. §2 VP-100 judgment call added (SS-01 primary; SS-03 secondary). §3 Grand Totals updated. [Prior: 2026-06-24 (v1.3) — S-18.04b-prereq BC authoring burst (architect POLICY 9 propagation): VP-093 added to SS-01 module table (integration; SS-01; DI-020, DI-025; BC-1.16.001 — dispatcher git_context injection on PostToolUse Bash git-commit events; four-field completeness; fail-open on git error; no injection on non-qualifying events). SS-01 subtotal I 6→7, row total 31→32. Grand Total I 27→28, row total 92→93. Per-tool arithmetic 4+4+46+28+10+1=93 VERIFIED. Per-subsystem row-sum 32+5+14+13+12+5+11+1=93 VERIFIED. [Prior: 2026-06-16 (v1.2) — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST (state-manager POLICY 9 propagation): VP-092 added to SS-06 module table (unit-test; SS-06; DI-020; BC-6.25.001 — check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; never blocks). SS-06 subtotal U 0→1, row total 4→5. Grand Total U 45→46, row total 91→92. Per-tool arithmetic 4+4+46+27+10+1=92 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+5+11+1=92 VERIFIED. [Prior: 2026-06-16 (v1.1) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to SS-04 module table (unit-test; SS-04; DI-020; BC-4.15.001 — validate-heavy-op-delegation always-Continue advisory gate). SS-04 subtotal U 3→4, row total 12→13. Grand Total U 44→45, row total 90→91. Per-tool arithmetic 4+4+45+27+10+1=91 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+4+11+1=91 VERIFIED. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Every VP assigned to its authoritative module per VP-INDEX.md scope column and VP file frontmatter. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]]"
+last_amended: "2026-08-30 (v1.10) — validation-integrity-layer1 F2 spec-evolution burst (architect; POLICY 9 propagation): VP-102/103/104/106 added to SS-01 module table (U column; unit-test; BC-1.18.001 — INDETERMINATE outcome model); VP-105 added to SS-04 module table (I column; integration; BC-1.18.002 — next-advance gate); SS-01 subtotal U 22→26 (+4), Row 36→40; SS-04 subtotal I 6→7 (+1), Row 15→16; Grand Total U 47→51, I 33→34, Total 101→106. Per-tool arithmetic 5+5+51+34+10+1=106 VERIFIED. Per-subsystem row-sum 40+5+14+16+13+5+12+1=106 VERIFIED. §3 Grand Totals updated. input-hash d1075c2→cfb38c7. [Prior: 2026-07-29 (v1.9) — D-943 S-21.04 pass-28 POLICY 9 propagation (state-manager): VP-097 SS-01 row title corrected — 'Cannot Escape' → 'Cannot Resolve Outside' (verbatim VP-097.md title since v1.0; POLICY 9 no-op: proof_method kani-proof unchanged); input-hash 015260d→16cc408. [Prior: 2026-07-16 (v1.8) — F-P2-001 POLICY 9 re-propagation (architect): VP-095 SS-04 catalog row title corrected to v1.3 H1 verbatim form (host::read_prefix(262144)); v1.7 propagated to VP-095 v1.2 Phase-B title (8192) which v1.3 superseded same-burst 2026-07-16; §3 SS-04 data row corrected U 4→5 I 7→6 (pre-existing omission from v1.7 partial update — §1 subtotal was correct; §3 data row not updated); input-hash f0fab9c→5279415. [Prior: 2026-07-16 (v1.7) — S-19.07 Phase-B POLICY 9 propagation (architect): VP-095 SS-04 row title updated to Phase-B form; ✓ moved from I column to U column; SS-04 subtotal U 4→5, I 7→6; Grand Total U 46→47, I 34→33; input-hash c9ec678→f0fab9c. [Prior: 2026-07-13 (v1.6) — pass-11 F-P11-001 POLICY 9 propagation (architect): VP-099 SS-07 row title updated to both-ends form ('Starts With ^' → 'Is Fully Anchored (^...$)'); input-hash 893a501→c9ec678. [Prior: 2026-07-08 (v1.5) — E-19 pass-28 VP-096 boundary-wording sync (architect): VP-096 SS-04 row title updated to exclusive form per BC-4.13.001 §Invariant 9 adjudication (D-781): 'Byte-Exact Prefix Through Second --- Delimiter' → 'Byte-Exact Prefix Up To (Excluding) Second --- Delimiter Line'. input-hash 7a7ac8c→893a501. [Prior: 2026-07-06 (v1.4) — E-19 VP package POLICY 9 propagation (architect): VP-094 added to SS-05 module table (I; BC-5.42.001); VP-095/096 added to SS-04 (I + P; BC-4.13.001); VP-097/098/100/101 added to SS-01 (K + I + I + I; BC-2.07.001+BC-2.02.011 + BC-2.07.001 + BC-3.08.001+DI-019 + BC-1.17.001); VP-099 added to SS-07 (I; no BC). SS-01 subtotal K 2→3 (+VP-097), I 7→10 (+VP-098/100/101), row total 32→36. SS-04 subtotal P 1→2 (+VP-096), I 6→7 (+VP-095), row total 13→15. SS-05 subtotal I 5→6 (+VP-094), row total 12→13. SS-07 subtotal I 4→5 (+VP-099), row total 11→12. Grand Total K 4→5, P 4→5, I 28→34, row total 93→101. Per-tool arithmetic 5+5+46+34+10+1=101 VERIFIED. Per-subsystem row-sum 36+5+14+15+13+5+12+1=101 VERIFIED. §2 VP-100 judgment call added (SS-01 primary; SS-03 secondary). §3 Grand Totals updated. [Prior: 2026-06-24 (v1.3) — S-18.04b-prereq BC authoring burst (architect POLICY 9 propagation): VP-093 added to SS-01 module table (integration; SS-01; DI-020, DI-025; BC-1.16.001 — dispatcher git_context injection on PostToolUse Bash git-commit events; four-field completeness; fail-open on git error; no injection on non-qualifying events). SS-01 subtotal I 6→7, row total 31→32. Grand Total I 27→28, row total 92→93. Per-tool arithmetic 4+4+46+28+10+1=93 VERIFIED. Per-subsystem row-sum 32+5+14+13+12+5+11+1=93 VERIFIED. [Prior: 2026-06-16 (v1.2) — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST (state-manager POLICY 9 propagation): VP-092 added to SS-06 module table (unit-test; SS-06; DI-020; BC-6.25.001 — check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; never blocks). SS-06 subtotal U 0→1, row total 4→5. Grand Total U 45→46, row total 91→92. Per-tool arithmetic 4+4+46+27+10+1=92 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+5+11+1=92 VERIFIED. [Prior: 2026-06-16 (v1.1) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to SS-04 module table (unit-test; SS-04; DI-020; BC-4.15.001 — validate-heavy-op-delegation always-Continue advisory gate). SS-04 subtotal U 3→4, row total 12→13. Grand Total U 44→45, row total 90→91. Per-tool arithmetic 4+4+45+27+10+1=91 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+4+11+1=91 VERIFIED. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Every VP assigned to its authoritative module per VP-INDEX.md scope column and VP file frontmatter. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]]"
 modified:
+  - "2026-08-30 (v1.10) — E-25 F2 validation-integrity-layer1: VP-102/103/104/106 added SS-01 (U); VP-105 added SS-04 (I); SS-01 U 22→26, Row 36→40; SS-04 I 6→7, Row 15→16; Grand Total U 47→51, I 33→34, Total 101→106; input-hash d1075c2→cfb38c7"
   - "2026-07-29 (v1.9) — D-943 VP-097 SS-01 title corrected 'Cannot Escape' → 'Cannot Resolve Outside'; input-hash 015260d→16cc408"
   - "2026-07-16 (v1.8) — F-P2-001 POLICY 9 re-propagation: VP-095 SS-04 row title corrected to v1.3 form (262144); §3 SS-04 data row U 4→5 I 7→6 (omission from v1.7); input-hash f0fab9c→5279415"
   - "2026-07-16 (v1.7) — S-19.07 Phase-B POLICY 9 propagation: VP-095 SS-04 row title→Phase-B form; ✓ I→U; SS-04 subtotal U 4→5, I 7→6; Grand Total U 46→47, I 34→33; input-hash c9ec678→f0fab9c"
@@ -20,7 +21,7 @@ modified:
   - "2026-06-16 (v1.0 initial creation)"
 phase: 1b
 inputs: [verification-properties/VP-INDEX.md]
-input-hash: "b5cee7d"
+input-hash: "cfb38c7"
 traces_to: VP-INDEX.md
 subsystems_affected:
   - SS-01
@@ -48,13 +49,15 @@ subsystems_affected:
 > their additional subsystem affiliations are noted in the Subsystems column.
 >
 > **Grand-total arithmetic invariant:** Each VP is counted exactly once in the grand-
-> total row. The per-tool column sums (K+P+U+I+M+S) must equal 101. This invariant
+> total row. The per-tool column sums (K+P+U+I+M+S) must equal 106. This invariant
 > must be verified on every update to this document.
 
 ## §Changelog
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.10 | 2026-08-30 | architect | E-25 F2 validation-integrity-layer1 POLICY 9 propagation: VP-102/103/104/106 added to SS-01 module table (U; unit-test; BC-1.18.001 — INDETERMINATE outcome model, durable marker, fail-closed classification); VP-105 added to SS-04 module table (I; integration; BC-1.18.002 — next-advance gate). SS-01 subtotal U 22→26 (+4), Row 36→40. SS-04 subtotal I 6→7 (+1), Row 15→16. Grand Total U 47→51, I 33→34, Total 101→106. §3 Grand Totals table updated; §SS-01 row detail updated; arithmetic invariant note 101→106. Per-tool arithmetic 5+5+51+34+10+1=106 VERIFIED. Per-subsystem row-sum 40+5+14+16+13+5+12+1=106 VERIFIED. input-hash d1075c2→cfb38c7. |
+| v1.9 | 2026-07-29 | state-manager | D-943 S-21.04 pass-28 POLICY 9 propagation: VP-097 SS-01 row title corrected 'Cannot Escape' → 'Cannot Resolve Outside' (verbatim VP-097.md title since v1.0; POLICY 9 no-op: proof_method kani-proof unchanged). input-hash 015260d→16cc408. |
 | v1.8 | 2026-07-16 | architect | F-P2-001 POLICY 9 re-propagation: VP-095 SS-04 catalog row title corrected to v1.3 H1 verbatim form ('verify-factory-lock Never Receives output_too_large for Any STATE.md Size — Structural Guarantee via host::read_prefix(262144) (BC-1.17.001 PC-3); Large-STATE.md Frontmatter Correctly Parsed from 262144-Byte Prefix'); v1.7 propagated to VP-095 v1.2 Phase-B title (8192) which VP-095 v1.3 superseded same-burst 2026-07-16. §3 SS-04 data row corrected U 4→5 I 7→6 (pre-existing omission from v1.7 partial update; §1 subtotal was already correct at U=5 I=6). Per-tool arithmetic 5+5+47+33+10+1=101 VERIFIED. Per-subsystem row-sum 36+5+14+15+13+5+12+1=101 VERIFIED. input-hash f0fab9c→5279415. |
 | v1.7 | 2026-07-16 | architect | S-19.07 Phase-B POLICY 9 propagation: VP-095 SS-04 row title updated to Phase-B form ('verify-factory-lock Never Receives output_too_large for Any STATE.md Size — Structural Guarantee via host::read_prefix(8192) (BC-1.17.001 PC-3); Large-STATE.md Frontmatter Correctly Parsed from 8192-Byte Prefix'); ✓ moved from I column to U column (proof_method integration→unit+static per VP-095 v1.2 amendment). SS-04 subtotal U 4→5, I 7→6, row total 15 unchanged. Grand Total U 46→47, I 34→33, total 101 unchanged. Per-tool arithmetic 5+5+47+33+10+1=101 VERIFIED. Per-subsystem row-sum 36+5+14+15+13+5+12+1=101 VERIFIED. input-hash c9ec678→f0fab9c. |
 | v1.6 | 2026-07-13 | architect | pass-11 F-P11-001 POLICY 9 propagation: VP-099 SS-07 row title updated to both-ends form ('Starts With ^' → 'Is Fully Anchored (^...$)'). input-hash 893a501→c9ec678. |
@@ -123,7 +126,11 @@ VP-086, VP-100 per assignment notes in §2 below).
 | VP-098 | Allowlisted-but-Absent File Returns NOT_FOUND (-5); Zero CAPABILITY_DENIED False-Positives | SS-01 | | | | ✓ | | |
 | VP-100 | Drain-Timer Expiry Emits Exactly One plugin.abandoned Per In-Flight; No plugin.completed Follows for Same Trace | SS-01, SS-03 | | | | ✓ | | |
 | VP-101 | host::read_prefix Returns Byte-Exact Prefix; Never OUTPUT_TOO_LARGE; Absent Returns NOT_FOUND (-5) | SS-01 | | | | ✓ | | |
-| **SS-01 subtotal** | | | **3** | **1** | **22** | **10** | **0** | **0** |
+| VP-102 | Fuel-Exhaustion and Epoch-Timeout Yield INDETERMINATE Outcome for fail-closed Plugin | SS-01 | | | ✓ | | | |
+| VP-103 | Host OutputTooLarge Then Plugin Ok(exit:0) Yields INDETERMINATE for fail-closed Plugin | SS-01 | | | ✓ | | | |
+| VP-104 | INDETERMINATE for fail-closed Plugin Writes Unvalidated-Mutation Marker with Required Fields | SS-01 | | | ✓ | | | |
+| VP-106 | Successful Re-Validation Deletes Marker; fail-open INDETERMINATE Writes No Marker | SS-01 | | | ✓ | | | |
+| **SS-01 subtotal** | | | **3** | **1** | **26** | **10** | **0** | **0** |
 
 ---
 
@@ -184,7 +191,8 @@ where SS-01 or SS-05 is listed first (see assignment notes in §2).
 | VP-091 | validate-heavy-op-delegation Emits DelegationRecommended Advisory (Never Blocks) | SS-04 | | | ✓ | | | |
 | VP-095 | verify-factory-lock Never Receives output_too_large for Any STATE.md Size — Structural Guarantee via host::read_prefix(262144) (BC-1.17.001 PC-3); Large-STATE.md Frontmatter Correctly Parsed from 262144-Byte Prefix | SS-04 | | | ✓ | | | |
 | VP-096 | extract_frontmatter Purity — Byte-Exact Prefix Up To (Excluding) Second --- Delimiter Line; Deterministic | SS-04 | | ✓ | | | | |
-| **SS-04 subtotal** | | | **2** | **2** | **5** | **6** | **0** | **0** |
+| VP-105 | validate-unvalidated-mutation-marker Next-Advance Gate Blocks Agent Dispatch While Marker Exists; Passes When Absent (BC-1.18.002 PC1+PC3) | SS-04 | | | | ✓ | | |
+| **SS-04 subtotal** | | | **2** | **2** | **5** | **7** | **0** | **0** |
 
 ---
 
@@ -302,37 +310,38 @@ rationale below documents the reasoning applied when scope order determines prim
 ## §3 Grand Totals — Summary by Method
 
 Each VP counted exactly once in the row for its primary subsystem. The grand-total
-per-tool column sums equal 101 (total_vps POST-INTEGRATION).
+per-tool column sums equal 106 (total_vps POST-INTEGRATION).
 
 | Subsystem | K | P | U | I | M | S | Row Total |
 |-----------|---|---|---|---|---|---|-----------|
-| SS-01 | 3 | 1 | 22 | 10 | 0 | 0 | 36 |
+| SS-01 | 3 | 1 | 26 | 10 | 0 | 0 | 40 |
 | SS-02 | 0 | 0 | 5 | 0 | 0 | 0 | 5 |
 | SS-03 | 0 | 0 | 11 | 3 | 0 | 0 | 14 |
-| SS-04 | 2 | 2 | 5 | 6 | 0 | 0 | 15 |
+| SS-04 | 2 | 2 | 5 | 7 | 0 | 0 | 16 |
 | SS-05 | 0 | 0 | 0 | 6 | 6 | 1 | 13 |
 | SS-06 | 0 | 1 | 1 | 3 | 0 | 0 | 5 |
 | SS-07 | 0 | 1 | 3 | 5 | 3 | 0 | 12 |
 | SS-09 | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
-| **Grand Total** | **5** | **5** | **47** | **33** | **10** | **1** | **101** |
+| **Grand Total** | **5** | **5** | **51** | **34** | **10** | **1** | **106** |
 
-**Per-tool arithmetic check:** 5 + 5 + 47 + 33 + 10 + 1 = **101** ✓
+**Per-tool arithmetic check:** 5 + 5 + 51 + 34 + 10 + 1 = **106** ✓
 
-**Per-subsystem row-sum check:** 36 + 5 + 14 + 15 + 13 + 5 + 12 + 1 = **101** ✓
+**Per-subsystem row-sum check:** 40 + 5 + 14 + 16 + 13 + 5 + 12 + 1 = **106** ✓
 
 **Per-tool column matches VP-INDEX.md POST-INTEGRATION targets:**
 - kani-proof: **5** ✓ (VP-070, VP-071, VP-074, VP-077, VP-097)
 - proptest: **5** ✓ (VP-059, VP-069, VP-075, VP-080, VP-096)
-- unit-test: **47** ✓ (42 from VP-INDEX v2.29 + VP-089 + VP-090 + VP-091 + VP-092 + VP-095)
-- integration: **33** ✓ (25 from VP-INDEX v2.29 + VP-087 + VP-088 + VP-093 + VP-094 + VP-098 + VP-099 + VP-100 + VP-101)
+- unit-test: **51** ✓ (42 from VP-INDEX v2.29 + VP-089 + VP-090 + VP-091 + VP-092 + VP-095 + VP-102 + VP-103 + VP-104 + VP-106)
+- integration: **34** ✓ (25 from VP-INDEX v2.29 + VP-087 + VP-088 + VP-093 + VP-094 + VP-098 + VP-099 + VP-100 + VP-101 + VP-105)
 - manual: **10** ✓ (unchanged from VP-INDEX v2.29)
 - static-check: **1** ✓ (unchanged from VP-INDEX v2.29)
 
-**SS-01 row detail:** K=3 (VP-074, VP-077, VP-097), P=1 (VP-075), U=22 (VP-003..010,
-VP-014, VP-016..024, VP-026..027, VP-050, VP-052), I=10 (VP-001, VP-002, VP-025,
-VP-051, VP-073, VP-086, VP-093, VP-098, VP-100, VP-101), M=0, S=0. Row sum = 3+1+22+10+0+0 = **36** ✓
+**SS-01 row detail:** K=3 (VP-074, VP-077, VP-097), P=1 (VP-075), U=26 (VP-003..010,
+VP-014, VP-016..024, VP-026..027, VP-050, VP-052, VP-102, VP-103, VP-104, VP-106),
+I=10 (VP-001, VP-002, VP-025, VP-051, VP-073, VP-086, VP-093, VP-098, VP-100, VP-101),
+M=0, S=0. Row sum = 3+1+26+10+0+0 = **40** ✓
 
-All 101 VPs are accounted for with no omissions and no double-counts.
+All 106 VPs are accounted for with no omissions and no double-counts.
 
 ---
 

@@ -2,12 +2,13 @@
 document_type: verification-architecture
 level: L4
 section: verification-architecture
-version: "1.11"
+version: "1.12"
 status: draft
 producer: architect
 timestamp: 2026-06-24T00:00:00Z
-last_amended: "2026-07-16 (v1.11) — F-P2-001 POLICY 9 re-propagation (architect): VP-095 SS-04 catalog row title corrected to v1.3 H1 verbatim form (host::read_prefix(262144)); v1.10 propagated to VP-095 v1.2 Phase-B title (8192) which v1.3 superseded same-burst 2026-07-16; input-hash f0fab9c→5279415. [Prior: 2026-07-16 (v1.10) — S-19.07 Phase-B POLICY 9 propagation (architect): VP-095 SS-04 catalog row title updated to Phase-B form; proof method integration→unit+static; BC anchor updated to BC-4.13.001 Phase-B + BC-1.17.001 PC-3; §3 integration 34→33, unit-test 46→47; input-hash c9ec678→f0fab9c. [Prior: 2026-07-13 (v1.9) — pass-11 F-P11-001 POLICY 9 propagation (architect): VP-099 SS-07 catalog row title updated to both-ends form ('Starts With ^' → 'Is Fully Anchored (^...$)'); input-hash 893a501→c9ec678. [Prior: 2026-07-08 (v1.8) — E-19 pass-28 VP-096 boundary-wording sync (architect): VP-096 catalog row title updated to exclusive form per BC-4.13.001 §Invariant 9 adjudication (D-781): 'Through Second --- Delimiter' → 'Up To (Excluding) the Second --- Delimiter Line (bytes 0..delimiter_start_offset; opening ---\\n included)'. input-hash 7a7ac8c→893a501. [Prior: 2026-07-06 (v1.7) — F-P3-003 fix (architect): VP-094..VP-101 catalog row titles rewritten verbatim from VP file H1s; all 7 placeholder titles replaced (VP-101 was correct); BC-trace columns corrected per VP source_bc fields. Retroactive POLICY 14 body Changelog row added for v1.6. [Prior: 2026-07-06 (v1.6) — E-19 VP package POLICY 9 propagation (architect): VP-094 added to §SS-05 Provable Properties Catalog (integration; BC-5.42.001; S-19.01); VP-095/096 added to §SS-04 catalog (integration + proptest; BC-4.13.001; S-19.02); VP-097/098/100/101 added to §SS-01 catalog (kani-proof + integration; BC-2.07.001+BC-2.02.011 + BC-2.07.001 + BC-3.08.001+DI-019 + BC-1.17.001; S-19.03/S-19.03/S-19.05/S-19.06); VP-099 added to §SS-07 catalog (integration; no BC; S-19.04). §1 intro: All 93→101 verification properties. §1 VP count invariant: 93 VPs→101 VPs (VP-001..VP-101). §3 Proof Method Coverage Totals: integration 28→34 (+6); kani-proof 4→5 (+1); proptest 4→5 (+1); Total 93→101; arithmetic invariant note updated; VP ID lists updated; Total row range VP-001..VP-093→VP-001..VP-101. §4 integration reference updated 28→34. [Prior: 2026-06-24 (v1.5) — S-18.04b-prereq BC authoring burst (architect): VP-093 added to §SS-01 Provable Properties Catalog (integration; DI-020, DI-025; BC-1.16.001 PC1/PC2/PC3/PC4/PC5/INV1/INV2/INV3/INV5; anchor S-18.04b-prereq — dispatcher git_context injection on PostToolUse Bash git-commit events; exec-free WASM boundary; fail-open on git error). §3 Proof Method Coverage Totals: integration 27→28; Total 92→93. §1 VP count invariant updated 92→93. [Prior: 2026-06-17 (v1.4) — C-P7-001 fix burst (architect): VP-086 row added to §SS-01 Provable Properties Catalog — was present in §3 integration list and §Risk Mitigations but absent from §1 catalog body (91 unique VP IDs vs 92 total). VP-086: Dispatcher Exit-2 Propagation for PreCompact Block-Intent; integration; BC-1.15.001 PC4; SS-01/SS-04; anchor S-18.00. §1 VP count invariant unchanged at 92 (catalog now reflects actual count). [Prior: 2026-06-16 (v1.3) — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST (state-manager POLICY 9 propagation): VP-092 added to §SS-06 Provable Properties Catalog (unit-test; DI-020; check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; BC-6.25.001; S-18.10). §3 Proof Method Coverage Totals: unit-test 45→46; Total 91→92. §1 VP count invariant note updated 91→92. [Prior: 2026-06-16 (v1.2) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to §SS-04 Provable Properties Catalog (unit-test; DI-020; validate-heavy-op-delegation always-Continue advisory gate; BC-4.15.001; S-18.06). §3 Proof Method Coverage Totals: unit-test 44→45; Total 90→91. §1 VP count invariant note updated 90→91. [Prior: 2026-06-16 (v1.1) — fix burst (architect): FINDING-1 (MINOR) + O-D607-003 — removed SS-08 from subsystems_affected frontmatter; SS-08 has zero VPs in this document's body (consistent with sibling verification-coverage-matrix.md which correctly omits SS-08). Frontmatter now matches body. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]]"
+last_amended: "2026-08-30 (v1.12) — validation-integrity-layer1 F2 POLICY 9 propagation (architect): VP-102/103/104/106 added to §SS-01 Provable Properties Catalog (unit-test; BC-1.18.001 PC1/PC4, BC-1.18.003 PC1, BC-1.18.004 PC2; S-25.01); VP-105 added to §SS-04 catalog (integration; BC-1.18.002 PC1/PC3; S-25.01); §1 VP count invariant 101→106; §3 unit-test 47→51, integration 33→34, Total 101→106; VP ID lists updated; input-hash 04a1ec7→cfb38c7. [Prior: 2026-07-16 (v1.11) — F-P2-001 POLICY 9 re-propagation (architect): VP-095 SS-04 catalog row title corrected to v1.3 H1 verbatim form (host::read_prefix(262144)); v1.10 propagated to VP-095 v1.2 Phase-B title (8192) which v1.3 superseded same-burst 2026-07-16; input-hash f0fab9c→5279415. [Prior: 2026-07-16 (v1.10) — S-19.07 Phase-B POLICY 9 propagation (architect): VP-095 SS-04 catalog row title updated to Phase-B form; proof method integration→unit+static; BC anchor updated to BC-4.13.001 Phase-B + BC-1.17.001 PC-3; §3 integration 34→33, unit-test 46→47; input-hash c9ec678→f0fab9c. [Prior: 2026-07-13 (v1.9) — pass-11 F-P11-001 POLICY 9 propagation (architect): VP-099 SS-07 catalog row title updated to both-ends form ('Starts With ^' → 'Is Fully Anchored (^...$)'); input-hash 893a501→c9ec678. [Prior: 2026-07-08 (v1.8) — E-19 pass-28 VP-096 boundary-wording sync (architect): VP-096 catalog row title updated to exclusive form per BC-4.13.001 §Invariant 9 adjudication (D-781): 'Through Second --- Delimiter' → 'Up To (Excluding) the Second --- Delimiter Line (bytes 0..delimiter_start_offset; opening ---\\n included)'. input-hash 7a7ac8c→893a501. [Prior: 2026-07-06 (v1.7) — F-P3-003 fix (architect): VP-094..VP-101 catalog row titles rewritten verbatim from VP file H1s; all 7 placeholder titles replaced (VP-101 was correct); BC-trace columns corrected per VP source_bc fields. Retroactive POLICY 14 body Changelog row added for v1.6. [Prior: 2026-07-06 (v1.6) — E-19 VP package POLICY 9 propagation (architect): VP-094 added to §SS-05 Provable Properties Catalog (integration; BC-5.42.001; S-19.01); VP-095/096 added to §SS-04 catalog (integration + proptest; BC-4.13.001; S-19.02); VP-097/098/100/101 added to §SS-01 catalog (kani-proof + integration; BC-2.07.001+BC-2.02.011 + BC-2.07.001 + BC-3.08.001+DI-019 + BC-1.17.001; S-19.03/S-19.03/S-19.05/S-19.06); VP-099 added to §SS-07 catalog (integration; no BC; S-19.04). §1 intro: All 93→101 verification properties. §1 VP count invariant: 93 VPs→101 VPs (VP-001..VP-101). §3 Proof Method Coverage Totals: integration 28→34 (+6); kani-proof 4→5 (+1); proptest 4→5 (+1); Total 93→101; arithmetic invariant note updated; VP ID lists updated; Total row range VP-001..VP-093→VP-001..VP-101. §4 integration reference updated 28→34. [Prior: 2026-06-24 (v1.5) — S-18.04b-prereq BC authoring burst (architect): VP-093 added to §SS-01 Provable Properties Catalog (integration; DI-020, DI-025; BC-1.16.001 PC1/PC2/PC3/PC4/PC5/INV1/INV2/INV3/INV5; anchor S-18.04b-prereq — dispatcher git_context injection on PostToolUse Bash git-commit events; exec-free WASM boundary; fail-open on git error). §3 Proof Method Coverage Totals: integration 27→28; Total 92→93. §1 VP count invariant updated 92→93. [Prior: 2026-06-17 (v1.4) — C-P7-001 fix burst (architect): VP-086 row added to §SS-01 Provable Properties Catalog — was present in §3 integration list and §Risk Mitigations but absent from §1 catalog body (91 unique VP IDs vs 92 total). VP-086: Dispatcher Exit-2 Propagation for PreCompact Block-Intent; integration; BC-1.15.001 PC4; SS-01/SS-04; anchor S-18.00. §1 VP count invariant unchanged at 92 (catalog now reflects actual count). [Prior: 2026-06-16 (v1.3) — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST (state-manager POLICY 9 propagation): VP-092 added to §SS-06 Provable Properties Catalog (unit-test; DI-020; check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; BC-6.25.001; S-18.10). §3 Proof Method Coverage Totals: unit-test 45→46; Total 91→92. §1 VP count invariant note updated 91→92. [Prior: 2026-06-16 (v1.2) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to §SS-04 Provable Properties Catalog (unit-test; DI-020; validate-heavy-op-delegation always-Continue advisory gate; BC-4.15.001; S-18.06). §3 Proof Method Coverage Totals: unit-test 44→45; Total 90→91. §1 VP count invariant note updated 90→91. [Prior: 2026-06-16 (v1.1) — fix burst (architect): FINDING-1 (MINOR) + O-D607-003 — removed SS-08 from subsystems_affected frontmatter; SS-08 has zero VPs in this document's body (consistent with sibling verification-coverage-matrix.md which correctly omits SS-08). Frontmatter now matches body. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]]"
 modified:
+  - "2026-08-30 (v1.12) — validation-integrity-layer1 F2 POLICY 9: VP-102/103/104/106 added SS-01, VP-105 added SS-04; §1 count 101→106; §3 unit-test 47→51, integration 33→34, Total 101→106; input-hash drift fix 04a1ec7 (VP-INDEX v2.29→v2.79)"
   - "2026-07-16 (v1.11) — F-P2-001 POLICY 9 re-propagation: VP-095 SS-04 row title corrected to v1.3 form (262144); input-hash f0fab9c→5279415"
   - "2026-07-16 (v1.10) — S-19.07 Phase-B POLICY 9 propagation: VP-095 SS-04 row title→Phase-B form; proof method integration→unit+static; BC anchor updated to BC-4.13.001 Phase-B + BC-1.17.001 PC-3; §3 integration 34→33, unit-test 46→47; input-hash c9ec678→f0fab9c"
   - "2026-07-13 (v1.9) — pass-11 F-P11-001 POLICY 9 propagation: VP-099 SS-07 row title updated to both-ends form; input-hash 893a501→c9ec678"
@@ -22,7 +23,7 @@ modified:
   - "2026-06-16 (v1.0 initial creation)"
 phase: 1b
 inputs: [verification-properties/VP-INDEX.md]
-input-hash: "b5cee7d"
+input-hash: "cfb38c7"
 traces_to: VP-INDEX.md
 subsystems_affected:
   - SS-01
@@ -47,6 +48,7 @@ subsystems_affected:
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.12 | 2026-08-30 | architect | validation-integrity-layer1 F2 POLICY 9 propagation: VP-102/103/104/106 added to §SS-01 Provable Properties Catalog (unit-test; BC-1.18.001/003/004; S-25.01); VP-105 added to §SS-04 (integration; BC-1.18.002; S-25.01); §1 VP count invariant 101→106; §3 unit-test 47→51, integration 33→34, Total 101→106; input-hash pre-existing drift fixed (b5cee7d→04a1ec7). |
 | v1.11 | 2026-07-16 | architect | F-P2-001 POLICY 9 re-propagation: VP-095 SS-04 catalog row title corrected to v1.3 H1 verbatim form ('verify-factory-lock Never Receives output_too_large for Any STATE.md Size — Structural Guarantee via host::read_prefix(262144) (BC-1.17.001 PC-3); Large-STATE.md Frontmatter Correctly Parsed from 262144-Byte Prefix'); v1.10 propagated to VP-095 v1.2 Phase-B title (8192) which VP-095 v1.3 superseded same-burst 2026-07-16. input-hash f0fab9c→5279415. |
 | v1.10 | 2026-07-16 | architect | S-19.07 Phase-B POLICY 9 propagation: VP-095 SS-04 catalog row title updated to Phase-B form ('verify-factory-lock Never Receives output_too_large for Any STATE.md Size — Structural Guarantee via host::read_prefix(8192) (BC-1.17.001 PC-3); Large-STATE.md Frontmatter Correctly Parsed from 8192-Byte Prefix'); proof method integration→unit+static; BC anchor BC-4.13.001 PC3→BC-4.13.001 Phase-B + BC-1.17.001 PC-3. §3 integration 34→33 (VP-095 removed); unit-test 46→47 (VP-095 added). input-hash c9ec678→f0fab9c. |
 | v1.9 | 2026-07-13 | architect | pass-11 F-P11-001 POLICY 9 propagation: VP-099 SS-07 catalog row title updated to both-ends form ('Starts With ^' → 'Is Fully Anchored (^...$)'). input-hash 893a501→c9ec678. |
@@ -67,8 +69,8 @@ subsystems_affected:
 All 101 verification properties, organized by subsystem. Each VP entry states: title,
 proof method, BC postcondition/invariant anchor, and current status.
 
-> **VP count invariant:** This catalog lists exactly 101 VPs (VP-001..VP-101) across
-> all subsystems. The per-method totals in §3 must sum to 101.
+> **VP count invariant:** This catalog lists exactly 106 VPs (VP-001..VP-106) across
+> all subsystems. The per-method totals in §3 must sum to 106.
 
 ---
 
@@ -112,6 +114,10 @@ proof method, BC postcondition/invariant anchor, and current status.
 | VP-098 | Allowlisted-but-Absent File Returns internal.file_not_found Event and NOT_FOUND (-5); Zero CAPABILITY_DENIED False-Positives | integration | BC-2.07.001 | draft |
 | VP-100 | Drain-Timer Expiry Emits Exactly One plugin.abandoned Per In-Flight (plugin_name, entry_index); No plugin.completed Follows for Same Trace | integration | BC-3.08.001 INV6 | draft |
 | VP-101 | host::read_prefix Returns Byte-Exact Prefix of len <= max_bytes; Never OUTPUT_TOO_LARGE; Absent File Returns NOT_FOUND (-5) | integration | BC-1.17.001 | draft |
+| VP-102 | Fuel-Exhaustion and Epoch-Timeout Yield INDETERMINATE Outcome for fail-closed Plugin | unit-test | BC-1.18.001 PC1 | draft |
+| VP-103 | Host OutputTooLarge Then Plugin Ok(exit:0) Yields INDETERMINATE for fail-closed Plugin | unit-test | BC-1.18.001 PC1 | draft |
+| VP-104 | INDETERMINATE for fail-closed Plugin Writes Unvalidated-Mutation Marker with Required Fields | unit-test | BC-1.18.001 PC4 | draft |
+| VP-106 | Successful Re-Validation Deletes Marker; fail-open INDETERMINATE Writes No Marker | unit-test | BC-1.18.003 PC1, BC-1.18.004 PC2 | draft |
 
 ---
 
@@ -167,6 +173,7 @@ proof method, BC postcondition/invariant anchor, and current status.
 | VP-091 | validate-heavy-op-delegation Emits DelegationRecommended Advisory on Pattern-Matching Bash Commands and Returns Continue in All Cases (Never Blocks) | unit-test | DI-020 | draft |
 | VP-095 | verify-factory-lock Never Receives output_too_large for Any STATE.md Size — Structural Guarantee via host::read_prefix(262144) (BC-1.17.001 PC-3); Large-STATE.md Frontmatter Correctly Parsed from 262144-Byte Prefix | unit+static | BC-4.13.001 Phase-B + BC-1.17.001 PC-3 | draft |
 | VP-096 | extract_frontmatter Purity — Output Byte-Equals File Prefix Up To (Excluding) the Second --- Delimiter Line (bytes 0..delimiter_start_offset; opening ---\n included); Deterministic for Any Input | proptest | BC-4.13.001 INV9 | draft |
+| VP-105 | Next-Advance Gate Blocks Agent Dispatch While Marker Exists, Passes When Absent | integration | BC-1.18.002 PC1, PC3 | draft |
 
 ---
 
@@ -270,19 +277,19 @@ fixtures to arbitrary generated inputs.
 
 ## §3 Proof Method Coverage Totals
 
-> **Arithmetic invariant:** per-method counts must sum to total_vps (101).
+> **Arithmetic invariant:** per-method counts must sum to total_vps (106).
 > These totals must equal the VP-INDEX.md §Proof Method Breakdown totals.
 > Source of truth: VP-INDEX.md. If VP-INDEX and this table diverge, VP-INDEX wins.
 
 | Proof Method | Count | VP IDs |
 |-------------|-------|--------|
-| unit-test | 47 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052, VP-083, VP-085, VP-089, VP-090, VP-091, VP-092, VP-095 |
-| integration | 33 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068, VP-072, VP-073, VP-076, VP-078, VP-079, VP-081, VP-082, VP-084, VP-086, VP-087, VP-088, VP-093, VP-094, VP-098, VP-099, VP-100, VP-101 |
+| unit-test | 51 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052, VP-083, VP-085, VP-089, VP-090, VP-091, VP-092, VP-095, VP-102, VP-103, VP-104, VP-106 |
+| integration | 34 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068, VP-072, VP-073, VP-076, VP-078, VP-079, VP-081, VP-082, VP-084, VP-086, VP-087, VP-088, VP-093, VP-094, VP-098, VP-099, VP-100, VP-101, VP-105 |
 | manual | 10 | VP-015, VP-046..048, VP-053..057, VP-064 |
 | static-check | 1 | VP-061 |
 | kani-proof | 5 | VP-070, VP-071, VP-074, VP-077, VP-097 |
 | proptest | 5 | VP-059, VP-069, VP-075, VP-080, VP-096 |
-| **Total** | **101** | **VP-001..VP-101** |
+| **Total** | **106** | **VP-001..VP-106** |
 
 ---
 
