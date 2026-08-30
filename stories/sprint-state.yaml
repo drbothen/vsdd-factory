@@ -240,6 +240,8 @@ stories:
     status: merged
   - id: S-2.08
     status: merged
+  - id: S-24.01
+    status: merged
   - id: S-3.01
     status: merged
   - id: S-3.02
@@ -684,3 +686,10 @@ story_updates:
     merge_sha: 3200149d
     merged_at: 2026-08-28
     note: "factory-lock shared functions: renew_lock_if_holder / IdentityResolution / SkipReason / classify_identity_resolution / trim_git_email promotion to crates/factory-lock-parse/ + doc-comment corrections (E-17 Wave 5). BC-4.17.001 PC2. Local BC-5.39.001 3-CLEAN achieved (impl cascade passes 2/3/4). Demo evidence under docs/demo-evidence/S-17.06/. Security APPROVE (4 LOW; SEC-004 fixed pre-merge). 12 CI checks green. PR #787 squash-merged 3200149d 2026-08-28. merged_count 111→112. BC-4.17.001 held draft (POL-14 exception: co-implemented with S-17.05 stamper — promotes to active only when full Wave-5 group + wave-integration gate lands). D-1126."
+
+  S-24.01:
+    status: merged
+    pr: 802
+    merge_sha: 9ab5a6f6
+    merged_at: 2026-08-30
+    note: "vsdd-factory:wrap skill — session pause, checkpoint, and lock-release orchestration (E-24 W1). tdd_mode facade; BC-6.28.001 active (POL-14 auto-promotion v1.2). PR #802 squash-merged 9ab5a6f6 2026-08-30. merged_count 114→115. BC-6.28.001 v1.2 POL-14 active. D-1132."

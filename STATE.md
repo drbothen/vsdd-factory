@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "9.32"
+version: "9.33"
 status: draft
 producer: state-manager
-timestamp: 2026-08-29T22:00:00Z
-phase: "PAUSED 2026-08-29. E-17 Wave-5 ALL 3 STORIES MERGED. Integration gate CONVERGED 3-CLEAN (da14fb94). BC-4.17.001 v1.29 active (D-1130). PG-CI-1/2/3 + F-WG5-001 + PR-MANAGER-MERGE-OVER-RED disposition OWED before convergence gate declaration. Spec burst D-1131: E-24/S-24.01/BC-6.28.001 registered (CAP-040; SS-06; draft)."
-last_amended: "2026-08-29 (v9.32) — WRAP-SKILL-CONSISTENCY-AUDIT-F1-F7-CORRECTIONS (state-manager; single-commit TD-VSDD-053): BC-6.28.001 v1.0→v1.1 (F4 verification-prose). S-24.01 v1.0→v1.1 (F2/F3/F5/F6). BC-INDEX title H1-verbatim (F1 POLICY 7). input-hash 7b0a540. BC-INDEX v5.22→v5.23. STORY-INDEX v4.403→v4.404. POLICY 18 VERIFIED. v9.31→v9.32. | 2026-08-29 (v9.31) — WRAP-SKILL-F1F2F3-SPEC-BURST (state-manager; single-commit TD-VSDD-053): BC-6.28.001 new (SS-06; CAP-040; draft); E-24 HOLDING EPIC registered; S-24.01 registered; BC-INDEX v5.21→v5.22; STORY-INDEX v4.402→v4.403; ARCH-INDEX v3.95→v3.96; D-1131 allocated; stories 158→159; epics 23→24; STATE.md v9.30→v9.31. | 2026-08-29 (v9.30) — E17-WAVE5-CLOSE-BURST (state-manager; single-commit TD-VSDD-053): S-17.07 MERGED PR #800 1fc8b9ee + PR #801 da14fb94; Wave-5 integration gate CONVERGED 3-CLEAN; BC-4.17.001 v1.29 draft→active (D-1130); BC-INDEX v5.20→v5.21; STORY-INDEX v4.401→v4.402; merged_count 113→114; 4 new Drift Items; Session Resume Checkpoint refreshed. v9.29→v9.30. | 2026-08-29 (v9.29) — S1707-PRE-TDD-RECONCILIATION-BURST (state-manager; single-commit TD-VSDD-053): S-17.07 v1.0→v1.2 AC↔BC-7.07.001 reconciliation CLEAN 2026-08-29 (4 findings: 2 BLOCKER + 2 LOW — all closed). READY-FOR-TDD. STORY-INDEX v4.400→v4.401. factory-artifacts SHA reconciled fe264d49. §2 stale-worktrees 5→2. v9.28→v9.29. | Prior: [Full chain: decision-log.md/burst-log.md D-1057..D-1130 (exhaustive); pre-D-1057: session-checkpoints.md]"
+timestamp: 2026-08-30T00:00:00Z
+phase: "PAUSED 2026-08-29. E-17 Wave-5 ALL 3 STORIES MERGED. Integration gate CONVERGED 3-CLEAN (da14fb94). BC-4.17.001 v1.29 active (D-1130). S-24.01 MERGED PR #802 9ab5a6f6 2026-08-30. BC-6.28.001 v1.2 active (POL-14 D-1132). merged_count 115. PG-CI-1/2/3 + F-WG5-001 + PR-MANAGER-MERGE-OVER-RED disposition OWED before convergence gate declaration."
+last_amended: "2026-08-30 (v9.33) — S2401-POST-MERGE-BURST (state-manager; single-commit TD-VSDD-053): S-24.01 MERGED PR #802 squash-merged 9ab5a6f6 2026-08-30 (D-1132). POL-14 BC-6.28.001 v1.1→v1.2 draft→active. SS-06 skill count 119→120. BC-INDEX v5.23→v5.24. STORY-INDEX v4.404→v4.405. ARCH-INDEX v3.96→v3.97. merged_count 114→115. develop da14fb94→9ab5a6f6. STATE.md v9.32→v9.33. | 2026-08-29 (v9.32) — WRAP-SKILL-CONSISTENCY-AUDIT-F1-F7-CORRECTIONS (state-manager; single-commit TD-VSDD-053): BC-6.28.001 v1.0→v1.1 (F4 verification-prose). S-24.01 v1.0→v1.1 (F2/F3/F5/F6). BC-INDEX title H1-verbatim (F1 POLICY 7). input-hash 7b0a540. BC-INDEX v5.22→v5.23. STORY-INDEX v4.403→v4.404. POLICY 18 VERIFIED. v9.31→v9.32. | 2026-08-29 (v9.31) — WRAP-SKILL-F1F2F3-SPEC-BURST (state-manager; single-commit TD-VSDD-053): BC-6.28.001 new (SS-06; CAP-040; draft); E-24 HOLDING EPIC registered; S-24.01 registered; BC-INDEX v5.21→v5.22; STORY-INDEX v4.402→v4.403; ARCH-INDEX v3.95→v3.96; D-1131 allocated; stories 158→159; epics 23→24; STATE.md v9.30→v9.31. | 2026-08-29 (v9.30) — E17-WAVE5-CLOSE-BURST (state-manager; single-commit TD-VSDD-053): S-17.07 MERGED PR #800 1fc8b9ee + PR #801 da14fb94; Wave-5 integration gate CONVERGED 3-CLEAN; BC-4.17.001 v1.29 draft→active (D-1130); BC-INDEX v5.20→v5.21; STORY-INDEX v4.401→v4.402; merged_count 113→114; 4 new Drift Items; Session Resume Checkpoint refreshed. v9.29→v9.30. | 2026-08-29 (v9.29) — S1707-PRE-TDD-RECONCILIATION-BURST (state-manager; single-commit TD-VSDD-053): S-17.07 v1.0→v1.2 AC↔BC-7.07.001 reconciliation CLEAN 2026-08-29 (4 findings: 2 BLOCKER + 2 LOW — all closed). READY-FOR-TDD. STORY-INDEX v4.400→v4.401. factory-artifacts SHA reconciled fe264d49. §2 stale-worktrees 5→2. v9.28→v9.29. | Prior: [Full chain: decision-log.md/burst-log.md D-1057..D-1130 (exhaustive); pre-D-1057: session-checkpoints.md]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: PAUSED
-current_step: "WRAP-SKILL-CONSISTENCY-AUDIT-F1-F7-CORRECTIONS-2026-08-29: BC-6.28.001 v1.0→v1.1 (F4 verification-prose; input-hash 36c33f3 UNCHANGED). S-24.01 v1.0→v1.1 (F2/F3/F5/F6: AC-010 removed→9 ACs; GAP-001/002; AC-009 PRE-3 trace; T-3 idempotent; parenthetical); input-hash 88faa0e→7b0a540. BC-INDEX title cell corrected to H1-verbatim (F1 POLICY 7). BC-INDEX v5.22→v5.23. STORY-INDEX v4.403→v4.404. D-chain cite D-1131 (latest brownfield). POLICY 18 three-way parity VERIFIED (S-24.01 frontmatter=catalog-row=blockquote=7b0a540). trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). STATE.md v9.31→v9.32."
+current_step: "S2401-POST-MERGE-BURST-2026-08-30: S-24.01 MERGED PR #802 squash-merged 9ab5a6f6 2026-08-30 (D-1132). POL-14 auto-promotion: BC-6.28.001 v1.1→v1.2 draft→active. SS-06 skill count 119→120. merged_count 114→115. BC-INDEX v5.23→v5.24. STORY-INDEX v4.404→v4.405. ARCH-INDEX v3.96→v3.97. D-chain cite D-1132 (latest brownfield). POLICY 18 three-way parity VERIFIED (7b0a540; unchanged — POL-14 metadata-only). develop da14fb94→9ab5a6f6. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). STATE.md v9.32→v9.33."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -24,7 +24,7 @@ dtu_services: []
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
   Soft target: <=415 lines; hard cap: 500 lines (validate-state-md-size hook enforcement).
-  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 304 = 196 (D-446(c) dual-margin form). 304 lines (wc-l .factory/STATE.md; WRAP-SKILL-CONSISTENCY-AUDIT-F1-F7-CORRECTIONS-2026-08-29 v9.31→v9.32).
+  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 301 = 199 (D-446(c) dual-margin form). 301 lines (wc-l .factory/STATE.md; S2401-POST-MERGE-BURST-2026-08-30 v9.32→v9.33).
   Historical content belongs in cycle files, NOT here.
   D-1057..D-1076 (exhaustive) banner-history paragraphs extracted 2026-08-23 to cycles/v1.0-brownfield-backfill/burst-log.md.
   Pre-D-1058 history: git -C .factory log -p -- STATE.md + burst-log.md + decision-log.md.
@@ -43,8 +43,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-08-29 — **WRAP-SKILL-CONSISTENCY-AUDIT-F1-F7-CORRECTIONS** (state-manager; D-1131). BC-6.28.001 v1.1. S-24.01 v1.1. BC-INDEX title H1-verbatim (POLICY 7). BC-INDEX v5.23. STORY-INDEX v4.404. input-hash 7b0a540. POLICY 18 VERIFIED. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.31→v9.32. |
-| **Current Phase** | **PAUSED — E-17 Wave-5 DELIVERY COMPLETE (3/3 stories merged). Integration gate CONVERGED BC-5.39.001 3-CLEAN (da14fb94 D-1130).** S-17.06 MERGED PR #787 `3200149d`. S-17.05 MERGED PR #798 `a4b24601`. S-17.07 MERGED PR #800 `1fc8b9ee`. PR #801 (F-WG5-P2-001) `da14fb94`. BC-4.17.001 v1.29 **active** (POL-14 D-1130). Convergence-gate-declaration BLOCKED on PG-CI-1/2/3 + F-WG5-001 + PR-MANAGER-MERGE-OVER-RED disposition (human deferred). Spec burst D-1131: BC-6.28.001 (SS-06; CAP-040; draft) + E-24 HOLDING EPIC + S-24.01 registered. |
+| **Last Updated** | 2026-08-30 — **S2401-POST-MERGE-BURST** (state-manager; D-1132). S-24.01 MERGED PR #802 squash-merged 9ab5a6f6. BC-6.28.001 v1.2 active (POL-14). SS-06 119→120. merged_count 115. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.32→v9.33. |
+| **Current Phase** | **PAUSED — E-17 Wave-5 DELIVERY COMPLETE (3/3 stories merged). Integration gate CONVERGED BC-5.39.001 3-CLEAN (da14fb94 D-1130). S-24.01 MERGED PR #802 squash-merged 9ab5a6f6 2026-08-30 (D-1132). BC-6.28.001 v1.2 active (POL-14). E-24 W1 COMPLETE. merged_count 115.** S-17.06 MERGED PR #787 `3200149d`. S-17.05 MERGED PR #798 `a4b24601`. S-17.07 MERGED PR #800 `1fc8b9ee`. PR #801 (F-WG5-P2-001) `da14fb94`. BC-4.17.001 v1.29 **active** (POL-14 D-1130). Convergence-gate-declaration BLOCKED on PG-CI-1/2/3 + F-WG5-001 + PR-MANAGER-MERGE-OVER-RED disposition (human deferred). |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -77,6 +77,7 @@ dtu_services: []
 | **D-1130** E17-WAVE5-INTEGRATION-GATE-CONVERGED-BC-PROMOTION 2026-08-29 | **COMPLETE** | E-17 Wave-5 integration gate CONVERGED BC-5.39.001 3-CLEAN (`da14fb94`; 3 consecutive fresh-context passes). BC-4.17.001 v1.28→v1.29 draft→active (POL-14; held since D-1126). BC-INDEX v5.20→v5.21. STORY-INDEX v4.401→v4.402. Drift Items F-WG5-001/PR-MANAGER-MERGE-OVER-RED/PG-CI-3-confirmed/stamp-state-doc-FnMut RECORDED. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.29→v9.30. |
 | **WRAP-SKILL-F1F2F3-SPEC-BURST-2026-08-29** | **COMPLETE** | D-1131 wrap-skill spec burst: BC-6.28.001 new (SS-06; CAP-040; draft). E-24 HOLDING EPIC registered. S-24.01 registered (5pts; P1; depends_on [S-18.03 MERGED, S-18.10 MERGED]). POLICY 18 three-way parity VERIFIED (S-24.01 frontmatter=catalog-row=blockquote=88faa0e). STORY-INDEX v4.402→v4.403; BC-INDEX v5.21→v5.22; ARCH-INDEX v3.95→v3.96. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.30→v9.31. |
 | **WRAP-SKILL-CONSISTENCY-AUDIT-F1-F7-CORRECTIONS-2026-08-29** | **COMPLETE** | F1-F7 consistency-audit fixes: BC-6.28.001 v1.0→v1.1 (F4 verification-prose). S-24.01 v1.0→v1.1 (F2/F3/F5/F6: 9 ACs; GAP-001/002; idempotent T-3). BC-INDEX title corrected to H1-verbatim (F1 POLICY 7). input-hash 88faa0e→7b0a540. BC-INDEX v5.22→v5.23. STORY-INDEX v4.403→v4.404. POLICY 18 VERIFIED (7b0a540). trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.31→v9.32. |
+| **S2401-POST-MERGE-BURST-2026-08-30** | **COMPLETE** | S-24.01 MERGED PR #802 squash-merged 9ab5a6f6 2026-08-30. POL-14 BC-6.28.001 v1.1→v1.2 draft→active (D-1132). SS-06 skill count 119→120. merged_count 114→115. BC-INDEX v5.23→v5.24. STORY-INDEX v4.404→v4.405. ARCH-INDEX v3.96→v3.97. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.32→v9.33. |
 
 ## Current Phase Steps
 
@@ -84,11 +85,11 @@ dtu_services: []
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
+| S2401-POST-MERGE-BURST-2026-08-30 | state-manager | COMPLETE | S-24.01 MERGED PR #802 squash-merged 9ab5a6f6 2026-08-30 (D-1132). POL-14 BC-6.28.001 v1.1→v1.2 draft→active. SS-06 skill count 119→120. merged_count 114→115. BC-INDEX v5.23→v5.24. STORY-INDEX v4.404→v4.405. ARCH-INDEX v3.96→v3.97. POLICY 18 three-way parity VERIFIED (7b0a540; unchanged — POL-14 metadata-only). trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.32→v9.33. |
 | WRAP-SKILL-CONSISTENCY-AUDIT-F1-F7-CORRECTIONS-2026-08-29 | state-manager | COMPLETE | F1-F7 fixes: BC-6.28.001 v1.1 (F4). S-24.01 v1.1 (F2/F3/F5/F6; 9 ACs; 7b0a540). BC-INDEX title H1-verbatim (F1 POLICY 7). BC-INDEX v5.22→v5.23. STORY-INDEX v4.403→v4.404. POLICY 18 VERIFIED. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.31→v9.32. |
 | WRAP-SKILL-F1F2F3-SPEC-BURST-2026-08-29 | state-manager | COMPLETE | D-1131 spec burst: BC-6.28.001 new (SS-06; CAP-040; draft). E-24 HOLDING EPIC registered. S-24.01 registered (5pts; P1). BC-INDEX v5.21→v5.22 (total_bcs 1988→1989). STORY-INDEX v4.402→v4.403. ARCH-INDEX v3.95→v3.96. POLICY 18 three-way parity VERIFIED (88faa0e). trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.30→v9.31. |
 | E17-WAVE5-CLOSE-BURST-2026-08-29 | state-manager | COMPLETE | S-17.07 MERGED PR #800 `1fc8b9ee`. PR #801 `da14fb94`. Wave-5 integration gate CONVERGED 3-CLEAN. BC-4.17.001 v1.29 active (D-1130). BC-INDEX v5.21. STORY-INDEX v4.402. merged_count 114. 4 new Drift Items. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.29→v9.30. |
 | S1707-PRE-TDD-RECONCILIATION-BURST-2026-08-29 | state-manager | COMPLETE | S-17.07 v1.0→v1.2 AC↔BC-7.07.001 reconciliation CLEAN (4 findings: 2 BLOCKER + 2 LOW — all closed). READY-FOR-TDD. STORY-INDEX v4.400→v4.401. factory-artifacts SHA reconciled fe264d49. §2 stale-worktrees 5→2. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.28→v9.29. |
-| SESSION-WRAP-PAUSE-2026-08-29 | state-manager | COMPLETE | Human /wrap; pipeline paused post S-17.05 merge. E-17 Wave-5 S-17.06+S-17.05 MERGED (2 of 3). BC-4.17.001 held draft. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). v9.27→v9.28. |
 
 ## Identifier Conventions
 
@@ -100,13 +101,13 @@ dtu_services: []
 | Story | S-N.MM | `stories/S-N.MM-<short>.md` | 142 file-resident + 17 stub IDs = 159 total (STORY-INDEX v4.404 at D-1131; +1 S-24.01 wrap-skill v1.1; S-17.07 MERGED PR #800 `1fc8b9ee` D-1130; see decision-log.md for history) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 24 (E-0..E-9, E-10..E-19, E-21 active, E-22 dissolved-retained D-962(f), E-23 STALE — re-scope OWED, E-24 HOLDING EPIC wrap-skill D-1131) |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 46 (ADR-046 v1.23 UNCHANGED; ADR-045 v1.3 ACCEPTED; see decision-log.md for history) |
-| **Merged Count** | merged_count | `stories/sprint-state.yaml` | **114** (S-17.07 MERGED PR #800 `1fc8b9ee` 2026-08-29; D-1130) |
+| **Merged Count** | merged_count | `stories/sprint-state.yaml` | **115** (S-24.01 MERGED PR #802 `9ab5a6f6` 2026-08-30; D-1132. Prior: S-17.07 MERGED PR #800 `1fc8b9ee` 2026-08-29; D-1130) |
 
 ## Story Status
 
-142 file-resident + 17 stub IDs = 159 stories. E-18 EPIC COMPLETE D-744. E-22 DISSOLVED D-961 (file RETAINED per human ruling 2026-08-06). E-23 NEW this session (STALE — strip-model stories S-23.01..S-23.14, re-scope OWED to frozen-provenance model). E-24 NEW HOLDING EPIC (D-1131 wrap-skill, 1 story S-24.01 draft).
+142 file-resident + 17 stub IDs = 159 stories. E-18 EPIC COMPLETE D-744. E-22 DISSOLVED D-961 (file RETAINED per human ruling 2026-08-06). E-23 NEW this session (STALE — strip-model stories S-23.01..S-23.14, re-scope OWED to frozen-provenance model). E-24 W1 COMPLETE (D-1132 wrap-skill, S-24.01 MERGED PR #802 `9ab5a6f6` 2026-08-30; merged_count 115).
 
-- **Merged (114):** S-17.07 MERGED PR #800 `1fc8b9ee` 2026-08-29 (D-1130). S-17.05 MERGED PR #798 `a4b24601` 2026-08-29 (D-1129). S-17.06 MERGED PR #787 2026-08-28 (D-1126). S-21.10 MERGED PR #780; S-21.12 MERGED PR #781; S-21.07 MERGED PR #776; S-21.09 MERGED PR #775. Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
+- **Merged (115):** S-24.01 MERGED PR #802 `9ab5a6f6` 2026-08-30 (D-1132; BC-6.28.001 v1.2 active POL-14). S-17.07 MERGED PR #800 `1fc8b9ee` 2026-08-29 (D-1130). S-17.05 MERGED PR #798 `a4b24601` 2026-08-29 (D-1129). S-17.06 MERGED PR #787 2026-08-28 (D-1126). S-21.10 MERGED PR #780; S-21.12 MERGED PR #781; S-21.07 MERGED PR #776; S-21.09 MERGED PR #775. Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **In-Flight (0):** None. S-17.05 MERGED 2026-08-29.
 - **E-21 active (Wave-7 HELD, unchanged this burst):** S-21.19 (v1.11, BC-1.03.017 v1.27, streak 0/3, R8 NOT-CLEAN); S-21.20 (v1.9, BC-1.03.017 v1.27, streak 0/3 — pass-9 NOT-CLEAN); S-21.21 (v1.10, BC-1.03.017 v1.27, streak 0/3 — pass-9 NOT-CLEAN); S-21.22 (v1.10, BC-1.03.017 v1.27, streak **1/3** — pass-9 CLEAN); S-21.23 (v1.8, BC-1.03.018 v1.6, streak 0/3 — pass-9 NOT-CLEAN); S-21.24 (v1.11, BC-1.03.017 v1.27 + BC-1.03.018 v1.6, Wave 8, STRICTLY LAST); S-21.25 (CONVERGED 3/3, awaiting TDD sequencing). S-21.11 SUPERSEDED D-1057. Wave-7 cascade remains HELD pending the ADR-045 ratification-recording burst.
 - **E-17 Wave-5 ALL 3 STORIES MERGED (D-1130 2026-08-29):** S-17.06 PR #787 `3200149d` + S-17.05 PR #798 `a4b24601` + S-17.07 PR #800 `1fc8b9ee`. Follow-up fix PR #801 `da14fb94`. Integration gate CONVERGED BC-5.39.001 3-CLEAN (da14fb94). BC-4.17.001 v1.29 **active** (POL-14 promoted D-1130). BC-7.07.001 v1.40 active (unchanged). STORY-INDEX v4.402; E-17 7 stories 44pts ALL MERGED. Convergence-gate-declaration BLOCKED on PG-CI-1/2/3 + process-gap disposition (human deferred).
@@ -118,8 +119,8 @@ dtu_services: []
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
-| develop | **da14fb94** | PR #801 (F-WG5-P2-001) squash-merged `da14fb94` 2026-08-29. Chain: …→PR #800 `1fc8b9ee` (S-17.07)→PR #801 `da14fb94` (F-WG5-P2-001). CI-GREEN (rerun 33272316659). |
-| factory-artifacts | **`5acb6128`** | WRAP-SKILL-CONSISTENCY-AUDIT-F1-F7-CORRECTIONS-2026-08-29 (this commit). Prior: 2454e860 (E17-WAVE5-CLOSE-BURST-2026-08-29). |
+| develop | **9ab5a6f6** | PR #802 (S-24.01 vsdd-factory:wrap skill) squash-merged `9ab5a6f6` 2026-08-30 (D-1132). Prior: `da14fb94` (PR #801 F-WG5-P2-001 2026-08-29). CI-GREEN. |
+| factory-artifacts | **`25b60af7`** | S2401-POST-MERGE-BURST-2026-08-30 (this commit; D-1132). Prior: 5acb6128 (WRAP-SKILL-CONSISTENCY-AUDIT-F1-F7-CORRECTIONS-2026-08-29). |
 | feature/S-17.05 | **MERGED+DELETED** | PR #798 squash-merged `a4b24601` 2026-08-29T13:45:46Z. Branch deleted post-merge. D-1129. |
 | feature/S-17.07 | **MERGED+DELETED** | PR #800 squash-merged `1fc8b9ee` 2026-08-29. Branch deleted post-merge. D-1130. |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
@@ -140,16 +141,17 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **PAUSED (WRAP-SKILL-F1F2F3-SPEC-BURST 2026-08-29 D-1131)** | S-17.07 MERGED PR #800 1fc8b9ee (D-1130); PR #801 da14fb94; develop da14fb94. merged_count 114. BC-4.17.001 v1.29 active (D-1130). Wave-5 integration gate CONVERGED 3-CLEAN. Autonomous-merge AUTHORIZED (D-1126b). rc.24 SHIPPED. ADR-046 gate CONVERGED-VALIDATED (D-1124). PG-CI-1/2/3 + F-WG5-001 + PR-MANAGER-MERGE-OVER-RED OWED before convergence gate. BC-6.28.001 (SS-06; CAP-040; draft; D-1131). E-24 HOLDING EPIC. S-24.01 registered. STORY-INDEX v4.404, VP-INDEX v2.79, ARCH-INDEX v3.96, BC-INDEX v5.23. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). |
+| v1.0-brownfield-backfill | brownfield | **PAUSED (S2401-POST-MERGE-BURST 2026-08-30 D-1132)** | S-24.01 MERGED PR #802 9ab5a6f6 2026-08-30 (D-1132). BC-6.28.001 v1.2 active (POL-14). SS-06 119→120. develop 9ab5a6f6. merged_count 115. BC-4.17.001 v1.29 active (D-1130). Wave-5 integration gate CONVERGED 3-CLEAN. Autonomous-merge AUTHORIZED (D-1126b). rc.24 SHIPPED. ADR-046 gate CONVERGED-VALIDATED (D-1124). PG-CI-1/2/3 + F-WG5-001 + PR-MANAGER-MERGE-OVER-RED OWED before convergence gate. E-24 W1 COMPLETE. STORY-INDEX v4.405, VP-INDEX v2.79, ARCH-INDEX v3.97, BC-INDEX v5.24. trajectory-tail →0→0→0→0 LENGTH=4 (UNCHANGED). |
 | v1.0-feature-engine-discipline-pass-1 | feature | PAUSED | F5 pass-75 D-510. META-LEVEL-30 CANDIDATE-CONFIRMED. trajectory-tail →7→9→7→9 LENGTH=4. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
-> D-001..D-606 (exhaustive): decision-log.md + decisions-log-archive.md. D-379..D-454 (exhaustive) (F5): cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md. D-607..D-1129 (exhaustive): decision-log.md SoT. D-999 SKIPPED. Backfill OWED: D-1011/D-1012, D-1016..D-1042 (exhaustive), D-1068..D-1076, ADR-046 creation history, ADR-045 pivot, rc.24 release-burst (D-1081..D-1082 gap).
+> D-001..D-606 (exhaustive): decision-log.md + decisions-log-archive.md. D-379..D-454 (exhaustive) (F5): cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md. D-607..D-1132 (exhaustive): decision-log.md SoT. D-999 SKIPPED. Backfill OWED: D-1011/D-1012, D-1016..D-1042 (exhaustive), D-1068..D-1076, ADR-046 creation history, ADR-045 pivot, rc.24 release-burst (D-1081..D-1082 gap).
 
 | ID | Decision | Summary | Phase | Date |
 |----|----------|---------|-------|------|
+| D-1132 | D-1132-S2401-POST-MERGE-BURST | S-24.01 (vsdd-factory:wrap skill) PR #802 squash-merged 9ab5a6f6 2026-08-30 into develop. POL-14 auto-promotion: BC-6.28.001 v1.1→v1.2 draft→active. SS-06 skill count 119→120 (wrap skill SKILL.md added; 582 markdown files). BC-INDEX v5.23→v5.24. STORY-INDEX v4.404→v4.405 (S-24.01 status draft→merged; E-24 blockquote W1 COMPLETE). ARCH-INDEX v3.96→v3.97 (SS-06 skills 119→120; markdown files 581→582). sprint-state.yaml: S-24.01 merged entry added (depth=9; lex after S-2.08 per BC-5.41.004). merged_count 114→115. POLICY 18 three-way parity VERIFIED (7b0a540; unchanged — POL-14 metadata-only promotion). develop da14fb94→9ab5a6f6. STATE.md v9.32→v9.33. | D-1132 | 2026-08-30 |
 | D-1131 | D-1131-WRAP-SKILL-F1F2F3-SPEC-BURST | Wrap-skill spec burst: BC-6.28.001 authored (SS-06; CAP-040; 16 PCs, 3 INVs, 7 ECs; tdd_mode facade; input-hash 36c33f3; draft; anchored S-24.01). E-24 HOLDING EPIC registered (Session Lifecycle Orchestration; human-directed 2026-08-29). S-24.01 registered (5pts; P1; depends_on [S-18.03 MERGED, S-18.10 MERGED]; input-hash 88faa0e). capabilities.md v1.14 CAP-040 added. BC-INDEX v5.21→v5.22 (total_bcs 1988→1989). STORY-INDEX v4.402→v4.403 (stories 158→159; epics 23→24). ARCH-INDEX v3.95→v3.96 (SS-06 BCs 589→590). POLICY 18 three-way parity VERIFIED (S-24.01 frontmatter=catalog-row=blockquote=88faa0e). BC-6.28.001 stays draft until S-24.01 PR merges (POLICY 14). Skill count bump (119→120) DEFERRED to F4 delivery burst (plugins/vsdd-factory/skills/wrap/SKILL.md does not exist yet). | D-1131 | 2026-08-29 |
 | D-1128 | D-1128-S1705-LOCAL-BC539001-3CLEAN-CONVERGED | S-17.05 LOCAL BC-5.39.001 3-CLEAN CONVERGED 2026-08-28. Pass 14 CLEAN (zero MEDIUM+); three consecutive clean passes on frozen artifact `feature/S-17.05` @ `a73086a5` (story v1.7): pass-12 CLEAN, pass-13 CLEAN, pass-14 CLEAN. BC-5.39.001 streak 2/3→3/3. F-P14-001 ADVISORY spec-permitted (write-back fail-open no log_warn; BC-4.17.001 PC3/Invariant 4 mandates swallow; default ACCEPT; finalization-doc-sweep.md). Batched items: F-P12-001 MANDATORY (Red Gate prose tally 28/31→30/32; story-writer) + O-P13-1 OPTIONAL (guard_logic 262_144 literal; spec-conformant; decide at finalization) + F-P14-001 OPTIONAL (write-side observability; spec-permitted; default ACCEPT). NEXT: finalization doc-sweep → demo-recorder per-AC → pr-manager PR → autonomous-merge (D-1126b) → S-17.07. | D-1128 | 2026-08-28 |
 | D-1130 | D-1130-E17-WAVE5-INTEGRATION-GATE-CONVERGED-BC-PROMOTION | S-17.07 MERGED PR #800 squash `1fc8b9ee` 2026-08-29 (precompact-flush Step-4 identity-gate). PR #801 (F-WG5-P2-001) MERGED squash `da14fb94` (dead `LOCK_RENEWAL_TTL_SECS` const removed; single-source TTL from `factory_lock_parse::TTL_SECONDS`). develop HEAD `da14fb94` CI-GREEN (rerun 33272316659: bats-full-suite linux + all legs PASS). E-17 Wave-5 integration gate CONVERGED BC-5.39.001 3-CLEAN (3 consecutive fresh-context integration passes on `da14fb94`). BC-4.17.001 v1.28→v1.29 draft→active (POL-14 auto-promotion; D-1126 exception fully satisfied). BC-INDEX v5.20→v5.21. STORY-INDEX v4.401→v4.402. merged_count 113→114. 4 process-gap Drift Items recorded (F-WG5-001, PR-MANAGER-MERGE-OVER-RED, PG-CI-3-confirmed, stamp-state-doc-FnMut). E-17 Wave-5 DELIVERY COMPLETE; convergence-gate-declaration BLOCKED on PG-CI-1/2/3 + process-gap disposition (human deferred). | D-1130 | 2026-08-29 |
@@ -241,26 +243,24 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`
 
-## Session Resume Checkpoint (2026-08-29 — E17-WAVE5-CLOSE-BURST; E-17 Wave-5 DELIVERY COMPLETE; convergence-gate-declaration BLOCKED on process-gap disposition)
+## Session Resume Checkpoint (2026-08-30 — S2401-POST-MERGE-BURST; S-24.01 MERGED; E-24 W1 COMPLETE; convergence-gate-declaration BLOCKED on process-gap disposition)
 
-> **SELF-SUFFICIENT RESUME CONTEXT.** E17-WAVE5-CLOSE-BURST 2026-08-29. E-17 Wave-5 ALL 3 STORIES MERGED. Integration gate CONVERGED BC-5.39.001 3-CLEAN. BC-4.17.001 v1.29 active.
-> Prior checkpoint (S1707-PRE-TDD-RECONCILIATION-BURST 2026-08-29) archived to
+> **SELF-SUFFICIENT RESUME CONTEXT.** S2401-POST-MERGE-BURST 2026-08-30 (D-1132). S-24.01 MERGED PR #802 squash-merged 9ab5a6f6. BC-6.28.001 v1.2 active (POL-14). merged_count 115. E-24 W1 COMPLETE.
+> Prior checkpoint (E17-WAVE5-CLOSE-BURST 2026-08-29) archived to
 > `cycles/v1.0-brownfield-backfill/session-checkpoints.md`.
 
 ### §1. Position
 
 Brownfield cycle `v1.0-brownfield-backfill`. Pipeline **PAUSED** at a clean boundary.
-E-17 Wave-5 DELIVERY COMPLETE. Convergence-gate-declaration BLOCKED on process-gap disposition
-(human deferred).
+E-17 Wave-5 DELIVERY COMPLETE. E-24 Wave-1 COMPLETE (S-24.01 MERGED).
+Convergence-gate-declaration BLOCKED on process-gap disposition (human deferred).
 
-E-17 Wave-5 = 3 stories, ONE release, atomicity via wave gate — ALL COMPLETE:
+E-17 Wave-5 = 3 stories ALL MERGED + E-24 W1 = 1 story MERGED:
 
 - **S-17.06** (factory-lock shared fns) — **MERGED** PR #787 `3200149d` 2026-08-28 (D-1126).
-- **S-17.05** (stamp-state-timestamp PostToolUse hook) — **MERGED** PR #798 `a4b24601`
-  2026-08-29 (D-1129). merged_count 112→113.
-- **S-17.07** (precompact-flush Step-4 identity-gate amendment) — **MERGED** PR #800 squash
-  `1fc8b9ee` 2026-08-29 (D-1130). PR #801 (F-WG5-P2-001) `da14fb94`. merged_count 113→114.
-  BC-4.17.001 v1.29 **active** (POL-14 D-1130). Wave-5 integration gate CONVERGED 3-CLEAN.
+- **S-17.05** (stamp-state-timestamp PostToolUse hook) — **MERGED** PR #798 `a4b24601` 2026-08-29 (D-1129). merged_count 112→113.
+- **S-17.07** (precompact-flush Step-4 identity-gate amendment) — **MERGED** PR #800 squash `1fc8b9ee` 2026-08-29 (D-1130). PR #801 (F-WG5-P2-001) `da14fb94`. merged_count 113→114. BC-4.17.001 v1.29 **active** (POL-14 D-1130). Wave-5 integration gate CONVERGED 3-CLEAN.
+- **S-24.01** (vsdd-factory:wrap skill — session pause, checkpoint, lock-release) — **MERGED** PR #802 `9ab5a6f6` 2026-08-30 (D-1132). merged_count 114→115. BC-6.28.001 v1.2 **active** (POL-14 D-1132). E-24 W1 COMPLETE.
 
 ### §2. No in-flight work
 
@@ -270,25 +270,21 @@ No story mid-TDD, no open PRs awaiting action, no running sub-agents, no abandon
 ### §3. Governance decisions in effect
 
 - **BC-4.17.001 v1.29 ACTIVE** (D-1130, POL-14 auto-promotion satisfied 2026-08-29).
-- **Autonomous-merge policy AUTHORIZED** (D-1126b, 2026-08-28): excludes release, P0 security,
-  meta-doc PRs.
-- **D-1127/D-1128/D-1129** — S-17.05 cascade complete (3-CLEAN + delivery).
-- **D-1130** — E-17 Wave-5 integration gate CONVERGED 3-CLEAN + BC-4.17.001 active.
+- **BC-6.28.001 v1.2 ACTIVE** (D-1132, POL-14 auto-promotion on S-24.01 PR #802 squash-merged 9ab5a6f6 2026-08-30).
+- **Autonomous-merge policy AUTHORIZED** (D-1126b, 2026-08-28): excludes release, P0 security, meta-doc PRs.
+- **D-1132** — S-24.01 MERGED + BC-6.28.001 active + merged_count 115.
 
 ### §4. HEADs
 
-- `develop`: **`da14fb94`** (PR #801 F-WG5-P2-001 squash-merged 2026-08-29). CI-GREEN (rerun 33272316659).
+- `develop`: **`9ab5a6f6`** (PR #802 S-24.01 squash-merged 2026-08-30). Prior: `da14fb94` (PR #801).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
-- `factory-artifacts`: **`2454e860`** (E17-WAVE5-CLOSE-BURST-2026-08-29; this commit).
+- `factory-artifacts`: **`25b60af7`** (S2401-POST-MERGE-BURST-2026-08-30; this commit).
 - `feature/S-17.05`: MERGED+DELETED (PR #798 2026-08-29).
-- `feature/S-17.06`: MERGED+DELETED (PR #787 2026-08-28).
 - `feature/S-17.07`: MERGED+DELETED (PR #800 2026-08-29).
 
 ### §5. Pending human decisions / OWED before E-17/cycle convergence gate
 
-1. **PG-CI-1/2/3 follow-up** — OWED before E-17/cycle convergence gate (D-1129). Follow-up
-   stories or justified deferrals: workflow-reference sibling-sweep (PG-CI-1); cross-platform
-   portability (PG-CI-2); pr-manager all-checks-COMPLETED (PG-CI-3).
+1. **PG-CI-1/2/3 follow-up** — OWED before E-17/cycle convergence gate (D-1129). Follow-up stories or justified deferrals: workflow-reference sibling-sweep (PG-CI-1); cross-platform portability (PG-CI-2); pr-manager all-checks-COMPLETED (PG-CI-3).
 2. **F-WG5-001 disposition** — Wave-5 integration adversary identity-tuple gap (D-1130).
 3. **PR-MANAGER-MERGE-OVER-RED disposition** — pr-manager merged S-17.05 over RED bats (D-1130).
 4. **`.worktrees/` permission-prompt fix** — awaiting human decision.
@@ -298,7 +294,8 @@ No story mid-TDD, no open PRs awaiting action, no running sub-agents, no abandon
 
 ### §6. Resume command
 
-`/vsdd-factory:next-step` — E-17 Wave-5 DELIVERY COMPLETE. Next: address PG-CI-1/2/3 +
-F-WG5-001 + PR-MANAGER-MERGE-OVER-RED disposition before declaring E-17/cycle converged.
-Then Wave-6 or next priority as directed by human. BC-4.17.001 v1.29 active. BC-INDEX v5.21.
-STORY-INDEX v4.402. merged_count 114. develop `da14fb94` CI-GREEN.
+`/vsdd-factory:next-step` — E-17 Wave-5 DELIVERY COMPLETE. E-24 W1 COMPLETE. merged_count 115.
+Next: address PG-CI-1/2/3 + F-WG5-001 + PR-MANAGER-MERGE-OVER-RED disposition before declaring
+E-17/cycle converged. Then Wave-6 or next priority as directed by human. BC-4.17.001 v1.29 active.
+BC-6.28.001 v1.2 active. BC-INDEX v5.24. STORY-INDEX v4.405. ARCH-INDEX v3.97. merged_count 115.
+develop `9ab5a6f6`.

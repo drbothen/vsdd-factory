@@ -21,7 +21,7 @@ traces_to: ARCH-INDEX.md
 ## Purpose
 
 The Skill Catalog subsystem is the largest single behavioral surface in Subsystem B,
-containing 119 named procedures invokable as `/vsdd-factory:<skill-name>` slash
+containing 120 named procedures invokable as `/vsdd-factory:<skill-name>` slash
 commands. Each skill is a self-contained unit of behavior with its own `SKILL.md`,
 optional `steps/` subdirectory of step-level instructions, and optional local
 `templates/` for skill-specific output shapes. Skills are the atomic units of
@@ -34,7 +34,7 @@ production (`create-domain-spec`), PRD authoring (`create-prd`), architecture
 design (`create-architecture`), story decomposition (`decompose-stories`), TDD
 delivery (`deliver-story`), adversarial review (`adversarial-review`),
 formal verification (`formal-verify`), wave-gate bookkeeping (`wave-gate`), and
-release management (`release`). The 119 skills collectively implement the complete
+release management (`release`). The 120 skills collectively implement the complete
 VSDD 0–7 phase SDLC.
 
 The skill catalog is intentionally a standalone subsystem because each `SKILL.md`
@@ -48,7 +48,7 @@ being entangled with workflow or agent concerns.
 
 | Module / File | Responsibility |
 |---|---|
-| `plugins/vsdd-factory/skills/*/SKILL.md` (119 files) | Primary skill definition: frontmatter (`name`, `description`, optional `argument-hint`), procedure steps, acceptance criteria |
+| `plugins/vsdd-factory/skills/*/SKILL.md` (120 files) | Primary skill definition: frontmatter (`name`, `description`, optional `argument-hint`), procedure steps, acceptance criteria |
 | `plugins/vsdd-factory/skills/*/steps/*.md` | Per-step detailed instructions for multi-step skills |
 | `plugins/vsdd-factory/skills/*/templates/` | Skill-local output templates (overrides or supplements global templates in SS-08) |
 | `plugins/vsdd-factory/commands/*.md` (110 files) | Slash-command binding files: `/vsdd-factory:<name>` → invokes the named skill |
@@ -67,6 +67,7 @@ being entangled with workflow or agent concerns.
 | `formal-verify` | Phase 6 | Formal verification using Kani/proptest/fuzz |
 | `wave-gate` | Cross-phase | Quality bookkeeping; records gate outcomes to STATE.md |
 | `release` | Phase 7 | Semver bump + CHANGELOG + binary commit + marketplace publish |
+| `wrap` | Ops | Session pause, checkpoint, and lock-release orchestration (BC-6.28.001; S-24.01; CAP-040) |
 | `activate` | Setup | Platform detection + hooks.json variant copy + binary verification |
 | `factory-health` | Ops | Health check of factory state, STATE.md, wave gates |
 | `check-state-health` | Ops | Validate STATE.md integrity and consistency |
@@ -74,7 +75,7 @@ being entangled with workflow or agent concerns.
 ## Public Interface
 
 **Slash command surface:** Every skill is reachable as `/vsdd-factory:<skill-name>`.
-110 of 119 skills have a corresponding `commands/<skill-name>.md` binding. The
+110 of 120 skills have a corresponding `commands/<skill-name>.md` binding. The
 binding file declares the slash command name and maps it to the skill invocation.
 
 **Skill frontmatter schema:**
@@ -108,7 +109,7 @@ skills/<skill-name>/
     └── output-template.md
 ```
 
-119/119 skills conform to the frontmatter convention. Skills compose each other
+120/120 skills conform to the frontmatter convention. Skills compose each other
 freely (e.g., `deliver-story` invokes `wave-gate`; `create-architecture` invokes
 `create-prd` outputs as inputs). There is no circular dependency constraint
 enforced by tooling — the skill author is responsible for acyclic composition.
@@ -118,8 +119,8 @@ Skills that produce `.factory/specs/` artifacts follow VSDD naming conventions:
 `BC-S.SS.NNN` for behavioral contracts. Slash commands follow the kebab-case
 convention matching the skill directory name.
 
-The 119 skills were analyzed in 3 alphabetical batches during Phase 0 ingestion
-(pass-3-deep-skills-batch-1/2/3.md). All 119 are covered at 100% per the Phase 0
+The 120 skills were analyzed in 3 alphabetical batches during Phase 0 ingestion
+(pass-3-deep-skills-batch-1/2/3.md). All 120 are covered at 100% per the Phase 0
 convergence report (pass-8-final-synthesis.md §9).
 
 ## Dependencies
