@@ -6,6 +6,12 @@
      ### Fixed. Drained into the next `## <version>` section at release time
      (RELEASING.md Step 2). Keep this heading in place and empty after a drain. -->
 
+### Added
+
+- `vsdd-factory:wrap` skill — 7-step procedure for safe factory session pause,
+  checkpoint, and lock release; resume guidance cites `/vsdd-factory:rehydrate-wave`
+  before `/vsdd-factory:next-step` (BC-6.28.001; E-24 S-24.01).
+
 ### Changed
 
 - **S-17.07 — precompact-flush Step-4 identity gate** (BC-7.07.001 v1.40, S-17.07 v1.2, ADR-046 Decision 3/4): precompact-flush Step-4 lock renewal upgraded from the identity-blind `renew_lock` to `renew_lock_if_holder` — renewal is now skipped when the lock is expired (`AlreadyExpired`), when the current committer is not the lock holder (`NotHolder`), or when git identity resolution fails; `factory.lock.renewal_indeterminate` event emitted with 5-field payload (`plugin`, `holder`, `locked_at`, `expires_at`, `resolution_error`) on identity-resolution failure; `Malformed` lock blocks are advisory-logged and flush proceeds unblocked. `step4_renewal_gate<RI,WS,LW,EE,NF>` wired into `run_plugin_with_mock_and_cwd` with injectable `log_warn_fn`/`emit_event_fn` closures; production path delegates to `host::log_warn`/`host::emit_event`.
