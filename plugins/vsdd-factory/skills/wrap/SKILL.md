@@ -57,11 +57,11 @@ Run `/vsdd-factory:check-state-health`.
 
 - **HEALTHY / WARNINGS:** proceed to Step 3.
 - **NEEDS-COMPACT:** run `/vsdd-factory:compact-state` first so the checkpoint
-  lands in a slim STATE.md. Verify all postconditions PC-1 through PC-16 against
+  lands in a slim STATE.md. Verify all postconditions PC-1 through PC-15 against
   the compacted file.
 - **STATE.md missing or corrupted:** run `/vsdd-factory:recover-state`, obtain
   human approval of the reconstruction, then continue. Step 7 is NOT emitted
-  until PC-1 through PC-16 are satisfied on the reconstructed file.
+  until PC-1 through PC-15 are satisfied on the reconstructed file.
 
 ## Step 3 — Persist uncommitted work
 
@@ -152,9 +152,13 @@ If this session holds the cross-session factory lock, run
 `/vsdd-factory:factory-unlock` so the resuming session (or another machine)
 can acquire it (BC-6.23.001 PC4 `factory.lock.released` event; PC-14).
 
-Skip silently if no lock is held and note `Lock: not held` in the Step 7 report
-(EC-001). A lock that remains held at the time the Step 7 report is emitted is
-a wrap failure.
+Skip silently and note `Lock: not held` in the Step 7 report when this session
+never held the lock — i.e., when the `factory_lock:` key is absent, the lock is
+expired (`now >= expires_at`), or the lock is held by a foreign session (EC-001).
+A self-held, unexpired lock that remains present after Step 5 completes is a wrap
+failure (PC-14) — re-run `/vsdd-factory:factory-unlock`, which will succeed
+because this session is the holder. A foreign or expired lock is NOT a wrap
+failure; PC-14 verifies the distinction.
 
 ## Step 6 — Verify durability
 
@@ -280,17 +284,43 @@ Expected for each: empty output (all changes committed) OR the exact
 uncommittable state is explicitly documented in the Session Resume Checkpoint
 PC-8 field (c).
 
-### PC-14 — factory lock is FREE
+### PC-14 — factory lock is FREE (three-state check per BC-6.23.001 PC7)
 
 ```bash
-grep '^factory_lock:' .factory/STATE.md && echo "LOCK HELD" || echo "LOCK FREE"
+# Check factory_lock key presence and sub-fields (empty = key absent):
+grep '^factory_lock:' .factory/STATE.md || echo "(factory_lock key absent)"
+grep -A 5 '^factory_lock:' .factory/STATE.md | grep -E '^\s*(holder|expires_at):'
+# This session's identity:
+git config user.email
+# Current UTC time (ISO-8601, sorts lexicographically with expires_at):
+date -u +%Y-%m-%dT%H:%M:%SZ
 ```
 
-Expected: `LOCK FREE` — the `factory_lock:` key is absent from STATE.md
-frontmatter (factory-unlock removed it at Step 5, or no lock was held).
-If `LOCK HELD`: the lock is still present — wrap failure. Re-run
-`/vsdd-factory:factory-unlock`, then re-verify. The `Lock:` line in Step 7 is
-GATED on this verified state, not merely on Step 5 having run.
+Interpret using BC-6.23.001 PC7 three-state semantics:
+
+- **LOCK FREE — wrap PROCEEDS** when ANY of:
+  - **(a) `factory_lock:` key absent** — factory-unlock removed it at Step 5, or
+    no lock was ever acquired by this session.
+  - **(b) Lock present but EXPIRED** — `expires_at` value is ≤ current UTC time
+    (`now >= expires_at`; the exact boundary `now == expires_at` is treated as
+    expired per BC-6.23.001 EC-002).
+  - **(c) Lock present but FOREIGN** — `holder` sub-field differs from
+    `git config user.email`. This session never held the lock; the correct action
+    is to leave it alone — nudging the operator toward `factory-unlock --force`
+    would STEAL another session's lock (BC-6.23.001 PC6 `factory.lock.stolen`
+    audit event). Do NOT suggest force-unlock for a foreign lock.
+
+- **WRAP FAILURE** only when ALL of: `factory_lock:` key present AND
+  `holder == git config user.email` AND `now < expires_at` (self-held, unexpired
+  lock still present after Step 5). Recovery: re-run `/vsdd-factory:factory-unlock`
+  (succeeds because this session is the holder per BC-6.23.001 PC4), then re-run
+  Step 6 from the beginning.
+
+The `Lock:` line in Step 7 reflects the verified outcome, not merely Step 5 having
+run:
+- `released` — self-held lock was present before Step 5; factory-unlock removed it
+  (PC-14 now sees case (a)).
+- `not held` — lock was absent, expired, or foreign; Step 5 was silently skipped.
 
 ### PC-15 — resume guidance names `rehydrate-wave` before `next-step`
 
@@ -307,16 +337,29 @@ Once all checks above pass, proceed to Step 7.
 
 Only emit this report after Step 6 passes completely (INV-2).
 
-**If the factory-artifacts checkpoint was NOT pushed to remote** (Step 4 item 12
-or Step 3 item 3 reports `pushed: no` for either reason — no remote configured
-OR push rejected), you MUST perform the following before emitting the full report:
+**If anything was NOT pushed to remote** (Step 4 item 12 or Step 3 item 3
+reports `pushed: no` for any artifact), you MUST perform the following before
+emitting the full report. First determine which artifact(s) are local-only:
 
-1. Emit the warning line:
-   `⚠ Off-machine durability NOT guaranteed — checkpoint is local-only.`
+- **(i) factory-artifacts NOT pushed** (Step 4 item 12 reports `pushed: no`):
+  the Session Resume Checkpoint is local-only — if this machine is lost before a
+  push succeeds, the factory cannot resume from STATE.md alone.
+- **(ii) WIP story branch NOT pushed** (Step 3 item 3 reports `pushed: no` for
+  one or more branches): in-progress code is local-only — WIP commits exist only
+  on this machine.
+- **(iii) Both** are local-only: both risks apply.
+
+1. Emit the warning line that names what is at risk:
+   - factory-artifacts not pushed:
+     `⚠ Off-machine durability NOT guaranteed — the factory checkpoint exists only on this machine.`
+   - only WIP branch(es) not pushed:
+     `⚠ Off-machine durability NOT guaranteed — WIP code on <branch> exists only on this machine; the factory checkpoint DID reach the remote.`
+   - both not pushed:
+     `⚠ Off-machine durability NOT guaranteed — the factory checkpoint AND WIP code on <branch(es)> exist only on this machine.`
 2. Ask the operator explicitly:
-   `The factory checkpoint exists only on this machine. If this machine is lost
-   before a push succeeds, the checkpoint will be unrecoverable. Type "acknowledge"
-   to confirm local-only mode and proceed.`
+   `If this machine is lost before a push succeeds, the local-only artifact(s)
+   above will be unrecoverable. Type "acknowledge" to confirm local-only mode and
+   proceed.`
 3. Wait for the operator to type `acknowledge` (or equivalent explicit
    confirmation).
 4. Only after acknowledgement, emit the full "Factory Wrapped" report below,
@@ -348,13 +391,18 @@ Report notes:
   frontmatter fields (PC-16a).
 - `committed <sha>` is the factory-artifacts commit SHA from Step 4 (PC-16b).
 - `pushed: yes` or `pushed: no (<reason>)` per actual push outcome (PC-16b).
-  When `pushed: no`, the `⚠ Off-machine durability NOT guaranteed` warning line
-  MUST appear and operator acknowledgement is required before `Safe to /clear`.
+  When the factory-artifacts checkpoint reports `pushed: no`, OR when any WIP
+  story branch push reports `pushed: no`, the `⚠ Off-machine durability NOT
+  guaranteed` warning MUST appear (naming the specific local-only artifact per
+  case (i)/(ii)/(iii) above) and operator acknowledgement is required before
+  `Safe to /clear`.
 - `WIP commits:` lists `<branch>@<sha>` for every branch committed at Step 3,
   or `none` if no WIP was in-flight (PC-16c).
-- `Lock:` is `released` if factory-unlock ran at Step 5, or `not held` if
-  Step 5 was skipped silently (PC-16d). This value is VERIFIED by the PC-14
-  grep check in Step 6 — not merely assumed from Step 5 having run.
+- `Lock:` is `released` if factory-unlock ran at Step 5 (self-held lock was
+  present and released), or `not held` if Step 5 was skipped silently because
+  the lock was absent, expired, or held by a foreign session (PC-16d). This
+  value is VERIFIED by the PC-14 three-state check in Step 6 — not merely
+  assumed from Step 5 having run.
 - `Safe to /clear or close this session.` is the exact wording (PC-16e) — this
   is the human-facing signal that all postconditions have been verified.
 
