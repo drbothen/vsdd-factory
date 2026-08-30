@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-08-29T00:00:00Z
@@ -19,7 +19,8 @@ subsystem: "SS-06"
 capability: "CAP-040"
 lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
-modified: []
+modified:
+  - "2026-08-29 (v1.1) — Finding-4 correction: replace bats-harness verification-vehicle language with documentary-verification statement per human-directed decision 2026-08-29 (product-owner; consistency-audit)."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -28,7 +29,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.28.001
 section: "6.28"
-last_amended: "2026-08-29 (v1.0) — Initial authoring (product-owner; F2 feature-mode wrap-skill E-24; CAP-040; implementing story S-24.01). lifecycle_status: draft (POL-14 auto-promotion on S-24.01 PR merge)."
+last_amended: "2026-08-29 (v1.1) — Finding-4 correction: replace bats-harness verification-vehicle language with documentary-verification statement per human-directed decision 2026-08-29; no automated tests/wrap-skill.bats harness for this LLM-executed procedure skill (product-owner; consistency-audit)."
 ---
 
 # BC-6.28.001: `/vsdd-factory:wrap` MUST halt new work, persist all in-flight changes to durable branches, delegate STATE.md PAUSED transition and dated Session Resume Checkpoint to state-manager (never editing STATE.md directly), release the factory lock, verify a clean factory-artifacts working tree, and emit resume guidance that names `/vsdd-factory:rehydrate-wave` before `/vsdd-factory:next-step`
@@ -199,7 +200,7 @@ dispatch, and is permitted.
 
 ## Canonical Test Vectors
 
-> F3/F4 harness executes these as fixture→expected-state assertions in `tests/wrap-skill.bats`.
+> These vectors are DOCUMENTARY reference only (expected wrap behavior per fixture); no automated harness executes them, per human-directed decision 2026-08-29.
 > Each row represents one invocation of the wrap procedure against a fixture factory state.
 
 | Fixture State | Expected Post-Wrap State | Category |
@@ -213,7 +214,7 @@ dispatch, and is permitted.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-TBD | Executing `/vsdd-factory:wrap` against any valid non-terminal factory state yields a state satisfying all BC-6.28.001 postconditions (PC-1 through PC-16). The correctness claim is: `∀ state ∈ ValidNonTerminalFactoryStates, wrap(state) ⊨ {PC-1 ∧ PC-2 ∧ ... ∧ PC-16}`. | Integration (bats completeness harness: `tests/wrap-skill.bats` T-01..T-15; F3 deliverable). Verification vehicle is the executing bats harness, NOT grep-on-doc. Formal proof NOT applicable (procedure-document skill; no pure core logic). VP allocation deferred to architect/formal-verifier per POLICY 9 sanctioned VP-TBD deferral. |
+| VP-TBD | Executing `/vsdd-factory:wrap` against any valid non-terminal factory state yields a state satisfying all BC-6.28.001 postconditions (PC-1 through PC-16). The correctness claim is: `∀ state ∈ ValidNonTerminalFactoryStates, wrap(state) ⊨ {PC-1 ∧ PC-2 ∧ ... ∧ PC-16}`. | Verification is DOCUMENTARY per human-directed decision (2026-08-29): each S-24.01 AC traces to a specific BC-6.28.001 postcondition/invariant clause; no automated harness (no `tests/wrap-skill.bats`) is built for this LLM-executed procedure skill. Formal proof NOT applicable (procedure-document skill; no pure core logic). VP allocation deferred to architect/formal-verifier per POLICY 9 (VP-TBD). |
 
 ## Traceability
 
@@ -252,11 +253,14 @@ S-24.01 — `vsdd-factory:wrap skill — session pause, checkpoint, and lock-rel
 
 - VP-TBD — "Executing `/vsdd-factory:wrap` against any valid non-terminal factory state yields
   a state satisfying all BC-6.28.001 postconditions (PC-1 through PC-16)." Allocation by
-  architect/formal-verifier after F3. Verification vehicle: `tests/wrap-skill.bats`
-  (15-test completeness harness, F3 deliverable). Not grep-on-doc.
+  architect/formal-verifier per POLICY 9. Verification is DOCUMENTARY per human-directed
+  decision (2026-08-29): each S-24.01 AC traces to a specific BC-6.28.001
+  postcondition/invariant clause; no automated harness (no `tests/wrap-skill.bats`) is built
+  for this LLM-executed procedure skill (VP-TBD).
 
 ## Changelog
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.1 | 2026-08-29 | product-owner | Finding-4 correction (consistency-audit): replace bats-harness verification-vehicle language in §VP Anchors, §Verification Properties, and §Canonical Test Vectors with documentary-verification statement per human-directed decision 2026-08-29 — no automated `tests/wrap-skill.bats` harness is built for this LLM-executed procedure skill. 16 Postconditions, 3 Invariants, 7 Edge Cases, H1 title, capability/subsystem anchors unchanged. |
 | v1.0 | 2026-08-29 | product-owner | Initial authoring (F2 feature-mode wrap-skill E-24; CAP-040; 4 Preconditions; 16 Postconditions PC-1..PC-16 exhaustively derived from state-manager pause machinery, STATE.md frontmatter conventions, BC-6.23.001 INV-5, BC-6.24.001, BC-5.39.005; 3 Invariants; 7 Edge Cases EC-001..EC-007; 4 Canonical Test Vectors; VP-TBD completeness harness stub; full Traceability + Related BCs + Architecture Anchors). lifecycle_status: draft (POL-14 auto-promotion on S-24.01 PR merge). |
