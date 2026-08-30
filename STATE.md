@@ -119,7 +119,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **da14fb94** | PR #801 (F-WG5-P2-001) squash-merged `da14fb94` 2026-08-29. Chain: …→PR #800 `1fc8b9ee` (S-17.07)→PR #801 `da14fb94` (F-WG5-P2-001). CI-GREEN (rerun 33272316659). |
-| factory-artifacts | **`2454e860`** | E17-WAVE5-CLOSE-BURST-2026-08-29 (this commit). Prior: 20d0505d (S1707-PRE-TDD-RECONCILIATION-BURST-2026-08-29). |
+| factory-artifacts | **`5acb6128`** | WRAP-SKILL-CONSISTENCY-AUDIT-F1-F7-CORRECTIONS-2026-08-29 (this commit). Prior: 2454e860 (E17-WAVE5-CLOSE-BURST-2026-08-29). |
 | feature/S-17.05 | **MERGED+DELETED** | PR #798 squash-merged `a4b24601` 2026-08-29T13:45:46Z. Branch deleted post-merge. D-1129. |
 | feature/S-17.07 | **MERGED+DELETED** | PR #800 squash-merged `1fc8b9ee` 2026-08-29. Branch deleted post-merge. D-1130. |
 | feature/policy15-gate-rust | d2a3176a | MERGED PR #777 2026-08-16. |
