@@ -2,18 +2,18 @@
 document_type: domain-spec-section
 level: L2
 section: capabilities
-version: "1.13"
+version: "1.14"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: 2026-08-20
+last_amended: 2026-08-29
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "7867317"
+input-hash: "bde1b12"
 traces_to: L2-INDEX.md
 ---
 
@@ -293,10 +293,38 @@ escape hatch FROM, not a restatement of it); CAP-031 already uses "break-glass" 
 on `factory-artifacts`, ADR-025), not validator-gate self-lock escape. Append-only P1 addition
 at next free ID.
 
+**CAP-040 — Human-initiated factory session pause and resume checkpoint orchestration**
+The `/vsdd-factory:wrap` skill provides the canonical 7-step sequence for safely pausing the
+factory pipeline: (1) halt new sub-agent spawning, (2) verify factory health (routing to
+`/vsdd-factory:compact-state` or `/vsdd-factory:recover-state` as needed), (3) commit WIP on
+all in-flight story branches to durable remote branches — never the default branch; un-committable
+state is documented in the checkpoint instead of forced, (4) delegate the pipeline-PAUSED STATE.md
+transition and dated Session Resume Checkpoint write to `vsdd-factory:state-manager` — BC-6.23.001
+Invariant 5 mandates that the skill NEVER edits STATE.md directly, (5) release the factory lock
+via `/vsdd-factory:factory-unlock` if held (skip silently if no lock held), (6) verify all
+durability postconditions (clean `factory-artifacts` working tree via `git -C .factory status
+--porcelain`, exactly one `## Session Resume Checkpoint` section in STATE.md, `pipeline: PAUSED`
+in frontmatter, banner `wc-l` accurate per BC-5.39.005), and (7) emit a `## Factory Wrapped`
+report with resume instructions that cite `/vsdd-factory:rehydrate-wave` BEFORE
+`/vsdd-factory:next-step` — mandatory post-clear ordering per BC-6.24.001.
+Subsystems: SS-06. Outcome: after `/vsdd-factory:wrap` completes, the session can be `/clear`ed
+or closed with zero data loss — a fresh session running `/vsdd-factory:rehydrate-wave` then
+`/vsdd-factory:next-step` resumes from the durable checkpoint on `factory-artifacts` without
+any reliance on in-session memory.
+Source: BC-6.28.001; BC-6.23.001 Invariant 5; BC-6.24.001; BC-5.39.005 (banner seal discipline).
+Justification: no existing capability covers human-initiated session-wrap orchestration as an
+end-to-end sequence. CAP-031 covers the raw lock acquire/release protocol (BC-6.23.001) — a
+primitive this capability USES but does not define. CAP-032 covers wave-boundary checkpoint and
+PreCompact flush (BC-6.24.001) — triggered by session clear and harness events respectively, not
+by explicit human invocation. This capability covers the skill that orchestrates all of the above
+primitives into a single deterministic safe-pause sequence at the human's request. Append-only P1
+addition; CAP-039 is the prior entry.
+
 ## CHANGELOG
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.14 | 2026-08-29 | F2 feature-mode wrap-skill (product-owner, orchestrator-dispatched): authored CAP-040 (P1 — human-initiated factory session pause and resume checkpoint orchestration; SS-06; BC-6.28.001; BC-6.23.001 Invariant 5; BC-6.24.001; BC-5.39.005). Distinguishes from CAP-031 (raw lock acquire/release protocol) and CAP-032 (wave-boundary checkpoint / PreCompact flush). CAP count advance 39→40. |
 | v1.13 | 2026-08-20 | S-21.25 adversarial pass-2 fix (LOW; brownfield cycle v1.0-brownfield-backfill, product-owner, orchestrator-dispatched): CAP-011 body's ADR-042 section cite corrected "§Decision 2" → "§Decision 1". ADR-042 §Decision 1 ("New fuel budget value: 20,000,000 (20M), derivation from measured data") is the section that actually sets the 20M default; §Decision 2 covers a different concern ("Raise is global … not per-plugin"). The v1.12 fix (immediately below) introduced the wrong section number while correcting the stale "10M" figure; this row aligns the cite with `crates/factory-dispatcher/src/invoke.rs`'s `DEFAULT_FUEL_CAP` doc comment and BC-1.03.019 Precondition 2/Architecture Anchors, both of which already cite "§Decision 1" correctly. No capability semantics, subsystem mapping, or outcome statement altered — precision fix only. |
 | v1.12 | 2026-08-20 | F-S2125-P1-007 fix (LOW, pre-existing; S-21.25 adversarial review, brownfield cycle v1.0-brownfield-backfill, architect, orchestrator-dispatched): CAP-011 body corrected "default 10M operations" → "default 20M operations (per ADR-042 §Decision 2)". The 10M figure predated ADR-042's fuel-cap raise and had gone stale; BC-1.03.019 anchors to CAP-011, making the staleness load-bearing. No capability semantics, subsystem mapping, or outcome statement altered — precision fix only. |
 | v1.11 | 2026-08-19 | S-21.11 expanded-scope BC coverage burst (product-owner, orchestrator-directed): authored CAP-039 (P1 — break-glass operator override for the two self-locking PreToolUse `^Agent$` validator gates; SS-01; ADR-039 §Decision 3 v1.10 amendment; BC-1.03.018; S-21.11). Distinguished from CAP-002 (normal hook block/allow decision), CAP-008 (Bash-tool PreToolUse gating), CAP-011 (the fuel/epoch enforcement this capability bypasses), and CAP-031 (factory-lock break-glass — same term, distinct concern). CAP count advance 38→39. |
