@@ -129,7 +129,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **9ab5a6f6** | PR #802 (S-24.01 vsdd-factory:wrap skill) squash-merged `9ab5a6f6` 2026-08-30 (D-1132). Prior: `da14fb94` (PR #801 F-WG5-P2-001 2026-08-29). CI-GREEN. |
-| factory-artifacts | **SHA-PATCH-PENDING** | S2501-LOCAL-ADV-PASS1-FIX-BURST-2026-08-31 v9.41→v9.42 (this burst; SHA-patch follow-up will update). Prior chain: `f89099e5` (architect VP-105 v1.5 + VP-INDEX v2.86) → `f522f44a` (S2501-F4-GATE v9.41). |
+| factory-artifacts | **`e47b6f66`** | S2501-LOCAL-ADV-PASS1-FIX-BURST-2026-08-31 v9.41→v9.42 (this burst). Prior chain: `f89099e5` (architect VP-105 v1.5 + VP-INDEX v2.86) → `f522f44a` (S2501-F4-GATE v9.41) → `e47b6f66` (this burst). |
 | feature/S-25.01 | **`803849e5`** | F4 TDD IN PROGRESS — LOCAL adversary pass-1 fix-burst COMPLETE. Implementer @2aca1cee + test-writer @803849e5. fmt/clippy CLEAN, bats 2234 passed. BC-5.39.001 streak 0/3. NEXT: re-run LOCAL adversary pass 1 fresh. |
 | feature/S-17.05 | **MERGED+DELETED** | PR #798 squash-merged `a4b24601` 2026-08-29T13:45:46Z. Branch deleted post-merge. D-1129. |
 | feature/S-17.07 | **MERGED+DELETED** | PR #800 squash-merged `1fc8b9ee` 2026-08-29. Branch deleted post-merge. D-1130. |
@@ -301,7 +301,7 @@ Feature branch `feature/S-25.01` at `803849e5`. F4 TDD in progress. BC-5.39.001 
 - `develop`: **`9ab5a6f6`** (PR #802 S-24.01 squash-merged 2026-08-30).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
 - `feature/S-25.01`: **`803849e5`** (test-writer git-detection vectors; post-implementer `2aca1cee`).
-- `factory-artifacts`: run `git -C .factory log -1 --format='%H'` (this burst; SHA-patch follow-up updates Active Branches row).
+- `factory-artifacts`: **`e47b6f66`** (S2501-LOCAL-ADV-PASS1-FIX-BURST-2026-08-31 v9.41→v9.42).
 
 ### §5. Pending / OWED (backlog, NOT drift)
 
