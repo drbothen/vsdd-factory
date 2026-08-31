@@ -77,3 +77,106 @@ submitting the S-17.05 PR. Routing: story-writer dispatched by orchestrator.
 | F-P14-001 | **ACCEPTED (won't-fix)** 2026-08-28 — spec-permitted: BC-4.17.001 PC3/Invariant 4 mandates swallow-on-write-error; no AC, PC, EC, or VP requires write-failure observability; the write-side fail-open is intentional per PC3/Invariant 4. Hardening would needlessly re-open the frozen 3-CLEAN-certified code perimeter. Recorded as optional future-hardening suggestion, not a defect. | story-writer 2026-08-28 |
 
 *Last updated: 2026-08-28 (S1705-D1127-FINALIZATION-DOC-SWEEP-COMPLETE — story v1.8; F-P12-001 RESOLVED; O-P13-1 + F-P14-001 ACCEPTED won't-fix)*
+
+---
+
+# S-25.01 Finalization Doc-Sweep Backlog
+
+**Anchor:** This section is the "concrete future step" anchor required by VSDD Canonical Principle Rule 3 for all
+batched non-blocking items deferred under D-1127 governance ruling (applied to S-25.01 BC-5.39.001 3-CLEAN run).
+Items here MUST be swept AFTER 3-CLEAN is achieved and BEFORE the S-25.01 PR is created.
+
+**Governance basis:** D-1127 (2026-08-28) extended by D-1136 context — LOW/OBS/process-gap items during the
+S-25.01 local BC-5.39.001 3-CLEAN run are BATCHED and swept in a single finalization doc-sweep after 3-CLEAN is
+reached, NOT fixed mid-streak. Fixing mid-streak would bump story version/input-hash and trigger the
+frozen-artifact-reset trap (L-EDP1-007/051/061).
+
+**When to execute:** After passes 2 and 3 both return CLEAN (local BC-5.39.001 3-CLEAN achieved), BEFORE
+submitting the S-25.01 PR. Owner: implementer (LOW-1/OBS-3), story-writer/orchestrator ([process-gap]).
+
+**Frozen artifact:** feature/S-25.01 @ `92990371` — NO code/spec changes until 3-CLEAN is reached.
+
+---
+
+## Batched Items (S-25.01 passes 1-3 window)
+
+### LOW-1 — `RegistryError::AsyncBlockConflict` hardcodes `on_error="block"` in error message
+
+| Field | Value |
+|-------|-------|
+| **Finding ID** | LOW-1 |
+| **Severity** | LOW / documentary/UX |
+| **Source pass** | Pass 1 (LOCAL adversary pass 1 CLEAN 2026-08-31) |
+| **File** | `crates/factory-dispatcher/src/registry.rs` ~lines 57-62 |
+| **Observation** | `RegistryError::AsyncBlockConflict` message hardcodes `on_error="block"` in its guidance text, but the rejection also fires when `on_error="block_if_marker"` is set and the async constraint is violated. The remediation text says "set `on_error=block`" but that is already one of the REJECTED configurations. |
+| **Correct behavior** | Reword the error message to cover BOTH blocking policies: "set `on_error=continue` or `on_error=advisory`" (i.e., non-blocking policies), rather than naming a specific blocking policy as the remedy. |
+| **Routing** | implementer |
+| **Blocking?** | No — does not affect behavior, only the diagnostic text |
+
+---
+
+### OBS-3 — `write_indeterminate_marker` may leave orphaned `.tmp` if `fs::rename` fails
+
+| Field | Value |
+|-------|-------|
+| **Finding ID** | OBS-3 |
+| **Severity** | OBSERVATION / low-risk resource hygiene |
+| **Source pass** | Pass 1 (LOCAL adversary pass 1 CLEAN 2026-08-31) |
+| **File** | `crates/factory-dispatcher/src/indeterminate_marker.rs` ~lines 157-160 |
+| **Observation** | `write_indeterminate_marker` writes to a `.tmp` file then renames it atomically. If `fs::rename` fails, the `.tmp` file is left on disk (orphaned). |
+| **Fix** | Add `let _ = fs::remove_file(&tmp_path);` on the rename-error branch to clean up the orphan before returning the error. |
+| **Routing** | implementer |
+| **Blocking?** | No — `.tmp` files are inert; worst case a stale file persists until next write or OS temp-cleanup |
+
+---
+
+### [process-gap] — No CI/lint validates hooks-registry.toml crash-policy comments vs `on_error` value
+
+| Field | Value |
+|-------|-------|
+| **Finding ID** | [process-gap] registry-comment-lint |
+| **Severity** | PROCESS-GAP / drift-risk |
+| **Source pass** | Pass 1 (LOCAL adversary pass 1 CLEAN 2026-08-31) |
+| **Observation** | The M-1 finding (prior fix burst) was a stale `on_error="continue"`-era phrasing comment ("dispatch proceeds on crash"/"crash→allow") adjacent to a `block_if_marker` entry in `hooks-registry.toml`. No automated lint detects this class of comment-vs-value drift. |
+| **Candidate follow-up** | A lint or CI check that flags `on_error="continue"`-era phrasing ("dispatch proceeds"/"crash→allow") adjacent to entries whose `on_error` value is `block` or `block_if_marker`. This is a self-improvement candidate. |
+| **Disposition per Cycle-Closing Checklist** | Per the Cycle-Closing Checklist, this process-gap must be TRACKED with a follow-up story OR a justified deferral before the cycle CLOSES. Recorded here as a tracked drift item so it is not lost. Do NOT open the story now — just track. |
+| **Routing** | orchestrator at cycle-close: create follow-up story OR record justified deferral |
+| **Blocking?** | No — does not block 3-CLEAN or PR |
+
+---
+
+### OBS-1 — Crash posture for block_if_marker (verified conformant, no action)
+
+| Field | Value |
+|-------|-------|
+| **Finding ID** | OBS-1 |
+| **Severity** | OBSERVATION — VERIFIED CONFORMANT |
+| **Source pass** | Pass 1 (LOCAL adversary pass 1 CLEAN 2026-08-31) |
+| **Observation** | Adversary noted the crash→BLOCK posture for non-expired markers under `on_error=block_if_marker`. |
+| **Disposition** | VERIFIED CONFORMANT per ADR-048 + BC-1.18.002 v1.5. This is the specified behavior: crash+non-expired→BLOCK is the intentional fail-closed design. D-1135 fail-open SUPERSEDED by D-1136. No action required. |
+
+---
+
+### OBS-2 — Spec-ordered quoting in shell-words tokenizer (verified conformant, no action)
+
+| Field | Value |
+|-------|-------|
+| **Finding ID** | OBS-2 |
+| **Severity** | OBSERVATION — VERIFIED CONFORMANT |
+| **Source pass** | Pass 1 (LOCAL adversary pass 1 CLEAN 2026-08-31) |
+| **Observation** | Adversary noted quoting behavior in shell-words argument parsing. |
+| **Disposition** | VERIFIED CONFORMANT per BC-1.18.002 v1.5 EC-024..EC-026 in-scope quoting vectors and EC-027..EC-029 out-of-scope vectors. Shell-words POSIX tokenizer behavior is spec-defined. No action required. |
+
+---
+
+## Status
+
+| Item | Status | Resolved by |
+|------|--------|-------------|
+| LOW-1 (RegistryError::AsyncBlockConflict msg) | **OPEN — sweep after 3-CLEAN** | implementer (post-3-CLEAN doc-sweep) |
+| OBS-3 (write_indeterminate_marker .tmp orphan) | **OPEN — sweep after 3-CLEAN** | implementer (post-3-CLEAN doc-sweep) |
+| [process-gap] registry-comment-lint | **TRACKED — follow-up story or justified deferral at cycle-close** | orchestrator at cycle-close |
+| OBS-1 (crash posture) | **VERIFIED CONFORMANT — no action** | adversary pass 1 |
+| OBS-2 (quoting) | **VERIFIED CONFORMANT — no action** | adversary pass 1 |
+
+*S-25.01 section added: 2026-08-31 (S2501-LOCAL-ADV-PASS1-CLEAN-STREAK-1of3-2026-08-31 — state-manager; BC-5.39.001 streak 1/3; artifact FROZEN @ 92990371)*
