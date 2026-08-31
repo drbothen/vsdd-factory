@@ -669,10 +669,11 @@ mod tests {
         // However, the *current* split_whitespace scanner also correctly returns false here
         // (first token after git is 'commit-graph' ≠ 'commit'). Both current and correct
         // implementations agree on this case. Verify the correct semantic is preserved.
+        // BC-1.18.002 v1.1 EC-011: commit-graph → false.
         assert!(
             !is_git_commit_or_push("git commit-graph write"),
-            "AC-009: 'git commit-graph write' MUST NOT match — 'commit-graph' is NOT the \
-             'commit' subcommand (word boundary \\bcommit\\b does not match a prefix)"
+            "AC-009 / EC-011 / BC-1.18.002 v1.1: 'git commit-graph write' MUST NOT match — \
+             'commit-graph' is NOT the 'commit' subcommand (exact subcommand matching; EC-011)"
         );
 
         // Read-only commands MUST NOT match
@@ -683,6 +684,88 @@ mod tests {
         assert!(
             !is_git_commit_or_push("git log --oneline"),
             "AC-009 / EC-002: 'git log' MUST NOT match"
+        );
+
+        // ── BC-1.18.002 v1.1 PO canonical vector set — all 12 exact forms ──────
+        //
+        // PO ruling (BC-1.18.002 v1.1): is_git_commit_or_push uses EXACT-SUBCOMMAND
+        // matching. The following 12 vectors are the authoritative golden set.
+        //
+        // TRUE (advancing — MUST be gated):
+        //   git commit -m "fix"
+        //   git push origin main
+        //   git -C .factory commit -m "state"    [EC-012: git -C commit → true]
+        //   git -c user.email=x push origin main
+        //   git commit --amend --no-edit
+        //   git push --force-with-lease
+        //
+        // FALSE (non-advancing — MUST NOT be gated):
+        //   git commit-graph write               [EC-011: commit-graph → false]
+        //   git status --porcelain
+        //   git log --oneline
+        //   git diff HEAD~1
+        //   git fetch origin
+        //   cargo test --workspace
+
+        // TRUE canonical vectors ------------------------------------------------
+
+        assert!(
+            is_git_commit_or_push("git commit -m \"fix\""),
+            "BC-1.18.002 v1.1 canonical TRUE: 'git commit -m \"fix\"' MUST match"
+        );
+        assert!(
+            is_git_commit_or_push("git push origin main"),
+            "BC-1.18.002 v1.1 canonical TRUE: 'git push origin main' MUST match"
+        );
+        // EC-012: git -C <path> commit → true.
+        // The -C global option takes a separate argument; the subcommand is 'commit'.
+        assert!(
+            is_git_commit_or_push("git -C .factory commit -m \"state\""),
+            "BC-1.18.002 v1.1 EC-012: 'git -C .factory commit -m \"state\"' MUST match — \
+             -C takes the path argument; 'commit' is the subcommand (EC-012: git -C commit → true)"
+        );
+        assert!(
+            is_git_commit_or_push("git -c user.email=x push origin main"),
+            "BC-1.18.002 v1.1 canonical TRUE: 'git -c user.email=x push origin main' MUST match \
+             (-c takes the key=value argument; 'push' is the subcommand)"
+        );
+        assert!(
+            is_git_commit_or_push("git commit --amend --no-edit"),
+            "BC-1.18.002 v1.1 canonical TRUE: 'git commit --amend --no-edit' MUST match"
+        );
+        assert!(
+            is_git_commit_or_push("git push --force-with-lease"),
+            "BC-1.18.002 v1.1 canonical TRUE: 'git push --force-with-lease' MUST match"
+        );
+
+        // FALSE canonical vectors -----------------------------------------------
+
+        // EC-011: commit-graph → false (also asserted above; canonical coverage).
+        assert!(
+            !is_git_commit_or_push("git commit-graph write"),
+            "BC-1.18.002 v1.1 EC-011 canonical FALSE: 'git commit-graph write' MUST NOT match \
+             ('commit-graph' is a plumbing subcommand, not 'commit'; EC-011)"
+        );
+        assert!(
+            !is_git_commit_or_push("git status --porcelain"),
+            "BC-1.18.002 v1.1 canonical FALSE: 'git status --porcelain' MUST NOT match"
+        );
+        assert!(
+            !is_git_commit_or_push("git log --oneline"),
+            "BC-1.18.002 v1.1 canonical FALSE: 'git log --oneline' MUST NOT match"
+        );
+        assert!(
+            !is_git_commit_or_push("git diff HEAD~1"),
+            "BC-1.18.002 v1.1 canonical FALSE: 'git diff HEAD~1' MUST NOT match"
+        );
+        assert!(
+            !is_git_commit_or_push("git fetch origin"),
+            "BC-1.18.002 v1.1 canonical FALSE: 'git fetch origin' MUST NOT match"
+        );
+        assert!(
+            !is_git_commit_or_push("cargo test --workspace"),
+            "BC-1.18.002 v1.1 canonical FALSE: 'cargo test --workspace' MUST NOT match \
+             (non-git command)"
         );
     }
 
