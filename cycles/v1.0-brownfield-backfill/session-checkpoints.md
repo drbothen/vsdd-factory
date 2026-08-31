@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "19bb0d7"
+input-hash: "b1d6007"
 traces_to: STATE.md
 ---
 
@@ -3862,3 +3862,70 @@ No story mid-TDD, no open PRs awaiting action, no running sub-agents, no abandon
 
 `/vsdd-factory:next-step` — E-25 registered. S-25.01 READY-FOR-TDD (P0; 12 pts; input-hash 887539f; D-1133).
 Next: (A) PG-CI-1/2/3 + process-gaps before convergence; (B) S-25.01 TDD; (C) ADR-045 ratification.
+
+---
+
+## Session Resume Checkpoint (2026-08-31 — S2501-LOCAL-ADV-FAILOPEN-THREATMODEL-QUOTING-HARDENING; develop 9ab5a6f6; merged_count 115; S-25.01 F4 TDD IN PROGRESS; BC-5.39.001 streak 0/3)
+
+Archived from STATE.md by the S2501-READ-ERROR-SEMANTICS-AND-SECURITY-RATIFICATION-2026-08-31 burst (2026-08-31; factory-artifacts 757e0c2a). Full content preserved in git: `git show 06b4bf2c:.factory/STATE.md` (factory-artifacts HEAD at archive time).
+
+> **SELF-SUFFICIENT RESUME CONTEXT.** S2501-LOCAL-ADV-FAILOPEN-THREATMODEL-QUOTING-HARDENING-2026-08-31. D-chain cite D-1134. LOCAL adversary FAIL-OPEN + THREAT-MODEL + QUOTING HARDENING BURST COMPLETE. BC-5.39.001 streak RESET 0/3. S-25.01 v1.6 input-hash 45522e9. BC-INDEX v5.31 (1,993 BCs). VP-INDEX v2.88 (106 VPs; VP-105 v1.7). STORY-INDEX v4.415 (175 stories; 25 epics). ARCH-INDEX v4.00 (47 ADRs). merged_count 115. No factory_lock held.
+> Prior checkpoint (S2501-LOCAL-ADV-COMPREHENSIVE-GIT-DETECTION-HARDENING 2026-08-31) archived to
+> `cycles/v1.0-brownfield-backfill/session-checkpoints.md`.
+
+### §1. Position
+
+Pipeline **F4 TDD IN PROGRESS** — S-25.01 LOCAL adversary FAIL-OPEN + THREAT-MODEL + QUOTING HARDENING BURST COMPLETE 2026-08-31 (D-chain cite D-1134). Brownfield cycle `v1.0-brownfield-backfill`. BC-5.39.001 streak 0/3.
+
+**(a) Fail-open + threat-model + quoting hardening burst summary:**
+- PO: BC-1.18.002 v1.2→v1.3 (on_error=continue reconciliation + two-axis model note ADR-039/ADR-047 §Decision 9 + Threat Model & Scope section + quoting-in-scope EC-024/EC-025/EC-026 shell-words POSIX tokenizer + out-of-scope EC-027/EC-028/EC-029 eval/xargs/subshell undecidable + ci.yml wasm32-wasip1 check; adversary HIGH-1 fail-open-on-crash / MEDIUM-1 PostToolUse-scoped-clear-guard / MEDIUM-2 bounded-threat-model+quoting / LOW-1 stale-regex / LOW-2 proof-harness-API-drift / LOW-3 artifact_path-doc — ALL addressed).
+- Story-writer: S-25.01 v1.5→v1.6 (AC-008/AC-009/AC-011/AC-012/EC sync to BC-1.18.002 v1.3; EC-021..EC-026 added; BC table v1.2→v1.3).
+- Architect @70202713: VP-105 v1.6→v1.7 (LOW-2 proof-harness API drift) + VP-INDEX v2.87→v2.88.
+- Implementer @813ebc3a: quoting/out-of-scope/PreToolUse-no-clear test vectors; fmt/clippy CLEAN; WASM rebuilt.
+- Test-writer @813ebc3a: quoting/out-of-scope/PreToolUse-no-clear vectors.
+- BC-5.39.001 streak RESET 0/3 (findings-then-fix burst; no CLEAN adversary pass yet).
+
+**(b) Index state post-burst:**
+- BC-INDEX v5.31 (BC-1.18.002 v1.3 row updated; total_bcs 1,993 UNCHANGED).
+- STORY-INDEX v4.415 (S-25.01 v1.6; input-hash 45522e9).
+- VP-INDEX v2.88 (architect 70202713; VP-105 v1.7). ARCH-INDEX v4.00 (UNCHANGED).
+
+### §2. In-flight work
+
+Feature branch `feature/S-25.01` at `436c0039`. F4 TDD in progress. BC-5.39.001 streak 0/3. No open PRs. No abandoned steps. 2 stale worktrees remain (`fix/d999-sentinel-code-migration`, `feature/S-21.04`) — inert, human aware.
+
+### §3. Governance decisions in effect
+
+- **BC-4.17.001 v1.29 ACTIVE** (D-1130, POL-14 auto-promotion satisfied 2026-08-29).
+- **BC-6.28.001 v1.3 ACTIVE** (D-1132 + SPEC-HYGIENE-SWEEP-2026-08-30 EC-002 wording).
+- **BC-1.18.002 v1.3** (PO fail-open+threat-model+quoting hardening 2026-08-31; on_error=continue reconciliation + Threat Model & Scope + quoting-in-scope EC-024..EC-026 + out-of-scope EC-027..EC-029; three-phase git detection from v1.2 + quoting scope; ci.yml wasm32-wasip1 check).
+- **ADR-047 HUMAN-RATIFIED** (POLICY 22, 2026-08-30; D-1133): INDETERMINATE Outcome Model.
+- **Autonomous-merge policy AUTHORIZED** (D-1126b, 2026-08-28).
+- **D-1134**: F4 TDD AUTHORIZED; story-count 175; S-25.01 authorized.
+- **D-1133**: E-25 + BC-1.18.001-004 + BC-3.08.001 v1.29.
+- **Layer-1 fail-closed count = 1** (validate-factory-path-staging EFFECTIVE-NOW). Cohort A-deferred SET-BUT-LATENT.
+
+### §4. HEADs
+
+- `develop`: **`9ab5a6f6`** (PR #802 S-24.01 squash-merged 2026-08-30).
+- `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
+- `feature/S-25.01`: **`813ebc3a`** (test-writer quoting/out-of-scope/PreToolUse-no-clear vectors; implementer @813ebc3a).
+- `factory-artifacts`: **`06b4bf2c`** (S2501-LOCAL-ADV-FAILOPEN-THREATMODEL-QUOTING-HARDENING-2026-08-31 v9.43→v9.44).
+
+### §5. Pending / OWED (backlog, NOT drift)
+
+**IMMEDIATE next on resume:** Re-run LOCAL adversary pass 1 FRESH on `feature/S-25.01` @ `813ebc3a` (BC-5.39.001 streak 0/3; must reach 3-CLEAN). On 3-CLEAN: demo-recorder per-AC → pr-manager PR → merge.
+
+1. **PG-CI-1/2/3 + F-WG5-001 + PR-MANAGER-MERGE-OVER-RED** — OWED before E-17/cycle convergence gate (D-1129, D-1130). Human deferred.
+2. **Spec-hygiene sweep OWED:** E-10 missing body sections; E-9/19/21/22 non-monotonic `modified[]`.
+3. **Layer 2/3 BACKLOG:** S-25.02 sharding (P1; 15 pts) + S-25.03 bounded-window (P2; 12 pts).
+4. **ADR-045 v1.3 ratification burst** — blocks Wave-7 (S-21.19/20/21/23 HELD).
+5. **E-23 re-scope** — STALE, must be scoped to frozen-provenance model.
+6. **LOW-7 DEFERRED** — AC-006 events-sink wording; PO follow-up (out of S-25.01 scope).
+7. **RELEASE fast-follow:** cut a new rc to ship `vsdd-factory:wrap` + Layer-1 dispatcher to operator cache.
+
+### §6. Resume command at archive
+
+`/vsdd-factory:next-step` (resumes at LOCAL adversary pass 1 re-run FRESH for S-25.01).
+Note: per BC-6.24.001, run `/vsdd-factory:rehydrate-wave` first if a wave-state manifest applies.
+BC-4.17.001 v1.29 active. BC-6.28.001 v1.3 active. BC-1.18.002 v1.3 active. BC-INDEX v5.31 (1,993 BCs). VP-INDEX v2.88 (106 VPs). STORY-INDEX v4.415 (175 stories; 25 epics). ARCH-INDEX v4.00 (47 ADRs). merged_count 115. develop `9ab5a6f6`. feature/S-25.01 `813ebc3a`. BC-5.39.001 streak 0/3.
