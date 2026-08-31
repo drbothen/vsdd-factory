@@ -24,9 +24,7 @@ use factory_dispatcher::executor::{ExecutorInputs, execute_tiers};
 use factory_dispatcher::host::HostContext;
 use factory_dispatcher::internal_log::InternalLog;
 use factory_dispatcher::plugin_loader::PluginCache;
-use factory_dispatcher::registry::{
-    Capabilities, FailurePolicy, OnError, Registry, RegistryEntry,
-};
+use factory_dispatcher::registry::{Capabilities, FailurePolicy, OnError, Registry, RegistryEntry};
 use factory_dispatcher::resolver::ResolverRegistry;
 use factory_dispatcher::routing::group_by_priority;
 
@@ -172,7 +170,10 @@ async fn test_BC_1_18_003_named_plugin_pass_clears_marker_via_execute_tiers() {
     std::fs::create_dir_all(&factory_dir).unwrap();
     let marker_path = factory_dir.join("unvalidated-mutation.marker");
     write_test_marker(&marker_path, "plugin-p");
-    assert!(marker_path.exists(), "pre-condition: marker must exist before dispatch");
+    assert!(
+        marker_path.exists(),
+        "pre-condition: marker must exist before dispatch"
+    );
 
     // WAT_NORMAL returns exit_code=0 → DispatchOutcome::Pass
     let pass_wasm = compile_to(dir.path(), "plugin-p", WAT_NORMAL);
@@ -196,7 +197,10 @@ async fn test_BC_1_18_003_named_plugin_pass_clears_marker_via_execute_tiers() {
     .await;
 
     // Plugin produced PASS (WAT_NORMAL exits 0 → no block)
-    assert_eq!(summary.exit_code, 0, "PASS plugin must not set block intent");
+    assert_eq!(
+        summary.exit_code, 0,
+        "PASS plugin must not set block intent"
+    );
 
     // AC-012 / BC-1.18.003 PC1 + INV2:
     // A PASS result from "plugin-p" MUST cause the dispatcher to call
@@ -410,11 +414,8 @@ async fn test_BC_1_18_001_artifact_path_threaded_from_tool_input_file_path() {
     });
 
     let hang_wasm = compile_to(dir.path(), "validate-factory-path-staging", WAT_HANG);
-    let entry = make_indeterminate_entry(
-        &hang_wasm,
-        "validate-factory-path-staging",
-        "PostToolUse",
-    );
+    let entry =
+        make_indeterminate_entry(&hang_wasm, "validate-factory-path-staging", "PostToolUse");
     let registry = make_registry(vec![entry]);
     let matched: Vec<&RegistryEntry> = registry.hooks.iter().collect();
     let tiers = group_by_priority(&registry, matched);

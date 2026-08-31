@@ -411,11 +411,18 @@ async fn execute_tier<'a>(
                     .join(".factory")
                     .join("unvalidated-mutation.marker");
                 // Best-effort read; if the marker is absent or unreadable, no-op.
-                if let Ok(Some(marker_plugin)) = read_marker_plugin_name(&marker_path) {
-                    if marker_plugin == entry_clone.name {
-                        // Scoped clear: only this plugin's PASS clears its own marker (INV2).
-                        let _ = delete_marker_if_pass(&marker_path);
-                    }
+                // Scoped clear: only this plugin's PASS clears its own marker (INV2).
+                // Log (but do not propagate) errors — a clear failure must not fail the dispatch.
+                if let Ok(Some(marker_plugin)) = read_marker_plugin_name(&marker_path)
+                    && marker_plugin == entry_clone.name
+                    && let Err(e) = delete_marker_if_pass(&marker_path)
+                {
+                    tracing::warn!(
+                        plugin = %entry_clone.name,
+                        marker_path = %marker_path.display(),
+                        error = %e,
+                        "best-effort marker clear failed on PASS; dispatch continues"
+                    );
                 }
             }
 
@@ -634,10 +641,18 @@ pub fn spawn_async_plugin(
                 .cwd
                 .join(".factory")
                 .join("unvalidated-mutation.marker");
-            if let Ok(Some(marker_plugin)) = read_marker_plugin_name(&marker_path) {
-                if marker_plugin == entry.name {
-                    let _ = delete_marker_if_pass(&marker_path);
-                }
+            // Scoped clear: only this plugin's PASS clears its own marker (INV2).
+            // Log (but do not propagate) errors — a clear failure must not fail the dispatch.
+            if let Ok(Some(marker_plugin)) = read_marker_plugin_name(&marker_path)
+                && marker_plugin == entry.name
+                && let Err(e) = delete_marker_if_pass(&marker_path)
+            {
+                tracing::warn!(
+                    plugin = %entry.name,
+                    marker_path = %marker_path.display(),
+                    error = %e,
+                    "best-effort marker clear failed on PASS; dispatch continues"
+                );
             }
         }
 
