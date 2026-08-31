@@ -516,20 +516,26 @@ EOF
   #
   # A STATE.md sibling is required: without a sibling the hook exits early at the
   # "no siblings" guard before calling _extract_counts, so the bug is never reached.
-  perl -e 'print("BC-1.18.003 VP-105 DI-007 " x 8000 . "\n")' > .factory/BC-INDEX.md
+  # SUGGESTION-3: use awk instead of perl (perl may be unavailable; awk is universal).
+  awk 'BEGIN { s=""; for(i=0;i<8000;i++) s=s "BC-1.18.003 VP-105 DI-007 "; print s }' \
+    > .factory/BC-INDEX.md
   printf '# STATE — no count keywords\n' > .factory/STATE.md
 
   # Verify the fixture is large enough to reproduce the bug.
   local size
   size=$(wc -c < .factory/BC-INDEX.md | tr -d ' ')
-  [ "$size" -gt 150000 ] || skip "Fixture too small (${size}B); perl may be unavailable"
+  [ "$size" -gt 150000 ] || skip "Fixture too small (${size}B); generation failed"
 
   # Portable timeout: background process + polling kill.
   # macOS/BSD has no `timeout` command; GNU/Linux has it but we avoid the
   # dependency. The fork+poll pattern works on both platforms.
   # Budget: 3s. Unfixed code hangs >12s on this input (confirmed per bug report).
+  # NIT-1: invoke hook directly (shebang #!/bin/bash controls interpreter,
+  # consistent with require_bash4_hook_interp which checks /bin/bash).
+  # SUGGESTION-2: capture exit status in a file for post-timeout assertion.
   { echo '{"tool_input":{"file_path":".factory/BC-INDEX.md"}}' \
-      | bash "$HOOKS/validate-count-propagation.sh"; } &
+      | "$HOOKS/validate-count-propagation.sh"
+    echo $? > "$BATS_TEST_TMPDIR/exit_status.txt"; } &
   local pid=$!
 
   local timed_out=0
@@ -540,7 +546,9 @@ EOF
   done
 
   if kill -0 "$pid" 2>/dev/null; then
-    kill "$pid" 2>/dev/null
+    # SUGGESTION-1: reap bash/awk/sed descendants before killing parent.
+    pkill -P "$pid" 2>/dev/null || true
+    kill "$pid" 2>/dev/null || true
     wait "$pid" 2>/dev/null || true
     timed_out=1
   else
@@ -549,6 +557,11 @@ EOF
 
   [ "$timed_out" -eq 0 ] \
     || fail "Hook still running after 3s on 200KB line — length guard or linear-sed fix not applied"
+  # SUGGESTION-2: assert hook exited 0 (oversized all-ID line: no counts after awk
+  # filter, SOURCE_COUNTS empty, hook takes the early-exit-0 path).
+  [ -f "$BATS_TEST_TMPDIR/exit_status.txt" ] \
+    && [ "$(cat "$BATS_TEST_TMPDIR/exit_status.txt")" -eq 0 ] \
+    || fail "hook exited non-zero: $(cat "$BATS_TEST_TMPDIR/exit_status.txt" 2>/dev/null)"
 }
 
 @test "validate-count-propagation: sed ID-strip removes BC/VP/DI tokens, genuine BCs count survives drift check" {

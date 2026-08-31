@@ -118,10 +118,19 @@ _extract_counts() {
   # per-line operation ever sees a mega-line or a raw ID token:
   #
   #   Pass 1 — awk length filter: drop lines > 8192 chars.
-  #     A legitimate count keyword ("42 BCs", "total_bcs: 42") is a short
-  #     token that cannot live in a 195KB line (the BC-INDEX.md last_amended:
-  #     blob).  Skipping (not truncating) avoids token-split artefacts: a
+  #     A legitimate count keyword ("42 BCs", "total_bcs: 42") is typically a
+  #     short token. Additionally, lines > 8192 chars are frozen historical
+  #     changelog records (e.g., last_amended: blobs) whose embedded counts are
+  #     stale and must not shadow real totals — the explicit frontmatter skip
+  #     below handles the named fields, but the length guard provides
+  #     defence-in-depth for any other oversized record.
+  #     Skipping (not truncating) avoids token-split artefacts: a
   #     mid-ID truncation could produce a phantom digit sequence.
+  #     Semantic delta: pre-fix, the hook hung on >8192-char lines and never
+  #     emitted a verdict; post-fix, it completes and uses the correct totals
+  #     (stale changelog entries are skipped explicitly via the frontmatter guard
+  #     above and implicitly via this length filter). This is an intentional
+  #     improvement, not a no-op.
   #     S-25.01 / fix/count-propagation-cpu-runaway.
   #
   #   Pass 2 — sed -E ID-strip: remove <letters>-<digits-and-dots> tokens
@@ -144,6 +153,12 @@ _extract_counts() {
   #   does not affect historical-section boundary detection.
   while IFS= read -r line; do
     local count keyword
+    # Skip YAML frontmatter changelog scalars — frozen historical records,
+    # same rationale as _is_historical_heading (#567), which only reaches H2 sections.
+    # The last_amended: and change: scalars embed stale counts that shadow current
+    # totals; they should never be treated as the source-of-truth quantity.
+    # S-25.01 review cycle 2 fix (BLOCKING-1).
+    [[ "$line" =~ ^[[:space:]]*(last_amended|change): ]] && continue
     # Track historical-section boundaries; skip counts while inside one.
     if [[ "$line" =~ ^##[[:space:]] ]]; then
       if _is_historical_heading "$line"; then in_historical=1; else in_historical=0; fi
