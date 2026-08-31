@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
-timestamp: 2026-08-30T00:00:00Z
+timestamp: 2026-08-31T00:00:00Z
 phase: F2
 inputs:
   - .factory/specs/architecture/decisions/ADR-047-indeterminate-outcome-model-durable-mutation-marker-next-advance-gate.md
@@ -18,7 +18,7 @@ subsystem: "SS-01"
 capability: "CAP-041"
 lifecycle_status: draft
 introduced: v1.0-feature-validation-integrity-layer1
-modified: []
+modified: ["v1.1-2026-08-31-exact-subcommand-clarification"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -34,7 +34,7 @@ removal_reason: null
 When `.factory/unvalidated-mutation.marker` exists, the `validate-unvalidated-mutation-marker`
 PreToolUse gate plugin enforces a two-arm quarantine covering the complete durable-propagation
 surface: (Arm 1) all `^Agent$` tool dispatches are blocked; (Arm 2) all Bash dispatches whose
-`command` parameter matches `\bgit\b.*\b(commit|push)\b` are blocked. Both arms are unblocked
+`command` parameter identifies `commit` or `push` as the git **subcommand** are blocked. Both arms are unblocked
 simultaneously when the marker is absent. Non-advancing tool dispatches (Read, Edit, Write,
 non-git-commit/push Bash) are never gated. The gate plugin is registered `failure_policy =
 "fail-open"` to prevent self-lock: if the gate itself cannot complete, the dispatch proceeds
@@ -67,20 +67,29 @@ rather than creating an unconditional deadlock (ADR-047 §Decision 4 rationale).
 
 2. **Marker exists + git commit/push command → Bash dispatch blocked (Arm 2).** When
    `.factory/unvalidated-mutation.marker` exists AND a Bash PreToolUse dispatch's `command`
-   parameter matches `\bgit\b.*\b(commit|push)\b` (case-insensitive regex), the
-   `validate-unvalidated-mutation-marker-git` registration fires and returns `exit_code = 2`
-   (block). The block message contains the same recovery information as Arm 1 (plugin_name,
-   artifact_path, cause, recovery command, manual escape hatch).
+   parameter identifies `commit` or `push` as the git **subcommand** — that is, the first
+   non-option token after `git`, where git-global options (`-C <path>`, `-c <cfg>`,
+   `--namespace <ns>`, `--no-pager`, `--git-dir`, etc.) between `git` and the subcommand are
+   tolerated (**exact-subcommand matching**) — the `validate-unvalidated-mutation-marker-git`
+   registration fires and returns `exit_code = 2` (block). Note: the shorthand regex
+   `\bgit\b.*\b(commit\|push)\b` approximates but is NOT the authoritative rule — it
+   false-positives on `git commit-graph write` because the hyphen in `commit-graph` is a word
+   boundary (`\W`), making `\bcommit\b` match inside a different subcommand. The authoritative
+   rule is exact-subcommand matching (`is_git_commit_or_push`). The block message contains the
+   same recovery information as Arm 1 (plugin_name, artifact_path, cause, recovery command,
+   manual escape hatch).
    Command filter MUST match:
    - `git commit -m "..."`, `git commit --amend`, `git commit --no-edit`, etc.
+   - `git -C .factory commit -m "state"`, `git -c user.email=x push origin main` (global options tolerated).
    - `git push origin factory-artifacts`, `git push --force-with-lease`, etc.
    Command filter MUST NOT match (PC3):
    - `git status`, `git log`, `git diff`, `git fetch`, `git pull`, `git rebase`, `git stash`, etc.
+   - `git commit-graph write` — subcommand is `commit-graph`, not `commit`; a maintenance command, NOT state-advancing.
    - Any non-`git` Bash command.
 
 3. **Non-advancing dispatches are NOT gated.** The following dispatches proceed unconditionally
    regardless of marker state:
-   - Bash dispatches whose `command` does NOT match `\bgit\b.*\b(commit|push)\b`.
+   - Bash dispatches whose `command` does NOT identify `commit` or `push` as the git subcommand (i.e., `is_git_commit_or_push(command)` returns `false`).
    - Read, Edit, Write, MultiEdit dispatches.
    - All other tool types not matching `^Agent$` or `^Bash$`.
    Routine diagnostic and authoring work is not frozen while the marker is active. The gate is
@@ -99,8 +108,9 @@ rather than creating an unconditional deadlock (ADR-047 §Decision 4 rationale).
 1. **Same WASM binary, two registrations.** Arm 1 and Arm 2 are two `[[hook]]` entries pointing
    to the same `validate-unvalidated-mutation-marker.wasm` plugin binary. The plugin reads the
    tool payload (`command` parameter for Bash dispatches) to apply the command-content filter in
-   Arm 2. Plugin-internal: for Bash events, if `command` does not match `\bgit\b.*\b(commit|push)\b`,
-   the plugin returns `exit_code = 0` immediately (before reading the marker).
+   Arm 2. Plugin-internal: for Bash events, if `command` does not identify `commit` or `push` as
+   the git subcommand (i.e., `is_git_commit_or_push(command)` returns `false`), the plugin
+   returns `exit_code = 0` immediately (before reading the marker).
 
 2. **Gate is fail-open.** Both registrations have `failure_policy = "fail-open"`. If the gate
    plugin itself cannot complete (e.g., fuel exhaustion reading the marker), the dispatch proceeds
@@ -128,16 +138,18 @@ rather than creating an unconditional deadlock (ADR-047 §Decision 4 rationale).
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | Marker present; `git status --porcelain` Bash dispatch | NOT blocked. `git status` does not match `\bgit\b.*\b(commit|push)\b`. Passes unconditionally. |
+| EC-001 | Marker present; `git status --porcelain` Bash dispatch | NOT blocked. Subcommand is `status`, not `commit` or `push`. Passes unconditionally. |
 | EC-002 | Marker present; `git log --oneline -5` Bash dispatch | NOT blocked. `git log` does not match pattern. |
 | EC-003 | Marker present; `git diff HEAD~1` Bash dispatch | NOT blocked. `git diff` does not match pattern. |
 | EC-004 | Marker present; `git fetch origin` Bash dispatch | NOT blocked. `git fetch` does not match pattern. |
 | EC-005 | Marker present; `cargo test --workspace` Bash dispatch | NOT blocked. Non-git command does not match pattern. |
-| EC-006 | Marker present; `git commit --amend --no-edit` Bash dispatch | BLOCKED. `commit` matches the pattern. |
-| EC-007 | Marker present; `git push --force-with-lease` Bash dispatch | BLOCKED. `push` matches the pattern. |
+| EC-006 | Marker present; `git commit --amend --no-edit` Bash dispatch | BLOCKED. Subcommand is `commit`. |
+| EC-007 | Marker present; `git push --force-with-lease` Bash dispatch | BLOCKED. Subcommand is `push`. |
 | EC-008 | Marker file is malformed (unparseable TOML) | Gate returns exit_code=2 (block). The gate checks marker FILE existence; if the file exists but is malformed, the block message includes a note that the marker could not be parsed; the operator must manually `rm` the marker. |
 | EC-009 | Gate plugin fuel-exhausts reading the marker (Arm 1 or Arm 2) | PASS (fail-open posture). Dispatch allowed. Advisory `plugin.indeterminate` event emitted for the gate itself (if any — gate is fail-open so no nested marker written). |
 | EC-010 | Marker absent; `git commit -m "fix"` Bash dispatch | NOT blocked. Arm 2 returns exit_code=0 immediately (marker absent check). |
+| EC-011 | Marker present; `git commit-graph write` Bash dispatch | NOT blocked. The git subcommand is `commit-graph`, not `commit`. Exact-subcommand matching correctly excludes this maintenance command. Note: the illustrative regex `\bgit\b.*\b(commit\|push)\b` would false-positive here because the hyphen before `graph` is a word boundary, making `\bcommit\b` match inside `commit-graph` — this is precisely why the regex is NOT the authoritative rule (see PC2 v1.1 clarification). |
+| EC-012 | Marker present; `git -C .factory commit -m "state"` Bash dispatch | BLOCKED. The git global option `-C .factory` is tolerated; the subcommand (first non-option token after `git` + global opts) is `commit`. Exact-subcommand matching fires. |
 
 ## Canonical Test Vectors
 
@@ -156,6 +168,8 @@ rather than creating an unconditional deadlock (ADR-047 §Decision 4 rationale).
 | Exists | Edit tool dispatch | Allow — not gated (PC3) |
 | Exists | Write tool dispatch | Allow — not gated (PC3) |
 | Marker deleted (rm) | `^Agent$` dispatch | Allow — marker absent after rm (BC-1.18.003 PC3) |
+| Exists | Bash `git commit-graph write` | Allow (exit_code=0) — not gated; subcommand is `commit-graph`, not `commit` (EC-011) |
+| Exists | Bash `git -C .factory commit -m "fix"` | Block (exit_code=2) — Arm 2; global option `-C` tolerated, subcommand is `commit` (EC-012) |
 
 ## Related BCs
 
@@ -184,14 +198,14 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 | VP-105 | Marker exists → Agent dispatch blocked (Arm 1, exit_code=2); marker absent → Agent dispatch allowed (Arm 1); manual rm unblocks; Edit not gated (PC3) | integration (bats) |
 | VP-105 | Marker exists + git commit Bash → blocked (Arm 2); marker absent + git commit → allowed; git status not gated even when marker exists (PC3) | integration (bats) |
 | VP-105 | guard_logic::evaluate_gate: marker present → BlockDispatch; marker absent → Allow; read-error → Allow (fail-open) | unit-test |
-| VP-105 | guard_logic::is_git_commit_or_push: commit/push subcommands match; status/log/diff/fetch do NOT match | unit-test |
+| VP-105 | guard_logic::is_git_commit_or_push: `commit`/`push` subcommands match; `status`/`log`/`diff`/`fetch`/`commit-graph` do NOT match; global-option forms (`-C <path>`, `-c <cfg>`, `--namespace`) before `commit`/`push` DO match | unit-test |
 
 ## Traceability
 
 | Field | Value |
 |-------|-------|
 | L2 Capability | CAP-041 |
-| Capability Anchor Justification | CAP-041 ("Validation Integrity: INDETERMINATE Outcome, Durable Mutation Marker, and Next-Advance Gate") per capabilities.md §CAP-041 — this BC specifies the next-advance gate behavior that is the third element of what CAP-041 defines: "blocking of the next state-advancing dispatch — the `validate-unvalidated-mutation-marker` PreToolUse plugin … blocks ALL `^Agent$` tool dispatches AND all Bash dispatches whose `command` matches `\bgit\b.*\b(commit|push)\b` (D9 extended gate) while the marker exists." |
+| Capability Anchor Justification | CAP-041 ("Validation Integrity: INDETERMINATE Outcome, Durable Mutation Marker, and Next-Advance Gate") per capabilities.md §CAP-041 — this BC specifies the next-advance gate behavior that is the third element of what CAP-041 defines: "blocking of the next state-advancing dispatch — the `validate-unvalidated-mutation-marker` PreToolUse plugin … blocks ALL `^Agent$` tool dispatches AND all Bash dispatches whose `command` identifies `commit` or `push` as the git subcommand (D9 extended gate; the illustrative regex `\bgit\b.*\b(commit\|push)\b` approximates but is not authoritative — see v1.1 clarification) while the marker exists." |
 | L2 Domain Invariants | none (dispatcher runtime gate invariant, not L2 domain spec) |
 | Architecture Module | SS-04 (Plugin Ecosystem — new `validate-unvalidated-mutation-marker` WASM plugin crate); SS-01 (Hook Dispatcher Core — evaluates block_intent from plugin exit_code=2 in PreToolUse dispatch chain) |
 | ADR | ADR-047 §Decision 4 (Next-Advance Gate plugin specification — two-arm registration, exit_code=2 block, fail-open gate posture); ADR-047 §Decision 9 (extended gate scope — Agent dispatch AND git commit/push Bash arm — human ratification amendment); ADR-047 §Decision 5 (Marker clear protocol — rm unblocks both arms simultaneously) |
@@ -203,4 +217,5 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.1 | 2026-08-31 | product-owner | Spec adjudication: clarify Arm 2 command filter from illustrative regex to authoritative exact-subcommand matching. The regex `\bgit\b.*\b(commit\|push)\b` false-positives on `git commit-graph write` (hyphen is a word boundary, making `\bcommit\b` match inside `commit-graph`). Authoritative rule: `is_git_commit_or_push(command)` identifies the git subcommand (first non-option token after `git` + global options) and returns true iff it is exactly `commit` or `push`. Added EC-011 (`git commit-graph write` → NOT blocked), EC-012 (`git -C path commit` → blocked), two canonical test vector rows, and updated VP-105 unit-test property to name `commit-graph` as a NOT-matched case. Updated `modified[]` frontmatter. |
 | 1.0 | 2026-08-30 | product-owner | Initial creation. F2 spec-evolution burst, validation-integrity-layer1. BC-1.18.002: two-arm gate (Agent + git commit/push Bash), PC1-PC4 full coverage, Arm 2 command-pattern matching, fail-open gate posture, self-lock-hazard invariant. D9 human ratification (extended gate scope) reflected. VP-105 anchored. CAP-041 capability anchor. ADR-047 §D4/D9/D5 citations. |

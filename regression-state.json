@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-29T18:30:41Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/s1707-ttl-ssot && cargo test --workspace --all-targets 2>&1 | tail -30; echo \"test_exit:$?\""}
+{"status":"pass","timestamp":"2026-08-31T06:48:52Z","command":"cargo test -p validate-unvalidated-mutation-marker -- --nocapture 2>&1"}
