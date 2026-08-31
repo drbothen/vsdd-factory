@@ -79,8 +79,8 @@ thiserror = "2.0"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync", "time", "fs", "io-util", "process"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
-wasmtime = "46.0.2"
-wasmtime-wasi = "46.0.2"
+wasmtime = "46.0.3"
+wasmtime-wasi = "46.0.3"
 clap = { version = "4", features = ["derive"] }
 proc-macro2 = "1.0"
 quote = "1.0"
