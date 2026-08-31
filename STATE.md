@@ -133,7 +133,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **9ab5a6f6** | PR #802 (S-24.01 vsdd-factory:wrap skill) squash-merged `9ab5a6f6` 2026-08-30 (D-1132). Prior: `da14fb94` (PR #801 F-WG5-P2-001 2026-08-29). CI-GREEN. |
-| factory-artifacts | **`[POST-COMMIT SHA]`** | S2501-LOCAL-ADV-ARTIFACT-SCOPED-MARKER-CLEAR-2026-08-31 v9.45→v9.46 (this burst). Prior chain: `74c4989a` (architect VP-106 v1.3 + VP-INDEX v2.90) → `757e0c2a` (S2501-READ-ERROR-SEMANTICS-AND-SECURITY-RATIFICATION-2026-08-31 v9.44→v9.45). |
+| factory-artifacts | **`c00a6587`** | S2501-LOCAL-ADV-ARTIFACT-SCOPED-MARKER-CLEAR-2026-08-31 v9.45→v9.46 (this burst). Prior chain: `74c4989a` (architect VP-106 v1.3 + VP-INDEX v2.90) → `757e0c2a` (S2501-READ-ERROR-SEMANTICS-AND-SECURITY-RATIFICATION-2026-08-31 v9.44→v9.45). |
 | feature/S-25.01 | **`188dba8d`** | F4 TDD IN PROGRESS — M-1 artifact-scoped-marker-clear fix-burst COMPLETE. Test-writer @188dba8d (EC-008 same-plugin/different-non-empty-artifact + EC-009 empty-path-fallback; factory-dispatcher tests green; clippy clean). Implementer @4e948f11. BC-5.39.001 streak 0/3. NEXT: fail-closed-recoverable gate REDESIGN then re-run adversary. |
 | feature/S-17.05 | **MERGED+DELETED** | PR #798 squash-merged `a4b24601` 2026-08-29T13:45:46Z. Branch deleted post-merge. D-1129. |
 | feature/S-17.07 | **MERGED+DELETED** | PR #800 squash-merged `1fc8b9ee` 2026-08-29. Branch deleted post-merge. D-1130. |
@@ -308,7 +308,7 @@ Feature branch `feature/S-25.01` at `188dba8d`. F4 TDD in progress. BC-5.39.001 
 - `develop`: **`9ab5a6f6`** (PR #802 S-24.01 squash-merged 2026-08-30).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
 - `feature/S-25.01`: **`188dba8d`** (test-writer EC-008/EC-009 vectors; implementer @4e948f11 artifact-gate both callsites; factory-dispatcher green).
-- `factory-artifacts`: **`[POST-COMMIT SHA]`** (S2501-LOCAL-ADV-ARTIFACT-SCOPED-MARKER-CLEAR-2026-08-31 v9.45→v9.46; will be updated via D-449(e) SHA-patch after commit).
+- `factory-artifacts`: **`c00a6587`** (S2501-LOCAL-ADV-ARTIFACT-SCOPED-MARKER-CLEAR-2026-08-31 v9.45→v9.46).
 
 ### §5. Pending / OWED (backlog, NOT drift)
 
