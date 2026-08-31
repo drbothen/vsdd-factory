@@ -135,7 +135,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **9ab5a6f6** | PR #802 (S-24.01 vsdd-factory:wrap skill) squash-merged `9ab5a6f6` 2026-08-30 (D-1132). Prior: `da14fb94` (PR #801 F-WG5-P2-001 2026-08-29). CI-GREEN. |
-| factory-artifacts | **`<sha-patch-pending>`** | S2501-REDESIGN-ADV-M1-M2-L1-FIX-2026-08-31 v9.47→v9.48 (this burst). Prior: `c1246e11` (S2501-GATE-FAIL-CLOSED-RECOVERABLE-REDESIGN-2026-08-31 v9.46→v9.47). |
+| factory-artifacts | **`8ece970d`** | S2501-REDESIGN-ADV-M1-M2-L1-FIX-2026-08-31 v9.47→v9.48 (this burst). Prior: `c1246e11` (S2501-GATE-FAIL-CLOSED-RECOVERABLE-REDESIGN-2026-08-31 v9.46→v9.47). |
 | feature/S-25.01 | **`6b4ba5ae`** | F4 TDD IN PROGRESS — ADR-048 REDESIGN ADVERSARY FIX-BURST COMPLETE. Test-writer @6b4ba5ae (VP-105-H/I bats 6-field TTL WASM; macOS-skip/Linux-CI). Implementer @9891fac8 (M-1 block_if_marker_fired TD#71 sentinel + M-2 doc EC-009/031/032). BC-5.39.001 streak 0/3. NEXT: LOCAL adversary pass re-run (fresh context; full ADR-048 redesign scope). |
 | feature/S-17.05 | **MERGED+DELETED** | PR #798 squash-merged `a4b24601` 2026-08-29T13:45:46Z. Branch deleted post-merge. D-1129. |
 | feature/S-17.07 | **MERGED+DELETED** | PR #800 squash-merged `1fc8b9ee` 2026-08-29. Branch deleted post-merge. D-1130. |
@@ -311,7 +311,7 @@ Feature branch `feature/S-25.01` at `6b4ba5ae`. F4 TDD in progress. BC-5.39.001 
 - `develop`: **`9ab5a6f6`** (PR #802 S-24.01 squash-merged 2026-08-30).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
 - `feature/S-25.01`: **`6b4ba5ae`** (test-writer @6b4ba5ae VP-105-H/I bats TTL WASM coverage; implementer @9891fac8 M-1 block_if_marker_fired TD#71 sentinel + M-2 doc EC-009/031/032; fmt/clippy/test green).
-- `factory-artifacts`: **`<sha-patch-pending>`** (S2501-REDESIGN-ADV-M1-M2-L1-FIX-2026-08-31 v9.47→v9.48).
+- `factory-artifacts`: **`8ece970d`** (S2501-REDESIGN-ADV-M1-M2-L1-FIX-2026-08-31 v9.47→v9.48).
 
 ### §5. Pending / OWED (backlog, NOT drift)
 
