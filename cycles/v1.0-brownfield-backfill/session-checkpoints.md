@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "688f064"
+input-hash: "4e82907"
 traces_to: STATE.md
 ---
 
@@ -3944,3 +3944,21 @@ Key state at archive:
 - factory-artifacts @ `757e0c2a` (v9.44→v9.45).
 - develop `9ab5a6f6`; main `89f6f87c`.
 BC-4.17.001 v1.29 active. BC-6.28.001 v1.3 active. BC-1.18.002 v1.3 active. BC-INDEX v5.31 (1,993 BCs). VP-INDEX v2.88 (106 VPs). STORY-INDEX v4.415 (175 stories; 25 epics). ARCH-INDEX v4.00 (47 ADRs). merged_count 115. develop `9ab5a6f6`. feature/S-25.01 `813ebc3a`. BC-5.39.001 streak 0/3.
+
+---
+
+## Session Resume Checkpoint (2026-08-31 — S2501-GATE-FAIL-CLOSED-RECOVERABLE-REDESIGN; develop 9ab5a6f6; merged_count 115; S-25.01 F4 TDD IN PROGRESS; BC-5.39.001 streak 0/3)
+
+Archived from STATE.md by S2501-REDESIGN-ADV-M1-M2-L1-FIX-2026-08-31 burst (state-manager single-commit TD-VSDD-053). Full content preserved in git on factory-artifacts branch.
+
+Key state at archive:
+- S2501-GATE-FAIL-CLOSED-RECOVERABLE-REDESIGN-2026-08-31 COMPLETE (D-1136, supersedes D-1135). ADR-048 block_if_marker + TTL 86400s + ungated-escape REDESIGN COMPLETE. BC-5.39.001 streak 0/3 (redesign burst; no CLEAN adversary pass yet).
+- BC-1.18.001 v1.1 (expires_at 6th TOML field; TTL 86400s); BC-1.18.002 v1.5 (on_error=block_if_marker; PC5/PC6/INV6; EC-031/032; supersedes D-1135 fail-open); BC-1.18.003 v1.2 (PC4 TTL-expiry; INV5 86400s; EC-035).
+- VP-107 new (ungated-escape; SS-01; ADR-048 §D3) + VP-105 v1.9 + VP-106 v1.4; VP-INDEX v2.91 @73809436.
+- S-25.01 v1.9 input-hash 8bf7fa8 (POLICY 18 three-way parity).
+- BC-INDEX v5.34 (1,993 BCs). STORY-INDEX v4.418 (175 stories; 25 epics). ARCH-INDEX v4.01 (48 ADRs; ADR-048 ACCEPTED). VP-INDEX v2.91 (107 VPs).
+- feature/S-25.01 @ `ca295259` (test-writer 23 tests; implementer @87f1d651 block_if_marker+TTL+ungated-escape; factory-dispatcher 258+/0 green).
+- factory-artifacts @ `c1246e11` (v9.46→v9.47).
+- develop `9ab5a6f6`; main `89f6f87c`.
+- IMMEDIATE NEXT at archive: LOCAL adversary pass 1 on feature/S-25.01 @ ca295259 (fresh context; D-1136 ADR-048 scope; BC-5.39.001 streak 0/3).
+BC-4.17.001 v1.29 active. BC-6.28.001 v1.3 active. BC-1.18.001 v1.1 active. BC-1.18.002 v1.5 active. BC-1.18.003 v1.2 active. BC-INDEX v5.34 (1,993 BCs). VP-INDEX v2.91 (107 VPs). STORY-INDEX v4.418 (175 stories; 25 epics). ARCH-INDEX v4.01 (48 ADRs). merged_count 115. develop `9ab5a6f6`. feature/S-25.01 `ca295259`. BC-5.39.001 streak 0/3.

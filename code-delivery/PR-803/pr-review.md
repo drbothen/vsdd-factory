@@ -1,15 +1,16 @@
-# Fresh-Eyes PR Review — Cycle 2
+# Fresh-Eyes PR Review — Cycle 3
 
 **PR:** #803 `fix/count-propagation-cpu-runaway` → `develop`
-**covered_sha:** `4f52863c991157838d269427557acb9f7ca419e5`
-**Diff:** 2 files, +130 / -17
-**Reviewer:** `vsdd-factory:pr-reviewer` (cycle 2, re-review after cycle-1 fixes)
+**covered_sha:** `3d988d829bb94c7c4193d3f09655737078162bb8`
+**Diff:** 2 files, +190 / -37
+**Reviewer:** `vsdd-factory:pr-reviewer` (cycle 3, re-review after cycle-2 fixes)
 **Verdict:** REQUEST_CHANGES
 
 > **Posting note:** GitHub rejects `gh pr review --request-changes` on a self-owned PR
-> (`GraphQL: Review Can not request changes on your own pull request`). This review is
-> therefore recorded as a formal `gh pr review --comment` review record with the
-> REQUEST_CHANGES verdict stated inline. `gh pr comment` was NOT used. The blocking
+> (`GraphQL: Review Can not request changes on your own pull request` — exit 1, captured
+> verbatim from `github-ops`). This review is therefore recorded as a formal
+> `gh pr review --comment` review record with the REQUEST_CHANGES verdict stated inline
+> (posted 2026-08-31T20:29:24Z, 16108 bytes). `gh pr comment` was NOT used. The blocking
 > findings below must be treated as merge-blocking despite the GitHub review state
 > reading COMMENTED.
 
@@ -17,9 +18,13 @@
 
 ## Summary
 
-The CPU-runaway fix is real and I verified it empirically: BC-INDEX.md now completes in **0.83s** where `origin/develop` hangs past 60s. That part of the PR is sound.
+Every claim below was verified by execution against the live corpus, not by reading. Method and captured output are inline.
 
-However **BLOCKING-1 from cycle 1 is not resolved.** I ran the PR-head hook against the live `.factory/` corpus under bash 5.3.9 and 3 of the 5 index files still exit 2. The PR body itself states the gate — *"All five live index files must exit 0 post-fix"* — and the PR does not meet it. Two new factual inaccuracies were also introduced into the very comment block that cycle 1's BLOCKING-2 was about, and the new process-substitution plumbing converts a loud failure into a silent always-pass.
+The CPU-runaway fix itself remains sound, and cycle 2 genuinely closed BLOCKING-2, SUGGESTION-2, and SUGGESTION-3. The STORY-INDEX false positive that cycle 2 targeted is also genuinely fixed.
+
+However **BLOCKING-3 is not fixed** — the temp file was placed inside `_extract_counts`, but the function is still invoked through process substitution, so its `return 1` is discarded and the hook still exits 0 ("no drift") when preprocessing fails. And of the three guards added for BLOCKING-1, only one changes any verdict on the live corpus; the other two ship comments asserting fixes they demonstrably do not deliver, which is the third consecutive cycle of the same comment-accuracy defect class that BLOCKING-2 was about.
+
+The cycle-2 gate — *"all five live index files must exit 0"* — is still not met, but for a legitimate reason this time: ARCH-INDEX exit 2 is a verified TRUE POSITIVE and correctly does not block.
 
 ---
 
@@ -27,194 +32,251 @@ However **BLOCKING-1 from cycle 1 is not resolved.** I ran the PR-head hook agai
 
 | # | Severity | Category | Finding |
 |---|----------|----------|---------|
-| BLOCKING-1 | blocking | missing | 3 of 5 live index files still exit 2; cycle-1 BLOCKING-1 unresolved |
-| BLOCKING-2 | blocking | description | Code comment asserts a pre-fix failure mode that never existed; "correct totals" claim is false; PR body count is stale |
-| BLOCKING-3 | blocking | coherence | Process substitution silently disables the lint on `awk`/`sed` failure |
-| SUGGESTION-1 | suggestion | coverage | `pkill -P` does not reap `awk`/`sed` grandchildren |
-| SUGGESTION-2 | suggestion | coverage | `fail` is undefined in this bats setup — diagnostics never render |
-| SUGGESTION-3 | suggestion | coverage | Exit-status capture is unreachable on the non-zero path |
-| SUGGESTION-4 | suggestion | coverage | Two new tests use different interpreters; guard checks only one |
-| SUGGESTION-5 | suggestion | description | PR body Test Evidence is stale vs the shipped tests |
-| SUGGESTION-6 | suggestion | demo | No captured before/after timing evidence |
-| NIT-1 | nit | coherence | `extglob` removal verified safe (no action) |
-| NIT-2 | nit | coherence | Frontmatter skip misses YAML sequence-item form |
+| BLOCKING-A | blocking | coherence / silent failure | BLOCKING-3 not fixed: preprocessing failure still yields exit 0. `return 1` inside process substitution is discarded. |
+| BLOCKING-B | blocking | description | 2 of 3 cycle-2 guards change no verdict; 3 comment/commit claims assert behavior that provably does not occur. |
+| SUGGESTION-C | suggestion | coherence | `mktemp` has no `trap` cleanup — leaks on kill, this PR's own failure mode. |
+| SUGGESTION-D | suggestion | size / efficiency | Each sibling re-parsed once **per keyword** (3 full awk+sed+mktemp passes over STATE.md per ARCH-INDEX run). |
+| SUGGESTION-E | suggestion | coverage | All three cycle-2 guards and the new error path have zero test coverage. |
+| OBSERVATION-F | nit | missing (pre-existing) | Real `.factory/STATE.md` resolves to zero siblings → hook is a vacuous no-op there; bats fixtures use a non-representative flat layout. |
 
 ---
 
-### BLOCKING-1 — 3 of 5 live index files still exit 2 (cycle-1 BLOCKING-1 unresolved)
+## BLOCKING-A — preprocessing failure still silently disables the lint (fail-open)
 
-Measured with PR head `4f52863c`, `/opt/homebrew/bin/bash` 5.3.9, against the live corpus.
+| Field | Value |
+|-------|-------|
+| Severity | blocking |
+| Category | coherence / silent failure |
+| Location | `validate-count-propagation.sh` — `_extract_counts` gate; callsites at the `SOURCE_COUNTS` loop and the sibling loop |
 
-Method note: the hook reads its JSON payload from stdin and ignores `argv`, so invoking it with a bare path as `$1` does not exercise it (it blocks on stdin or no-ops). Real JSON was piped instead:
-
-```bash
-echo '{"tool_input":{"file_path":"<path>"}}' | bash validate-count-propagation.sh
-```
-
-| File | Post-fix | Pre-fix (`origin/develop`) | Detail |
-|------|----------|----------------------------|--------|
-| BC-INDEX.md | **exit 0** (0.83s) | HANG >60s | — |
-| VP-INDEX.md | **exit 2** (0.50s) | HANG >15s | `'107 VPs' in VP-INDEX.md but '19 VPs' in STATE.md` |
-| STORY-INDEX.md | **exit 2** (0.88s) | HANG >15s | `'15 BCs' in STORY-INDEX.md but '1993 BCs' in STATE.md` |
-| ARCH-INDEX.md | **exit 2** (1.49s) | HANG >15s | `'106 VPs' vs '19 VPs'` **and** `'1973 BCs' vs '1993 BCs'` |
-| STATE.md | **exit 0** (0.42s) | exit 0 | — |
-
-Pre-fix, VP-INDEX / STORY-INDEX / ARCH-INDEX all hang because every source file's sibling list includes the 195KB BC-INDEX.md, so all three hit the runaway before emitting a verdict.
-
-So this PR converts a silent hang into an agent-visible `block_intent=true exit_code=2` on **3 of the 4 canonical indexes** — precisely the files the Commit-D "4-index version bump" step of every fix burst must Edit. As written, merging this halts the fix-burst pipeline.
-
-The new guard `[[ "$line" =~ ^[[:space:]]*(last_amended|change): ]]` does not reach any of the three residual causes. I traced each by replicating `_extract_counts` line-for-line:
-
-1. **`.factory/STATE.md` L230** — `| **[D-945] VP-102..VP-120 pending allocation** | DEFERRED … | 19 VPs per BC-5.39.010 §VP Anchors. |`
-   A legitimate *sub-range* count (VP-102..VP-120 = 19), in a body table. First-wins takes it over the real `106 VPs` at L267. Not frontmatter, not an H2 historical section.
-
-2. **`.factory/stories/STORY-INDEX.md` L76 / L83** — `> Updated 2026-05-07: … 91 stories` and `> Updated 2026-05-06: … 15 BCs`
-   Markdown **blockquote** changelog notes. The new guard matches only `last_amended:` / `change:` keys; `_is_historical_heading` matches only H2 sections. These stale May-2026 records are still extracted.
-
-3. **`.factory/specs/architecture/ARCH-INDEX.md` L405 / L451** — `grand total 106 VPs` and `**Total BCs: 1,973 (per BC-INDEX v3.42; …)**` against live `total_vps: 107` / `total_bcs: 1993`.
-   These are **true positives** — genuinely stale ARCH-INDEX prose.
-
-That splits the remainder into two workstreams, and both need to land before or alongside this PR:
-
-**(a) Hook logic.** Make the authoritative frontmatter keys win rather than relying on line order. Patterns C/D (`total_bcs:` / `total_vps:`) are the source of truth; Patterns A/B scrape narrative prose. Today they compete purely on which appears first in the file. Concretely:
+BLOCKING-3 was: *"process substitution silently disables the lint → false-pass exit 0."* Cycle 2 added a temp file **inside** `_extract_counts`:
 
 ```bash
-# Emit authoritative frontmatter keys with a precedence marker, and let the
-# first-wins loop prefer them over prose scrapes:
-#   Pattern C/D -> "BCs:1993:0"   (rank 0, authoritative)
-#   Pattern A/B -> "stories:91:1" (rank 1, prose)
-# Then in the SOURCE_COUNTS loop, only overwrite when the incoming rank is lower.
+awk 'length <= 8192' "$path" | sed -E 's/[A-Za-z]+-[0-9.]+//g' > "$_preproc_tmp" || {
+  echo "validate-count-propagation: preprocessing pipeline failed for $path" >&2
+  rm -f "$_preproc_tmp"
+  return 1
+}
 ```
 
-And extend the historical guard to cover date-stamped blockquote records:
+The `||` gate does fire correctly (pipefail is in effect, so an `awk` failure is caught). But `_extract_counts` is **still invoked through process substitution** at both callsites:
 
 ```bash
-[[ "$line" =~ ^[[:space:]]*\>[[:space:]]*Updated[[:space:]][0-9]{4}-[0-9]{2}-[0-9]{2} ]] && continue
+done < <(_extract_counts "$FILE_PATH")   # SOURCE_COUNTS loop
+done < <(_extract_counts "$sibling")     # sibling loop
 ```
 
-**(b) Corpus.** ARCH-INDEX L405/L451 are genuinely stale and need a state-manager fix (`106 VPs` → 107, `1,973 BCs` → 1,993). Per the routing table that is `vsdd-factory:state-manager`, not this PR — but the hook cannot be allowed to block every index edit in the interim.
+A `return 1` inside `<( … )` executes in a subshell. The parent `while … done < <(…)` never reads that status — it receives zero lines, `SOURCE_COUNTS` stays empty, and the hook takes the `exit 0` path at the `${SOURCE_COUNTS[*]:-}` guard. **Control flow is unchanged from cycle 2.** The only delta is one extra stderr line; `awk`'s own stderr was already visible pre-fix, so even the "audible" improvement is marginal.
 
----
-
-### BLOCKING-2 — comment asserts a pre-fix failure mode that never existed
-
-Cycle 1's "no semantic change" claim is correctly gone, and the "intentional improvement, not a no-op" framing is accurate. But three new inaccuracies landed in the same block:
-
-**(i) `validate-count-propagation.sh` L147-148:**
+**Proof** — a fixture with genuine drift, run twice on identical input, only `sed` swapped for a failing stub:
 
 ```
-#       b) Even for short lines, 2595 per-line subshell invocations of
-#          `printf '%s' … | sed …` added ~20s of fork-overhead on macOS.
+# fixture: .factory/STATE.md contains "42 BCs"; .factory/BC-INDEX.md has total_bcs: 38
+$ echo '{"tool_input":{"file_path":".factory/STATE.md"}}' | ./validate-count-propagation.sh
+status=2
+BLOCKED by validate-count-propagation: COUNT DRIFT DETECTED: '42 BCs' in STATE.md but '38 BCs' in BC-INDEX.md.
+  -> correct
+
+# same fixture, failing sed on PATH
+$ PATH=/tmp/shim2:$PATH ./validate-count-propagation.sh < same-input
+validate-count-propagation: preprocessing pipeline failed for .factory/STATE.md
+EXIT = 0        <-- real, detectable drift reported as clean
 ```
 
-The pre-fix code contains **no such construct**. I grepped `origin/develop`'s version: the only `printf … | sed` in the entire file is at L207, in the drift-message join. The code this PR replaces is a pure-bash parameter expansion — `line="${line//+([A-Za-z])-+([0-9.])/}"` — which spawns zero subshells. The comment invents a second failure mode and attributes a 20s cost to it. This is the same defect class cycle 1 raised: a comment describing something the code never did. Delete clause (b), or replace it with the real secondary cost if one was measured.
+Same result with a failing `awk` against the real `VP-INDEX.md`: stderr message printed, `EXIT=0`.
 
-**(ii) L129-133:** *"post-fix, it completes and uses the correct totals."* Measured, it does not: STORY-INDEX yields `stories:91` / `BCs:15` from a May-2026 blockquote, and STATE.md yields `VPs:19` from a sub-range. Soften to describe what the length filter actually guarantees.
+The cycle-2 commit message states: *"With the temp file approach, a non-zero pipeline exit is detected and the function returns 1."* True of the function; false of the hook, because nothing observes the return value. **Paper-fix under TD-VSDD-059** — the claimed closure has no load-bearing effect on the verdict.
 
-**(iii) PR body:** *"VP-INDEX.md now correctly extracts 106 VPs (was 85 from frontmatter blob)."* Measured first-wins is **107**, from `total_vps: 107`. (The companion claim "BC-INDEX.md extracts 13 stories" I verified as correct.)
-
----
-
-### BLOCKING-3 — process substitution silently disables the lint
-
-`validate-count-propagation.sh` L189:
+**Suggestion:** hoist the temp file to the **caller** so the function's exit status becomes observable, and decide the failure posture explicitly.
 
 ```bash
-done < <(awk 'length <= 8192' "$path" | sed -E 's/[A-Za-z]+-[0-9.]+//g')
-```
-
-Neither `set -e` nor `pipefail` observes the exit status of a process substitution. If `awk` or `sed` fails for any reason — most plausibly an `awk` implementation with a record-length limit meeting the 198KB line, which is *exactly* the input class this PR targets — the substitution yields zero lines, `SOURCE_COUNTS` ends up empty, and the hook takes the `exit 0` path at L209. The lint silently reports "no drift" forever.
-
-Pre-fix, `done < "$path"` failed loudly under `set -e`. This is the "silent return where partial-failure data should propagate" anti-pattern named in CLAUDE.md. Suggested fix:
-
-```bash
-local _tmp; _tmp="$(mktemp)"
-if ! awk 'length <= 8192' "$path" | sed -E 's/[A-Za-z]+-[0-9.]+//g' > "$_tmp"; then
-  echo "validate-count-propagation: preprocessing failed for $path" >&2
-  rm -f "$_tmp"; return 1
+_src_tmp="$(mktemp)"
+trap 'rm -f "$_src_tmp"' EXIT
+if ! _extract_counts "$FILE_PATH" > "$_src_tmp"; then
+  echo "validate-count-propagation: count extraction failed for $FILE_PATH" >&2
+  exit 2   # fail-closed: an unparseable corpus is not "no drift"
 fi
-while IFS= read -r line; do … done < "$_tmp"
-rm -f "$_tmp"
+while IFS=: read -r kw cnt rnk; do
+  ...
+done < "$_src_tmp"
 ```
+
+Apply the same shape to the sibling loop. Either fail-closed (`exit 2`) or loud-advisory is defensible for a PostToolUse lint — but `exit 0` meaning "no drift" when extraction never ran is not. Pair with the regression test in SUGGESTION-E.
 
 ---
 
-### SUGGESTION-1 — `pkill -P` misses grandchildren
+## BLOCKING-B — non-load-bearing guards with factually false justifications
 
-`hooks.bats`: `pkill -P "$pid"` reaps only direct children of the background subshell. The hook now spawns `awk` and `sed` per `_extract_counts` call, which are *grandchildren* — on a timeout those survive, which is the leak cycle 1 asked to close. Under unfixed code the spin is in bash itself so the current form does reach it, but the guarantee is incomplete. Use a process group: `set -m` before the `&`, then `kill -- -"$pid"`.
+| Field | Value |
+|-------|-------|
+| Severity | blocking |
+| Category | description (comment / commit-message accuracy) |
+| Location | `_extract_counts` rank-precedence header comment; `_is_historical_heading` `## drift items` arm; blockquote-guard comment; cycle-2 commit message |
 
-### SUGGESTION-2 — `fail` is undefined; diagnostics never render
+Verdict of every variant against the five live index files in the **real repo layout** (`exit=2` means the hook blocks):
 
-`hooks.bats` loads no bats-support (no `load` / `bats_load_library` anywhere in the file) and bats-core 1.13.0 ships no `fail`. Verified directly:
+| variant | STATE | ARCH | BC | VP | STORY |
+|---|---|---|---|---|---|
+| cycle 1 (`4f52863c`) | 0 | 2 | 0 | 0 | **2** |
+| **cycle 2 (`3d988d82`, this head)** | 0 | 2 | 0 | 0 | **0** |
+| cycle 2 − blockquote guard | 0 | 2 | 0 | 0 | **2** |
+| cycle 2 − `## drift items` guard | 0 | 2 | 0 | 0 | 0 |
+| cycle 2 − rank precedence | 0 | 2 | 0 | 0 | 0 |
+
+Reading across: **the blockquote guard is the entire fix.** It alone flips STORY-INDEX 2 → 0. That guard is load-bearing and correct.
+
+The other two change nothing, and the comments justifying them describe events that do not occur.
+
+**B1 — `## drift items` guard.** Commit message: *"Fixes VP-INDEX.md false positive (19 ≠ 107)."* VP-INDEX already exited 0 at cycle 1. Removing the guard from this head still yields VP-INDEX exit 0, because in file order STATE.md emits `VPs:107` first and the `19 VPs` entry is third — first-wins had already discarded it:
 
 ```
-# /tmp/failtest/t.bats: line 3: fail: command not found
+$ _extract_counts .factory/STATE.md | grep '^VPs'   # with the guard removed
+VPs:107:1
+VPs:107:1
+VPs:19:1
+VPs:107:1
 ```
 
-All three `fail "…"` call sites exit 127, so the tests still fail correctly — no false negative — but the messages cycle 1's fixes were written to emit never appear. Replace with `{ echo "msg" >&2; return 1; }`, or load bats-support.
+**B2 — rank precedence.** The header comment and the commit message both say: *"STATE.md has `total_vps: 107` and also `19 VPs per §VP Anchors` in prose — rank 0 wins"* / *"Ensures `total_vps: 107` beats `19 VPs per §VP Anchors` when STATE.md is the source file."* Both premises are false:
 
-### SUGGESTION-3 — exit-status capture unreachable on the non-zero path
-
-```bash
-{ echo '…' | "$HOOKS/validate-count-propagation.sh"
-  echo $? > "$BATS_TEST_TMPDIR/exit_status.txt"; } &
+```
+$ grep -nE '^(total_vps|total_bcs):' .factory/STATE.md
+(no output — STATE.md has no total_vps:/total_bcs: keys at all)
 ```
 
-The background subshell inherits bats' errexit. If the hook exits non-zero the subshell aborts at the pipeline and `exit_status.txt` is never written — so the assertion falls through to `fail "hook exited non-zero: "` with an empty value, losing the actual status. Add `|| echo $? > "$…"`, or `set +e` inside the group.
+and STATE.md resolves to zero siblings (OBSERVATION-F), so STATE.md is never the source of a comparison in the real layout. Where rank-0 *does* fire — VP-INDEX and BC-INDEX — the rank-0 entry is already first in file order, so first-wins gives the identical answer:
 
-### SUGGESTION-4 — inconsistent interpreter between the two new tests
+```
+$ _extract_counts .factory/specs/verification-properties/VP-INDEX.md | grep '^VPs'
+VPs:107:0     <-- already first
+VPs:17:1
+VPs:10:1
+...
+$ _extract_counts .factory/specs/behavioral-contracts/BC-INDEX.md | grep '^BCs'
+BCs:1993:0    <-- already first
+BCs:125:1
+...
+```
 
-Test 1 invokes the hook directly (relying on its `#!/bin/bash` shebang); Test 2 invokes it via `bash -c` (PATH bash). `require_bash4_hook_interp` gates on `/bin/bash`, so Test 2's skip guard does not describe the interpreter Test 2 actually uses. Pick one form.
+**B3 — blockquote comment over-generalizes.** It asserts blockquotes are *"exclusively historical or documentary records … None carry an authoritative live count."* `.factory/STATE.md:270` is the live Session Resume Checkpoint banner, refreshed every Commit E per D-446(c), carrying current values:
 
-### SUGGESTION-5 — PR body Test Evidence is stale
+```
+> **SELF-SUFFICIENT RESUME CONTEXT.** … BC-INDEX v5.34 (1,993 BCs). VP-INDEX v2.91 (107 VPs). STORY-INDEX v4.418 (175 stories; 25 epics). … merged_count 115.
+```
 
-The body says "via `timeout 5`", "asserts the hook exits within 5s", "208KB", "<0.2s". The shipped test uses a fork+poll loop with a **3s** budget, awk-based generation, ~200KB. Also worth stating plainly: both new tests **skip** on macOS, so the green `bats-darwin-leg` run counts them as 2 skips, and `bats-full-suite (linux)` was still *pending* at review time — the "59/59 PASS" badge has not yet been demonstrated on any leg where these two tests actually execute.
+Those are today's real totals, not a frozen record. Blanket-skipping `>` lines remains the right call (the same counts appear on non-blockquote lines 122/159/333, so no detection is lost today), but the stated reason is wrong and the guard is quietly broader than the comment admits.
 
-### SUGGESTION-6 — no captured timing evidence
+**Suggestion:** keep both mechanisms — they are defensible robustness hardening — but correct the claims. Specifically:
 
-`docs/demo-evidence/` has nothing for this change. This is a PostToolUse bash hook with no UI surface, so per-AC recordings are not meaningful — but the PR's entire value proposition is a timing delta, and VHS is available. A short capture of the before/after `time` on BC-INDEX.md would make the central claim reviewable rather than asserted.
+- Rank precedence: describe as forward-looking hardening ("prefers frontmatter over prose should a rank-1 entry ever precede the frontmatter key; no current corpus file exercises this"), and drop the STATE.md `total_vps` example — that key does not exist.
+- `## drift items`: describe as defence-in-depth consistent with the other historical headings; drop the "fixes VP-INDEX false positive" claim.
+- Blockquote guard: state that blockquotes are skipped wholesale because the project uses them for historical *and* banner-cite content, and banner cites are redundant with the non-blockquote lines — rather than asserting no blockquote carries a live count.
 
-### NIT-1 — extglob removal verified safe (no action needed)
-
-I grepped for surviving `+(` / `?(` / `*(` / `@(` / `!(` patterns: none in the hook (L49's `SS-[0-9][0-9]-*.md` is a plain glob, valid without extglob), and `lib/block.sh` uses none. Dropping `shopt -s extglob` is clean.
-
-### NIT-2 — frontmatter skip misses YAML sequence-item form
-
-`^[[:space:]]*(last_amended|change):` matches the live `    change: "…"` form in ARCH-INDEX, but not the sequence-item variant `  - change: "…"`. Allow an optional `-[[:space:]]*` if that form can occur.
+Comments-and-body edit, not a redesign. Held at blocking severity because cycle-2's BLOCKING-2 was exactly this defect class, and shipping two fresh instances of it inside the fix for it is the pattern the Canonical Principle production-grade default exists to stop.
 
 ---
 
-## Checklist coverage (8-item)
+## SUGGESTION-C — no `trap`; temp file leaks on kill
 
-| # | Item | Result |
-|---|------|--------|
-| 1 | Diff coherence | PASS — both files relate to the single stated fix; no unrelated changes |
-| 2 | Description accuracy | **FAIL** — BLOCKING-2(iii), SUGGESTION-5 |
-| 3 | Test coverage | PARTIAL — 2 new tests cover the changed lines, but both skip on macOS and the Linux leg was pending; SUGGESTION-2/3/4 |
-| 4 | Demo evidence | N/A for a stdin/stderr bash hook; SUGGESTION-6 recommends a timing capture |
-| 5 | Commit quality | PASS — conventional format, detailed bodies, no `Co-Authored-By` / AI attribution |
-| 6 | Diff size | PASS — 130/17 across 2 files, well under the 500-line flag |
-| 7 | Missing changes | **FAIL** — BLOCKING-1: the PR body's own five-file exit-0 gate is unmet |
-| 8 | Dependency status | PASS — standalone hotfix, no upstream story deps |
+| Field | Value |
+|-------|-------|
+| Severity | suggestion |
+| Category | coherence |
+
+`_preproc_tmp="$(mktemp)"` is removed only on the happy path and the error path inside the function. There is no `trap`. If the hook is killed mid-run — the exact scenario this PR exists to address, an orphaned PostToolUse process being reaped — or if `set -e` fires anywhere inside the `while` loop, the temp file survives in `/tmp` indefinitely.
+
+**Suggestion:** `trap 'rm -f "$_preproc_tmp"' RETURN` inside the function, or fold into the caller-side `EXIT` trap from BLOCKING-A's patch.
+
+## SUGGESTION-D — sibling files re-parsed once per keyword
+
+| Field | Value |
+|-------|-------|
+| Severity | suggestion |
+| Category | size / efficiency |
+
+Sibling extraction sits inside the `for keyword` loop, so each sibling is fully re-preprocessed for every keyword. Instrumented invocation counts:
+
+```
+source=ARCH-INDEX.md   _extract_counts invocations=4   (STATE.md parsed 3x)
+source=BC-INDEX.md     _extract_counts invocations=3   (STATE.md parsed 2x)
+source=VP-INDEX.md     _extract_counts invocations=2   (STATE.md parsed 1x)
+```
+
+Three separate `mktemp` + `awk` + `sed` passes over STATE.md for one ARCH-INDEX write. The structure predates this PR, but this PR adds a `mktemp` per pass, so the cost grew. Measured runtimes are still fine (0.26–0.48s), so not urgent.
+
+**Suggestion:** hoist sibling extraction above the keyword loop into a single `declare -A SIB_COUNTS` keyed by `sibling:keyword` — one pass per sibling. Nearly free alongside BLOCKING-A's refactor, which touches the same loops.
+
+## SUGGESTION-E — cycle-2 guards and error path are untested
+
+| Field | Value |
+|-------|-------|
+| Severity | suggestion |
+| Category | coverage |
+
+No test in `hooks.bats` exercises rank precedence, the blockquote guard, the `last_amended:`/`change:` frontmatter skip, the `## drift items` heading, or preprocessing failure:
+
+```
+$ git show 3d988d82:plugins/vsdd-factory/tests/hooks.bats | grep -iE 'rank|blockquote|total_vps|preprocessing|last_amended'
+507:# Root cause: BC-INDEX.md contains a single ~195KB "last_amended:" blob line;   (comment only)
+```
+
+Every cycle-2 behavior change is protected only by the live corpus — which is exactly how the STORY-INDEX false positive survived cycle 1.
+
+**Suggestion:** add at minimum —
+1. Blockquote guard: a source file whose only BC count is inside a `> …` line → assert exit 0; the same count outside the blockquote → assert exit 2. Locks in the one guard that works.
+2. Preprocessing failure (pairs with BLOCKING-A): stub `awk` or `sed` to exit 1 on `PATH`, use a fixture with genuine drift, assert the hook does **not** exit 0.
+
+## OBSERVATION-F — real STATE.md has zero siblings (pre-existing)
+
+| Field | Value |
+|-------|-------|
+| Severity | nit (pre-existing; route as follow-up) |
+| Category | missing |
+
+`CORPUS_ROOT` walks up from the file and stops at the first directory containing `STATE.md`. For `<repo>/.factory/STATE.md` that resolves to `<repo>/.factory`, so candidates become `<repo>/.factory/.factory/specs/…` (nonexistent) and `<repo>/.factory/ARCH-INDEX.md` (nonexistent — the real indexes live under `.factory/specs/…`):
+
+```
+CORPUS_ROOT=/Users/zious/Documents/GITHUB/vsdd-factory/.factory
+(sibling list is empty)
+```
+
+`STATE.md` therefore exits 0 at the `${#SIBLING_FILES[@]} -eq 0` early return, having compared nothing. The other four indexes get exactly one sibling — `.factory/STATE.md` — and never see each other.
+
+Not introduced by this PR (the walk-up is untouched) and not blocking. Two consequences worth recording:
+
+- The PR body cites "STATE.md exit=0" as post-fix verification. That exit 0 is vacuous and must not be counted as evidence.
+- The bats fixtures use a flat `.factory/*.md` layout under which siblings *do* resolve. That is why the suite passes while the real layout silently compares nothing — the tests are non-representative of production topology.
+
+**Routing:** the `CORPUS_ROOT` resolution defect should go to a follow-up (orchestrator's call on specialist), since fixing it will surface a fresh batch of real cross-index drift and should not be bundled into a CPU-runaway hotfix.
 
 ---
 
-## What I verified (beyond the findings)
+## What I verified as good
 
-Recording this so the findings are not a rubber stamp in either direction:
-
-- **CPU runaway genuinely eliminated** — measured, not taken from the PR body: BC-INDEX.md 0.83s on PR head vs >60s hang on `origin/develop`.
-- **`sed -E 's/[A-Za-z]+-[0-9.]+//g'` semantics traced by hand** — does not eat `v1.0.0-rc.24` (char before `-` is a digit), `2026-08-31`, `BC-INDEX.md` (no digits after `-`), or `total_bcs: 42`. Confirmed `42 BCs` survives the strip, which is what Test 2 exists to protect.
-- **Heading detection unaffected by moving the strip ahead of `_is_historical_heading`** — all five patterns (`## changelog`, `## change log`, `## historical content`, `## phase progress`, `## decisions log`) are ID-free, so the comment's claim at L151-153 holds.
-- **Test isolation is safe** — `setup()` does `mktemp -d` + `cd`, so the tests' writes to `.factory/BC-INDEX.md` and `.factory/STATE.md` cannot touch the real corpus. Worth calling out explicitly since those paths look alarming in the diff.
-- **`deny-advisories` CI failure is pre-existing on `develop`** (develop head `9ab5a6f6` also failed) — **not** attributable to this PR, and not held against it.
-- **Pre-existing, not introduced:** the hook's `#!/bin/bash` shebang combined with `declare -A` (L193) means it cannot run at all under macOS `/bin/bash` 3.2. Unchanged by this PR and correctly acknowledged by `require_bash4_hook_interp`, but worth a follow-up given the hook ships to macOS operators.
+- **BLOCKING-2 comment fix — correct.** The invented `printf | sed` / "2595 per-line subshell invocations" clause is gone. The remaining description of the pre-fix extglob form (`O(n·k)` bash global-replace, per-line, ~8000 matches on a 195KB line) is accurate, and the "correct totals" over-claim is replaced with the properly hedged "removes oversized lines from extraction scope so stale counts no longer shadow authoritative values."
+- **Blockquote guard — load-bearing and correct.** Sole fix for the STORY-INDEX false positive (matrix in BLOCKING-B). `[[ "$line" =~ ^[[:space:]]*'>' ]]` correctly treats the quoted `>` as a literal.
+- **The CPU-runaway fix itself — sound.** `awk 'length <= 8192' | sed -E` is genuinely linear. Live timings: BC-INDEX 0.48s, VP-INDEX 0.26s, STORY-INDEX 0.40s, ARCH-INDEX 0.45s. The 208KB synthetic fixture completes in ~0.3s.
+- **Both new bats tests pass under bash 4.** They skip on the macOS host (`/bin/bash` 3.2 — all 12 count-propagation tests skip; suite reports 59/59 ok with 12 skips), so both bodies were re-run manually against a bash-4 interpreter: `TEST 1: PASS` (208001B fixture, ~0.3s, exit 0), `TEST 2: PASS` (status 2, output contains `42 BCs`).
+- **SUGGESTION-2 — fixed.** Bare `fail` replaced with `{ echo … >&2; return 1; }`; `bats-support` is indeed not loaded in this file.
+- **SUGGESTION-3 — fixed.** Exit status captured in the background subshell via `&& echo 0 > f || echo $? > f` and asserted after the poll loop. `perl` correctly replaced with `awk`.
+- **ARCH-INDEX exit 2 is a TRUE POSITIVE and does not block this PR.** Reproduced: `'106 VPs' in ARCH-INDEX.md but '107 VPs' in STATE.md` and `'1973 BCs' in ARCH-INDEX.md but '1993 BCs' in STATE.md`. Authoritative sources confirm 107 (`total_vps: 107` in VP-INDEX) and 1993 (`total_bcs: 1993` in BC-INDEX). The hook is doing its job; the stale prose at ARCH-INDEX L405/L451 is the defect. A lint correctly reporting genuine drift is not grounds to withhold approval, and the state-manager routing note in the PR body is the right disposition — required follow-up, not a blocker.
 
 ---
 
-## Path to approval
+## CI
 
-1. Resolve BLOCKING-1 so all five live index files exit 0 — hook-side precedence for authoritative frontmatter keys plus a blockquote-record guard, coordinated with a state-manager fix for the genuinely stale ARCH-INDEX totals. Re-run the five-file matrix and paste the output.
-2. Correct the three inaccuracies in BLOCKING-2 (drop the invented `printf | sed` clause, soften "correct totals", fix 106 → 107).
-3. Close BLOCKING-3 so a preprocessing failure cannot silently pass the lint.
-4. Suggestions 1-6 at your discretion, though 2 and 3 are cheap and restore the diagnostics cycle 1 asked for.
+| Check | Status | Assessment |
+|-------|--------|------------|
+| `deny-advisories` | **fail** | RUSTSEC-2026-0268 / RUSTSEC-2026-0269 on wasmtime 46.0.2. Pre-existing on `develop`, not introduced here. Not held against this PR; needs its own hotfix. |
+| `bats-full-suite (linux)` | **pending** at review time | The only leg that actually executes the count-propagation tests — `bats-darwin-leg` passes but skips all 12. The "tests 59/59" badge is accurate only in that skips count as ok. Manual bash-4 run of both new tests passed, so this leg is expected green; confirm before merge. |
+| `SAST (Semgrep)`, `validate`, `platforms-drift`, `policy-15-attestation-location`, `attestation-gate-non-vacuity-controls`, `bats-darwin-leg`, `bats-wave-handoff`, `build-dispatcher (linux-arm64)` | pass | — |
+
+---
+
+## Disposition
+
+**REQUEST_CHANGES.**
+
+BLOCKING-A and BLOCKING-B must be addressed. A is a substantive correctness fix (roughly the patch sketched above, plus one test); B is a comment / PR-body accuracy edit. SUGGESTION-C through E are non-blocking, but C and D are cheap to fold into A's refactor. OBSERVATION-F should be routed as a follow-up, not fixed here.
+
+Re-request review once A and B are pushed and the Linux bats leg is green.
