@@ -99,15 +99,24 @@ pub mod guard_logic {
         // Absent marker → allow (AC-010; BC-1.18.002 PC4).
         match std::fs::read_to_string(marker_path) {
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => GateDecision::Allow,
-            Err(_) => {
-                // Unable to read (permissions, I/O error) — conservative path: block.
-                // We cannot determine the marker state, so block to avoid silent pass.
-                GateDecision::Block {
-                    plugin_name: "<unreadable-marker>".to_string(),
-                    artifact_path: String::new(),
-                    cause: "<unknown>".to_string(),
-                    trace_id: String::new(),
-                }
+            Err(e) => {
+                // EC-030: any non-NotFound read error (EACCES/EPERM/IO/etc.) → fail-open (Allow).
+                //
+                // Rationale (BC-1.18.002 v1.4 EC-030 + INV2 self-lock prevention):
+                // - The marker bytes could not be read, so the marker's quarantine contents
+                //   are unknown.
+                // - Critically, `rm .factory/unvalidated-mutation.marker` (the operator escape
+                //   hatch) would ALSO fail under the same permission/IO fault — meaning a Block
+                //   here would create an unclearable self-lock (INV2 violation).
+                // - Therefore: unreadable marker → fail-open. The operator escape hatch remains
+                //   operable once the underlying filesystem fault is resolved.
+                tracing::warn!(
+                    error = %e,
+                    path = %marker_path.display(),
+                    "unvalidated-mutation marker unreadable (fail-open EC-030): \
+                     allowing dispatch; resolve filesystem fault and re-run validation"
+                );
+                GateDecision::Allow
             }
             Ok(content) => {
                 // Parse marker TOML via the `toml` crate (Library table mandate; MEDIUM-4).
@@ -158,22 +167,39 @@ pub mod guard_logic {
     }
 
     /// Returns `true` iff the given Bash `command` string identifies `commit` or `push`
-    /// as the git subcommand. Implements the BC-1.18.002 v1.2 four-phase algorithm.
+    /// as the git subcommand. Implements the BC-1.18.002 v1.4 algorithm.
     ///
     /// Used by Arm 2 to determine whether a `^Bash$` PreToolUse dispatch should be
     /// checked against the marker file. Non-advancing commands (`git status`, `git log`,
     /// `cargo test`, etc.) return `false`. EC-001..EC-005 MUST return false.
     /// EC-006..EC-023 and EC-012/EC-013/EC-014/EC-015..EC-018 MUST return true.
     ///
-    /// The four phases: (1) compound split, (2) executable basename, (3) skip global
-    /// options (complete arg-taking + no-arg sets; fail-safe on unrecognized flags),
-    /// (4) exact subcommand match ("commit" | "push").
+    /// The five phases:
     ///
-    /// BC-1.18.002 v1.2 PC2. VP-105 unit-test property row. EC-001..EC-023.
+    /// - **Phase 1** — compound split on `&&`, `||`, `;`, `|`, `&`, `\n` →
+    ///   any segment returning `true` ⇒ `true`.
+    /// - **Phase 1b** — shell-words quote-aware POSIX tokenization of each segment
+    ///   (`shell_words::split`): removes quotes and handles backslash escapes so that
+    ///   `git "commit"`, `git 'push' origin`, and `g'i't commit` tokenize correctly.
+    ///   On `Err` (unmatched quote) → conservative fail-safe: return `true`.
+    /// - **Phase 2** — executable basename identification: strip a leading `env` token,
+    ///   then strip leading `VAR=value` tokens; take the first remaining token as the
+    ///   executable; strip to its basename via `rfind('/')`. basename ≠ `"git"` ⇒ `false`.
+    /// - **Phase 3** — skip recognized git global options: complete arg-taking set
+    ///   (`-C`, `-c`, `--namespace`, `--git-dir`, `--work-tree`, `--super-prefix`,
+    ///   `--config-env`) + recognized no-arg flags + inline `--opt=value` forms.
+    ///   Unrecognized `-`-prefixed flag → fail-safe (return `true`; arity unknown).
+    /// - **Phase 4** — exact subcommand match: return `true` iff token equals
+    ///   `"commit"` or `"push"`.
+    ///
+    /// BC-1.18.002 v1.4 PC2. VP-105 unit-test property row. EC-001..EC-023.
     pub fn is_git_commit_or_push(command: &str) -> bool {
-        // BC-1.18.002 v1.2 four-phase algorithm.
+        // BC-1.18.002 v1.4 algorithm (Phase 1 compound split → Phase 1b quote-aware
+        // tokenization → Phase 2 basename → Phase 3 global-option skip / fail-safe →
+        // Phase 4 exact subcommand match).
         //
         // Phase 1 — compound split on &&, ||, ;, |, &, \n → any segment true ⇒ true.
+        // Phase 1b — shell_words::split() per evaluate_git_segment (quote-aware POSIX).
         // Phase 2 — basename identification: strip leading env/VAR=x tokens; take
         //           basename of first remaining token; basename != "git" ⇒ false.
         // Phase 3 — skip global options (complete arg-taking + no-arg sets; FAIL-SAFE

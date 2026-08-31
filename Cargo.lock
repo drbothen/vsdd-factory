@@ -3537,6 +3537,7 @@ dependencies = [
  "shell-words",
  "tempfile",
  "toml 0.8.23",
+ "tracing",
  "vsdd-hook-sdk",
 ]
 

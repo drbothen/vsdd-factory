@@ -34,6 +34,10 @@ toml = { workspace = true }
 # shell-words 1.1.x is pure-Rust, zero-dep, MIT-licensed, and compiles for wasm32-wasip1.
 # Version verified against crates.io (BC-1.18.002 v1.3 tokenized subcommand match; TD #74).
 shell-words = "1.1"
+# Observability: structured warn logging for fail-open paths (EC-030; CLAUDE.md no-println rule).
+# tracing macros are no-ops when no subscriber is configured, so this adds no overhead in
+# WASM sandbox contexts where no subscriber is registered.
+tracing = { workspace = true }
 
 [dev-dependencies]
 serde_json = { workspace = true }
