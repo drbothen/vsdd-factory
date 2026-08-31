@@ -12,12 +12,16 @@
 #   4. Exit 0 on no drift OR if count is absent from a sibling file (absence != drift).
 #
 # Scope limit: reports drift, does not modify files, does not interpret semantics.
-# Performance: deterministic, <200ms on typical corpus.
+# Performance: O(n) two-pass pre-processing (awk length filter + sed ID-strip) before
+# the per-line loop; <1s on real corpus files including BC-INDEX.md with 2595 lines
+# and a single ~195KB last_amended: blob (S-25.01 CPU-runaway fix).
 #
 # S-7.02 / BC-7.05.001, BC-7.05.002
 
 set -euo pipefail
-shopt -s extglob
+# extglob is no longer needed: the ID-token strip moved to a whole-file sed pass
+# (S-25.01 fix/count-propagation-cpu-runaway). Kept disabled to prevent accidental
+# re-introduction of extglob patterns that could backtrack on long lines.
 
 # Source canonical block-message helper if available (provides block_pre).
 _SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -110,27 +114,41 @@ _is_historical_heading() {
 _extract_counts() {
   local path="$1"
   local in_historical=0
+  # Pre-process the file in two O(n) passes BEFORE the per-line loop so no
+  # per-line operation ever sees a mega-line or a raw ID token:
+  #
+  #   Pass 1 — awk length filter: drop lines > 8192 chars.
+  #     A legitimate count keyword ("42 BCs", "total_bcs: 42") is a short
+  #     token that cannot live in a 195KB line (the BC-INDEX.md last_amended:
+  #     blob).  Skipping (not truncating) avoids token-split artefacts: a
+  #     mid-ID truncation could produce a phantom digit sequence.
+  #     S-25.01 / fix/count-propagation-cpu-runaway.
+  #
+  #   Pass 2 — sed -E ID-strip: remove <letters>-<digits-and-dots> tokens
+  #     (BC-1.18.003, VP-105, E-11, S-3, TD-001) so their embedded digits are
+  #     not parsed as quantities (#690).  sed -E uses a provably-linear NFA;
+  #     no backtracking is possible.  `sed -E` is portable to BSD sed (macOS)
+  #     and GNU sed (Linux).
+  #
+  #     Contrast with the prior extglob form "${line//+([A-Za-z])-+([0-9.])/}":
+  #     that form ran per-line inside the loop.  Two failure modes:
+  #       a) On a single ~195KB line, bash's global-replace did O(n*k) string
+  #          copies (n = line length, k = match count ≈ 8000), spinning a full
+  #          core for >12s in PostToolUse and orphaning the process at PPID 1.
+  #       b) Even for short lines, 2595 per-line subshell invocations of
+  #          `printf '%s' … | sed …` added ~20s of fork-overhead on macOS.
+  #     A single whole-file sed pass has O(1) spawn cost and O(n) scan cost.
+  #
+  #   Heading lines (## …) are inspected AFTER both passes; canonical heading
+  #   names used by _is_historical_heading contain no ID tokens, so the strip
+  #   does not affect historical-section boundary detection.
   while IFS= read -r line; do
     local count keyword
     # Track historical-section boundaries; skip counts while inside one.
-    # Runs BEFORE the ID-token drop below so headings are inspected verbatim
-    # and historical lines skip the per-line mutation entirely.
     if [[ "$line" =~ ^##[[:space:]] ]]; then
       if _is_historical_heading "$line"; then in_historical=1; else in_historical=0; fi
     fi
     [[ "$in_historical" -eq 1 ]] && continue
-    # Drop identifier tokens (E-11, S-3, BC-2.1.001, TD-001, SS-01) before
-    # count extraction: the digits inside an ID are not a quantity. Without
-    # this, "5 E-11 stories" mis-parses "11 stories" as a phantom count and
-    # fires a false count-propagation drift (#690). Matches <letters>-<digits-
-    # and-dots> so multi-part BC/VP ids are dropped whole. Deliberately flat:
-    # a nested extglob (`?(*(.+([0-9])))`) matches the same ID tokens but
-    # backtracks super-linearly on long dotted-id lines (33s on a 600-char
-    # line of BC-N.NN.NN tokens vs 0.5s flat), and this runs per line on
-    # repo-controlled content. The flat class additionally eats dots glued to
-    # an ID (e.g. a sentence period in "delivered E-11."), which is harmless
-    # here — a whitespace-separated count token can never contain them.
-    line="${line//+([A-Za-z])-+([0-9.])/}"
     # Pattern A: count before keyword
     if [[ "$line" =~ ([0-9][0-9,]+)[[:space:]]+(BCs|VPs|stories|capabilities|subsystems) ]]; then
       keyword="${BASH_REMATCH[2]}"
@@ -153,7 +171,7 @@ _extract_counts() {
       count="${BASH_REMATCH[1]//,/}"
       echo "VPs:${count}"
     fi
-  done < "$path"
+  done < <(awk 'length <= 8192' "$path" | sed -E 's/[A-Za-z]+-[0-9.]+//g')
 }
 
 # Extract counts from modified file (first occurrence per keyword wins)

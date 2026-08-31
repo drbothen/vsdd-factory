@@ -497,3 +497,70 @@ EOF
   [ "$status" -eq 0 ]
   [ -z "$output" ]
 }
+
+# ---------- validate-count-propagation (CPU-runaway fix — S-25.01) ----------
+#
+# Regression + correctness tests for the catastrophic-backtracking fix:
+#   - length guard: skip lines > 8192 chars before any regex/extglob processing
+#   - linear sed: replace extglob ID-strip with sed -E 's/[A-Za-z]+-[0-9.]+//g'
+#
+# Root cause: BC-INDEX.md contains a single ~195KB "last_amended:" blob line;
+# the extglob substitution line="${line//+([A-Za-z])-+([0-9.])/}" spins a full
+# CPU core for >12s on that input (PostToolUse → orphaned hook at PPID 1).
+
+@test "validate-count-propagation: 200KB ID-dense single line completes in <3s (cpu-runaway fix)" {
+  require_bash4_hook_interp
+  # BC-INDEX.md with a single ~200KB line of ID tokens reproduces the CPU-runaway
+  # bug. On unfixed code the extglob substitution hangs >12s; with the length guard
+  # the line is skipped in O(1) and the hook exits cleanly in <1s.
+  #
+  # A STATE.md sibling is required: without a sibling the hook exits early at the
+  # "no siblings" guard before calling _extract_counts, so the bug is never reached.
+  perl -e 'print("BC-1.18.003 VP-105 DI-007 " x 8000 . "\n")' > .factory/BC-INDEX.md
+  printf '# STATE — no count keywords\n' > .factory/STATE.md
+
+  # Verify the fixture is large enough to reproduce the bug.
+  local size
+  size=$(wc -c < .factory/BC-INDEX.md | tr -d ' ')
+  [ "$size" -gt 150000 ] || skip "Fixture too small (${size}B); perl may be unavailable"
+
+  # Portable timeout: background process + polling kill.
+  # macOS/BSD has no `timeout` command; GNU/Linux has it but we avoid the
+  # dependency. The fork+poll pattern works on both platforms.
+  # Budget: 3s. Unfixed code hangs >12s on this input (confirmed per bug report).
+  { echo '{"tool_input":{"file_path":".factory/BC-INDEX.md"}}' \
+      | bash "$HOOKS/validate-count-propagation.sh"; } &
+  local pid=$!
+
+  local timed_out=0
+  local ticks=0
+  while kill -0 "$pid" 2>/dev/null && [ "$ticks" -lt 30 ]; do
+    sleep 0.1
+    ticks=$((ticks + 1))
+  done
+
+  if kill -0 "$pid" 2>/dev/null; then
+    kill "$pid" 2>/dev/null
+    wait "$pid" 2>/dev/null || true
+    timed_out=1
+  else
+    wait "$pid" 2>/dev/null || true
+  fi
+
+  [ "$timed_out" -eq 0 ] \
+    || fail "Hook still running after 3s on 200KB line — length guard or linear-sed fix not applied"
+}
+
+@test "validate-count-propagation: sed ID-strip removes BC/VP/DI tokens, genuine BCs count survives drift check" {
+  require_bash4_hook_interp
+  # Line: "BC-1.18.003 VP-105 42 BCs DI-007" — three ID tokens stripped by the
+  # linear sed; genuine count "42 BCs" preserved.  Sibling (BC-INDEX) disagrees
+  # with total_bcs: 38 → drift must still fire.  If the sed over-aggressively
+  # stripped digits from "42 BCs" the count would be lost and the hook would exit
+  # 0 (empty SOURCE_COUNTS) — a false negative caught by requiring exit 2 here.
+  printf '# STATE\nBC-1.18.003 VP-105 42 BCs DI-007\n' > .factory/STATE.md
+  printf '%s\n' '---' 'total_bcs: 38' '---' '# BC-INDEX' > .factory/BC-INDEX.md
+  run bash -c "echo '{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}' | \"$HOOKS/validate-count-propagation.sh\" 2>&1"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"42 BCs"* ]]
+}
