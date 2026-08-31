@@ -59,15 +59,13 @@ pub struct MarkerFields {
 /// 3. Atomically rename the temp file to `marker_path`.
 ///
 /// Single-marker policy: if a marker already exists, the rename overwrites it (last-writer-wins).
+/// Serialization uses the `toml` crate (Library table mandate; AC-005).
+/// All control characters including `\n` are correctly escaped (MEDIUM-4 fix).
 ///
 /// # Errors
 ///
 /// Returns `io::Error` if the temp-file write or rename fails (EC-008).
 /// The caller emits the `plugin.indeterminate` event regardless of whether this write succeeds.
-///
-/// # BC-5.38.001
-///
-/// Non-trivial body — filesystem I/O, TOML serialization, atomic rename. Uses `todo!()`.
 pub fn write_indeterminate_marker(fields: &MarkerFields, marker_path: &Path) -> io::Result<()> {
     // Compute the temp path in the same directory (atomic rename invariant).
     // Using sibling .tmp file guarantees same-filesystem rename.
@@ -81,17 +79,33 @@ pub fn write_indeterminate_marker(fields: &MarkerFields, marker_path: &Path) -> 
         .unwrap_or_else(|| std::path::Path::new("."))
         .join(&tmp_name);
 
-    // Serialize 5 mandatory TOML fields (BC-1.18.001 postcondition 4).
-    // Escape TOML string values by representing them as quoted strings.
-    // Each field is individually quoted; all five are mandatory even when empty.
-    let content = format!(
-        "timestamp = {t}\nplugin_name = {p}\nartifact_path = {a}\ncause = {c}\ntrace_id = {r}\n",
-        t = toml_quote(&fields.timestamp),
-        p = toml_quote(&fields.plugin_name),
-        a = toml_quote(&fields.artifact_path),
-        c = toml_quote(&fields.cause),
-        r = toml_quote(&fields.trace_id),
+    // Serialize 5 mandatory TOML fields via the `toml` crate (Library table mandate).
+    // toml::to_string correctly escapes all control characters including \n, \r, \t, etc.
+    // Field insertion order preserved via BTreeMap (deterministic output).
+    let mut table = toml::Table::new();
+    table.insert(
+        "timestamp".to_string(),
+        toml::Value::String(fields.timestamp.clone()),
     );
+    table.insert(
+        "plugin_name".to_string(),
+        toml::Value::String(fields.plugin_name.clone()),
+    );
+    table.insert(
+        "artifact_path".to_string(),
+        toml::Value::String(fields.artifact_path.clone()),
+    );
+    table.insert(
+        "cause".to_string(),
+        toml::Value::String(fields.cause.clone()),
+    );
+    table.insert(
+        "trace_id".to_string(),
+        toml::Value::String(fields.trace_id.clone()),
+    );
+
+    let content = toml::to_string(&table)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e.to_string()))?;
 
     // Write to temp file (O_CREAT | O_WRONLY | O_TRUNC semantics via fs::write).
     std::fs::write(&tmp_path, content.as_bytes())?;
@@ -171,12 +185,35 @@ mod tests {
     }
 }
 
-/// Escape a string for use as a TOML basic string value.
-/// Wraps in double-quotes and escapes backslashes and double-quotes.
-/// This is sufficient for the 5 marker fields (timestamps, names, paths, cause, trace IDs).
-fn toml_quote(s: &str) -> String {
-    let escaped = s.replace('\\', "\\\\").replace('"', "\\\"");
-    format!("\"{escaped}\"")
+/// Read the `plugin_name` field from the unvalidated-mutation marker file.
+///
+/// Returns:
+/// - `Ok(Some(name))` if the file exists and the `plugin_name` field is parseable.
+/// - `Ok(None)` if the file does not exist (NotFound → no marker).
+/// - `Ok(None)` if the file exists but cannot be parsed (corrupt marker → treat conservatively).
+///
+/// Used by `execute_tier` and `spawn_async_plugin` to enforce BC-1.18.003 INV2:
+/// only the named plugin's PASS clears the marker (scoped clear).
+/// The caller compares the returned name with the passing plugin's name before
+/// calling `delete_marker_if_pass`.
+pub fn read_marker_plugin_name(marker_path: &Path) -> io::Result<Option<String>> {
+    match std::fs::read_to_string(marker_path) {
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
+        // I/O errors other than NotFound: propagate them — caller decides.
+        Err(e) => Err(e),
+        Ok(content) => {
+            // Parse via toml crate; treat parse errors as "unknown" plugin name (conservative).
+            let table: toml::Table = match toml::from_str(&content) {
+                Ok(t) => t,
+                Err(_) => return Ok(None),
+            };
+            let name = table
+                .get("plugin_name")
+                .and_then(|v| v.as_str())
+                .map(str::to_string);
+            Ok(name)
+        }
+    }
 }
 
 /// Idempotently delete the unvalidated-mutation marker file.
@@ -187,10 +224,6 @@ fn toml_quote(s: &str) -> String {
 /// Scoping (BC-1.18.003 postcondition 1 + invariant 2): the caller is responsible for
 /// verifying that the `plugin_name` field in the marker matches the re-validating plugin
 /// before calling this function. `delete_marker_if_pass` itself does not read the marker.
-///
-/// # BC-5.38.001
-///
-/// Non-trivial body — filesystem I/O, NotFound handling. Uses `todo!()`.
 pub fn delete_marker_if_pass(marker_path: &Path) -> io::Result<()> {
     // Idempotent delete: NotFound is silently swallowed (AC-013; BC-1.18.003 PC2).
     // All other io::Error variants are propagated as Err.
