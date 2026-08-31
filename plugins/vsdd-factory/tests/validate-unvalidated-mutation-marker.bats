@@ -323,7 +323,8 @@ _run_dispatcher_pretooluse_edit() {
     # Write marker
     _write_marker "$WORK"
 
-    # git commit -m 'test' matches \bgit\b.*\b(commit|push)\b — MUST be blocked
+    # git commit -m 'test' matches the Arm-2 filter (illustrative regex: \bgit\b.*\b(commit|push)\b;
+    # authoritative filter: is_git_commit_or_push, BC-1.18.002 §PC2) — MUST be blocked
     _run_dispatcher_pretooluse_bash "$WORK" "git commit -m 'test message'"
 
     [ "$status" -eq 2 ] || {
@@ -366,7 +367,8 @@ _run_dispatcher_pretooluse_edit() {
     # Marker present — Arm 2 fires for git commit/push BUT must NOT fire for git status
     _write_marker "$WORK"
 
-    # git status does NOT match \bgit\b.*\b(commit|push)\b — Arm 2 must NOT gate it
+    # git status does NOT match the Arm-2 filter (illustrative regex: \bgit\b.*\b(commit|push)\b;
+    # authoritative filter: is_git_commit_or_push, BC-1.18.002 §PC2) — Arm 2 must NOT gate it
     _run_dispatcher_pretooluse_bash "$WORK" "git status --porcelain"
 
     [ "$status" -eq 0 ] || {
