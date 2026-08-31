@@ -26,7 +26,10 @@ use std::time::Instant;
 use wasmtime::Engine;
 
 use crate::host::HostContext;
-use crate::indeterminate_marker::{MarkerFields, should_write_marker, write_indeterminate_marker};
+use crate::indeterminate_marker::{
+    MarkerFields, delete_marker_if_pass, read_marker_plugin_name, should_write_marker,
+    write_indeterminate_marker,
+};
 use crate::internal_log::{
     InternalEvent, InternalLog, PLUGIN_COMPLETED, PLUGIN_CRASHED, PLUGIN_INDETERMINATE,
     PLUGIN_INVOKED, PLUGIN_TIMEOUT,
@@ -365,6 +368,17 @@ async fn execute_tier<'a>(
         emit_invoked(&internal_log, &inputs.base_host_ctx, &entry_clone);
         let base_ctx_for_event = inputs.base_host_ctx.clone();
 
+        // MEDIUM-5: extract artifact_path from tool_input.file_path before the closure
+        // moves inputs away (BC-1.18.001 PC4 — marker must record the artifact path).
+        // Empty string when no file_path is present (e.g. non-file-mutation tool events).
+        let artifact_path_for_marker = inputs
+            .payload_value
+            .get("tool_input")
+            .and_then(|ti| ti.get("file_path"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+
         let handle = tokio::task::spawn_blocking(move || {
             let started = Instant::now();
             // S-25.01: invoke_plugin now returns (PluginResult, bool) where bool
@@ -388,11 +402,32 @@ async fn execute_tier<'a>(
             // S-25.01: classify outcome + emit plugin.indeterminate event + marker write.
             let failure_policy = entry_clone.failure_policy;
             let outcome = classify_outcome(result.clone(), failure_policy, output_too_large);
+
+            // BLOCKER-1: BC-1.18.003 PC1 + INV2 — PASS from the named plugin MUST clear
+            // the marker, but ONLY if the marker's plugin_name matches this plugin (scoped).
+            if let DispatchOutcome::Pass = outcome {
+                let marker_path = base_ctx_for_event
+                    .cwd
+                    .join(".factory")
+                    .join("unvalidated-mutation.marker");
+                // Best-effort read; if the marker is absent or unreadable, no-op.
+                if let Ok(Some(marker_plugin)) = read_marker_plugin_name(&marker_path) {
+                    if marker_plugin == entry_clone.name {
+                        // Scoped clear: only this plugin's PASS clears its own marker (INV2).
+                        let _ = delete_marker_if_pass(&marker_path);
+                    }
+                }
+            }
+
             if let DispatchOutcome::Indeterminate { ref cause } = outcome {
                 // Emit plugin.indeterminate for EVERY indeterminate outcome (AC-006).
                 emit_indeterminate(&internal_log, &base_ctx_for_event, &entry_clone, cause);
                 // Write durable marker only for fail-closed plugins (AC-005/AC-015).
-                if should_write_marker(&outcome, failure_policy) {
+                // BLOCKER-2: BC-1.18.001 INV4 — marker write is PostToolUse-only.
+                // PreToolUse INDETERMINATE → advisory event only; NO marker written.
+                if should_write_marker(&outcome, failure_policy)
+                    && entry_clone.event == "PostToolUse"
+                {
                     let marker_path = base_ctx_for_event
                         .cwd
                         .join(".factory")
@@ -400,7 +435,8 @@ async fn execute_tier<'a>(
                     let fields = MarkerFields {
                         timestamp: chrono::Utc::now().to_rfc3339(),
                         plugin_name: entry_clone.name.clone(),
-                        artifact_path: String::new(),
+                        // MEDIUM-5: thread artifact_path from tool_input.file_path (AC-007).
+                        artifact_path: artifact_path_for_marker,
                         cause: cause_to_str(cause).to_string(),
                         trace_id: base_ctx_for_event.dispatcher_trace_id.clone(),
                     };
@@ -499,6 +535,15 @@ pub fn spawn_async_plugin(
             &trace_id,
         );
 
+        // MEDIUM-5: extract artifact_path from tool_input.file_path before payload_value
+        // is moved into per_plugin_value (BC-1.18.001 PC4 — marker must record artifact path).
+        let artifact_path_for_marker = payload_value
+            .get("tool_input")
+            .and_then(|ti| ti.get("file_path"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+
         // Splice this entry's per-plugin config onto the base envelope.
         let mut per_plugin_value = payload_value;
         if let Some(map) = per_plugin_value.as_object_mut() {
@@ -581,9 +626,26 @@ pub fn spawn_async_plugin(
         // S-25.01: classify + emit plugin.indeterminate + marker write (mirrors execute_tier).
         let failure_policy = entry.failure_policy;
         let outcome = classify_outcome(result.clone(), failure_policy, output_too_large);
+
+        // BLOCKER-1: BC-1.18.003 PC1 + INV2 — PASS from the named plugin MUST clear
+        // the marker, scoped to only the plugin named in the marker (INV2).
+        if let DispatchOutcome::Pass = outcome {
+            let marker_path = base_ctx_for_event
+                .cwd
+                .join(".factory")
+                .join("unvalidated-mutation.marker");
+            if let Ok(Some(marker_plugin)) = read_marker_plugin_name(&marker_path) {
+                if marker_plugin == entry.name {
+                    let _ = delete_marker_if_pass(&marker_path);
+                }
+            }
+        }
+
         if let DispatchOutcome::Indeterminate { ref cause } = outcome {
             emit_indeterminate(&internal_log, &base_ctx_for_event, &entry, cause);
-            if should_write_marker(&outcome, failure_policy) {
+            // BLOCKER-2: BC-1.18.001 INV4 — marker write is PostToolUse-only.
+            // PreToolUse INDETERMINATE → advisory event only; no marker written.
+            if should_write_marker(&outcome, failure_policy) && entry.event == "PostToolUse" {
                 let marker_path = base_ctx_for_event
                     .cwd
                     .join(".factory")
@@ -591,7 +653,8 @@ pub fn spawn_async_plugin(
                 let fields = MarkerFields {
                     timestamp: chrono::Utc::now().to_rfc3339(),
                     plugin_name: entry.name.clone(),
-                    artifact_path: String::new(),
+                    // MEDIUM-5: thread artifact_path from tool_input.file_path (AC-007).
+                    artifact_path: artifact_path_for_marker,
                     cause: cause_to_str(cause).to_string(),
                     trace_id: base_ctx_for_event.dispatcher_trace_id.clone(),
                 };
