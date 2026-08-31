@@ -516,4 +516,174 @@ mod tests {
              correctly via the `toml` crate serialization (\\n must be escaped as \\\\n)"
         );
     }
+
+    // ── ADR-048 §Decision 1/2: block_if_marker_check + expires_at round-trip ──
+
+    /// BC-1.18.002 PC5/PC6: absent marker → block_if_marker_check returns false (Allow).
+    ///
+    /// Precondition: no marker file at `factory_root/.factory/unvalidated-mutation.marker`.
+    /// Postcondition: returns false (NotFound I/O error → fail-open per ADR-048 §D1 decision logic).
+    #[test]
+    fn test_BC_1_18_002_block_if_marker_check_absent_allows() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        // No marker file written — NotFound path must return false.
+        let now = Utc::now();
+        assert!(
+            !block_if_marker_check(dir.path(), now),
+            "BC-1.18.002 PC5: absent marker MUST return false (Allow)"
+        );
+    }
+
+    /// BC-1.18.002 PC5: marker present with future expires_at → block_if_marker_check returns true.
+    ///
+    /// Non-expired marker (expires_at >> now) MUST block per ADR-048 §Decision 1.
+    #[test]
+    fn test_BC_1_18_002_block_if_marker_check_future_expires_at_blocks() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        let marker_path = factory_dir.join("unvalidated-mutation.marker");
+        let fields = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "p".to_string(),
+            artifact_path: String::new(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-bim-future".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
+        };
+        write_indeterminate_marker(&fields, &marker_path)
+            .expect("write_indeterminate_marker must succeed");
+        let now = Utc::now();
+        assert!(
+            block_if_marker_check(dir.path(), now),
+            "BC-1.18.002 PC5: marker with future expires_at MUST return true (Block)"
+        );
+    }
+
+    /// BC-1.18.002 PC6: marker present with past expires_at → block_if_marker_check returns false.
+    ///
+    /// Expired marker (expires_at <= now) MUST allow per ADR-048 §Decision 2 TTL logic.
+    #[test]
+    fn test_BC_1_18_002_block_if_marker_check_past_expires_at_allows() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        let marker_path = factory_dir.join("unvalidated-mutation.marker");
+        let fields = MarkerFields {
+            timestamp: "2020-01-01T00:00:00Z".to_string(),
+            plugin_name: "p".to_string(),
+            artifact_path: String::new(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-bim-past".to_string(),
+            expires_at: "2020-01-02T00:00:00Z".to_string(),
+        };
+        write_indeterminate_marker(&fields, &marker_path)
+            .expect("write_indeterminate_marker must succeed");
+        let now = Utc::now();
+        assert!(
+            !block_if_marker_check(dir.path(), now),
+            "BC-1.18.002 PC6: marker with past expires_at MUST return false (Allow, TTL elapsed)"
+        );
+    }
+
+    /// BC-1.18.002: legacy marker (missing expires_at) → conservative block (true).
+    ///
+    /// Pre-ADR-048 markers have no expires_at field. The native check treats missing
+    /// expires_at as non-expired (conservative) per the ADR-048 §D1 spec.
+    #[test]
+    fn test_BC_1_18_002_block_if_marker_check_missing_expires_at_blocks_legacy() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        let marker_path = factory_dir.join("unvalidated-mutation.marker");
+        // 5-field legacy marker — no expires_at field.
+        std::fs::write(
+            &marker_path,
+            "timestamp = \"2026-08-31T00:00:00Z\"\n\
+             plugin_name = \"legacy-plugin\"\n\
+             artifact_path = \"\"\n\
+             cause = \"fuel\"\n\
+             trace_id = \"trace-legacy\"\n",
+        )
+        .expect("write legacy marker");
+        let now = Utc::now();
+        assert!(
+            block_if_marker_check(dir.path(), now),
+            "BC-1.18.002: legacy marker (missing expires_at) MUST return true (conservative block)"
+        );
+    }
+
+    /// BC-1.18.002 I/O error path: directory at marker path triggers a non-NotFound I/O error
+    /// on read_to_string → block_if_marker_check returns false (fail-open per CWE-636 balance).
+    #[cfg(unix)]
+    #[test]
+    fn test_BC_1_18_002_block_if_marker_check_io_error_allows() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        let marker_path = factory_dir.join("unvalidated-mutation.marker");
+        // Place a DIRECTORY at the marker path — read_to_string returns IsADirectory (not NotFound).
+        std::fs::create_dir_all(&marker_path).expect("create dir-as-marker-path");
+        let now = Utc::now();
+        assert!(
+            !block_if_marker_check(dir.path(), now),
+            "BC-1.18.002: non-NotFound I/O error on marker read MUST return false \
+             (fail-open on infra fault per CWE-636 balance)"
+        );
+    }
+
+    /// BC-1.18.001 v1.1 PC4: write_indeterminate_marker persists all 6 fields correctly;
+    /// the round-tripped delta from timestamp to expires_at equals UNVALIDATED_MUTATION_MARKER_TTL_SECONDS.
+    ///
+    /// Exercises VP-105 (marker write fidelity) and ADR-048 §Decision 2 (24-hour deadman TTL).
+    #[test]
+    fn test_BC_1_18_001_write_marker_stamps_expires_at_with_86400s_delta() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+        let ts_str = "2026-08-31T12:00:00Z";
+        let ts_dt = chrono::DateTime::parse_from_rfc3339(ts_str)
+            .expect("parse test timestamp")
+            .with_timezone(&Utc);
+        let expires_dt =
+            ts_dt + chrono::Duration::seconds(UNVALIDATED_MUTATION_MARKER_TTL_SECONDS as i64);
+        let fields = MarkerFields {
+            timestamp: ts_str.to_string(),
+            plugin_name: "p".to_string(),
+            artifact_path: String::new(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-delta-test".to_string(),
+            expires_at: expires_dt.to_rfc3339(),
+        };
+        write_indeterminate_marker(&fields, &marker_path)
+            .expect("write_indeterminate_marker must succeed");
+        let content = std::fs::read_to_string(&marker_path).expect("read back marker content");
+        let table: toml::Table =
+            toml::from_str(&content).expect("round-tripped marker must be valid TOML");
+        let rt_ts = table
+            .get("timestamp")
+            .and_then(|v| v.as_str())
+            .expect("timestamp field must be present");
+        let rt_exp = table
+            .get("expires_at")
+            .and_then(|v| v.as_str())
+            .expect(
+                "expires_at field MUST be present (BC-1.18.001 v1.1 PC4 — 6th required field)",
+            );
+        let rt_ts_dt = chrono::DateTime::parse_from_rfc3339(rt_ts)
+            .expect("round-tripped timestamp must parse as RFC 3339")
+            .with_timezone(&Utc);
+        let rt_exp_dt = chrono::DateTime::parse_from_rfc3339(rt_exp)
+            .expect("round-tripped expires_at must parse as RFC 3339")
+            .with_timezone(&Utc);
+        let delta_secs = (rt_exp_dt - rt_ts_dt).num_seconds();
+        assert_eq!(
+            delta_secs,
+            UNVALIDATED_MUTATION_MARKER_TTL_SECONDS as i64,
+            "BC-1.18.001 v1.1 PC4: expires_at − timestamp MUST equal \
+             UNVALIDATED_MUTATION_MARKER_TTL_SECONDS ({UNVALIDATED_MUTATION_MARKER_TTL_SECONDS}s) \
+             — got {delta_secs}s"
+        );
+    }
 }

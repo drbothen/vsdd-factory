@@ -1586,4 +1586,174 @@ mod tests {
              'rm .factory/unvalidated-mutation.marker'"
         );
     }
+
+    // ── ADR-048 §Decision 2: evaluate_gate TTL (BC-1.18.003 PC4/INV5) ─────────
+
+    /// BC-1.18.003 PC4: expired marker → evaluate_gate returns Allow and auto-deletes the file.
+    ///
+    /// expires_at <= now: TTL elapsed. evaluate_gate MUST return Allow and delete the stale file.
+    #[test]
+    fn test_BC_1_18_003_evaluate_gate_expired_marker_allows_and_autodelete() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+        std::fs::write(
+            &marker_path,
+            "timestamp = \"2020-01-01T00:00:00Z\"\n\
+             plugin_name = \"p\"\n\
+             artifact_path = \"\"\n\
+             cause = \"fuel\"\n\
+             trace_id = \"trace-expired\"\n\
+             expires_at = \"2020-01-02T00:00:00Z\"\n",
+        )
+        .expect("write expired marker");
+        let decision = evaluate_gate(&marker_path);
+        assert!(
+            matches!(decision, GateDecision::Allow),
+            "BC-1.18.003 PC4: expired marker MUST return Allow"
+        );
+        assert!(
+            !marker_path.exists(),
+            "BC-1.18.003 PC4: evaluate_gate MUST auto-delete the stale expired marker"
+        );
+    }
+
+    /// BC-1.18.003 PC4/INV5: future expires_at → evaluate_gate returns Block.
+    ///
+    /// Non-expired marker (expires_at >> now): the gate MUST block the dispatch.
+    #[test]
+    fn test_BC_1_18_003_evaluate_gate_future_expires_at_blocks() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+        std::fs::write(
+            &marker_path,
+            "timestamp = \"2026-08-31T00:00:00Z\"\n\
+             plugin_name = \"gate-plugin\"\n\
+             artifact_path = \"/some/artifact.md\"\n\
+             cause = \"fuel\"\n\
+             trace_id = \"trace-future\"\n\
+             expires_at = \"2099-01-01T00:00:00Z\"\n",
+        )
+        .expect("write future marker");
+        let decision = evaluate_gate(&marker_path);
+        assert!(
+            matches!(decision, GateDecision::Block { .. }),
+            "BC-1.18.003 INV5: non-expired marker MUST return Block"
+        );
+    }
+
+    /// BC-1.18.003: legacy marker (missing expires_at) → evaluate_gate returns Block (conservative).
+    ///
+    /// Pre-ADR-048 markers have no expires_at. evaluate_gate treats missing expires_at as
+    /// non-expired (conservative block) per ADR-048 §D2 spec.
+    #[test]
+    fn test_BC_1_18_003_evaluate_gate_missing_expires_at_blocks_legacy() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+        std::fs::write(
+            &marker_path,
+            "timestamp = \"2026-08-31T00:00:00Z\"\n\
+             plugin_name = \"legacy\"\n\
+             artifact_path = \"\"\n\
+             cause = \"fuel\"\n\
+             trace_id = \"trace-legacy\"\n",
+        )
+        .expect("write legacy marker (no expires_at)");
+        let decision = evaluate_gate(&marker_path);
+        assert!(
+            matches!(decision, GateDecision::Block { .. }),
+            "BC-1.18.003: legacy marker (missing expires_at) MUST return Block (conservative)"
+        );
+    }
+
+    // ── BC-1.18.002 INV6/VP-107: ungated-escape invariant ──────────────────────
+
+    /// BC-1.18.002 INV6/VP-107: `is_git_commit_or_push("rm ...")` returns false.
+    ///
+    /// The operator escape hatch (`rm .factory/unvalidated-mutation.marker`) MUST NOT be
+    /// matched by Arm 2 (is_git_commit_or_push). rm is not git commit or push.
+    #[test]
+    fn test_BC_1_18_002_INV6_rm_escape_hatch_is_not_gated_by_arm2() {
+        assert!(
+            !is_git_commit_or_push("rm .factory/unvalidated-mutation.marker"),
+            "BC-1.18.002 INV6/VP-107: 'rm .factory/unvalidated-mutation.marker' MUST NOT be \
+             matched by is_git_commit_or_push — the rm escape hatch must always be ungated"
+        );
+    }
+
+    /// BC-1.18.002 INV6/VP-107: Bash dispatch `rm .factory/unvalidated-mutation.marker`
+    /// + active marker → on_pre_tool_use_impl returns Continue (Arm 2 must not gate rm).
+    #[test]
+    fn test_BC_1_18_002_INV6_bash_rm_dispatch_allowed_with_active_marker() {
+        use super::on_pre_tool_use_impl;
+        use vsdd_hook_sdk::HookResult;
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+        std::fs::write(
+            &marker_path,
+            "timestamp = \"2026-08-31T00:00:00Z\"\n\
+             plugin_name = \"p\"\n\
+             artifact_path = \"\"\n\
+             cause = \"fuel\"\n\
+             trace_id = \"trace-escape-bash\"\n\
+             expires_at = \"2099-01-01T00:00:00Z\"\n",
+        )
+        .expect("write active marker");
+        let payload: vsdd_hook_sdk::HookPayload = serde_json::from_value(serde_json::json!({
+            "event_name": "PreToolUse",
+            "tool_name": "Bash",
+            "session_id": "test-escape-1",
+            "dispatcher_trace_id": "trace-escape-bash",
+            "tool_input": {
+                "command": "rm .factory/unvalidated-mutation.marker"
+            }
+        }))
+        .expect("deserialize Bash rm payload");
+        let result = on_pre_tool_use_impl(payload, &marker_path);
+        assert!(
+            matches!(result, HookResult::Continue),
+            "BC-1.18.002 INV6/VP-107: Bash 'rm .factory/unvalidated-mutation.marker' MUST \
+             produce Continue — rm is the operator escape hatch and must never be gated by Arm 2"
+        );
+    }
+
+    /// BC-1.18.002 INV6: Bash dispatch with a non-advancing command (`cargo clippy`) +
+    /// active marker → on_pre_tool_use_impl returns Continue (Arm 2 only gates git commit/push).
+    ///
+    /// `on_pre_tool_use_impl` is only invoked by the registry for Agent and Bash tool calls.
+    /// For Bash dispatches, only git commit/push subcommands fall through to evaluate_gate.
+    /// All other Bash commands — including `cargo clippy`, `cargo test`, `ls`, etc. — are
+    /// ungated regardless of marker presence.
+    #[test]
+    fn test_BC_1_18_002_INV6_non_git_bash_command_not_gated() {
+        use super::on_pre_tool_use_impl;
+        use vsdd_hook_sdk::HookResult;
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+        std::fs::write(
+            &marker_path,
+            "timestamp = \"2026-08-31T00:00:00Z\"\n\
+             plugin_name = \"p\"\n\
+             artifact_path = \"\"\n\
+             cause = \"fuel\"\n\
+             trace_id = \"trace-clippy\"\n\
+             expires_at = \"2099-01-01T00:00:00Z\"\n",
+        )
+        .expect("write active marker");
+        let payload: vsdd_hook_sdk::HookPayload = serde_json::from_value(serde_json::json!({
+            "event_name": "PreToolUse",
+            "tool_name": "Bash",
+            "session_id": "test-clippy",
+            "dispatcher_trace_id": "trace-clippy",
+            "tool_input": {
+                "command": "cargo clippy --workspace --all-targets -- -D warnings"
+            }
+        }))
+        .expect("deserialize Bash cargo clippy payload");
+        let result = on_pre_tool_use_impl(payload, &marker_path);
+        assert!(
+            matches!(result, HookResult::Continue),
+            "BC-1.18.002 INV6: Bash 'cargo clippy' (non-git command) MUST produce Continue \
+             — Arm 2 only gates git commit/push, not arbitrary Bash commands"
+        );
+    }
 }

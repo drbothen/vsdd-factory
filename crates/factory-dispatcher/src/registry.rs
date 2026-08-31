@@ -1921,3 +1921,100 @@ plugin = "hook-plugins/x.wasm"
         }
     }
 }
+
+// ── ADR-048 §Decision 1: E-REG-002 block_if_marker registry schema (BC-1.18.002) ─────────────
+
+#[cfg(test)]
+mod s25_01_on_error_block_if_marker {
+    use super::*;
+
+    // -----------------------------------------------------------------------
+    // E-REG-002: `on_error = "block_if_marker"` registry schema invariants.
+    // BC-1.18.002 v1.5 postconditions + invariants.
+    // -----------------------------------------------------------------------
+
+    /// BC-1.18.002 E-REG-002: `on_error = "block_if_marker"` MUST parse to OnError::BlockIfMarker.
+    ///
+    /// Verifies serde deserialization of the new "block_if_marker" string to the
+    /// BlockIfMarker variant (ADR-048 §Decision 1 — third OnError value).
+    #[test]
+    fn test_BC_1_18_002_E_REG_002_block_if_marker_parses_to_variant() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "crash-gate"
+plugin = "hook-plugins/validate-unvalidated-mutation-marker.wasm"
+on_error = "block_if_marker"
+event = "PreToolUse"
+
+[hooks.config]
+"#;
+        let registry =
+            Registry::parse_str(toml).expect("block_if_marker entry MUST parse successfully");
+        let entry = &registry.hooks[0];
+        assert_eq!(
+            entry.on_error,
+            Some(OnError::BlockIfMarker),
+            "BC-1.18.002 E-REG-002: 'block_if_marker' MUST parse to OnError::BlockIfMarker"
+        );
+    }
+
+    /// BC-1.18.002 E-REG-002: `on_error = "block_if_marker"` + `async = true` MUST be rejected.
+    ///
+    /// Same invariant as on_error=block + async=true: both can conditionally gate a dispatch
+    /// and MUST NOT be combined with async=true (BC-7.06.001 Invariant 1 extended for BlockIfMarker).
+    #[test]
+    fn test_BC_1_18_002_E_REG_002_block_if_marker_plus_async_rejected() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "bad-crash-gate"
+plugin = "hook-plugins/validate-unvalidated-mutation-marker.wasm"
+on_error = "block_if_marker"
+async = true
+event = "PreToolUse"
+
+[hooks.config]
+"#;
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_err(),
+            "BC-1.18.002 E-REG-002: block_if_marker + async=true MUST be rejected \
+             (same invariant as on_error=block + async=true)"
+        );
+        let err_str = result.unwrap_err().to_string();
+        assert!(
+            err_str.contains("on_error")
+                || err_str.contains("async")
+                || err_str.contains("E-REG-002"),
+            "E-REG-002 error MUST name the violating fields or error code: {err_str}"
+        );
+    }
+
+    /// BC-1.18.002 E-REG-002: `on_error = "block_if_marker"` without `async` → accepted.
+    ///
+    /// async absent → defaults to false → invariant satisfied → Ok parse.
+    #[test]
+    fn test_BC_1_18_002_E_REG_002_block_if_marker_without_async_accepted() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "crash-gate"
+plugin = "hook-plugins/validate-unvalidated-mutation-marker.wasm"
+on_error = "block_if_marker"
+event = "PreToolUse"
+
+[hooks.config]
+"#;
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_ok(),
+            "BC-1.18.002 E-REG-002: block_if_marker without async (default false) \
+             MUST be accepted: {:?}",
+            result
+        );
+    }
+}

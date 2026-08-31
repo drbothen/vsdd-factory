@@ -2060,4 +2060,185 @@ mod tests {
             "plugin.timeout event must carry fuel_cap (CLAUDE.md Diagnostics Step 2)"
         );
     }
+
+    // ── ADR-048 §Decision 1: plugin_block_if_marker unit tests (BC-1.18.002) ──
+
+    /// BC-1.18.002 PC5: Crashed + on_error=BlockIfMarker + active marker (future expires_at)
+    /// → plugin_block_if_marker returns true (Block).
+    #[test]
+    fn test_BC_1_18_002_block_if_marker_crashed_with_marker_blocks() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        let marker_path = factory_dir.join("unvalidated-mutation.marker");
+        let fields = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "p".to_string(),
+            artifact_path: String::new(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-bim-unit-1".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
+        };
+        write_indeterminate_marker(&fields, &marker_path).expect("write marker");
+        let r = PluginResult::Crashed {
+            trap_string: "unreachable".to_string(),
+            stderr: String::new(),
+            elapsed_ms: 10,
+            fuel_consumed: 0,
+        };
+        let now = chrono::Utc::now();
+        assert!(
+            plugin_block_if_marker(&r, OnError::BlockIfMarker, dir.path(), now),
+            "BC-1.18.002 PC5: Crashed + BlockIfMarker + active marker MUST return true (Block)"
+        );
+    }
+
+    /// BC-1.18.002: Crashed + on_error=BlockIfMarker + no marker → false (Allow).
+    #[test]
+    fn test_BC_1_18_002_block_if_marker_crashed_no_marker_allows() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        // No marker written.
+        let r = PluginResult::Crashed {
+            trap_string: "unreachable".to_string(),
+            stderr: String::new(),
+            elapsed_ms: 10,
+            fuel_consumed: 0,
+        };
+        let now = chrono::Utc::now();
+        assert!(
+            !plugin_block_if_marker(&r, OnError::BlockIfMarker, dir.path(), now),
+            "BC-1.18.002: Crashed + BlockIfMarker + absent marker MUST return false (Allow)"
+        );
+    }
+
+    /// BC-1.18.002 PC6: Crashed + on_error=BlockIfMarker + expired marker → false (Allow).
+    ///
+    /// TTL elapsed: expired marker is treated as absent per ADR-048 §Decision 2.
+    #[test]
+    fn test_BC_1_18_002_block_if_marker_crashed_expired_marker_allows() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        let marker_path = factory_dir.join("unvalidated-mutation.marker");
+        let fields = MarkerFields {
+            timestamp: "2020-01-01T00:00:00Z".to_string(),
+            plugin_name: "p".to_string(),
+            artifact_path: String::new(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-bim-expired".to_string(),
+            expires_at: "2020-01-02T00:00:00Z".to_string(),
+        };
+        write_indeterminate_marker(&fields, &marker_path).expect("write marker");
+        let r = PluginResult::Crashed {
+            trap_string: "unreachable".to_string(),
+            stderr: String::new(),
+            elapsed_ms: 10,
+            fuel_consumed: 0,
+        };
+        let now = chrono::Utc::now();
+        assert!(
+            !plugin_block_if_marker(&r, OnError::BlockIfMarker, dir.path(), now),
+            "BC-1.18.002 PC6: Crashed + BlockIfMarker + expired marker MUST return false (Allow)"
+        );
+    }
+
+    /// BC-1.18.002: Timeout + on_error=BlockIfMarker + active marker → true (Block).
+    ///
+    /// Both Crashed and Timeout variants trigger the conditional block gate.
+    #[test]
+    fn test_BC_1_18_002_block_if_marker_timeout_with_marker_blocks() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        let marker_path = factory_dir.join("unvalidated-mutation.marker");
+        let fields = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "p".to_string(),
+            artifact_path: String::new(),
+            cause: "epoch".to_string(),
+            trace_id: "trace-bim-timeout".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
+        };
+        write_indeterminate_marker(&fields, &marker_path).expect("write marker");
+        let r = PluginResult::Timeout {
+            cause: TimeoutCause::Epoch,
+            stderr: String::new(),
+            elapsed_ms: 5_000,
+            fuel_consumed: 0,
+            fuel_cap: DEFAULT_FUEL_CAP,
+        };
+        let now = chrono::Utc::now();
+        assert!(
+            plugin_block_if_marker(&r, OnError::BlockIfMarker, dir.path(), now),
+            "BC-1.18.002: Timeout + BlockIfMarker + active marker MUST return true (Block)"
+        );
+    }
+
+    /// BC-1.18.002 ADR-048 §D1: Ok result + on_error=BlockIfMarker + active marker → false.
+    ///
+    /// Only Crashed and Timeout results can trigger block_if_marker; Ok success never blocks.
+    #[test]
+    fn test_BC_1_18_002_block_if_marker_ok_result_never_blocks() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        let marker_path = factory_dir.join("unvalidated-mutation.marker");
+        let fields = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "p".to_string(),
+            artifact_path: String::new(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-bim-ok".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
+        };
+        write_indeterminate_marker(&fields, &marker_path).expect("write marker");
+        let r = PluginResult::Ok {
+            exit_code: 0,
+            stdout: String::new(),
+            stderr: String::new(),
+            elapsed_ms: 10,
+            fuel_consumed: 100,
+        };
+        let now = chrono::Utc::now();
+        assert!(
+            !plugin_block_if_marker(&r, OnError::BlockIfMarker, dir.path(), now),
+            "BC-1.18.002 ADR-048 §D1: Ok result + BlockIfMarker MUST return false \
+             (no block on successful plugin invocation)"
+        );
+    }
+
+    /// BC-1.18.002: on_error=Continue + Crashed + active marker → false.
+    ///
+    /// block_if_marker is an exclusive gate for on_error=BlockIfMarker only;
+    /// on_error=Continue never gates on marker presence.
+    #[test]
+    fn test_BC_1_18_002_block_if_marker_on_error_continue_never_blocks() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        let marker_path = factory_dir.join("unvalidated-mutation.marker");
+        let fields = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "p".to_string(),
+            artifact_path: String::new(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-bim-continue".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
+        };
+        write_indeterminate_marker(&fields, &marker_path).expect("write marker");
+        let r = PluginResult::Crashed {
+            trap_string: "unreachable".to_string(),
+            stderr: String::new(),
+            elapsed_ms: 10,
+            fuel_consumed: 0,
+        };
+        let now = chrono::Utc::now();
+        assert!(
+            !plugin_block_if_marker(&r, OnError::Continue, dir.path(), now),
+            "BC-1.18.002: on_error=Continue + Crashed + active marker MUST return false \
+             (block_if_marker only triggers for on_error=BlockIfMarker)"
+        );
+    }
 }
