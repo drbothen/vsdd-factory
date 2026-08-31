@@ -97,18 +97,24 @@ fi
 _is_historical_heading() {
   case "${1,,}" in
     "## changelog"* | "## change log"* | "## historical content"* | \
-    "## phase progress"* | "## decisions log"*)
+    "## phase progress"* | "## decisions log"* | "## drift items"*)
       return 0 ;;
   esac
   return 1
 }
 
 # Extract count-bearing pairs from a file.
-# Outputs lines of format: KEYWORD:COUNT
+# Outputs lines of format: KEYWORD:COUNT:RANK
+#   RANK 0 — authoritative (YAML frontmatter keys like total_bcs:, total_vps:)
+#   RANK 1 — prose (pattern-matched text like "42 BCs")
+# Using a rank allows callers to prefer frontmatter over prose when both appear
+# in the same file (e.g., STATE.md has "total_vps: 107" and also "19 VPs per
+# §VP Anchors" in prose — rank 0 wins).
+#
 # Supported patterns:
-#   "NNN BCs" / "NNN,NNN BCs" — count before keyword
-#   "BCs | NNN" / "BCs: NNN" — keyword before count (table or YAML)
-#   "total_bcs: NNN" / "total_vps: NNN" — YAML frontmatter keys
+#   "NNN BCs" / "NNN,NNN BCs" — count before keyword (rank 1)
+#   "BCs | NNN" / "BCs: NNN" — keyword before count (table or YAML) (rank 1)
+#   "total_bcs: NNN" / "total_vps: NNN" — YAML frontmatter keys (rank 0)
 # Count mentions inside historical H2 sections (see _is_historical_heading) are
 # skipped so frozen records are never compared against the current count (#567).
 _extract_counts() {
@@ -127,10 +133,11 @@ _extract_counts() {
   #     Skipping (not truncating) avoids token-split artefacts: a
   #     mid-ID truncation could produce a phantom digit sequence.
   #     Semantic delta: pre-fix, the hook hung on >8192-char lines and never
-  #     emitted a verdict; post-fix, it completes and uses the correct totals
-  #     (stale changelog entries are skipped explicitly via the frontmatter guard
-  #     above and implicitly via this length filter). This is an intentional
-  #     improvement, not a no-op.
+  #     emitted a verdict; post-fix, it completes. The length filter removes
+  #     oversized lines (typically frozen changelog blobs) from extraction
+  #     scope, so stale counts embedded in those blobs no longer shadow
+  #     authoritative frontmatter values. This is an intentional improvement,
+  #     not a no-op.
   #     S-25.01 / fix/count-propagation-cpu-runaway.
   #
   #   Pass 2 — sed -E ID-strip: remove <letters>-<digits-and-dots> tokens
@@ -140,17 +147,29 @@ _extract_counts() {
   #     and GNU sed (Linux).
   #
   #     Contrast with the prior extglob form "${line//+([A-Za-z])-+([0-9.])/}":
-  #     that form ran per-line inside the loop.  Two failure modes:
-  #       a) On a single ~195KB line, bash's global-replace did O(n*k) string
-  #          copies (n = line length, k = match count ≈ 8000), spinning a full
-  #          core for >12s in PostToolUse and orphaning the process at PPID 1.
-  #       b) Even for short lines, 2595 per-line subshell invocations of
-  #          `printf '%s' … | sed …` added ~20s of fork-overhead on macOS.
+  #     that form ran per-line inside the loop. On a single ~195KB line, bash's
+  #     global-replace did O(n*k) string copies (n = line length,
+  #     k = match count ≈ 8000), spinning a full core for >12s in PostToolUse
+  #     and orphaning the process at PPID 1.
   #     A single whole-file sed pass has O(1) spawn cost and O(n) scan cost.
+  #
+  #   Error propagation: a process substitution `done < <(awk | sed)` silently
+  #     discards awk/sed failures under set -e (the pipe runs in a subshell,
+  #     so set -e does not propagate to the parent loop). Explicit temp file +
+  #     || error path guarantees the pipeline failure is detected and the
+  #     function returns 1 rather than silently producing zero counts
+  #     (false-pass: "no drift found").
   #
   #   Heading lines (## …) are inspected AFTER both passes; canonical heading
   #   names used by _is_historical_heading contain no ID tokens, so the strip
   #   does not affect historical-section boundary detection.
+  local _preproc_tmp
+  _preproc_tmp="$(mktemp)"
+  awk 'length <= 8192' "$path" | sed -E 's/[A-Za-z]+-[0-9.]+//g' > "$_preproc_tmp" || {
+    echo "validate-count-propagation: preprocessing pipeline failed for $path" >&2
+    rm -f "$_preproc_tmp"
+    return 1
+  }
   while IFS= read -r line; do
     local count keyword
     # Skip YAML frontmatter changelog scalars — frozen historical records,
@@ -159,42 +178,56 @@ _extract_counts() {
     # totals; they should never be treated as the source-of-truth quantity.
     # S-25.01 review cycle 2 fix (BLOCKING-1).
     [[ "$line" =~ ^[[:space:]]*(last_amended|change): ]] && continue
+    # Skip all blockquote lines (any line starting with ">").
+    # In factory index files, blockquotes are exclusively historical or documentary
+    # records (e.g., "> Updated 2026-05-07: … 15 BCs", "> **E-8 batch authoring:**
+    # … 22 BCs anchored", "> D-443(b)(i) exemption …").  None carry an authoritative
+    # live count — they record past operations or policy notes.  Skipping all ">"-
+    # prefixed lines is simpler, more complete, and safe for the project convention.
+    [[ "$line" =~ ^[[:space:]]*'>' ]] && continue
     # Track historical-section boundaries; skip counts while inside one.
     if [[ "$line" =~ ^##[[:space:]] ]]; then
       if _is_historical_heading "$line"; then in_historical=1; else in_historical=0; fi
     fi
     [[ "$in_historical" -eq 1 ]] && continue
-    # Pattern A: count before keyword
+    # Pattern A: count before keyword (rank 1 — prose)
     if [[ "$line" =~ ([0-9][0-9,]+)[[:space:]]+(BCs|VPs|stories|capabilities|subsystems) ]]; then
       keyword="${BASH_REMATCH[2]}"
       count="${BASH_REMATCH[1]//,/}"
-      echo "${keyword}:${count}"
+      echo "${keyword}:${count}:1"
     fi
-    # Pattern B: keyword before count (table cell or colon-value)
+    # Pattern B: keyword before count (table cell or colon-value) (rank 1 — prose)
     if [[ "$line" =~ (BCs|VPs|stories|capabilities)[[:space:]]*[|:][[:space:]]*([0-9][0-9,]+) ]]; then
       keyword="${BASH_REMATCH[1]}"
       count="${BASH_REMATCH[2]//,/}"
-      echo "${keyword}:${count}"
+      echo "${keyword}:${count}:1"
     fi
-    # Pattern C: YAML "total_bcs: NNN"
+    # Pattern C: YAML "total_bcs: NNN" (rank 0 — authoritative frontmatter)
     if [[ "$line" =~ total_bcs:[[:space:]]*([0-9][0-9,]+) ]]; then
       count="${BASH_REMATCH[1]//,/}"
-      echo "BCs:${count}"
+      echo "BCs:${count}:0"
     fi
-    # Pattern D: YAML "total_vps: NNN"
+    # Pattern D: YAML "total_vps: NNN" (rank 0 — authoritative frontmatter)
     if [[ "$line" =~ total_vps:[[:space:]]*([0-9][0-9,]+) ]]; then
       count="${BASH_REMATCH[1]//,/}"
-      echo "VPs:${count}"
+      echo "VPs:${count}:0"
     fi
-  done < <(awk 'length <= 8192' "$path" | sed -E 's/[A-Za-z]+-[0-9.]+//g')
+  done < "$_preproc_tmp"
+  rm -f "$_preproc_tmp"
 }
 
-# Extract counts from modified file (first occurrence per keyword wins)
+# Extract counts from modified file using rank-based precedence.
+# Frontmatter keys (rank 0) beat prose patterns (rank 1) for the same keyword,
+# so "total_vps: 107" wins over "19 VPs per §VP Anchors" appearing earlier.
 declare -A SOURCE_COUNTS
-while IFS=: read -r kw cnt; do
+declare -A COUNT_RANK
+while IFS=: read -r kw cnt rnk; do
   [[ -z "$kw" || -z "$cnt" ]] && continue
-  if [[ -z "${SOURCE_COUNTS[$kw]:-}" ]]; then
+  _new_rank="${rnk:-9}"
+  _stored_rank="${COUNT_RANK[$kw]:-9}"
+  if [[ "$_new_rank" -lt "$_stored_rank" ]]; then
     SOURCE_COUNTS["$kw"]="$cnt"
+    COUNT_RANK["$kw"]="$_new_rank"
   fi
 done < <(_extract_counts "$FILE_PATH")
 
@@ -217,12 +250,18 @@ for keyword in "${!SOURCE_COUNTS[@]}"; do
   source_count="${SOURCE_COUNTS[$keyword]}"
 
   for sibling in "${SIBLING_FILES[@]}"; do
-    # Extract first matching count for this keyword from sibling
+    # Extract best-ranked count for this keyword from sibling using rank precedence.
+    # Read all entries (no early break) so a rank-0 entry appearing after a rank-1
+    # entry in the same file is not missed.
     sib_count=""
-    while IFS=: read -r kw cnt; do
+    _sib_rank=9
+    while IFS=: read -r kw cnt rnk; do
       if [[ "$kw" == "$keyword" ]]; then
-        sib_count="$cnt"
-        break
+        _entry_rank="${rnk:-9}"
+        if [[ "$_entry_rank" -lt "$_sib_rank" ]]; then
+          sib_count="$cnt"
+          _sib_rank="$_entry_rank"
+        fi
       fi
     done < <(_extract_counts "$sibling")
 

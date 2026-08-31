@@ -533,9 +533,10 @@ EOF
   # NIT-1: invoke hook directly (shebang #!/bin/bash controls interpreter,
   # consistent with require_bash4_hook_interp which checks /bin/bash).
   # SUGGESTION-2: capture exit status in a file for post-timeout assertion.
-  { echo '{"tool_input":{"file_path":".factory/BC-INDEX.md"}}' \
-      | "$HOOKS/validate-count-propagation.sh"
-    echo $? > "$BATS_TEST_TMPDIR/exit_status.txt"; } &
+  {
+    echo '{"tool_input":{"file_path":".factory/BC-INDEX.md"}}' \
+      | "$HOOKS/validate-count-propagation.sh" && echo 0 > "$BATS_TEST_TMPDIR/exit_status.txt" || echo $? > "$BATS_TEST_TMPDIR/exit_status.txt"
+  } &
   local pid=$!
 
   local timed_out=0
@@ -556,12 +557,12 @@ EOF
   fi
 
   [ "$timed_out" -eq 0 ] \
-    || fail "Hook still running after 3s on 200KB line — length guard or linear-sed fix not applied"
+    || { echo "FAIL: Hook still running after 3s on 200KB line — length guard or linear-sed fix not applied" >&2; return 1; }
   # SUGGESTION-2: assert hook exited 0 (oversized all-ID line: no counts after awk
   # filter, SOURCE_COUNTS empty, hook takes the early-exit-0 path).
   [ -f "$BATS_TEST_TMPDIR/exit_status.txt" ] \
     && [ "$(cat "$BATS_TEST_TMPDIR/exit_status.txt")" -eq 0 ] \
-    || fail "hook exited non-zero: $(cat "$BATS_TEST_TMPDIR/exit_status.txt" 2>/dev/null)"
+    || { echo "FAIL: hook exited non-zero: $(cat "$BATS_TEST_TMPDIR/exit_status.txt" 2>/dev/null)" >&2; return 1; }
 }
 
 @test "validate-count-propagation: sed ID-strip removes BC/VP/DI tokens, genuine BCs count survives drift check" {
