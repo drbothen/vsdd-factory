@@ -1286,6 +1286,110 @@ mod tests {
         );
     }
 
+    // ── EC-030: unreadable marker → Allow (fail-open, INV2 self-lock prevention) ─
+
+    /// EC-030 / BC-1.18.002 v1.4 + INV2 (self-lock avoidance):
+    /// A non-NotFound read error on the marker file MUST yield `GateDecision::Allow`
+    /// (fail-open).
+    ///
+    /// Mechanism: passing a directory path to `evaluate_gate` triggers
+    /// `std::fs::read_to_string(dir_path)` → `Err` with kind `IsADirectory` (not
+    /// `NotFound`), reliably exercising the `Err(other) => Allow` arm on all platforms
+    /// without permission games or root-bypass flakiness (chmod 0o000 would make the
+    /// test falsely pass/fail when running as root; the directory trick is unconditional).
+    ///
+    /// Rationale (BC-1.18.002 v1.4 EC-030 + INV2): the marker bytes could not be read,
+    /// so the quarantine state is unknown. Critically,
+    /// `rm .factory/unvalidated-mutation.marker` (the operator escape hatch) would ALSO
+    /// fail under the same filesystem fault — meaning a Block here would create an
+    /// unclearable self-lock (INV2 violation). Therefore: unreadable marker → fail-open.
+    #[test]
+    fn test_BC_1_18_002_evaluate_gate_unreadable_marker_allow_ec030() {
+        // Pass a directory path as the marker path.
+        // read_to_string on a directory returns Err whose kind is NOT NotFound
+        // (it is IsADirectory on Unix / PermissionDenied on Windows),
+        // reliably hitting the Err(other) fail-open arm of evaluate_gate.
+        let dir = tempfile::tempdir().expect("tempdir");
+        // The tempdir root IS a directory — use its path directly as the marker path.
+        let dir_path = dir.path();
+
+        // Pre-condition: path exists and is a directory (not a regular file).
+        assert!(
+            dir_path.exists(),
+            "pre-condition: directory path must exist for this test"
+        );
+        assert!(
+            dir_path.is_dir(),
+            "pre-condition: path must be a directory, not a regular file"
+        );
+
+        let decision = evaluate_gate(dir_path);
+
+        // EC-030 + INV2: unreadable marker → fail-open (Allow).
+        // Blocking on an unreadable marker would create an unclearable self-lock because
+        // the same filesystem fault that prevents reading also prevents `rm` from clearing
+        // the marker (INV2 violation: self-lock is unclearable by the operator escape hatch).
+        assert!(
+            matches!(decision, GateDecision::Allow),
+            "EC-030 / BC-1.18.002 v1.4 + INV2 self-lock prevention: \
+             non-NotFound read error MUST yield GateDecision::Allow (fail-open) — \
+             got {decision:?}"
+        );
+    }
+
+    // ── EC-008: readable-but-malformed marker → Block (conservative posture) ───
+
+    /// EC-008 / BC-1.18.002:
+    /// A marker file that exists but contains invalid TOML MUST yield
+    /// `GateDecision::Block` with sentinel values in the required fields (conservative
+    /// posture — still block, surface parse failure).
+    ///
+    /// The logic: `toml::from_str` returns `Err` on malformed content; the fallback path
+    /// returns `Block` with `plugin_name = "<unparseable-marker>"`,
+    /// `cause = "<unknown>"`, and empty `artifact_path` / `trace_id`.
+    ///
+    /// Rationale: a corrupt marker is evidence that something wrote to the quarantine
+    /// path. Fail-open here would silently allow all dispatches through a potentially
+    /// quarantined session. Conservative posture: block and surface the parse failure
+    /// via sentinel fields so the operator can diagnose the corrupt marker.
+    #[test]
+    fn test_BC_1_18_002_evaluate_gate_malformed_toml_marker_block_ec008() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+
+        // Write invalid TOML to the marker file (EC-008: malformed / corrupt marker).
+        // Content is syntactically invalid TOML; also lacks the required fields.
+        std::fs::write(&marker_path, b"this is not valid toml {{{")
+            .expect("test setup: write malformed marker");
+
+        let decision = evaluate_gate(&marker_path);
+
+        // EC-008: readable-but-malformed marker MUST block (conservative posture).
+        assert!(
+            matches!(decision, GateDecision::Block { .. }),
+            "EC-008 / BC-1.18.002: malformed TOML marker MUST yield GateDecision::Block \
+             (conservative posture — file exists but is corrupt; sentinel fields surface \
+             parse failure) — got {decision:?}"
+        );
+
+        // Sentinel fields MUST be present so the operator can diagnose the corrupt marker.
+        if let GateDecision::Block {
+            plugin_name, cause, ..
+        } = decision
+        {
+            assert_eq!(
+                plugin_name, "<unparseable-marker>",
+                "EC-008: malformed marker block MUST use sentinel plugin_name \
+                 '<unparseable-marker>' — got: {plugin_name}"
+            );
+            assert_eq!(
+                cause, "<unknown>",
+                "EC-008: malformed marker block MUST use sentinel cause '<unknown>' \
+                 — got: {cause}"
+            );
+        }
+    }
+
     // ── LOW-6: block message content (AC-007 / AC-008) ───────────────────────
 
     /// LOW-6: `on_pre_tool_use_impl` produces a JSON block message whose ACTUAL
