@@ -130,7 +130,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **9ab5a6f6** | PR #802 (S-24.01 vsdd-factory:wrap skill) squash-merged `9ab5a6f6` 2026-08-30 (D-1132). Prior: `da14fb94` (PR #801 F-WG5-P2-001 2026-08-29). CI-GREEN. |
-| factory-artifacts | **`[PENDING — this burst commit]`** | S2501-LOCAL-ADV-COMPREHENSIVE-GIT-DETECTION-HARDENING-2026-08-31 v9.42→v9.43 (this burst). Prior chain: `3abf749a` (architect VP-105 v1.6 + VP-INDEX v2.87) → `e47b6f66` (S2501-LOCAL-ADV-PASS1-FIX-BURST v9.41→v9.42) → [this burst]. |
+| factory-artifacts | **`8bfd2195`** | S2501-LOCAL-ADV-COMPREHENSIVE-GIT-DETECTION-HARDENING-2026-08-31 v9.42→v9.43 (this burst). Prior chain: `3abf749a` (architect VP-105 v1.6 + VP-INDEX v2.87) → `e47b6f66` (S2501-LOCAL-ADV-PASS1-FIX-BURST v9.41→v9.42) → `8bfd2195` (this burst). |
 | feature/S-25.01 | **`436c0039`** | F4 TDD IN PROGRESS — LOCAL adversary COMPREHENSIVE hardening burst COMPLETE. Implementer @436c0039 (four-phase algorithm; plugin tests 9/9 GREEN 22 canonical vectors WASM rebuilt). BC-5.39.001 streak 0/3. NEXT: re-run LOCAL adversary pass 1 fresh. |
 | feature/S-17.05 | **MERGED+DELETED** | PR #798 squash-merged `a4b24601` 2026-08-29T13:45:46Z. Branch deleted post-merge. D-1129. |
 | feature/S-17.07 | **MERGED+DELETED** | PR #800 squash-merged `1fc8b9ee` 2026-08-29. Branch deleted post-merge. D-1130. |
@@ -301,7 +301,7 @@ Feature branch `feature/S-25.01` at `436c0039`. F4 TDD in progress. BC-5.39.001 
 - `develop`: **`9ab5a6f6`** (PR #802 S-24.01 squash-merged 2026-08-30).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
 - `feature/S-25.01`: **`436c0039`** (implementer four-phase algorithm; plugin tests 9/9 GREEN WASM rebuilt).
-- `factory-artifacts`: **`[PENDING — this burst commit]`** (S2501-LOCAL-ADV-COMPREHENSIVE-GIT-DETECTION-HARDENING-2026-08-31 v9.42→v9.43).
+- `factory-artifacts`: **`8bfd2195`** (S2501-LOCAL-ADV-COMPREHENSIVE-GIT-DETECTION-HARDENING-2026-08-31 v9.42→v9.43).
 
 ### §5. Pending / OWED (backlog, NOT drift)
 
