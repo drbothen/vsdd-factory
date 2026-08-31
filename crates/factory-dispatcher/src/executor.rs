@@ -428,7 +428,14 @@ async fn execute_tier<'a>(
 
             if let DispatchOutcome::Indeterminate { ref cause } = outcome {
                 // Emit plugin.indeterminate for EVERY indeterminate outcome (AC-006).
-                emit_indeterminate(&internal_log, &base_ctx_for_event, &entry_clone, cause);
+                // HIGH-1: pass real artifact_path so event and marker record the same path.
+                emit_indeterminate(
+                    &internal_log,
+                    &base_ctx_for_event,
+                    &entry_clone,
+                    cause,
+                    &artifact_path_for_marker,
+                );
                 // Write durable marker only for fail-closed plugins (AC-005/AC-015).
                 // BLOCKER-2: BC-1.18.001 INV4 — marker write is PostToolUse-only.
                 // PreToolUse INDETERMINATE → advisory event only; NO marker written.
@@ -447,9 +454,17 @@ async fn execute_tier<'a>(
                         cause: cause_to_str(cause).to_string(),
                         trace_id: base_ctx_for_event.dispatcher_trace_id.clone(),
                     };
-                    // Best-effort: marker write failure does not block the dispatch result.
+                    // HIGH-2: log marker-write failures instead of silently swallowing them.
+                    // Best-effort: write failure does NOT fail the dispatch result.
                     // The plugin.indeterminate event was already emitted above.
-                    let _ = write_indeterminate_marker(&fields, &marker_path);
+                    if let Err(e) = write_indeterminate_marker(&fields, &marker_path) {
+                        tracing::warn!(
+                            plugin = %entry_clone.name,
+                            marker_path = %marker_path.display(),
+                            error = %e,
+                            "marker write failed on INDETERMINATE; dispatch continues"
+                        );
+                    }
                 }
             }
 
@@ -657,7 +672,14 @@ pub fn spawn_async_plugin(
         }
 
         if let DispatchOutcome::Indeterminate { ref cause } = outcome {
-            emit_indeterminate(&internal_log, &base_ctx_for_event, &entry, cause);
+            // HIGH-1: pass real artifact_path so event and marker record the same path.
+            emit_indeterminate(
+                &internal_log,
+                &base_ctx_for_event,
+                &entry,
+                cause,
+                &artifact_path_for_marker,
+            );
             // BLOCKER-2: BC-1.18.001 INV4 — marker write is PostToolUse-only.
             // PreToolUse INDETERMINATE → advisory event only; no marker written.
             if should_write_marker(&outcome, failure_policy) && entry.event == "PostToolUse" {
@@ -673,7 +695,17 @@ pub fn spawn_async_plugin(
                     cause: cause_to_str(cause).to_string(),
                     trace_id: base_ctx_for_event.dispatcher_trace_id.clone(),
                 };
-                let _ = write_indeterminate_marker(&fields, &marker_path);
+                // HIGH-2: log marker-write failures instead of silently swallowing them.
+                // Best-effort: write failure does NOT fail the dispatch result.
+                // The plugin.indeterminate event was already emitted above.
+                if let Err(e) = write_indeterminate_marker(&fields, &marker_path) {
+                    tracing::warn!(
+                        plugin = %entry.name,
+                        marker_path = %marker_path.display(),
+                        error = %e,
+                        "marker write failed on INDETERMINATE; dispatch continues"
+                    );
+                }
             }
         }
 
@@ -1053,12 +1085,17 @@ fn cause_to_str(cause: &IndeterminateCause) -> &'static str {
 /// Mandatory 8 fields: type, trace_id, session_id, plugin_name, artifact_path,
 /// cause, failure_policy, timestamp (provided by `InternalEvent::now`).
 ///
+/// `artifact_path` MUST be the envelope `file_path` from `tool_input` when one
+/// is present; callers pass an empty string only when there is genuinely no
+/// artifact context (e.g. non-file-mutation tool events). Never hardcoded empty.
+///
 /// Called for EVERY INDETERMINATE outcome — both fail-closed and fail-open paths.
 fn emit_indeterminate(
     log: &InternalLog,
     base_ctx: &HostContext,
     entry: &RegistryEntry,
     cause: &IndeterminateCause,
+    artifact_path: &str,
 ) {
     let cause_str = cause_to_str(cause);
     let policy_str = match entry.failure_policy {
@@ -1070,7 +1107,10 @@ fn emit_indeterminate(
         .with_session_id(&base_ctx.session_id)
         .with_plugin_name(&entry.name)
         .with_plugin_version(&base_ctx.plugin_version)
-        .with_field("artifact_path", serde_json::Value::String(String::new()))
+        .with_field(
+            "artifact_path",
+            serde_json::Value::String(artifact_path.to_string()),
+        )
         .with_field("cause", serde_json::Value::String(cause_str.to_string()))
         .with_field(
             "failure_policy",
@@ -1496,51 +1536,118 @@ mod tests {
         );
     }
 
-    // ── S-25.01 Red Gate stub 12 ──────────────────────────────────────────────
+    // ── S-25.01 Red Gate stub 12 (upgraded to full event-body assertion) ────────
     #[test]
     fn test_BC_1_18_001_emits_plugin_indeterminate_event_with_required_fields() {
         // AC-006 / BC-3.08.001 Event 8:
-        // The dispatcher MUST emit a plugin.indeterminate event to FileSink for EVERY
-        // INDETERMINATE outcome (both fail-closed AND fail-open advisory paths).
+        // emit_indeterminate MUST write a plugin.indeterminate JSONL event carrying
+        // all 8 mandatory fields, including artifact_path == the passed-in envelope
+        // file_path (HIGH-1 fix).
         //
         // Mandatory event fields (BC-3.08.001 Event 8):
-        //   type          ("plugin.indeterminate")
-        //   trace_id      (dispatcher_trace_id)
-        //   session_id    (session ID from the dispatch context)
-        //   plugin_name   (registry name of the plugin)
-        //   artifact_path (empty string when no artifact context — never omit)
-        //   cause         ("fuel" | "epoch" | "output-too-large")
-        //   failure_policy ("fail-closed" | "fail-open")
-        //   timestamp     (RFC 3339)
+        //   type           "plugin.indeterminate"
+        //   trace_id       dispatcher_trace_id
+        //   session_id     session ID from the dispatch context
+        //   plugin_name    registry name of the plugin
+        //   artifact_path  envelope file_path (never hardcoded empty)
+        //   cause          "fuel" | "epoch" | "output-too-large"
+        //   failure_policy "fail-closed" | "fail-open"
+        //   timestamp      RFC 3339 (ts field in the event)
         //
-        // Red Gate: classify_outcome is todo!() — this test fails on that call.
-        // Implementer (T-2): wire plugin.indeterminate emission in invoke.rs and
-        // enhance this test to verify the InternalLog FileSink received the event
-        // with all 8 fields (pattern: emit_lifecycle_timeout_carries_fuel_cap_and_consumed).
-        let result = PluginResult::Timeout {
-            cause: TimeoutCause::Fuel,
-            stderr: String::new(),
-            elapsed_ms: 100,
-            fuel_consumed: DEFAULT_FUEL_CAP,
-            fuel_cap: DEFAULT_FUEL_CAP,
-        };
-        // classify_outcome is todo!() — panics here (Red Gate).
-        let outcome = classify_outcome(result, FailurePolicy::FailClosed, false);
-        // Once classify_outcome is implemented, verify the outcome is INDETERMINATE
-        // (prerequisite for event emission).
-        assert!(
-            matches!(outcome, DispatchOutcome::Indeterminate { .. }),
-            "AC-006 prerequisite: fuel timeout MUST yield INDETERMINATE before emission check"
+        // Pattern mirrors emit_lifecycle_timeout_carries_fuel_cap_and_consumed.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let log = InternalLog::new(dir.path().join("logs"));
+
+        let base_ctx = crate::host::HostContext::new(
+            "validate-factory-path-staging",
+            "0.1.0",
+            "sess-abc",
+            "trace-xyz",
         );
-        // Implementer: after classify_outcome + T-2 emission are implemented, add:
-        //   let log = InternalLog::new(dir.path().join("logs"));
-        //   ... trigger INDETERMINATE via execute_tier with fuel-exhausting WAT ...
-        //   ... read InternalLog output ...
-        //   assert_eq!(event["type"], "plugin.indeterminate");
-        //   assert!(event.get("trace_id").is_some(), "trace_id must be present");
-        //   assert!(event.get("cause").is_some(), "cause must be present");
-        //   assert!(event.get("failure_policy").is_some(), "failure_policy must be present");
-        //   ... (all 8 BC-3.08.001 Event 8 fields) ...
+        let entry = RegistryEntry {
+            name: "validate-factory-path-staging".to_string(),
+            event: "PostToolUse".to_string(),
+            tool: None,
+            plugin: std::path::PathBuf::from("validate-factory-path-staging.wasm"),
+            priority: None,
+            enabled: true,
+            timeout_ms: None,
+            fuel_cap: None,
+            on_error: None,
+            capabilities: None,
+            config: toml::Value::Table(toml::Table::new()),
+            async_flag: false,
+            needs_context: vec![],
+            failure_policy: FailurePolicy::FailClosed,
+        };
+
+        // The artifact_path is the envelope file_path from tool_input.file_path
+        // (populated by execute_tier / spawn_async_plugin before calling emit_indeterminate).
+        let artifact_path = "/Users/dev/project/.factory/STATE.md";
+        let cause = IndeterminateCause::Fuel;
+
+        emit_indeterminate(&log, &base_ctx, &entry, &cause, artifact_path);
+
+        // Read back the JSONL event and assert all 8 BC-3.08.001 Event 8 fields.
+        let log_dir = dir.path().join("logs");
+        let files: Vec<_> = std::fs::read_dir(&log_dir)
+            .expect("log dir must exist after emit_indeterminate write")
+            .map(|e| e.expect("dir entry").path())
+            .collect();
+        assert_eq!(files.len(), 1, "expected exactly one log file");
+        let content = std::fs::read_to_string(&files[0]).expect("read log file");
+        let event: serde_json::Value =
+            serde_json::from_str(content.trim_end()).expect("log line must be valid JSON");
+
+        // Field 1: type
+        assert_eq!(
+            event["type"].as_str(),
+            Some(PLUGIN_INDETERMINATE),
+            "BC-3.08.001 Event 8: type must be 'plugin.indeterminate'"
+        );
+        // Field 2: trace_id (BC-3.08.001 v1.7 Invariant 5 — wire key is 'trace_id')
+        assert_eq!(
+            event["trace_id"].as_str(),
+            Some("trace-xyz"),
+            "BC-3.08.001 Event 8: trace_id must equal dispatcher_trace_id"
+        );
+        // Field 3: session_id
+        assert_eq!(
+            event["session_id"].as_str(),
+            Some("sess-abc"),
+            "BC-3.08.001 Event 8: session_id must be present and match"
+        );
+        // Field 4: plugin_name
+        assert_eq!(
+            event["plugin_name"].as_str(),
+            Some("validate-factory-path-staging"),
+            "BC-3.08.001 Event 8: plugin_name must match registry entry name"
+        );
+        // Field 5: artifact_path — HIGH-1: must be the real envelope file_path,
+        // NOT a hardcoded empty string.
+        assert_eq!(
+            event["artifact_path"].as_str(),
+            Some(artifact_path),
+            "BC-3.08.001 Event 8 / HIGH-1: artifact_path MUST equal the envelope \
+             file_path passed to emit_indeterminate, not a hardcoded empty string"
+        );
+        // Field 6: cause
+        assert_eq!(
+            event["cause"].as_str(),
+            Some("fuel"),
+            "BC-3.08.001 Event 8: cause must be 'fuel' for IndeterminateCause::Fuel"
+        );
+        // Field 7: failure_policy
+        assert_eq!(
+            event["failure_policy"].as_str(),
+            Some("fail-closed"),
+            "BC-3.08.001 Event 8: failure_policy must be 'fail-closed' for FailClosed"
+        );
+        // Field 8: timestamp (the 'ts' field — RFC 3339 shape, non-null)
+        assert!(
+            event["ts"].as_str().map(|s| !s.is_empty()).unwrap_or(false),
+            "BC-3.08.001 Event 8: ts (timestamp) field must be present and non-empty"
+        );
     }
 
     // ── End S-25.01 Red Gate stubs 1–12 ──────────────────────────────────────
