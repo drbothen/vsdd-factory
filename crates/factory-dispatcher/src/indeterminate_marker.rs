@@ -24,6 +24,7 @@
 
 use std::io;
 use std::path::Path;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::executor::DispatchOutcome;
 use crate::registry::FailurePolicy;
@@ -68,12 +69,31 @@ pub struct MarkerFields {
 /// The caller emits the `plugin.indeterminate` event regardless of whether this write succeeds.
 pub fn write_indeterminate_marker(fields: &MarkerFields, marker_path: &Path) -> io::Result<()> {
     // Compute the temp path in the same directory (atomic rename invariant).
-    // Using sibling .tmp file guarantees same-filesystem rename.
+    // L-1 fix (S-25.01 adversary): use a unique suffix so concurrent writers from
+    // same-tier plugins do not collide on a shared `.tmp` name (ENOENT race on rename).
+    // Uniqueness: plugin_name + process_id + monotonic nonce → last-writer-wins still holds
+    // because each writer renames ITS OWN temp file to the shared final path; the final
+    // rename is still atomic (BC-1.18.001 INV3 preserved).
+    static WRITE_NONCE: AtomicU64 = AtomicU64::new(0);
+    let nonce = WRITE_NONCE.fetch_add(1, Ordering::Relaxed);
+    let pid = std::process::id();
+    // Sanitize plugin_name for filename safety: keep alphanumeric, hyphen, underscore.
+    let safe_plugin: String = fields
+        .plugin_name
+        .chars()
+        .map(|c| {
+            if c.is_alphanumeric() || c == '-' || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect();
     let file_name = marker_path
         .file_name()
         .and_then(|f| f.to_str())
         .unwrap_or("unvalidated-mutation.marker");
-    let tmp_name = format!("{file_name}.tmp");
+    let tmp_name = format!("{file_name}.{safe_plugin}.{pid}.{nonce}.tmp");
     let tmp_path = marker_path
         .parent()
         .unwrap_or_else(|| std::path::Path::new("."))
@@ -147,17 +167,65 @@ pub fn read_marker_plugin_name(marker_path: &Path) -> io::Result<Option<String>>
     }
 }
 
-/// Idempotently delete the unvalidated-mutation marker file.
+/// Idempotently delete the unvalidated-mutation marker file with artifact-scope enforcement.
+///
+/// # Artifact-scoped clear (M-1 fix, BC-1.18.003 PC1 + INV2)
+///
+/// A marker records the artifact path under validation when the INDETERMINATE event
+/// occurred. Clearing must be scoped: if plugin P went INDETERMINATE while validating
+/// artifact A, a subsequent PASS by P on artifact B must NOT discharge the quarantine —
+/// the original mutation (artifact A) is still unvalidated.
+///
+/// Clear predicate:
+/// - If the marker's `artifact_path` field is EMPTY — this was a non-artifact-scoped
+///   validator; the marker is cleared unconditionally on a PASS (vacuously satisfied).
+/// - If the marker's `artifact_path` == `current_artifact_path` (normalized absolute path
+///   comparison via `std::path::Path`) — same artifact; clear the marker.
+/// - Otherwise — different artifact; preserve the marker (return `Ok(())` without deleting).
+///
+/// # Idempotency (AC-013; BC-1.18.003 PC2)
 ///
 /// If `marker_path` does not exist (`io::ErrorKind::NotFound`), returns `Ok(())` (no-op).
 /// All other `io::Error` variants are propagated as `Err`.
 ///
-/// Scoping (BC-1.18.003 postcondition 1 + invariant 2): the caller is responsible for
-/// verifying that the `plugin_name` field in the marker matches the re-validating plugin
-/// before calling this function. `delete_marker_if_pass` itself does not read the marker.
-pub fn delete_marker_if_pass(marker_path: &Path) -> io::Result<()> {
-    // Idempotent delete: NotFound is silently swallowed (AC-013; BC-1.18.003 PC2).
-    // All other io::Error variants are propagated as Err.
+/// # Conservative parse-error posture
+///
+/// If the marker file exists but cannot be parsed as TOML, this function returns `Ok(())`
+/// WITHOUT deleting the file — quarantine is preserved. The normal call path already checks
+/// `read_marker_plugin_name` before calling this, so a corrupt marker prevents the call.
+pub fn delete_marker_if_pass(marker_path: &Path, current_artifact_path: &str) -> io::Result<()> {
+    // Read the marker to obtain its artifact_path for the scoped-clear predicate.
+    let marker_artifact: String = match std::fs::read_to_string(marker_path) {
+        // NotFound: no marker exists — idempotent Ok(()) (AC-013).
+        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(()),
+        // Other I/O errors: propagate.
+        Err(e) => return Err(e),
+        Ok(content) => {
+            match toml::from_str::<toml::Table>(&content) {
+                Ok(table) => table
+                    .get("artifact_path")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string(),
+                // Corrupt marker: conservative posture — preserve quarantine, do NOT delete.
+                Err(_) => return Ok(()),
+            }
+        }
+    };
+
+    // M-1 clear predicate: delete IFF marker's artifact_path is EMPTY (non-artifact
+    // validator, vacuously satisfied) OR marker's artifact_path == current_artifact_path
+    // (exact equality of normalized absolute paths via Path comparison).
+    let should_clear = marker_artifact.is_empty()
+        || Path::new(&marker_artifact) == Path::new(current_artifact_path);
+
+    if !should_clear {
+        // Artifact mismatch: this marker belongs to a different artifact; quarantine persists.
+        // BC-1.18.003 INV2: marker{plugin=p, artifact=A} MUST NOT clear on p PASSing artifact B.
+        return Ok(());
+    }
+
+    // Idempotent delete: NotFound silently swallowed (AC-013; BC-1.18.003 PC2).
     match std::fs::remove_file(marker_path) {
         Ok(()) => Ok(()),
         Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(()),

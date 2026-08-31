@@ -423,11 +423,13 @@ async fn execute_tier<'a>(
                     .join("unvalidated-mutation.marker");
                 // Best-effort read; if the marker is absent or unreadable, no-op.
                 // Scoped clear: only this plugin's PostToolUse PASS clears its own marker.
+                // M-1 fix (S-25.01): pass artifact_path_for_marker so delete_marker_if_pass
+                // enforces BC-1.18.003 INV2 artifact-scoped clear internally.
                 // Log (but do not propagate) errors — a clear failure must not fail the dispatch.
                 if let Ok(Some(marker_plugin)) = read_marker_plugin_name(&marker_path)
                     && marker_plugin == entry_clone.name
                     && entry_clone.event == "PostToolUse"
-                    && let Err(e) = delete_marker_if_pass(&marker_path)
+                    && let Err(e) = delete_marker_if_pass(&marker_path, &artifact_path_for_marker)
                 {
                     tracing::warn!(
                         plugin = %entry_clone.name,
@@ -680,11 +682,13 @@ pub fn spawn_async_plugin(
                 .join(".factory")
                 .join("unvalidated-mutation.marker");
             // Scoped clear: only this plugin's PostToolUse PASS clears its own marker.
+            // M-1 fix (S-25.01): pass artifact_path_for_marker so delete_marker_if_pass
+            // enforces BC-1.18.003 INV2 artifact-scoped clear internally.
             // Log (but do not propagate) errors — a clear failure must not fail the dispatch.
             if let Ok(Some(marker_plugin)) = read_marker_plugin_name(&marker_path)
                 && marker_plugin == entry.name
                 && entry.event == "PostToolUse"
-                && let Err(e) = delete_marker_if_pass(&marker_path)
+                && let Err(e) = delete_marker_if_pass(&marker_path, &artifact_path_for_marker)
             {
                 tracing::warn!(
                     plugin = %entry.name,
@@ -1394,7 +1398,9 @@ mod tests {
             "pre-condition: marker must exist before delete"
         );
 
-        delete_marker_if_pass(&marker_path)
+        // marker has artifact_path = "" (empty) → M-1 predicate: empty artifact_path →
+        // vacuously satisfied → delete regardless of current_artifact_path.
+        delete_marker_if_pass(&marker_path, "")
             .expect("AC-012: delete_marker_if_pass MUST return Ok(()) when file exists");
 
         assert!(
@@ -1738,15 +1744,16 @@ mod tests {
             !marker_path.exists(),
             "pre-condition: marker must NOT exist for idempotent-delete test"
         );
-        // First delete: absent file must return Ok(()) not Err(NotFound)
-        let result1 = delete_marker_if_pass(&marker_path);
+        // First delete: absent file must return Ok(()) not Err(NotFound).
+        // M-1: pass empty current_artifact_path; NotFound path returns before the read.
+        let result1 = delete_marker_if_pass(&marker_path, "");
         assert!(
             result1.is_ok(),
             "AC-013: delete_marker_if_pass on absent path MUST return Ok(()) — \
              io::ErrorKind::NotFound MUST be swallowed, not propagated"
         );
         // Second delete: still absent → still Ok(()) (truly idempotent)
-        let result2 = delete_marker_if_pass(&marker_path);
+        let result2 = delete_marker_if_pass(&marker_path, "");
         assert!(
             result2.is_ok(),
             "AC-013: second delete_marker_if_pass call MUST also return Ok(()) (idempotent)"

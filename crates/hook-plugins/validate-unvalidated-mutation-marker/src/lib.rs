@@ -253,7 +253,7 @@ pub mod guard_logic {
 
     // ── Phases 2–4: single-segment evaluation ──────────────────────────────────
 
-    /// Applies Phases 2–4 of BC-1.18.002 v1.3 to a single pre-trimmed segment.
+    /// Applies Phases 2–4 per BC-1.18.002 §PC2 Phase-2/3/4 algorithm to a single pre-trimmed segment.
     ///
     /// MEDIUM-2 fix (S-25.01): uses `shell_words::split()` for quote-aware POSIX
     /// tokenization so that `git "commit"`, `git 'push' origin`, and `g'i't commit`
@@ -306,8 +306,8 @@ pub mod guard_logic {
 
         // ── Phase 3: skip recognized global options ────────────────────────────
         //
-        // Complete arg-taking set (BC-1.18.002 v1.2 PC2 table): each option consumes
-        // itself PLUS the immediately following token as its separate-token argument.
+        // Complete arg-taking set (BC-1.18.002 §PC2 Phase-3 arg-taking-set table): each option
+        // consumes itself PLUS the immediately following token as its separate-token argument.
         const OPTS_ARG_TAKING: &[&str] = &[
             "-C",
             "-c",
@@ -784,8 +784,11 @@ mod tests {
     /// treating it as the subcommand. With `git -C /path commit`, the scanner sees
     /// `/path` (the argument to `-C`) as the positional token and returns `false`.
     ///
-    /// The regex `\bgit\b.*\b(commit|push)\b` (BC-1.18.002 PC2) correctly matches all
-    /// these forms because `.*` spans the global options and their arguments.
+    /// The Phase 1/1b/2/3/4 multi-stage algorithm in `is_git_commit_or_push` handles all
+    /// these forms because Phase 3 explicitly skips recognized global options (and their
+    /// arguments for arg-taking options) before the subcommand is checked in Phase 4.
+    /// Note: BC-1.18.002 §PC2 previously cited a regex as illustrative; the authoritative
+    /// specification is the Phase 1/1b/2/3/4 algorithm, not any regex pattern.
     #[test]
     fn test_BC_1_18_002_is_git_commit_or_push_global_option_forms() {
         // AC-008 / AC-009 / BC-1.18.002 PC2
