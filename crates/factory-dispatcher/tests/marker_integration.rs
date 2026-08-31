@@ -142,6 +142,24 @@ fn write_test_marker(path: &std::path::Path, plugin_name: &str) {
     .expect("test setup: write marker");
 }
 
+fn write_test_marker_with_artifact(
+    path: &std::path::Path,
+    plugin_name: &str,
+    artifact_path: &str,
+) {
+    std::fs::write(
+        path,
+        format!(
+            "timestamp = \"2026-08-31T00:00:00Z\"\n\
+             plugin_name = \"{plugin_name}\"\n\
+             artifact_path = \"{artifact_path}\"\n\
+             cause = \"fuel\"\n\
+             trace_id = \"trace-integ-test\"\n"
+        ),
+    )
+    .expect("test setup: write marker with artifact");
+}
+
 // ---------------------------------------------------------------------------
 // BLOCKER-1 tests: marker auto-clear via execute_tiers dispatch path
 // ---------------------------------------------------------------------------
@@ -529,5 +547,158 @@ async fn test_BC_1_18_001_artifact_path_threaded_from_tool_input_file_path() {
          Actual marker content: '{}'",
         expected_artifact_path,
         content
+    );
+}
+
+// ---------------------------------------------------------------------------
+// EC-008 / EC-009: artifact-scoped marker-clear via execute_tiers (VP-106)
+// ---------------------------------------------------------------------------
+
+/// EC-008 INTEGRATION (VP-106 / BC-1.18.003 INV2): same plugin, DIFFERENT non-empty
+/// artifact → execute_tiers MUST NOT clear the marker (artifact mismatch keeps quarantine).
+///
+/// Two-phase test:
+/// - Phase 1: dispatch plugin "p" PostToolUse PASS with payload file_path="/abs/B.md"
+///   while marker records artifact_path="/abs/A.md". Marker MUST persist.
+/// - Phase 2 (positive control): dispatch plugin "p" PostToolUse PASS with payload
+///   file_path="/abs/A.md" (same artifact). Marker MUST be cleared.
+///
+/// This exercises the artifact-threading callsite in execute_tier (MEDIUM-5):
+/// `artifact_path_for_marker` is extracted from `payload.tool_input.file_path` and
+/// forwarded into `delete_marker_if_pass`, not just the leaf function in isolation.
+#[tokio::test(flavor = "current_thread")]
+async fn test_BC_1_18_003_EC_008_artifact_mismatch_preserves_marker_via_execute_tiers() {
+    // EC-008 / BC-1.18.003 INV2 / VP-106
+    let dir = tempfile::tempdir().unwrap();
+    let engine = build_engine().unwrap();
+    let cache = PluginCache::new(engine.clone());
+
+    let factory_dir = dir.path().join(".factory");
+    std::fs::create_dir_all(&factory_dir).unwrap();
+    let marker_path = factory_dir.join("unvalidated-mutation.marker");
+    // Pre-write marker for "p" recording artifact "/abs/A.md".
+    write_test_marker_with_artifact(&marker_path, "p", "/abs/A.md");
+    assert!(
+        marker_path.exists(),
+        "pre-condition: marker must exist before dispatch"
+    );
+
+    let pass_wasm = compile_to(dir.path(), "p", WAT_NORMAL);
+    let entry = make_pass_entry(&pass_wasm, "p", "PostToolUse");
+    let registry = make_registry(vec![entry]);
+
+    let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
+
+    // Phase 1: PASS on "/abs/B.md" (different from marker's "/abs/A.md") → MUST NOT clear.
+    let payload_b = serde_json::json!({
+        "tool_name": "Edit",
+        "tool_input": { "file_path": "/abs/B.md" }
+    });
+    let tiers1: Vec<Vec<&RegistryEntry>> = group_by_priority(&registry, registry.hooks.iter().collect());
+    let summary1 = execute_tiers(
+        executor_inputs_with_cwd(
+            &engine,
+            &cache,
+            &registry,
+            &internal_log,
+            dir.path().to_path_buf(),
+            payload_b,
+        ),
+        tiers1,
+    )
+    .await;
+    assert_eq!(summary1.exit_code, 0, "pre-condition: PASS plugin must not block");
+
+    // EC-008 / BC-1.18.003 INV2: artifact mismatch → quarantine persists.
+    assert!(
+        marker_path.exists(),
+        "EC-008 / BC-1.18.003 INV2 via execute_tiers: PASS from 'p' with \
+         tool_input.file_path='/abs/B.md' MUST NOT clear marker{{artifact_path='/abs/A.md'}}. \
+         Quarantine persists across different artifacts."
+    );
+
+    // Phase 2 (positive control): PASS on "/abs/A.md" (same artifact) → MUST clear.
+    let payload_a = serde_json::json!({
+        "tool_name": "Edit",
+        "tool_input": { "file_path": "/abs/A.md" }
+    });
+    let tiers2: Vec<Vec<&RegistryEntry>> = group_by_priority(&registry, registry.hooks.iter().collect());
+    let summary2 = execute_tiers(
+        executor_inputs_with_cwd(
+            &engine,
+            &cache,
+            &registry,
+            &internal_log,
+            dir.path().to_path_buf(),
+            payload_a,
+        ),
+        tiers2,
+    )
+    .await;
+    assert_eq!(summary2.exit_code, 0, "pre-condition: PASS plugin must not block");
+
+    // EC-008 (positive control): same artifact → quarantine lifted.
+    assert!(
+        !marker_path.exists(),
+        "EC-008 (positive control) via execute_tiers: PASS from 'p' with \
+         tool_input.file_path='/abs/A.md' MUST clear marker{{artifact_path='/abs/A.md'}} \
+         (same artifact — quarantine lifted)."
+    );
+}
+
+/// EC-009 INTEGRATION (VP-106 / BC-1.18.003 INV2): empty marker `artifact_path` →
+/// execute_tiers MUST clear the marker even when the payload carries a non-empty file_path.
+///
+/// Exercises the artifact-threading callsite: `artifact_path_for_marker="/abs/anything.md"`
+/// is extracted from the payload, but since `marker.artifact_path` is empty (non-artifact-
+/// scoped validator), `delete_marker_if_pass` clears unconditionally (vacuous satisfaction).
+#[tokio::test(flavor = "current_thread")]
+async fn test_BC_1_18_003_EC_009_empty_marker_artifact_path_clears_via_execute_tiers() {
+    // EC-009 / BC-1.18.003 INV2 / VP-106
+    let dir = tempfile::tempdir().unwrap();
+    let engine = build_engine().unwrap();
+    let cache = PluginCache::new(engine.clone());
+
+    let factory_dir = dir.path().join(".factory");
+    std::fs::create_dir_all(&factory_dir).unwrap();
+    let marker_path = factory_dir.join("unvalidated-mutation.marker");
+    // Pre-write marker for "p" with empty artifact_path (non-artifact-scoped validator).
+    write_test_marker(&marker_path, "p");
+    assert!(
+        marker_path.exists(),
+        "pre-condition: marker must exist before dispatch"
+    );
+
+    let pass_wasm = compile_to(dir.path(), "p", WAT_NORMAL);
+    let entry = make_pass_entry(&pass_wasm, "p", "PostToolUse");
+    let registry = make_registry(vec![entry]);
+    let tiers: Vec<Vec<&RegistryEntry>> = group_by_priority(&registry, registry.hooks.iter().collect());
+
+    // Dispatch with a non-empty file_path to confirm empty marker artifact_path clears regardless.
+    let payload = serde_json::json!({
+        "tool_name": "Write",
+        "tool_input": { "file_path": "/abs/anything.md" }
+    });
+    let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
+    let summary = execute_tiers(
+        executor_inputs_with_cwd(
+            &engine,
+            &cache,
+            &registry,
+            &internal_log,
+            dir.path().to_path_buf(),
+            payload,
+        ),
+        tiers,
+    )
+    .await;
+    assert_eq!(summary.exit_code, 0, "pre-condition: PASS plugin must not block");
+
+    // EC-009 / BC-1.18.003 INV2: empty marker artifact_path → cleared unconditionally.
+    assert!(
+        !marker_path.exists(),
+        "EC-009 / BC-1.18.003 INV2 via execute_tiers: marker{{artifact_path=''}} MUST be \
+         cleared by PASS from 'p' even with non-empty current_artifact_path='/abs/anything.md'. \
+         Empty artifact_path is the non-artifact-scoped fallback; cleared unconditionally."
     );
 }

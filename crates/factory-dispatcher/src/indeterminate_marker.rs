@@ -268,6 +268,93 @@ pub fn should_write_marker(outcome: &DispatchOutcome, policy: FailurePolicy) -> 
 mod tests {
     use super::*;
 
+    /// EC-008 (BC-1.18.003 INV2 / VP-106): same plugin, DIFFERENT non-empty artifact →
+    /// `delete_marker_if_pass` MUST NOT clear the marker (quarantine persists).
+    ///
+    /// Negative assertion: marker with artifact_path="/abs/A.md" is NOT cleared when
+    /// current_artifact_path="/abs/B.md". Positive control: the same marker IS cleared
+    /// when current_artifact_path="/abs/A.md" (confirming the predicate is artifact-scoped,
+    /// not always-keep).
+    #[test]
+    fn test_BC_1_18_003_EC_008_different_artifact_preserves_marker() {
+        // EC-008 / BC-1.18.003 INV2 / VP-106
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+
+        // Write marker for plugin "p" recording artifact "/abs/A.md".
+        let fields = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "p".to_string(),
+            artifact_path: "/abs/A.md".to_string(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-ec-008".to_string(),
+        };
+        write_indeterminate_marker(&fields, &marker_path)
+            .expect("write_indeterminate_marker must succeed for a writable path");
+        assert!(
+            marker_path.exists(),
+            "pre-condition: marker must exist after write"
+        );
+
+        // Phase 1 — PASS on artifact "/abs/B.md" (DIFFERENT): marker MUST NOT be cleared.
+        // BC-1.18.003 INV2: marker{artifact=/abs/A.md} MUST persist when current artifact ≠ marker artifact.
+        delete_marker_if_pass(&marker_path, "/abs/B.md")
+            .expect("delete_marker_if_pass must not return IO error");
+        assert!(
+            marker_path.exists(),
+            "EC-008 / BC-1.18.003 INV2: delete_marker_if_pass(\"/abs/B.md\") MUST NOT clear \
+             marker{{artifact_path=\"/abs/A.md\"}} — different artifact, quarantine persists."
+        );
+
+        // Phase 2 — positive control: PASS on artifact "/abs/A.md" (SAME): marker MUST be cleared.
+        delete_marker_if_pass(&marker_path, "/abs/A.md")
+            .expect("delete_marker_if_pass must not return IO error");
+        assert!(
+            !marker_path.exists(),
+            "EC-008 (positive control) / BC-1.18.003 INV2: delete_marker_if_pass(\"/abs/A.md\") \
+             MUST clear marker{{artifact_path=\"/abs/A.md\"}} — same artifact, quarantine lifted."
+        );
+    }
+
+    /// EC-009 (BC-1.18.003 INV2 / VP-106): empty marker `artifact_path` → marker IS cleared
+    /// unconditionally for ANY `current_artifact_path` (vacuous/name-only fallback).
+    ///
+    /// A non-artifact-scoped validator (e.g. a plugin that inspects process state rather
+    /// than a specific file) writes an empty `artifact_path`. Its PASS MUST clear the
+    /// marker regardless of what artifact the current dispatch is associated with.
+    #[test]
+    fn test_BC_1_18_003_EC_009_empty_marker_artifact_path_clears_unconditionally() {
+        // EC-009 / BC-1.18.003 INV2 / VP-106
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+
+        // Write marker with empty artifact_path (non-artifact-scoped validator).
+        let fields = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "p".to_string(),
+            artifact_path: "".to_string(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-ec-009".to_string(),
+        };
+        write_indeterminate_marker(&fields, &marker_path)
+            .expect("write_indeterminate_marker must succeed for a writable path");
+        assert!(
+            marker_path.exists(),
+            "pre-condition: marker must exist after write"
+        );
+
+        // PASS with a non-empty current_artifact_path — the empty marker path is vacuously
+        // satisfied; marker MUST be cleared regardless.
+        delete_marker_if_pass(&marker_path, "/abs/anything.md")
+            .expect("delete_marker_if_pass must not return IO error");
+        assert!(
+            !marker_path.exists(),
+            "EC-009 / BC-1.18.003 INV2: delete_marker_if_pass(\"/abs/anything.md\") MUST clear \
+             marker{{artifact_path=\"\"}} — empty artifact_path is the non-artifact-scoped \
+             fallback; cleared unconditionally on any PASS."
+        );
+    }
+
     /// MEDIUM-4 (RED): The marker TOML serializer MUST correctly round-trip values
     /// containing a double-quote character and a newline. The `toml` crate is the
     /// mandated serialization library (Library table, S-25.01). AC-005.
