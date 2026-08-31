@@ -11,8 +11,12 @@
 //!
 //! - HOST_ABI_VERSION = 1 (no new host functions introduced by S-25.01).
 //! - `failure_policy = "fail-open"` for BOTH registry entries (invariant 2).
-//!   The gate cannot self-lock: if this plugin itself fuel-exhausts, the gate
-//!   is fail-open and the dispatch proceeds (EC-003).
+//!   If this plugin itself crashes or fuel-exhausts, it does NOT write a new marker
+//!   (no self-lock via a new quarantine; `failure_policy = "fail-open"` governs
+//!   marker-WRITING only). A pre-existing NON-EXPIRED marker still blocks via the
+//!   dispatcher's native `on_error = "block_if_marker"` check (ADR-048 §D1):
+//!   EC-031 (non-expired marker present → Block / PC5),
+//!   EC-009/EC-032 (marker absent or TTL expired → Allow / PC6).
 //! - No dependency on factory-dispatcher or other workspace crates (forbidden
 //!   for WASM hook plugins).
 

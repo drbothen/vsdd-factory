@@ -15,8 +15,19 @@
 //! # Self-lock prevention (BC-1.18.002 invariant 2)
 //!
 //! Both hooks-registry.toml entries for this plugin MUST have `failure_policy = "fail-open"`.
-//! If this plugin itself fuel-exhausts, it DOES NOT write a marker — the gate cannot self-lock.
-//! EC-003: gate fuel exhaustion → fail-open → dispatch proceeds unblocked.
+//! If this plugin itself crashes or fuel-exhausts, it DOES NOT write a new marker — the gate
+//! cannot self-lock via a new quarantine (`failure_policy = "fail-open"` governs marker-WRITING
+//! only).
+//!
+//! However, a pre-existing NON-EXPIRED marker STILL blocks the dispatch via the dispatcher's
+//! native `on_error = "block_if_marker"` crash/timeout check (ADR-048 §D1 / BC-1.18.002 PC5):
+//!
+//! - EC-031: gate crash/fuel-exhaustion + non-expired marker present → Block (PC5).
+//! - EC-009: gate crash/fuel-exhaustion + marker absent or TTL expired → Allow (PC6).
+//! - EC-032: gate crash/fuel-exhaustion + marker TTL expired → Allow (PC6).
+//!
+//! Recovery: `rm .factory/unvalidated-mutation.marker` (BC-1.18.003 PC3 escape hatch)
+//! or wait for the 24h deadman TTL (ADR-048 §D2).
 //!
 //! # Marker absent → allow (AC-010)
 //!

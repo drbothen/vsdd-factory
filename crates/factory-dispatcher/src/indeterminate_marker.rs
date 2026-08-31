@@ -668,9 +668,7 @@ mod tests {
         let rt_exp = table
             .get("expires_at")
             .and_then(|v| v.as_str())
-            .expect(
-                "expires_at field MUST be present (BC-1.18.001 v1.1 PC4 — 6th required field)",
-            );
+            .expect("expires_at field MUST be present (BC-1.18.001 v1.1 PC4 — 6th required field)");
         let rt_ts_dt = chrono::DateTime::parse_from_rfc3339(rt_ts)
             .expect("round-tripped timestamp must parse as RFC 3339")
             .with_timezone(&Utc);
@@ -679,8 +677,7 @@ mod tests {
             .with_timezone(&Utc);
         let delta_secs = (rt_exp_dt - rt_ts_dt).num_seconds();
         assert_eq!(
-            delta_secs,
-            UNVALIDATED_MUTATION_MARKER_TTL_SECONDS as i64,
+            delta_secs, UNVALIDATED_MUTATION_MARKER_TTL_SECONDS as i64,
             "BC-1.18.001 v1.1 PC4: expires_at − timestamp MUST equal \
              UNVALIDATED_MUTATION_MARKER_TTL_SECONDS ({UNVALIDATED_MUTATION_MARKER_TTL_SECONDS}s) \
              — got {delta_secs}s"

@@ -761,10 +761,14 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
 /// a slice of per-plugin outcomes. Used by the TD #71 stderr surfacing path.
 ///
 /// **blocking_names**: comma-joined names of plugins that contributed to
-/// the block decision. Three trigger categories:
+/// the block decision. Four trigger categories:
 ///   1. Advisory block: `stdout.contains(r#""outcome":"block""#)` (any `on_error`).
 ///   2. WASI-exit-code block: `exit_code == 2 && on_error == OnError::Block`.
 ///   3. Fail-closed: `Crashed | Timeout && on_error == OnError::Block`.
+///   4. BlockIfMarker: `Crashed | Timeout && on_error == OnError::BlockIfMarker
+///      && block_if_marker_fired == true` (ADR-048 §Decision 1 / BC-1.18.002 PC5).
+///      Only surfaces when the marker was confirmed present/non-expired at dispatch time;
+///      `block_if_marker_fired` is set by `execute_tiers` from `plugin_block_if_marker`.
 ///
 /// **block_reason**: the `reason` field from the first blocking plugin's
 /// `{"outcome":"block","reason":"..."}` stdout JSON, or a generic sentinel
@@ -787,8 +791,11 @@ fn extract_block_info(outcomes: &[PluginOutcome]) -> (String, String) {
                 advisory || wasi_block
             }
             // Fail-closed: crash or timeout with on_error=Block.
+            // BlockIfMarker: crash or timeout with on_error=BlockIfMarker AND the
+            // block_if_marker check confirmed the marker was present/non-expired.
             PluginResult::Crashed { .. } | PluginResult::Timeout { .. } => {
                 outcome.on_error == OnError::Block
+                    || (outcome.on_error == OnError::BlockIfMarker && outcome.block_if_marker_fired)
             }
         };
 
@@ -797,7 +804,23 @@ fn extract_block_info(outcomes: &[PluginOutcome]) -> (String, String) {
 
             // Extract block reason from the first blocking plugin's stdout.
             if first_reason.is_none() {
-                first_reason = extract_reason_from_outcome(&outcome.result);
+                // For BlockIfMarker crash-blocks, emit a recoverable sentinel that
+                // tells operators exactly how to recover — distinct from the generic
+                // "fail-closed: plugin crashed" message (ADR-048 §Decision 1 /
+                // BC-1.18.002 PC5 / TD #71).
+                first_reason = if outcome.on_error == OnError::BlockIfMarker
+                    && outcome.block_if_marker_fired
+                {
+                    Some(
+                        "fail-closed-recoverable: non-expired unvalidated-mutation.marker \
+                         present (ADR-048 \u{00a7}D1 block_if_marker on gate crash/timeout); \
+                         recover via `rm .factory/unvalidated-mutation.marker` \
+                         or wait for the 24h TTL"
+                            .to_owned(),
+                    )
+                } else {
+                    extract_reason_from_outcome(&outcome.result)
+                };
             }
         }
     }
@@ -1301,6 +1324,126 @@ mod tests_extract_reason_cause_distinction {
             reason.as_deref(),
             Some("fail-closed: plugin crashed"),
             "crash block_reason must remain 'fail-closed: plugin crashed'"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// extract_block_info — BlockIfMarker crash-block surfacing (TD #71 / ADR-048)
+//
+// Closes the M-1 coverage gap: extract_block_info was previously blind to
+// on_error=BlockIfMarker outcomes (only checked on_error==Block in the
+// Crashed|Timeout arm). These tests assert that the recoverable sentinel reason
+// is surfaced when block_if_marker_fired=true, and NOT surfaced when the marker
+// was absent (block_if_marker_fired=false).
+// ---------------------------------------------------------------------------
+#[cfg(test)]
+mod tests_extract_block_info_block_if_marker {
+    #![allow(clippy::expect_used, clippy::unwrap_used)]
+    use factory_dispatcher::executor::PluginOutcome;
+    use factory_dispatcher::invoke::PluginResult;
+    use factory_dispatcher::registry::OnError;
+
+    /// BC-1.18.002 PC5 / TD #71 (M-1):
+    /// Crash + on_error=BlockIfMarker + block_if_marker_fired=true →
+    /// extract_block_info MUST return non-empty blocking_plugins AND a
+    /// block_reason containing the recoverable sentinel prefix.
+    #[test]
+    fn block_if_marker_crash_with_fired_flag_surfaces_reason() {
+        let outcomes = vec![PluginOutcome {
+            plugin_name: "validate-unvalidated-mutation-marker".to_string(),
+            plugin_version: "1.0.0".to_string(),
+            on_error: OnError::BlockIfMarker,
+            result: PluginResult::Crashed {
+                trap_string: "unreachable".to_string(),
+                stderr: String::new(),
+                elapsed_ms: 1,
+                fuel_consumed: 0,
+            },
+            block_if_marker_fired: true,
+        }];
+
+        let (blocking_plugins, block_reason) = super::extract_block_info(&outcomes);
+
+        assert_eq!(
+            blocking_plugins, "validate-unvalidated-mutation-marker",
+            "TD #71 / BC-1.18.002 PC5: blocking_plugins MUST be non-empty for \
+             BlockIfMarker crash with block_if_marker_fired=true"
+        );
+        assert!(
+            block_reason.starts_with("fail-closed-recoverable:"),
+            "TD #71 / BC-1.18.002 PC5: block_reason MUST start with \
+             'fail-closed-recoverable:' for BlockIfMarker crash-block; got: {block_reason:?}"
+        );
+        assert!(
+            block_reason.contains("unvalidated-mutation.marker"),
+            "block_reason MUST name the marker file so operators know what to rm; \
+             got: {block_reason:?}"
+        );
+        assert!(
+            block_reason.contains("ADR-048"),
+            "block_reason MUST cite ADR-048 for traceability; got: {block_reason:?}"
+        );
+    }
+
+    /// BC-1.18.002 (absent-marker path):
+    /// Crash + on_error=BlockIfMarker + block_if_marker_fired=false →
+    /// extract_block_info MUST NOT surface this outcome as blocking (marker was absent).
+    #[test]
+    fn block_if_marker_crash_without_fired_flag_not_surfaced() {
+        let outcomes = vec![PluginOutcome {
+            plugin_name: "validate-unvalidated-mutation-marker".to_string(),
+            plugin_version: "1.0.0".to_string(),
+            on_error: OnError::BlockIfMarker,
+            result: PluginResult::Crashed {
+                trap_string: "unreachable".to_string(),
+                stderr: String::new(),
+                elapsed_ms: 1,
+                fuel_consumed: 0,
+            },
+            block_if_marker_fired: false,
+        }];
+
+        let (blocking_plugins, block_reason) = super::extract_block_info(&outcomes);
+
+        assert!(
+            blocking_plugins.is_empty(),
+            "BC-1.18.002 absent-marker path: blocking_plugins MUST be empty when \
+             block_if_marker_fired=false (no marker present); got: {blocking_plugins:?}"
+        );
+        assert!(
+            block_reason.is_empty(),
+            "BC-1.18.002 absent-marker path: block_reason MUST be empty when \
+             block_if_marker_fired=false; got: {block_reason:?}"
+        );
+    }
+
+    /// Regression guard: existing on_error=Block crash still surfaces with the
+    /// generic fail-closed sentinel, unchanged by the BlockIfMarker addition.
+    #[test]
+    fn on_error_block_crash_still_surfaces_generic_sentinel() {
+        let outcomes = vec![PluginOutcome {
+            plugin_name: "some-gate".to_string(),
+            plugin_version: "1.0.0".to_string(),
+            on_error: OnError::Block,
+            result: PluginResult::Crashed {
+                trap_string: "unreachable".to_string(),
+                stderr: String::new(),
+                elapsed_ms: 1,
+                fuel_consumed: 0,
+            },
+            block_if_marker_fired: false,
+        }];
+
+        let (blocking_plugins, block_reason) = super::extract_block_info(&outcomes);
+
+        assert_eq!(
+            blocking_plugins, "some-gate",
+            "on_error=Block crash MUST still surface as a blocker (regression guard)"
+        );
+        assert_eq!(
+            block_reason, "fail-closed: plugin crashed",
+            "on_error=Block crash reason MUST remain 'fail-closed: plugin crashed' (regression)"
         );
     }
 }

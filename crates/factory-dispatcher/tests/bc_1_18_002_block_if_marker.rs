@@ -139,7 +139,13 @@ async fn test_BC_1_18_002_execute_tiers_block_if_marker_crash_with_marker_blocks
     let tiers = group_by_priority(&registry, matched);
     let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
     let summary = execute_tiers(
-        executor_inputs_with_cwd(&engine, &cache, &registry, &internal_log, dir.path().to_path_buf()),
+        executor_inputs_with_cwd(
+            &engine,
+            &cache,
+            &registry,
+            &internal_log,
+            dir.path().to_path_buf(),
+        ),
         tiers,
     )
     .await;
@@ -180,7 +186,13 @@ async fn test_BC_1_18_002_execute_tiers_block_if_marker_crash_no_marker_allows()
     let tiers = group_by_priority(&registry, matched);
     let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
     let summary = execute_tiers(
-        executor_inputs_with_cwd(&engine, &cache, &registry, &internal_log, dir.path().to_path_buf()),
+        executor_inputs_with_cwd(
+            &engine,
+            &cache,
+            &registry,
+            &internal_log,
+            dir.path().to_path_buf(),
+        ),
         tiers,
     )
     .await;

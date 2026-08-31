@@ -197,6 +197,17 @@ pub struct PluginOutcome {
     pub plugin_version: String,
     pub on_error: OnError,
     pub result: PluginResult,
+    /// Set to `true` by `execute_tiers` when `plugin_block_if_marker` returned `true`
+    /// for this outcome — i.e., `on_error == BlockIfMarker` AND the
+    /// `.factory/unvalidated-mutation.marker` was present and non-expired at dispatch time.
+    ///
+    /// Used by `extract_block_info` (TD #71 surfacing path) to populate
+    /// `blocking_plugins` + `block_reason` for the recoverable-block case
+    /// (ADR-048 §Decision 1 / BC-1.18.002 PC5).
+    ///
+    /// `false` for all other outcomes (advisory block, fail-closed Block,
+    /// async plugins, load failures).
+    pub block_if_marker_fired: bool,
 }
 
 /// Aggregated result of running every tier in order.
@@ -253,16 +264,21 @@ pub async fn execute_tiers(
     let mut block_intent = false;
 
     for tier in tiers {
-        let tier_outcomes = execute_tier(&inputs, tier).await;
-        for outcome in &tier_outcomes {
+        let mut tier_outcomes = execute_tier(&inputs, tier).await;
+        for outcome in tier_outcomes.iter_mut() {
+            let bim_fired = plugin_block_if_marker(
+                &outcome.result,
+                outcome.on_error,
+                &inputs.base_host_ctx.cwd,
+                chrono::Utc::now(),
+            );
+            // Record per-plugin whether block_if_marker fired so extract_block_info
+            // can surface a non-empty reason for the BlockIfMarker crash-block case
+            // (TD #71 / ADR-048 §Decision 1 / BC-1.18.002 PC5).
+            outcome.block_if_marker_fired = bim_fired;
             if plugin_requests_block(&outcome.result)
                 || plugin_fail_closed(&outcome.result, outcome.on_error)
-                || plugin_block_if_marker(
-                    &outcome.result,
-                    outcome.on_error,
-                    &inputs.base_host_ctx.cwd,
-                    chrono::Utc::now(),
-                )
+                || bim_fired
             {
                 block_intent = true;
             }
@@ -341,6 +357,7 @@ async fn execute_tier<'a>(
                     plugin_version: inputs.base_host_ctx.plugin_version.clone(),
                     on_error,
                     result,
+                    block_if_marker_fired: false,
                 }));
                 continue;
             }
@@ -366,6 +383,7 @@ async fn execute_tier<'a>(
                     plugin_version: host_ctx.plugin_version.clone(),
                     on_error,
                     result,
+                    block_if_marker_fired: false,
                 };
                 join_handles.push(JoinWrap::Ready(outcome));
                 continue;
@@ -501,6 +519,9 @@ async fn execute_tier<'a>(
                 plugin_version: host_ctx.plugin_version.clone(),
                 on_error,
                 result,
+                // block_if_marker_fired is set post-hoc by execute_tiers after the
+                // tier completes, so this initial value is always false.
+                block_if_marker_fired: false,
             }
         });
         join_handles.push(JoinWrap::Pending(handle));
@@ -526,6 +547,7 @@ async fn execute_tier<'a>(
                             elapsed_ms: 0,
                             fuel_consumed: 0,
                         },
+                        block_if_marker_fired: false,
                     });
                 }
             },
@@ -622,6 +644,7 @@ pub fn spawn_async_plugin(
                     plugin_version: base_host_ctx.plugin_version.clone(),
                     on_error,
                     result,
+                    block_if_marker_fired: false,
                 };
             }
         };
@@ -641,6 +664,7 @@ pub fn spawn_async_plugin(
                     plugin_version: base_host_ctx.plugin_version.clone(),
                     on_error,
                     result,
+                    block_if_marker_fired: false,
                 };
             }
         };
@@ -763,6 +787,10 @@ pub fn spawn_async_plugin(
             plugin_version: base_ctx_for_event.plugin_version.clone(),
             on_error,
             result,
+            // Async plugins are not processed through execute_tiers' block_if_marker loop;
+            // block_if_marker semantics are not applied to async-group outcomes
+            // (BC-1.14.001 Invariant 3 — async group excluded from tier ordering).
+            block_if_marker_fired: false,
         }
     })
 }
@@ -1830,6 +1858,7 @@ mod tests {
                 elapsed_ms: 1,
                 fuel_consumed: 10,
             },
+            block_if_marker_fired: false,
         };
         assert!(
             plugin_requests_block(&outcome.result),
@@ -1854,6 +1883,7 @@ mod tests {
                 elapsed_ms: 1,
                 fuel_consumed: 5,
             },
+            block_if_marker_fired: false,
         };
         assert!(
             !plugin_requests_block(&outcome.result),
