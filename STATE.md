@@ -136,7 +136,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **9ab5a6f6** | PR #802 (S-24.01 vsdd-factory:wrap skill) squash-merged `9ab5a6f6` 2026-08-30 (D-1132). Prior: `da14fb94` (PR #801 F-WG5-P2-001 2026-08-29). CI-GREEN. |
-| factory-artifacts | **(TBD — SHA-patch follow-up)** | S2501-LOCAL-ADV-PASS1-CLEAN-STREAK-1of3-2026-08-31 v9.48→v9.49 (this burst). Prior: `8ece970d` (S2501-REDESIGN-ADV-M1-M2-L1-FIX-2026-08-31 v9.47→v9.48). |
+| factory-artifacts | **`f0c43427`** | S2501-LOCAL-ADV-PASS1-CLEAN-STREAK-1of3-2026-08-31 v9.48→v9.49 (this burst). Prior: `8ece970d` (S2501-REDESIGN-ADV-M1-M2-L1-FIX-2026-08-31 v9.47→v9.48). |
 | feature/S-25.01 | **`92990371`** | F4 TDD IN PROGRESS — LOCAL adversary pass 1 CLEAN. FROZEN for BC-5.39.001 3-CLEAN cascade (streak 1/3). Finalization backlog: LOW-1/OBS-3/[process-gap] (swept after 3-CLEAN per D-1127). NEXT: adversary pass 2 (fresh context) on frozen 92990371. |
 | feature/S-17.05 | **MERGED+DELETED** | PR #798 squash-merged `a4b24601` 2026-08-29T13:45:46Z. Branch deleted post-merge. D-1129. |
 | feature/S-17.07 | **MERGED+DELETED** | PR #800 squash-merged `1fc8b9ee` 2026-08-29. Branch deleted post-merge. D-1130. |
@@ -316,7 +316,7 @@ Feature branch `feature/S-25.01` at `92990371` (FROZEN for 3-CLEAN cascade). F4 
 - `develop`: **`9ab5a6f6`** (PR #802 S-24.01 squash-merged 2026-08-30).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
 - `feature/S-25.01`: **`92990371`** (FROZEN for BC-5.39.001 3-CLEAN cascade; redesign adversary fix-burst complete @9891fac8/@6b4ba5ae; streak 1/3 after pass 1 CLEAN 2026-08-31).
-- `factory-artifacts`: **(TBD — SHA-patch follow-up after this commit)** (S2501-LOCAL-ADV-PASS1-CLEAN-STREAK-1of3-2026-08-31 v9.48→v9.49).
+- `factory-artifacts`: **`f0c43427`** (S2501-LOCAL-ADV-PASS1-CLEAN-STREAK-1of3-2026-08-31 v9.48→v9.49).
 
 ### §5. Pending / OWED (backlog, NOT drift)
 
