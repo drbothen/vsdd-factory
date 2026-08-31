@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-08-31T00:00:00Z
@@ -18,7 +18,7 @@ subsystem: "SS-01"
 capability: "CAP-041"
 lifecycle_status: draft
 introduced: v1.0-feature-validation-integrity-layer1
-modified: ["v1.1-2026-08-31-exact-subcommand-clarification"]
+modified: ["v1.1-2026-08-31-exact-subcommand-clarification", "v1.2-2026-08-31-command-detection-comprehensive-expansion"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -33,12 +33,19 @@ removal_reason: null
 
 When `.factory/unvalidated-mutation.marker` exists, the `validate-unvalidated-mutation-marker`
 PreToolUse gate plugin enforces a two-arm quarantine covering the complete durable-propagation
-surface: (Arm 1) all `^Agent$` tool dispatches are blocked; (Arm 2) all Bash dispatches whose
-`command` parameter identifies `commit` or `push` as the git **subcommand** are blocked. Both arms are unblocked
-simultaneously when the marker is absent. Non-advancing tool dispatches (Read, Edit, Write,
-non-git-commit/push Bash) are never gated. The gate plugin is registered `failure_policy =
-"fail-open"` to prevent self-lock: if the gate itself cannot complete, the dispatch proceeds
-rather than creating an unconditional deadlock (ADR-047 §Decision 4 rationale).
+surface: (Arm 1) all `^Agent$` tool dispatches are blocked; (Arm 2) all Bash dispatches for
+which `is_git_commit_or_push(command)` returns `true` are blocked. The Arm 2 filter is a
+production-grade security filter (v1.2): it splits compound commands on shell operators
+(`&&`, `||`, `;`, `|`, `&`, newline), identifies the git executable by basename (matching
+`/usr/bin/git`, `./git`, `env VAR=x git`, etc.), skips the complete recognized set of git
+global options (seven arg-taking options that consume a separate-token argument, plus
+recognized no-arg flags), applies a fail-safe posture for unrecognized options (block when
+subcommand position is uncertain), and performs exact subcommand matching (`commit` or `push`
+only). Both arms are unblocked simultaneously when the marker is absent. Non-advancing tool
+dispatches (Read, Edit, Write, non-git-commit/push Bash) are never gated. The gate plugin is
+registered `failure_policy = "fail-open"` to prevent self-lock: if the gate itself cannot
+complete, the dispatch proceeds rather than creating an unconditional deadlock (ADR-047
+§Decision 4 rationale).
 
 ## Preconditions
 
@@ -66,26 +73,92 @@ rather than creating an unconditional deadlock (ADR-047 §Decision 4 rationale).
    - The manual escape hatch: `rm .factory/unvalidated-mutation.marker`.
 
 2. **Marker exists + git commit/push command → Bash dispatch blocked (Arm 2).** When
-   `.factory/unvalidated-mutation.marker` exists AND a Bash PreToolUse dispatch's `command`
-   parameter identifies `commit` or `push` as the git **subcommand** — that is, the first
-   non-option token after `git`, where git-global options (`-C <path>`, `-c <cfg>`,
-   `--namespace <ns>`, `--no-pager`, `--git-dir`, etc.) between `git` and the subcommand are
-   tolerated (**exact-subcommand matching**) — the `validate-unvalidated-mutation-marker-git`
-   registration fires and returns `exit_code = 2` (block). Note: the shorthand regex
-   `\bgit\b.*\b(commit\|push)\b` approximates but is NOT the authoritative rule — it
-   false-positives on `git commit-graph write` because the hyphen in `commit-graph` is a word
-   boundary (`\W`), making `\bcommit\b` match inside a different subcommand. The authoritative
-   rule is exact-subcommand matching (`is_git_commit_or_push`). The block message contains the
-   same recovery information as Arm 1 (plugin_name, artifact_path, cause, recovery command,
-   manual escape hatch).
-   Command filter MUST match:
-   - `git commit -m "..."`, `git commit --amend`, `git commit --no-edit`, etc.
-   - `git -C .factory commit -m "state"`, `git -c user.email=x push origin main` (global options tolerated).
-   - `git push origin factory-artifacts`, `git push --force-with-lease`, etc.
-   Command filter MUST NOT match (PC3):
-   - `git status`, `git log`, `git diff`, `git fetch`, `git pull`, `git rebase`, `git stash`, etc.
-   - `git commit-graph write` — subcommand is `commit-graph`, not `commit`; a maintenance command, NOT state-advancing.
-   - Any non-`git` Bash command.
+   `.factory/unvalidated-mutation.marker` exists AND `is_git_commit_or_push(command)` returns
+   `true`, the `validate-unvalidated-mutation-marker-git` registration fires and returns
+   `exit_code = 2` (block). The block message contains the same recovery information as Arm 1
+   (plugin_name, artifact_path, cause, recovery command, manual escape hatch).
+
+   **`is_git_commit_or_push(command) → bool` — Authoritative Algorithm (v1.2):**
+
+   The function is a production-grade security filter. Under-blocking is the dangerous failure
+   mode; the algorithm is fail-safe on ambiguity.
+
+   **Phase 1 — Compound command splitting.** Split `command` on the shell operators `&&`,
+   `||`, `;`, `|`, `&`, and newline (`\n`) into segments. Trim leading and trailing whitespace
+   from each segment. Apply Phases 2–4 to **each** segment independently. Return `true` if
+   **any** segment returns `true`.
+
+   **Phase 2 — Executable identification by basename.** For each segment:
+   a. Strip any leading env-var assignment tokens (tokens matching the pattern
+      `^[A-Za-z_][A-Za-z0-9_]*=`) and the leading literal token `env` if it is the first
+      token. These are environment-setup prefixes, not the executable.
+   b. The first remaining token is the executable. Compute `basename` by stripping all
+      characters up to and including the last `/`. Examples: `basename("/usr/bin/git") = "git"`,
+      `basename("./git") = "git"`, `basename("git") = "git"`.
+   c. If `basename(executable_token) ≠ "git"` (case-sensitive), return `false` for this
+      segment.
+
+   **Phase 3 — Skip global options.** Scan subsequent tokens after the `git` executable:
+
+   - **Token is `--`:** end-of-options marker; stop Phase 3; the next token is the subcommand.
+   - **Token starts with `-` AND contains `=`:** inline option with embedded value
+     (e.g., `--git-dir=.git`, `-c foo=bar`, `--exec-path=/usr/lib/git-core`); skip this
+     token only — does NOT consume the next token.
+   - **Token matches a recognized arg-taking option (separate-token argument):** skip this
+     token AND the immediately following token. The **complete** recognized arg-taking set is:
+
+     | Token | Argument consumed |
+     |-------|-------------------|
+     | `-C` | next token (working-directory path) |
+     | `-c` | next token (name=value config pair) |
+     | `--namespace` | next token (namespace string) |
+     | `--git-dir` | next token (repository path) |
+     | `--work-tree` | next token (working-tree path) |
+     | `--super-prefix` | next token (super-project prefix path) |
+     | `--config-env` | next token (name=envvar pair) |
+
+     Note: `--exec-path` does NOT consume a separate token. It appears as `--exec-path`
+     (standalone no-arg form, prints exec path) or `--exec-path=<path>` (inline form, covered
+     by the inline-option rule above). There is no valid `git --exec-path <space> <path>`
+     invocation in any released git version; treat `--exec-path` as no-arg.
+
+   - **Token matches a recognized no-arg option:** skip this token only. The recognized no-arg
+     set: `--no-pager`, `--paginate`, `-p`, `--bare`, `--literal-pathspecs`,
+     `--no-literal-pathspecs`, `--glob-pathspecs`, `--noglob-pathspecs`, `--icase-pathspecs`,
+     `--no-replace-objects`, `--no-optional-locks`, `--exec-path`, `--html-path`, `--man-path`,
+     `--info-path`, `--version`, `--help`, `-v`.
+   - **Token starts with `-` AND is NOT matched by any of the above rules:** **fail-safe —
+     return `true` (block).** An unrecognized option's arity cannot be determined from the
+     closed recognized set; the subcommand position is uncertain. Since this is
+     security-critical gate infrastructure where under-blocking is the dangerous failure mode,
+     the conservative posture treats any command with an unrecognized flag as gated.
+   - **Token does NOT start with `-`:** proceed to Phase 4 with this token as the candidate
+     subcommand.
+
+   **Phase 4 — Subcommand match.** Return `true` iff the candidate subcommand token is
+   exactly `commit` or `push` (case-sensitive, full-token match). Return `false` for
+   `commit-graph`, `commit-tree`, `push-pack`, or any other token that merely contains
+   `commit` or `push` as a substring or prefix.
+
+   **Command filter MUST match (non-exhaustive examples):**
+   - `git commit -m "..."`, `git commit --amend`, `git commit --no-edit`
+   - `git -C .factory commit -m "state"`, `git -c user.email=x push origin main`
+   - `git push origin factory-artifacts`, `git push --force-with-lease`
+   - `git --git-dir .git commit -m "state"`, `git --work-tree /tmp push`
+   - `git status && git commit -m "x"`, `git diff ; git push`
+   - `/usr/bin/git commit -m "init"`, `./git push origin main`
+   - `env GIT_DIR=.git git commit -m "x"`
+
+   **Command filter MUST NOT match:**
+   - `git status`, `git log`, `git diff`, `git fetch`, `git pull`, `git rebase`, `git stash`
+   - `git commit-graph write` — subcommand is `commit-graph`, not `commit`
+   - `git status && git log --oneline` — no segment resolves to `commit` or `push`
+   - `cat gitfile`, `grep git` — `basename(executable) ≠ "git"`
+
+   Note: the illustrative regex `\bgit\b.*\b(commit\|push)\b` approximates but is NOT the
+   authoritative rule — it false-positives on `git commit-graph write` (EC-011), cannot handle
+   compound commands (EC-015, EC-016), and does not enforce basename matching (EC-017, EC-018).
+   The three-phase algorithm above is the sole authoritative specification.
 
 3. **Non-advancing dispatches are NOT gated.** The following dispatches proceed unconditionally
    regardless of marker state:
@@ -150,6 +223,17 @@ rather than creating an unconditional deadlock (ADR-047 §Decision 4 rationale).
 | EC-010 | Marker absent; `git commit -m "fix"` Bash dispatch | NOT blocked. Arm 2 returns exit_code=0 immediately (marker absent check). |
 | EC-011 | Marker present; `git commit-graph write` Bash dispatch | NOT blocked. The git subcommand is `commit-graph`, not `commit`. Exact-subcommand matching correctly excludes this maintenance command. Note: the illustrative regex `\bgit\b.*\b(commit\|push)\b` would false-positive here because the hyphen before `graph` is a word boundary, making `\bcommit\b` match inside `commit-graph` — this is precisely why the regex is NOT the authoritative rule (see PC2 v1.1 clarification). |
 | EC-012 | Marker present; `git -C .factory commit -m "state"` Bash dispatch | BLOCKED. The git global option `-C .factory` is tolerated; the subcommand (first non-option token after `git` + global opts) is `commit`. Exact-subcommand matching fires. |
+| EC-013 | Marker present; `git --git-dir .git commit -m "state"` Bash dispatch | BLOCKED. `--git-dir` is in the recognized arg-taking set; `.git` is consumed as its separate-token argument. The first remaining positional token is `commit`. Exact-subcommand match fires. |
+| EC-014 | Marker present; `git --work-tree /tmp push` Bash dispatch | BLOCKED. `--work-tree` is in the recognized arg-taking set; `/tmp` is consumed as its argument. The first remaining positional token is `push`. Exact-subcommand match fires. |
+| EC-015 | Marker present; `git status && git commit -m "x"` Bash dispatch | BLOCKED. Phase 1 splits on `&&`: segment 1 = `git status` (subcommand `status`, not gated); segment 2 = `git commit -m "x"` (subcommand `commit`, gated). Any-segment `true` → function returns `true`. |
+| EC-016 | Marker present; `git diff ; git push` Bash dispatch | BLOCKED. Phase 1 splits on `;`: segment 1 = `git diff` (subcommand `diff`, not gated); segment 2 = `git push` (subcommand `push`, gated). |
+| EC-017 | Marker present; `/usr/bin/git commit -m "init"` Bash dispatch | BLOCKED. Phase 2: `basename("/usr/bin/git") = "git"`. Subcommand is `commit`. |
+| EC-018 | Marker present; `./git push origin main` Bash dispatch | BLOCKED. Phase 2: `basename("./git") = "git"`. Subcommand is `push`. |
+| EC-019 | Marker present; `git status && git log --oneline` Bash dispatch | NOT blocked. Phase 1 splits on `&&`: segment 1 subcommand = `status`; segment 2 subcommand = `log`. No segment matches `commit` or `push`; returns `false`. |
+| EC-020 | Marker present; `cat gitfile` Bash dispatch | NOT blocked. Phase 2: `basename("cat") = "cat" ≠ "git"`. Returns `false` for this segment. |
+| EC-021 | Marker present; `env GIT_DIR=.git git commit -m "msg"` Bash dispatch | BLOCKED. Phase 2 strips leading literal token `env` and env-var assignment token `GIT_DIR=.git`. Executable is `git`. Subcommand is `commit`. |
+| EC-022 | Marker present; `git --unknown-flag commit` Bash dispatch | BLOCKED. Phase 3: `--unknown-flag` is not in the recognized arg-taking or no-arg sets and does not contain `=`. Fail-safe posture: return `true` (block). Subcommand position cannot be determined with certainty from the closed recognized set. |
+| EC-023 | Marker present; `git --config-env FOO=BAR commit` Bash dispatch | BLOCKED. `--config-env` is in the recognized arg-taking set; `FOO=BAR` is consumed as its argument. The first remaining positional token is `commit`. |
 
 ## Canonical Test Vectors
 
@@ -170,6 +254,16 @@ rather than creating an unconditional deadlock (ADR-047 §Decision 4 rationale).
 | Marker deleted (rm) | `^Agent$` dispatch | Allow — marker absent after rm (BC-1.18.003 PC3) |
 | Exists | Bash `git commit-graph write` | Allow (exit_code=0) — not gated; subcommand is `commit-graph`, not `commit` (EC-011) |
 | Exists | Bash `git -C .factory commit -m "fix"` | Block (exit_code=2) — Arm 2; global option `-C` tolerated, subcommand is `commit` (EC-012) |
+| Exists | Bash `git --git-dir .git commit -m "state"` | Block (exit_code=2) — Arm 2; `--git-dir` arg-taking, `.git` consumed as arg, subcommand `commit` (EC-013) |
+| Exists | Bash `git --work-tree /tmp push` | Block (exit_code=2) — Arm 2; `--work-tree` arg-taking, `/tmp` consumed as arg, subcommand `push` (EC-014) |
+| Exists | Bash `git status && git commit -m "x"` | Block (exit_code=2) — Arm 2; compound split on `&&`, second segment subcommand `commit` (EC-015) |
+| Exists | Bash `git diff ; git push` | Block (exit_code=2) — Arm 2; compound split on `;`, second segment subcommand `push` (EC-016) |
+| Exists | Bash `/usr/bin/git commit -m "init"` | Block (exit_code=2) — Arm 2; basename `/usr/bin/git` → `git`, subcommand `commit` (EC-017) |
+| Exists | Bash `./git push origin main` | Block (exit_code=2) — Arm 2; basename `./git` → `git`, subcommand `push` (EC-018) |
+| Exists | Bash `git status && git log --oneline` | Allow (exit_code=0) — no segment subcommand is `commit` or `push` (EC-019) |
+| Exists | Bash `cat gitfile` | Allow (exit_code=0) — basename `cat` ≠ `git` (EC-020) |
+| Exists | Bash `env GIT_DIR=.git git commit -m "x"` | Block (exit_code=2) — Arm 2; env prefix stripped, executable `git`, subcommand `commit` (EC-021) |
+| Exists | Bash `git --unknown-flag commit` | Block (exit_code=2) — Arm 2; fail-safe on unrecognized option, subcommand position uncertain (EC-022) |
 
 ## Related BCs
 
@@ -198,7 +292,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 | VP-105 | Marker exists → Agent dispatch blocked (Arm 1, exit_code=2); marker absent → Agent dispatch allowed (Arm 1); manual rm unblocks; Edit not gated (PC3) | integration (bats) |
 | VP-105 | Marker exists + git commit Bash → blocked (Arm 2); marker absent + git commit → allowed; git status not gated even when marker exists (PC3) | integration (bats) |
 | VP-105 | guard_logic::evaluate_gate: marker present → BlockDispatch; marker absent → Allow; read-error → Allow (fail-open) | unit-test |
-| VP-105 | guard_logic::is_git_commit_or_push: `commit`/`push` subcommands match; `status`/`log`/`diff`/`fetch`/`commit-graph` do NOT match; global-option forms (`-C <path>`, `-c <cfg>`, `--namespace`) before `commit`/`push` DO match | unit-test |
+| VP-105 | guard_logic::is_git_commit_or_push (v1.2 algorithm): (1) exact subcommand — `commit`/`push` match; `status`/`log`/`diff`/`fetch`/`commit-graph` do NOT match; (2) complete arg-taking option set — each of `-C`, `-c`, `--namespace`, `--git-dir`, `--work-tree`, `--super-prefix`, `--config-env` skips its following separate-token argument before subcommand identification; (3) compound splitting — `&&`, `\|\|`, `;`, `\|`, `&`, newline each split the command into independent segments; any-segment `true` returns `true`; (4) basename matching — `/usr/bin/git commit` → blocked, `./git push` → blocked, `env GIT_DIR=x git commit` → blocked, `cat gitfile` → NOT blocked; (5) fail-safe on unrecognized options — `git --unknown-flag commit` → blocked (subcommand position uncertain) | unit-test |
 
 ## Traceability
 
@@ -217,5 +311,6 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.2 | 2026-08-31 | product-owner | Senior-architect gate expansion: production-grade security filter closing three adversary-identified under-blocking classes. (1) Incomplete arg-taking set (adversary HIGH): defined the complete seven-option arg-taking set (`-C`, `-c`, `--namespace`, `--git-dir`, `--work-tree`, `--super-prefix`, `--config-env`) with explicit no-arg list and fail-safe posture for unrecognized options. (2) Compound commands (adversary LOW-1): Phase 1 compound splitting on `&&`, `\|\|`, `;`, `\|`, `&`, newline — any-segment match returns true. (3) Path-prefixed/basename git (adversary LOW-2): Phase 2 basename identification strips leading path components; `env VAR=x` prefix stripped. Added EC-013 through EC-023 and 10 new canonical test vectors. Updated VP-105 unit-test property row. ADR-047 §Decision 9. |
 | 1.1 | 2026-08-31 | product-owner | Spec adjudication: clarify Arm 2 command filter from illustrative regex to authoritative exact-subcommand matching. The regex `\bgit\b.*\b(commit\|push)\b` false-positives on `git commit-graph write` (hyphen is a word boundary, making `\bcommit\b` match inside `commit-graph`). Authoritative rule: `is_git_commit_or_push(command)` identifies the git subcommand (first non-option token after `git` + global options) and returns true iff it is exactly `commit` or `push`. Added EC-011 (`git commit-graph write` → NOT blocked), EC-012 (`git -C path commit` → blocked), two canonical test vector rows, and updated VP-105 unit-test property to name `commit-graph` as a NOT-matched case. Updated `modified[]` frontmatter. |
 | 1.0 | 2026-08-30 | product-owner | Initial creation. F2 spec-evolution burst, validation-integrity-layer1. BC-1.18.002: two-arm gate (Agent + git commit/push Bash), PC1-PC4 full coverage, Arm 2 command-pattern matching, fail-open gate posture, self-lock-hazard invariant. D9 human ratification (extended gate scope) reflected. VP-105 anchored. CAP-041 capability anchor. ADR-047 §D4/D9/D5 citations. |

@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-31T06:48:52Z","command":"cargo test -p validate-unvalidated-mutation-marker -- --nocapture 2>&1"}
+{"status":"pass","timestamp":"2026-08-31T14:19:02Z","command":"echo \"=== plugin unit tests (incl 22 canonical vectors) ===\" && cargo test -p validate-unvalidated-mutation-marker 2>&1 | tail -15 && echo && echo \"=== clippy on plugin + dispatcher ===\" && cargo clippy -p validate-unvalidated-mutation-marker -p factory-dispatcher --all-targets -- -D warnings 2>&1 | tail -8"}
