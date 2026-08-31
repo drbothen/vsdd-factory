@@ -1,7 +1,7 @@
 ---
 document_type: adr
 adr_id: ADR-048
-version: "1.0"
+version: "1.1"
 title: "ADR-048: Fail-Closed-But-Recoverable Gate — block_if_marker Crash Policy, Marker TTL Deadman, and Ungated-Escape Invariant"
 status: proposed
 date: 2026-08-31
@@ -15,8 +15,9 @@ supersedes: ADR-047
 superseded_by: null
 extends: ADR-047
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
-last_amended: "2026-08-31 (v1.0) — Initial authoring. Human-directed gate redesign reversing D-1135 fail-open-on-crash ratification."
+last_amended: "2026-08-31 (v1.1) — Human-directed (HIGH-1 resolution): §Decision 3 amended — recovery model reframed (re-validation = primary agent recovery; human out-of-band rm = break-glass; agent-tool rm de-sanctioned; shared-crate fix rejected as unnecessary + unsound per Rice's theorem); §Decision 4 added — marker.cleared audited event (clear_mode ∈ {REVALIDATED,TTL_EXPIRED,OPERATOR_OVERRIDE}; trace_id linkage; RAW_DELETE_DETECTED reconciliation mode) + TTL-loudness. [v1.0 — Initial authoring. Human-directed gate redesign reversing D-1135 fail-open-on-crash ratification.]"
 modified:
+  - "2026-08-31 (v1.1) — §D3 recovery model reframe + §D4 audited clear event + TTL-loudness (HIGH-1 resolution)"
   - "2026-08-31 (v1.0) — Initial authoring"
 ---
 
@@ -29,6 +30,15 @@ modified:
 ## Status
 
 **PROPOSED — Awaiting human ratification.**
+
+**v1.1 amendment (2026-08-31 — HIGH-1 resolution):** §Decision 3 recovery model reframed: re-
+validation via Edit/Write elevated as primary sanctioned agent recovery (T1 — inherently ungated);
+human out-of-band `rm` formalized as break-glass (T3 — never intercepted); agent-tool `rm` de-
+sanctioned (crash-path blockage ACCEPTABLE — not INV6 violation; agent's real recovery unaffected);
+shared-crate/native `rm`-filter rejected as unnecessary + unsound (Rice's theorem; same undecidable
+class as BC-1.18.002 §out-of-scope). §Decision 4 added: `marker.cleared` audited event
+(REVALIDATED / TTL_EXPIRED / OPERATOR_OVERRIDE) + TTL-loudness (emit `marker.cleared(TTL_EXPIRED)`
+on auto-delete, replacing silent clear). Nine-event dispatcher domain model (BC-3.08.001).
 
 Human-directed redesign (2026-08-31): reverse D-1135 fail-open-on-crash ratification and replace
 with fail-closed-but-recoverable design for the S-25.01 unvalidated-mutation next-advance gate.
@@ -267,61 +277,252 @@ The `expires_at` field is additional TOML content in the same single marker file
 on marker overwrite (existing semantics) means the new `expires_at` field is always written with
 the latest event's timestamp, so the TTL always runs from the most recent INDETERMINATE event.
 
-### Decision 3 — Ungated-Escape Invariant
+### Decision 3 — Ungated-Escape Invariant (amended v1.1 — Recovery Model and Recoverability Tiers)
 
-**The three recovery operations MUST NEVER be gated by the `validate-unvalidated-mutation-marker`
-PreToolUse gate plugin (either arm):**
+**(v1.1 amendment)** The prior v1.0 formulation classified agent-tool `rm` as an ungated escape
+path (path (i)). Crash-path analysis reveals this claim does not hold under `on_error =
+"block_if_marker"`: on a gate-plugin crash, the dispatcher's native `block_if_marker_check` runs
+for ALL `^Bash$` dispatches — including a Bash `rm` of the marker — and blocks if the marker is
+present and non-expired. Prior-art alignment (circuit-breaker reset, EDR Restore, Google
+break-glass, GitLab dequarantine, NIST AU/AC, LOTO/e-stop) establishes that the controlled agent
+must NOT hold an unmediated, unaudited path to erase its own constraint; recovery comes from
+independent RE-VALIDATION, an authenticated HUMAN override, or a TIMEOUT. The recovery model is
+reframed accordingly.
 
-**(i) `rm .factory/unvalidated-mutation.marker` is ungated.**
+**Four-tier recovery model:**
 
-This is a Bash dispatch. The Arm 2 filter (`is_git_commit_or_push`, BC-1.18.002 PC2 v1.3
-algorithm) evaluates the command:
+| Tier | Actor | Mechanism | Gate status |
+|------|-------|-----------|-------------|
+| **T1 — Primary agent recovery** | Agent | Re-validate artifact via Edit/Write → gate plugin PASSes → `delete_marker_if_pass` clears marker | **Inherently ungated:** Edit/Write match neither `^Agent$` nor `^Bash$`; no arm fires; crash-path native check not invoked. Holds even through a gate-plugin crash. |
+| **T2 — Passive recovery** | Deadman | Wait 24h; marker TTL expires → treated as absent on next gate eval | **No dispatch needed.** TTL self-heals unconditionally; `marker.cleared(TTL_EXPIRED)` emitted (Decision 4). |
+| **T3 — Human out-of-band recovery** | Operator | `rm .factory/unvalidated-mutation.marker` in the operator's own terminal | **Never intercepted.** PreToolUse gate only intercepts agent tool calls; the human's shell is not mediated by the dispatcher. |
+| **T4 — Agent-tool `rm` (de-sanctioned)** | Agent | `Bash(rm .factory/unvalidated-mutation.marker)` via dispatcher | **NOT sanctioned; may be blocked on crash path.** Not a recovery path the invariant relies upon; see "Agent-tool rm de-sanctioned" below. |
+
+**T1 — Re-validation is the primary sanctioned agent recovery.**
+
+When the agent re-writes or re-validates the artifact that triggered the INDETERMINATE event (via
+Edit or Write → gate plugin's `evaluate_gate` PASSes with exit_code=0 → `delete_marker_if_pass`
+removes the marker file), this path is INHERENTLY ungated:
+
+- Edit and Write tool calls are neither `^Agent$` nor `^Bash$`.
+- Arm 1 tool filter (`^Agent$`) does not match Edit/Write.
+- Arm 2 tool filter (`^Bash$`) does not match Edit/Write.
+- The crash-path native `block_if_marker_check` runs only when a matched arm's plugin crashes.
+  Since no arm matches Edit/Write, the crash check never runs for Edit/Write dispatches.
+
+This is invariant to: (a) the gate plugin's crash behavior; (b) the marker's presence or expiry
+state; (c) any `on_error` value on any arm. A future refactor breaks this ONLY by adding Edit or
+Write to a gate arm's tool pattern — which VP-107 explicitly verifies will not occur.
+
+**(Reaffirmed — BC-1.18.002 PC3):** Non-advancing dispatches are NOT gated per BC-1.18.002 PC3
+and ADR-047 §Decision 4. Edit and Write tool dispatches do not match either arm's `tool` pattern.
+Confirmed ungated by construction — now formalized as the PRIMARY agent recovery path.
+
+**T2 — TTL deadman.**
+
+After `UNVALIDATED_MUTATION_MARKER_TTL_SECONDS` (86400) seconds have elapsed, any gate evaluation
+treats the marker as absent and allows the dispatch. No operator action required. The
+`marker.cleared(TTL_EXPIRED)` event is emitted on auto-delete (Decision 4 — TTL-loudness).
+Confirmed ungated — no dispatch needed to trigger TTL expiry.
+
+**T3 — Human out-of-band rm.**
+
+The PreToolUse hook chain is invoked only when the AI agent calls a tool through the dispatcher.
+A terminal `rm` executed by the human operator in their own shell is not a dispatcher-mediated
+agent tool call and is never intercepted by the hook chain. This is the break-glass pattern: the
+human principal, acting outside the mediation boundary, retains unconditional filesystem access.
+The `marker.cleared(OPERATOR_OVERRIDE)` event is reconciled retrospectively via RAW_DELETE_DETECTED
+(Decision 4). Confirmed ungated — human shell is outside dispatcher mediation.
+
+**Agent-tool rm de-sanctioned:**
+
+The v1.0 §Decision 3(i) analyzed agent-tool `rm` via the Arm 2 `is_git_commit_or_push` filter:
+
 - Phase 1: no shell operators; single segment.
 - Phase 1b: tokenize → `["rm", ".factory/unvalidated-mutation.marker"]`.
 - Phase 2: executable = `rm`; `basename("rm") = "rm" != "git"` → return `false`.
 
-`is_git_commit_or_push` returns `false` → Arm 2 does NOT gate this dispatch.
-Arm 1 only fires on `^Agent$` dispatches; a Bash `rm` dispatch is not `^Agent$` → Arm 1 does NOT
-gate this dispatch. Confirmed ungated by construction.
+`is_git_commit_or_push` returns `false` → Arm 2 plugin does NOT gate `rm` on the **normal path**.
+This analysis remains correct for the non-crash path.
 
-**(ii) Re-validation (Edit or Write to the artifact that triggered INDETERMINATE) is ungated.**
+On the **crash path** (`on_error = "block_if_marker"`): when the `^Bash$` gate plugin crashes, the
+dispatcher's native `block_if_marker_check` runs for EVERY `^Bash$` dispatch — including
+`rm .factory/unvalidated-mutation.marker`. The native check has no `is_git_commit_or_push` filter.
+If the marker is present and non-expired, the native check BLOCKS the `rm` dispatch.
 
-Edit and Write tool dispatches are NOT gated per BC-1.18.002 PC3 ("Non-advancing dispatches are
-NOT gated") and ADR-047 §Decision 4 ("Read, Edit, Write, MultiEdit, and non-git-commit/push Bash
-dispatches are NOT gated"). The gate is PreToolUse on `^Agent$` and `^Bash$` tools only; Edit
-and Write tools do not match either arm's `tool` pattern. Confirmed ungated by construction.
+**CONSEQUENCE:** The crash path blocking the agent's Bash `rm` is ACCEPTABLE — NOT an INV6
+violation. Reasoning:
 
-**(iii) TTL auto-expiry requires no dispatch at all.**
+1. The agent's primary recovery (T1 — re-validation via Edit/Write) is GENUINELY UNGATED even
+   during a gate-plugin crash. The agent can always recover without `rm`.
+2. A command-filter to whitelist `rm` in the crash handler is UNSOUND (see "Shared-crate fix
+   rejected" below) and UNNECESSARY given T1.
+3. On the crash path, blocking is the conservative-correct default: gate crashing while a marker
+   is present is an anomalous condition; allowing the agent to erase its own constraint in this
+   state would be a CWE-636 regression.
 
-After `UNVALIDATED_MUTATION_MARKER_TTL_SECONDS` (86400) seconds have elapsed since the
-INDETERMINATE event, any subsequent gate evaluation (normal path or native crash-path check) will
-treat the marker as absent and allow the dispatch. The operator need not take any action; the
-system self-heals. Confirmed ungated — no dispatch is required.
+**Shared-crate fix rejected:**
+
+A proposed mitigation was a shared-crate or native command-filter whitelisting
+`rm .factory/unvalidated-mutation.marker` in the `block_if_marker` crash handler. REJECTED as
+UNNECESSARY AND UNSOUND:
+
+- **Unnecessary:** T1 (re-validation via Edit/Write) provides the agent's genuine ungated recovery.
+  No second agent-tool escape path is needed.
+- **Unsound per Rice's theorem:** Any command-filter classifying "this Bash dispatch deletes the
+  marker" is undecidable in the general case. `mv .factory/unvalidated-mutation.marker /tmp/x`,
+  `truncate -s 0 .factory/unvalidated-mutation.marker`, `python -c "import os;
+  os.remove('.factory/unvalidated-mutation.marker')"` all neutralize the marker but evade an
+  `rm`-specific filter. The same undecidable class is documented in BC-1.18.002 §out-of-scope and
+  already accepted as out of scope for the `is_git_commit_or_push` filter.
+- **Unnecessary surface expansion:** command-filter logic in the crash handler adds complexity to
+  a security-critical codepath with no commensurate benefit.
+
+**Recoverability invariant (three independent paths):**
+
+T1, T2, and T3 provide three independent, complementary recovery paths not susceptible to the
+same failure mode:
+
+- T1 (re-validation) fails only if the artifact itself is irrecoverable (pathological).
+- T2 (TTL) fails only if the system clock is broken (pathological).
+- T3 (human rm) fails only if the operator cannot access the filesystem (outside the threat model
+  for a single-operator factory).
+
+No single failure mode can disable all three paths. The gate cannot create an irrecoverable state.
+
+**VP-107 scope (amended):**
+
+VP-107 is amended to verify T1: the Edit/Write tool dispatch does NOT match either gate arm's tool
+pattern (`^Agent$`, `^Bash$`). VP-107 does NOT verify "rm is never gated" (that claim is de-
+sanctioned). T3 is verified by architectural argument (human shell outside dispatcher mediation).
+T2 is covered by the TTL invariant test (Decision 2 + Decision 4 TTL-loudness).
 
 **Why formalize this as an invariant?** Decision 1 tightens the gate's crash behavior. A future
-refactor that (a) moved Edit/Write dispatches into the gate's tool pattern, or (b) expanded Arm 2's
-command filter to match `rm`, would silently break recoverability. The ungated-escape invariant
-provides an explicit design constraint: any change to the gate's `tool` pattern or command filter
-MUST verify that all three escape paths remain ungated after the change. This must be verified by
-VP-107 (new verification property to be authored by PO and test-writer; see Consequences).
+refactor that added Edit/Write to a gate arm's tool pattern would silently break T1 recoverability.
+The recoverability invariant provides an explicit design constraint: any change to the gate's
+`tool` pattern MUST verify that T1 (Edit/Write ungated) remains intact after the change.
 
-**Net safety argument:**
-
-The fail-closed-but-recoverable design achieves the following safety profile:
+**Net safety argument (updated):**
 
 | Scenario | block_if_marker | TTL | Recoverability |
 |----------|-----------------|-----|---------------|
-| Gate crash, no marker | Allow | N/A | N/A (no quarantine signal) |
-| Gate crash, marker + non-expired | **Block** (fail-closed) | Expires ≤24h | (a) rm; (b) Edit/Write to re-validate; (c) TTL |
+| Gate crash, no marker | Allow | N/A | N/A |
+| Gate crash, marker + non-expired | **Block** (fail-closed) | Expires ≤24h | T1 (Edit/Write); T2 (TTL); T3 (human rm) |
 | Gate crash, marker + TTL expired | Allow | Self-healed | N/A |
 | Normal path, no marker | Allow | N/A | N/A |
-| Normal path, marker + non-expired | **Block** (plugin exit_code=2) | Expires ≤24h | (a) rm; (b) re-validate; (c) wait |
-| Normal path, marker + TTL expired | Allow (plugin auto-deletes) | Self-healed | N/A |
+| Normal path, marker + non-expired | **Block** (plugin exit_code=2) | Expires ≤24h | T1; T2; T3 |
+| Normal path, marker + TTL expired | Allow (plugin auto-deletes; `marker.cleared(TTL_EXPIRED)` emitted) | Self-healed | N/A |
+| Crash path + agent-tool rm with marker present | **Block** (acceptable; not INV6) | Expires ≤24h | T1; T2; T3 |
 
-The ONLY allow-on-failure case is crash-with-no-marker (or crash with expired marker), which
-enforces nothing because there is no quarantine signal. Every real (non-expired) quarantine signal
-is enforced even through plugin crashes. Three independent recoverability guarantees ensure the
-system is never in an irrecoverable state.
+The ONLY allow-on-failure cases are crash-with-no-marker and crash-with-expired-marker, which
+enforce nothing because there is no valid quarantine signal. Every real (non-expired) quarantine
+signal is enforced even through plugin crashes. Three independent recoverability guarantees
+(T1/T2/T3) ensure the system is never in an irrecoverable state.
+
+### Decision 4 — Audited Clear Event `marker.cleared` + TTL-Loudness
+
+Marker clearance is a security-relevant access-control state change: it transitions the gate from
+BLOCKING to ALLOWING. NIST AU-3/AU-9/AU-10 and PCI-DSS 10.2 require that every such state change
+be audit-logged with sufficient detail for incident investigation. The three clear paths
+(re-validation, TTL-expiry, operator override) were previously silent — no event record was emitted
+when the marker was cleared. This decision adds the `marker.cleared` event to the dispatcher's
+domain event set (BC-3.08.001) and requires that TTL auto-delete emit an audited event.
+
+**Event field contract:**
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `type` | literal `"marker.cleared"` | YES | Domain event discriminant |
+| `clear_mode` | enum | YES | `REVALIDATED` \| `TTL_EXPIRED` \| `OPERATOR_OVERRIDE` |
+| `actor_type` | enum | YES | `validator` \| `deadman` \| `operator` |
+| `trace_id` | string | YES | Must match `trace_id` of the originating `plugin.indeterminate` event |
+| `plugin_name` | string | YES | From marker TOML `plugin_name` field |
+| `artifact_path` | string | YES | From marker TOML `artifact_path` field |
+| `reason` | string | Conditional | Mandatory when `clear_mode = "OPERATOR_OVERRIDE"`; `null` or omitted otherwise |
+| `timestamp` | ISO-8601 UTC | YES | Time of the clear event (not the original INDETERMINATE event) |
+
+**clear_mode values and emission points:**
+
+| `clear_mode` | `actor_type` | Trigger | Emission point |
+|---|---|---|---|
+| `REVALIDATED` | `validator` | `evaluate_gate` returns exit_code=0 while marker is present → `delete_marker_if_pass` removes marker file | Emit from `delete_marker_if_pass`, immediately after `std::fs::remove_file(marker_path)` succeeds |
+| `TTL_EXPIRED` | `deadman` | `evaluate_gate` finds `expires_at ≤ now` → treats marker as absent → auto-deletes marker file | Emit from the plugin's TTL-check branch, immediately after auto-delete |
+| `OPERATOR_OVERRIDE` | `operator` | Human operator clears marker via T3 (out-of-band `rm` in operator shell); not mediated by dispatcher | Emitted retroactively via RAW_DELETE_DETECTED reconciliation (see below) |
+
+**RAW_DELETE_DETECTED reconciliation for OPERATOR_OVERRIDE:**
+
+The T3 (human out-of-band `rm`) clear path is not mediated by the dispatcher. A real-time
+`marker.cleared(OPERATOR_OVERRIDE)` event cannot be emitted at the moment of deletion.
+Reconciliation: when the gate plugin evaluates and finds the marker absent, and the FileSink log
+contains an unmatched `plugin.indeterminate` for the same `(plugin_name, artifact_path)` with no
+corresponding `marker.cleared`, the plugin emits a retroactive `marker.cleared(OPERATOR_OVERRIDE)`
+with:
+
+- `reason = "RAW_DELETE_DETECTED: marker absent without prior marker.cleared event; inferred operator out-of-band clear"`
+- `timestamp` = current evaluation time (not the deletion time, which is unobservable)
+- `trace_id` = trace_id from the unmatched `plugin.indeterminate` event
+
+**Best-effort:** if the FileSink log is unavailable or the unmatched record cannot be found, the
+annotation is omitted — no hard failure. An unreconciled gap is observable by tooling that monitors
+the event stream for `plugin.indeterminate` events without subsequent `marker.cleared`.
+
+**Emission path:**
+
+`marker.cleared` events are emitted via the same FileSink/InternalLog path as `plugin.indeterminate`
+(BC-3.08.001 domain event catalog).
+
+**Event enumeration — nine-event dispatcher domain model:**
+
+ADR-048 §Decision 4 adds `marker.cleared` as the ninth domain event. Prior count (ADR-039 /
+BC-3.08.001): eight events. Downstream sweep REQUIRED (PO + test-writer + arch docs):
+
+| # | Event type | Source |
+|---|-----------|--------|
+| 1 | `plugin.completed` | ADR-039 |
+| 2 | `plugin.abandoned` | ADR-039 |
+| 3 | `plugin.timeout` | ADR-039 |
+| 4 | `plugin.log` | ADR-039 |
+| 5 | `plugin.crashed` | ADR-039 |
+| 6 | `plugin.indeterminate` | ADR-047 |
+| 7 | `plugin.fuel_exhausted` | ADR-039 |
+| 8 | `plugin.epoch_timeout` | ADR-039 |
+| 9 | `marker.cleared` | **ADR-048 §D4** |
+
+Every reference to "seven dispatcher events" or "eight dispatcher events" in BC-3.08.001, story
+tests, and architecture docs MUST be updated to "nine dispatcher events." Specific downstream flags
+(see Consequences).
+
+**Proportionality rationale:**
+
+The cooperating-agent threat model (VSDD baseline) does not include adversarial agents forging or
+deleting audit records. The primary threat is accidental silent state change. A durable
+append-only FileSink event is proportionate:
+
+- **Signed digests:** rejected — requires key management infrastructure; disproportionate for a
+  single-operator factory under cooperating-agent threat model.
+- **Dual-control:** rejected — requires a second human principal; factory operates under single-
+  operator model during a VSDD run.
+
+GitHub branch-protection and the `factory-artifacts` append-only worktree provide tamper-evidence
+at the VCS layer, which is sufficient for this threat model.
+
+**TTL-loudness:**
+
+Decision 2 (TTL deadman) specified that when `evaluate_gate` finds `expires_at ≤ now`, it treats
+the marker as absent and auto-deletes. Prior to ADR-048 v1.1, this auto-delete was SILENT.
+TTL-loudness requires that `marker.cleared(TTL_EXPIRED)` be emitted EVERY time the auto-delete
+fires.
+
+The clear-and-advance-on-expiry SEMANTICS are UNCHANGED: a TTL-expired marker is treated as absent
+and the dispatch proceeds — no re-validation probe is triggered. The only change is the addition
+of the audited `marker.cleared(TTL_EXPIRED)` emission. Silent TTL clear was acceptable only
+because the marker is defense-in-depth, not the sole authority; the v1.1 posture is "defense-in-
+depth allows AUDITED TTL clear," which is strictly stronger.
+
+Note: the dispatcher's NATIVE crash-path TTL check (Decision 1 — crash + marker + expired → Allow)
+does NOT auto-delete the marker (crash handler kept simple). The TTL-loudness requirement applies
+only to the gate PLUGIN's normal-path TTL auto-delete. A crash-path TTL allow does NOT emit
+`marker.cleared(TTL_EXPIRED)` — the marker remains for the next normal plugin execution to clear.
 
 ---
 
@@ -359,6 +560,37 @@ D-1135 correctly avoided unconditional self-lock. It erred in treating both cras
 ADR-048 splits the policy: `"block_if_marker"` preserves the no-marker allow while adding the
 marker-conditional block. It is a targeted correction, not a rejection of D-1135's core insight.
 
+### Why re-validation is the primary sanctioned agent recovery (v1.1)
+
+Prior-art patterns (circuit-breaker reset, EDR Restore, Google break-glass, NIST AU/AC, LOTO/
+e-stop) share a common principle: a controlled agent must not hold an unmediated, unaudited path
+to erase its own constraint. Recovery must come from independent RE-VALIDATION (prove the
+constraint is satisfied), an authenticated HUMAN override, or a TIMEOUT:
+
+- **Re-validation (T1):** recovery by demonstration. The agent proves the unsafe condition no
+  longer holds by re-validating the artifact. Inherently self-auditing — the same gate plugin
+  that marked the artifact INDETERMINATE confirms it PASSES, providing end-to-end audit closure.
+- **Human override (T3):** recovery by authorization. A principal with higher authority than the
+  agent explicitly clears the constraint out-of-band. Break-glass / out-of-band pattern (Google
+  SRE, GitLab dequarantine) — always available but requires human intent.
+- **TTL (T2):** recovery by timeout. The constraint self-releases after a bounded interval,
+  preventing permanent lockout. Bounded deadman design (LOTO e-stop, IEC 60204-1).
+
+Agent-tool `rm` fits none of these patterns: it is neither a validation, nor an authenticated
+human override, nor a timeout. The agent asserting "I should clear my own quarantine" via `rm`
+is semantically equivalent to the agent modifying its own gate logic — the exact class of action
+the quarantine-forward design protects against.
+
+### Why marker.cleared and why no signed digests (v1.1)
+
+The `marker.cleared` event design is proportionate to the cooperating-agent threat model. The
+primary audit failure mode is not adversarial log forgery but silent state change: the gate
+disengages with no trace. A durable append-only FileSink event addresses this directly. Signed
+digests (requiring key management) and dual-control (requiring multi-principal coordination) are
+appropriate for adversarial environments (PCI-DSS §10.5 financial audit trails) but
+disproportionate here. GitHub branch-protection and the `factory-artifacts` worktree already
+provide tamper-evidence at the VCS layer.
+
 ---
 
 ## Consequences
@@ -368,9 +600,15 @@ marker-conditional block. It is a targeted correction, not a rejection of D-1135
 - Gate enforces its quarantine even through plugin crashes, eliminating the CWE-636 gap where
   crash+marker-exists → silent allow.
 - TTL deadman bounds worst-case stuck state to 24 hours with no operator intervention required.
-- Ungated-escape invariant, verified by VP-107, prevents future regressions in recoverability.
+- Recoverability invariant (T1/T2/T3), verified by VP-107 (T1 scope: Edit/Write ungated), ensures
+  the system is never in an irrecoverable state. Agent-tool `rm` de-sanctioned from the invariant
+  simplifies the proof obligation and eliminates the shared-crate fix requirement.
 - `"block_if_marker"` generalizes to any future marker-based quarantine gate.
 - ADR-039 two-axis model and orthogonality invariant are fully preserved.
+- `marker.cleared` audited events provide forensic trail for every marker clearance path,
+  satisfying NIST AU-3/AU-9/AU-10 proportionately (append-only FileSink; no signed digests).
+- TTL expiry is now LOUD/audited: `marker.cleared(TTL_EXPIRED)` emitted on every auto-delete,
+  eliminating the silent-clear gap.
 
 ### Negative / Trade-offs
 
@@ -383,8 +621,14 @@ marker-conditional block. It is a targeted correction, not a rejection of D-1135
   ADR-048 is implemented, new markers always carry `expires_at`.
 - `UNVALIDATED_MUTATION_MARKER_TTL_SECONDS` is a new constant that must be kept consistent with
   documentation and any external tooling that reasons about marker lifetimes.
+- Gate plugin gains `emit_marker_cleared` call responsibilities for REVALIDATED and TTL_EXPIRED
+  clear modes; RAW_DELETE_DETECTED reconciliation adds a best-effort FileSink read dependency.
+  No hard failure if FileSink is unavailable — annotation omitted.
+- BC-3.08.001 event enumeration must be updated from eight to nine events (PO: BC amendment +
+  new Event 9 wire format; test-writer: AC coverage for all three `clear_mode` values +
+  RAW_DELETE_DETECTED form). This is a REQUIRED downstream flag, not optional.
 
-### Status as of 2026-08-31 (v1.0)
+### Status as of 2026-08-31 (v1.0 / v1.1)
 
 Proposed. Implementation scoped to S-25.01. The `on_error = "block_if_marker"` value requires:
 (a) a new Rust enum variant `OnError::BlockIfMarker` in the registry schema (S-21.10 pattern);
@@ -392,6 +636,16 @@ Proposed. Implementation scoped to S-25.01. The `on_error = "block_if_marker"` v
 `write_indeterminate_marker` + TTL check + auto-delete in the gate plugin. The BC amendments
 (BC-1.18.001/002/003) and new VP-107 (ungated-escape verification) are downstream deliverables
 for PO and test-writer after human ratification.
+
+v1.1 adds: (d) `emit_marker_cleared` function in `crates/factory-dispatcher/src/indeterminate_marker.rs`
+(or gate plugin — implementer's choice based on which component owns the clear operation); wired
+from `delete_marker_if_pass` (REVALIDATED), TTL auto-delete branch (TTL_EXPIRED), and
+RAW_DELETE_DETECTED detection path; (e) BC-3.08.001 Event 9 `marker.cleared` wire format — PO
+BC amendment required; (f) VP-107 scope amendment: verify T1 (Edit/Write tool dispatch not matched
+by either gate arm `^Agent$` / `^Bash$`) — not "rm is never gated"; (g) BC-1.18.002 INV6/AC-020
+block-message reframe: crash-path block on agent-tool rm is ACCEPTABLE — update block message
+and INV6 text accordingly; (h) BC-1.18.003 clear-model amendment: audited clears (REVALIDATED,
+TTL_EXPIRED, OPERATOR_OVERRIDE); (i) BC-3.08.001 event enumeration seven→eight→nine sweep.
 
 ---
 
@@ -421,9 +675,26 @@ for PO and test-writer after human ratification.
      legacy-design-docs/) before this ADR can be accepted. Omitting evidence is a
      template-compliance failure. -->
 
-- **Human direction:** Human-directed gate redesign 2026-08-31. Specified: `block_if_marker` new
-  `on_error` value + ungated-escape invariant + TTL deadman (block_if_marker + ungated-escape +
-  TTL option selected). D-1135 fail-open-on-crash ratification explicitly reversed by this decision.
+- **Human direction (v1.0):** Human-directed gate redesign 2026-08-31. Specified: `block_if_marker`
+  new `on_error` value + ungated-escape invariant + TTL deadman. D-1135 fail-open-on-crash
+  ratification explicitly reversed.
+- **Human direction (v1.1 — HIGH-1 resolution):** Human-directed recovery model reframe 2026-08-31.
+  Specified: re-validation as primary agent recovery; human out-of-band rm as break-glass; agent-
+  tool rm de-sanctioned; shared-crate fix rejected; `marker.cleared` audited event with
+  REVALIDATED/TTL_EXPIRED/OPERATOR_OVERRIDE modes; RAW_DELETE_DETECTED reconciliation; TTL-
+  loudness; no signed digests / dual-control (cooperating-agent threat model).
+- **Prior art (v1.1 — recovery model):** Circuit-breaker reset (IEEE); EDR Restore patterns
+  (endpoint detection and response quarantine/release flows); Google break-glass (SRE out-of-band
+  override pattern); GitLab dequarantine; NIST SP 800-53 AU-3 (event content), AU-9 (audit
+  information protection), AU-10 (non-repudiation), AC-6 (least privilege); PCI-DSS Req 10.2
+  (audit event types); LOTO/e-stop (IEC 60204-1 §10.7 — bounded-deadman design). Common
+  principle: the controlled agent must not hold an unmediated, unaudited path to erase its own
+  constraint; recovery = independent re-validation | authenticated human override | timeout.
+- **Rice's theorem (v1.1 — shared-crate rejection):** Rice, H.G. (1953). "Classes of recursively
+  enumerable sets and their decision problems." Trans. AMS 89(1):25–59. Applied: any command-
+  filter classifying "this Bash dispatch deletes the marker file" is undecidable in the general
+  case; partial filters (`rm`-specific allowlist) are evaded by equivalent operations
+  (`mv`/`truncate`/`python os.remove`). Same undecidable class BC-1.18.002 §out-of-scope accepts.
 - **ADR-047:** `decisions/ADR-047-indeterminate-outcome-model-durable-mutation-marker-next-advance-gate.md`
   v1.3 — §Decision 4 superseded by ADR-048 §Decision 1; §Decisions 1, 2, 3, 5–9 unchanged.
 - **ADR-039:** `decisions/ADR-039-validator-failure-policy-resource-exhaustion-fail-closed.md`
@@ -436,14 +707,23 @@ for PO and test-writer after human ratification.
   marker write specification; PC4 TOML fields to be extended with `expires_at` (PO amendment).
 - **BC-1.18.002 v1.4:** `.factory/specs/behavioral-contracts/ss-01/BC-1.18.002.md` —
   gate behavior; PC1 `on_error = "continue"` superseded to `on_error = "block_if_marker"`;
-  PC3 ungated-escape reaffirmed as formal invariant by §Decision 3.
+  INV6/AC-020 block-message reframe: crash-path block on agent-tool rm is ACCEPTABLE (v1.1 PO).
 - **BC-1.18.003 v1.1:** `.factory/specs/behavioral-contracts/ss-01/BC-1.18.003.md` —
-  marker-clear protocol; TTL expiry becomes PC4 (new clear path, to be authored by PO).
+  marker-clear protocol; TTL expiry becomes PC4 (new clear path, PO); audited-clears amendment
+  (REVALIDATED/TTL_EXPIRED/OPERATOR_OVERRIDE) required (v1.1 PO).
+- **BC-3.08.001 (v1.1 — new Event 9):** dispatcher domain event catalog. Current count before
+  ADR-048 §D4: eight events (ADR-039 six + ADR-047 `plugin.indeterminate` + ADR-039
+  `plugin.epoch_timeout`). ADR-048 §D4 adds `marker.cleared` as Event 9. PO must amend
+  BC-3.08.001 with Event 9 wire format. Enumeration "seven→eight→nine" sweep across BC-3.08.001,
+  story tests, and architecture docs is a REQUIRED downstream action.
 - **Architecture as-built (crates — PLANNED for S-25.01):**
   `crates/factory-dispatcher/src/indeterminate_marker.rs` (add `expires_at` to
-  `write_indeterminate_marker`; add `UNVALIDATED_MUTATION_MARKER_TTL_SECONDS = 86_400`);
+  `write_indeterminate_marker`; add `UNVALIDATED_MUTATION_MARKER_TTL_SECONDS = 86_400`; add
+  `emit_marker_cleared` for REVALIDATED/TTL_EXPIRED clear paths);
   `crates/factory-dispatcher/src/executor.rs` (add `block_if_marker_check` call in crash-handler,
   new `OnError::BlockIfMarker` match arm);
   `crates/hook-plugins/validate-unvalidated-mutation-marker/src/lib.rs` (add `expires_at` TTL
-  check + auto-delete on expiry in `guard_logic::evaluate_gate`);
+  check + auto-delete + `marker.cleared(TTL_EXPIRED)` emission in `guard_logic::evaluate_gate`;
+  add RAW_DELETE_DETECTED reconciliation path; add `delete_marker_if_pass` + `marker.cleared
+  (REVALIDATED)` emission);
   `plugins/vsdd-factory/hooks-registry.toml` (set `on_error = "block_if_marker"` for both arms).
