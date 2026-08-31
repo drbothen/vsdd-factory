@@ -227,9 +227,24 @@ pub mod guard_logic {
 
     // ── Phases 2–4: single-segment evaluation ──────────────────────────────────
 
-    /// Applies Phases 2–4 of BC-1.18.002 v1.2 to a single pre-trimmed segment.
+    /// Applies Phases 2–4 of BC-1.18.002 v1.3 to a single pre-trimmed segment.
+    ///
+    /// MEDIUM-2 fix (S-25.01): uses `shell_words::split()` for quote-aware POSIX
+    /// tokenization so that `git "commit"`, `git 'push' origin`, and `g'i't commit`
+    /// correctly produce token `["git", "commit"]` / `["git", "push", "origin"]` /
+    /// `["git", "commit"]` rather than literal-quoted strings.
+    ///
+    /// If `shell_words::split` returns `Err` (unmatched quote) the segment is
+    /// UNPARSEABLE — conservative posture: return `true` (uncertain = block).
     fn evaluate_git_segment(segment: &str) -> bool {
-        let tokens: Vec<&str> = segment.split_whitespace().collect();
+        // MEDIUM-2 fix: quote-aware tokenization via shell_words (BC-1.18.002 v1.3).
+        // split() removes quotes and handles backslash escapes per POSIX sh word-splitting.
+        // On Err (mismatched quotes) → fail-safe: uncertain input = block.
+        let owned: Vec<String> = match shell_words::split(segment) {
+            Ok(v) => v,
+            Err(_) => return true,
+        };
+        let tokens: Vec<&str> = owned.iter().map(String::as_str).collect();
         let n = tokens.len();
         if n == 0 {
             return false;
@@ -387,7 +402,8 @@ pub(crate) fn on_pre_tool_use_impl(
     // Both hooks-registry.toml entries reference this IDENTICAL WASM binary (AC-019).
 
     // Arm 2 (^Bash$): apply the git commit/push filter FIRST.
-    // If this is a Bash dispatch that does NOT match \bgit\b.*\b(commit|push)\b,
+    // If this is a Bash dispatch that does NOT match is_git_commit_or_push
+    // (BC-1.18.002 v1.3 tokenized subcommand match),
     // pass immediately without checking the marker (AC-009; BC-1.18.002 PC3).
     if payload.tool_name == "Bash" {
         let command = payload
@@ -630,12 +646,12 @@ mod tests {
         // EC-006: git commit --amend MUST match the filter
         assert!(
             is_git_commit_or_push("git commit --amend --no-edit"),
-            "AC-008 / EC-006: 'git commit --amend' MUST match \\bgit\\b.*\\b(commit|push)\\b"
+            "AC-008 / EC-006: 'git commit --amend' MUST match is_git_commit_or_push (BC-1.18.002 v1.3 tokenized subcommand match)"
         );
         // EC-007: git push --force-with-lease MUST match the filter
         assert!(
             is_git_commit_or_push("git push --force-with-lease"),
-            "AC-008 / EC-007: 'git push --force-with-lease' MUST match \\bgit\\b.*\\b(commit|push)\\b"
+            "AC-008 / EC-007: 'git push --force-with-lease' MUST match is_git_commit_or_push (BC-1.18.002 v1.3 tokenized subcommand match)"
         );
 
         // When marker exists and command matches, evaluate_gate MUST block

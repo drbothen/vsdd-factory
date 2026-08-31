@@ -371,6 +371,14 @@ async fn execute_tier<'a>(
         // MEDIUM-5: extract artifact_path from tool_input.file_path before the closure
         // moves inputs away (BC-1.18.001 PC4 — marker must record the artifact path).
         // Empty string when no file_path is present (e.g. non-file-mutation tool events).
+        //
+        // LOW-3 (S-25.01): BC-1.18.001 PC4 requires artifact_path to be an absolute path.
+        // The Claude Code harness always emits absolute file_path values in tool event
+        // payloads (enforced by the harness itself — the Edit/Write tools require an
+        // absolute path per CLAUDE.md and the harness rejects relative paths at entry).
+        // No normalization is needed; we store the value verbatim and trust the harness
+        // invariant. If the harness ever changes this behavior, the marker will contain a
+        // relative path (degraded but non-failing — best-effort per BC-1.18.001 PC4).
         let artifact_path_for_marker = inputs
             .payload_value
             .get("tool_input")
@@ -405,16 +413,20 @@ async fn execute_tier<'a>(
 
             // BLOCKER-1: BC-1.18.003 PC1 + INV2 — PASS from the named plugin MUST clear
             // the marker, but ONLY if the marker's plugin_name matches this plugin (scoped).
+            // MEDIUM-1 fix (S-25.01): BC-1.18.003 PC1 requires the clear happen ONLY when the
+            // named plugin is dispatched in a PostToolUse hook and produces Pass. A PreToolUse
+            // PASS from the named plugin MUST NOT clear the marker.
             if let DispatchOutcome::Pass = outcome {
                 let marker_path = base_ctx_for_event
                     .cwd
                     .join(".factory")
                     .join("unvalidated-mutation.marker");
                 // Best-effort read; if the marker is absent or unreadable, no-op.
-                // Scoped clear: only this plugin's PASS clears its own marker (INV2).
+                // Scoped clear: only this plugin's PostToolUse PASS clears its own marker.
                 // Log (but do not propagate) errors — a clear failure must not fail the dispatch.
                 if let Ok(Some(marker_plugin)) = read_marker_plugin_name(&marker_path)
                     && marker_plugin == entry_clone.name
+                    && entry_clone.event == "PostToolUse"
                     && let Err(e) = delete_marker_if_pass(&marker_path)
                 {
                     tracing::warn!(
@@ -559,6 +571,14 @@ pub fn spawn_async_plugin(
 
         // MEDIUM-5: extract artifact_path from tool_input.file_path before payload_value
         // is moved into per_plugin_value (BC-1.18.001 PC4 — marker must record artifact path).
+        //
+        // LOW-3 (S-25.01): BC-1.18.001 PC4 requires artifact_path to be an absolute path.
+        // The Claude Code harness always emits absolute file_path values in tool event
+        // payloads (enforced by the harness itself — the Edit/Write tools require an
+        // absolute path per CLAUDE.md and the harness rejects relative paths at entry).
+        // No normalization is needed; we store the value verbatim and trust the harness
+        // invariant. If the harness ever changes this behavior, the marker will contain a
+        // relative path (degraded but non-failing — best-effort per BC-1.18.001 PC4).
         let artifact_path_for_marker = payload_value
             .get("tool_input")
             .and_then(|ti| ti.get("file_path"))
@@ -651,15 +671,19 @@ pub fn spawn_async_plugin(
 
         // BLOCKER-1: BC-1.18.003 PC1 + INV2 — PASS from the named plugin MUST clear
         // the marker, scoped to only the plugin named in the marker (INV2).
+        // MEDIUM-1 fix (S-25.01): BC-1.18.003 PC1 requires the clear happen ONLY when the
+        // named plugin is dispatched in a PostToolUse hook and produces Pass. A PreToolUse
+        // PASS from the named plugin MUST NOT clear the marker.
         if let DispatchOutcome::Pass = outcome {
             let marker_path = base_ctx_for_event
                 .cwd
                 .join(".factory")
                 .join("unvalidated-mutation.marker");
-            // Scoped clear: only this plugin's PASS clears its own marker (INV2).
+            // Scoped clear: only this plugin's PostToolUse PASS clears its own marker.
             // Log (but do not propagate) errors — a clear failure must not fail the dispatch.
             if let Ok(Some(marker_plugin)) = read_marker_plugin_name(&marker_path)
                 && marker_plugin == entry.name
+                && entry.event == "PostToolUse"
                 && let Err(e) = delete_marker_if_pass(&marker_path)
             {
                 tracing::warn!(

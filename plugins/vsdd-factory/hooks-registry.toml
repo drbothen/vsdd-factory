@@ -1621,19 +1621,24 @@ name = "validate-unvalidated-mutation-marker"
 event = "PreToolUse"
 tool = "^Agent$"
 plugin = "hook-plugins/validate-unvalidated-mutation-marker.wasm"
-on_error = "block"
+# HIGH-1 fix (S-25.01): fail-open gate MUST use on_error="continue" so a WASM crash/timeout
+# allows the dispatch rather than self-locking the gate (BC-1.18.002 INV2/EC-009/AC-011).
+on_error = "continue"
 async = false
 failure_policy = "fail-open"
 
 [[hooks]]
 # Arm 2: same WASM binary as Arm 1 (BC-1.18.002 invariant 1; AC-019).
-# The git commit/push filter (\bgit\b.*\b(commit|push)\b) is implemented inside the WASM
-# plugin by reading the `command` parameter from the Bash tool event payload — NOT a registry field.
+# The git commit/push filter (is_git_commit_or_push, BC-1.18.002 v1.3 tokenized subcommand match)
+# is implemented inside the WASM plugin by reading the `command` parameter from the Bash tool
+# event payload — NOT a registry field.
 name = "validate-unvalidated-mutation-marker-git"
 event = "PreToolUse"
 tool = "^Bash$"
 plugin = "hook-plugins/validate-unvalidated-mutation-marker.wasm"
-on_error = "block"
+# HIGH-1 fix (S-25.01): fail-open gate MUST use on_error="continue" so a WASM crash/timeout
+# allows the dispatch rather than self-locking the gate (BC-1.18.002 INV2/EC-009/AC-011).
+on_error = "continue"
 async = false
 failure_policy = "fail-open"
 

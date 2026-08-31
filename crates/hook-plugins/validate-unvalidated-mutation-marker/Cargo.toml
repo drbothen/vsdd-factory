@@ -30,6 +30,10 @@ vsdd-hook-sdk = { path = "../../hook-sdk" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 toml = { workspace = true }
+# MEDIUM-2 fix (S-25.01): quote-aware POSIX tokenization for is_git_commit_or_push.
+# shell-words 1.1.x is pure-Rust, zero-dep, MIT-licensed, and compiles for wasm32-wasip1.
+# Version verified against crates.io (BC-1.18.002 v1.3 tokenized subcommand match; TD #74).
+shell-words = "1.1"
 
 [dev-dependencies]
 serde_json = { workspace = true }

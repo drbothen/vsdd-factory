@@ -137,6 +137,16 @@ jobs:
       - name: cargo check (workspace, all targets)
         run: cargo check --workspace --all-targets
 
+      - name: cargo check validate-unvalidated-mutation-marker (wasm32-wasip1)
+        # MEDIUM-2 / TD #74 (S-25.01): Explicit wasm-compat gate for the shell-words
+        # dependency added to validate-unvalidated-mutation-marker. shell-words 1.1.x is
+        # pure-Rust/zero-dep but this step enforces that any future dependency change that
+        # breaks wasm32-wasip1 compilation is caught on every PR, not just at release time.
+        # The workspace "cargo build (all native WASM plugins, wasm32-wasip1)" step below
+        # also covers this crate; this explicit check adds a fast-fail signal earlier in
+        # the job and makes the TD #74 compliance intent visible (docs/dispatch-package-authoring.md).
+        run: cargo check --target wasm32-wasip1 -p validate-unvalidated-mutation-marker
+
       - name: Mount factory artifacts
         # .factory/ is needed by two consumers in this job:
         #   1. Corpus tests in validate-cross-site-correspondence (cargo test step below) —
