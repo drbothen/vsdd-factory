@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-08-31T00:00:00Z
@@ -18,7 +18,7 @@ subsystem: "SS-01"
 capability: "CAP-041"
 lifecycle_status: draft
 introduced: v1.0-feature-validation-integrity-layer1
-modified: ["v1.1-2026-08-31-exact-subcommand-clarification", "v1.2-2026-08-31-command-detection-comprehensive-expansion", "v1.3-2026-08-31-fail-open-reconciliation-threat-model-quoting-scope"]
+modified: ["v1.1-2026-08-31-exact-subcommand-clarification", "v1.2-2026-08-31-command-detection-comprehensive-expansion", "v1.3-2026-08-31-fail-open-reconciliation-threat-model-quoting-scope", "v1.4-2026-08-31-read-error-vs-malformed-marker-distinction"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -225,7 +225,14 @@ Phase 1b POSIX quote-aware tokenization using the `shell-words` crate.
    (no unconditional self-lock). This is deliberate: the INDETERMINATE model protects WRITES
    (PostToolUse); a fail-open PreToolUse gate that guards Agent dispatch must not introduce a new
    unconditional self-lock class. (The write-integrity invariant is protected by the durable marker
-   written at PostToolUse time, not by the gate's own fail-closed behavior.)
+   written at PostToolUse time, not by the gate's own fail-closed behavior.) The fail-open posture
+   extends to IO/permission errors encountered when reading the marker: if the marker file exists
+   but cannot be read (e.g., EACCES, EPERM), `guard_logic::evaluate_gate` MUST return Allow — an
+   unreadable marker is an infrastructure fault ("cannot-complete"), not a confirmed quarantine
+   signal, and the operator `rm` escape hatch may also fail under the same fault, creating an
+   unclearable self-lock that is the exact failure class INV2 guards against. This case is
+   distinct from a successfully-read but malformed marker (EC-008, which → BLOCK) and from
+   plugin-level crash/fuel-exhaustion (EC-009, handled by axis-i dispatcher fail-open). See EC-030.
 
 3. **Marker-clear unblocks both arms.** Deleting `.factory/unvalidated-mutation.marker` (by
    successful re-validation per BC-1.18.003 PC1 or by manual operator escape hatch per BC-1.18.003
@@ -297,7 +304,7 @@ next-advance arm, and GitHub server-side branch protection on durable branches.
 | EC-005 | Marker present; `cargo test --workspace` Bash dispatch | NOT blocked. Non-git command does not match pattern. |
 | EC-006 | Marker present; `git commit --amend --no-edit` Bash dispatch | BLOCKED. Subcommand is `commit`. |
 | EC-007 | Marker present; `git push --force-with-lease` Bash dispatch | BLOCKED. Subcommand is `push`. |
-| EC-008 | Marker file is malformed (unparseable TOML) | Gate returns exit_code=2 (block). The gate checks marker FILE existence; if the file exists but is malformed, the block message includes a note that the marker could not be parsed; the operator must manually `rm` the marker. |
+| EC-008 | Marker file is present and READABLE (no IO/permission error) but content is malformed or unparseable (bad TOML, missing required fields such as `plugin_name`) | Gate returns exit_code=2 (block). Scope: this EC applies ONLY when the file is successfully opened and read but its content fails parsing. The block message includes a note that the marker content could not be parsed; the operator must manually `rm` the marker (the file is readable and removable in this case). For the complementary case where the marker is present but UNREADABLE due to an IO/permission error, see EC-030 (→ ALLOW, fail-open). |
 | EC-009 | Gate plugin fuel-exhausts reading the marker (Arm 1 or Arm 2) | PASS (fail-open posture). Dispatch allowed. Advisory `plugin.indeterminate` event emitted for the gate itself (if any — gate is fail-open so no nested marker written). |
 | EC-010 | Marker absent; `git commit -m "fix"` Bash dispatch | NOT blocked. Arm 2 returns exit_code=0 immediately (marker absent check). |
 | EC-011 | Marker present; `git commit-graph write` Bash dispatch | NOT blocked. The git subcommand is `commit-graph`, not `commit`. Exact-subcommand matching correctly excludes this maintenance command. Note: the illustrative regex `\bgit\b.*\b(commit\|push)\b` would false-positive here because the hyphen before `graph` is a word boundary, making `\bcommit\b` match inside `commit-graph` — this is precisely why the regex is NOT the authoritative rule (see PC2 v1.1 clarification). |
@@ -319,6 +326,7 @@ next-advance arm, and GitHub server-side branch protection on durable branches.
 | EC-027 | Marker present; `$(git commit -m "x")` Bash dispatch | NOT blocked. OUT OF SCOPE by design. The top-level command is a command substitution, not a statically-literal `git` invocation. Allowed under fail-open posture; caught by durable marker and other controls (see Threat Model §Out-of-scope). |
 | EC-028 | Marker present; `echo x \| xargs git commit` Bash dispatch | NOT blocked. Phase 1 splits on `\|`: segment 1 = `echo x` (executable `echo` ≠ `git`, false); segment 2 = `xargs git commit` (executable `xargs` ≠ `git`, false). Any-segment returns false. OUT OF SCOPE by design — `xargs` indirection is not the statically-literal top-level `git` executable (Threat Model §Out-of-scope). |
 | EC-029 | Marker present; `eval "git push origin main"` Bash dispatch | NOT blocked. OUT OF SCOPE by design. The executable is `eval`; the `git push` invocation is a string argument subject to dynamic evaluation. Allowed under fail-open posture; caught by durable marker and other controls (see Threat Model §Out-of-scope). |
+| EC-030 | Marker file exists but is UNREADABLE due to an IO or permission error (e.g., EACCES, EPERM) — marker bytes are not accessible to the plugin | `guard_logic::evaluate_gate` returns Allow (exit_code=0, fail-open). Rationale grounded in INV2: an IO-read fault is a cannot-complete infrastructure failure; the gate MUST NOT block on it because (a) the marker cannot be verified as a valid quarantine signal when its bytes are unreadable, and (b) the operator `rm` escape hatch may also fail under the same permission fault, producing an unclearable self-lock — the exact failure class INV2 prohibits. This case is orthogonal to EC-008 (readable bytes, parse failure → BLOCK) and EC-009 (plugin crashes before attempting the read → ALLOW via axis-i dispatcher). |
 
 ## Canonical Test Vectors
 
@@ -355,6 +363,10 @@ next-advance arm, and GitHub server-side branch protection on durable branches.
 | Exists | Bash `$(git commit -m "x")` | Allow (exit_code=0) — NOT blocked; command substitution OUT OF SCOPE by design; allowed under fail-open (EC-027) |
 | Exists | Bash `echo x \| xargs git commit` | Allow (exit_code=0) — NOT blocked; `xargs` indirection OUT OF SCOPE by design; executable is `xargs` not `git` (EC-028) |
 | Exists | Bash `eval "git push origin main"` | Allow (exit_code=0) — NOT blocked; `eval` indirection OUT OF SCOPE by design; allowed under fail-open (EC-029) |
+| Exists (UNREADABLE: EACCES on marker file) | `^Agent$` dispatch | Allow (exit_code=0) — fail-open on IO read error; marker bytes inaccessible = cannot-complete; no self-lock per INV2 (EC-030) |
+| Exists (UNREADABLE: EACCES on marker file) | Bash `git commit -m "test"` | Allow (exit_code=0) — Arm 2; fail-open on IO read error; same INV2 rationale; EC-030 |
+| Exists (READABLE, malformed TOML content) | `^Agent$` dispatch | Block (exit_code=2) — malformed-readable marker; bytes accessible but unparseable; block message notes unparseable content; EC-008 |
+| Exists (READABLE, malformed TOML content) | Bash `git commit -m "test"` | Block (exit_code=2) — Arm 2; malformed-readable marker; EC-008 |
 
 ## Related BCs
 
@@ -382,7 +394,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 |--------|----------|-------------|
 | VP-105 | Marker exists → Agent dispatch blocked (Arm 1, exit_code=2); marker absent → Agent dispatch allowed (Arm 1); manual rm unblocks; Edit not gated (PC3) | integration (bats) |
 | VP-105 | Marker exists + git commit Bash → blocked (Arm 2); marker absent + git commit → allowed; git status not gated even when marker exists (PC3) | integration (bats) |
-| VP-105 | guard_logic::evaluate_gate: marker present → BlockDispatch; marker absent → Allow; read-error → Allow (fail-open) | unit-test |
+| VP-105 | guard_logic::evaluate_gate — four cases, all distinct: (1) marker absent (NotFound) → Allow; (2) marker present and readable with valid TOML content → BlockDispatch (exit_code=2); (3) marker present and readable but content malformed/unparseable (bad TOML, missing plugin_name) → BlockDispatch (exit_code=2, EC-008); (4) marker present but UNREADABLE due to IO/permission error (EACCES/EPERM) → Allow (fail-open, EC-030). Cases (3) and (4) MUST NOT be conflated: the block/allow split hinges on whether the file bytes were successfully read, not merely whether the file exists. | unit-test |
 | VP-105 | guard_logic::is_git_commit_or_push (v1.3 algorithm): (1) exact subcommand — `commit`/`push` match; `status`/`log`/`diff`/`fetch`/`commit-graph` do NOT match; (2) complete arg-taking option set — each of `-C`, `-c`, `--namespace`, `--git-dir`, `--work-tree`, `--super-prefix`, `--config-env` skips its following separate-token argument before subcommand identification; (3) compound splitting — `&&`, `\|\|`, `;`, `\|`, `&`, newline each split the command into independent segments; any-segment `true` returns `true`; (4) basename matching — `/usr/bin/git commit` → blocked, `./git push` → blocked, `env GIT_DIR=x git commit` → blocked, `cat gitfile` → NOT blocked; (5) fail-safe on unrecognized options — `git --unknown-flag commit` → blocked (subcommand position uncertain); (6) POSIX quote-aware tokenization via `shell-words` crate (Phase 1b) — `git "commit"` → blocked (EC-024), `git 'push' origin` → blocked (EC-025), `g'i't commit` → blocked (EC-026); documented out-of-scope (NOT blocked by design): `$(git commit)` → NOT blocked (command substitution; EC-027), `xargs git commit` → NOT blocked (command indirection, `xargs` is the executable; EC-028), `eval "git push"` → NOT blocked (dynamic evaluation; EC-029) | unit-test |
 
 ## Traceability
@@ -402,6 +414,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.4 | 2026-08-31 | product-owner | Adversary MEDIUM-1 adjudication: resolved read-error vs malformed-marker self-contradiction. (1) EC-008 rewritten to scope explicitly to "marker present and READABLE but content malformed/unparseable (bad TOML, missing required fields) → BLOCK (exit_code=2)" — the unreadable-IO-error case is now excluded from EC-008. (2) Added EC-030: "marker present but UNREADABLE (IO/permission error, e.g. EACCES) → ALLOW (fail-open)" citing INV2 — an unreadable marker cannot be trusted as a quarantine signal, and rm may also fail under the same fault, creating an unclearable self-lock; fail-open is the correct posture. (3) INV2 expanded to explicitly cover the unreadable-marker self-lock avoidance case (not just fuel-exhaustion/plugin-crash). (4) VP-105 unit-test property row updated to distinguish all four cases: absent→Allow; readable+valid→Block; readable+malformed→Block (EC-008); unreadable IO error→Allow (EC-030). (5) Added four canonical test vectors: unreadable-EACCES Agent→Allow, unreadable-EACCES git commit→Allow, readable-malformed Agent→Block, readable-malformed git commit→Block. |
 | 1.3 | 2026-08-31 | product-owner | Adversary ruling reconciliation (HIGH-1 + MEDIUM-2). (1) Fail-open-on-crash self-contradiction resolved: `on_error = "block"` → `on_error = "continue"` for both Arm 1 and Arm 2 registrations; added two-axis model note (ADR-039; ADR-047 §Decision 9) distinguishing dispatcher-level fail-open-on-crash from filter-internal fail-SAFE posture (Phase 3 unrecognized-option block) — these axes are orthogonal and must not be conflated. (2) Threat model bounded: actor model = cooperating AI agent, NOT adversarial exfiltrator; canonical gate-claim language established. QUOTED-literal forms (`git "commit"`, `git 'push' origin`, `g'i't commit`) added to IN SCOPE via Phase 1b POSIX quote-aware tokenization (`shell-words` crate); ad-hoc quote-stripping forbidden. OUT-OF-SCOPE class documented with Rice's theorem rationale: `eval`, variable/alias/function indirection, `xargs`/`bash -c`, command substitution. Added EC-024..EC-029 and 7 canonical test vectors (3 IN-SCOPE quoting + 4 OUT-OF-SCOPE-documented). Updated VP-105 unit-test property to v1.3 algorithm. |
 | 1.2 | 2026-08-31 | product-owner | Senior-architect gate expansion: production-grade security filter closing three adversary-identified under-blocking classes. (1) Incomplete arg-taking set (adversary HIGH): defined the complete seven-option arg-taking set (`-C`, `-c`, `--namespace`, `--git-dir`, `--work-tree`, `--super-prefix`, `--config-env`) with explicit no-arg list and fail-safe posture for unrecognized options. (2) Compound commands (adversary LOW-1): Phase 1 compound splitting on `&&`, `\|\|`, `;`, `\|`, `&`, newline — any-segment match returns true. (3) Path-prefixed/basename git (adversary LOW-2): Phase 2 basename identification strips leading path components; `env VAR=x` prefix stripped. Added EC-013 through EC-023 and 10 new canonical test vectors. Updated VP-105 unit-test property row. ADR-047 §Decision 9. |
 | 1.1 | 2026-08-31 | product-owner | Spec adjudication: clarify Arm 2 command filter from illustrative regex to authoritative exact-subcommand matching. The regex `\bgit\b.*\b(commit\|push)\b` false-positives on `git commit-graph write` (hyphen is a word boundary, making `\bcommit\b` match inside `commit-graph`). Authoritative rule: `is_git_commit_or_push(command)` identifies the git subcommand (first non-option token after `git` + global options) and returns true iff it is exactly `commit` or `push`. Added EC-011 (`git commit-graph write` → NOT blocked), EC-012 (`git -C path commit` → blocked), two canonical test vector rows, and updated VP-105 unit-test property to name `commit-graph` as a NOT-matched case. Updated `modified[]` frontmatter. |
