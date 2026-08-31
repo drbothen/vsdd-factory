@@ -110,16 +110,42 @@ pub mod guard_logic {
                 }
             }
             Ok(content) => {
-                // Parse TOML fields from the marker content.
-                // Use simple key extraction rather than a full TOML parser to avoid
-                // pulling in the toml crate as a WASM plugin dependency.
-                let plugin_name = extract_toml_string(&content, "plugin_name")
-                    .unwrap_or_else(|| "<unknown>".to_string());
-                let artifact_path =
-                    extract_toml_string(&content, "artifact_path").unwrap_or_default();
-                let cause = extract_toml_string(&content, "cause")
-                    .unwrap_or_else(|| "<unknown>".to_string());
-                let trace_id = extract_toml_string(&content, "trace_id").unwrap_or_default();
+                // Parse marker TOML via the `toml` crate (Library table mandate; MEDIUM-4).
+                // This correctly handles all escape sequences including \n, \r, control chars.
+                // If the marker is corrupt (parse error), fall back to conservative block
+                // with sentinel values so the operator knows parsing failed.
+                let table: toml::Table = match toml::from_str(&content) {
+                    Ok(t) => t,
+                    Err(_) => {
+                        return GateDecision::Block {
+                            plugin_name: "<unparseable-marker>".to_string(),
+                            artifact_path: String::new(),
+                            cause: "<unknown>".to_string(),
+                            trace_id: String::new(),
+                        };
+                    }
+                };
+
+                let plugin_name = table
+                    .get("plugin_name")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("<unknown>")
+                    .to_string();
+                let artifact_path = table
+                    .get("artifact_path")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let cause = table
+                    .get("cause")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("<unknown>")
+                    .to_string();
+                let trace_id = table
+                    .get("trace_id")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
 
                 GateDecision::Block {
                     plugin_name,
@@ -129,30 +155,6 @@ pub mod guard_logic {
                 }
             }
         }
-    }
-
-    /// Extract a TOML basic string value for the given key from raw TOML content.
-    /// Handles the format: `key = "value"` (one key per line).
-    /// Returns `None` if the key is absent or the value cannot be parsed.
-    fn extract_toml_string(content: &str, key: &str) -> Option<String> {
-        for line in content.lines() {
-            let line = line.trim();
-            // Match lines of the form: key = "value"
-            let Some(rest) = line.strip_prefix(key) else {
-                continue;
-            };
-            let rest = rest.trim_start();
-            let Some(rest) = rest.strip_prefix('=') else {
-                continue;
-            };
-            let rest = rest.trim();
-            // Extract the quoted string value.
-            if let Some(inner) = rest.strip_prefix('"').and_then(|s| s.strip_suffix('"')) {
-                // Unescape basic TOML escapes (\\ → \, \" → ").
-                return Some(inner.replace("\\\"", "\"").replace("\\\\", "\\"));
-            }
-        }
-        None
     }
 
     /// Pure filter: returns `true` iff the given Bash `command` string matches the
@@ -171,38 +173,74 @@ pub mod guard_logic {
     ///
     /// Pure-core (regex match). Non-trivial body (regex compilation/execution). Uses `todo!()`.
     pub fn is_git_commit_or_push(command: &str) -> bool {
-        // Regex: \bgit\b.*\b(commit|push)\b
-        // Pure state machine instead of a regex crate to avoid a heavy WASM dependency.
-        // BC-1.18.002 PC2: git commit/push variants MUST return true.
-        // BC-1.18.002 PC3: git status/log/diff/fetch, cargo test, etc. MUST return false.
-        // EC-006: `git commit --amend` → true; EC-007: `git push --force-with-lease` → true.
+        // Implements the spec intent: \bgit\b.*\b(commit|push)\b (BC-1.18.002 PC2).
         //
-        // Strategy: find "git" as a word token, then scan subsequent tokens for
-        // "commit" or "push" as word tokens. Word boundaries are simulated by
-        // checking that git/commit/push are preceded and followed by non-word chars.
-        let words: Vec<&str> = command.split_whitespace().collect();
-        let mut git_seen = false;
-        for word in &words {
-            // Strip leading flag characters (-, --) to get the bare token.
-            let bare = word.trim_start_matches('-');
-            if !git_seen {
-                if bare == "git" {
-                    git_seen = true;
-                }
-            } else {
-                // After "git", look for the subcommand token (first positional arg).
-                // Subcommand is the first non-flag word after git.
-                if bare == "commit" || bare == "push" {
-                    return true;
-                }
-                // If the token looks like an option (starts with -), keep scanning.
-                // If it's a bare word (the subcommand), we've found it and it's not commit/push.
-                if !word.starts_with('-') {
-                    // Non-option token after git that isn't commit/push.
-                    return false;
-                }
+        // Strategy: tokenize by whitespace, find "git" as an exact standalone word,
+        // then scan subsequent tokens. Global options that take a SEPARATE argument
+        // (e.g., `-C <path>`, `-c <key>=<val>`, `--namespace <ns>`) cause the next
+        // token to be skipped so the argument is not mistaken for the subcommand.
+        // When the first positional (non-option, non-argument) token is found, return
+        // true iff it equals "commit" or "push" exactly.
+        //
+        // NOTE: This uses exact subcommand matching rather than the literal spec regex
+        // `\b(commit|push)\b` because that regex would also match `commit` within
+        // `commit-graph` (since `-` is a word-boundary character). The test
+        // `test_BC_1_18_002_is_git_commit_or_push_global_option_forms` requires
+        // `git commit-graph write` → false. Observation surfaced: spec regex is
+        // imprecise for this edge case; test expectation is the authoritative spec
+        // per BC-5.38.001 / VSDD standing rule. Routed to product-owner for
+        // BC-1.18.002 AC-009 clarification (not a blocker for this fix).
+        //
+        // Global options that take a separate following argument (not inline `=`):
+        //   -C <path>               change working directory
+        //   -c <key>=<value>        set config option
+        //   --namespace <prefix>    operate in namespace
+        // These are the forms tested and observed in dispatcher commit patterns.
+        // Additional git global options (--work-tree, --git-dir, etc.) use inline `=`
+        // syntax in practice, so they do not require special argument-skipping here.
+        const OPTS_TAKING_ARG: &[&str] = &["-C", "-c", "--namespace"];
+
+        let tokens: Vec<&str> = command.split_whitespace().collect();
+        let n = tokens.len();
+        let mut i = 0;
+
+        // Find "git" as an exact standalone word token (not "gitk", not in a path).
+        while i < n {
+            if tokens[i] == "git" {
+                i += 1;
+                break;
             }
+            i += 1;
         }
+
+        // If "git" was not found or no tokens remain, return false.
+        if i >= n {
+            return false;
+        }
+
+        // Scan remaining tokens for the subcommand.
+        while i < n {
+            let token = tokens[i];
+
+            // If this token is a global option that takes a SEPARATE argument, skip both
+            // the option token AND the next token (its argument).
+            if OPTS_TAKING_ARG.contains(&token) {
+                i += 2; // skip option + its argument
+                continue;
+            }
+
+            // Any other option flag (starts with `-`): skip the flag itself, no arg to skip.
+            if token.starts_with('-') {
+                i += 1;
+                continue;
+            }
+
+            // First positional token reached — this is the git subcommand.
+            // Return true iff it is exactly "commit" or "push" (exact word match,
+            // not prefix — so "commit-graph" ≠ "commit").
+            return token == "commit" || token == "push";
+        }
+
         false
     }
 }
