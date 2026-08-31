@@ -787,6 +787,223 @@ mod tests {
         );
     }
 
+    // ── BC-1.18.002 v1.2 — complete 23-EC canonical-vector test ─────────────
+    //
+    // Covers all EC-001..EC-023 for which `is_git_commit_or_push` has a
+    // defined return value.
+    //
+    // v1.2 four-phase algorithm under test:
+    //   Phase 1 — compound splitting: &&, ||, ;, |, &, newline → any segment
+    //             true ⇒ true.
+    //   Phase 2 — basename identification: strip leading `env` / `VAR=x`
+    //             tokens; executable = first remaining token; basename = strip
+    //             through last '/'.  basename ≠ "git" ⇒ false for this segment.
+    //   Phase 3 — skip global options: complete arg-taking set
+    //             {-C, -c, --namespace, --git-dir, --work-tree, --super-prefix,
+    //             --config-env} + recognized no-arg flags + inline --opt=value;
+    //             UNRECOGNIZED flag ⇒ fail-safe true.
+    //   Phase 4 — exact subcommand: true iff "commit" or "push".
+    //
+    // GREEN = passes with current (v1.1-only) implementation.
+    // RED   = fails with current implementation; must go red before implementation.
+    //
+    // RED assertions (7): EC-013, EC-014, EC-015, EC-016, EC-017, EC-018,
+    //                     EC-023.
+    //
+    // VP-105 unit-test property row.
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    fn test_BC_1_18_002_is_git_commit_or_push_v1_2_canonical_vectors() {
+        // ── Phase 4: basic advancing subcommands ─────────────────────────────
+
+        // [GREEN] Basic commit form.  Also exercises EC-010 (marker-absent path
+        // in the full gate: is_git still returns true; marker-absent arm allows).
+        assert!(
+            is_git_commit_or_push(r#"git commit -m "test""#),
+            "BC-1.18.002 v1.2 / VP-105: 'git commit -m \"test\"' MUST return true \
+             (Phase 4: subcommand is 'commit'; covers EC-010 is_git aspect)"
+        );
+        // [GREEN] Basic push form.
+        assert!(
+            is_git_commit_or_push("git push origin factory-artifacts"),
+            "BC-1.18.002 v1.2 / VP-105: 'git push origin factory-artifacts' MUST return true \
+             (Phase 4: subcommand is 'push')"
+        );
+        // [GREEN] EC-006: commit --amend variant.
+        assert!(
+            is_git_commit_or_push("git commit --amend --no-edit"),
+            "BC-1.18.002 v1.2 EC-006 / VP-105: 'git commit --amend --no-edit' MUST return true \
+             (Phase 4: subcommand is 'commit'; --amend and --no-edit are post-subcommand flags)"
+        );
+        // [GREEN] EC-007: push --force-with-lease variant.
+        assert!(
+            is_git_commit_or_push("git push --force-with-lease"),
+            "BC-1.18.002 v1.2 EC-007 / VP-105: 'git push --force-with-lease' MUST return true \
+             (Phase 4: subcommand is 'push')"
+        );
+
+        // ── Phase 3: complete arg-taking global option set ────────────────────
+
+        // [GREEN] EC-012: -C <path> — already in current OPTS_TAKING_ARG.
+        assert!(
+            is_git_commit_or_push(r#"git -C .factory commit -m "state""#),
+            "BC-1.18.002 v1.2 EC-012 / VP-105: 'git -C .factory commit -m \"state\"' MUST return true \
+             (Phase 3: -C consumes .factory as arg; first positional is 'commit')"
+        );
+        // [RED] EC-013: --git-dir <path> — NOT in current OPTS_TAKING_ARG.
+        // Current: skips --git-dir flag only; treats '.git' as subcommand → false.
+        // Correct: --git-dir consumes '.git'; first positional is 'commit' → true.
+        assert!(
+            is_git_commit_or_push(r#"git --git-dir .git commit -m "state""#),
+            "BC-1.18.002 v1.2 EC-013 / VP-105: 'git --git-dir .git commit -m \"state\"' MUST return true \
+             (Phase 3: --git-dir arg-taking; .git consumed; first positional is 'commit') \
+             [RED: --git-dir not in current OPTS_TAKING_ARG; '.git' treated as subcommand → false]"
+        );
+        // [RED] EC-014: --work-tree <path> — NOT in current OPTS_TAKING_ARG.
+        // Current: skips --work-tree flag only; treats '/tmp' as subcommand → false.
+        // Correct: --work-tree consumes /tmp; first positional is 'push' → true.
+        assert!(
+            is_git_commit_or_push("git --work-tree /tmp push"),
+            "BC-1.18.002 v1.2 EC-014 / VP-105: 'git --work-tree /tmp push' MUST return true \
+             (Phase 3: --work-tree arg-taking; /tmp consumed; first positional is 'push') \
+             [RED: --work-tree not in current OPTS_TAKING_ARG; '/tmp' treated as subcommand → false]"
+        );
+        // [RED] EC-023: --config-env <name=envvar> — NOT in current OPTS_TAKING_ARG.
+        // Current: skips --config-env flag only; treats 'FOO=BAR' as subcommand → false.
+        // Correct: --config-env consumes FOO=BAR; first positional is 'commit' → true.
+        assert!(
+            is_git_commit_or_push("git --config-env FOO=BAR commit"),
+            "BC-1.18.002 v1.2 EC-023 / VP-105: 'git --config-env FOO=BAR commit' MUST return true \
+             (Phase 3: --config-env arg-taking; FOO=BAR consumed; first positional is 'commit') \
+             [RED: --config-env not in current OPTS_TAKING_ARG; 'FOO=BAR' treated as subcommand → false]"
+        );
+        // [GREEN] EC-022: fail-safe on unrecognized option.
+        // Current: accidentally returns true (skips --unknown-flag, finds 'commit').
+        // v1.2: fail-safe posture — unrecognized option arity unknown → return true immediately.
+        // Observable behavior is the same; mechanism changes in implementation.
+        assert!(
+            is_git_commit_or_push("git --unknown-flag commit"),
+            "BC-1.18.002 v1.2 EC-022 / VP-105: 'git --unknown-flag commit' MUST return true \
+             (Phase 3 fail-safe: --unknown-flag not in any recognized set; \
+             subcommand position uncertain; conservative posture blocks)"
+        );
+
+        // ── Phase 1: compound command splitting ───────────────────────────────
+
+        // [RED] EC-015: && operator.
+        // Current: split_whitespace gives tokens [git, status, &&, git, commit, ...];
+        //   first non-option positional after 'git' is 'status' → false.
+        // Correct: Phase 1 splits on &&; segment 2 subcommand is 'commit' → true.
+        assert!(
+            is_git_commit_or_push(r#"git status && git commit -m "x""#),
+            "BC-1.18.002 v1.2 EC-015 / VP-105: 'git status && git commit -m \"x\"' MUST return true \
+             (Phase 1: && splits; segment 1 = 'git status' → false; \
+             segment 2 = 'git commit -m \"x\"' → true; any-segment true ⇒ true) \
+             [RED: current split_whitespace; first positional after 'git' is 'status' → false]"
+        );
+        // [RED] EC-016: ; operator.
+        // Current: first positional after 'git' is 'diff' → false.
+        // Correct: Phase 1 splits on ;; segment 2 subcommand is 'push' → true.
+        assert!(
+            is_git_commit_or_push("git diff ; git push"),
+            "BC-1.18.002 v1.2 EC-016 / VP-105: 'git diff ; git push' MUST return true \
+             (Phase 1: ; splits; segment 1 = 'git diff' → false; \
+             segment 2 = 'git push' → true; any-segment true ⇒ true) \
+             [RED: current split_whitespace; first positional after 'git' is 'diff' → false]"
+        );
+
+        // ── Phase 2: basename identification ──────────────────────────────────
+
+        // [RED] EC-017: absolute-path git executable.
+        // Current: tokens[i] == "git" exact match; '/usr/bin/git' ≠ 'git' → scans past it,
+        //   never finds a 'git' token → false.
+        // Correct: basename('/usr/bin/git') = 'git'; subcommand is 'commit' → true.
+        assert!(
+            is_git_commit_or_push(r#"/usr/bin/git commit -m "init""#),
+            "BC-1.18.002 v1.2 EC-017 / VP-105: '/usr/bin/git commit -m \"init\"' MUST return true \
+             (Phase 2: basename('/usr/bin/git') = 'git'; subcommand is 'commit') \
+             [RED: current impl uses exact token == \"git\"; misses path-prefixed executable]"
+        );
+        // [RED] EC-018: relative-path git executable.
+        // Current: './git' ≠ 'git' → never finds git token → false.
+        // Correct: basename('./git') = 'git'; subcommand is 'push' → true.
+        assert!(
+            is_git_commit_or_push("./git push origin main"),
+            "BC-1.18.002 v1.2 EC-018 / VP-105: './git push origin main' MUST return true \
+             (Phase 2: basename('./git') = 'git'; subcommand is 'push') \
+             [RED: current impl uses exact token == \"git\"; misses ./git]"
+        );
+        // [GREEN] EC-021: env + VAR=x prefix stripping.
+        // Current: split_whitespace gives [env, GIT_DIR=.git, git, commit, ...];
+        //   scans all tokens, finds 'git' at index 2 → true. Accidentally correct.
+        // v1.2: Phase 2 strips 'env' + 'GIT_DIR=.git'; executable is 'git' → same result.
+        assert!(
+            is_git_commit_or_push(r#"env GIT_DIR=.git git commit -m "x""#),
+            "BC-1.18.002 v1.2 EC-021 / VP-105: 'env GIT_DIR=.git git commit -m \"x\"' MUST return true \
+             (Phase 2: strip leading 'env' token + 'GIT_DIR=.git' VAR= token; \
+             executable is 'git'; subcommand is 'commit')"
+        );
+
+        // ── FALSE: non-advancing commands MUST NOT be gated ───────────────────
+
+        // [GREEN] EC-001: read-only git subcommand.
+        assert!(
+            !is_git_commit_or_push("git status --porcelain"),
+            "BC-1.18.002 v1.2 EC-001 / VP-105: 'git status --porcelain' MUST return false \
+             (Phase 4: subcommand 'status' ≠ 'commit'/'push'; read-only)"
+        );
+        // [GREEN] EC-002: read-only git subcommand.
+        assert!(
+            !is_git_commit_or_push("git log --oneline -5"),
+            "BC-1.18.002 v1.2 EC-002 / VP-105: 'git log --oneline -5' MUST return false \
+             (Phase 4: subcommand 'log' ≠ 'commit'/'push'; read-only)"
+        );
+        // [GREEN] EC-003: read-only git subcommand.
+        assert!(
+            !is_git_commit_or_push("git diff HEAD~1"),
+            "BC-1.18.002 v1.2 EC-003 / VP-105: 'git diff HEAD~1' MUST return false \
+             (Phase 4: subcommand 'diff' ≠ 'commit'/'push'; read-only)"
+        );
+        // [GREEN] EC-004: non-advancing git subcommand.
+        assert!(
+            !is_git_commit_or_push("git fetch origin"),
+            "BC-1.18.002 v1.2 EC-004 / VP-105: 'git fetch origin' MUST return false \
+             (Phase 4: subcommand 'fetch' ≠ 'commit'/'push')"
+        );
+        // [GREEN] EC-005: non-git command entirely.
+        assert!(
+            !is_git_commit_or_push("cargo test --workspace"),
+            "BC-1.18.002 v1.2 EC-005 / VP-105: 'cargo test --workspace' MUST return false \
+             (Phase 2: basename('cargo') ≠ 'git'; not a git invocation)"
+        );
+        // [GREEN] EC-011: exact subcommand mismatch — 'commit-graph' ≠ 'commit'.
+        // BC-1.18.002 v1.1 clarification: the illustrative regex \bcommit\b would
+        // false-positive here because '-' is a word boundary making \bcommit\b match
+        // inside 'commit-graph'.  Phase 4 exact matching correctly rejects this.
+        assert!(
+            !is_git_commit_or_push("git commit-graph write"),
+            "BC-1.18.002 v1.2 EC-011 / VP-105: 'git commit-graph write' MUST return false \
+             (Phase 4 exact match: 'commit-graph' ≠ 'commit'; \
+             BC-1.18.002 v1.1 clarification; illustrative regex would false-positive here)"
+        );
+        // [GREEN] EC-019: compound with no advancing segment in either part.
+        // Current: accidentally returns false (first segment 'status' → false, stops there).
+        // v1.2: Phase 1 splits on &&; segment 1 subcommand = 'status' → false;
+        //   segment 2 subcommand = 'log' → false; all-false ⇒ false.
+        assert!(
+            !is_git_commit_or_push("git status && git log --oneline"),
+            "BC-1.18.002 v1.2 EC-019 / VP-105: 'git status && git log --oneline' MUST return false \
+             (Phase 1: && splits; both segments are non-advancing; \
+             no segment returns true; all-false ⇒ false)"
+        );
+        // [GREEN] EC-020: non-git executable whose name contains 'git' as substring.
+        assert!(
+            !is_git_commit_or_push("cat gitfile"),
+            "BC-1.18.002 v1.2 EC-020 / VP-105: 'cat gitfile' MUST return false \
+             (Phase 2: basename('cat') ≠ 'git'; 'gitfile' is an argument, not the executable)"
+        );
+    }
+
     // ── LOW-6: block message content (AC-007 / AC-008) ───────────────────────
 
     /// LOW-6: `on_pre_tool_use_impl` produces a JSON block message whose ACTUAL
