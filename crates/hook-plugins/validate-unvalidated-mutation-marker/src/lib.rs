@@ -249,36 +249,22 @@ pub mod guard_logic {
 // Entry point: single function handling BOTH Arm 1 (Agent) and Arm 2 (Bash)
 // ---------------------------------------------------------------------------
 
-/// PreToolUse entry point for both Arm 1 (`^Agent$`) and Arm 2 (`^Bash$` git filter).
+/// Testable inner implementation — takes an explicit `marker_path` so unit tests
+/// can inject a tempdir marker without coupling to the WASI preopened CWD.
 ///
-/// This single function handles both dispatch arms since both hooks-registry.toml entries
-/// reference the IDENTICAL WASM binary (BC-1.18.002 invariant 1; AC-019).
-///
-/// **Arm 1 (Agent):** fires on `tool = "^Agent$"` PreToolUse dispatches.
-/// Checks marker presence; blocks if marker exists (AC-007; EC-004).
-///
-/// **Arm 2 (Bash git filter):** fires on `tool = "^Bash$"` PreToolUse dispatches.
-/// First applies `is_git_commit_or_push(command)` filter; if the command is NOT
-/// a git commit/push, passes immediately without checking the marker (AC-009).
-/// If the command IS a git commit/push, checks marker presence; blocks if marker exists (AC-008).
-///
-/// **Both arms absent-marker path:** when marker is absent, both arms return exit_code=0
-/// (allow) unconditionally (AC-010).
+/// Called by `on_pre_tool_use` with the hardcoded production path; called directly
+/// by tests with a tempdir-based path. This extraction ensures tests exercise the
+/// real dispatch-routing logic and real block-message assembly, not a reconstruction.
 ///
 /// # BC-5.38.001
 ///
-/// Effectful (reads tool payload, reads marker file). Non-trivial body. Uses `todo!()`.
-pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
+/// Effectful (reads tool payload, reads marker file). Non-trivial body.
+pub(crate) fn on_pre_tool_use_impl(
+    payload: HookPayload,
+    marker_path: &std::path::Path,
+) -> HookResult {
     // Single entry point for BOTH Arm 1 (^Agent$) and Arm 2 (^Bash$) dispatches.
     // Both hooks-registry.toml entries reference this IDENTICAL WASM binary (AC-019).
-    //
-    // Relative path: the dispatcher preopens host_ctx.cwd as WASI `"."`, so
-    // `.factory/unvalidated-mutation.marker` resolves to the project root's
-    // .factory directory without needing an absolute path (which WASI rejects
-    // when no root preopen is configured). Do NOT use host::cwd() + absolute
-    // PathBuf here — wasmtime WASI returns ENOENT for absolute paths that
-    // aren't under a preopened directory prefix.
-    let marker_path = std::path::Path::new(".factory").join("unvalidated-mutation.marker");
 
     // Arm 2 (^Bash$): apply the git commit/push filter FIRST.
     // If this is a Bash dispatch that does NOT match \bgit\b.*\b(commit|push)\b,
@@ -297,7 +283,7 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
     }
 
     // Arm 1 (^Agent$) or Arm 2 (git commit/push match): check marker presence.
-    match guard_logic::evaluate_gate(&marker_path) {
+    match guard_logic::evaluate_gate(marker_path) {
         GateDecision::Allow => HookResult::Continue,
         GateDecision::Block {
             plugin_name,
@@ -325,6 +311,38 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
             HookResult::Block { reason }
         }
     }
+}
+
+/// PreToolUse entry point for both Arm 1 (`^Agent$`) and Arm 2 (`^Bash$` git filter).
+///
+/// This single function handles both dispatch arms since both hooks-registry.toml entries
+/// reference the IDENTICAL WASM binary (BC-1.18.002 invariant 1; AC-019).
+///
+/// **Arm 1 (Agent):** fires on `tool = "^Agent$"` PreToolUse dispatches.
+/// Checks marker presence; blocks if marker exists (AC-007; EC-004).
+///
+/// **Arm 2 (Bash git filter):** fires on `tool = "^Bash$"` PreToolUse dispatches.
+/// First applies `is_git_commit_or_push(command)` filter; if the command is NOT
+/// a git commit/push, passes immediately without checking the marker (AC-009).
+/// If the command IS a git commit/push, checks marker presence; blocks if marker exists (AC-008).
+///
+/// **Both arms absent-marker path:** when marker is absent, both arms return exit_code=0
+/// (allow) unconditionally (AC-010).
+///
+/// Delegates to `on_pre_tool_use_impl` with the production marker path. The production
+/// path is relative to the WASI preopened CWD (`"."`), which the dispatcher sets to
+/// the project root — so `.factory/unvalidated-mutation.marker` resolves correctly
+/// without requiring an absolute path (which WASI rejects when no root preopen is
+/// configured).
+pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
+    // Relative path: the dispatcher preopens host_ctx.cwd as WASI `"."`, so
+    // `.factory/unvalidated-mutation.marker` resolves to the project root's
+    // .factory directory without needing an absolute path (which WASI rejects
+    // when no root preopen is configured). Do NOT use host::cwd() + absolute
+    // PathBuf here — wasmtime WASI returns ENOENT for absolute paths that
+    // aren't under a preopened directory prefix.
+    let marker_path = std::path::Path::new(".factory").join("unvalidated-mutation.marker");
+    on_pre_tool_use_impl(payload, &marker_path)
 }
 
 // ---------------------------------------------------------------------------
@@ -771,27 +789,30 @@ mod tests {
 
     // ── LOW-6: block message content (AC-007 / AC-008) ───────────────────────
 
-    /// LOW-6 (may be GREEN): `evaluate_gate` returns structured fields that `on_pre_tool_use`
-    /// serializes into a JSON block message. The block message MUST contain:
-    ///   - the marker plugin_name
-    ///   - the marker artifact_path
-    ///   - the marker cause
-    ///   - a re-validation command
-    ///   - the manual escape hatch `rm .factory/unvalidated-mutation.marker`
+    /// LOW-6: `on_pre_tool_use_impl` produces a JSON block message whose ACTUAL
+    /// emitted structure (not a reconstruction) MUST contain:
+    ///   - `marker_plugin_name` — the plugin_name from the marker TOML
+    ///   - `recovery.revalidate` — references the blocking plugin name
+    ///   - `recovery.manual_escape_hatch` — exactly "rm .factory/unvalidated-mutation.marker"
     ///   - be machine-parseable (valid JSON)
     ///
-    /// AC-007 / AC-008 / BC-1.18.002 INV4. May already be GREEN if current
-    /// `on_pre_tool_use` emits all required fields; included as coverage closure.
+    /// AC-007 / AC-008 / BC-1.18.002 INV4.
+    ///
+    /// **Adversary OBS fix (S-25.01):** the previous version of this test
+    /// *reconstructed* the block-message JSON using a copied `serde_json::json!`
+    /// shape, then asserted on that copy — validating a duplicate, not the real
+    /// production output. A future change to `on_pre_tool_use_impl`'s actual JSON
+    /// shape would NOT have been caught. This rewrite calls `on_pre_tool_use_impl`
+    /// directly with a real `HookPayload` (Agent arm AND Bash git commit arm) and
+    /// asserts on the actual returned `HookResult::Block { reason }`.
+    ///
+    /// The `marker_path` parameter on `on_pre_tool_use_impl` is the injection point
+    /// that makes native unit tests viable without writing to the real `.factory/`
+    /// directory or depending on WASI preopened-directory semantics.
     #[test]
     fn test_BC_1_18_002_block_message_contains_required_fields_and_escape_hatch() {
-        // AC-007 / AC-008 / BC-1.18.002 INV4
-        // Test strategy: call evaluate_gate with a marker present (explicit path),
-        // then reconstruct the JSON block message that on_pre_tool_use would produce
-        // and verify all required fields.
-        //
-        // We test via evaluate_gate (which provides the fields) rather than calling
-        // on_pre_tool_use directly (which uses a relative path hardwired to the
-        // WASI preopened directory, making it difficult to redirect in native tests).
+        use super::on_pre_tool_use_impl;
+        use vsdd_hook_sdk::HookResult;
 
         let dir = tempfile::tempdir().expect("tempdir");
         let marker_path = dir.path().join("unvalidated-mutation.marker");
@@ -813,75 +834,118 @@ mod tests {
         )
         .expect("test setup: write marker");
 
-        let decision = evaluate_gate(&marker_path);
-        let (plugin_name, artifact_path, cause, trace_id) = match decision {
-            GateDecision::Block {
-                plugin_name,
-                artifact_path,
-                cause,
-                trace_id,
-            } => (plugin_name, artifact_path, cause, trace_id),
-            GateDecision::Allow => panic!("marker present MUST yield Block"),
+        // ── Arm 1: Agent dispatch ──────────────────────────────────────────────
+        // AC-007: when marker is present, an Agent PreToolUse dispatch MUST produce
+        // HookResult::Block with a machine-parseable JSON reason.
+        let agent_payload: vsdd_hook_sdk::HookPayload = serde_json::from_str(
+            r#"{
+                "event_name": "PreToolUse",
+                "tool_name": "Agent",
+                "session_id": "test-sess-low6",
+                "dispatcher_trace_id": "test-trace-low6",
+                "tool_input": {
+                    "subagent_type": "vsdd-factory:state-manager",
+                    "prompt": "advance state"
+                }
+            }"#,
+        )
+        .expect("agent payload should deserialize");
+
+        let agent_result = on_pre_tool_use_impl(agent_payload, &marker_path);
+        let agent_reason = match agent_result {
+            HookResult::Block { ref reason } => reason.clone(),
+            other => panic!(
+                "AC-007: Agent arm MUST produce HookResult::Block when marker present — got {other:?}"
+            ),
         };
 
-        // Reconstruct the block message JSON as on_pre_tool_use produces it
-        // (mirrors the production code in on_pre_tool_use).
-        let block_reason = serde_json::json!({
-            "blocked_by": "validate-unvalidated-mutation-marker",
-            "marker_plugin_name": plugin_name,
-            "marker_artifact_path": artifact_path,
-            "marker_cause": cause,
-            "marker_trace_id": trace_id,
-            "recovery": {
-                "revalidate": format!(
-                    "Re-run {} to clear the marker (must produce exit_code=0)",
-                    plugin_name
-                ),
-                "manual_escape_hatch": "rm .factory/unvalidated-mutation.marker"
-            }
-        })
-        .to_string();
+        // Assert on the ACTUAL emitted reason (not a reconstruction).
+        // AC-007: block reason MUST be valid JSON
+        let agent_parsed: serde_json::Value = serde_json::from_str(&agent_reason)
+            .expect("AC-007 / BC-1.18.002 INV4: Agent arm block reason MUST be valid JSON");
 
-        // AC-007/AC-008: block message MUST contain the marker plugin_name
-        assert!(
-            block_reason.contains(expected_plugin),
-            "AC-007/AC-008 / BC-1.18.002 INV4: block message MUST contain marker plugin_name '{}'",
-            expected_plugin
+        // AC-007: marker plugin_name MUST appear in the block message
+        assert_eq!(
+            agent_parsed
+                .get("marker_plugin_name")
+                .and_then(|v| v.as_str()),
+            Some(expected_plugin),
+            "AC-007 / BC-1.18.002 INV4: 'marker_plugin_name' MUST equal marker plugin_name '{expected_plugin}'"
         );
 
-        // AC-007/AC-008: block message MUST contain a re-validation command
+        // AC-007: recovery object MUST be present with both required subfields
+        let agent_recovery = agent_parsed
+            .get("recovery")
+            .expect("AC-007 / BC-1.18.002 INV4: block reason MUST have a structured 'recovery' field");
+
+        let revalidate = agent_recovery
+            .get("revalidate")
+            .and_then(|v| v.as_str())
+            .expect("AC-007: recovery MUST have 'revalidate' subfield");
+        // The revalidate command MUST reference the blocking plugin by name so the
+        // operator knows which plugin to re-run.
         assert!(
-            block_reason.contains("revalidate"),
-            "AC-007/AC-008 / BC-1.18.002 INV4: block message MUST contain a re-validation command"
+            revalidate.contains(expected_plugin),
+            "AC-007: revalidate command MUST reference the marker plugin_name '{expected_plugin}' \
+             so the operator knows what to re-run — got: {revalidate}"
         );
 
-        // AC-007/AC-008: block message MUST contain the manual escape hatch
-        assert!(
-            block_reason.contains("rm .factory/unvalidated-mutation.marker"),
-            "AC-007/AC-008 / BC-1.18.002 INV4: block message MUST contain the operator \
-             escape hatch 'rm .factory/unvalidated-mutation.marker'"
+        let escape_hatch = agent_recovery
+            .get("manual_escape_hatch")
+            .and_then(|v| v.as_str())
+            .expect("AC-007: recovery MUST have 'manual_escape_hatch' subfield");
+        assert_eq!(
+            escape_hatch,
+            "rm .factory/unvalidated-mutation.marker",
+            "AC-007 / BC-1.18.003 PC3: manual_escape_hatch MUST be \
+             'rm .factory/unvalidated-mutation.marker' — the fully supported operator escape hatch"
         );
 
-        // Machine-parseable: block message MUST be valid JSON with structured fields
-        let parsed: serde_json::Value = serde_json::from_str(&block_reason)
-            .expect("AC-007/AC-008 / BC-1.18.002 INV4: block message MUST be valid JSON");
-        assert!(
-            parsed.get("recovery").is_some(),
-            "AC-007/AC-008: block message MUST have a structured 'recovery' field (not freeform prose)"
+        // ── Arm 2: Bash git commit dispatch ───────────────────────────────────
+        // AC-008: when marker is present, a Bash git commit PreToolUse dispatch
+        // MUST also produce HookResult::Block with the same structured JSON reason.
+        let bash_payload: vsdd_hook_sdk::HookPayload = serde_json::from_str(
+            r#"{
+                "event_name": "PreToolUse",
+                "tool_name": "Bash",
+                "session_id": "test-sess-low6",
+                "dispatcher_trace_id": "test-trace-low6",
+                "tool_input": {
+                    "command": "git commit -m 'fix: S-25.01 block-message test invokes production path'"
+                }
+            }"#,
+        )
+        .expect("bash payload should deserialize");
+
+        let bash_result = on_pre_tool_use_impl(bash_payload, &marker_path);
+        let bash_reason = match bash_result {
+            HookResult::Block { ref reason } => reason.clone(),
+            other => panic!(
+                "AC-008: Bash git commit arm MUST produce HookResult::Block when marker present \
+                 — got {other:?}"
+            ),
+        };
+
+        // Assert on the ACTUAL emitted reason from the Bash arm.
+        let bash_parsed: serde_json::Value = serde_json::from_str(&bash_reason)
+            .expect("AC-008 / BC-1.18.002 INV4: Bash arm block reason MUST be valid JSON");
+
+        assert_eq!(
+            bash_parsed
+                .get("marker_plugin_name")
+                .and_then(|v| v.as_str()),
+            Some(expected_plugin),
+            "AC-008 / BC-1.18.002 INV4: Bash arm 'marker_plugin_name' MUST equal \
+             marker plugin_name '{expected_plugin}'"
         );
-        assert!(
-            parsed
+        assert_eq!(
+            bash_parsed
                 .get("recovery")
                 .and_then(|r| r.get("manual_escape_hatch"))
-                .is_some(),
-            "AC-007/AC-008: block message recovery MUST have 'manual_escape_hatch' subfield"
-        );
-        assert!(
-            parsed
-                .get("recovery")
-                .and_then(|r| r.get("revalidate"))
-                .is_some(),
-            "AC-007/AC-008: block message recovery MUST have 'revalidate' subfield"
+                .and_then(|v| v.as_str()),
+            Some("rm .factory/unvalidated-mutation.marker"),
+            "AC-008 / BC-1.18.003 PC3: Bash arm escape hatch MUST be \
+             'rm .factory/unvalidated-mutation.marker'"
         );
     }
 }
