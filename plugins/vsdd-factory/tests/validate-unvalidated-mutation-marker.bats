@@ -13,6 +13,15 @@
 #   F: marker absent  + git push Bash dispatch  → allowed (BC-1.18.002 PC4; AC-010)
 #   G: git status Bash dispatch not gated even when marker exists (BC-1.18.002 PC3; AC-009)
 #
+# VP-105-H and VP-105-I cover the 6-field TTL path (ADR-048 §Decision 2):
+#   H: 6-field marker with future expires_at → Agent dispatch blocked
+#      (non-expired marker must block; evaluate_gate WASM uses chrono::Utc::now())
+#   I: 6-field marker with past expires_at → Agent dispatch allowed + marker auto-deleted
+#      (BC-1.18.003 PC4: TTL-expired marker → Allow + auto-delete by WASM gate)
+#
+# VP-105-H and VP-105-I use require_bash4_hook_interp (skip on macOS /bin/bash 3.x;
+# run on Linux CI where /bin/bash is 4+).
+#
 # Red Gate state: these tests FAIL until T-4 (build WASM binary) and T-5
 # (register in hooks-registry.toml) are complete. The assertion
 # `[ -f "$GATE_WASM" ]` (in _require_gate_wasm) fails explicitly —
@@ -61,6 +70,15 @@ _require_dispatcher() {
     fi
 }
 
+# Guard: skip the test if /bin/bash is older than version 4.
+# Mirrors require_bash4_hook_interp from hooks.bats.
+# On macOS the system /bin/bash is 3.2 (GPL licence constraint); Linux CI has 4+.
+require_bash4_hook_interp() {
+    local maj
+    maj=$(/bin/bash -c 'echo ${BASH_VERSINFO[0]}')
+    [[ "$maj" -ge 4 ]] || skip "hook requires bash 4+; /bin/bash is ${maj}.x (skip on macOS bash3)"
+}
+
 # Require the gate WASM binary. FAILS (does NOT skip) if missing.
 # Red Gate: the WASM binary does not exist until T-4 is implemented.
 # A failing assertion here is the correct Red Gate state for bats tests.
@@ -77,6 +95,8 @@ _require_gate_wasm() {
 
 # Write a valid 5-field TOML marker to .factory/unvalidated-mutation.marker.
 # $1: WORK dir whose .factory/ receives the marker.
+# This is the legacy (pre-ADR-048) 5-field form — no expires_at field.
+# The gate plugin treats a missing expires_at as non-expired (conservative block).
 _write_marker() {
     local work_dir="$1"
     cat > "$work_dir/.factory/unvalidated-mutation.marker" << 'TOML'
@@ -85,6 +105,36 @@ plugin_name = "validate-factory-path-staging"
 artifact_path = "/tmp/.factory/STATE.md"
 cause = "fuel"
 trace_id = "deadbeef-0001-0001-0001-000000000001"
+TOML
+}
+
+# Write a 6-field TOML marker (ADR-048 §Decision 2 form) to
+# .factory/unvalidated-mutation.marker with an explicit expires_at field.
+#
+# The expires_at field is parsed by evaluate_gate inside the WASM sandbox via
+# chrono::DateTime::parse_from_rfc3339 — must be RFC 3339 / ISO-8601 UTC.
+#
+# $1: WORK dir whose .factory/ receives the marker.
+# $2: plugin_name value.
+# $3: artifact_path value (may be empty string).
+# $4: expires_at RFC 3339 UTC timestamp string (e.g. "2099-01-01T00:00:00Z").
+#
+# Decision table (BC-1.18.003 PC4 + ADR-048 §Decision 2):
+#   expires_at > now  → evaluate_gate returns Block (non-expired quarantine)
+#   expires_at <= now → evaluate_gate auto-deletes the marker + returns Allow
+_write_marker_with_expiry() {
+    local work_dir="$1"
+    local plugin_name="$2"
+    local artifact_path="$3"
+    local expires_at="$4"
+    # Note: unquoted TOML delimiter allows variable interpolation of field values.
+    cat > "$work_dir/.factory/unvalidated-mutation.marker" << TOML
+timestamp = "2026-08-31T00:00:00Z"
+plugin_name = "$plugin_name"
+artifact_path = "$artifact_path"
+cause = "fuel"
+trace_id = "deadbeef-0001-0001-0001-000000000002"
+expires_at = "$expires_at"
 TOML
 }
 
@@ -323,6 +373,99 @@ _run_dispatcher_pretooluse_edit() {
         echo "FAIL: git status MUST NOT be gated (only commit/push are gated by Arm 2)"
         echo "Expected exit 0 (allow); got exit $status"
         echo "Output: $output"
+        return 1
+    }
+}
+
+# ---------------------------------------------------------------------------
+# VP-105-H: 6-field marker, future expires_at → Agent dispatch blocked
+#
+# BC-1.18.003 PC4 (non-expired path): a 6-field marker whose expires_at is
+# in the far future must block — evaluate_gate sees expires_at > Utc::now()
+# inside the WASM sandbox and returns GateDecision::Block.
+#
+# ADR-048 §Decision 2: 24-hour deadman TTL. A non-expired marker is treated
+# identically to a legacy 5-field marker — full quarantine enforced.
+#
+# Skips on macOS /bin/bash 3.x; runs on Linux CI (bash 4+).
+# ---------------------------------------------------------------------------
+
+@test "VP-105-H: 6-field marker future expires_at → Agent dispatch blocked (BC-1.18.003 PC4; ADR-048 §D2)" {
+    require_bash4_hook_interp
+    _require_dispatcher
+    _require_gate_wasm
+
+    # Write a 6-field marker with expires_at far in the future (year 2099).
+    # evaluate_gate inside the WASM: expires_at (2099-01-01T00:00:00Z) > Utc::now() → Block.
+    _write_marker_with_expiry "$WORK" \
+        "validate-factory-path-staging" \
+        "/tmp/.factory/STATE.md" \
+        "2099-01-01T00:00:00Z"
+
+    _run_dispatcher_pretooluse_agent "$WORK"
+
+    # MUST exit 2 (block): non-expired TTL quarantine must not be bypassed.
+    [ "$status" -eq 2 ] || {
+        echo "FAIL: expected dispatcher exit 2 (block) for 6-field marker with future expires_at; got exit $status"
+        echo "Output: $output"
+        return 1
+    }
+
+    # Genuine assertion: a blocked non-expired marker MUST NOT be auto-deleted.
+    # The WASM gate only auto-deletes on the Allow (expired) path.
+    [ -f "$WORK/.factory/unvalidated-mutation.marker" ] || {
+        echo "FAIL: 6-field marker with future expires_at MUST NOT be auto-deleted on the Block path"
+        echo "  marker was unexpectedly removed from: $WORK/.factory/unvalidated-mutation.marker"
+        return 1
+    }
+}
+
+# ---------------------------------------------------------------------------
+# VP-105-I: 6-field marker, past expires_at → Agent dispatch allowed + auto-delete
+#
+# BC-1.18.003 PC4 (expired path): a 6-field marker whose expires_at has elapsed
+# must be treated as absent — evaluate_gate sees expires_at <= Utc::now() inside
+# the WASM sandbox, auto-deletes the marker file, and returns GateDecision::Allow.
+#
+# ADR-048 §Decision 2: expired deadman TTL → fail-open + idempotent auto-delete.
+# This is the production path that prevents stale quarantine from blocking forever.
+#
+# Skips on macOS /bin/bash 3.x; runs on Linux CI (bash 4+).
+# ---------------------------------------------------------------------------
+
+@test "VP-105-I: 6-field marker past expires_at → Agent allowed + marker auto-deleted (BC-1.18.003 PC4; ADR-048 §D2)" {
+    require_bash4_hook_interp
+    _require_dispatcher
+    _require_gate_wasm
+
+    # Write a 6-field marker with expires_at in the distant past (year 2000).
+    # evaluate_gate inside the WASM: expires_at (2000-01-01T00:00:00Z) <= Utc::now()
+    # → auto-delete marker + return GateDecision::Allow.
+    _write_marker_with_expiry "$WORK" \
+        "validate-factory-path-staging" \
+        "/tmp/.factory/STATE.md" \
+        "2000-01-01T00:00:00Z"
+
+    # Precondition: marker must exist before the dispatch.
+    [ -f "$WORK/.factory/unvalidated-mutation.marker" ] || {
+        echo "FAIL: precondition — 6-field marker must exist before dispatch"
+        return 1
+    }
+
+    _run_dispatcher_pretooluse_agent "$WORK"
+
+    # MUST exit 0 (allow): TTL-expired marker is treated as absent (ADR-048 §D2).
+    [ "$status" -eq 0 ] || {
+        echo "FAIL: expected dispatcher exit 0 (allow) for 6-field marker with past expires_at; got exit $status"
+        echo "Output: $output"
+        return 1
+    }
+
+    # BC-1.18.003 PC4: the WASM gate auto-deletes the stale marker on the expired path.
+    # Assert the marker file is gone after the dispatch (not present, not renamed).
+    [ ! -f "$WORK/.factory/unvalidated-mutation.marker" ] || {
+        echo "FAIL: TTL-expired marker MUST be auto-deleted by evaluate_gate (BC-1.18.003 PC4)"
+        echo "  marker still present at: $WORK/.factory/unvalidated-mutation.marker"
         return 1
     }
 }
