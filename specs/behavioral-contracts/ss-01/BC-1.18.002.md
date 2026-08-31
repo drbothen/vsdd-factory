@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-08-31T00:00:00Z
@@ -18,7 +18,7 @@ subsystem: "SS-01"
 capability: "CAP-041"
 lifecycle_status: draft
 introduced: v1.0-feature-validation-integrity-layer1
-modified: ["v1.1-2026-08-31-exact-subcommand-clarification", "v1.2-2026-08-31-command-detection-comprehensive-expansion"]
+modified: ["v1.1-2026-08-31-exact-subcommand-clarification", "v1.2-2026-08-31-command-detection-comprehensive-expansion", "v1.3-2026-08-31-fail-open-reconciliation-threat-model-quoting-scope"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -35,7 +35,7 @@ When `.factory/unvalidated-mutation.marker` exists, the `validate-unvalidated-mu
 PreToolUse gate plugin enforces a two-arm quarantine covering the complete durable-propagation
 surface: (Arm 1) all `^Agent$` tool dispatches are blocked; (Arm 2) all Bash dispatches for
 which `is_git_commit_or_push(command)` returns `true` are blocked. The Arm 2 filter is a
-production-grade security filter (v1.2): it splits compound commands on shell operators
+production-grade security filter (v1.3): it splits compound commands on shell operators
 (`&&`, `||`, `;`, `|`, `&`, newline), identifies the git executable by basename (matching
 `/usr/bin/git`, `./git`, `env VAR=x git`, etc.), skips the complete recognized set of git
 global options (seven arg-taking options that consume a separate-token argument, plus
@@ -43,18 +43,37 @@ recognized no-arg flags), applies a fail-safe posture for unrecognized options (
 subcommand position is uncertain), and performs exact subcommand matching (`commit` or `push`
 only). Both arms are unblocked simultaneously when the marker is absent. Non-advancing tool
 dispatches (Read, Edit, Write, non-git-commit/push Bash) are never gated. The gate plugin is
-registered `failure_policy = "fail-open"` to prevent self-lock: if the gate itself cannot
-complete, the dispatch proceeds rather than creating an unconditional deadlock (ADR-047
-§Decision 4 rationale).
+registered `on_error = "continue"` (dispatcher-level fail-open-on-crash: when the WASM plugin
+itself errors — crash, fuel exhaustion, epoch timeout — the dispatch PROCEEDS, not blocks;
+ADR-047 §Decision 9; ADR-039 two-axis model). This is orthogonal to the filter's internal
+fail-SAFE posture (Phase 3 blocks on unrecognized git global options — a within-filter
+conservative choice, not a dispatcher-crash policy). As of v1.3, QUOTED-literal git
+invocations (`git "commit"`, `git 'push' origin`, `g'i't commit`) are IN SCOPE, handled via
+Phase 1b POSIX quote-aware tokenization using the `shell-words` crate.
 
 ## Preconditions
 
 1. The `validate-unvalidated-mutation-marker` plugin is registered in `hooks-registry.toml`
    with TWO `[[hook]]` entries:
-   - **Arm 1:** `event = "PreToolUse"`, `tool = "^Agent$"`, `on_error = "block"`, `async = false`,
+   - **Arm 1:** `event = "PreToolUse"`, `tool = "^Agent$"`, `on_error = "continue"`, `async = false`,
      `failure_policy = "fail-open"`, `name = "validate-unvalidated-mutation-marker"`.
-   - **Arm 2:** `event = "PreToolUse"`, `tool = "^Bash$"`, `on_error = "block"`, `async = false`,
+   - **Arm 2:** `event = "PreToolUse"`, `tool = "^Bash$"`, `on_error = "continue"`, `async = false`,
      `failure_policy = "fail-open"`, `name = "validate-unvalidated-mutation-marker-git"`.
+
+   **Two-axis model (ADR-039; ADR-047 §Decision 9):** Two orthogonal failure-mode axes govern
+   the gate's behavior and must never be conflated:
+   - **(i) Dispatcher-level fail-open-on-crash** (`on_error = "continue"`): when the WASM plugin
+     itself fails at the dispatcher layer — crash, fuel exhaustion, epoch timeout — the dispatcher
+     ALLOWS the triggering dispatch (fail-open). This is what satisfies INV2 / EC-009 / AC-011.
+     The v1.2 specification of `on_error = "block"` was incorrect: a gate crash would have
+     produced an unconditional self-lock (the opposite of the intended behavior). Corrected to
+     `on_error = "continue"` in v1.3.
+   - **(ii) Filter-internal fail-SAFE posture** (Phase 3): when the `is_git_commit_or_push`
+     filter encounters an UNRECOGNIZED git global option, it returns BLOCK (subcommand position
+     is uncertain; under-blocking is the dangerous failure mode for the command filter). This is a
+     conservative within-filter design choice, orthogonal to axis (i): the filter's internal
+     posture has no bearing on what the dispatcher does when the WASM plugin itself crashes.
+
 2. The `.factory/` directory is accessible by the gate plugin (path allowlist covers
    `.factory/unvalidated-mutation.marker`).
 3. The tool dispatch is arriving at the PreToolUse gate evaluation phase.
@@ -78,15 +97,30 @@ complete, the dispatch proceeds rather than creating an unconditional deadlock (
    `exit_code = 2` (block). The block message contains the same recovery information as Arm 1
    (plugin_name, artifact_path, cause, recovery command, manual escape hatch).
 
-   **`is_git_commit_or_push(command) → bool` — Authoritative Algorithm (v1.2):**
+   **`is_git_commit_or_push(command) → bool` — Authoritative Algorithm (v1.3):**
 
    The function is a production-grade security filter. Under-blocking is the dangerous failure
    mode; the algorithm is fail-safe on ambiguity.
 
    **Phase 1 — Compound command splitting.** Split `command` on the shell operators `&&`,
    `||`, `;`, `|`, `&`, and newline (`\n`) into segments. Trim leading and trailing whitespace
-   from each segment. Apply Phases 2–4 to **each** segment independently. Return `true` if
+   from each segment. Apply Phases 1b–4 to **each** segment independently. Return `true` if
    **any** segment returns `true`.
+
+   **Phase 1b — POSIX quote-aware tokenization.** Before applying Phases 2–4, tokenize each
+   segment from Phase 1 using POSIX word-splitting rules via the `shell-words` crate. Quote
+   removal and token concatenation occur at this phase — Phases 2–4 operate on the resulting
+   token list, not on the raw whitespace-split string:
+   - `git "commit"` → tokens: `["git", "commit"]` (double-quoted `commit` is equivalent to
+     unquoted after POSIX quote removal)
+   - `git 'push' origin` → tokens: `["git", "push", "origin"]` (single-quoted `push` is
+     equivalent to unquoted)
+   - `g'i't commit` → tokens: `["git", "commit"]` (POSIX concatenates the unquoted `g`,
+     single-quoted `i`, and unquoted `t` character runs into the token `git`)
+
+   **Do NOT implement ad-hoc quote-stripping** (e.g., `s/["']//g` regex) — the `shell-words`
+   crate provides POSIX parser-equivalence, eliminating the parser-differential bypass class
+   where ad-hoc stripping could produce different tokenization than the actual shell.
 
    **Phase 2 — Executable identification by basename.** For each segment:
    a. Strip any leading env-var assignment tokens (tokens matching the pattern
@@ -148,6 +182,7 @@ complete, the dispatch proceeds rather than creating an unconditional deadlock (
    - `git status && git commit -m "x"`, `git diff ; git push`
    - `/usr/bin/git commit -m "init"`, `./git push origin main`
    - `env GIT_DIR=.git git commit -m "x"`
+   - `git "commit" -m "msg"`, `git 'push' origin main`, `g'i't commit -m "x"` (Phase 1b quote-aware tokenization; v1.3)
 
    **Command filter MUST NOT match:**
    - `git status`, `git log`, `git diff`, `git fetch`, `git pull`, `git rebase`, `git stash`
@@ -207,6 +242,50 @@ complete, the dispatch proceeds rather than creating an unconditional deadlock (
    without requiring another Agent dispatch. This is the break-glass pattern from ADR-039
    §Decision 3 applied to the marker gate.
 
+## Threat Model & Scope
+
+**Actor model.** The gate defends against a **cooperating AI agent** that may be nudged onto
+an unusual or unintended execution path — for example, an agent that has confused its context
+and is about to commit or push while a mutation marker is present. The gate is NOT an
+adversary-resistant authorization boundary; it is NOT designed to stop a deliberately-evasive
+actor constructing crafted shell invocations to evade detection. Claims that the gate provides
+adversarial-boundary guarantees are evaluating the wrong property.
+
+**Canonical gate claim language (use verbatim in all derived artifacts):**
+> "A fast, fail-open, accidental-misuse interlock for a cooperating agent — NOT an
+> adversary-resistant authorization boundary."
+
+**IN SCOPE — gate blocks (committed by design):**
+
+| Class | Examples |
+|-------|---------|
+| Direct invocation | `git commit -m "..."`, `git push origin main` |
+| Compound commands | `git status && git commit -m "x"`, `git diff ; git push` |
+| Path-prefixed / basename-matched git | `/usr/bin/git commit`, `./git push origin main` |
+| Env-prefixed git | `env GIT_DIR=.git git commit -m "x"` |
+| Global-option-bearing invocations | `git -C .factory commit`, `git --git-dir .git commit` |
+| **QUOTED-literal subcommand or executable** (v1.3) | `git "commit"`, `git 'push' origin`, `g'i't commit` |
+
+QUOTED-literal forms are in scope as of v1.3 via Phase 1b POSIX quote-aware tokenization
+(implemented using the `shell-words` crate). Ad-hoc quote-stripping is explicitly forbidden
+— the crate provides parser-equivalence with POSIX shell quoting semantics, eliminating the
+parser-differential bypass class.
+
+**OUT OF SCOPE — NOT blocked by this gate (allowed under fail-open; caught by other layers):**
+
+Reliably blocking the forms below is UNDECIDABLE in general: a static string analysis cannot
+resolve arbitrary dynamic shell expansion (Rice's theorem). These inputs are INDETERMINATE for
+this filter and are ALLOWED under fail-open posture. They are caught by the durable marker
+written at PostToolUse time (regardless of how the triggering dispatch arrived), the `^Agent$`
+next-advance arm, and GitHub server-side branch protection on durable branches.
+
+| Class | Examples | Rationale for exclusion |
+|-------|---------|------------------------|
+| Variable / alias / function indirection | `c=git; $c push`, `alias gp="git push"; gp` | Dynamic expansion; undecidable for static string analysis |
+| `xargs` / command-as-string-arg indirection | `echo "git push" \| xargs bash -c`, `bash -c "git push"` | `git` is a string arg to another program, not the top-level executable |
+| `eval` and `source` / `.` | `eval "git push origin main"`, `. ./git-script.sh` | Dynamic evaluation; undecidable |
+| Command substitution at top level | `$(git commit -m "x")`, `` `git push` `` | `git` is not a statically-literal top-level token; the outer command is the substitution |
+
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
@@ -234,6 +313,12 @@ complete, the dispatch proceeds rather than creating an unconditional deadlock (
 | EC-021 | Marker present; `env GIT_DIR=.git git commit -m "msg"` Bash dispatch | BLOCKED. Phase 2 strips leading literal token `env` and env-var assignment token `GIT_DIR=.git`. Executable is `git`. Subcommand is `commit`. |
 | EC-022 | Marker present; `git --unknown-flag commit` Bash dispatch | BLOCKED. Phase 3: `--unknown-flag` is not in the recognized arg-taking or no-arg sets and does not contain `=`. Fail-safe posture: return `true` (block). Subcommand position cannot be determined with certainty from the closed recognized set. |
 | EC-023 | Marker present; `git --config-env FOO=BAR commit` Bash dispatch | BLOCKED. `--config-env` is in the recognized arg-taking set; `FOO=BAR` is consumed as its argument. The first remaining positional token is `commit`. |
+| EC-024 | Marker present; `git "commit"` Bash dispatch | BLOCKED. Phase 1b POSIX tokenization: `"commit"` (double-quoted) → token `commit` after quote removal. Phase 4: subcommand is `commit`. Newly in scope as of v1.3. |
+| EC-025 | Marker present; `git 'push' origin` Bash dispatch | BLOCKED. Phase 1b POSIX tokenization: `'push'` (single-quoted) → token `push` after quote removal. Phase 4: subcommand is `push`. |
+| EC-026 | Marker present; `g'i't commit` Bash dispatch | BLOCKED. Phase 1b POSIX tokenization: `g'i't` → token `git` (POSIX concatenates unquoted `g`, single-quoted `i`, and unquoted `t` character runs). Phase 2: `basename("git") = "git"`. Phase 4: subcommand is `commit`. |
+| EC-027 | Marker present; `$(git commit -m "x")` Bash dispatch | NOT blocked. OUT OF SCOPE by design. The top-level command is a command substitution, not a statically-literal `git` invocation. Allowed under fail-open posture; caught by durable marker and other controls (see Threat Model §Out-of-scope). |
+| EC-028 | Marker present; `echo x \| xargs git commit` Bash dispatch | NOT blocked. Phase 1 splits on `\|`: segment 1 = `echo x` (executable `echo` ≠ `git`, false); segment 2 = `xargs git commit` (executable `xargs` ≠ `git`, false). Any-segment returns false. OUT OF SCOPE by design — `xargs` indirection is not the statically-literal top-level `git` executable (Threat Model §Out-of-scope). |
+| EC-029 | Marker present; `eval "git push origin main"` Bash dispatch | NOT blocked. OUT OF SCOPE by design. The executable is `eval`; the `git push` invocation is a string argument subject to dynamic evaluation. Allowed under fail-open posture; caught by durable marker and other controls (see Threat Model §Out-of-scope). |
 
 ## Canonical Test Vectors
 
@@ -264,6 +349,12 @@ complete, the dispatch proceeds rather than creating an unconditional deadlock (
 | Exists | Bash `cat gitfile` | Allow (exit_code=0) — basename `cat` ≠ `git` (EC-020) |
 | Exists | Bash `env GIT_DIR=.git git commit -m "x"` | Block (exit_code=2) — Arm 2; env prefix stripped, executable `git`, subcommand `commit` (EC-021) |
 | Exists | Bash `git --unknown-flag commit` | Block (exit_code=2) — Arm 2; fail-safe on unrecognized option, subcommand position uncertain (EC-022) |
+| Exists | Bash `git "commit"` | Block (exit_code=2) — Arm 2; Phase 1b quote-aware tokenization, `"commit"` → `commit`; subcommand matches (EC-024) |
+| Exists | Bash `git 'push' origin` | Block (exit_code=2) — Arm 2; Phase 1b quote-aware tokenization, `'push'` → `push`; subcommand matches (EC-025) |
+| Exists | Bash `g'i't commit` | Block (exit_code=2) — Arm 2; Phase 1b quote-aware tokenization, `g'i't` → `git`; subcommand `commit` matches (EC-026) |
+| Exists | Bash `$(git commit -m "x")` | Allow (exit_code=0) — NOT blocked; command substitution OUT OF SCOPE by design; allowed under fail-open (EC-027) |
+| Exists | Bash `echo x \| xargs git commit` | Allow (exit_code=0) — NOT blocked; `xargs` indirection OUT OF SCOPE by design; executable is `xargs` not `git` (EC-028) |
+| Exists | Bash `eval "git push origin main"` | Allow (exit_code=0) — NOT blocked; `eval` indirection OUT OF SCOPE by design; allowed under fail-open (EC-029) |
 
 ## Related BCs
 
@@ -292,7 +383,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 | VP-105 | Marker exists → Agent dispatch blocked (Arm 1, exit_code=2); marker absent → Agent dispatch allowed (Arm 1); manual rm unblocks; Edit not gated (PC3) | integration (bats) |
 | VP-105 | Marker exists + git commit Bash → blocked (Arm 2); marker absent + git commit → allowed; git status not gated even when marker exists (PC3) | integration (bats) |
 | VP-105 | guard_logic::evaluate_gate: marker present → BlockDispatch; marker absent → Allow; read-error → Allow (fail-open) | unit-test |
-| VP-105 | guard_logic::is_git_commit_or_push (v1.2 algorithm): (1) exact subcommand — `commit`/`push` match; `status`/`log`/`diff`/`fetch`/`commit-graph` do NOT match; (2) complete arg-taking option set — each of `-C`, `-c`, `--namespace`, `--git-dir`, `--work-tree`, `--super-prefix`, `--config-env` skips its following separate-token argument before subcommand identification; (3) compound splitting — `&&`, `\|\|`, `;`, `\|`, `&`, newline each split the command into independent segments; any-segment `true` returns `true`; (4) basename matching — `/usr/bin/git commit` → blocked, `./git push` → blocked, `env GIT_DIR=x git commit` → blocked, `cat gitfile` → NOT blocked; (5) fail-safe on unrecognized options — `git --unknown-flag commit` → blocked (subcommand position uncertain) | unit-test |
+| VP-105 | guard_logic::is_git_commit_or_push (v1.3 algorithm): (1) exact subcommand — `commit`/`push` match; `status`/`log`/`diff`/`fetch`/`commit-graph` do NOT match; (2) complete arg-taking option set — each of `-C`, `-c`, `--namespace`, `--git-dir`, `--work-tree`, `--super-prefix`, `--config-env` skips its following separate-token argument before subcommand identification; (3) compound splitting — `&&`, `\|\|`, `;`, `\|`, `&`, newline each split the command into independent segments; any-segment `true` returns `true`; (4) basename matching — `/usr/bin/git commit` → blocked, `./git push` → blocked, `env GIT_DIR=x git commit` → blocked, `cat gitfile` → NOT blocked; (5) fail-safe on unrecognized options — `git --unknown-flag commit` → blocked (subcommand position uncertain); (6) POSIX quote-aware tokenization via `shell-words` crate (Phase 1b) — `git "commit"` → blocked (EC-024), `git 'push' origin` → blocked (EC-025), `g'i't commit` → blocked (EC-026); documented out-of-scope (NOT blocked by design): `$(git commit)` → NOT blocked (command substitution; EC-027), `xargs git commit` → NOT blocked (command indirection, `xargs` is the executable; EC-028), `eval "git push"` → NOT blocked (dynamic evaluation; EC-029) | unit-test |
 
 ## Traceability
 
@@ -302,7 +393,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 | Capability Anchor Justification | CAP-041 ("Validation Integrity: INDETERMINATE Outcome, Durable Mutation Marker, and Next-Advance Gate") per capabilities.md §CAP-041 — this BC specifies the next-advance gate behavior that is the third element of what CAP-041 defines: "blocking of the next state-advancing dispatch — the `validate-unvalidated-mutation-marker` PreToolUse plugin … blocks ALL `^Agent$` tool dispatches AND all Bash dispatches whose `command` identifies `commit` or `push` as the git subcommand (D9 extended gate; the illustrative regex `\bgit\b.*\b(commit\|push)\b` approximates but is not authoritative — see v1.1 clarification) while the marker exists." |
 | L2 Domain Invariants | none (dispatcher runtime gate invariant, not L2 domain spec) |
 | Architecture Module | SS-04 (Plugin Ecosystem — new `validate-unvalidated-mutation-marker` WASM plugin crate); SS-01 (Hook Dispatcher Core — evaluates block_intent from plugin exit_code=2 in PreToolUse dispatch chain) |
-| ADR | ADR-047 §Decision 4 (Next-Advance Gate plugin specification — two-arm registration, exit_code=2 block, fail-open gate posture); ADR-047 §Decision 9 (extended gate scope — Agent dispatch AND git commit/push Bash arm — human ratification amendment); ADR-047 §Decision 5 (Marker clear protocol — rm unblocks both arms simultaneously) |
+| ADR | ADR-047 §Decision 4 (Next-Advance Gate plugin specification — two-arm registration, exit_code=2 block, fail-open gate posture); ADR-047 §Decision 9 (extended gate scope — Agent dispatch AND git commit/push Bash arm — human ratification amendment; two-axis model source for v1.3 `on_error="continue"` correction); ADR-047 §Decision 5 (Marker clear protocol — rm unblocks both arms simultaneously); ADR-039 (two-axis model — dispatcher-level fail-open-on-crash orthogonal to filter-internal fail-SAFE posture) |
 | Stories | S-25.01 |
 | Cycle | v1.0-feature-validation-integrity-layer1 (F2 — product-owner spec burst) |
 | Feature | E-25 — Validation Integrity and Large-Artifact Resilience |
@@ -311,6 +402,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.3 | 2026-08-31 | product-owner | Adversary ruling reconciliation (HIGH-1 + MEDIUM-2). (1) Fail-open-on-crash self-contradiction resolved: `on_error = "block"` → `on_error = "continue"` for both Arm 1 and Arm 2 registrations; added two-axis model note (ADR-039; ADR-047 §Decision 9) distinguishing dispatcher-level fail-open-on-crash from filter-internal fail-SAFE posture (Phase 3 unrecognized-option block) — these axes are orthogonal and must not be conflated. (2) Threat model bounded: actor model = cooperating AI agent, NOT adversarial exfiltrator; canonical gate-claim language established. QUOTED-literal forms (`git "commit"`, `git 'push' origin`, `g'i't commit`) added to IN SCOPE via Phase 1b POSIX quote-aware tokenization (`shell-words` crate); ad-hoc quote-stripping forbidden. OUT-OF-SCOPE class documented with Rice's theorem rationale: `eval`, variable/alias/function indirection, `xargs`/`bash -c`, command substitution. Added EC-024..EC-029 and 7 canonical test vectors (3 IN-SCOPE quoting + 4 OUT-OF-SCOPE-documented). Updated VP-105 unit-test property to v1.3 algorithm. |
 | 1.2 | 2026-08-31 | product-owner | Senior-architect gate expansion: production-grade security filter closing three adversary-identified under-blocking classes. (1) Incomplete arg-taking set (adversary HIGH): defined the complete seven-option arg-taking set (`-C`, `-c`, `--namespace`, `--git-dir`, `--work-tree`, `--super-prefix`, `--config-env`) with explicit no-arg list and fail-safe posture for unrecognized options. (2) Compound commands (adversary LOW-1): Phase 1 compound splitting on `&&`, `\|\|`, `;`, `\|`, `&`, newline — any-segment match returns true. (3) Path-prefixed/basename git (adversary LOW-2): Phase 2 basename identification strips leading path components; `env VAR=x` prefix stripped. Added EC-013 through EC-023 and 10 new canonical test vectors. Updated VP-105 unit-test property row. ADR-047 §Decision 9. |
 | 1.1 | 2026-08-31 | product-owner | Spec adjudication: clarify Arm 2 command filter from illustrative regex to authoritative exact-subcommand matching. The regex `\bgit\b.*\b(commit\|push)\b` false-positives on `git commit-graph write` (hyphen is a word boundary, making `\bcommit\b` match inside `commit-graph`). Authoritative rule: `is_git_commit_or_push(command)` identifies the git subcommand (first non-option token after `git` + global options) and returns true iff it is exactly `commit` or `push`. Added EC-011 (`git commit-graph write` → NOT blocked), EC-012 (`git -C path commit` → blocked), two canonical test vector rows, and updated VP-105 unit-test property to name `commit-graph` as a NOT-matched case. Updated `modified[]` frontmatter. |
 | 1.0 | 2026-08-30 | product-owner | Initial creation. F2 spec-evolution burst, validation-integrity-layer1. BC-1.18.002: two-arm gate (Agent + git commit/push Bash), PC1-PC4 full coverage, Arm 2 command-pattern matching, fail-open gate posture, self-lock-hazard invariant. D9 human ratification (extended gate scope) reflected. VP-105 anchored. CAP-041 capability anchor. ADR-047 §D4/D9/D5 citations. |
