@@ -216,6 +216,80 @@ async fn test_BC_1_18_003_named_plugin_pass_clears_marker_via_execute_tiers() {
     );
 }
 
+/// MEDIUM-1 (PreToolUse-does-not-clear complement): PASS from the NAMED plugin on a
+/// **PreToolUse** event MUST NOT clear the marker. BC-1.18.003 INV2 (scoped clear).
+///
+/// The implementer added a `&& entry.event == "PostToolUse"` guard to the marker-clear
+/// path so that only PostToolUse PASS events trigger `delete_marker_if_pass`. A PreToolUse
+/// PASS from the same plugin must NOT clear the marker — otherwise a pre-dispatch pass
+/// (where nothing has yet been validated) would silently unblock the gate.
+///
+/// Relation to BLOCKER-1: BLOCKER-1 PRIMARY uses PostToolUse and expects deletion.
+/// This test uses PreToolUse and expects NO deletion. Together they verify the full
+/// PostToolUse-only scoping requirement.
+#[tokio::test(flavor = "current_thread")]
+async fn test_BC_1_18_003_pretooluse_pass_does_not_clear_marker() {
+    // AC-012 / BC-1.18.003 INV2 (PostToolUse-only scoping for marker clear)
+    let dir = tempfile::tempdir().unwrap();
+    let engine = build_engine().unwrap();
+    let cache = PluginCache::new(engine.clone());
+
+    // Set up .factory dir and pre-write a marker for "plugin-p".
+    let factory_dir = dir.path().join(".factory");
+    std::fs::create_dir_all(&factory_dir).unwrap();
+    let marker_path = factory_dir.join("unvalidated-mutation.marker");
+    write_test_marker(&marker_path, "plugin-p");
+    assert!(
+        marker_path.exists(),
+        "pre-condition: marker must exist before dispatch"
+    );
+
+    // WAT_NORMAL returns exit_code=0 → DispatchOutcome::Pass.
+    // Event = "PreToolUse": the `&& entry.event == "PostToolUse"` guard MUST prevent
+    // delete_marker_if_pass from being called for this event type.
+    let pass_wasm = compile_to(dir.path(), "plugin-p", WAT_NORMAL);
+    let entry = make_pass_entry(
+        &pass_wasm,
+        "plugin-p",
+        "PreToolUse", // <-- KEY: PreToolUse; marker clear MUST be suppressed
+    );
+    let registry = make_registry(vec![entry]);
+    let matched: Vec<&RegistryEntry> = registry.hooks.iter().collect();
+    let tiers = group_by_priority(&registry, matched);
+
+    let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
+    let summary = execute_tiers(
+        executor_inputs_with_cwd(
+            &engine,
+            &cache,
+            &registry,
+            &internal_log,
+            dir.path().to_path_buf(),
+            serde_json::json!({}),
+        ),
+        tiers,
+    )
+    .await;
+
+    // Plugin produced PASS (WAT_NORMAL exits 0 → no block).
+    assert_eq!(
+        summary.exit_code, 0,
+        "pre-condition: PASS plugin must not set block intent"
+    );
+
+    // AC-012 / BC-1.18.003 INV2 (PostToolUse-only scoping):
+    // A PASS result from "plugin-p" on a PreToolUse event MUST NOT clear the marker.
+    // Only a PostToolUse PASS from the named plugin clears the marker.
+    // This exercises the `&& entry.event == "PostToolUse"` guard in execute_tier's
+    // PASS arm — the gate is cleared only when both conditions hold simultaneously.
+    assert!(
+        marker_path.exists(),
+        "AC-012 / BC-1.18.003 INV2 (PostToolUse-only scoping): PreToolUse PASS from \
+         'plugin-p' MUST NOT delete the marker at .factory/unvalidated-mutation.marker. \
+         The clear is gated on PostToolUse event type; PreToolUse PASS must leave marker intact."
+    );
+}
+
 /// BLOCKER-1 SCOPING CONSTRAINT: PASS from a DIFFERENT plugin MUST NOT clear the
 /// marker for plugin-p. BC-1.18.003 INV2. AC-012.
 ///

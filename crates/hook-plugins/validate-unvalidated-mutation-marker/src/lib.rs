@@ -1140,6 +1140,126 @@ mod tests {
         );
     }
 
+    // ── BC-1.18.002 v1.3 — quoting-in-scope (EC-024/025/026) ────────────────
+    //
+    // MEDIUM-2 fix (S-25.01): Phase 1b POSIX quote-aware tokenization via the
+    // `shell_words` crate. Quoted-literal git invocations are now IN SCOPE.
+    // These assertions MUST PASS with the v1.3 implementation (green tests).
+    // VP-105 unit-test property row (v1.3 quoting clause).
+    #[test]
+    fn test_BC_1_18_002_is_git_commit_or_push_v1_3_quoting_in_scope_vectors() {
+        // EC-024: git "commit" → true (BLOCKED).
+        // BC-1.18.002 v1.3 Phase 1b: shell_words tokenizes `git "commit"` →
+        // ["git", "commit"]. POSIX quote removal: "commit" → commit.
+        // Phase 4: subcommand "commit" matches → blocked.
+        // Newly in scope as of v1.3.
+        assert!(
+            is_git_commit_or_push(r#"git "commit""#),
+            "EC-024 / BC-1.18.002 v1.3: 'git \"commit\"' MUST return true \
+             (Phase 1b: double-quoted 'commit' → token 'commit' after POSIX quote removal; \
+             Phase 4: subcommand 'commit' matches; in scope via shell_words tokenization)"
+        );
+
+        // EC-025: git 'push' origin → true (BLOCKED).
+        // BC-1.18.002 v1.3 Phase 1b: shell_words tokenizes `git 'push' origin` →
+        // ["git", "push", "origin"]. POSIX quote removal: 'push' → push.
+        // Phase 4: subcommand "push" matches → blocked.
+        assert!(
+            is_git_commit_or_push("git 'push' origin"),
+            "EC-025 / BC-1.18.002 v1.3: \"git 'push' origin\" MUST return true \
+             (Phase 1b: single-quoted 'push' → token 'push' after POSIX quote removal; \
+             Phase 4: subcommand 'push' matches; in scope via shell_words tokenization)"
+        );
+
+        // EC-026: g'i't commit → true (BLOCKED).
+        // BC-1.18.002 v1.3 Phase 1b: shell_words tokenizes `g'i't commit` →
+        // ["git", "commit"]. POSIX concatenation: unquoted 'g' + single-quoted 'i' +
+        // unquoted 't' character runs concatenate into token "git".
+        // Phase 2: basename("git") = "git". Phase 4: subcommand "commit" matches.
+        assert!(
+            is_git_commit_or_push("g'i't commit"),
+            "EC-026 / BC-1.18.002 v1.3: \"g'i't commit\" MUST return true \
+             (Phase 1b: POSIX concatenation — unquoted 'g' + single-quoted 'i' + \
+             unquoted 't' → token 'git'; Phase 2: basename 'git' matches; \
+             Phase 4: subcommand 'commit' matches; in scope via shell_words tokenization)"
+        );
+    }
+
+    // ── BC-1.18.002 v1.3 — out-of-scope boundary + fail-safe (EC-027/028/029) ─
+    //
+    // These assertions document the intentional gate boundary per the v1.3 Threat Model.
+    // Reliably blocking the forms below is UNDECIDABLE for a static string analysis
+    // (Rice's theorem — see BC-1.18.002 v1.3 Threat Model §Out-of-scope).
+    //
+    // The gate is a fast accidental-misuse interlock for a cooperating agent —
+    // NOT an adversary-resistant authorization boundary. These are DOCUMENTED
+    // LIMITATIONS, not defects. They are caught by the durable marker (PostToolUse),
+    // the ^Agent$ next-advance gate, and GitHub server-side branch protection.
+    //
+    // DO NOT change these to MUST-block without first revising the BC's Threat Model
+    // and obtaining human approval. These tests document the accepted boundary.
+    //
+    // VP-105 unit-test property row (v1.3 out-of-scope clause).
+    #[test]
+    fn test_BC_1_18_002_is_git_commit_or_push_v1_3_out_of_scope_boundary_and_fail_safe() {
+        // EC-027: $(git commit -m "x") → false (NOT blocked).
+        // OUT-OF-SCOPE by design per BC-1.18.002 v1.3 Threat Model — documented limitation, not a bug.
+        // The top-level token is `$(git` (command substitution syntax: `$` + `(` are literal
+        // characters in shell_words' tokenizer, not expanded). Phase 2: basename("$(git") ≠ "git"
+        // → false for this segment. Even if the substitution were expanded, static analysis cannot
+        // resolve dynamic command substitution (UNDECIDABLE). Allowed under fail-open posture;
+        // caught by the durable marker and other controls.
+        assert!(
+            !is_git_commit_or_push(r#"$(git commit -m "x")"#),
+            "EC-027 / BC-1.18.002 v1.3 OUT-OF-SCOPE by design — documented limitation, not a bug: \
+             '$(git commit -m \"x\")' MUST return false (command substitution — top-level token \
+             basename is '$(git' ≠ 'git'; dynamic expansion is UNDECIDABLE via static analysis; \
+             allowed under fail-open; caught by durable marker and other controls)"
+        );
+
+        // EC-028: echo x | xargs git commit → false (NOT blocked).
+        // OUT-OF-SCOPE by design per BC-1.18.002 v1.3 Threat Model — documented limitation, not a bug.
+        // Phase 1 splits on `|`: segment 1 = "echo x" (exec "echo" ≠ "git" → false);
+        // segment 2 = "xargs git commit" (exec "xargs" ≠ "git" → false).
+        // `git` is a string argument to xargs, not the statically-literal top-level executable.
+        // Indirection via xargs/bash -c is UNDECIDABLE for static analysis.
+        assert!(
+            !is_git_commit_or_push("echo x | xargs git commit"),
+            "EC-028 / BC-1.18.002 v1.3 OUT-OF-SCOPE by design — documented limitation, not a bug: \
+             'echo x | xargs git commit' MUST return false (Phase 1 splits on |; \
+             segment 1 exec 'echo' ≠ 'git'; segment 2 exec 'xargs' ≠ 'git'; \
+             xargs indirection is UNDECIDABLE via static analysis; allowed under fail-open; \
+             caught by durable marker and other controls)"
+        );
+
+        // EC-029: eval "git push origin main" → false (NOT blocked).
+        // OUT-OF-SCOPE by design per BC-1.18.002 v1.3 Threat Model — documented limitation, not a bug.
+        // shell_words tokenizes `eval "git push origin main"` → ["eval", "git push origin main"]
+        // (the double-quoted string is a single token; spaces preserved inside quotes).
+        // Phase 2: executable is "eval", basename "eval" ≠ "git" → false.
+        // Dynamic eval is UNDECIDABLE via static string analysis (Rice's theorem).
+        assert!(
+            !is_git_commit_or_push(r#"eval "git push origin main""#),
+            "EC-029 / BC-1.18.002 v1.3 OUT-OF-SCOPE by design — documented limitation, not a bug: \
+             'eval \"git push origin main\"' MUST return false (executable is 'eval' not 'git'; \
+             dynamic evaluation is UNDECIDABLE via static analysis; allowed under fail-open; \
+             caught by durable marker and other controls)"
+        );
+
+        // ── Fail-safe: unterminated quote → shell_words Err → true (BLOCKED) ─
+        //
+        // When shell_words::split returns Err (mismatched/unterminated quote), the segment
+        // is unparseable. The conservative posture is to BLOCK (return true) — an
+        // undecidable/malformed command must not be silently allowed through the gate.
+        // Per BC-1.18.002 v1.3 evaluate_git_segment: Err branch returns true.
+        assert!(
+            is_git_commit_or_push(r#"git "commit"#),
+            "BC-1.18.002 v1.3 fail-safe: 'git \"commit' (unterminated double-quote) MUST return true \
+             (shell_words::split returns Err on unmatched quote; evaluate_git_segment Err arm = true; \
+             conservative posture: undecidable input treated as gated to avoid silent pass-through)"
+        );
+    }
+
     // ── LOW-6: block message content (AC-007 / AC-008) ───────────────────────
 
     /// LOW-6: `on_pre_tool_use_impl` produces a JSON block message whose ACTUAL
