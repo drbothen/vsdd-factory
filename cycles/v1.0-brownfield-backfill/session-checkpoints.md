@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "b1d6007"
+input-hash: "688f064"
 traces_to: STATE.md
 ---
 
@@ -3928,4 +3928,19 @@ Feature branch `feature/S-25.01` at `436c0039`. F4 TDD in progress. BC-5.39.001 
 
 `/vsdd-factory:next-step` (resumes at LOCAL adversary pass 1 re-run FRESH for S-25.01).
 Note: per BC-6.24.001, run `/vsdd-factory:rehydrate-wave` first if a wave-state manifest applies.
+
+---
+
+## Session Resume Checkpoint (2026-08-31 — S2501-READ-ERROR-SEMANTICS-AND-SECURITY-RATIFICATION; develop 9ab5a6f6; merged_count 115; S-25.01 F4 TDD IN PROGRESS; BC-5.39.001 streak 0/3)
+
+Archived from STATE.md by S2501-LOCAL-ADV-ARTIFACT-SCOPED-MARKER-CLEAR-2026-08-31 burst (state-manager single-commit TD-VSDD-053). Full content preserved in git on factory-artifacts branch.
+
+Key state at archive:
+- READ-ERROR + DEP-TABLE + DOC FIX-BURST COMPLETE. D-1135 security ratification. BC-5.39.001 streak 0/3.
+- S-25.01 v1.7 input-hash b673414. BC-INDEX v5.32 (1,993 BCs). VP-INDEX v2.89 (VP-105 v1.8). STORY-INDEX v4.416. ARCH-INDEX v4.00.
+- BC-1.18.002 v1.4 (PO read-error-adjudication; EC-030 unreadable→Allow fail-open; EC-008 readable-but-malformed→Block; INV2 expansion; 4 canonical read-outcome vectors).
+- D-1135 human security ratification (POLICY 22, 2026-08-31): gate fail-open-on-crash posture + EC-030 Allow on unreadable marker.
+- feature/S-25.01 @ `480e902f` (test-writer EC-030+EC-008; implementer @39ddca1c evaluate_gate four-case; 13/13 PASS).
+- factory-artifacts @ `757e0c2a` (v9.44→v9.45).
+- develop `9ab5a6f6`; main `89f6f87c`.
 BC-4.17.001 v1.29 active. BC-6.28.001 v1.3 active. BC-1.18.002 v1.3 active. BC-INDEX v5.31 (1,993 BCs). VP-INDEX v2.88 (106 VPs). STORY-INDEX v4.415 (175 stories; 25 epics). ARCH-INDEX v4.00 (47 ADRs). merged_count 115. develop `9ab5a6f6`. feature/S-25.01 `813ebc3a`. BC-5.39.001 streak 0/3.
