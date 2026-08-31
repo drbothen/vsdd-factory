@@ -82,6 +82,9 @@ pub const PLUGIN_INVOKED: &str = "plugin.invoked";
 pub const PLUGIN_COMPLETED: &str = "plugin.completed";
 pub const PLUGIN_TIMEOUT: &str = "plugin.timeout";
 pub const PLUGIN_CRASHED: &str = "plugin.crashed";
+/// S-25.01 / BC-3.08.001 Event 8: emitted for every INDETERMINATE outcome
+/// (both fail-closed and fail-open). Carries all 8 mandatory fields.
+pub const PLUGIN_INDETERMINATE: &str = "plugin.indeterminate";
 pub const INTERNAL_CAPABILITY_DENIED: &str = "internal.capability_denied";
 pub const INTERNAL_HOST_FUNCTION_PANIC: &str = "internal.host_function_panic";
 pub const INTERNAL_SINK_ERROR: &str = "internal.sink_error";

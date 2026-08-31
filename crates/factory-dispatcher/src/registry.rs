@@ -1594,9 +1594,28 @@ failure_policy = "fail-closed"
     // GREEN-BY-DESIGN: `#[serde(default)]` + `#[default] FailOpen` ensures absent-
     // field backward-compat holds for every existing entry.
     // -----------------------------------------------------------------------
-    /// BC-1.01.016 PC6: the full production `plugins/vsdd-factory/hooks-registry.toml`
-    /// parses successfully; every entry resolves to `FailurePolicy::FailOpen`; no
-    /// entry changes its enforcement decision.
+    /// BC-1.01.016 PC6 (S-25.01 updated invariant):
+    ///
+    /// The full production `plugins/vsdd-factory/hooks-registry.toml` parses successfully.
+    ///
+    /// Pre-S-25.01: ALL entries defaulted to fail-open (absent field → FailOpen).
+    ///
+    /// Post-S-25.01 (BC-1.18.004 PC4 + AC-016 + AC-017 — DO NOT DELETE):
+    /// EXACTLY THREE Cohort A validators are assigned `failure_policy = "fail-closed"`:
+    ///   - `validate-factory-path-staging`    (Cohort A-immediate; EFFECTIVE-NOW)
+    ///   - `validate-pr-merge-prerequisites`  (Cohort A-deferred; SET-BUT-LATENT)
+    ///   - `validate-wave-gate-prerequisite`  (Cohort A-deferred; SET-BUT-LATENT)
+    ///
+    /// ALL other entries (including the two gate plugin entries for
+    /// `validate-unvalidated-mutation-marker` / `validate-unvalidated-mutation-marker-git`
+    /// which MUST be fail-open per BC-1.18.002 invariant 2) MUST remain FailOpen.
+    ///
+    /// This test is the canonical backward-compat guard for the ~76 fail-open plugins
+    /// and MUST NOT be deleted (BC-1.18.004 PC5; ADR-047 §Decision 7).
+    ///
+    /// If a new entry ever shows up with `failure_policy = "fail-closed"` outside the
+    /// explicitly-sanctioned Cohort A set, this test will fail — that is the intended
+    /// sentinel behaviour. Only a human-ratified ADR amendment may expand Cohort A.
     #[test]
     fn test_BC_1_01_016_production_registry_all_entries_default_to_fail_open() {
         // CARGO_MANIFEST_DIR is crates/factory-dispatcher; registry is at
@@ -1617,27 +1636,68 @@ failure_policy = "fail-closed"
             !reg.hooks.is_empty(),
             "production registry must have at least one hook entry"
         );
-        let fail_closed_count = reg
+
+        // S-25.01 AC-016 / BC-1.18.004 PC4: EXACTLY these three Cohort A validators
+        // are sanctioned to have failure_policy = "fail-closed". No others.
+        // ADR-047 §D8a v1.3 human-ratified Cohort A membership.
+        let cohort_a: std::collections::HashSet<&str> = [
+            "validate-factory-path-staging",
+            "validate-pr-merge-prerequisites",
+            "validate-wave-gate-prerequisite",
+        ]
+        .into_iter()
+        .collect();
+
+        // Collect actual fail-closed entries for clear failure messages.
+        let fail_closed_names: Vec<String> = reg
             .hooks
             .iter()
             .filter(|e| e.failure_policy == FailurePolicy::FailClosed)
-            .count();
-        assert_eq!(
-            fail_closed_count, 0,
-            "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
-             zero production entries must have FailClosed — all absent fields default to \
-             FailOpen (BC-1.01.016 PC6; ADR-039 §Decision 1 backward-compat clause). \
-             Found {} FailClosed entries.",
-            fail_closed_count
-        );
-        for entry in &reg.hooks {
-            assert_eq!(
-                entry.failure_policy,
-                FailurePolicy::FailOpen,
+            .map(|e| e.name.clone())
+            .collect();
+
+        // Sanity: every fail-closed entry must be in the sanctioned Cohort A set.
+        for name in &fail_closed_names {
+            assert!(
+                cohort_a.contains(name.as_str()),
                 "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
-                 entry '{}' must have failure_policy=FailOpen (BC-1.01.016 PC6)",
-                entry.name
+                 entry '{}' has failure_policy=FailClosed but is NOT in the human-ratified \
+                 Cohort A set (validate-factory-path-staging, validate-pr-merge-prerequisites, \
+                 validate-wave-gate-prerequisite). Only ADR-047-sanctioned entries may be \
+                 fail-closed. This is a regression guard — do NOT silently add fail-closed \
+                 entries without ADR amendment (BC-1.18.004 PC5; ADR-047 §D8a). DO NOT DELETE.",
+                name
             );
+        }
+
+        // Sanity: EXACTLY the three Cohort A entries must be fail-closed (no more, no less).
+        // If any Cohort A entry is missing its fail-closed assignment, that's also a defect.
+        assert_eq!(
+            fail_closed_names.len(),
+            cohort_a.len(),
+            "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
+             expected exactly {} fail-closed entries (Cohort A: {:?}), found {} ({:?}). \
+             ADR-047 §D8a requires all three Cohort A entries to be fail-closed. \
+             DO NOT DELETE — this is the canonical fail-closed count sentinel (BC-1.18.004 PC4).",
+            cohort_a.len(),
+            cohort_a,
+            fail_closed_names.len(),
+            fail_closed_names,
+        );
+
+        // Confirm: every entry NOT in Cohort A must be fail-open.
+        for entry in &reg.hooks {
+            if !cohort_a.contains(entry.name.as_str()) {
+                assert_eq!(
+                    entry.failure_policy,
+                    FailurePolicy::FailOpen,
+                    "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
+                     non-Cohort-A entry '{}' must have failure_policy=FailOpen \
+                     (BC-1.01.016 PC6; ~76 fail-open plugins backward-compat). \
+                     DO NOT DELETE.",
+                    entry.name
+                );
+            }
         }
     }
 

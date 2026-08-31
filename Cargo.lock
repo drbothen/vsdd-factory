@@ -3523,6 +3523,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "validate-unvalidated-mutation-marker"
+version = "0.0.1"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tempfile",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "validate-wave-handoff-completeness"
 version = "0.0.1"
 dependencies = [
