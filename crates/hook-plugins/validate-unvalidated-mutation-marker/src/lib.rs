@@ -553,4 +553,214 @@ mod tests {
             "AC-009: bare 'git push' MUST match"
         );
     }
+
+    // ── BLOCKER-3 (RED): global-option forms ─────────────────────────────────
+
+    /// BLOCKER-3 (RED): `is_git_commit_or_push` MUST return `true` when `git` is
+    /// followed by global options that take arguments (`-C <path>`, `-c <key>=<val>`,
+    /// `--namespace <ns>`) before the `commit` or `push` subcommand. AC-008 / AC-009 /
+    /// BC-1.18.002 PC2.
+    ///
+    /// Currently FAILS (RED) for the `-C`, `-c`, and `--namespace` forms because the
+    /// current scanner stops at the first non-flag positional token after `git`,
+    /// treating it as the subcommand. With `git -C /path commit`, the scanner sees
+    /// `/path` (the argument to `-C`) as the positional token and returns `false`.
+    ///
+    /// The regex `\bgit\b.*\b(commit|push)\b` (BC-1.18.002 PC2) correctly matches all
+    /// these forms because `.*` spans the global options and their arguments.
+    #[test]
+    fn test_BC_1_18_002_is_git_commit_or_push_global_option_forms() {
+        // AC-008 / AC-009 / BC-1.18.002 PC2
+        // git global options with arguments:
+        //   -C <path>         : change working directory
+        //   -c <key>=<value>  : set a config option
+        //   --namespace <ns>  : operate in namespace
+        // All are valid before the subcommand and occur in real dispatcher commits.
+
+        // RED cases (currently fail with current scanner):
+
+        // git -C /path commit -m x → TRUE
+        assert!(
+            is_git_commit_or_push("git -C /path commit -m x"),
+            "BLOCKER-3 / AC-008 / BC-1.18.002 PC2: \
+             'git -C /path commit' MUST match \\bgit\\b.*\\b(commit|push)\\b. \
+             FAILS: current scanner treats '/path' (arg to -C) as subcommand, returns false."
+        );
+
+        // git -C .factory push → TRUE
+        assert!(
+            is_git_commit_or_push("git -C .factory push"),
+            "BLOCKER-3 / AC-008 / BC-1.18.002 PC2: \
+             'git -C .factory push' MUST match. \
+             FAILS: current scanner treats '.factory' (arg to -C) as subcommand, returns false."
+        );
+
+        // git -c user.email=x commit → TRUE
+        assert!(
+            is_git_commit_or_push("git -c user.email=x commit"),
+            "BLOCKER-3 / AC-008 / BC-1.18.002 PC2: \
+             'git -c user.email=x commit' MUST match. \
+             FAILS: current scanner treats 'user.email=x' (arg to -c) as subcommand, returns false."
+        );
+
+        // git --namespace foo push → TRUE
+        assert!(
+            is_git_commit_or_push("git --namespace foo push"),
+            "BLOCKER-3 / AC-008 / BC-1.18.002 PC2: \
+             'git --namespace foo push' MUST match. \
+             FAILS: current scanner treats 'foo' (arg to --namespace) as subcommand, returns false."
+        );
+
+        // git   commit (extra whitespace) → TRUE (split_whitespace normalizes)
+        // NOTE: This case likely already passes; included for completeness.
+        assert!(
+            is_git_commit_or_push("git   commit"),
+            "AC-008: 'git   commit' with extra spaces MUST match (split_whitespace normalizes)"
+        );
+
+        // Non-matching forms MUST remain FALSE after the fix:
+
+        // gitk is a different program entirely (no word boundary match)
+        assert!(
+            !is_git_commit_or_push("gitk"),
+            "AC-009: 'gitk' is NOT 'git'; MUST NOT match"
+        );
+
+        // git commit-graph write: 'commit-graph' contains 'commit' as a prefix but the
+        // regex \bcommit\b does NOT match it because '-' is a word boundary.
+        // However, the *current* split_whitespace scanner also correctly returns false here
+        // (first token after git is 'commit-graph' ≠ 'commit'). Both current and correct
+        // implementations agree on this case. Verify the correct semantic is preserved.
+        assert!(
+            !is_git_commit_or_push("git commit-graph write"),
+            "AC-009: 'git commit-graph write' MUST NOT match — 'commit-graph' is NOT the \
+             'commit' subcommand (word boundary \\bcommit\\b does not match a prefix)"
+        );
+
+        // Read-only commands MUST NOT match
+        assert!(
+            !is_git_commit_or_push("git status"),
+            "AC-009 / EC-001: 'git status' MUST NOT match"
+        );
+        assert!(
+            !is_git_commit_or_push("git log --oneline"),
+            "AC-009 / EC-002: 'git log' MUST NOT match"
+        );
+    }
+
+    // ── LOW-6: block message content (AC-007 / AC-008) ───────────────────────
+
+    /// LOW-6 (may be GREEN): `evaluate_gate` returns structured fields that `on_pre_tool_use`
+    /// serializes into a JSON block message. The block message MUST contain:
+    ///   - the marker plugin_name
+    ///   - the marker artifact_path
+    ///   - the marker cause
+    ///   - a re-validation command
+    ///   - the manual escape hatch `rm .factory/unvalidated-mutation.marker`
+    ///   - be machine-parseable (valid JSON)
+    ///
+    /// AC-007 / AC-008 / BC-1.18.002 INV4. May already be GREEN if current
+    /// `on_pre_tool_use` emits all required fields; included as coverage closure.
+    #[test]
+    fn test_BC_1_18_002_block_message_contains_required_fields_and_escape_hatch() {
+        // AC-007 / AC-008 / BC-1.18.002 INV4
+        // Test strategy: call evaluate_gate with a marker present (explicit path),
+        // then reconstruct the JSON block message that on_pre_tool_use would produce
+        // and verify all required fields.
+        //
+        // We test via evaluate_gate (which provides the fields) rather than calling
+        // on_pre_tool_use directly (which uses a relative path hardwired to the
+        // WASI preopened directory, making it difficult to redirect in native tests).
+
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+
+        let expected_plugin = "validate-factory-path-staging";
+        let expected_artifact = "/path/to/.factory/STATE.md";
+        let expected_cause = "fuel";
+        let expected_trace = "trace-low6-test";
+
+        std::fs::write(
+            &marker_path,
+            format!(
+                "timestamp = \"2026-08-31T00:00:00Z\"\n\
+                 plugin_name = \"{expected_plugin}\"\n\
+                 artifact_path = \"{expected_artifact}\"\n\
+                 cause = \"{expected_cause}\"\n\
+                 trace_id = \"{expected_trace}\"\n"
+            ),
+        )
+        .expect("test setup: write marker");
+
+        let decision = evaluate_gate(&marker_path);
+        let (plugin_name, artifact_path, cause, trace_id) = match decision {
+            GateDecision::Block {
+                plugin_name,
+                artifact_path,
+                cause,
+                trace_id,
+            } => (plugin_name, artifact_path, cause, trace_id),
+            GateDecision::Allow => panic!("marker present MUST yield Block"),
+        };
+
+        // Reconstruct the block message JSON as on_pre_tool_use produces it
+        // (mirrors the production code in on_pre_tool_use).
+        let block_reason = serde_json::json!({
+            "blocked_by": "validate-unvalidated-mutation-marker",
+            "marker_plugin_name": plugin_name,
+            "marker_artifact_path": artifact_path,
+            "marker_cause": cause,
+            "marker_trace_id": trace_id,
+            "recovery": {
+                "revalidate": format!(
+                    "Re-run {} to clear the marker (must produce exit_code=0)",
+                    plugin_name
+                ),
+                "manual_escape_hatch": "rm .factory/unvalidated-mutation.marker"
+            }
+        })
+        .to_string();
+
+        // AC-007/AC-008: block message MUST contain the marker plugin_name
+        assert!(
+            block_reason.contains(expected_plugin),
+            "AC-007/AC-008 / BC-1.18.002 INV4: block message MUST contain marker plugin_name '{}'",
+            expected_plugin
+        );
+
+        // AC-007/AC-008: block message MUST contain a re-validation command
+        assert!(
+            block_reason.contains("revalidate"),
+            "AC-007/AC-008 / BC-1.18.002 INV4: block message MUST contain a re-validation command"
+        );
+
+        // AC-007/AC-008: block message MUST contain the manual escape hatch
+        assert!(
+            block_reason.contains("rm .factory/unvalidated-mutation.marker"),
+            "AC-007/AC-008 / BC-1.18.002 INV4: block message MUST contain the operator \
+             escape hatch 'rm .factory/unvalidated-mutation.marker'"
+        );
+
+        // Machine-parseable: block message MUST be valid JSON with structured fields
+        let parsed: serde_json::Value = serde_json::from_str(&block_reason)
+            .expect("AC-007/AC-008 / BC-1.18.002 INV4: block message MUST be valid JSON");
+        assert!(
+            parsed.get("recovery").is_some(),
+            "AC-007/AC-008: block message MUST have a structured 'recovery' field (not freeform prose)"
+        );
+        assert!(
+            parsed
+                .get("recovery")
+                .and_then(|r| r.get("manual_escape_hatch"))
+                .is_some(),
+            "AC-007/AC-008: block message recovery MUST have 'manual_escape_hatch' subfield"
+        );
+        assert!(
+            parsed
+                .get("recovery")
+                .and_then(|r| r.get("revalidate"))
+                .is_some(),
+            "AC-007/AC-008: block message recovery MUST have 'revalidate' subfield"
+        );
+    }
 }

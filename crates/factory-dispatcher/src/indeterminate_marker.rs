@@ -102,6 +102,75 @@ pub fn write_indeterminate_marker(fields: &MarkerFields, marker_path: &Path) -> 
     Ok(())
 }
 
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
+mod tests {
+    use super::*;
+
+    /// MEDIUM-4 (RED): The marker TOML serializer MUST correctly round-trip values
+    /// containing a double-quote character and a newline. The `toml` crate is the
+    /// mandated serialization library (Library table, S-25.01). AC-005.
+    ///
+    /// Currently FAILS (RED) because `toml_quote` only escapes `\\` and `"` but NOT
+    /// `\n` (or other control characters). A newline inside the `artifact_path` value
+    /// produces a multi-line TOML basic string that is syntactically INVALID TOML —
+    /// `toml::from_str` fails to parse it back, or the round-trip produces a different
+    /// string than the original.
+    ///
+    /// The fix is to use `toml::ser::to_string` (or equivalent) for correct escaping
+    /// of all control characters per the TOML specification.
+    #[test]
+    fn test_BC_1_18_001_marker_toml_round_trips_quote_and_newline() {
+        // AC-005 (Library requirement: `toml` crate; hand-rolled toml_quote insufficient)
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+
+        // artifact_path contains both a double-quote and a newline — the two characters
+        // that the hand-rolled toml_quote fails to serialize correctly (\n is not escaped).
+        let artifact_with_special = "/path/with/\"quote\"\nand newline".to_string();
+        let fields = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "validate-factory-path-staging".to_string(),
+            artifact_path: artifact_with_special.clone(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-special-chars-001".to_string(),
+        };
+
+        write_indeterminate_marker(&fields, &marker_path)
+            .expect("write_indeterminate_marker must succeed for a writable path");
+
+        let content = std::fs::read_to_string(&marker_path)
+            .expect("marker file must be readable after write");
+
+        // Step 1: the content MUST parse as valid TOML.
+        // RED: toml_quote does not escape \n, producing invalid multi-line TOML.
+        let parsed: toml::Table = toml::from_str(&content).unwrap_or_else(|e| {
+            panic!(
+                "AC-005: marker content MUST be valid TOML (per Library table, `toml` crate \
+                 is mandatory). hand-rolled toml_quote does not escape \\n → invalid TOML. \
+                 Parse error: {e}\nMarker content:\n{content}"
+            )
+        });
+
+        // Step 2: the artifact_path field MUST round-trip to the original value.
+        let rt_artifact = parsed
+            .get("artifact_path")
+            .and_then(|v| v.as_str())
+            .expect("artifact_path key must be present and a string after round-trip");
+
+        assert_eq!(
+            rt_artifact,
+            artifact_with_special,
+            "AC-005: artifact_path containing double-quote and newline MUST round-trip \
+             correctly via the `toml` crate serialization (\\n must be escaped as \\\\n)"
+        );
+    }
+}
+
 /// Escape a string for use as a TOML basic string value.
 /// Wraps in double-quotes and escapes backslashes and double-quotes.
 /// This is sufficient for the 5 marker fields (timestamps, names, paths, cause, trace IDs).
