@@ -157,91 +157,211 @@ pub mod guard_logic {
         }
     }
 
-    /// Pure filter: returns `true` iff the given Bash `command` string matches the
-    /// regex `\bgit\b.*\b(commit|push)\b`.
+    /// Returns `true` iff the given Bash `command` string identifies `commit` or `push`
+    /// as the git subcommand. Implements the BC-1.18.002 v1.2 four-phase algorithm.
     ///
     /// Used by Arm 2 to determine whether a `^Bash$` PreToolUse dispatch should be
-    /// checked against the marker file.
+    /// checked against the marker file. Non-advancing commands (`git status`, `git log`,
+    /// `cargo test`, etc.) return `false`. EC-001..EC-005 MUST return false.
+    /// EC-006..EC-023 and EC-012/EC-013/EC-014/EC-015..EC-018 MUST return true.
     ///
-    /// BC-1.18.002 postcondition 3: non-matching commands (git status, git log, cargo test)
-    /// MUST return `false`. EC-001..EC-005 (non-advancing commands) MUST all return false.
-    /// EC-006 (`git commit --amend`) and EC-007 (`git push --force-with-lease`) MUST return true.
+    /// The four phases: (1) compound split, (2) executable basename, (3) skip global
+    /// options (complete arg-taking + no-arg sets; fail-safe on unrecognized flags),
+    /// (4) exact subcommand match ("commit" | "push").
     ///
-    /// VP-105 bats test suite covers VP-105-A through VP-105-G (7 cases).
-    ///
-    /// # BC-5.38.001
-    ///
-    /// Pure-core (regex match). Non-trivial body (regex compilation/execution). Uses `todo!()`.
+    /// BC-1.18.002 v1.2 PC2. VP-105 unit-test property row. EC-001..EC-023.
     pub fn is_git_commit_or_push(command: &str) -> bool {
-        // Implements the spec intent: \bgit\b.*\b(commit|push)\b (BC-1.18.002 PC2).
+        // BC-1.18.002 v1.2 four-phase algorithm.
         //
-        // Strategy: tokenize by whitespace, find "git" as an exact standalone word,
-        // then scan subsequent tokens. Global options that take a SEPARATE argument
-        // (e.g., `-C <path>`, `-c <key>=<val>`, `--namespace <ns>`) cause the next
-        // token to be skipped so the argument is not mistaken for the subcommand.
-        // When the first positional (non-option, non-argument) token is found, return
-        // true iff it equals "commit" or "push" exactly.
-        //
-        // NOTE: This uses exact subcommand matching rather than the literal spec regex
-        // `\b(commit|push)\b` because that regex would also match `commit` within
-        // `commit-graph` (since `-` is a word-boundary character). The test
-        // `test_BC_1_18_002_is_git_commit_or_push_global_option_forms` requires
-        // `git commit-graph write` → false. Observation surfaced: spec regex is
-        // imprecise for this edge case; test expectation is the authoritative spec
-        // per BC-5.38.001 / VSDD standing rule. Routed to product-owner for
-        // BC-1.18.002 AC-009 clarification (not a blocker for this fix).
-        //
-        // Global options that take a separate following argument (not inline `=`):
-        //   -C <path>               change working directory
-        //   -c <key>=<value>        set config option
-        //   --namespace <prefix>    operate in namespace
-        // These are the forms tested and observed in dispatcher commit patterns.
-        // Additional git global options (--work-tree, --git-dir, etc.) use inline `=`
-        // syntax in practice, so they do not require special argument-skipping here.
-        const OPTS_TAKING_ARG: &[&str] = &["-C", "-c", "--namespace"];
-
-        let tokens: Vec<&str> = command.split_whitespace().collect();
-        let n = tokens.len();
-        let mut i = 0;
-
-        // Find "git" as an exact standalone word token (not "gitk", not in a path).
-        while i < n {
-            if tokens[i] == "git" {
-                i += 1;
-                break;
+        // Phase 1 — compound split on &&, ||, ;, |, &, \n → any segment true ⇒ true.
+        // Phase 2 — basename identification: strip leading env/VAR=x tokens; take
+        //           basename of first remaining token; basename != "git" ⇒ false.
+        // Phase 3 — skip global options (complete arg-taking + no-arg sets; FAIL-SAFE
+        //           on unrecognized -flags).
+        // Phase 4 — exact subcommand: true iff "commit" or "push".
+        for segment in split_shell_segments(command) {
+            let segment = segment.trim();
+            if !segment.is_empty() && evaluate_git_segment(segment) {
+                return true;
             }
-            i += 1;
+        }
+        false
+    }
+
+    // ── Phase 1: compound splitting ────────────────────────────────────────────
+
+    /// Splits `s` on shell operators (`&&`, `||`, `;`, `|`, `&`, `\n`) and returns
+    /// a `Vec<&str>` of segments (borrows of the original string). Two-character
+    /// operators (`&&`, `||`) are consumed atomically. Segments may be empty or
+    /// whitespace-only; callers must trim and skip blanks.
+    ///
+    /// All operator characters are single-byte ASCII, so all split indices are valid
+    /// UTF-8 character boundaries for any well-formed input.
+    fn split_shell_segments(s: &str) -> Vec<&str> {
+        let bytes = s.as_bytes();
+        let n = bytes.len();
+        let mut segments = Vec::new();
+        let mut seg_start = 0_usize;
+        let mut i = 0_usize;
+
+        while i < n {
+            let (advance, is_sep): (usize, bool) = match bytes[i] {
+                b'&' if i + 1 < n && bytes[i + 1] == b'&' => (2, true),
+                b'|' if i + 1 < n && bytes[i + 1] == b'|' => (2, true),
+                b'&' | b'|' | b';' | b'\n' => (1, true),
+                _ => (1, false),
+            };
+
+            if is_sep {
+                segments.push(&s[seg_start..i]);
+                seg_start = i + advance;
+                i = seg_start;
+            } else {
+                i += advance;
+            }
         }
 
-        // If "git" was not found or no tokens remain, return false.
+        segments.push(&s[seg_start..]);
+        segments
+    }
+
+    // ── Phases 2–4: single-segment evaluation ──────────────────────────────────
+
+    /// Applies Phases 2–4 of BC-1.18.002 v1.2 to a single pre-trimmed segment.
+    fn evaluate_git_segment(segment: &str) -> bool {
+        let tokens: Vec<&str> = segment.split_whitespace().collect();
+        let n = tokens.len();
+        if n == 0 {
+            return false;
+        }
+
+        let mut i = 0_usize;
+
+        // ── Phase 2a: strip leading `env` literal (first token only) ──────────
+        if tokens[i] == "env" {
+            i += 1;
+            if i >= n {
+                return false;
+            }
+        }
+
+        // ── Phase 2a (cont.): strip consecutive leading VAR=value tokens ──────
+        while i < n && is_env_assignment(tokens[i]) {
+            i += 1;
+        }
         if i >= n {
             return false;
         }
 
-        // Scan remaining tokens for the subcommand.
+        // ── Phase 2b/c: first remaining token is the executable; basename check ─
+        let executable = tokens[i];
+        i += 1;
+        let basename = executable
+            .rfind('/')
+            .map_or(executable, |pos| &executable[pos + 1..]);
+        if basename != "git" {
+            return false;
+        }
+
+        // ── Phase 3: skip recognized global options ────────────────────────────
+        //
+        // Complete arg-taking set (BC-1.18.002 v1.2 PC2 table): each option consumes
+        // itself PLUS the immediately following token as its separate-token argument.
+        const OPTS_ARG_TAKING: &[&str] = &[
+            "-C",
+            "-c",
+            "--namespace",
+            "--git-dir",
+            "--work-tree",
+            "--super-prefix",
+            "--config-env",
+        ];
+        // Recognized no-arg options: each option consumes only itself.
+        const OPTS_NO_ARG: &[&str] = &[
+            "--no-pager",
+            "--paginate",
+            "-p",
+            "--bare",
+            "--literal-pathspecs",
+            "--no-literal-pathspecs",
+            "--glob-pathspecs",
+            "--noglob-pathspecs",
+            "--icase-pathspecs",
+            "--no-replace-objects",
+            "--no-optional-locks",
+            "--exec-path",
+            "--html-path",
+            "--man-path",
+            "--info-path",
+            "--version",
+            "--help",
+            "-v",
+        ];
+
         while i < n {
             let token = tokens[i];
 
-            // If this token is a global option that takes a SEPARATE argument, skip both
-            // the option token AND the next token (its argument).
-            if OPTS_TAKING_ARG.contains(&token) {
-                i += 2; // skip option + its argument
-                continue;
+            if token == "--" {
+                // End-of-options: next positional is the subcommand.
+                i += 1;
+                break;
             }
 
-            // Any other option flag (starts with `-`): skip the flag itself, no arg to skip.
-            if token.starts_with('-') {
+            if !token.starts_with('-') {
+                // First non-option positional: this is the candidate subcommand.
+                break;
+            }
+
+            // Inline option with embedded value (e.g., `--git-dir=.git`): skip only.
+            if token.contains('=') {
                 i += 1;
                 continue;
             }
 
-            // First positional token reached — this is the git subcommand.
-            // Return true iff it is exactly "commit" or "push" (exact word match,
-            // not prefix — so "commit-graph" ≠ "commit").
-            return token == "commit" || token == "push";
+            // Recognized arg-taking option: skip token + its following argument.
+            if OPTS_ARG_TAKING.contains(&token) {
+                i += 2;
+                continue;
+            }
+
+            // Recognized no-arg option: skip token only.
+            if OPTS_NO_ARG.contains(&token) {
+                i += 1;
+                continue;
+            }
+
+            // Unrecognized -prefixed option: arity unknown → fail-safe (block).
+            // Under-blocking is the dangerous failure mode for this security gate.
+            return true;
         }
 
-        false
+        // ── Phase 4: exact subcommand match ──────────────────────────────────────
+        matches!(tokens.get(i), Some(&"commit") | Some(&"push"))
+    }
+
+    // ── Phase 2 helper: detect env-var assignment token ───────────────────────
+
+    /// Returns `true` iff `token` matches the pattern `^[A-Za-z_][A-Za-z0-9_]*=`.
+    /// Used by Phase 2 to strip leading environment variable assignments
+    /// (e.g., `GIT_DIR=.git`, `HOME=/tmp`) from a shell command segment.
+    fn is_env_assignment(token: &str) -> bool {
+        let mut chars = token.chars();
+        // First character must be ASCII letter or underscore.
+        match chars.next() {
+            Some(c) if c.is_ascii_alphabetic() || c == '_' => {}
+            _ => return false,
+        }
+        // Subsequent characters up to `=`: ASCII alphanumeric or underscore.
+        // A `=` terminates the scan as a successful match.
+        for c in chars {
+            if c == '=' {
+                return true;
+            }
+            if !c.is_ascii_alphanumeric() && c != '_' {
+                return false;
+            }
+        }
+        false // no `=` found — not an env-var assignment
     }
 }
 
@@ -1091,9 +1211,9 @@ mod tests {
         );
 
         // AC-007: recovery object MUST be present with both required subfields
-        let agent_recovery = agent_parsed
-            .get("recovery")
-            .expect("AC-007 / BC-1.18.002 INV4: block reason MUST have a structured 'recovery' field");
+        let agent_recovery = agent_parsed.get("recovery").expect(
+            "AC-007 / BC-1.18.002 INV4: block reason MUST have a structured 'recovery' field",
+        );
 
         let revalidate = agent_recovery
             .get("revalidate")
@@ -1112,8 +1232,7 @@ mod tests {
             .and_then(|v| v.as_str())
             .expect("AC-007: recovery MUST have 'manual_escape_hatch' subfield");
         assert_eq!(
-            escape_hatch,
-            "rm .factory/unvalidated-mutation.marker",
+            escape_hatch, "rm .factory/unvalidated-mutation.marker",
             "AC-007 / BC-1.18.003 PC3: manual_escape_hatch MUST be \
              'rm .factory/unvalidated-mutation.marker' — the fully supported operator escape hatch"
         );
