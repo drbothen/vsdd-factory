@@ -1,17 +1,18 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
-timestamp: 2026-08-30T00:00:00Z
+timestamp: 2026-08-31T00:00:00Z
 phase: F2
 inputs:
   - .factory/specs/architecture/decisions/ADR-047-indeterminate-outcome-model-durable-mutation-marker-next-advance-gate.md
+  - .factory/specs/architecture/decisions/ADR-048-fail-closed-but-recoverable-gate-block-if-marker-crash-policy-marker-ttl-deadman-and-ungated-escape-invariant.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.001.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.002.md
   - .factory/feature-delta/validation-integrity-layer1/F1-delta-analysis.md
-input-hash: "27a3121"
+input-hash: "815a46e"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -19,7 +20,7 @@ subsystem: "SS-01"
 capability: "CAP-041"
 lifecycle_status: draft
 introduced: v1.0-feature-validation-integrity-layer1
-modified: ["2026-08-31"]
+modified: ["2026-08-31", "2026-08-31-v1.2-ttl-third-clear-path"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -32,14 +33,17 @@ removal_reason: null
 
 ## Description
 
-The `.factory/unvalidated-mutation.marker` lifecycle has two supported clear paths. Primary
+The `.factory/unvalidated-mutation.marker` lifecycle has three supported clear paths. Primary
 path: when the same plugin that produced INDETERMINATE is subsequently dispatched PostToolUse on
 the same artifact and produces `DispatchOutcome::Pass` (exit_code=0, `host_output_too_large_seen=false`),
 the dispatcher deletes the marker file. Secondary path: the operator manually deletes the marker
 via `rm .factory/unvalidated-mutation.marker` — a fully supported and documented escape hatch
-requiring no special command or credential. Both clear paths unblock the two gate arms
-simultaneously. The clear operation is idempotent: if the marker is absent at delete time, the
-operation is a no-op (no error). A failed re-validation (FAIL outcome) does NOT clear the marker.
+requiring no special command or credential. Tertiary path (TTL deadman): when the gate plugin reads
+the marker on the normal execution path and finds `expires_at` elapsed (UTC), it treats the marker
+as ABSENT, allows the dispatch, and auto-deletes the marker file (idempotent; swallow NotFound).
+All three clear paths unblock the two gate arms simultaneously. The clear operation is idempotent:
+if the marker is absent at delete time, the operation is a no-op (no error). A failed re-validation
+(FAIL outcome) does NOT clear the marker.
 
 ## Preconditions
 
@@ -82,6 +86,20 @@ operation is a no-op (no error). A failed re-validation (FAIL outcome) does NOT 
    posture from ADR-039 §Decision 3: authentication is by possession of shell access to the
    machine running the session.
 
+4. **TTL-expiry clear path (marker-level deadman).** When the gate plugin reads
+   `.factory/unvalidated-mutation.marker` during normal (non-crash) gate evaluation and finds
+   `expires_at` elapsed (`expires_at ≤ now (UTC)`), the gate treats the marker as ABSENT:
+   returns `exit_code = 0` (Allow) and auto-deletes the marker file (idempotent; swallow
+   `NotFound`). The auto-delete prevents accumulation of dead marker artifacts. This is the
+   THIRD clear path alongside PC1 (successful re-validation) and PC3 (operator manual rm).
+   **`expires_at` stamping:** the `expires_at` field is written by `write_indeterminate_marker`
+   at marker creation time as `timestamp + UNVALIDATED_MUTATION_MARKER_TTL_SECONDS` (86400s per
+   ADR-048 §Decision 2; BC-1.18.001 PC4). Backward compatibility: markers written before
+   ADR-048 implementation lack `expires_at`. The gate plugin MUST treat a missing `expires_at`
+   field as non-expired (conservative; no silent auto-clear of old markers). Such markers remain
+   in effect until explicitly cleared via rm (PC3) or until ADR-048 is implemented and new
+   markers with `expires_at` replace them.
+
 ## Invariants
 
 1. **FAIL re-validation preserves the marker.** If the re-validating plugin produces FAIL
@@ -109,6 +127,18 @@ operation is a no-op (no error). A failed re-validation (FAIL outcome) does NOT 
    (permissions, filesystem failure) MUST be propagated as an error to the caller (not silently
    swallowed) — the session must surface a real filesystem problem rather than masking it.
 
+5. **TTL is marker-level expiry, not artifact-scoped.** Any `.factory/unvalidated-mutation.marker`
+   expires 86400 seconds after its `expires_at` timestamp, REGARDLESS of which artifact triggered
+   the INDETERMINATE event. TTL expiry (PC4) does not check `plugin_name` or `artifact_path`
+   fields — it operates solely on the time dimension. This is orthogonal to the artifact-scoped
+   re-validation clear (PC1/INV2), which requires (a) plugin_name match AND (b) artifact_path
+   match. Consistency with single-marker policy (BC-1.18.001 INV3): the single marker carries one
+   `expires_at` timestamp; if the marker is overwritten by a new INDETERMINATE event (last-writer-
+   wins), the new `expires_at` resets the TTL clock to the most recent event. The MOST RECENT
+   quarantine signal governs the effective TTL. This is the correct behavior: a new INDETERMINATE
+   event on a second artifact renews the quarantine; it would be incorrect to TTL-expire the marker
+   based on the first event's timestamp while the second event is still unresolved.
+
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
@@ -135,6 +165,9 @@ operation is a no-op (no error). A failed re-validation (FAIL outcome) does NOT 
 | Idempotent delete — marker absent | No marker; `delete_marker_if_pass` called | No-op; no error |
 | Manual escape hatch | Marker exists; operator runs `rm .factory/unvalidated-mutation.marker` | Marker gone; next Agent dispatch allowed |
 | INDETERMINATE on re-run | Marker exists; same plugin fuel-exhausts again | Marker overwritten with new event; gate remains active |
+| TTL-expiry clear — expired marker | Marker exists with `expires_at` in the PAST (UTC); gate plugin reads marker on normal path | Allow (exit_code=0); marker auto-deleted (idempotent; NotFound swallowed); both gate arms unblocked (PC4); no plugin_name or artifact_path check required |
+| TTL-expiry — non-expired marker | Marker exists with `expires_at` in the FUTURE (UTC); gate plugin reads marker on normal path | Block (exit_code=2); existing behavior unchanged; marker remains |
+| TTL-expiry — marker missing expires_at (legacy pre-ADR-048) | Marker exists without `expires_at` field; gate plugin reads on normal path | Block (exit_code=2) — marker treated as non-expired (conservative backward-compat; PC4 note); marker NOT auto-deleted |
 
 ## Related BCs
 
@@ -153,7 +186,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 
 ## VP Anchors
 
-- VP-106 — Successful Re-Validation Deletes Marker (artifact-scoped: same plugin + same non-empty artifact OR empty-artifact_path fallback); fail-open INDETERMINATE Writes No Marker (unit-test; covers PC1 artifact-scoped clear, PC2 idempotent delete, Invariant 1 FAIL-preserves, Invariant 2 artifact-scoped + empty-path exception, Invariant 4, EC-008/EC-009)
+- VP-106 — Successful Re-Validation Deletes Marker (artifact-scoped: same plugin + same non-empty artifact OR empty-artifact_path fallback); TTL-expiry auto-deletes marker; fail-open INDETERMINATE Writes No Marker (unit-test; covers PC1 artifact-scoped clear, PC2 idempotent delete, PC4 TTL-expiry clear, Invariant 1 FAIL-preserves, Invariant 2 artifact-scoped + empty-path exception, Invariant 4, Invariant 5 marker-level TTL, EC-008/EC-009)
 
 ## Verification Properties
 
@@ -164,6 +197,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 | VP-106 | `should_write_marker(Indeterminate, FailOpen) == false`; `should_write_marker(Indeterminate, FailClosed) == true` | unit-test |
 | VP-106 | PASS re-validation (same plugin, DIFFERENT non-empty artifact) does NOT delete marker; marker persists — artifact A quarantine unresolved (EC-008) | unit-test |
 | VP-106 | PASS re-validation (same plugin, empty marker `artifact_path`) DOES delete marker — empty-path fallback, plugin_name equality alone suffices (EC-009) | unit-test |
+| VP-106 | TTL-expiry clear (PC4): gate reads expired `expires_at` (≤ now UTC) on normal path → Allow (exit_code=0) + auto-delete marker (idempotent; NotFound swallowed); INV5 TTL is marker-level (no plugin_name/artifact_path check); non-expired marker remains blocked; legacy marker (no `expires_at`) treated as non-expired | unit-test |
 
 ## Traceability
 
@@ -173,7 +207,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 | Capability Anchor Justification | CAP-041 ("Validation Integrity: INDETERMINATE Outcome, Durable Mutation Marker, and Next-Advance Gate") per capabilities.md §CAP-041 — this BC specifies the marker-clear lifecycle that completes the quarantine loop defined in CAP-041: "The marker is cleared by successful re-validation (same plugin, PASS outcome) or manual operator deletion (`rm .factory/unvalidated-mutation.marker`)." |
 | L2 Domain Invariants | none (dispatcher runtime marker lifecycle invariant, not L2 domain spec) |
 | Architecture Module | SS-01 (Hook Dispatcher Core — `delete_marker_if_pass` and `should_write_marker` in `indeterminate_marker.rs`; `executor.rs` clear call-site) |
-| ADR | ADR-047 §Decision 5 (Marker Clear Protocol — Condition A successful re-validation; Condition B manual operator escape hatch; clear-on-PASS not clear-on-FAIL; idempotent delete; named-plugin AND artifact-scoped clear; empty-artifact_path falls back to name-only); ADR-047 §Decision 9 (both gate arms unblocked simultaneously by single marker deletion) |
+| ADR | ADR-047 §Decision 5 (Marker Clear Protocol — Condition A successful re-validation; Condition B manual operator escape hatch; clear-on-PASS not clear-on-FAIL; idempotent delete; named-plugin AND artifact-scoped clear; empty-artifact_path falls back to name-only); ADR-047 §Decision 9 (both gate arms unblocked simultaneously by single marker deletion); ADR-048 §Decision 2 (TTL-expiry as third clear path — gate plugin checks expires_at on normal path; expired marker treated as absent → Allow + auto-delete; missing expires_at on legacy markers treated as non-expired; TTL is marker-level not artifact-scoped; UNVALIDATED_MUTATION_MARKER_TTL_SECONDS = 86_400) |
 | Stories | S-25.01 |
 | Cycle | v1.0-feature-validation-integrity-layer1 (F2 — product-owner spec burst) |
 | Feature | E-25 — Validation Integrity and Large-Artifact Resilience |
@@ -182,5 +216,6 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.2 | 2026-08-31 | product-owner | ADR-048 §Decision 2 — adds TTL-expiry as a third clear path. (1) Description updated: two clear paths → three clear paths. (2) Added PC4: gate plugin reads expired `expires_at` on normal path → treat marker as ABSENT, Allow (exit_code=0), auto-delete (idempotent; swallow NotFound). (3) Added INV5: TTL is marker-level expiry (not artifact-scoped) — any marker expires 86400s after `expires_at` regardless of which artifact triggered INDETERMINATE; confirmed consistent with PC1 artifact-scoped clear and BC-1.18.001 INV3 single-marker. (4) Added canonical test vectors: expired-marker→Allow+auto-delete; non-expired-marker→Block (existing behavior confirmed). (5) Traceability ADR: ADR-048 §Decision 2 citation added. ADR-048 added to inputs. |
 | 1.1 | 2026-08-31 | product-owner | S-25.01 adversary M-1 resolution. Promote artifact-scoped clear to authoritative predicate throughout BC. PC1 rewritten: clear requires (a) plugin_name match AND (b) artifact_path match (exact normalized absolute path equality), with explicit empty-artifact_path fallback (vacuously satisfied → name-only suffices for non-artifact-scoped validators). INV2 rewritten to match PC1. Architecture Anchors updated: `delete_marker_if_pass` signature gains `current_artifact_path` param; executor.rs note flags BOTH callsites must apply the two-condition gate. Added EC-008 (same plugin, different non-empty artifact → no clear) and EC-009 (empty marker artifact_path → clear via fallback). Added two canonical test vectors for EC-008/EC-009. VP-106 Anchors and Verification Properties table expanded with corresponding unit-test rows. ADR-047 §D5 citation updated to name artifact-scoped clear + empty-path fallback. Traceability ADR field updated to match. |
 | 1.0 | 2026-08-30 | product-owner | Initial creation. F2 spec-evolution burst, validation-integrity-layer1. BC-1.18.003: marker-clear protocol (PASS-clears/FAIL-preserves/idempotent/operator-rm), named-plugin scoping invariant, both-arms-unblock invariant. VP-106 anchored. CAP-041 capability anchor. ADR-047 §D5 citations. |
