@@ -578,3 +578,27 @@ EOF
   [ "$status" -eq 2 ]
   [[ "$output" == *"42 BCs"* ]]
 }
+
+@test "validate-count-propagation: preprocessing failure exits 2, not 0 (fail-closed)" {
+  require_bash4_hook_interp
+  # Install a broken sed shim at the front of PATH that always exits 1.
+  # This simulates a preprocessing pipeline failure (awk | sed) inside
+  # _extract_counts.  Before BLOCKING-A fix, the process substitution
+  # `done < <(_extract_counts ...)` swallowed the failure and the hook
+  # returned exit 0 (false-pass: "no drift found").  After the fix,
+  # the caller-managed temp file + direct function call gates on the exit
+  # status and exits 2 (fail-closed).
+  _broken_sed_dir="$(mktemp -d)"
+  printf '#!/bin/bash\nexit 1\n' > "$_broken_sed_dir/sed"
+  chmod +x "$_broken_sed_dir/sed"
+
+  # Create a file with genuine drift so the hook would normally fire exit 2
+  # for drift — but with the broken sed shim it must STILL exit 2, just for
+  # the preprocessing-failure path rather than the drift-detection path.
+  printf '# STATE\n42 BCs\n' > .factory/STATE.md
+  printf '%s\n' '---' 'total_bcs: 38' '---' '# BC-INDEX' > .factory/BC-INDEX.md
+
+  run bash -c "PATH=\"$_broken_sed_dir:\$PATH\" bash \"$HOOKS/validate-count-propagation.sh\" 2>&1 <<< '{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}'"
+  rm -rf "$_broken_sed_dir"
+  [ "$status" -eq 2 ]
+}

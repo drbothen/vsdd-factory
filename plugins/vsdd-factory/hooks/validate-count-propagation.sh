@@ -94,6 +94,13 @@ fi
 # current count — comparing it as drift is the #567 false positive. Boundaries
 # use the same "^## opens, next ^## closes" idiom as
 # validate-changelog-monotonicity.sh.
+#
+# "## Drift Items" is included as defence-in-depth consistent with the historical
+# heading convention: if a drift-items section ever appears earlier in a file than
+# the authoritative live count, table cells in that section (e.g., stale snapshots
+# of BCs/VPs counts at the time the item was recorded) must not shadow the live
+# count. This does not change the verdict for any file in the current corpus —
+# all live authoritative counts appear outside drift-items sections today.
 _is_historical_heading() {
   case "${1,,}" in
     "## changelog"* | "## change log"* | "## historical content"* | \
@@ -107,9 +114,13 @@ _is_historical_heading() {
 # Outputs lines of format: KEYWORD:COUNT:RANK
 #   RANK 0 — authoritative (YAML frontmatter keys like total_bcs:, total_vps:)
 #   RANK 1 — prose (pattern-matched text like "42 BCs")
-# Using a rank allows callers to prefer frontmatter over prose when both appear
-# in the same file (e.g., STATE.md has "total_vps: 107" and also "19 VPs per
-# §VP Anchors" in prose — rank 0 wins).
+# Rank-precedence is forward-looking hardening: if a corpus file ever has a
+# rank-0 frontmatter key that appears after a rank-1 prose mention in file
+# order, the rank-0 value still wins. No current corpus file exercises this
+# today — VP-INDEX.md and BC-INDEX.md have total_vps: / total_bcs: frontmatter
+# keys (rank-0) but they appear before any prose count mentions in file order,
+# so rank precedence is not decisive in practice. STATE.md has no total_vps:
+# or total_bcs: frontmatter keys at all.
 #
 # Supported patterns:
 #   "NNN BCs" / "NNN,NNN BCs" — count before keyword (rank 1)
@@ -165,6 +176,7 @@ _extract_counts() {
   #   does not affect historical-section boundary detection.
   local _preproc_tmp
   _preproc_tmp="$(mktemp)"
+  trap 'rm -f "$_preproc_tmp"' RETURN
   awk 'length <= 8192' "$path" | sed -E 's/[A-Za-z]+-[0-9.]+//g' > "$_preproc_tmp" || {
     echo "validate-count-propagation: preprocessing pipeline failed for $path" >&2
     rm -f "$_preproc_tmp"
@@ -179,11 +191,14 @@ _extract_counts() {
     # S-25.01 review cycle 2 fix (BLOCKING-1).
     [[ "$line" =~ ^[[:space:]]*(last_amended|change): ]] && continue
     # Skip all blockquote lines (any line starting with ">").
-    # In factory index files, blockquotes are exclusively historical or documentary
-    # records (e.g., "> Updated 2026-05-07: … 15 BCs", "> **E-8 batch authoring:**
-    # … 22 BCs anchored", "> D-443(b)(i) exemption …").  None carry an authoritative
-    # live count — they record past operations or policy notes.  Skipping all ">"-
-    # prefixed lines is simpler, more complete, and safe for the project convention.
+    # Factory files use blockquotes for both historical records AND live banner-cite
+    # content (e.g., STATE.md Session Resume Checkpoint, refreshed every Commit E,
+    # carries current totals like "1,993 BCs", "107 VPs", "175 stories" on blockquote
+    # lines).  Both categories are skipped: historical records must not shadow live
+    # counts (#567 class); live banner-cite counts are redundant with the same values
+    # on non-blockquote lines in the same file, so no detection is lost by excluding
+    # blockquote lines.  Skipping all ">"-prefixed lines is simpler and more complete
+    # than trying to classify blockquote intent at parse time.
     [[ "$line" =~ ^[[:space:]]*'>' ]] && continue
     # Track historical-section boundaries; skip counts while inside one.
     if [[ "$line" =~ ^##[[:space:]] ]]; then
@@ -217,10 +232,21 @@ _extract_counts() {
 }
 
 # Extract counts from modified file using rank-based precedence.
-# Frontmatter keys (rank 0) beat prose patterns (rank 1) for the same keyword,
-# so "total_vps: 107" wins over "19 VPs per §VP Anchors" appearing earlier.
+# Frontmatter keys (rank 0) beat prose patterns (rank 1) for the same keyword.
+# Rank-precedence is forward-looking hardening: should a file ever have a
+# rank-0 entry appearing after a rank-1 entry in file order, the rank-0 value
+# still wins. No current corpus file exercises this for STATE.md, but
+# VP-INDEX.md and BC-INDEX.md both have total_vps: / total_bcs: frontmatter
+# keys at rank 0.
 declare -A SOURCE_COUNTS
 declare -A COUNT_RANK
+_src_tmp="$(mktemp)"
+_sib_tmp="$(mktemp)"
+trap 'rm -f "$_src_tmp" "$_sib_tmp"' EXIT
+if ! _extract_counts "$FILE_PATH" > "$_src_tmp"; then
+  echo "validate-count-propagation: count extraction failed for $FILE_PATH" >&2
+  exit 2
+fi
 while IFS=: read -r kw cnt rnk; do
   [[ -z "$kw" || -z "$cnt" ]] && continue
   _new_rank="${rnk:-9}"
@@ -229,7 +255,7 @@ while IFS=: read -r kw cnt rnk; do
     SOURCE_COUNTS["$kw"]="$cnt"
     COUNT_RANK["$kw"]="$_new_rank"
   fi
-done < <(_extract_counts "$FILE_PATH")
+done < "$_src_tmp"
 
 # Nothing to compare if no count patterns found.
 # Guard via ${arr[*]:-} rather than ${#arr[@]}: under `set -u`, expanding the
@@ -255,6 +281,10 @@ for keyword in "${!SOURCE_COUNTS[@]}"; do
     # entry in the same file is not missed.
     sib_count=""
     _sib_rank=9
+    if ! _extract_counts "$sibling" > "$_sib_tmp"; then
+      echo "validate-count-propagation: count extraction failed for $sibling" >&2
+      exit 2
+    fi
     while IFS=: read -r kw cnt rnk; do
       if [[ "$kw" == "$keyword" ]]; then
         _entry_rank="${rnk:-9}"
@@ -263,7 +293,7 @@ for keyword in "${!SOURCE_COUNTS[@]}"; do
           _sib_rank="$_entry_rank"
         fi
       fi
-    done < <(_extract_counts "$sibling")
+    done < "$_sib_tmp"
 
     # Absence of keyword in sibling is NOT drift — only report mismatch
     if [[ -n "$sib_count" ]] && [[ "$sib_count" != "$source_count" ]]; then
