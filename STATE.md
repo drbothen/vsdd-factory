@@ -132,7 +132,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **9ab5a6f6** | PR #802 (S-24.01 vsdd-factory:wrap skill) squash-merged `9ab5a6f6` 2026-08-30 (D-1132). Prior: `da14fb94` (PR #801 F-WG5-P2-001 2026-08-29). CI-GREEN. |
-| factory-artifacts | **`[SHA-PATCH-PENDING]`** | S2501-READ-ERROR-SEMANTICS-AND-SECURITY-RATIFICATION-2026-08-31 v9.44→v9.45 (this burst). Prior chain: `06b4bf2c` (S2501-LOCAL-ADV-FAILOPEN-THREATMODEL-QUOTING-HARDENING v9.43→v9.44) → `5646f8f9` (architect VP-105 v1.8 + VP-INDEX v2.89). |
+| factory-artifacts | **`757e0c2a`** | S2501-READ-ERROR-SEMANTICS-AND-SECURITY-RATIFICATION-2026-08-31 v9.44→v9.45 (this burst). Prior chain: `06b4bf2c` (S2501-LOCAL-ADV-FAILOPEN-THREATMODEL-QUOTING-HARDENING v9.43→v9.44) → `5646f8f9` (architect VP-105 v1.8 + VP-INDEX v2.89). |
 | feature/S-25.01 | **`480e902f`** | F4 TDD IN PROGRESS — LOCAL adversary READ-ERROR+DEP-TABLE fix-burst COMPLETE. Test-writer @480e902f (EC-030 unreadable→Allow + EC-008 malformed→Block; 13/13 pass). Implementer @39ddca1c. BC-5.39.001 streak 0/3. NEXT: re-run LOCAL adversary pass 1 fresh. |
 | feature/S-17.05 | **MERGED+DELETED** | PR #798 squash-merged `a4b24601` 2026-08-29T13:45:46Z. Branch deleted post-merge. D-1129. |
 | feature/S-17.07 | **MERGED+DELETED** | PR #800 squash-merged `1fc8b9ee` 2026-08-29. Branch deleted post-merge. D-1130. |
@@ -307,7 +307,7 @@ Feature branch `feature/S-25.01` at `480e902f`. F4 TDD in progress. BC-5.39.001 
 - `develop`: **`9ab5a6f6`** (PR #802 S-24.01 squash-merged 2026-08-30).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
 - `feature/S-25.01`: **`480e902f`** (test-writer EC-030+EC-008 vectors; implementer @39ddca1c evaluate_gate four-case; 13/13 PASS).
-- `factory-artifacts`: **`[SHA-PATCH-PENDING]`** (S2501-READ-ERROR-SEMANTICS-AND-SECURITY-RATIFICATION-2026-08-31 v9.44→v9.45; will be updated via D-449(e) SHA-patch after commit).
+- `factory-artifacts`: **`757e0c2a`** (S2501-READ-ERROR-SEMANTICS-AND-SECURITY-RATIFICATION-2026-08-31 v9.44→v9.45; will be updated via D-449(e) SHA-patch after commit).
 
 ### §5. Pending / OWED (backlog, NOT drift)
 
