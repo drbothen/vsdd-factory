@@ -12,7 +12,7 @@ deciders:
   - architect
 subsystems_affected: [SS-01, SS-03, SS-04, SS-07]
 supersedes: null
-superseded_by: null
+superseded_by: ADR-048
 extends: ADR-039
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 last_amended: "2026-08-30 (v1.3) — Cohort A split into A-immediate (validate-factory-path-staging: EFFECTIVE-NOW, set in S-25.01 without S-21.24 dependency) and A-deferred (validate-pr-merge-prerequisites, validate-wave-gate-prerequisite: SET-BUT-LATENT, set in S-25.01 registry with latent comment, enforcement activates at S-21.24). Integration Ordering corrected: S-25.01 PREPARES the two ^Agent^ validators in the registry (inert per S-21.10 schema-only); 'ONLY after S-21.24' overstatement removed. Layer-1 effective fail-closed count stated as 1. Factual fix: validate-factory-path-staging tool pattern corrected from ^(Edit|Write|MultiEdit)$ to ^Bash$ to match hooks-registry.toml."
