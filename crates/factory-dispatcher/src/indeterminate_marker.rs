@@ -26,14 +26,30 @@ use std::io;
 use std::path::Path;
 use std::sync::atomic::{AtomicU64, Ordering};
 
+use chrono::{DateTime, Utc};
+
 use crate::executor::DispatchOutcome;
 use crate::registry::FailurePolicy;
 
-/// The five required TOML fields for `.factory/unvalidated-mutation.marker`.
+/// TTL for the `.factory/unvalidated-mutation.marker` deadman timer (ADR-048 §Decision 2).
 ///
-/// BC-1.18.001 postcondition 4: all five fields MUST be present.
+/// 86 400 seconds = 24 hours. The marker's `expires_at` field is written once at
+/// creation time as `timestamp + UNVALIDATED_MUTATION_MARKER_TTL_SECONDS`. The dispatcher
+/// native crash-path check (`block_if_marker_check`) and the gate WASM plugin
+/// (`evaluate_gate`) both treat an expired marker as absent (fail-open on stale
+/// quarantine). No renewal mechanism; the quarantine must be explicitly resolved or
+/// will auto-expire after 24 h.
+///
+/// BC-1.18.003 PC4: expired marker → Allow + auto-delete (idempotent, gate plugin).
+pub const UNVALIDATED_MUTATION_MARKER_TTL_SECONDS: u64 = 86_400;
+
+/// The six required TOML fields for `.factory/unvalidated-mutation.marker`.
+///
+/// BC-1.18.001 postcondition 4: all fields MUST be present.
 /// `artifact_path` MUST be empty string (not omitted) when no artifact context.
 /// `cause` MUST be one of `"fuel"`, `"epoch"`, `"output-too-large"` (BC-3.08.001 Event 8).
+/// `expires_at` is new in ADR-048 §Decision 2; legacy markers without it are treated
+/// conservatively (non-expired = block) by both native and WASM checks.
 #[derive(Debug, Clone)]
 pub struct MarkerFields {
     /// RFC 3339 timestamp of the INDETERMINATE event (e.g. "2026-08-30T12:00:00Z").
@@ -50,13 +66,18 @@ pub struct MarkerFields {
     pub cause: String,
     /// Dispatcher trace ID (`dispatcher_trace_id`) for the invocation.
     pub trace_id: String,
+    /// RFC 3339 expiry timestamp = `timestamp` + `UNVALIDATED_MUTATION_MARKER_TTL_SECONDS`.
+    /// ADR-048 §Decision 2: 24-hour deadman. The gate plugin auto-deletes the marker when
+    /// this timestamp is reached. The native crash-path check (`block_if_marker_check`) treats
+    /// an expired marker as absent (Allow). Missing/unparseable on legacy markers → non-expired.
+    pub expires_at: String,
 }
 
 /// Atomically write the unvalidated-mutation marker file via write-to-temp + rename.
 ///
 /// Algorithm (BC-1.18.001 postcondition 4 + invariant 3):
 /// 1. Compute temp path: `<marker_path>.tmp` in the same directory as `marker_path`.
-/// 2. Serialize the five required TOML fields to the temp file (O_CREAT | O_WRONLY | O_TRUNC).
+/// 2. Serialize the six required TOML fields to the temp file (O_CREAT | O_WRONLY | O_TRUNC).
 /// 3. Atomically rename the temp file to `marker_path`.
 ///
 /// Single-marker policy: if a marker already exists, the rename overwrites it (last-writer-wins).
@@ -99,7 +120,7 @@ pub fn write_indeterminate_marker(fields: &MarkerFields, marker_path: &Path) -> 
         .unwrap_or_else(|| std::path::Path::new("."))
         .join(&tmp_name);
 
-    // Serialize 5 mandatory TOML fields via the `toml` crate (Library table mandate).
+    // Serialize 6 mandatory TOML fields via the `toml` crate (Library table mandate).
     // toml::to_string correctly escapes all control characters including \n, \r, \t, etc.
     // Field insertion order preserved via BTreeMap (deterministic output).
     let mut table = toml::Table::new();
@@ -122,6 +143,11 @@ pub fn write_indeterminate_marker(fields: &MarkerFields, marker_path: &Path) -> 
     table.insert(
         "trace_id".to_string(),
         toml::Value::String(fields.trace_id.clone()),
+    );
+    // ADR-048 §Decision 2: 24-hour deadman TTL field (BC-1.18.001 postcondition 4 + 5).
+    table.insert(
+        "expires_at".to_string(),
+        toml::Value::String(fields.expires_at.clone()),
     );
 
     let content = toml::to_string(&table)
@@ -260,6 +286,81 @@ pub fn should_write_marker(outcome: &DispatchOutcome, policy: FailurePolicy) -> 
 }
 
 // ---------------------------------------------------------------------------
+// ADR-048 §Decision 1 — native crash-path gate check
+// ---------------------------------------------------------------------------
+
+/// Check whether a non-expired `.factory/unvalidated-mutation.marker` exists and return
+/// `true` (block) iff one does, `false` (allow) otherwise.
+///
+/// This is the NATIVE (non-WASM) crash-path guard for `on_error = "block_if_marker"`
+/// (ADR-048 §Decision 1, BC-1.18.002 v1.5). It is called from the dispatcher's
+/// `execute_tiers` loop when a plugin with `on_error = "block_if_marker"` crashes or
+/// times out — before the plugin's WASM sandbox gets a chance to run.
+///
+/// # Decision logic
+///
+/// - Marker absent (NotFound) → `false` (Allow).
+/// - Marker present, non-expired → `true` (Block).
+/// - Marker present, expired (`expires_at <= now`) → `false` (Allow).
+/// - Marker present, missing/unparseable `expires_at` (legacy pre-ADR-048) → `true` (Block,
+///   conservative).
+/// - Marker unreadable due to I/O error other than NotFound → `false` (Allow, fail-open
+///   on infra fault per CWE-636 balance).
+///
+/// # Parameters
+///
+/// - `factory_root`: project root; the marker path is `<factory_root>/.factory/unvalidated-mutation.marker`.
+/// - `now`: injectable clock (use `chrono::Utc::now()` in production; fixed value in tests).
+pub fn block_if_marker_check(factory_root: &Path, now: DateTime<Utc>) -> bool {
+    let marker_path = factory_root
+        .join(".factory")
+        .join("unvalidated-mutation.marker");
+    let content = match std::fs::read_to_string(&marker_path) {
+        Ok(c) => c,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => return false,
+        Err(e) => {
+            tracing::warn!(
+                error = %e,
+                path = %marker_path.display(),
+                "block_if_marker: marker read I/O error — allowing (fail-open on infra fault)"
+            );
+            return false;
+        }
+    };
+    // TTL check (ADR-048 §Decision 2): expired marker → allow (treat as absent).
+    match parse_expires_at(&content) {
+        Some(exp) if exp <= now => {
+            tracing::debug!(
+                expires_at = %exp,
+                now = %now,
+                "block_if_marker: marker TTL elapsed — allowing (expired deadman)"
+            );
+            false
+        }
+        // Non-expired expiry, missing expiry (legacy marker), or unparseable expiry → block.
+        _ => {
+            tracing::info!(
+                path = %marker_path.display(),
+                "block_if_marker: non-expired marker present — blocking (ADR-048 §Decision 1)"
+            );
+            true
+        }
+    }
+}
+
+/// Parse the RFC 3339 `expires_at` field from TOML marker content.
+///
+/// Returns `Some(DateTime<Utc>)` on successful parse; `None` if the field is absent,
+/// non-string, or fails RFC 3339 parsing. Callers treat `None` conservatively (block).
+fn parse_expires_at(content: &str) -> Option<DateTime<Utc>> {
+    let table: toml::Table = toml::from_str(content).ok()?;
+    let s = table.get("expires_at")?.as_str()?;
+    chrono::DateTime::parse_from_rfc3339(s)
+        .ok()
+        .map(|dt| dt.with_timezone(&Utc))
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -288,6 +389,7 @@ mod tests {
             artifact_path: "/abs/A.md".to_string(),
             cause: "fuel".to_string(),
             trace_id: "trace-ec-008".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
         };
         write_indeterminate_marker(&fields, &marker_path)
             .expect("write_indeterminate_marker must succeed for a writable path");
@@ -335,6 +437,7 @@ mod tests {
             artifact_path: "".to_string(),
             cause: "fuel".to_string(),
             trace_id: "trace-ec-009".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
         };
         write_indeterminate_marker(&fields, &marker_path)
             .expect("write_indeterminate_marker must succeed for a writable path");
@@ -382,6 +485,7 @@ mod tests {
             artifact_path: artifact_with_special.clone(),
             cause: "fuel".to_string(),
             trace_id: "trace-special-chars-001".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
         };
 
         write_indeterminate_marker(&fields, &marker_path)

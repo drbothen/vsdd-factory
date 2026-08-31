@@ -156,6 +156,39 @@ pub mod guard_logic {
                     .unwrap_or("")
                     .to_string();
 
+                // ADR-048 §Decision 2 — 24-hour deadman TTL check (BC-1.18.003 PC4).
+                // If `expires_at` is present and its timestamp <= now → treat marker as absent:
+                // auto-delete (idempotent; swallow NotFound) and return Allow.
+                // If `expires_at` is absent (legacy pre-ADR-048 marker) → non-expired (block).
+                // If `expires_at` is unparseable → conservative (block).
+                let expires_at_opt = table
+                    .get("expires_at")
+                    .and_then(|v| v.as_str())
+                    .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
+                    .map(|dt| dt.with_timezone(&chrono::Utc));
+                if let Some(exp) = expires_at_opt
+                    && exp <= chrono::Utc::now()
+                {
+                    // TTL elapsed: auto-delete the stale marker (idempotent).
+                    match std::fs::remove_file(marker_path) {
+                        Ok(()) => {}
+                        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+                        Err(e) => {
+                            tracing::warn!(
+                                error = %e,
+                                path = %marker_path.display(),
+                                "TTL-expired marker auto-delete failed (non-fatal; next \
+                                 gate check will re-evaluate)"
+                            );
+                        }
+                    }
+                    tracing::info!(
+                        expires_at = %exp,
+                        "marker TTL elapsed — allowing (BC-1.18.003 PC4 auto-delete)"
+                    );
+                    return GateDecision::Allow;
+                }
+
                 GateDecision::Block {
                     plugin_name,
                     artifact_path,

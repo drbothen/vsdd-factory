@@ -38,6 +38,9 @@ shell-words = "1.1"
 # tracing macros are no-ops when no subscriber is configured, so this adds no overhead in
 # WASM sandbox contexts where no subscriber is registered.
 tracing = { workspace = true }
+# ADR-048 §Decision 2: 24-hour deadman TTL check in evaluate_gate.
+# chrono 0.4 compiles for wasm32-wasip1 — WASI provides clock_gettime.
+chrono = { workspace = true }
 
 [dev-dependencies]
 serde_json = { workspace = true }

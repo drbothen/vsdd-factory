@@ -142,11 +142,7 @@ fn write_test_marker(path: &std::path::Path, plugin_name: &str) {
     .expect("test setup: write marker");
 }
 
-fn write_test_marker_with_artifact(
-    path: &std::path::Path,
-    plugin_name: &str,
-    artifact_path: &str,
-) {
+fn write_test_marker_with_artifact(path: &std::path::Path, plugin_name: &str, artifact_path: &str) {
     std::fs::write(
         path,
         format!(
@@ -594,7 +590,8 @@ async fn test_BC_1_18_003_EC_008_artifact_mismatch_preserves_marker_via_execute_
         "tool_name": "Edit",
         "tool_input": { "file_path": "/abs/B.md" }
     });
-    let tiers1: Vec<Vec<&RegistryEntry>> = group_by_priority(&registry, registry.hooks.iter().collect());
+    let tiers1: Vec<Vec<&RegistryEntry>> =
+        group_by_priority(&registry, registry.hooks.iter().collect());
     let summary1 = execute_tiers(
         executor_inputs_with_cwd(
             &engine,
@@ -607,7 +604,10 @@ async fn test_BC_1_18_003_EC_008_artifact_mismatch_preserves_marker_via_execute_
         tiers1,
     )
     .await;
-    assert_eq!(summary1.exit_code, 0, "pre-condition: PASS plugin must not block");
+    assert_eq!(
+        summary1.exit_code, 0,
+        "pre-condition: PASS plugin must not block"
+    );
 
     // EC-008 / BC-1.18.003 INV2: artifact mismatch → quarantine persists.
     assert!(
@@ -622,7 +622,8 @@ async fn test_BC_1_18_003_EC_008_artifact_mismatch_preserves_marker_via_execute_
         "tool_name": "Edit",
         "tool_input": { "file_path": "/abs/A.md" }
     });
-    let tiers2: Vec<Vec<&RegistryEntry>> = group_by_priority(&registry, registry.hooks.iter().collect());
+    let tiers2: Vec<Vec<&RegistryEntry>> =
+        group_by_priority(&registry, registry.hooks.iter().collect());
     let summary2 = execute_tiers(
         executor_inputs_with_cwd(
             &engine,
@@ -635,7 +636,10 @@ async fn test_BC_1_18_003_EC_008_artifact_mismatch_preserves_marker_via_execute_
         tiers2,
     )
     .await;
-    assert_eq!(summary2.exit_code, 0, "pre-condition: PASS plugin must not block");
+    assert_eq!(
+        summary2.exit_code, 0,
+        "pre-condition: PASS plugin must not block"
+    );
 
     // EC-008 (positive control): same artifact → quarantine lifted.
     assert!(
@@ -672,7 +676,8 @@ async fn test_BC_1_18_003_EC_009_empty_marker_artifact_path_clears_via_execute_t
     let pass_wasm = compile_to(dir.path(), "p", WAT_NORMAL);
     let entry = make_pass_entry(&pass_wasm, "p", "PostToolUse");
     let registry = make_registry(vec![entry]);
-    let tiers: Vec<Vec<&RegistryEntry>> = group_by_priority(&registry, registry.hooks.iter().collect());
+    let tiers: Vec<Vec<&RegistryEntry>> =
+        group_by_priority(&registry, registry.hooks.iter().collect());
 
     // Dispatch with a non-empty file_path to confirm empty marker artifact_path clears regardless.
     let payload = serde_json::json!({
@@ -692,7 +697,10 @@ async fn test_BC_1_18_003_EC_009_empty_marker_artifact_path_clears_via_execute_t
         tiers,
     )
     .await;
-    assert_eq!(summary.exit_code, 0, "pre-condition: PASS plugin must not block");
+    assert_eq!(
+        summary.exit_code, 0,
+        "pre-condition: PASS plugin must not block"
+    );
 
     // EC-009 / BC-1.18.003 INV2: empty marker artifact_path → cleared unconditionally.
     assert!(

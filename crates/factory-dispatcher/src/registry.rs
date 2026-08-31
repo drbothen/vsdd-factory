@@ -77,12 +77,29 @@ pub enum RegistryError {
 
 /// Outcome for a plugin that returns `Error` or crashes. `Continue` is
 /// the default; operators opt into hard-stop behavior per plugin.
+///
+/// # ADR-048 §Decision 1 — block_if_marker
+///
+/// `BlockIfMarker` is the third value, added by S-25.01. When a plugin registered
+/// with `on_error = "block_if_marker"` crashes, fuel-exhausts, or times out, the
+/// dispatcher executes a NATIVE (non-WASM) filesystem check:
+/// - Non-expired `.factory/unvalidated-mutation.marker` exists → Block (exit 2).
+/// - Marker absent, expired, or unreadable → Allow (exit 0).
+///
+/// This closes the CWE-636 gap where crash + valid-quarantine-signal → silent allow
+/// under the old `"continue"` policy (D-1135 reversed).
+///
+/// `BlockIfMarker` MUST NOT be combined with `async = true` (same invariant as
+/// `Block` — async hooks never affect gate decisions, E-REG-002).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum OnError {
     #[default]
     Continue,
     Block,
+    /// Conditionally fail-closed on crash: block iff a non-expired
+    /// `.factory/unvalidated-mutation.marker` exists (ADR-048 §Decision 1).
+    BlockIfMarker,
 }
 
 /// Resource-exhaustion failure policy for a plugin entry.
@@ -485,8 +502,13 @@ impl Registry {
     /// ASYNC_DRAIN_WINDOW_MS is defined in DI-019 — cite by reference only.
     fn validate_async_block_invariant(&self) -> Result<(), RegistryError> {
         for entry in &self.hooks {
-            let on_error_is_block = entry.on_error == Some(OnError::Block);
-            if on_error_is_block && entry.async_flag {
+            // Both `Block` and `BlockIfMarker` can conditionally gate a dispatch; neither
+            // is compatible with async-advisory semantics (E-REG-002, ADR-048 §Decision 1).
+            let on_error_can_block = matches!(
+                entry.on_error,
+                Some(OnError::Block) | Some(OnError::BlockIfMarker)
+            );
+            if on_error_can_block && entry.async_flag {
                 return Err(RegistryError::AsyncBlockConflict {
                     name: entry.name.clone(),
                 });

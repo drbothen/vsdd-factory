@@ -1621,9 +1621,13 @@ name = "validate-unvalidated-mutation-marker"
 event = "PreToolUse"
 tool = "^Agent$"
 plugin = "hook-plugins/validate-unvalidated-mutation-marker.wasm"
-# HIGH-1 fix (S-25.01): fail-open gate MUST use on_error="continue" so a WASM crash/timeout
-# allows the dispatch rather than self-locking the gate (BC-1.18.002 INV2/EC-009/AC-011).
-on_error = "continue"
+# ADR-048 §Decision 1: on_error="block_if_marker" — WASM crash/timeout triggers a NATIVE
+# filesystem check. If a non-expired .factory/unvalidated-mutation.marker exists the dispatch
+# is blocked (crash + quarantine-signal → Block). If the marker is absent or expired the
+# dispatch is allowed (crash + no quarantine → Allow). This closes the CWE-636 gap where
+# WASM crash + valid-quarantine-signal silently allowed the dispatch under "continue".
+# failure_policy = "fail-open" UNCHANGED (BC-1.18.002 INV2 self-lock prevention).
+on_error = "block_if_marker"
 async = false
 failure_policy = "fail-open"
 
@@ -1636,9 +1640,10 @@ name = "validate-unvalidated-mutation-marker-git"
 event = "PreToolUse"
 tool = "^Bash$"
 plugin = "hook-plugins/validate-unvalidated-mutation-marker.wasm"
-# HIGH-1 fix (S-25.01): fail-open gate MUST use on_error="continue" so a WASM crash/timeout
-# allows the dispatch rather than self-locking the gate (BC-1.18.002 INV2/EC-009/AC-011).
-on_error = "continue"
+# ADR-048 §Decision 1: on_error="block_if_marker" — same crash-policy as Arm 1. Both arms
+# must have identical on_error semantics (BC-1.18.002 invariant 1: same binary, same gate
+# invariants). See Arm 1 comment above for rationale.
+on_error = "block_if_marker"
 async = false
 failure_policy = "fail-open"
 

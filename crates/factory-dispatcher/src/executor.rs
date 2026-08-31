@@ -27,7 +27,8 @@ use wasmtime::Engine;
 
 use crate::host::HostContext;
 use crate::indeterminate_marker::{
-    MarkerFields, delete_marker_if_pass, read_marker_plugin_name, should_write_marker,
+    MarkerFields, UNVALIDATED_MUTATION_MARKER_TTL_SECONDS, block_if_marker_check,
+    delete_marker_if_pass, read_marker_plugin_name, should_write_marker,
     write_indeterminate_marker,
 };
 use crate::internal_log::{
@@ -256,6 +257,12 @@ pub async fn execute_tiers(
         for outcome in &tier_outcomes {
             if plugin_requests_block(&outcome.result)
                 || plugin_fail_closed(&outcome.result, outcome.on_error)
+                || plugin_block_if_marker(
+                    &outcome.result,
+                    outcome.on_error,
+                    &inputs.base_host_ctx.cwd,
+                    chrono::Utc::now(),
+                )
             {
                 block_intent = true;
             }
@@ -460,13 +467,20 @@ async fn execute_tier<'a>(
                         .cwd
                         .join(".factory")
                         .join("unvalidated-mutation.marker");
+                    let marker_now = chrono::Utc::now();
                     let fields = MarkerFields {
-                        timestamp: chrono::Utc::now().to_rfc3339(),
+                        timestamp: marker_now.to_rfc3339(),
                         plugin_name: entry_clone.name.clone(),
                         // MEDIUM-5: thread artifact_path from tool_input.file_path (AC-007).
                         artifact_path: artifact_path_for_marker,
                         cause: cause_to_str(cause).to_string(),
                         trace_id: base_ctx_for_event.dispatcher_trace_id.clone(),
+                        // ADR-048 §Decision 2: 24-hour deadman TTL.
+                        expires_at: (marker_now
+                            + chrono::Duration::seconds(
+                                UNVALIDATED_MUTATION_MARKER_TTL_SECONDS as i64,
+                            ))
+                        .to_rfc3339(),
                     };
                     // HIGH-2: log marker-write failures instead of silently swallowing them.
                     // Best-effort: write failure does NOT fail the dispatch result.
@@ -715,13 +729,20 @@ pub fn spawn_async_plugin(
                     .cwd
                     .join(".factory")
                     .join("unvalidated-mutation.marker");
+                let marker_now = chrono::Utc::now();
                 let fields = MarkerFields {
-                    timestamp: chrono::Utc::now().to_rfc3339(),
+                    timestamp: marker_now.to_rfc3339(),
                     plugin_name: entry.name.clone(),
                     // MEDIUM-5: thread artifact_path from tool_input.file_path (AC-007).
                     artifact_path: artifact_path_for_marker,
                     cause: cause_to_str(cause).to_string(),
                     trace_id: base_ctx_for_event.dispatcher_trace_id.clone(),
+                    // ADR-048 §Decision 2: 24-hour deadman TTL.
+                    expires_at: (marker_now
+                        + chrono::Duration::seconds(
+                            UNVALIDATED_MUTATION_MARKER_TTL_SECONDS as i64,
+                        ))
+                    .to_rfc3339(),
                 };
                 // HIGH-2: log marker-write failures instead of silently swallowing them.
                 // Best-effort: write failure does NOT fail the dispatch result.
@@ -995,6 +1016,33 @@ fn plugin_fail_closed(result: &PluginResult, on_error: OnError) -> bool {
         result,
         PluginResult::Crashed { .. } | PluginResult::Timeout { .. }
     )
+}
+
+/// Conditional crash-path gate for `on_error = "block_if_marker"` (ADR-048 §Decision 1).
+///
+/// Returns `true` (block) iff:
+/// 1. `on_error == BlockIfMarker`, AND
+/// 2. the plugin crashed or timed out, AND
+/// 3. a non-expired `.factory/unvalidated-mutation.marker` exists under `cwd`.
+///
+/// All other combinations return `false` (allow). I/O errors reading the marker are
+/// treated as allow (fail-open on infra fault — CWE-636 balance).
+fn plugin_block_if_marker(
+    result: &PluginResult,
+    on_error: OnError,
+    cwd: &std::path::Path,
+    now: chrono::DateTime<chrono::Utc>,
+) -> bool {
+    if on_error != OnError::BlockIfMarker {
+        return false;
+    }
+    if !matches!(
+        result,
+        PluginResult::Crashed { .. } | PluginResult::Timeout { .. }
+    ) {
+        return false;
+    }
+    block_if_marker_check(cwd, now)
 }
 
 fn emit_invoked(log: &InternalLog, base_ctx: &HostContext, entry: &RegistryEntry) {
@@ -1304,6 +1352,7 @@ mod tests {
             artifact_path: String::new(), // empty string; MUST NOT be omitted (BC-1.18.001 PC4)
             cause: "fuel".to_string(),
             trace_id: "test-trace-001".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
         };
         write_indeterminate_marker(&fields, &marker_path)
             .expect("write_indeterminate_marker MUST succeed for a writable path");
@@ -1336,6 +1385,7 @@ mod tests {
             artifact_path: "/path/to/.factory/STATE.md".to_string(),
             cause: "epoch".to_string(),
             trace_id: "deadbeef-0001-0001-0001-000000000001".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
         };
         write_indeterminate_marker(&fields, &marker_path).expect("write must succeed");
         let contents =
