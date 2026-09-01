@@ -175,7 +175,15 @@ _extract_counts() {
   #   names used by _is_historical_heading contain no ID tokens, so the strip
   #   does not affect historical-section boundary detection.
   local _preproc_tmp
-  _preproc_tmp="$(mktemp)"
+  # S-1 fail-closed hardening: only exit 2 is blocking under this project's
+  # hook semantics (see below); mktemp failure must not degrade to a silent
+  # non-blocking "no verdict" on a TMPDIR-exhausted / read-only-tmp host.
+  # exit here (not return 1) so a mktemp failure inside this function cannot
+  # be swallowed by a caller that forgets to gate on the return code.
+  _preproc_tmp="$(mktemp)" || {
+    echo "validate-count-propagation: mktemp failed in _extract_counts" >&2
+    exit 2
+  }
   trap 'rm -f "$_preproc_tmp"' RETURN
   awk 'length <= 8192' "$path" | sed -E 's/[A-Za-z]+-[0-9.]+//g' > "$_preproc_tmp" || {
     echo "validate-count-propagation: preprocessing pipeline failed for $path" >&2
@@ -190,16 +198,37 @@ _extract_counts() {
     # totals; they should never be treated as the source-of-truth quantity.
     # S-25.01 review cycle 2 fix (BLOCKING-1).
     [[ "$line" =~ ^[[:space:]]*(last_amended|change): ]] && continue
-    # Skip all blockquote lines (any line starting with ">").
-    # Factory files use blockquotes for both historical records AND live banner-cite
-    # content (e.g., STATE.md Session Resume Checkpoint, refreshed every Commit E,
-    # carries current totals like "1,993 BCs", "107 VPs", "175 stories" on blockquote
-    # lines).  Both categories are skipped: historical records must not shadow live
-    # counts (#567 class); live banner-cite counts are redundant with the same values
-    # on non-blockquote lines in the same file, so no detection is lost by excluding
-    # blockquote lines.  Skipping all ">"-prefixed lines is simpler and more complete
-    # than trying to classify blockquote intent at parse time.
-    [[ "$line" =~ ^[[:space:]]*'>' ]] && continue
+    # Skip ONLY genuinely documentary/historical blockquote forms — not every
+    # ">"-prefixed line (cycle-4 BLOCKING-C fix). A blanket "^>" skip is wrong:
+    # BC-INDEX.md's SOLE carrier of the live "subsystems" count is a blockquote
+    # banner line ("> Master index of all N behavioral contracts across M
+    # subsystems."), so a blanket skip silently kills subsystems drift
+    # detection for that file. Two blockquote FORMS are, by corpus convention,
+    # reliably historical/documentary narrative rather than a live count:
+    #
+    #   1. Date-stamped changelog notes: "> Updated YYYY-MM-DD: ..." or the
+    #      "> Updated in <label> (YYYY-MM-DD): ..." variant (STORY-INDEX.md
+    #      changelog blockquotes). These record what happened on a past date;
+    #      any count embedded in them (e.g., a per-burst point tally) is a
+    #      frozen historical snapshot, not the current corpus total.
+    #   2. Bold-prefixed narrative prose: "> **...**" (e.g., STORY-INDEX.md's
+    #      "> **E-8 Tier 1 batch authoring (2026-04-30):** ... 22 BCs
+    #      anchored ...", or wave/pass re-anchor summaries). These are
+    #      per-story/per-wave/per-pass local tallies, not corpus totals, and
+    #      were the original #567-class false-positive source this guard
+    #      exists to suppress.
+    #
+    # A plain (non-bold, non-"Updated") blockquote line — such as the
+    # BC-INDEX.md master-index banner — is NOT skipped: it falls through to
+    # the normal Pattern A-D extraction below like any other line, so a live
+    # count that happens to be blockquote-formatted is still checked for
+    # drift.
+    if [[ "$line" =~ ^[[:space:]]*'>' ]]; then
+      if [[ "$line" =~ ^[[:space:]]*'>'[[:space:]]*Updated[[:space:]] ]] \
+        || [[ "$line" =~ ^[[:space:]]*'>'[[:space:]]*\*\* ]]; then
+        continue
+      fi
+    fi
     # Track historical-section boundaries; skip counts while inside one.
     if [[ "$line" =~ ^##[[:space:]] ]]; then
       if _is_historical_heading "$line"; then in_historical=1; else in_historical=0; fi
@@ -240,8 +269,15 @@ _extract_counts() {
 # keys at rank 0.
 declare -A SOURCE_COUNTS
 declare -A COUNT_RANK
-_src_tmp="$(mktemp)"
-_sib_tmp="$(mktemp)"
+# S-1 fail-closed hardening: gate both mktemp calls to exit 2 explicitly.
+# Under `set -e` a bare `var="$(mktemp)"` failure already terminates the
+# script, but with mktemp's own exit status (1) rather than 2 — and this
+# project's hook semantics treat ONLY exit 2 as blocking; any other non-zero
+# code is silently non-blocking. Without this explicit gate, a
+# TMPDIR-exhausted / read-only-tmp host would degrade the hook to
+# "no verdict, not blocking" instead of failing closed.
+_src_tmp="$(mktemp)" || { echo "validate-count-propagation: mktemp failed for source temp file" >&2; exit 2; }
+_sib_tmp="$(mktemp)" || { echo "validate-count-propagation: mktemp failed for sibling temp file" >&2; exit 2; }
 trap 'rm -f "$_src_tmp" "$_sib_tmp"' EXIT
 if ! _extract_counts "$FILE_PATH" > "$_src_tmp"; then
   echo "validate-count-propagation: count extraction failed for $FILE_PATH" >&2

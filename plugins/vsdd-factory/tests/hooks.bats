@@ -498,6 +498,56 @@ EOF
   [ -z "$output" ]
 }
 
+# ---------- validate-count-propagation (narrowed blockquote guard — cycle-4 BLOCKING-C) ----------
+#
+# Cycle-3 added a BLANKET skip for every line starting with ">", to suppress a
+# false positive from a "> **...batch authoring:** ... 22 BCs anchored ..."
+# narrative note in STORY-INDEX.md. But BC-INDEX.md's SOLE carrier of the live
+# "subsystems" count is itself a blockquote line ("> Master index of all N
+# behavioral contracts across M subsystems."), so the blanket skip silently
+# killed subsystems drift detection for that file. The fix narrows the guard
+# to skip only two genuinely documentary/historical blockquote FORMS
+# ("> Updated YYYY-MM-DD: ..." and "> **...**" bold-prefixed narrative), so a
+# live count that happens to be blockquote-formatted is still scanned.
+
+@test "validate-count-propagation: blockquote-formatted live count (subsystems banner) is still checked for drift (BLOCKING-C)" {
+  require_bash4_hook_interp
+  # BC-INDEX.md's master-index banner is a PLAIN blockquote (no bold prefix,
+  # no "Updated" date-stamp) carrying the live subsystems count. It must NOT
+  # be skipped by the narrowed guard: ARCH-INDEX.md disagrees (11 vs 10), so
+  # this must still fire drift. (Both counts use 2+ digits: Pattern A's
+  # "[0-9][0-9,]+" requires at least two characters, so a single-digit count
+  # would not match at all — that would test the regex's digit-count floor,
+  # not the blockquote guard.)
+  printf '# BC-INDEX\n> Master index of all 1,967 behavioral contracts across 10 subsystems.\n> Source of truth for BC count, status, and subsystem assignment.\n' > .factory/BC-INDEX.md
+  printf '# ARCH-INDEX\nSubsystem registry: 11 subsystems total.\n' > .factory/ARCH-INDEX.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'$WORK'/.factory/BC-INDEX.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"COUNT DRIFT DETECTED"* ]]
+  [[ "$output" == *"subsystems"* ]]
+}
+
+@test "validate-count-propagation: bold-prefixed batch-authoring blockquote note is still skipped (BLOCKING-C)" {
+  require_bash4_hook_interp
+  # STORY-INDEX.md carries a genuinely documentary bold-prefixed blockquote
+  # note citing a per-wave local tally ("22 BCs anchored") that disagrees with
+  # the file's own live current-count line ("41 BCs total") and with the
+  # sibling's authoritative total_bcs: 41. If the note were NOT skipped, its
+  # "22 BCs" (first-seen, same rank) would win over the live "41 BCs" and
+  # falsely disagree with the sibling — firing drift. With the note correctly
+  # skipped, only the live "41 BCs" is extracted, which matches the sibling,
+  # so this must exit clean.
+  printf '%s\n' \
+    '# STORY-INDEX' \
+    '> **E-8 Tier 1 batch authoring (2026-04-30):** 9 Tier 1 hook port stories authored across 2 bursts; 22 BCs anchored (BC-7.03.* + BC-7.04.*); 33 base story points.' \
+    'Current corpus: 41 BCs total.' \
+    > .factory/STORY-INDEX.md
+  printf '%s\n' '---' 'total_bcs: 41' '---' '# BC-INDEX' > .factory/BC-INDEX.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'$WORK'/.factory/STORY-INDEX.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
 # ---------- validate-count-propagation (CPU-runaway fix — S-25.01) ----------
 #
 # Regression + correctness tests for the catastrophic-backtracking fix:
@@ -601,4 +651,18 @@ EOF
   run bash -c "PATH=\"$_broken_sed_dir:\$PATH\" bash \"$HOOKS/validate-count-propagation.sh\" 2>&1 <<< '{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}'"
   rm -rf "$_broken_sed_dir"
   [ "$status" -eq 2 ]
+  # S-2 test-rigor fix: asserting on exit status alone is vacuous — a
+  # genuine COUNT DRIFT DETECTED exit (the fixture above is deliberately
+  # drift-shaped: source "42 BCs" vs sibling total_bcs: 38) also exits 2, so
+  # this test would pass even if fail-closed were wired to the wrong path
+  # and preprocessing failure were silently swallowed. Discriminate on the
+  # actual stderr message instead: the preprocessing-failure path emits
+  # "preprocessing pipeline failed for ..." from inside _extract_counts,
+  # which is then reported to the caller as "count extraction failed for
+  # ...". The drift-detection path never emits either string — it emits
+  # "COUNT DRIFT DETECTED" instead. Assert BOTH: the preprocessing-failure
+  # message is present, AND the drift message is absent, so this test can
+  # only pass via the preprocessing-failure branch.
+  [[ "$output" == *"preprocessing pipeline failed for"* ]]
+  [[ "$output" != *"COUNT DRIFT DETECTED"* ]]
 }
