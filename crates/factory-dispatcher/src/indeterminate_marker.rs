@@ -29,7 +29,8 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use chrono::{DateTime, Utc};
 
 use crate::executor::DispatchOutcome;
-use crate::internal_log::{InternalEvent, InternalLog, PLUGIN_MARKER_CLEARED};
+use crate::host::HostContext;
+use crate::internal_log::{InternalEvent, PLUGIN_MARKER_CLEARED};
 use crate::registry::FailurePolicy;
 
 /// TTL for the `.factory/unvalidated-mutation.marker` deadman timer (ADR-048 §Decision 2).
@@ -158,7 +159,22 @@ pub fn write_indeterminate_marker(fields: &MarkerFields, marker_path: &Path) -> 
     std::fs::write(&tmp_path, content.as_bytes())?;
 
     // Atomic rename temp → final path (single-marker policy: overwrites existing).
-    std::fs::rename(&tmp_path, marker_path)?;
+    // F-P3-004: a failed rename must not orphan the uniquely-named temp file it
+    // just wrote — best-effort cleanup before propagating the rename error. The
+    // temp path is unique per writer (plugin_name + pid + nonce), so removal here
+    // can never race a DIFFERENT writer's own temp file.
+    if let Err(e) = std::fs::rename(&tmp_path, marker_path) {
+        if let Err(cleanup_err) = std::fs::remove_file(&tmp_path) {
+            tracing::warn!(
+                tmp_path = %tmp_path.display(),
+                rename_error = %e,
+                cleanup_error = %cleanup_err,
+                "write_indeterminate_marker: rename failed AND best-effort temp-file \
+                 cleanup also failed; orphaned .tmp file may remain (F-P3-004)"
+            );
+        }
+        return Err(e);
+    }
 
     Ok(())
 }
@@ -438,16 +454,25 @@ fn parse_expires_at(content: &str) -> Option<DateTime<Utc>> {
 /// The `trace_id` on this event is set to the MARKER'S stored `trace_id` (not
 /// the current dispatch's trace), so the event links back to the originating
 /// `plugin.indeterminate` (Event 8) that wrote the marker. This function
-/// constructs the `InternalEvent` directly and writes it to `InternalLog` —
-/// it NEVER crosses the WASM `emit_event` host ABI boundary, so the
-/// RESERVED_FIELDS enrichment that would otherwise silently overwrite
-/// `trace_id`/`plugin_name` with the CALLING plugin's own dispatch identity
-/// never applies (ADR-048 §D4 v1.2 Emission-Point Correction).
+/// constructs the `InternalEvent` directly and routes it through
+/// `HostContext::emit_internal` — it NEVER crosses the WASM `emit_event` host
+/// ABI boundary, so the RESERVED_FIELDS enrichment that would otherwise
+/// silently overwrite `trace_id`/`plugin_name` with the CALLING plugin's own
+/// dispatch identity never applies (ADR-048 §D4 v1.2 Emission-Point
+/// Correction). `emit_internal` is the same dual-sink primitive (durable
+/// `InternalLog` write when `ctx.internal_log` is wired, AND the `ctx.events`
+/// queue) every other dispatcher-native BC-3.08.001 event already uses — a
+/// raw `InternalLog::write` call would silently diverge from that
+/// established pattern (ADR-048 §D4 v1.3 Emission-Mechanism Precision
+/// Correction; S-25.01 LOCAL adversary pass 3 F-P3-001).
 ///
-/// Best-effort: errors in `log.write` are swallowed (see `InternalLog::write`).
+/// `session_id` is read from `ctx.session_id` (identical value to what was
+/// previously threaded explicitly as a separate parameter).
+///
+/// Best-effort: `emit_internal`'s own `InternalLog::write` never panics or
+/// propagates errors (see `InternalLog::write`).
 pub(crate) fn emit_marker_cleared(
-    log: &InternalLog,
-    session_id: &str,
+    ctx: &HostContext,
     marker_fields: &MarkerFields,
     clear_mode: &str,
     actor_type: &str,
@@ -456,7 +481,7 @@ pub(crate) fn emit_marker_cleared(
     let ev = InternalEvent::now(PLUGIN_MARKER_CLEARED)
         // Use marker's trace_id (not current dispatch's) to link back to plugin.indeterminate.
         .with_trace_id(&marker_fields.trace_id)
-        .with_session_id(session_id)
+        .with_session_id(&ctx.session_id)
         .with_plugin_name(&marker_fields.plugin_name)
         .with_field(
             "artifact_path",
@@ -476,7 +501,51 @@ pub(crate) fn emit_marker_cleared(
                 serde_json::Value::String(r.to_string())
             }),
         );
-    log.write(&ev);
+    ctx.emit_internal(ev);
+}
+
+/// Detect a cross-pair marker overwrite and emit `marker.cleared(SUPERSEDED)`
+/// for the superseded pair BEFORE the new marker is written (BC-1.18.001
+/// INV3 single-marker last-writer-wins; ADR-048 §D4 v1.3 F-P3-002).
+///
+/// Called by `write_indeterminate_marker`'s caller (`executor.rs`) with
+/// `existing` = the marker's fields read via [`read_all_marker_fields`]
+/// BEFORE the temp+rename overwrite, and `new_fields` = the fields about to
+/// be written. No-ops when:
+/// - `existing` is `None` (no marker to supersede), or
+/// - the existing marker's `(plugin_name, artifact_path)` pair is IDENTICAL
+///   to `new_fields`'s (continuous quarantine of the same target — not a
+///   cross-pair supersession; already fully covered by the marker's own
+///   `trace_id` update at overwrite).
+///
+/// Without this event, [`reconcile_raw_delete`] has no record that the
+/// superseded pair was ever cleared, and a LATER raw-delete of the
+/// (now-different) marker would falsely emit `marker.cleared(OPERATOR_OVERRIDE)`
+/// for the superseded pair — attributing a human action that never happened
+/// (NIST AU-3/AU-10 event-content/non-repudiation defect).
+pub(crate) fn emit_superseded_if_cross_pair(
+    ctx: &HostContext,
+    existing: Option<&MarkerFields>,
+    new_fields: &MarkerFields,
+) {
+    let Some(old) = existing else {
+        return;
+    };
+    if old.plugin_name == new_fields.plugin_name && old.artifact_path == new_fields.artifact_path {
+        // Same pair re-INDETERMINATEs before being cleared — not a supersession.
+        return;
+    }
+    emit_marker_cleared(
+        ctx,
+        old,
+        "SUPERSEDED",
+        "system",
+        Some(
+            "SUPERSEDED: marker overwritten by a new plugin.indeterminate event for a \
+             different (plugin_name, artifact_path) pair before being cleared; \
+             last-writer-wins (BC-1.18.001 INV3)",
+        ),
+    );
 }
 
 /// Dispatcher-native pre-check: detect and clear an expired
@@ -524,8 +593,7 @@ pub(crate) fn emit_marker_cleared(
 pub fn check_and_clear_expired_marker(
     factory_root: &Path,
     now: DateTime<Utc>,
-    log: &InternalLog,
-    session_id: &str,
+    ctx: &HostContext,
 ) -> io::Result<Option<MarkerFields>> {
     let marker_path = factory_root
         .join(".factory")
@@ -553,7 +621,7 @@ pub fn check_and_clear_expired_marker(
         Err(e) => return Err(e),
     }
 
-    emit_marker_cleared(log, session_id, &fields, "TTL_EXPIRED", "deadman", None);
+    emit_marker_cleared(ctx, &fields, "TTL_EXPIRED", "deadman", None);
 
     Ok(Some(fields))
 }
@@ -603,17 +671,24 @@ const RECONCILE_SCAN_BYTE_CAP: u64 = 256 * 1024;
 /// Re-verifies the marker is still absent before scanning; a marker found
 /// present (a race with the caller's own absent-branch decision) short-
 /// circuits to `Ok(())` with no scan performed.
-pub fn reconcile_raw_delete(
-    factory_root: &Path,
-    log: &InternalLog,
-    session_id: &str,
-) -> io::Result<()> {
+pub fn reconcile_raw_delete(factory_root: &Path, ctx: &HostContext) -> io::Result<()> {
     let marker_path = factory_root
         .join(".factory")
         .join("unvalidated-mutation.marker");
     if marker_path.exists() {
         return Ok(());
     }
+
+    // ADR-048 §D4 v1.3: the scan target is `dispatcher-internal-{date}.jsonl`,
+    // obtained via `ctx.internal_log` — the only log every default production
+    // dispatcher run writes unconditionally — NOT a literal `events-*.jsonl`
+    // (which is not durably produced absent an opt-in `VSDD_SINK_FILE` or the
+    // not-yet-main.rs-wired S-4.07 Router/FileSink). `None` short-circuits to
+    // a no-op, exactly like `emit_internal`'s own `if let Some(log) = ...`
+    // guard — a dispatch with no wired InternalLog has nothing to scan.
+    let Some(log) = ctx.internal_log.as_ref() else {
+        return Ok(());
+    };
 
     let date = chrono::Local::now().format("%Y-%m-%d").to_string();
     let log_path = log
@@ -699,8 +774,7 @@ pub fn reconcile_raw_delete(
 
     for fields in unmatched.into_values() {
         emit_marker_cleared(
-            log,
-            session_id,
+            ctx,
             &fields,
             "OPERATOR_OVERRIDE",
             "operator",
@@ -746,6 +820,8 @@ fn read_tail(path: &Path, cap: u64) -> io::Result<String> {
 #[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
     use super::*;
+    use crate::internal_log::InternalLog;
+    use std::sync::Arc;
 
     /// EC-008 (BC-1.18.003 INV2 / VP-106): same plugin, DIFFERENT non-empty artifact →
     /// `delete_marker_if_pass` MUST NOT clear the marker (quarantine persists).
@@ -1062,8 +1138,21 @@ mod tests {
         );
     }
 
-    // ── ADR-048 §D4 v1.2: check_and_clear_expired_marker + reconcile_raw_delete ──
-    // (S-25.01 LOCAL adversary pass 2 F-P2-002 HIGH + F-P2-003 MED resolution)
+    // ── ADR-048 §D4 v1.3: check_and_clear_expired_marker + reconcile_raw_delete +
+    // emit_marker_cleared — dispatcher-native via HostContext::emit_internal ──
+    // (S-25.01 LOCAL adversary pass 3 F-P3-001 MEDIUM + F-P3-002 LOW resolution)
+
+    /// Build a `HostContext` wired to a real, file-backed `InternalLog` rooted at
+    /// `dir/logs`, so `emit_internal`'s `InternalLog` write and
+    /// `reconcile_raw_delete`'s scan both operate on the SAME durable
+    /// `dispatcher-internal-{date}.jsonl` file a real dispatch would use. Log dir
+    /// deliberately NOT under `.factory` so the #206 mount gate does not suppress
+    /// the write (matches the executor.rs test pattern).
+    fn test_ctx(dir: &Path, session_id: &str) -> HostContext {
+        let mut ctx = HostContext::new("test-plugin", "0.0.0", session_id, "test-trace-vp108");
+        ctx.internal_log = Some(Arc::new(InternalLog::new(dir.join("logs"))));
+        ctx
+    }
 
     /// Read back the single JSONL line written under `log_dir` and parse it as JSON.
     /// Panics if zero or more than one file/line is present — every test using this
@@ -1088,10 +1177,14 @@ mod tests {
         serde_json::from_str(lines[0]).expect("log line must be valid JSON")
     }
 
-    /// VP-108 PC2 / VP-106 PC-F: expired marker → `check_and_clear_expired_marker`
-    /// deletes it and emits exactly one `marker.cleared(TTL_EXPIRED)` event carrying
-    /// the MARKER's own trace_id/plugin_name (not the caller's session_id-scoped
-    /// identity) and `reason = null`.
+    /// VP-108 PC2 / VP-106 PC-F (v1.2 — emission-mechanism corrected, ADR-048 §D4
+    /// v1.3 F-P3-001): expired marker → `check_and_clear_expired_marker` deletes it
+    /// and emits exactly one `marker.cleared(TTL_EXPIRED)` event carrying the
+    /// MARKER's own trace_id/plugin_name (not the caller's session_id-scoped
+    /// identity) and `reason = null`. Asserts the DUAL-WRITE: the event lands in
+    /// BOTH the durable `InternalLog` file AND the `ctx.drain_events()` queue —
+    /// proof that the call goes through `HostContext::emit_internal`, not a raw
+    /// `InternalLog::write`.
     #[test]
     fn test_ADR_048_D4_check_and_clear_expired_marker_ttl_expired_deletes_and_emits() {
         let dir = tempfile::tempdir().expect("tempdir");
@@ -1108,14 +1201,12 @@ mod tests {
         };
         write_indeterminate_marker(&fields, &marker_path).expect("write marker");
 
-        // Log dir deliberately NOT under `.factory` so the #206 mount gate does
-        // not suppress the write (matches the executor.rs test pattern).
-        let log = InternalLog::new(dir.path().join("logs"));
+        let ctx = test_ctx(dir.path(), "sess-ttl");
         let now = chrono::DateTime::parse_from_rfc3339("2020-01-03T00:00:00Z")
             .expect("parse now")
             .with_timezone(&Utc);
 
-        let cleared = check_and_clear_expired_marker(dir.path(), now, &log, "sess-ttl")
+        let cleared = check_and_clear_expired_marker(dir.path(), now, &ctx)
             .expect("check_and_clear_expired_marker must not error");
 
         assert!(
@@ -1127,6 +1218,7 @@ mod tests {
             "VP-106 PC-F: check_and_clear_expired_marker MUST auto-delete the expired marker"
         );
 
+        // Durable-log sink assertion.
         let event = read_only_log_event(&dir.path().join("logs"));
         assert_eq!(
             event["type"], "marker.cleared",
@@ -1150,10 +1242,31 @@ mod tests {
             event["reason"].is_null(),
             "VP-108 PC2: reason must be null/absent for TTL_EXPIRED"
         );
+
+        // Drained-events-queue sink assertion (ADR-048 §D4 v1.3 F-P3-001):
+        // `emit_internal` pushes onto `ctx.events` in addition to the durable
+        // InternalLog write — a raw `InternalLog::write` would never reach here.
+        let drained = ctx.drain_events();
+        assert_eq!(
+            drained.len(),
+            1,
+            "VP-108 PC2: exactly one marker.cleared event must reach ctx.events (drain_events)"
+        );
+        let dev = &drained[0];
+        assert_eq!(dev.type_, "marker.cleared");
+        assert_eq!(
+            dev.fields.get("clear_mode").and_then(|v| v.as_str()),
+            Some("TTL_EXPIRED")
+        );
+        assert_eq!(
+            dev.dispatcher_trace_id.as_deref(),
+            Some(fields.trace_id.as_str()),
+            "VP-108 PC2: drained event trace_id must be the marker's own trace_id"
+        );
     }
 
     /// VP-106 INV5: non-expired marker → `check_and_clear_expired_marker` returns
-    /// `None`, does NOT delete the marker, and emits NO event.
+    /// `None`, does NOT delete the marker, and emits NO event (neither sink).
     #[test]
     fn test_ADR_048_D4_check_and_clear_expired_marker_non_expired_returns_none_no_emit() {
         let dir = tempfile::tempdir().expect("tempdir");
@@ -1170,11 +1283,10 @@ mod tests {
         };
         write_indeterminate_marker(&fields, &marker_path).expect("write marker");
 
-        let log_dir = dir.path().join("logs");
-        let log = InternalLog::new(log_dir.clone());
+        let ctx = test_ctx(dir.path(), "sess-active");
         let now = Utc::now();
 
-        let cleared = check_and_clear_expired_marker(dir.path(), now, &log, "sess-active")
+        let cleared = check_and_clear_expired_marker(dir.path(), now, &ctx)
             .expect("check_and_clear_expired_marker must not error");
 
         assert!(
@@ -1186,8 +1298,12 @@ mod tests {
             "VP-106 INV5: non-expired marker MUST NOT be deleted"
         );
         assert!(
-            !log_dir.exists(),
+            !dir.path().join("logs").exists(),
             "VP-108: no marker.cleared event (and no log dir at all) when nothing was cleared"
+        );
+        assert!(
+            ctx.drain_events().is_empty(),
+            "VP-108: no marker.cleared event on the drained-events queue either"
         );
     }
 
@@ -1196,17 +1312,17 @@ mod tests {
     fn test_ADR_048_D4_check_and_clear_expired_marker_absent_returns_none() {
         let dir = tempfile::tempdir().expect("tempdir");
         std::fs::create_dir_all(dir.path().join(".factory")).expect("create .factory subdir");
-        let log_dir = dir.path().join("logs");
-        let log = InternalLog::new(log_dir.clone());
+        let ctx = test_ctx(dir.path(), "sess-absent");
 
-        let cleared = check_and_clear_expired_marker(dir.path(), Utc::now(), &log, "sess-absent")
+        let cleared = check_and_clear_expired_marker(dir.path(), Utc::now(), &ctx)
             .expect("check_and_clear_expired_marker must not error on absent marker");
 
         assert!(cleared.is_none(), "absent marker MUST yield None");
         assert!(
-            !log_dir.exists(),
+            !dir.path().join("logs").exists(),
             "no event MUST be emitted when there is nothing to clear"
         );
+        assert!(ctx.drain_events().is_empty());
     }
 
     /// VP-106 PC-G: legacy marker (no expires_at field) → treated as non-expired
@@ -1228,10 +1344,9 @@ mod tests {
         )
         .expect("write legacy marker");
 
-        let log_dir = dir.path().join("logs");
-        let log = InternalLog::new(log_dir.clone());
+        let ctx = test_ctx(dir.path(), "sess-legacy");
 
-        let cleared = check_and_clear_expired_marker(dir.path(), Utc::now(), &log, "sess-legacy")
+        let cleared = check_and_clear_expired_marker(dir.path(), Utc::now(), &ctx)
             .expect("check_and_clear_expired_marker must not error");
 
         assert!(
@@ -1243,9 +1358,10 @@ mod tests {
             "VP-106 PC-G: legacy marker MUST NOT be auto-deleted"
         );
         assert!(
-            !log_dir.exists(),
+            !dir.path().join("logs").exists(),
             "no marker.cleared event MUST be emitted for a legacy marker"
         );
+        assert!(ctx.drain_events().is_empty());
     }
 
     /// VP-108 PC3: an unmatched fail-closed `plugin.indeterminate` with the marker
@@ -1253,7 +1369,7 @@ mod tests {
     /// `marker.cleared(OPERATOR_OVERRIDE)` with the indeterminate event's own
     /// trace_id/plugin_name/artifact_path and a NON-null `reason`
     /// (BC-1.18.003 §PC3 / ADR-048 §D4 event field contract — `reason` is
-    /// mandatory, not null, for OPERATOR_OVERRIDE).
+    /// mandatory, not null, for OPERATOR_OVERRIDE). Asserts the dual-write.
     #[test]
     fn test_ADR_048_D4_reconcile_raw_delete_unmatched_event_emits_operator_override() {
         let dir = tempfile::tempdir().expect("tempdir");
@@ -1278,10 +1394,12 @@ mod tests {
         });
         std::fs::write(&log_file, format!("{indeterminate_line}\n")).expect("seed log");
 
-        let log = InternalLog::new(log_dir.clone());
-        reconcile_raw_delete(dir.path(), &log, "sess-reconcile")
-            .expect("reconcile_raw_delete must not error");
+        let ctx = test_ctx(dir.path(), "sess-reconcile");
+        reconcile_raw_delete(dir.path(), &ctx).expect("reconcile_raw_delete must not error");
 
+        // Durable-log sink assertion — the scan target itself
+        // (`dispatcher-internal-{date}.jsonl`, ADR-048 §D4 v1.3) also receives the
+        // retroactive emission, appended to the very file that was scanned.
         let content = std::fs::read_to_string(&log_file).expect("read log");
         let lines: Vec<&str> = content.lines().collect();
         assert_eq!(
@@ -1308,6 +1426,27 @@ mod tests {
             "BC-1.18.003 §PC3 / ADR-048 §D4: reason MUST be non-null and non-empty for \
              OPERATOR_OVERRIDE — got {:?}",
             event["reason"]
+        );
+
+        // Drained-events-queue sink assertion.
+        let drained = ctx.drain_events();
+        assert_eq!(
+            drained.len(),
+            1,
+            "VP-108 PC3: exactly one marker.cleared event must reach ctx.events (drain_events)"
+        );
+        assert_eq!(drained[0].type_, "marker.cleared");
+        assert_eq!(
+            drained[0].fields.get("clear_mode").and_then(|v| v.as_str()),
+            Some("OPERATOR_OVERRIDE")
+        );
+        assert!(
+            drained[0]
+                .fields
+                .get("reason")
+                .and_then(|v| v.as_str())
+                .is_some_and(|r| !r.is_empty()),
+            "VP-108 PC3: drained event reason MUST also be non-null for OPERATOR_OVERRIDE"
         );
     }
 
@@ -1344,9 +1483,8 @@ mod tests {
         std::fs::write(&log_file, format!("{indeterminate_line}\n{cleared_line}\n"))
             .expect("seed log");
 
-        let log = InternalLog::new(log_dir.clone());
-        reconcile_raw_delete(dir.path(), &log, "sess-reconcile")
-            .expect("reconcile_raw_delete must not error");
+        let ctx = test_ctx(dir.path(), "sess-reconcile");
+        reconcile_raw_delete(dir.path(), &ctx).expect("reconcile_raw_delete must not error");
 
         let content = std::fs::read_to_string(&log_file).expect("read log");
         assert_eq!(
@@ -1354,6 +1492,7 @@ mod tests {
             2,
             "already-reconciled pair MUST NOT produce a new marker.cleared emission"
         );
+        assert!(ctx.drain_events().is_empty());
     }
 
     /// `reconcile_raw_delete` defensive re-check: marker still present → no-op,
@@ -1374,19 +1513,18 @@ mod tests {
         };
         write_indeterminate_marker(&fields, &marker_path).expect("write marker");
 
-        let log_dir = dir.path().join("logs");
-        let log = InternalLog::new(log_dir.clone());
+        let ctx = test_ctx(dir.path(), "sess-present");
 
-        reconcile_raw_delete(dir.path(), &log, "sess-present")
-            .expect("reconcile_raw_delete must not error");
+        reconcile_raw_delete(dir.path(), &ctx).expect("reconcile_raw_delete must not error");
 
         assert!(
-            !log_dir.exists(),
+            !dir.path().join("logs").exists(),
             "reconcile_raw_delete MUST NOT scan or emit while the marker is present"
         );
+        assert!(ctx.drain_events().is_empty());
     }
 
-    /// ADR-048 §D4 v1.2 bounded-scan requirement: an unmatched `plugin.indeterminate`
+    /// ADR-048 §D4 v1.3 bounded-scan requirement: an unmatched `plugin.indeterminate`
     /// that falls OUTSIDE the trailing `RECONCILE_SCAN_BYTE_CAP` window (because it
     /// is followed by more than the cap's worth of filler bytes) MUST NOT be
     /// reconciled — the scan is a bounded tail read, not a full-file scan.
@@ -1426,9 +1564,8 @@ mod tests {
         }
         std::fs::write(&log_file, &content).expect("seed large log");
 
-        let log = InternalLog::new(log_dir.clone());
-        reconcile_raw_delete(dir.path(), &log, "sess-bounded")
-            .expect("reconcile_raw_delete must not error");
+        let ctx = test_ctx(dir.path(), "sess-bounded");
+        reconcile_raw_delete(dir.path(), &ctx).expect("reconcile_raw_delete must not error");
 
         let after = std::fs::read_to_string(&log_file).expect("read log");
         assert!(
@@ -1436,6 +1573,7 @@ mod tests {
             "bounded scan MUST NOT reconcile an unmatched event that falls outside the \
              trailing RECONCILE_SCAN_BYTE_CAP window"
         );
+        assert!(ctx.drain_events().is_empty());
     }
 
     /// `reconcile_raw_delete` no-op when today's log file does not exist at all
@@ -1444,14 +1582,228 @@ mod tests {
     fn test_ADR_048_D4_reconcile_raw_delete_no_log_file_is_noop() {
         let dir = tempfile::tempdir().expect("tempdir");
         std::fs::create_dir_all(dir.path().join(".factory")).expect("create .factory subdir");
-        let log_dir = dir.path().join("logs");
         // log_dir itself does not exist yet.
-        let log = InternalLog::new(log_dir.clone());
+        let ctx = test_ctx(dir.path(), "sess-no-log");
 
-        let result = reconcile_raw_delete(dir.path(), &log, "sess-no-log");
+        let result = reconcile_raw_delete(dir.path(), &ctx);
         assert!(
             result.is_ok(),
             "reconcile_raw_delete MUST be a best-effort no-op when no log exists yet, got {result:?}"
+        );
+    }
+
+    /// ADR-048 §D4 v1.3: `reconcile_raw_delete` MUST be a no-op — never panic,
+    /// never attempt a scan — when `ctx.internal_log` is `None` (no wired durable
+    /// log to scan). This is the `ctx.internal_log.as_ref().map(...)` `None`
+    /// short-circuit the implementer directive requires.
+    #[test]
+    fn test_ADR_048_D4_v1_3_reconcile_raw_delete_noop_when_internal_log_none() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        std::fs::create_dir_all(dir.path().join(".factory")).expect("create .factory subdir");
+        // ctx with NO internal_log wired — HostContext::new() default.
+        let ctx = HostContext::new("test-plugin", "0.0.0", "sess-no-ctx-log", "trace-no-log");
+        assert!(
+            ctx.internal_log.is_none(),
+            "precondition: HostContext::new leaves internal_log unset"
+        );
+
+        let result = reconcile_raw_delete(dir.path(), &ctx);
+        assert!(
+            result.is_ok(),
+            "VP-108: reconcile_raw_delete MUST no-op (not error) when ctx.internal_log is None, \
+             got {result:?}"
+        );
+        assert!(
+            ctx.drain_events().is_empty(),
+            "VP-108: no marker.cleared event when there is no durable log to scan"
+        );
+    }
+
+    // ── ADR-048 §D4 v1.3 F-P3-002: SUPERSEDED clear_mode ──
+
+    /// VP-108 PC5 (NEW — BC-1.18.001 INV3 cross-pair overwrite; ADR-048 §D4 v1.3;
+    /// S-25.01 pass-3 F-P3-002 LOW): a DIFFERENT `(plugin_name, artifact_path)`
+    /// pair about to overwrite an existing marker → `emit_superseded_if_cross_pair`
+    /// emits exactly one `marker.cleared(SUPERSEDED, system)` carrying the OLD
+    /// pair's own fields (not the new pair's), with a non-null `reason`.
+    #[test]
+    fn test_ADR_048_D4_v1_3_superseded_clear_emits_for_cross_pair_overwrite() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+        let pair_a = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "plugin-a".to_string(),
+            artifact_path: "/tmp/A.md".to_string(),
+            cause: "fuel".to_string(),
+            trace_id: "deadbeef-0108-0005-0005-00000000000a".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
+        };
+        write_indeterminate_marker(&pair_a, &marker_path).expect("write marker A");
+
+        let ctx = test_ctx(dir.path(), "sess-superseded");
+        // Implementer directive: the write_indeterminate_marker CALLER (executor.rs)
+        // reads the pre-existing marker, detects the (plugin_name, artifact_path)
+        // mismatch against the NEW pair about to be written, and emits SUPERSEDED
+        // for the OLD pair before overwriting. This test exercises that exact
+        // pattern via emit_superseded_if_cross_pair.
+        let existing = read_all_marker_fields(&marker_path).unwrap();
+        let pair_b = MarkerFields {
+            timestamp: "2026-08-31T01:00:00Z".to_string(),
+            plugin_name: "plugin-b".to_string(),
+            artifact_path: "/tmp/B.md".to_string(),
+            cause: "epoch".to_string(),
+            trace_id: "deadbeef-0108-0005-0005-00000000000b".to_string(),
+            expires_at: "2099-01-01T01:00:00Z".to_string(),
+        };
+        emit_superseded_if_cross_pair(&ctx, existing.as_ref(), &pair_b);
+        write_indeterminate_marker(&pair_b, &marker_path).expect("write marker B (overwrite)");
+
+        let events = ctx.drain_events();
+        assert_eq!(
+            events.len(),
+            1,
+            "VP-108 PC5: exactly one marker.cleared(SUPERSEDED) event"
+        );
+        let ev = &events[0];
+        assert_eq!(ev.type_, "marker.cleared");
+        assert_eq!(
+            ev.fields.get("clear_mode").and_then(|v| v.as_str()),
+            Some("SUPERSEDED")
+        );
+        assert_eq!(
+            ev.fields.get("actor_type").and_then(|v| v.as_str()),
+            Some("system")
+        );
+        assert_eq!(
+            ev.dispatcher_trace_id.as_deref(),
+            Some(pair_a.trace_id.as_str()),
+            "VP-108 PC5: trace_id must be the SUPERSEDED (old) pair's own trace_id, not the new pair's"
+        );
+        assert_eq!(ev.plugin_name.as_deref(), Some("plugin-a"));
+        assert_eq!(
+            ev.fields.get("artifact_path").and_then(|v| v.as_str()),
+            Some("/tmp/A.md")
+        );
+        assert!(
+            ev.fields
+                .get("reason")
+                .and_then(|v| v.as_str())
+                .is_some_and(|r| !r.is_empty()),
+            "VP-108 PC5: reason MUST be non-null for SUPERSEDED"
+        );
+
+        // Positive control: the marker on disk is now pair B's.
+        let after = read_all_marker_fields(&marker_path).unwrap().unwrap();
+        assert_eq!(after.plugin_name, "plugin-b");
+    }
+
+    /// VP-108 PC5 (negative): the SAME `(plugin_name, artifact_path)` pair
+    /// re-INDETERMINATEs before being cleared — this is continuous quarantine of
+    /// the same target, NOT a cross-pair supersession. `emit_superseded_if_cross_pair`
+    /// MUST NOT emit `marker.cleared(SUPERSEDED)`.
+    #[test]
+    fn test_ADR_048_D4_v1_3_superseded_clear_not_emitted_for_same_pair_overwrite() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+        let first = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "plugin-a".to_string(),
+            artifact_path: "/tmp/A.md".to_string(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-same-pair-1".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
+        };
+        write_indeterminate_marker(&first, &marker_path).expect("write first marker");
+
+        let ctx = test_ctx(dir.path(), "sess-same-pair");
+        let existing = read_all_marker_fields(&marker_path).unwrap();
+        let second = MarkerFields {
+            timestamp: "2026-08-31T02:00:00Z".to_string(),
+            plugin_name: "plugin-a".to_string(),
+            artifact_path: "/tmp/A.md".to_string(),
+            cause: "epoch".to_string(),
+            trace_id: "trace-same-pair-2".to_string(),
+            expires_at: "2099-01-01T02:00:00Z".to_string(),
+        };
+        emit_superseded_if_cross_pair(&ctx, existing.as_ref(), &second);
+        write_indeterminate_marker(&second, &marker_path).expect("write second marker");
+
+        assert!(
+            ctx.drain_events().is_empty(),
+            "VP-108 PC5 (negative): same (plugin_name, artifact_path) pair MUST NOT emit \
+             marker.cleared(SUPERSEDED) — continuous quarantine of the same target"
+        );
+    }
+
+    /// `emit_superseded_if_cross_pair` no-op when there is no pre-existing marker
+    /// (`existing = None`) — nothing to supersede on a fresh INDETERMINATE write.
+    #[test]
+    fn test_ADR_048_D4_v1_3_superseded_clear_not_emitted_when_no_existing_marker() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let ctx = test_ctx(dir.path(), "sess-no-existing");
+        let new_fields = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "plugin-fresh".to_string(),
+            artifact_path: "/tmp/fresh.md".to_string(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-fresh".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
+        };
+        emit_superseded_if_cross_pair(&ctx, None, &new_fields);
+        assert!(
+            ctx.drain_events().is_empty(),
+            "no marker.cleared(SUPERSEDED) when there was no pre-existing marker to supersede"
+        );
+    }
+
+    // ── F-P3-004: orphan .tmp file on rename failure ──
+
+    /// F-P3-004 (direct unit test of the cleanup branch): simulate a rename
+    /// failure by racing a directory into existence at the marker's final path
+    /// AFTER the temp file is written but represented here via a controlled
+    /// two-step marker_path (a directory) so `fs::rename(tmp, marker_path)`
+    /// fails with `IsADirectory`/`ENOTEMPTY`-class errors while the temp file
+    /// write itself succeeded — the exact orphan scenario F-P3-004 fixes.
+    #[cfg(unix)]
+    #[test]
+    fn test_F_P3_004_orphan_tmp_removed_when_rename_target_is_a_directory() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+        // Pre-create a NON-EMPTY directory at the marker's final path: on POSIX,
+        // `rename` onto a non-empty directory fails (ENOTEMPTY), so the temp
+        // file write (which targets a sibling path in the SAME parent as
+        // marker_path — the tempdir root) succeeds, but the rename fails.
+        std::fs::create_dir_all(&marker_path).expect("create dir at marker_path");
+        std::fs::write(marker_path.join("occupant.txt"), b"non-empty")
+            .expect("create dir occupant");
+
+        let fields = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "validate-factory-path".to_string(),
+            artifact_path: String::new(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-orphan-tmp-2".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
+        };
+
+        let result = write_indeterminate_marker(&fields, &marker_path);
+        assert!(
+            result.is_err(),
+            "precondition: renaming onto a non-empty directory must fail"
+        );
+
+        // F-P3-004: no `.tmp` file left behind in the tempdir root (the temp
+        // file's parent) after the failed rename.
+        let stray_tmp_files: Vec<_> = std::fs::read_dir(dir.path())
+            .expect("read tempdir")
+            .filter_map(|e| e.ok())
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .filter(|name| name.contains(".tmp"))
+            .collect();
+        assert!(
+            stray_tmp_files.is_empty(),
+            "F-P3-004: rename failure MUST NOT orphan the uniquely-named temp file — \
+             found {stray_tmp_files:?}"
         );
     }
 }

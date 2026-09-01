@@ -29,8 +29,8 @@ use crate::host::HostContext;
 use crate::indeterminate_marker::{
     MarkerFields, UNVALIDATED_MUTATION_MARKER_TTL_SECONDS, block_if_marker_check,
     check_and_clear_expired_marker, delete_marker_if_pass, emit_marker_cleared,
-    read_all_marker_fields, read_marker_plugin_name, reconcile_raw_delete, should_write_marker,
-    write_indeterminate_marker,
+    emit_superseded_if_cross_pair, read_all_marker_fields, read_marker_plugin_name,
+    reconcile_raw_delete, should_write_marker, write_indeterminate_marker,
 };
 use crate::internal_log::{
     InternalEvent, InternalLog, PLUGIN_COMPLETED, PLUGIN_CRASHED, PLUGIN_INDETERMINATE,
@@ -370,8 +370,7 @@ async fn execute_tier<'a>(
             match check_and_clear_expired_marker(
                 &inputs.base_host_ctx.cwd,
                 chrono::Utc::now(),
-                &inputs.internal_log,
-                &inputs.base_host_ctx.session_id,
+                &inputs.base_host_ctx,
             ) {
                 Ok(Some(_)) => {
                     // TTL_EXPIRED cleared and emitted — no raw-delete reconciliation
@@ -382,11 +381,9 @@ async fn execute_tier<'a>(
                     // Best-effort: if genuinely absent, reconcile a possible operator
                     // out-of-band raw delete. `reconcile_raw_delete` itself re-checks
                     // marker absence and is a no-op when the marker is still present.
-                    if let Err(e) = reconcile_raw_delete(
-                        &inputs.base_host_ctx.cwd,
-                        &inputs.internal_log,
-                        &inputs.base_host_ctx.session_id,
-                    ) {
+                    if let Err(e) =
+                        reconcile_raw_delete(&inputs.base_host_ctx.cwd, &inputs.base_host_ctx)
+                    {
                         tracing::warn!(
                             error = %e,
                             "reconcile_raw_delete: I/O error on normal-path pre-check; \
@@ -559,8 +556,7 @@ async fn execute_tier<'a>(
                             // Marker was actually removed — emit marker.cleared(REVALIDATED).
                             if let Some(ref fields) = all_fields {
                                 emit_marker_cleared(
-                                    &internal_log,
-                                    &base_ctx_for_event.session_id,
+                                    &base_ctx_for_event,
                                     fields,
                                     "REVALIDATED",
                                     "validator",
@@ -585,7 +581,6 @@ async fn execute_tier<'a>(
                 // Emit plugin.indeterminate for EVERY indeterminate outcome (AC-006).
                 // HIGH-1: pass real artifact_path so event and marker record the same path.
                 emit_indeterminate(
-                    &internal_log,
                     &base_ctx_for_event,
                     &entry_clone,
                     cause,
@@ -616,6 +611,18 @@ async fn execute_tier<'a>(
                             ))
                         .to_rfc3339(),
                     };
+                    // F-P3-002 (ADR-048 §D4 v1.3): read the pre-existing marker BEFORE
+                    // the overwrite and emit marker.cleared(SUPERSEDED) for it when it
+                    // belongs to a DIFFERENT (plugin_name, artifact_path) pair —
+                    // otherwise reconcile_raw_delete would later mis-attribute the
+                    // superseded pair's clearance to a human OPERATOR_OVERRIDE that
+                    // never happened (BC-1.18.001 INV3 last-writer-wins).
+                    let existing_marker = read_all_marker_fields(&marker_path).ok().flatten();
+                    emit_superseded_if_cross_pair(
+                        &base_ctx_for_event,
+                        existing_marker.as_ref(),
+                        &fields,
+                    );
                     // HIGH-2: log marker-write failures instead of silently swallowing them.
                     // Best-effort: write failure does NOT fail the dispatch result.
                     // The plugin.indeterminate event was already emitted above.
@@ -854,8 +861,7 @@ pub fn spawn_async_plugin(
                         // Marker was actually removed — emit marker.cleared(REVALIDATED).
                         if let Some(ref fields) = all_fields {
                             emit_marker_cleared(
-                                &internal_log,
-                                &base_ctx_for_event.session_id,
+                                &base_ctx_for_event,
                                 fields,
                                 "REVALIDATED",
                                 "validator",
@@ -879,7 +885,6 @@ pub fn spawn_async_plugin(
         if let DispatchOutcome::Indeterminate { ref cause } = outcome {
             // HIGH-1: pass real artifact_path so event and marker record the same path.
             emit_indeterminate(
-                &internal_log,
                 &base_ctx_for_event,
                 &entry,
                 cause,
@@ -907,6 +912,18 @@ pub fn spawn_async_plugin(
                         ))
                     .to_rfc3339(),
                 };
+                // F-P3-002 (ADR-048 §D4 v1.3): read the pre-existing marker BEFORE
+                // the overwrite and emit marker.cleared(SUPERSEDED) for it when it
+                // belongs to a DIFFERENT (plugin_name, artifact_path) pair —
+                // otherwise reconcile_raw_delete would later mis-attribute the
+                // superseded pair's clearance to a human OPERATOR_OVERRIDE that
+                // never happened (BC-1.18.001 INV3 last-writer-wins).
+                let existing_marker = read_all_marker_fields(&marker_path).ok().flatten();
+                emit_superseded_if_cross_pair(
+                    &base_ctx_for_event,
+                    existing_marker.as_ref(),
+                    &fields,
+                );
                 // HIGH-2: log marker-write failures instead of silently swallowing them.
                 // Best-effort: write failure does NOT fail the dispatch result.
                 // The plugin.indeterminate event was already emitted above.
@@ -1334,8 +1351,13 @@ fn cause_to_str(cause: &IndeterminateCause) -> &'static str {
 /// artifact context (e.g. non-file-mutation tool events). Never hardcoded empty.
 ///
 /// Called for EVERY INDETERMINATE outcome — both fail-closed and fail-open paths.
+///
+/// Routes through `base_ctx.emit_internal` (ADR-048 §D4 v1.3 F-P3-001) — the same
+/// dual-sink primitive (durable `InternalLog` write + `ctx.events` queue) every
+/// other dispatcher-native BC-3.08.001 event uses — rather than a raw
+/// `InternalLog::write` call. No new parameter: `base_ctx: &HostContext` was
+/// already threaded to every call site.
 fn emit_indeterminate(
-    log: &InternalLog,
     base_ctx: &HostContext,
     entry: &RegistryEntry,
     cause: &IndeterminateCause,
@@ -1360,7 +1382,7 @@ fn emit_indeterminate(
             "failure_policy",
             serde_json::Value::String(policy_str.to_string()),
         );
-    log.write(&ev);
+    base_ctx.emit_internal(ev);
 }
 
 #[cfg(test)]
@@ -1810,12 +1832,16 @@ mod tests {
         let dir = tempfile::tempdir().expect("tempdir");
         let log = InternalLog::new(dir.path().join("logs"));
 
-        let base_ctx = crate::host::HostContext::new(
+        let mut base_ctx = crate::host::HostContext::new(
             "validate-factory-path-staging",
             "0.1.0",
             "sess-abc",
             "trace-xyz",
         );
+        // ADR-048 §D4 v1.3 F-P3-001: emit_indeterminate now routes through
+        // base_ctx.emit_internal, which requires internal_log wired for the
+        // durable-sink assertion below (matches production main.rs wiring).
+        base_ctx.internal_log = Some(Arc::new(log));
         let entry = RegistryEntry {
             name: "validate-factory-path-staging".to_string(),
             event: "PostToolUse".to_string(),
@@ -1838,7 +1864,7 @@ mod tests {
         let artifact_path = "/Users/dev/project/.factory/STATE.md";
         let cause = IndeterminateCause::Fuel;
 
-        emit_indeterminate(&log, &base_ctx, &entry, &cause, artifact_path);
+        emit_indeterminate(&base_ctx, &entry, &cause, artifact_path);
 
         // Read back the JSONL event and assert all 8 BC-3.08.001 Event 8 fields.
         let log_dir = dir.path().join("logs");
@@ -1900,6 +1926,19 @@ mod tests {
             event["ts"].as_str().map(|s| !s.is_empty()).unwrap_or(false),
             "BC-3.08.001 Event 8: ts (timestamp) field must be present and non-empty"
         );
+
+        // ADR-048 §D4 v1.3 F-P3-001 dual-write assertion: emit_indeterminate MUST
+        // route through base_ctx.emit_internal — proof is that the SAME event also
+        // landed on the drained-events queue, not just the durable InternalLog file.
+        let drained = base_ctx.drain_events();
+        assert_eq!(
+            drained.len(),
+            1,
+            "ADR-048 §D4 v1.3: exactly one plugin.indeterminate event must reach \
+             base_ctx.events (drain_events) — proves emit_internal, not a raw InternalLog::write"
+        );
+        assert_eq!(drained[0].type_, PLUGIN_INDETERMINATE);
+        assert_eq!(drained[0].dispatcher_trace_id.as_deref(), Some("trace-xyz"));
     }
 
     // ── End S-25.01 Red Gate stubs 1–12 ──────────────────────────────────────
