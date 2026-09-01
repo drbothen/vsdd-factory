@@ -29,6 +29,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use chrono::{DateTime, Utc};
 
 use crate::executor::DispatchOutcome;
+use crate::internal_log::{InternalEvent, InternalLog, PLUGIN_MARKER_CLEARED};
 use crate::registry::FailurePolicy;
 
 /// TTL for the `.factory/unvalidated-mutation.marker` deadman timer (ADR-048 §Decision 2).
@@ -422,6 +423,322 @@ fn parse_expires_at(content: &str) -> Option<DateTime<Utc>> {
 }
 
 // ---------------------------------------------------------------------------
+// ADR-048 §Decision 4 v1.2 — dispatcher-native marker.cleared emission
+// (S-25.01 LOCAL adversary pass 2 F-P2-002 HIGH + F-P2-003 MED resolution)
+// ---------------------------------------------------------------------------
+
+/// Emit `marker.cleared` (BC-3.08.001 Event 9 / ADR-048 §Decision 4).
+///
+/// Single dispatcher-native emission point for ALL THREE `clear_mode` values
+/// (`REVALIDATED`, `TTL_EXPIRED`, `OPERATOR_OVERRIDE`) per ADR-048 §D4 v1.2 —
+/// relocated here (from a private `executor.rs` function of the same name)
+/// so `check_and_clear_expired_marker` and `reconcile_raw_delete` share the
+/// same emission logic as the REVALIDATED path's callsites in `executor.rs`.
+///
+/// The `trace_id` on this event is set to the MARKER'S stored `trace_id` (not
+/// the current dispatch's trace), so the event links back to the originating
+/// `plugin.indeterminate` (Event 8) that wrote the marker. This function
+/// constructs the `InternalEvent` directly and writes it to `InternalLog` —
+/// it NEVER crosses the WASM `emit_event` host ABI boundary, so the
+/// RESERVED_FIELDS enrichment that would otherwise silently overwrite
+/// `trace_id`/`plugin_name` with the CALLING plugin's own dispatch identity
+/// never applies (ADR-048 §D4 v1.2 Emission-Point Correction).
+///
+/// Best-effort: errors in `log.write` are swallowed (see `InternalLog::write`).
+pub(crate) fn emit_marker_cleared(
+    log: &InternalLog,
+    session_id: &str,
+    marker_fields: &MarkerFields,
+    clear_mode: &str,
+    actor_type: &str,
+    reason: Option<&str>,
+) {
+    let ev = InternalEvent::now(PLUGIN_MARKER_CLEARED)
+        // Use marker's trace_id (not current dispatch's) to link back to plugin.indeterminate.
+        .with_trace_id(&marker_fields.trace_id)
+        .with_session_id(session_id)
+        .with_plugin_name(&marker_fields.plugin_name)
+        .with_field(
+            "artifact_path",
+            serde_json::Value::String(marker_fields.artifact_path.clone()),
+        )
+        .with_field(
+            "clear_mode",
+            serde_json::Value::String(clear_mode.to_string()),
+        )
+        .with_field(
+            "actor_type",
+            serde_json::Value::String(actor_type.to_string()),
+        )
+        .with_field(
+            "reason",
+            reason.map_or(serde_json::Value::Null, |r| {
+                serde_json::Value::String(r.to_string())
+            }),
+        );
+    log.write(&ev);
+}
+
+/// Dispatcher-native pre-check: detect and clear an expired
+/// `.factory/unvalidated-mutation.marker`, emitting the audited
+/// `marker.cleared(TTL_EXPIRED)` event (BC-3.08.001 Event 9 / ADR-048 §D4 v1.2).
+///
+/// Called from `executor.rs`'s tier-execution loop BEFORE every Arm 1/Arm 2
+/// (`on_error = "block_if_marker"`) plugin invocation on the NORMAL (non-crash)
+/// path. This is a DISTINCT code path from the crash-path native check
+/// (`block_if_marker_check`), which never auto-deletes or emits — a crash
+/// means this pre-check either did not run or was interrupted before
+/// completing (BC-1.18.003 §EC-014; VP-108 Postcondition 4).
+///
+/// # Why dispatcher-native (not the WASM gate plugin)
+///
+/// The WASM `emit_event` host ABI's RESERVED_FIELDS enrichment unconditionally
+/// overwrites plugin-supplied `trace_id`/`plugin_name` with the CALLING
+/// plugin's own dispatch identity — a WASM plugin can never emit an event
+/// carrying the marker's OWN (foreign) `trace_id`/`plugin_name`, which the
+/// Event 9 wire contract requires (ADR-048 §D4 v1.2 Emission-Point
+/// Correction; S-25.01 LOCAL adversary pass 2 F-P2-002 HIGH). By the time
+/// `evaluate_gate` (hook-plugins crate) subsequently runs, the marker is
+/// guaranteed already absent-or-non-expired, so it performs no `expires_at`
+/// parsing of its own — it is a pure presence check.
+///
+/// # Decision logic
+///
+/// - Marker absent, unreadable, or corrupt (unparseable TOML) — `Ok(None)`,
+///   no clear (fail-safe).
+/// - Marker present, `expires_at` absent or unparseable (legacy pre-ADR-048
+///   marker) — treated as non-expired, conservative — `Ok(None)`.
+/// - Marker present, `expires_at > now` — `Ok(None)`, no clear.
+/// - Marker present, `expires_at <= now` — delete the marker file
+///   (idempotent; a `NotFound` race with a concurrent clear is treated as
+///   "this call did not clear it" — `Ok(None)`), emit
+///   `marker.cleared(TTL_EXPIRED, deadman, reason=null)` with the MARKER's
+///   own `trace_id`/`plugin_name`, and return `Ok(Some(fields))`.
+///
+/// # Errors
+///
+/// Propagates non-`NotFound` I/O errors from the marker read or delete.
+/// Callers MUST treat an `Err` as "no clear occurred" (fail-safe) and
+/// continue the dispatch rather than failing it — a durable pre-check must
+/// never itself become a new self-lock source.
+pub fn check_and_clear_expired_marker(
+    factory_root: &Path,
+    now: DateTime<Utc>,
+    log: &InternalLog,
+    session_id: &str,
+) -> io::Result<Option<MarkerFields>> {
+    let marker_path = factory_root
+        .join(".factory")
+        .join("unvalidated-mutation.marker");
+
+    let fields = match read_all_marker_fields(&marker_path)? {
+        Some(f) => f,
+        None => return Ok(None),
+    };
+
+    let expired = chrono::DateTime::parse_from_rfc3339(&fields.expires_at)
+        .map(|dt| dt.with_timezone(&Utc) <= now)
+        // Absent/unparseable expires_at (legacy marker) -> conservative non-expired.
+        .unwrap_or(false);
+
+    if !expired {
+        return Ok(None);
+    }
+
+    match std::fs::remove_file(&marker_path) {
+        Ok(()) => {}
+        // Concurrent clear (e.g. a racing REVALIDATED delete) already removed
+        // it -- this call did not perform the clear; no emission from here.
+        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(None),
+        Err(e) => return Err(e),
+    }
+
+    emit_marker_cleared(log, session_id, &fields, "TTL_EXPIRED", "deadman", None);
+
+    Ok(Some(fields))
+}
+
+/// Bound on the number of trailing bytes read from today's dispatcher-internal
+/// log when [`reconcile_raw_delete`] scans for an unmatched `plugin.indeterminate`
+/// event. ADR-048 §D4 v1.2: this scan runs before every Arm 1/Arm 2 dispatch on
+/// the marker-absent path, so it MUST be bounded — a fixed-size tail read, not
+/// a full-file scan (explicit production-grade constraint, not an optional
+/// optimization; an unbounded scan on every Agent/git-commit dispatch would
+/// reintroduce the large-artifact resource cost class S-25.01 exists to
+/// eliminate).
+const RECONCILE_SCAN_BYTE_CAP: u64 = 256 * 1024;
+
+/// Dispatcher-native, best-effort reconciliation for the T3 (human out-of-band
+/// `rm`) marker clear path (ADR-048 §Decision 4 v1.2 RAW_DELETE_DETECTED).
+///
+/// The out-of-band `rm` is never mediated by the dispatcher, so no real-time
+/// `marker.cleared(OPERATOR_OVERRIDE)` can be emitted at the moment of
+/// deletion. This function is called from the SAME native pre-check that
+/// runs before every Arm 1/Arm 2 dispatch, in the branch where the marker is
+/// confirmed absent. It performs a bounded scan of TODAY's
+/// `dispatcher-internal-<date>.jsonl` for a `plugin.indeterminate` (fail-closed)
+/// record with no subsequent `marker.cleared` for the same
+/// `(plugin_name, artifact_path)` pair, and retroactively emits
+/// `marker.cleared(OPERATOR_OVERRIDE)` — with a non-null `reason` per
+/// BC-1.18.003 §PC3 / ADR-048 §D4's event field contract — for each such
+/// unmatched pair found.
+///
+/// # Bounded and best-effort (ADR-048 §D4 v1.2 production-grade requirement)
+///
+/// - Scans ONLY today's log file (never prior days).
+/// - Reads at most the last [`RECONCILE_SCAN_BYTE_CAP`] bytes (tail read).
+/// - Any failure to locate/read/parse the log is swallowed — this
+///   reconciliation step never gates the dispatch decision (BC-3.08.001
+///   Invariant 3) and never returns an error to the caller for a
+///   missing/unavailable log.
+///
+/// # Idempotency
+///
+/// Once a pair is reconciled (its `marker.cleared` written), the next call
+/// sees that emitted event within the scan window and does not re-reconcile
+/// it — steady state converges to zero unmatched pairs.
+///
+/// # Defensive re-check
+///
+/// Re-verifies the marker is still absent before scanning; a marker found
+/// present (a race with the caller's own absent-branch decision) short-
+/// circuits to `Ok(())` with no scan performed.
+pub fn reconcile_raw_delete(
+    factory_root: &Path,
+    log: &InternalLog,
+    session_id: &str,
+) -> io::Result<()> {
+    let marker_path = factory_root
+        .join(".factory")
+        .join("unvalidated-mutation.marker");
+    if marker_path.exists() {
+        return Ok(());
+    }
+
+    let date = chrono::Local::now().format("%Y-%m-%d").to_string();
+    let log_path = log
+        .log_dir()
+        .join(format!("dispatcher-internal-{date}.jsonl"));
+
+    let content = match read_tail(&log_path, RECONCILE_SCAN_BYTE_CAP) {
+        Ok(c) => c,
+        // No log yet today, or unavailable for any reason: best-effort no-op.
+        Err(_) => return Ok(()),
+    };
+
+    // Track the most recent unmatched fail-closed plugin.indeterminate per
+    // (plugin_name, artifact_path). A subsequent marker.cleared for the same
+    // pair (any clear_mode) marks it reconciled. Last-write-wins per pair:
+    // an older INDETERMINATE superseded by a newer one for the same pair was
+    // itself superseded (single-marker policy), not raw-deleted.
+    let mut unmatched: std::collections::HashMap<(String, String), MarkerFields> =
+        std::collections::HashMap::new();
+
+    for line in content.lines() {
+        let Ok(v) = serde_json::from_str::<serde_json::Value>(line) else {
+            // A leading partial line from the tail read, or a corrupt line --
+            // skip; best-effort.
+            continue;
+        };
+        let Some(type_) = v.get("type").and_then(|t| t.as_str()) else {
+            continue;
+        };
+        let plugin_name = v
+            .get("plugin_name")
+            .and_then(|p| p.as_str())
+            .unwrap_or("")
+            .to_string();
+        let artifact_path = v
+            .get("artifact_path")
+            .and_then(|a| a.as_str())
+            .unwrap_or("")
+            .to_string();
+        let key = (plugin_name.clone(), artifact_path.clone());
+
+        match type_ {
+            "plugin.indeterminate" => {
+                // Only fail-closed INDETERMINATE events ever write a marker
+                // (VP-106 Postcondition B); fail-open events never did, so
+                // they can never be the subject of a RAW_DELETE_DETECTED clear.
+                if v.get("failure_policy").and_then(|f| f.as_str()) != Some("fail-closed") {
+                    continue;
+                }
+                let trace_id = v
+                    .get("trace_id")
+                    .and_then(|t| t.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let cause = v
+                    .get("cause")
+                    .and_then(|c| c.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let timestamp = v
+                    .get("ts")
+                    .and_then(|t| t.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                unmatched.insert(
+                    key,
+                    MarkerFields {
+                        timestamp,
+                        plugin_name,
+                        artifact_path,
+                        cause,
+                        trace_id,
+                        expires_at: String::new(),
+                    },
+                );
+            }
+            "marker.cleared" => {
+                unmatched.remove(&key);
+            }
+            _ => {}
+        }
+    }
+
+    for fields in unmatched.into_values() {
+        emit_marker_cleared(
+            log,
+            session_id,
+            &fields,
+            "OPERATOR_OVERRIDE",
+            "operator",
+            Some(
+                "RAW_DELETE_DETECTED: marker absent without prior marker.cleared event; \
+                 inferred operator out-of-band clear",
+            ),
+        );
+    }
+
+    Ok(())
+}
+
+/// Read at most the trailing `cap` bytes of the file at `path`. Drops a
+/// possibly-truncated leading partial line when the read did not start at
+/// byte 0 (a tail read may begin mid-write of the byte immediately before
+/// the first fully-retained record).
+fn read_tail(path: &Path, cap: u64) -> io::Result<String> {
+    use std::io::{Read, Seek, SeekFrom};
+    let mut f = std::fs::File::open(path)?;
+    let len = f.metadata()?.len();
+    let start = len.saturating_sub(cap);
+    if start > 0 {
+        f.seek(SeekFrom::Start(start))?;
+    }
+    let mut buf = Vec::new();
+    f.read_to_end(&mut buf)?;
+    let text = String::from_utf8_lossy(&buf).into_owned();
+    if start > 0 {
+        return Ok(match text.find('\n') {
+            Some(idx) => text[idx + 1..].to_string(),
+            None => String::new(),
+        });
+    }
+    Ok(text)
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -742,6 +1059,399 @@ mod tests {
             "BC-1.18.001 v1.1 PC4: expires_at − timestamp MUST equal \
              UNVALIDATED_MUTATION_MARKER_TTL_SECONDS ({UNVALIDATED_MUTATION_MARKER_TTL_SECONDS}s) \
              — got {delta_secs}s"
+        );
+    }
+
+    // ── ADR-048 §D4 v1.2: check_and_clear_expired_marker + reconcile_raw_delete ──
+    // (S-25.01 LOCAL adversary pass 2 F-P2-002 HIGH + F-P2-003 MED resolution)
+
+    /// Read back the single JSONL line written under `log_dir` and parse it as JSON.
+    /// Panics if zero or more than one file/line is present — every test using this
+    /// helper writes exactly one InternalLog-backed event before calling it.
+    fn read_only_log_event(log_dir: &Path) -> serde_json::Value {
+        let files: Vec<_> = std::fs::read_dir(log_dir)
+            .expect("log dir must exist after a write")
+            .map(|e| e.expect("dir entry").path())
+            .collect();
+        assert_eq!(
+            files.len(),
+            1,
+            "expected exactly one log file, got {files:?}"
+        );
+        let content = std::fs::read_to_string(&files[0]).expect("read log file");
+        let lines: Vec<&str> = content.lines().collect();
+        assert_eq!(
+            lines.len(),
+            1,
+            "expected exactly one log line, got {lines:?}"
+        );
+        serde_json::from_str(lines[0]).expect("log line must be valid JSON")
+    }
+
+    /// VP-108 PC2 / VP-106 PC-F: expired marker → `check_and_clear_expired_marker`
+    /// deletes it and emits exactly one `marker.cleared(TTL_EXPIRED)` event carrying
+    /// the MARKER's own trace_id/plugin_name (not the caller's session_id-scoped
+    /// identity) and `reason = null`.
+    #[test]
+    fn test_ADR_048_D4_check_and_clear_expired_marker_ttl_expired_deletes_and_emits() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        let marker_path = factory_dir.join("unvalidated-mutation.marker");
+        let fields = MarkerFields {
+            timestamp: "2020-01-01T00:00:00Z".to_string(),
+            plugin_name: "regression-gate".to_string(),
+            artifact_path: "/tmp/.factory/STATE.md".to_string(),
+            cause: "fuel".to_string(),
+            trace_id: "deadbeef-0106-0001-0001-000000000001".to_string(),
+            expires_at: "2020-01-02T00:00:00Z".to_string(),
+        };
+        write_indeterminate_marker(&fields, &marker_path).expect("write marker");
+
+        // Log dir deliberately NOT under `.factory` so the #206 mount gate does
+        // not suppress the write (matches the executor.rs test pattern).
+        let log = InternalLog::new(dir.path().join("logs"));
+        let now = chrono::DateTime::parse_from_rfc3339("2020-01-03T00:00:00Z")
+            .expect("parse now")
+            .with_timezone(&Utc);
+
+        let cleared = check_and_clear_expired_marker(dir.path(), now, &log, "sess-ttl")
+            .expect("check_and_clear_expired_marker must not error");
+
+        assert!(
+            matches!(&cleared, Some(f) if f.trace_id == fields.trace_id),
+            "VP-106 PC-F: expired marker MUST yield Some(fields) with the marker's own trace_id"
+        );
+        assert!(
+            !marker_path.exists(),
+            "VP-106 PC-F: check_and_clear_expired_marker MUST auto-delete the expired marker"
+        );
+
+        let event = read_only_log_event(&dir.path().join("logs"));
+        assert_eq!(
+            event["type"], "marker.cleared",
+            "VP-108 PC2: type must be marker.cleared"
+        );
+        assert_eq!(
+            event["clear_mode"], "TTL_EXPIRED",
+            "VP-108 PC2: clear_mode must be TTL_EXPIRED"
+        );
+        assert_eq!(
+            event["actor_type"], "deadman",
+            "VP-108 PC2: actor_type must be deadman"
+        );
+        assert_eq!(
+            event["trace_id"], fields.trace_id,
+            "VP-108 PC2: trace_id MUST be the MARKER's own trace_id, not the gate plugin's dispatch trace_id"
+        );
+        assert_eq!(event["plugin_name"], fields.plugin_name);
+        assert_eq!(event["artifact_path"], fields.artifact_path);
+        assert!(
+            event["reason"].is_null(),
+            "VP-108 PC2: reason must be null/absent for TTL_EXPIRED"
+        );
+    }
+
+    /// VP-106 INV5: non-expired marker → `check_and_clear_expired_marker` returns
+    /// `None`, does NOT delete the marker, and emits NO event.
+    #[test]
+    fn test_ADR_048_D4_check_and_clear_expired_marker_non_expired_returns_none_no_emit() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        let marker_path = factory_dir.join("unvalidated-mutation.marker");
+        let fields = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "p".to_string(),
+            artifact_path: String::new(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-non-expired".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
+        };
+        write_indeterminate_marker(&fields, &marker_path).expect("write marker");
+
+        let log_dir = dir.path().join("logs");
+        let log = InternalLog::new(log_dir.clone());
+        let now = Utc::now();
+
+        let cleared = check_and_clear_expired_marker(dir.path(), now, &log, "sess-active")
+            .expect("check_and_clear_expired_marker must not error");
+
+        assert!(
+            cleared.is_none(),
+            "VP-106 INV5: non-expired marker MUST yield None"
+        );
+        assert!(
+            marker_path.exists(),
+            "VP-106 INV5: non-expired marker MUST NOT be deleted"
+        );
+        assert!(
+            !log_dir.exists(),
+            "VP-108: no marker.cleared event (and no log dir at all) when nothing was cleared"
+        );
+    }
+
+    /// VP-106: absent marker → `check_and_clear_expired_marker` returns `None`, no emit.
+    #[test]
+    fn test_ADR_048_D4_check_and_clear_expired_marker_absent_returns_none() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        std::fs::create_dir_all(dir.path().join(".factory")).expect("create .factory subdir");
+        let log_dir = dir.path().join("logs");
+        let log = InternalLog::new(log_dir.clone());
+
+        let cleared = check_and_clear_expired_marker(dir.path(), Utc::now(), &log, "sess-absent")
+            .expect("check_and_clear_expired_marker must not error on absent marker");
+
+        assert!(cleared.is_none(), "absent marker MUST yield None");
+        assert!(
+            !log_dir.exists(),
+            "no event MUST be emitted when there is nothing to clear"
+        );
+    }
+
+    /// VP-106 PC-G: legacy marker (no expires_at field) → treated as non-expired
+    /// (conservative); `check_and_clear_expired_marker` returns `None`, no delete, no emit.
+    #[test]
+    fn test_ADR_048_D4_check_and_clear_expired_marker_legacy_missing_expires_at_returns_none() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        let marker_path = factory_dir.join("unvalidated-mutation.marker");
+        // Legacy 5-field marker — no expires_at.
+        std::fs::write(
+            &marker_path,
+            "timestamp = \"2026-08-31T00:00:00Z\"\n\
+             plugin_name = \"legacy-plugin\"\n\
+             artifact_path = \"\"\n\
+             cause = \"fuel\"\n\
+             trace_id = \"trace-legacy-check\"\n",
+        )
+        .expect("write legacy marker");
+
+        let log_dir = dir.path().join("logs");
+        let log = InternalLog::new(log_dir.clone());
+
+        let cleared = check_and_clear_expired_marker(dir.path(), Utc::now(), &log, "sess-legacy")
+            .expect("check_and_clear_expired_marker must not error");
+
+        assert!(
+            cleared.is_none(),
+            "VP-106 PC-G: legacy marker (absent expires_at) MUST yield None — conservative"
+        );
+        assert!(
+            marker_path.exists(),
+            "VP-106 PC-G: legacy marker MUST NOT be auto-deleted"
+        );
+        assert!(
+            !log_dir.exists(),
+            "no marker.cleared event MUST be emitted for a legacy marker"
+        );
+    }
+
+    /// VP-108 PC3: an unmatched fail-closed `plugin.indeterminate` with the marker
+    /// now absent → `reconcile_raw_delete` retroactively emits exactly one
+    /// `marker.cleared(OPERATOR_OVERRIDE)` with the indeterminate event's own
+    /// trace_id/plugin_name/artifact_path and a NON-null `reason`
+    /// (BC-1.18.003 §PC3 / ADR-048 §D4 event field contract — `reason` is
+    /// mandatory, not null, for OPERATOR_OVERRIDE).
+    #[test]
+    fn test_ADR_048_D4_reconcile_raw_delete_unmatched_event_emits_operator_override() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        std::fs::create_dir_all(dir.path().join(".factory")).expect("create .factory subdir");
+        // No marker file — this is the marker-absent branch reconcile_raw_delete runs in.
+
+        let log_dir = dir.path().join("logs");
+        std::fs::create_dir_all(&log_dir).expect("create log dir");
+        let date = chrono::Local::now().format("%Y-%m-%d").to_string();
+        let log_file = log_dir.join(format!("dispatcher-internal-{date}.jsonl"));
+        let indeterminate_line = serde_json::json!({
+            "type": "plugin.indeterminate",
+            "trace_id": "trace-raw-delete-1",
+            "session_id": "sess-orig",
+            "plugin_name": "regression-gate",
+            "artifact_path": "/tmp/.factory/STATE.md",
+            "cause": "fuel",
+            "failure_policy": "fail-closed",
+            "ts": "2026-08-31T00:00:00+0000",
+            "ts_epoch": 1_798_675_200_i64,
+            "schema_version": 1,
+        });
+        std::fs::write(&log_file, format!("{indeterminate_line}\n")).expect("seed log");
+
+        let log = InternalLog::new(log_dir.clone());
+        reconcile_raw_delete(dir.path(), &log, "sess-reconcile")
+            .expect("reconcile_raw_delete must not error");
+
+        let content = std::fs::read_to_string(&log_file).expect("read log");
+        let lines: Vec<&str> = content.lines().collect();
+        assert_eq!(
+            lines.len(),
+            2,
+            "VP-108 PC3: exactly one marker.cleared line MUST be appended — got {lines:?}"
+        );
+        let event: serde_json::Value =
+            serde_json::from_str(lines[1]).expect("second line must be valid JSON");
+        assert_eq!(event["type"], "marker.cleared");
+        assert_eq!(event["clear_mode"], "OPERATOR_OVERRIDE");
+        assert_eq!(event["actor_type"], "operator");
+        assert_eq!(
+            event["trace_id"], "trace-raw-delete-1",
+            "VP-108 PC3: trace_id MUST come from the unmatched plugin.indeterminate event"
+        );
+        assert_eq!(event["plugin_name"], "regression-gate");
+        assert_eq!(event["artifact_path"], "/tmp/.factory/STATE.md");
+        assert!(
+            event["reason"]
+                .as_str()
+                .map(|r| !r.is_empty())
+                .unwrap_or(false),
+            "BC-1.18.003 §PC3 / ADR-048 §D4: reason MUST be non-null and non-empty for \
+             OPERATOR_OVERRIDE — got {:?}",
+            event["reason"]
+        );
+    }
+
+    /// VP-108 PC3 (negative): a `plugin.indeterminate` already followed by its own
+    /// `marker.cleared` for the same (plugin_name, artifact_path) is already
+    /// reconciled — `reconcile_raw_delete` MUST NOT emit a duplicate.
+    #[test]
+    fn test_ADR_048_D4_reconcile_raw_delete_already_matched_emits_nothing() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        std::fs::create_dir_all(dir.path().join(".factory")).expect("create .factory subdir");
+
+        let log_dir = dir.path().join("logs");
+        std::fs::create_dir_all(&log_dir).expect("create log dir");
+        let date = chrono::Local::now().format("%Y-%m-%d").to_string();
+        let log_file = log_dir.join(format!("dispatcher-internal-{date}.jsonl"));
+        let indeterminate_line = serde_json::json!({
+            "type": "plugin.indeterminate",
+            "trace_id": "trace-matched-1",
+            "plugin_name": "regression-gate",
+            "artifact_path": "/tmp/.factory/STATE.md",
+            "cause": "fuel",
+            "failure_policy": "fail-closed",
+            "ts": "2026-08-31T00:00:00+0000",
+        });
+        let cleared_line = serde_json::json!({
+            "type": "marker.cleared",
+            "trace_id": "trace-matched-1",
+            "plugin_name": "regression-gate",
+            "artifact_path": "/tmp/.factory/STATE.md",
+            "clear_mode": "REVALIDATED",
+            "actor_type": "validator",
+            "ts": "2026-08-31T00:05:00+0000",
+        });
+        std::fs::write(&log_file, format!("{indeterminate_line}\n{cleared_line}\n"))
+            .expect("seed log");
+
+        let log = InternalLog::new(log_dir.clone());
+        reconcile_raw_delete(dir.path(), &log, "sess-reconcile")
+            .expect("reconcile_raw_delete must not error");
+
+        let content = std::fs::read_to_string(&log_file).expect("read log");
+        assert_eq!(
+            content.lines().count(),
+            2,
+            "already-reconciled pair MUST NOT produce a new marker.cleared emission"
+        );
+    }
+
+    /// `reconcile_raw_delete` defensive re-check: marker still present → no-op,
+    /// regardless of log content (never emits while the marker itself is active).
+    #[test]
+    fn test_ADR_048_D4_reconcile_raw_delete_marker_present_short_circuits() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).expect("create .factory subdir");
+        let marker_path = factory_dir.join("unvalidated-mutation.marker");
+        let fields = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "p".to_string(),
+            artifact_path: String::new(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-present".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
+        };
+        write_indeterminate_marker(&fields, &marker_path).expect("write marker");
+
+        let log_dir = dir.path().join("logs");
+        let log = InternalLog::new(log_dir.clone());
+
+        reconcile_raw_delete(dir.path(), &log, "sess-present")
+            .expect("reconcile_raw_delete must not error");
+
+        assert!(
+            !log_dir.exists(),
+            "reconcile_raw_delete MUST NOT scan or emit while the marker is present"
+        );
+    }
+
+    /// ADR-048 §D4 v1.2 bounded-scan requirement: an unmatched `plugin.indeterminate`
+    /// that falls OUTSIDE the trailing `RECONCILE_SCAN_BYTE_CAP` window (because it
+    /// is followed by more than the cap's worth of filler bytes) MUST NOT be
+    /// reconciled — the scan is a bounded tail read, not a full-file scan.
+    #[test]
+    fn test_ADR_048_D4_reconcile_raw_delete_respects_byte_cap() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        std::fs::create_dir_all(dir.path().join(".factory")).expect("create .factory subdir");
+
+        let log_dir = dir.path().join("logs");
+        std::fs::create_dir_all(&log_dir).expect("create log dir");
+        let date = chrono::Local::now().format("%Y-%m-%d").to_string();
+        let log_file = log_dir.join(format!("dispatcher-internal-{date}.jsonl"));
+
+        let indeterminate_line = serde_json::json!({
+            "type": "plugin.indeterminate",
+            "trace_id": "trace-out-of-window",
+            "plugin_name": "regression-gate",
+            "artifact_path": "/tmp/.factory/STATE.md",
+            "cause": "fuel",
+            "failure_policy": "fail-closed",
+            "ts": "2026-08-31T00:00:00+0000",
+        })
+        .to_string();
+
+        // Filler well past the byte cap, written AFTER the target line so the
+        // trailing tail-read window no longer includes it.
+        let filler_line = serde_json::json!({
+            "type": "plugin.completed",
+            "plugin_name": "irrelevant-plugin",
+            "ts": "2026-08-31T00:00:01+0000",
+        })
+        .to_string();
+        let mut content = format!("{indeterminate_line}\n");
+        while (content.len() as u64) < RECONCILE_SCAN_BYTE_CAP + 4096 {
+            content.push_str(&filler_line);
+            content.push('\n');
+        }
+        std::fs::write(&log_file, &content).expect("seed large log");
+
+        let log = InternalLog::new(log_dir.clone());
+        reconcile_raw_delete(dir.path(), &log, "sess-bounded")
+            .expect("reconcile_raw_delete must not error");
+
+        let after = std::fs::read_to_string(&log_file).expect("read log");
+        assert!(
+            !after.contains("OPERATOR_OVERRIDE"),
+            "bounded scan MUST NOT reconcile an unmatched event that falls outside the \
+             trailing RECONCILE_SCAN_BYTE_CAP window"
+        );
+    }
+
+    /// `reconcile_raw_delete` no-op when today's log file does not exist at all
+    /// (fresh session, nothing indeterminate has happened yet today).
+    #[test]
+    fn test_ADR_048_D4_reconcile_raw_delete_no_log_file_is_noop() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        std::fs::create_dir_all(dir.path().join(".factory")).expect("create .factory subdir");
+        let log_dir = dir.path().join("logs");
+        // log_dir itself does not exist yet.
+        let log = InternalLog::new(log_dir.clone());
+
+        let result = reconcile_raw_delete(dir.path(), &log, "sess-no-log");
+        assert!(
+            result.is_ok(),
+            "reconcile_raw_delete MUST be a best-effort no-op when no log exists yet, got {result:?}"
         );
     }
 }

@@ -28,12 +28,13 @@ use wasmtime::Engine;
 use crate::host::HostContext;
 use crate::indeterminate_marker::{
     MarkerFields, UNVALIDATED_MUTATION_MARKER_TTL_SECONDS, block_if_marker_check,
-    delete_marker_if_pass, read_all_marker_fields, read_marker_plugin_name, should_write_marker,
+    check_and_clear_expired_marker, delete_marker_if_pass, emit_marker_cleared,
+    read_all_marker_fields, read_marker_plugin_name, reconcile_raw_delete, should_write_marker,
     write_indeterminate_marker,
 };
 use crate::internal_log::{
     InternalEvent, InternalLog, PLUGIN_COMPLETED, PLUGIN_CRASHED, PLUGIN_INDETERMINATE,
-    PLUGIN_INVOKED, PLUGIN_MARKER_CLEARED, PLUGIN_TIMEOUT,
+    PLUGIN_INVOKED, PLUGIN_TIMEOUT,
 };
 use crate::invoke::{InvokeLimits, PluginResult, TimeoutCause, invoke_plugin};
 use crate::plugin_loader::PluginCache;
@@ -354,6 +355,54 @@ async fn execute_tier<'a>(
             fuel_cap: entry_clone.fuel_cap(&inputs.registry.defaults),
         };
         let on_error = entry_clone.on_error(&inputs.registry.defaults);
+
+        // ADR-048 §Decision 4 v1.2 (S-25.01 LOCAL adversary pass 2 F-P2-002 HIGH +
+        // F-P2-003 MED): dispatcher-native pre-check, run BEFORE invoking any
+        // `on_error = "block_if_marker"` (Arm 1/Arm 2) plugin on the normal
+        // (non-crash) path. TTL_EXPIRED detection + auto-clear + emission and
+        // OPERATOR_OVERRIDE RAW_DELETE_DETECTED reconciliation both happen here,
+        // dispatcher-native — never via the WASM `emit_event` host ABI, whose
+        // RESERVED_FIELDS enrichment cannot carry the marker's foreign
+        // trace_id/plugin_name (see `indeterminate_marker::check_and_clear_expired_marker`
+        // doc comment). By the time the WASM gate plugin's `evaluate_gate` runs
+        // below, the marker is guaranteed absent-or-non-expired.
+        if on_error == OnError::BlockIfMarker {
+            match check_and_clear_expired_marker(
+                &inputs.base_host_ctx.cwd,
+                chrono::Utc::now(),
+                &inputs.internal_log,
+                &inputs.base_host_ctx.session_id,
+            ) {
+                Ok(Some(_)) => {
+                    // TTL_EXPIRED cleared and emitted — no raw-delete reconciliation
+                    // needed; the marker's own quarantine trail is now closed.
+                }
+                Ok(None) => {
+                    // Not TTL-cleared (absent, non-expired, or legacy-conservative).
+                    // Best-effort: if genuinely absent, reconcile a possible operator
+                    // out-of-band raw delete. `reconcile_raw_delete` itself re-checks
+                    // marker absence and is a no-op when the marker is still present.
+                    if let Err(e) = reconcile_raw_delete(
+                        &inputs.base_host_ctx.cwd,
+                        &inputs.internal_log,
+                        &inputs.base_host_ctx.session_id,
+                    ) {
+                        tracing::warn!(
+                            error = %e,
+                            "reconcile_raw_delete: I/O error on normal-path pre-check; \
+                             continuing (ADR-048 §D4 v1.2 best-effort, never gates dispatch)"
+                        );
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!(
+                        error = %e,
+                        "check_and_clear_expired_marker: I/O error on normal-path pre-check; \
+                         continuing without TTL clear (ADR-048 §D4 v1.2 fail-safe)"
+                    );
+                }
+            }
+        }
 
         // Build the merged plugin_config from static config + resolver outputs.
         // AC-002: zero-overhead short-circuit when needs_context is empty.
@@ -1310,48 +1359,6 @@ fn emit_indeterminate(
         .with_field(
             "failure_policy",
             serde_json::Value::String(policy_str.to_string()),
-        );
-    log.write(&ev);
-}
-
-/// Emit `marker.cleared` (BC-3.08.001 Event 9 / ADR-048 v1.1) after the
-/// `.factory/unvalidated-mutation.marker` has been removed.
-///
-/// The `trace_id` on this event is set to the MARKER'S stored `trace_id`
-/// (not the current dispatch's trace), so the event links back to the
-/// originating `plugin.indeterminate` (Event 8) that wrote the marker.
-///
-/// Best-effort: errors in `log.write` are swallowed (see `InternalLog::write`).
-fn emit_marker_cleared(
-    log: &InternalLog,
-    session_id: &str,
-    marker_fields: &MarkerFields,
-    clear_mode: &str,
-    actor_type: &str,
-    reason: Option<&str>,
-) {
-    let ev = InternalEvent::now(PLUGIN_MARKER_CLEARED)
-        // Use marker's trace_id (not current dispatch's) to link back to plugin.indeterminate.
-        .with_trace_id(&marker_fields.trace_id)
-        .with_session_id(session_id)
-        .with_plugin_name(&marker_fields.plugin_name)
-        .with_field(
-            "artifact_path",
-            serde_json::Value::String(marker_fields.artifact_path.clone()),
-        )
-        .with_field(
-            "clear_mode",
-            serde_json::Value::String(clear_mode.to_string()),
-        )
-        .with_field(
-            "actor_type",
-            serde_json::Value::String(actor_type.to_string()),
-        )
-        .with_field(
-            "reason",
-            reason.map_or(serde_json::Value::Null, |r| {
-                serde_json::Value::String(r.to_string())
-            }),
         );
     log.write(&ev);
 }

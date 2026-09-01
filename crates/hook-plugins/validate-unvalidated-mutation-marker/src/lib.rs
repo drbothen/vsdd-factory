@@ -98,6 +98,15 @@ pub mod guard_logic {
     /// - If the file is present but unparseable (corrupt marker), returns `GateDecision::Block`
     ///   with best-effort populated fields (conservative path — still block).
     ///
+    /// **Pure presence check (ADR-048 §Decision 4 v1.2):** this function performs NO
+    /// `expires_at` / TTL date-math, no marker deletion, and no `marker.cleared` emission.
+    /// TTL_EXPIRED detection, auto-clear, and emission are handled entirely dispatcher-native
+    /// (`indeterminate_marker::check_and_clear_expired_marker`, invoked from `executor.rs`'s
+    /// tier-execution loop BEFORE this plugin ever runs) — a WASM plugin cannot emit an event
+    /// carrying the marker's own (foreign) `trace_id`/`plugin_name` through the `emit_event`
+    /// host ABI (RESERVED_FIELDS enrichment). By the time this function runs, a present
+    /// marker is therefore guaranteed non-expired, so presence alone is sufficient to Block.
+    ///
     /// The returned block message fields are used by both Arm 1 and Arm 2 to construct
     /// the structured block message (AC-007/AC-008).
     ///
@@ -167,57 +176,19 @@ pub mod guard_logic {
                     .unwrap_or("")
                     .to_string();
 
-                // ADR-048 §Decision 2 — 24-hour deadman TTL check (BC-1.18.003 PC4).
-                // If `expires_at` is present and its timestamp <= now → treat marker as absent:
-                // auto-delete (idempotent; swallow NotFound) and return Allow.
-                // If `expires_at` is absent (legacy pre-ADR-048 marker) → non-expired (block).
-                // If `expires_at` is unparseable → conservative (block).
-                let expires_at_opt = table
-                    .get("expires_at")
-                    .and_then(|v| v.as_str())
-                    .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
-                    .map(|dt| dt.with_timezone(&chrono::Utc));
-                if let Some(exp) = expires_at_opt
-                    && exp <= chrono::Utc::now()
-                {
-                    // TTL elapsed: auto-delete the stale marker (idempotent).
-                    // ADR-048 v1.1 / BC-3.08.001 Event 9: emit marker.cleared(TTL_EXPIRED)
-                    // ONLY when remove_file succeeds (i.e., this call deleted the file).
-                    // `trace_id` is a reserved field in the WASM plugin event ABI — the
-                    // dispatcher overrides it with the current dispatch's trace_id. Pass the
-                    // marker's trace_id as `marker_trace_id` to preserve provenance linkage to
-                    // the originating `plugin.indeterminate` (Event 8).
-                    match std::fs::remove_file(marker_path) {
-                        Ok(()) => {
-                            vsdd_hook_sdk::host::emit_event(
-                                "marker.cleared",
-                                &[
-                                    ("clear_mode", "TTL_EXPIRED"),
-                                    ("actor_type", "deadman"),
-                                    ("artifact_path", artifact_path.as_str()),
-                                    ("marker_trace_id", trace_id.as_str()),
-                                    ("marker_plugin_name", plugin_name.as_str()),
-                                    ("reason", ""),
-                                ],
-                            );
-                        }
-                        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
-                        Err(e) => {
-                            tracing::warn!(
-                                error = %e,
-                                path = %marker_path.display(),
-                                "TTL-expired marker auto-delete failed (non-fatal; next \
-                                 gate check will re-evaluate)"
-                            );
-                        }
-                    }
-                    tracing::info!(
-                        expires_at = %exp,
-                        "marker TTL elapsed — allowing (BC-1.18.003 PC4 auto-delete)"
-                    );
-                    return GateDecision::Allow;
-                }
-
+                // ADR-048 §Decision 4 v1.2 (S-25.01 LOCAL adversary pass 2 F-P2-002 HIGH):
+                // `evaluate_gate` performs NO `expires_at` parsing, no auto-delete, and no
+                // `marker.cleared` emission of its own. TTL_EXPIRED detection + clear +
+                // emission moved entirely dispatcher-native
+                // (`indeterminate_marker::check_and_clear_expired_marker`, called from
+                // `executor.rs`'s tier-execution loop BEFORE this plugin ever runs) because
+                // the WASM `emit_event` host ABI's RESERVED_FIELDS enrichment unconditionally
+                // overwrites plugin-supplied `trace_id`/`plugin_name` with THIS plugin's own
+                // dispatch identity — a WASM plugin can never emit an event carrying the
+                // marker's foreign trace_id/plugin_name, which the Event 9 wire contract
+                // requires. By the time this function runs, the marker is guaranteed
+                // already absent-or-non-expired by that pre-check, so a still-present
+                // marker here is unconditionally blocked — a pure presence check.
                 GateDecision::Block {
                     plugin_name,
                     artifact_path,
@@ -1642,13 +1613,18 @@ mod tests {
         );
     }
 
-    // ── ADR-048 §Decision 2: evaluate_gate TTL (BC-1.18.003 PC4/INV5) ─────────
+    // ── ADR-048 §Decision 4 v1.2: evaluate_gate is a pure presence check ─────
 
-    /// BC-1.18.003 PC4: expired marker → evaluate_gate returns Allow and auto-deletes the file.
-    ///
-    /// expires_at <= now: TTL elapsed. evaluate_gate MUST return Allow and delete the stale file.
+    /// ADR-048 §D4 v1.2 (S-25.01 LOCAL adversary pass 2 F-P2-002 HIGH): a marker
+    /// with an ELAPSED `expires_at` still yields `GateDecision::Block` from
+    /// `evaluate_gate` — TTL determination is no longer this function's job.
+    /// It is performed dispatcher-native, BEFORE this plugin ever runs
+    /// (`indeterminate_marker::check_and_clear_expired_marker`), so in normal
+    /// operation `evaluate_gate` never actually observes an expired marker;
+    /// this test asserts the DEFENSE-IN-DEPTH behavior directly — presence
+    /// alone blocks, unconditionally, with no TTL awareness of its own.
     #[test]
-    fn test_BC_1_18_003_evaluate_gate_expired_marker_allows_and_autodelete() {
+    fn test_ADR_048_D4_evaluate_gate_ignores_expires_at_blocks_on_presence_alone() {
         let dir = tempfile::tempdir().expect("tempdir");
         let marker_path = dir.path().join("unvalidated-mutation.marker");
         std::fs::write(
@@ -1663,12 +1639,14 @@ mod tests {
         .expect("write expired marker");
         let decision = evaluate_gate(&marker_path);
         assert!(
-            matches!(decision, GateDecision::Allow),
-            "BC-1.18.003 PC4: expired marker MUST return Allow"
+            matches!(decision, GateDecision::Block { .. }),
+            "ADR-048 §D4 v1.2: evaluate_gate MUST Block on marker presence alone, \
+             regardless of expires_at — got {decision:?}"
         );
         assert!(
-            !marker_path.exists(),
-            "BC-1.18.003 PC4: evaluate_gate MUST auto-delete the stale expired marker"
+            marker_path.exists(),
+            "ADR-048 §D4 v1.2: evaluate_gate MUST NOT delete the marker — deletion is \
+             dispatcher-native (check_and_clear_expired_marker), not this function's job"
         );
     }
 
