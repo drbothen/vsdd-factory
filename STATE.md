@@ -138,7 +138,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | **89f6f87c** | v1.0.0-rc.24 bundle commit, tagged 2026-08-26. |
 | develop | **9ab5a6f6** | PR #802 (S-24.01 vsdd-factory:wrap skill) squash-merged `9ab5a6f6` 2026-08-30 (D-1132). Prior: `da14fb94` (PR #801 F-WG5-P2-001 2026-08-29). CI-GREEN. |
-| factory-artifacts | **`TBD-WRAP-COMMIT`** | SESSION-WRAP-PAUSE-2026-08-31 v9.50→v9.51 (this burst; SHA patched per D-449(e) after push). Prior: `81a775c0` (BC-INDEX-STORY-INDEX-LAST-AMENDED-COMPACTION-AND-D-PARITY-2026-08-31 v9.49→v9.50). |
+| factory-artifacts | **`67aa01ec`** | SESSION-WRAP-PAUSE-2026-08-31 v9.50→v9.51 (this burst; SHA patched per D-449(e) after push). Prior: `81a775c0` (BC-INDEX-STORY-INDEX-LAST-AMENDED-COMPACTION-AND-D-PARITY-2026-08-31 v9.49→v9.50). |
 | feature/S-25.01 | **`65d3c585`** | F4 TDD IN PROGRESS — PAUSED (SESSION-WRAP-PAUSE-2026-08-31). Post ADR-048 v1.1 spec amendments (D-1137). FROZEN for BC-5.39.001 3-CLEAN cascade (streak 0/3 after spec amendments). Finalization backlog: LOW-1/OBS-3/[process-gap] (swept after 3-CLEAN per D-1127). NEXT on resume: adversary pass 2 (fresh context) on frozen 65d3c585. |
 | fix/count-propagation-cpu-runaway | **`0ecf019a`** | PR #803 open — orphaned rc.24-cache validate-count-propagation.sh CPU runaway fix. REQUEST_CHANGES review. Waiting for E to merge+rebase. |
 | fix/wasmtime-46.0.3-rustsec-2026-0268-0269 | **`1db2ab65`** | PR #804 open — RUSTSEC-2026-0268 (MED) + RUSTSEC-2026-0269 (HIGH CVSS 8.8) cleared via wasmtime 46.0.3. READY-FOR-MERGE awaiting human go-ahead. |
@@ -340,7 +340,7 @@ Pipeline **PAUSED** — SESSION-WRAP-PAUSE-2026-08-31. Brownfield cycle `v1.0-br
 - `develop`: **`9ab5a6f6`** (PR #802 S-24.01 squash-merged 2026-08-30).
 - `main`: **`89f6f87c`** (v1.0.0-rc.24 bundle commit, tagged 2026-08-26).
 - `feature/S-25.01`: **`65d3c585`** (post ADR-048 v1.1 spec amendments; FROZEN for BC-5.39.001 3-CLEAN cascade; streak 0/3).
-- `factory-artifacts`: **`TBD-WRAP-COMMIT`** (this wrap commit; SHA patched per D-449(e) after push).
+- `factory-artifacts`: **`67aa01ec`** (this wrap commit; SHA patched per D-449(e) after push).
 - `fix/count-propagation-cpu-runaway`: **`0ecf019a`** (PR #803 REQUEST_CHANGES).
 - `fix/wasmtime-46.0.3-rustsec-2026-0268-0269`: **`1db2ab65`** (PR #804 READY-FOR-MERGE).
 
