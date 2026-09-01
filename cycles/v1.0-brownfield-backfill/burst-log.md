@@ -9964,3 +9964,123 @@ BC-5.39.001 streak stays 0/3 (findings-then-fix burst, no CLEAN pass). trajector
 single commit per TD-VSDD-053.
 
 ---
+
+## S2501-PASS6-FIX-BURST-INDEX-SYNC-2026-09-01
+
+**D-chain cite:** D-1141.
+
+**Convergence trajectory (this burst spans 3 passes):** pass 4 CLEAN (streak 0/3→1/3) → pass 5
+CLEAN (streak 1/3→2/3) → pass 6 NOT-CLEAN (1 MED F-P6-001; streak RESET 2/3→0/3).
+
+**Trigger:** S-25.01 LOCAL adversary pass 4 (fresh context, frozen `feature/S-25.01` @ `bf03dfcc`)
+returned CLEAN (zero MEDIUM+; no code/spec change). Pass 5 (fresh context, frozen artifact
+UNCHANGED @ `bf03dfcc`) returned CLEAN again (zero MEDIUM+; no code/spec change). Pass 6 (fresh
+context, frozen artifact UNCHANGED @ `bf03dfcc`) returned NOT-CLEAN: 1 MED.
+
+- **F-P6-001 (MEDIUM, reconciliation-premise fabrication):** `reconcile_raw_delete`'s
+  RAW_DELETE_DETECTED inference — "an unmatched fail-closed `plugin.indeterminate` proves a marker
+  was durably written and later raw-deleted out-of-band" — is FALSE in two reachable cases neither
+  the v1.0–v1.3 text nor the frozen S-25.01 implementation accounted for: (1) a PreToolUse
+  fail-closed INDETERMINATE never attempts a marker write at all (BC-1.18.001 INV4 — marker write
+  is PostToolUse-only; confirmed EFFECTIVE-NOW reachable via `validate-factory-path-staging`,
+  registered PreToolUse `^Bash$`, `failure_policy="fail-closed"`, Cohort A-immediate in
+  `hooks-registry.toml`); (2) a PostToolUse marker-write I/O failure (EC-007, swallowed
+  best-effort) leaves the identical no-marker-ever-existed footprint. Both cases fabricate
+  `marker.cleared(clear_mode=OPERATOR_OVERRIDE, actor_type=operator)` — a false NIST AU-3/AU-10
+  non-repudiation audit record attributing a human out-of-band action that never happened;
+  identified as the un-swept sibling of the F-P3-002 SUPERSEDED fix (which closed only the
+  cross-pair-overwrite route, not this event-content-vs-filesystem-state gap). **Human-re-ratified
+  2026-09-01 (POLICY 22):** ADR-048 amended v1.3→v1.4 (§Decision 4 v1.4 Reconciliation-Premise
+  Correction) — Option A selected (positive marker-creation record, over a discriminator-field
+  alternative): a new dispatcher-native audit event `marker.written` (BC-3.08.001 Event 10) is
+  emitted by `write_indeterminate_marker`'s caller ONLY immediately after the atomic marker write
+  returns `Ok(())` — never before the write, never on write failure — via `ctx.emit_internal`, the
+  same dual-sink primitive Events 8/9 already use. `reconcile_raw_delete`'s scan retargets from
+  unmatched `plugin.indeterminate` (`failure_policy=fail-closed`) to unmatched `marker.written` —
+  the `failure_policy` filter removed as structurally redundant, since `marker.written` is now
+  emitted iff a marker was actually, durably written — making the reconciliation premise TRUE BY
+  CONSTRUCTION rather than inferred from a proxy signal. ADR-048 status `PROPOSED`→`ACCEPTED —
+  Human-Ratified`. Implementer commit `fdbff54f`.
+
+**PO cascade:** BC-1.18.001 v1.3→v1.4 (new PC4 `marker.written` audited creation event — emitted
+via `ctx.emit_internal` by `write_indeterminate_marker`'s caller ONLY after `Ok(())`, never before,
+never on `Err(_)`; EC-007 gains a no-emission-on-write-failure clause); BC-1.18.003 v1.5→v1.6 (PC3
+`reconcile_raw_delete` scan match-type retargeted from unmatched `plugin.indeterminate` to unmatched
+`marker.written`; `trace_id`/`plugin_name`/`artifact_path` sourcing corrected to the matched
+`marker.written` event; new EC-017 direct F-P6-001 regression test; new non-fabrication Canonical
+Test Vectors row); BC-3.08.001 v1.32→v1.33 (new §Event 10 `marker.written` catalog entry —
+wire-format/field-shape authority only, full triggering-condition/semantics authority is
+BC-1.18.001 §PC4 v1.4; Event 9's OPERATOR_OVERRIDE Trigger bullet, `clear_mode`/`actor_type`
+correspondence table row, `trace_id` semantics paragraph, EC-013, and the
+`marker-cleared-operator-override` Canonical Test Vectors row all retargeted from unmatched
+`plugin.indeterminate` to unmatched `marker.written`; count-phrase sweep nine→ten event types
+throughout — H1, §Description, §Common Fields, §Invariants 1+3, §VP Anchors, §Traceability).
+BC-1.18.002 UNCHANGED at v1.7.
+
+**Architect same-burst:** VP-108 v1.2→v1.3 — PC3 fixture/premise corrected: seeds a `marker.written`
+line (via `emit_marker_written`) instead of a raw `plugin.indeterminate` JSON line, matching what a
+real successful write now produces; new Postcondition 6 (`marker.written` write-path emission
+correctness); new Postcondition 7 (F-P6-001 negative-control regression test — an unmatched
+`plugin.indeterminate` with NO corresponding `marker.written` → `reconcile_raw_delete` emits ZERO
+fabricated `marker.cleared(OPERATOR_OVERRIDE)`); source_bc gains BC-1.18.001 §PC4 + BC-3.08.001
+Event 10.
+
+**Story-writer:** S-25.01 v1.13→v1.14 — new **AC-025** added (BC-1.18.001 PC4 v1.4 —
+`marker.written` audited creation event; new `emit_marker_written(ctx, fields)` function in
+`indeterminate_marker.rs`, invoked from `executor.rs` immediately after the AC-024 SUPERSEDED
+check, `Ok(())` arm only); AC-023 retargeted to the `marker.written` scan match-type; Architecture
+Mapping + Purity Classification tables extended (new `emit_marker_written` row, Effectful); T-3
+task checklist updated; new story EC-036 non-fabrication negative control; Red Gate stub gap note
+extended to cover AC-025.
+
+**State-manager this burst (4-index atomic advance):**
+- BC-INDEX v5.37→v5.38 — appended version-chain cells for BC-1.18.001/BC-1.18.003/BC-3.08.001.
+  BC-corpus-version-sync literal-Python verification (matching each entry's leading
+  `v(\d+\.\d+) \(v\1 ` token to frontmatter): BC-1.18.001 last-entry `v1.4` == frontmatter `1.4`;
+  BC-1.18.002 `v1.7` == `1.7`; BC-1.18.003 `v1.6` == `1.6`; BC-1.18.004 `v1.1` == `1.1`;
+  BC-3.08.001 `v1.33` == `1.33`. ALL MATCH.
+- VP-INDEX v2.94→v2.95 — VP-108 §Full Index + §Story Anchors both updated same-burst (no
+  propagation gap). total_vps UNCHANGED 108 (amendment, not a new VP).
+- Input-hash re-sync via `plugins/vsdd-factory/bin/compute-input-hash --update`: BC-1.18.001
+  `a973060`→`32ea23b`; BC-1.18.003 `fa10f5f`→`f722156`; S-25.01 `588224a`→`170a816`. BC-3.08.001
+  unchanged (`b64ffb3`, own `inputs:` list does not cite ADR-048/BC-1.18.001/BC-1.18.003 — a
+  pre-existing gap, not introduced or corrected this burst). ADR-048/VP-108 have no `inputs:`
+  frontmatter field (not subject to POLICY 18). Re-verified S-25.01 `--check`-equivalent
+  frontmatter=catalog-row=blockquote=`170a816` (all 3 sites literal-grep VERIFIED).
+- STORY-INDEX v4.421→v4.422 — catalog row + 3 blockquotes (§E-25 delivery, §Input-hashes, §BC
+  coverage) updated to v1.14/170a816/BC v1.4·v1.7·v1.6·v1.33/VP-102..108 (VP-108 v1.3). POLICY 18
+  three-way parity VERIFIED (frontmatter=catalog-row=blockquote=170a816).
+- ARCH-INDEX v4.05→v4.06 — ADR-048 row tail: new Decision 4 v1.4 amendment sentence appended
+  in-row (reconciliation-premise correction summary); tail parenthetical flipped to cite v1.4 +
+  D-1141, Human-Ratified 2026-09-01.
+- ADR-048 file: frontmatter `modified:` array gains a `(v1.4 ratified)` entry (state-manager;
+  no content change, status flip only — mirrors the v1.3-ratified precedent); §Status banner's
+  v1.4 clause flipped from "PROPOSED and NOT YET RATIFIED" to "SEPARATELY Human-Ratified
+  2026-09-01, POLICY 22, D-1141"; §Status-as-of-2026-09-01(v1.4) section flipped identically; the
+  v1.4-origin bibliography note (§Decision 4 amendment history list) flipped from "PROPOSED
+  pending human ratification" to "HUMAN-RATIFIED 2026-09-01 per POLICY 22 (D-1141)". Frontmatter
+  top-level `status: accepted` was already correct (carried over from the v1.3 ratification) and
+  required no edit.
+- **Sibling-sweep (TD-VSDD-060):** the identical "PROPOSED — awaiting human ratification per
+  ADR-048 v1.4 Status" citation, drafted by PO/architect/story-writer BEFORE this burst's
+  ratification landed (unlike the v1.3 precedent, where ratification preceded PO/story-writer
+  authorship), was swept to "HUMAN-RATIFIED 2026-09-01, POLICY 22, D-1141" at all 8 occurrences
+  across BC-1.18.001 (1), BC-1.18.003 (2), BC-3.08.001 (4), and S-25.01 (7) — status-flip-only,
+  no other content touched.
+
+**Drift Item recorded (UNCHANGED, not addressed this burst):** S-4.07 anchor (D-1140) — when
+S-4.07 wires the real observable Router/FileSink (`events-*.jsonl`) into `main.rs`, re-point
+`reconcile_raw_delete`'s scan target from `dispatcher-internal-{date}.jsonl` to `events-*.jsonl`
+and re-amend ADR-048 §D4 accordingly. Drift Item AC-021/022/023/024 Red Gate stub gap (D-1139/1140)
+now also covers AC-025.
+
+**feature/S-25.01:** `bf03dfcc`→`fdbff54f` (implementer commit; parent `bf03dfcc`). BC-5.39.001
+streak RESET 2/3→0/3 (pass 6 findings-then-fix burst; per frozen-artifact-reset protocol
+L-EDP1-007/051/061, any code/spec change resets the streak regardless of prior CLEAN-pass
+progress). trajectory-tail →1→1→0→0 LENGTH=4 (pass 4/5 CLEAN advances; pass 6 NOT-CLEAN held).
+NEXT: fresh LOCAL adversary pass 7 on frozen `fdbff54f`.
+
+**Housekeeping:** transient dispatcher/session telemetry (`logs/dispatcher-internal-*.jsonl`,
+`logs/events-*.jsonl`) bundled into this SAME single commit per TD-VSDD-053.
+
+---
