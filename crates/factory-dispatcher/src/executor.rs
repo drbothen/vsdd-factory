@@ -29,8 +29,8 @@ use crate::host::HostContext;
 use crate::indeterminate_marker::{
     MarkerFields, UNVALIDATED_MUTATION_MARKER_TTL_SECONDS, block_if_marker_check,
     check_and_clear_expired_marker, delete_marker_if_pass, emit_marker_cleared,
-    emit_superseded_if_cross_pair, read_all_marker_fields, read_marker_plugin_name,
-    reconcile_raw_delete, should_write_marker, write_indeterminate_marker,
+    emit_marker_written, emit_superseded_if_cross_pair, read_all_marker_fields,
+    read_marker_plugin_name, reconcile_raw_delete, should_write_marker, write_indeterminate_marker,
 };
 use crate::internal_log::{
     InternalEvent, InternalLog, PLUGIN_COMPLETED, PLUGIN_CRASHED, PLUGIN_INDETERMINATE,
@@ -626,13 +626,20 @@ async fn execute_tier<'a>(
                     // HIGH-2: log marker-write failures instead of silently swallowing them.
                     // Best-effort: write failure does NOT fail the dispatch result.
                     // The plugin.indeterminate event was already emitted above.
-                    if let Err(e) = write_indeterminate_marker(&fields, &marker_path) {
-                        tracing::warn!(
-                            plugin = %entry_clone.name,
-                            marker_path = %marker_path.display(),
-                            error = %e,
-                            "marker write failed on INDETERMINATE; dispatch continues"
-                        );
+                    match write_indeterminate_marker(&fields, &marker_path) {
+                        // ADR-048 §D4 v1.4 / F-P6-001: emit marker.written ONLY
+                        // immediately after a confirmed successful write — never
+                        // before the write, never on Err — so reconcile_raw_delete's
+                        // unmatched-marker.written inference is sound by construction.
+                        Ok(()) => emit_marker_written(&base_ctx_for_event, &fields),
+                        Err(e) => {
+                            tracing::warn!(
+                                plugin = %entry_clone.name,
+                                marker_path = %marker_path.display(),
+                                error = %e,
+                                "marker write failed on INDETERMINATE; dispatch continues"
+                            );
+                        }
                     }
                 }
             }
@@ -927,13 +934,20 @@ pub fn spawn_async_plugin(
                 // HIGH-2: log marker-write failures instead of silently swallowing them.
                 // Best-effort: write failure does NOT fail the dispatch result.
                 // The plugin.indeterminate event was already emitted above.
-                if let Err(e) = write_indeterminate_marker(&fields, &marker_path) {
-                    tracing::warn!(
-                        plugin = %entry.name,
-                        marker_path = %marker_path.display(),
-                        error = %e,
-                        "marker write failed on INDETERMINATE; dispatch continues"
-                    );
+                match write_indeterminate_marker(&fields, &marker_path) {
+                    // ADR-048 §D4 v1.4 / F-P6-001: emit marker.written ONLY
+                    // immediately after a confirmed successful write — never
+                    // before the write, never on Err — so reconcile_raw_delete's
+                    // unmatched-marker.written inference is sound by construction.
+                    Ok(()) => emit_marker_written(&base_ctx_for_event, &fields),
+                    Err(e) => {
+                        tracing::warn!(
+                            plugin = %entry.name,
+                            marker_path = %marker_path.display(),
+                            error = %e,
+                            "marker write failed on INDETERMINATE; dispatch continues"
+                        );
+                    }
                 }
             }
         }
