@@ -1,7 +1,7 @@
 ---
 document_type: adr
 adr_id: ADR-048
-version: "1.2"
+version: "1.3"
 title: "ADR-048: Fail-Closed-But-Recoverable Gate — block_if_marker Crash Policy, Marker TTL Deadman, and Ungated-Escape Invariant"
 status: accepted
 date: 2026-08-31
@@ -15,8 +15,10 @@ supersedes: ADR-047
 superseded_by: null
 extends: ADR-047
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
-last_amended: "2026-08-31 (v1.2) — Architect-directed (S-25.01 LOCAL adversary pass 2 F-P2-002 HIGH + F-P2-003 MED resolution): §Decision 4 emission-point architecture corrected. Root cause: `marker.cleared` emitted via the WASM `emit_event` host ABI is subject to RESERVED_FIELDS enrichment (`crates/factory-dispatcher/src/host/emit_event.rs`) — the host unconditionally overwrites plugin-supplied `trace_id`/`plugin_name` with the CURRENT gate-plugin's own dispatch identity, so a WASM plugin can never emit an event carrying a FOREIGN (marker-owned) trace_id/plugin_name. TTL_EXPIRED detection+auto-delete+emission is MOVED from the WASM gate plugin's `evaluate_gate` to a new dispatcher-native pre-check (`indeterminate_marker.rs`) that runs before every Arm 1/Arm 2 plugin invocation on the normal (non-crash) path, mirroring the already-correct REVALIDATED emission architecture. OPERATOR_OVERRIDE/RAW_DELETE_DETECTED reconciliation (previously entirely unimplemented) is likewise implemented dispatcher-native, in the same pre-check's marker-absent branch, with a bounded/best-effort FileSink scan. `evaluate_gate` is simplified to a pure presence check (no `expires_at` math, no delete, no emission). PROPOSED — awaiting human ratification (unchanged from v1.0/v1.1; this is a further pre-ratification revision, not a reopening of an already-ratified decision). [Prior: 2026-08-31 (v1.1) — Human-directed (HIGH-1 resolution): §Decision 3 amended — recovery model reframed (re-validation = primary agent recovery; human out-of-band rm = break-glass; agent-tool rm de-sanctioned; shared-crate fix rejected as unnecessary + unsound per Rice's theorem); §Decision 4 added — marker.cleared audited event (clear_mode ∈ {REVALIDATED,TTL_EXPIRED,OPERATOR_OVERRIDE}; trace_id linkage; RAW_DELETE_DETECTED reconciliation mode) + TTL-loudness. [v1.0 — Initial authoring. Human-directed gate redesign reversing D-1135 fail-open-on-crash ratification.]]"
+last_amended: "2026-09-01 (v1.3) — Architect adjudication (S-25.01 LOCAL adversary pass 3 F-P3-001 MEDIUM + F-P3-002 LOW resolution): §Decision 4 emission-MECHANISM precision correction — Events 8/9 emission (`emit_indeterminate`, `emit_marker_cleared`, `check_and_clear_expired_marker`, `reconcile_raw_delete`) MUST route through `HostContext::emit_internal` (the same dual-sink helper Events 1/2/3/5/6 already use — writes InternalLog when wired AND pushes the stub `ctx.events` queue that VSDD_SINK_FILE/the future S-4.x Router→FileSink drain), not a raw `InternalLog::write` call that silently bypasses the queue. `reconcile_raw_delete`'s bounded scan target is corrected to `dispatcher-internal-{date}.jsonl` (the only sink unconditionally durable in every production dispatcher run, independent of `observability-config.toml`) — NOT a literal `events-{date}.jsonl`, which is not durably written absent an opt-in `VSDD_SINK_FILE` or the not-yet-main.rs-wired S-4.07 Router/FileSink. New `clear_mode = \"SUPERSEDED\" / actor_type = \"system\"` added to Event 9 to close the F-P3-002 cross-pair-overwrite false-attribution gap: when `write_indeterminate_marker` overwrites a live marker belonging to a DIFFERENT `(plugin_name, artifact_path)` pair (last-writer-wins, BC-1.18.001 INV3), the superseded pair's fields are read before overwrite and `marker.cleared(SUPERSEDED, system)` is emitted immediately — preventing `reconcile_raw_delete` from later mis-attributing the superseded pair's clearance to a human `OPERATOR_OVERRIDE` that never happened. HUMAN-RATIFIED 2026-09-01 (POLICY 22; D-1140) — further revision to an already-ratified ADR; does not reopen v1.0–v1.2's ratified decisions. [Prior: 2026-08-31 (v1.2) — Architect-directed (S-25.01 LOCAL adversary pass 2 F-P2-002 HIGH + F-P2-003 MED resolution): §Decision 4 emission-point architecture corrected. Root cause: `marker.cleared` emitted via the WASM `emit_event` host ABI is subject to RESERVED_FIELDS enrichment (`crates/factory-dispatcher/src/host/emit_event.rs`) — the host unconditionally overwrites plugin-supplied `trace_id`/`plugin_name` with the CURRENT gate-plugin's own dispatch identity, so a WASM plugin can never emit an event carrying a FOREIGN (marker-owned) trace_id/plugin_name. TTL_EXPIRED detection+auto-delete+emission is MOVED from the WASM gate plugin's `evaluate_gate` to a new dispatcher-native pre-check (`indeterminate_marker.rs`) that runs before every Arm 1/Arm 2 plugin invocation on the normal (non-crash) path, mirroring the already-correct REVALIDATED emission architecture. OPERATOR_OVERRIDE/RAW_DELETE_DETECTED reconciliation (previously entirely unimplemented) is likewise implemented dispatcher-native, in the same pre-check's marker-absent branch, with a bounded/best-effort FileSink scan. `evaluate_gate` is simplified to a pure presence check (no `expires_at` math, no delete, no emission). PROPOSED — awaiting human ratification (unchanged from v1.0/v1.1; this is a further pre-ratification revision, not a reopening of an already-ratified decision). [Prior: 2026-08-31 (v1.1) — Human-directed (HIGH-1 resolution): §Decision 3 amended — recovery model reframed (re-validation = primary agent recovery; human out-of-band rm = break-glass; agent-tool rm de-sanctioned; shared-crate fix rejected as unnecessary + unsound per Rice's theorem); §Decision 4 added — marker.cleared audited event (clear_mode ∈ {REVALIDATED,TTL_EXPIRED,OPERATOR_OVERRIDE}; trace_id linkage; RAW_DELETE_DETECTED reconciliation mode) + TTL-loudness. [v1.0 — Initial authoring. Human-directed gate redesign reversing D-1135 fail-open-on-crash ratification.]]]"
 modified:
+  - "2026-09-01 (v1.3 ratified) — Human-Ratified (POLICY 22; D-1140; state-manager; no content change, status flip only)"
+  - "2026-09-01 (v1.3) — §D4 emission-MECHANISM precision correction (S-25.01 pass-3 F-P3-001) + SUPERSEDED clear_mode (F-P3-002); Human-Ratified 2026-09-01 (POLICY 22; D-1140)"
   - "2026-09-01 (status: proposed→accepted) — Human-Ratified (POLICY 22; D-1139; state-manager; no content change, status flip only)"
   - "2026-08-31 (v1.2) — §D4 emission-point correction: TTL_EXPIRED + OPERATOR_OVERRIDE moved dispatcher-native (S-25.01 pass-2 F-P2-002/F-P2-003)"
   - "2026-08-31 (v1.1) — §D3 recovery model reframe + §D4 audited clear event + TTL-loudness (HIGH-1 resolution)"
@@ -33,11 +35,42 @@ modified:
 
 **ACCEPTED — Human-Ratified 2026-09-01** (POLICY 22 — ratification complete. S-25.01 LOCAL adversary
 pass 2 F-P2-001/F-P2-002/F-P2-003 fix-burst COMPLETE; ADR-048 v1.0/v1.1/v1.2 all ratified as a
-single decision, v1.2's emission-point correction included. D-1139.)
+single decision, v1.2's emission-point correction included. D-1139. **v1.3's §Decision 4
+emission-mechanism precision correction and SUPERSEDED clear_mode addition are SEPARATELY
+Human-Ratified 2026-09-01, POLICY 22, D-1140** — a further revision to this already-ratified ADR,
+not a reopening of the D-1139 decision.)
 
-POLICY 22 ratification (2026-09-01) is to be recorded authoritatively in the decision-log (D-1139)
-by state-manager in the spec-burst commit. The ADR frontmatter `status: accepted` reflects the
-architectural decision; the decision-log entry is the authoritative ratification record.
+POLICY 22 ratification (2026-09-01) is to be recorded authoritatively in the decision-log (D-1139
+for v1.0–v1.2; D-1140 for v1.3) by state-manager in the spec-burst commit. The ADR frontmatter
+`status: accepted` reflects the architectural decision; the decision-log entries are the
+authoritative ratification record.
+
+**v1.3 amendment (2026-09-01 — S-25.01 LOCAL adversary pass 3 F-P3-001 MEDIUM + F-P3-002 LOW
+resolution; architect adjudication):** F-P3-001 found that v1.2's "dispatcher-native" emission
+fix, while correctly moving TTL_EXPIRED/OPERATOR_OVERRIDE off the WASM ABI, was implemented as a
+raw `InternalLog::write` call inside `indeterminate_marker.rs` — bypassing `HostContext::
+emit_internal`, the dual-sink helper every OTHER dispatcher-native event in the BC-3.08.001
+catalog (`dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.async_block_
+discarded`, `plugin.abandoned`, `plugin.completed` async) already uses. `emit_internal` writes
+BOTH to `InternalLog` (when wired — unconditionally durable) AND pushes the event onto `ctx.
+events`, the stub queue whose own doc comment names it as the eventual consumer point for "S-1.8's
+file sink (and the multi-sink router in S-1.9/S-4.x)" and which `VSDD_SINK_FILE` already drains
+today. Bypassing `emit_internal` for Events 8/9 alone is what actually produces the spec/code
+sink-target divergence BC-3.08.001 describes as "FileSink `events-*.jsonl`" — Events 8/9 silently
+diverged from the pattern their eight siblings already follow. §Decision 4 v1.3 (below) corrects
+this. Separately, `reconcile_raw_delete`'s scan target is corrected from an aspirational literal
+`events-{date}.jsonl` (not durably written in any default production dispatcher run — see §Decision
+4 v1.3 rationale) to `dispatcher-internal-{date}.jsonl`, the log `emit_internal` unconditionally
+writes to. F-P3-002 (LOW) found that single-marker last-writer-wins (BC-1.18.001 INV3) lets a
+second, unrelated `(plugin_name, artifact_path)` pair's INDETERMINATE event silently overwrite an
+earlier pair's marker with no clear event ever recorded for the earlier pair — so a LATER raw
+delete of the (now-overwritten) marker causes `reconcile_raw_delete` to falsely attribute
+`OPERATOR_OVERRIDE` to the EARLIER, already-superseded pair, fabricating an audit record of a
+human action that never happened. §Decision 4 v1.3 adds a fourth `clear_mode` (`SUPERSEDED`,
+`actor_type = "system"`) emitted by `write_indeterminate_marker` itself at the moment of overwrite,
+closing the false-attribution gap. See the enumerated PO (BC-1.18.001/BC-1.18.003/BC-3.08.001) and
+story-writer (S-25.01) change list in the architect's S-25.01 pass-3 adjudication response (not
+duplicated verbatim here to avoid drift between this ADR and the BC/VP/story files themselves).
 
 **v1.2 amendment (2026-08-31 — S-25.01 LOCAL adversary pass 2 F-P2-002/F-P2-003 resolution):**
 §Decision 4's emission-point architecture is corrected. F-P2-002 (HIGH) found that the
@@ -618,6 +651,115 @@ crash-path check): UNCHANGED — `block_if_marker_check` retains its own indepen
 for the crash-path case (does not auto-delete, does not emit; see Decision 1 and BC-1.18.003
 EC-014/VP-108 PC4), which remains a distinct code path from the new normal-path native pre-check.
 
+### Decision 4 v1.3 — Emission-Mechanism Precision Correction (F-P3-001) + SUPERSEDED Clear Mode (F-P3-002)
+
+**S-25.01 LOCAL adversary pass 3 F-P3-001 (MEDIUM):** the frozen S-25.01 implementation
+(`feature/S-25.01`) emits `plugin.indeterminate` (Event 8) via `emit_indeterminate` (`executor.rs`)
+and `marker.cleared` (Event 9) via `emit_marker_cleared`/`check_and_clear_expired_marker`/
+`reconcile_raw_delete` (`indeterminate_marker.rs`) — and `reconcile_raw_delete` scans for its
+reconciliation match — ALL via a raw `InternalLog::write` call, i.e. the "internal log"
+(`dispatcher-internal-{date}.jsonl`), NOT the "FileSink `events-*.jsonl`" that BC-3.08.001,
+ADR-048 §Decision 4 (v1.1/v1.2 prose), and VP-108 repeatedly and explicitly name as the wire-format
+sink. The v1.2 Emission-Point Correction above correctly identified and fixed WHERE
+(dispatcher-native vs. WASM-plugin-side) but did not audit WHICH dispatcher-native mechanism —
+and the implementation that landed calls `InternalLog::write` directly rather than the established
+`HostContext::emit_internal` helper.
+
+**Root cause — `HostContext::emit_internal` is the REAL "FileSink `events-*.jsonl`" path, not a
+literal always-on file:** `crates/factory-dispatcher/src/host/mod.rs`'s `HostContext.events` field
+(`Arc<Mutex<Vec<InternalEvent>>>`) carries this doc comment: "Stub event sink. `emit_event` pushes
+enriched events here; the real consumer is S-1.8's file sink (and the multi-sink router in S-1.9 /
+S-4.x)." `HostContext::emit_internal(&self, event)` is the single dispatcher-native emission
+primitive that (a) writes to `InternalLog` when `ctx.internal_log` is `Some` (unconditionally
+durable, independent of `observability-config.toml`) AND (b) pushes onto `ctx.events` (drained
+today by the opt-in `VSDD_SINK_FILE` diagnostic flush in `main.rs::run()`, and by the not-yet-
+main.rs-wired S-4.x `sinks::Router`/`FileSink` apparatus once S-4.07 lands). EVERY other
+dispatcher-native BC-3.08.001 event already calls `ctx.emit_internal(ev)` — confirmed at
+`emit_dispatcher_schema_mismatch`, `emit_registry_invalid_e_reg002`/`_e_reg003`,
+`emit_plugin_abandoned`, `emit_plugin_async_block_discarded`, `emit_plugin_completed_async`,
+`emit_plugin_timeout_async` (all in `host/emit_event.rs`). `emit_internal` does NOT re-enrich or
+overwrite the `InternalEvent`'s fields the way the WASM `emit_event` host ABI's RESERVED_FIELDS
+wall does — it takes an already-fully-constructed event and only writes/pushes it verbatim, so the
+marker-derived `trace_id`/`plugin_name` set via `.with_trace_id()`/`.with_plugin_name()` before the
+call are preserved exactly as the v1.2 amendment already established was feasible. Events 8 and 9
+calling `InternalLog::write` directly — instead of `ctx.emit_internal` — is what actually produces
+the sink-target divergence F-P3-001 observed: it is not that the implementation chose the "wrong"
+of two legitimate destinations, it is that it silently diverged from the established, already-
+correct pattern its eight sibling events use.
+
+**Fix — route Events 8/9 through `HostContext::emit_internal`:**
+1. `emit_indeterminate` (`executor.rs`) changes its final statement from `log.write(&ev)` to
+   `base_ctx.emit_internal(ev)` — `base_ctx: &HostContext` is already in scope at every call site
+   (no new parameter threading required at the `executor.rs` call sites).
+2. `emit_marker_cleared`, `check_and_clear_expired_marker`, and `reconcile_raw_delete`
+   (`indeterminate_marker.rs`) change their signatures from `(.., log: &InternalLog, session_id:
+   &str)` to `(.., ctx: &HostContext)` — `base_host_ctx`/`base_ctx_for_event` are already in scope
+   at every `executor.rs` call site of these three functions (the tier-execution loop pre-check,
+   the PostToolUse `delete_marker_if_pass` callsite). `session_id` is read from `ctx.session_id`
+   inside the function bodies (identical value to what was previously threaded explicitly).
+   `emit_marker_cleared`'s body changes its final statement from `log.write(&ev)` to
+   `ctx.emit_internal(ev)`.
+3. `write_indeterminate_marker` (Decision 2 / BC-1.18.001 PC4) is UNCHANGED by this correction —
+   it has no event to emit today (see the SUPERSEDED addition below, which DOES add one).
+
+**Reconcile scan target — `dispatcher-internal-{date}.jsonl`, not a literal `events-{date}.jsonl`:**
+`reconcile_raw_delete`'s bounded tail-scan (RECONCILE_SCAN_BYTE_CAP) MUST continue to target
+`<InternalLog log_dir>/dispatcher-internal-{date}.jsonl` — obtained via `ctx.internal_log.as_ref()
+.map(|l| l.log_dir())`, `None` short-circuiting to a no-op exactly like `emit_internal`'s own `if
+let Some(log) = ...` guard — rather than a literal `events-{date}.jsonl`. This is a deliberate
+DIVERGENCE from the literal filename BC-3.08.001/ADR-048 v1.1/v1.2 prose names, for a load-bearing
+reason: NO default production dispatcher run durably writes a file literally named
+`events-{date}.jsonl` today. The `sinks::Router`/`FileSink` apparatus (`crates/factory-dispatcher/
+src/sinks/mod.rs`) that would produce one is, by its own module doc comment, not yet wired into
+`main.rs`'s dispatch path ("Integration with `main.rs` ... remains a follow-up"); the
+`VSDD_SINK_FILE` mechanism that CAN produce a file at an `events-*.jsonl`-shaped path is opt-in,
+diagnostic/test-only, and absent by default in a real operator's environment. `InternalLog`
+(`dispatcher-internal-{date}.jsonl`) is the ONLY log every production dispatch run writes
+unconditionally — its own module doc comment states this explicitly: "This path exists independent
+of `observability-config.toml` ... so the dispatcher remains debuggable even when all configured
+sinks are down or misconfigured." Pointing `reconcile_raw_delete`'s scan at a file that is not
+durably written by default would make RAW_DELETE_DETECTED reconciliation permanently inert in
+every real deployment absent an operator opting into `VSDD_SINK_FILE` — a SILENT regression strictly
+worse than the F-P3-001 finding itself, and precisely the kind of audit gap ADR-048 §Decision 4
+exists to close. This is a targeted precision correction to the SCAN-TARGET FILENAME only — every
+wire-format field, postcondition, and clear_mode/actor_type semantic BC-3.08.001/VP-108 already
+define is unchanged. `HostContext::emit_internal` (the fix above) still ALSO reaches `ctx.events`
+— so once S-4.07 wires the Router/FileSink into `main.rs`, or an operator sets `VSDD_SINK_FILE`,
+Events 8/9 appear there too, exactly like their eight siblings, with no further code change.
+
+**New clear_mode `SUPERSEDED` (F-P3-002, LOW):** under BC-1.18.001 INV3 (single-marker,
+last-writer-wins), if pair A `(plugin_a, artifact_a)` writes the marker (INDETERMINATE, fail-
+closed) and is never cleared before pair B `(plugin_b, artifact_b)` — a DIFFERENT pair — also goes
+INDETERMINATE fail-closed, B's `write_indeterminate_marker` call overwrites A's marker file with no
+event recorded for A. If the resulting (B's) marker is later raw-deleted out-of-band (T3), the
+PRE-v1.3 `reconcile_raw_delete` scan finds BOTH A and B as unmatched `plugin.indeterminate` records
+with no subsequent `marker.cleared`, and emits `marker.cleared(OPERATOR_OVERRIDE)` for BOTH — but A
+was never operator-cleared; it was silently superseded by B. Falsely attributing a human
+`OPERATOR_OVERRIDE` action to A is itself an audit-integrity defect (NIST AU-3/AU-10 — event
+content and non-repudiation both require attributing an action to its actual actor). Fix, selected
+as production-grade (not "document as an accepted limitation") because it is cheap, additive, and
+directly closes a false-attribution defect: `write_indeterminate_marker`'s caller (`executor.rs`,
+the marker-write callsite for INDETERMINATE outcomes) reads the EXISTING marker's fields (if any)
+BEFORE the temp+rename overwrite; if the existing marker's `(plugin_name, artifact_path)` differs
+from the NEW event's, it calls `ctx.emit_internal` with a `marker.cleared` event carrying
+`clear_mode = "SUPERSEDED"`, `actor_type = "system"`, the SUPERSEDED pair's own `trace_id`/
+`plugin_name`/`artifact_path` (read before overwrite, exactly as `delete_marker_if_pass`'s
+REVALIDATED path already does), and `reason = "SUPERSEDED: marker overwritten by a new
+plugin.indeterminate event for a different (plugin_name, artifact_path) pair before being cleared;
+last-writer-wins (BC-1.18.001 INV3)"` (non-null — SUPERSEDED joins OPERATOR_OVERRIDE as a
+`reason`-mandatory `clear_mode`). No change to `reconcile_raw_delete`'s matching logic is required:
+its scan already treats ANY `type == "marker.cleared"` record (regardless of `clear_mode`) as
+closing the `(plugin_name, artifact_path)` key — a `SUPERSEDED` record for A closes A's key the
+moment B's write happens, so a later raw-delete of B's marker no longer finds A unmatched. When the
+existing marker's `(plugin_name, artifact_path)` is the SAME as the new event's (the same validator
+re-INDETERMINATEs on the same artifact before being cleared), no SUPERSEDED event is emitted — this
+is continuous quarantine of the same target, not a cross-pair supersession, and is already fully
+covered by the marker's own `trace_id` update at overwrite.
+
+**Event/field-count consequence:** `SUPERSEDED` is a new VALUE of the existing `clear_mode` enum on
+the existing Event 9 (`marker.cleared`) — it is NOT a tenth dispatcher event. The "nine dispatcher
+events" count established in ADR-048 §Decision 4 v1.1/v1.2 is UNCHANGED.
+
 **Event enumeration — nine-event dispatcher domain model:**
 
 ADR-048 §Decision 4 adds `marker.cleared` as the ninth domain event. Prior count (ADR-039 /
@@ -782,6 +924,30 @@ provide tamper-evidence at the VCS layer.
 - BC-3.08.001 event enumeration must be updated from eight to nine events (PO: BC amendment +
   new Event 9 wire format; test-writer: AC coverage for all three `clear_mode` values +
   RAW_DELETE_DETECTED form). This is a REQUIRED downstream flag, not optional.
+- (v1.3) Events 8/9 emission functions gain a `&HostContext` parameter (replacing the narrower
+  `&InternalLog, session_id: &str` pair) so they can call `ctx.emit_internal`. This is a mechanical
+  signature widening at four call sites in `executor.rs`, all of which already have a `HostContext`
+  in scope — no new plumbing is introduced.
+- (v1.3) `write_indeterminate_marker`'s caller gains a read-before-overwrite of the existing marker
+  (when present) to detect cross-pair supersession for the new `SUPERSEDED` clear_mode. This is one
+  additional `std::fs::read_to_string` + TOML parse on the marker-write path (already rare relative
+  to total dispatches — one per INDETERMINATE fail-closed outcome), symmetrical with the read-
+  before-delete `delete_marker_if_pass`'s REVALIDATED path already performs.
+- (v1.3) `reconcile_raw_delete`'s scan target (`dispatcher-internal-{date}.jsonl` via `InternalLog`)
+  diverges from the LITERAL filename BC-3.08.001/ADR-048 v1.1/v1.2 prose names
+  (`events-{date}.jsonl`). This divergence is deliberate and load-bearing — see §Decision 4 v1.3
+  rationale — but means a future reader who takes "FileSink `events-*.jsonl`" as a literal filename
+  contract, rather than as a reference to whatever `HostContext::emit_internal` durably persists to
+  today, will be misled without reading this amendment. The BC-3.08.001/VP-108 PO/architect change
+  list (below) closes this by stating the durable filename explicitly at each site.
+
+### Status as of 2026-09-01 (v1.3)
+
+§Decision 4 v1.3's emission-mechanism and scan-target corrections, and the new `SUPERSEDED`
+clear_mode, are HUMAN-RATIFIED 2026-09-01 per POLICY 22 (D-1140) — a further revision to an
+ALREADY-RATIFIED ADR (v1.0–v1.2 were ratified as a single decision, D-1139, 2026-09-01), not a
+reopening of that ratified decision. All prior Decisions 1–3 and the non-emission parts of
+Decision 4 are UNCHANGED by v1.3.
 
 ### Status as of 2026-08-31 (v1.0 / v1.1 / v1.2)
 
@@ -873,9 +1039,27 @@ files themselves).
   identical wall if implemented WASM-side. Architect adjudication (2026-08-31, architect agent,
   dispatched per CLAUDE.md Agent Routing Table): both findings resolved by moving TTL_EXPIRED and
   OPERATOR_OVERRIDE emission to dispatcher-native code, mirroring the already-correct REVALIDATED
-  architecture. PROPOSED pending human ratification per POLICY 22 — this is a further revision to
-  a not-yet-ratified ADR (ADR-048 v1.0/v1.1 were themselves never ratified), not a reopening of an
-  accepted decision.
+  architecture. PROPOSED pending human ratification per POLICY 22 at time of adjudication — this
+  was a further revision to a not-yet-ratified ADR (ADR-048 v1.0/v1.1 were themselves never
+  ratified), not a reopening of an accepted decision. [Subsequently HUMAN-RATIFIED 2026-09-01,
+  D-1139, together with v1.0/v1.1 as a single decision — see §Status above.]
+- **S-25.01 LOCAL adversary pass 3 (v1.3 origin):** F-P3-001 (MEDIUM) — the frozen implementation's
+  `emit_indeterminate`/`emit_marker_cleared`/`check_and_clear_expired_marker`/`reconcile_raw_delete`
+  call `InternalLog::write` directly, bypassing `HostContext::emit_internal` — the dual-sink
+  primitive every sibling BC-3.08.001 dispatcher-native event already uses — producing the sink-
+  target divergence from BC-3.08.001's "FileSink `events-*.jsonl`" wire-format language that ADR-048
+  v1.1/v1.2 prose and VP-108 repeat. F-P3-002 (LOW) — single-marker last-writer-wins lets a later,
+  unrelated `(plugin_name, artifact_path)` pair's INDETERMINATE event silently supersede an earlier
+  pair's marker with no clear event recorded, so a subsequent raw-delete causes `reconcile_raw_
+  delete` to falsely attribute `OPERATOR_OVERRIDE` to the superseded (not raw-deleted) pair.
+  Architect adjudication (2026-09-01, architect agent, dispatched per CLAUDE.md Agent Routing
+  Table): F-P3-001 resolved by routing Events 8/9 through `HostContext::emit_internal` (matching
+  the established sibling pattern) with `reconcile_raw_delete`'s scan target corrected to
+  `dispatcher-internal-{date}.jsonl` (the only unconditionally-durable production log — a literal
+  `events-{date}.jsonl` is not durably written by any default dispatcher run today). F-P3-002
+  resolved by adding a fourth `clear_mode = "SUPERSEDED"` emitted at marker-overwrite time.
+  HUMAN-RATIFIED 2026-09-01 per POLICY 22 (D-1140) — a further revision to the already-ratified
+  ADR-048 (v1.0–v1.2, D-1139), not a reopening of that ratified decision.
 - **Rice's theorem (v1.1 — shared-crate rejection):** Rice, H.G. (1953). "Classes of recursively
   enumerable sets and their decision problems." Trans. AMS 89(1):25–59. Applied: any command-
   filter classifying "this Bash dispatch deletes the marker file" is undecidable in the general

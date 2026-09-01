@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-09-01T15:06:19Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-25.01 && cargo test --workspace --all-targets -- --skip test_BC_corpus_version_sync_all_indexed_bcs_match_frontmatter 2>&1 | grep -E \"^test result|FAILED\""}
+{"status":"pass","timestamp":"2026-09-01T18:08:29Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-25.01 && cargo test --workspace --all-targets 2>&1 | grep -E \"^test result:|FAILED|error\\[|^error:\" "}
