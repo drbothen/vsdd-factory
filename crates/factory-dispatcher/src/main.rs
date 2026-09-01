@@ -44,6 +44,7 @@ use factory_dispatcher::host::emit_event::{
     emit_plugin_completed_async, emit_plugin_timeout_async, emit_registry_invalid_e_reg002,
     emit_registry_invalid_e_reg003,
 };
+use factory_dispatcher::indeterminate_marker::MarkerFields;
 use factory_dispatcher::internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_STARTED, INTERNAL_DISPATCHER_ERROR, InternalEvent,
     InternalLog,
@@ -811,13 +812,9 @@ fn extract_block_info(outcomes: &[PluginOutcome]) -> (String, String) {
                 first_reason = if outcome.on_error == OnError::BlockIfMarker
                     && outcome.block_if_marker_fired
                 {
-                    Some(
-                        "fail-closed-recoverable: non-expired unvalidated-mutation.marker \
-                         present (ADR-048 \u{00a7}D1 block_if_marker on gate crash/timeout); \
-                         recover via `rm .factory/unvalidated-mutation.marker` \
-                         or wait for the 24h TTL"
-                            .to_owned(),
-                    )
+                    Some(format_block_if_marker_crash_reason(
+                        outcome.block_if_marker_fields.as_deref(),
+                    ))
                 } else {
                     extract_reason_from_outcome(&outcome.result)
                 };
@@ -830,6 +827,54 @@ fn extract_block_info(outcomes: &[PluginOutcome]) -> (String, String) {
     // Escape newlines so the summary remains a single stderr line (TC5).
     let reason_escaped = reason.replace('\n', "\\n").replace('\r', "\\r");
     (names_str, reason_escaped)
+}
+
+/// Build the crash-path BLOCK message for an `on_error = "block_if_marker"`
+/// outcome whose `block_if_marker_fired` flag is `true` (BC-1.18.002 v1.6 PC5;
+/// ADR-048 §Decision 3 amended v1.1 Four-Tier Recovery Model).
+///
+/// F-P2-001 fix: the message previously omitted the marker's fields and
+/// instructed the blocked agent to `rm .factory/unvalidated-mutation.marker`
+/// directly — a CWE-636 self-de-quarantine that ADR-048 §Decision 3 / INV6-T4
+/// FORBIDS (agent-tool `rm` is de-sanctioned; only a human operator acting
+/// out-of-band in their own terminal, T3, may clear the marker that way).
+/// This function instead:
+///
+///   1. names the marker's `plugin_name`, `artifact_path`, `cause`, and
+///      `expires_at` fields (BC-1.18.002 v1.6 PC5 "the block message includes
+///      the marker's ... fields");
+///   2. orders recovery guidance T1 (agent re-validation via Edit/Write —
+///      inherently ungated, the agent's genuine primary recovery) first,
+///      T2 (24h TTL auto-clear) second, T3 (human out-of-band `rm`,
+///      break-glass) third and explicitly framed as a human/operator action;
+///   3. never instructs the agent itself to run `rm`.
+///
+/// `fields` is `None` when the marker could not be re-read at message-build
+/// time (e.g. a racing T1 re-validation cleared it between the crash-path
+/// block decision and this read) — degrades to `"<unknown>"` placeholders
+/// rather than fabricating values; the recovery guidance and tier ordering
+/// are unchanged either way.
+fn format_block_if_marker_crash_reason(fields: Option<&MarkerFields>) -> String {
+    const UNKNOWN: &str = "<unknown>";
+    let plugin_name = fields.map_or(UNKNOWN, |f| f.plugin_name.as_str());
+    let artifact_path = fields.map_or(UNKNOWN, |f| f.artifact_path.as_str());
+    let cause = fields.map_or(UNKNOWN, |f| f.cause.as_str());
+    let expires_at = fields.map_or(UNKNOWN, |f| f.expires_at.as_str());
+
+    format!(
+        "fail-closed-recoverable: non-expired .factory/unvalidated-mutation.marker \
+         present (ADR-048 \u{00a7}D1 block_if_marker on gate crash/timeout) — \
+         plugin_name=\"{plugin_name}\" artifact_path=\"{artifact_path}\" cause=\"{cause}\" \
+         expires_at=\"{expires_at}\". Recovery, in order of sanctioned preference: \
+         (T1 — primary agent recovery, do this) re-run the Edit or Write that produced \
+         artifact_path \"{artifact_path}\"; this dispatch type is permanently ungated by \
+         this gate and re-validates the artifact, clearing the marker on PASS; \
+         (T2 — passive) if immediate re-validation is not possible, the marker auto-clears \
+         once the 24h TTL elapses at \"{expires_at}\"; \
+         (T3 — human operator only, NOT an agent action) the human operator may run \
+         `rm .factory/unvalidated-mutation.marker` out-of-band in their own terminal as a \
+         break-glass escape — this agent MUST NOT perform that action."
+    )
 }
 
 /// Parse the `reason` field from a `{"outcome":"block","reason":"..."}` stdout
@@ -1341,6 +1386,7 @@ mod tests_extract_reason_cause_distinction {
 mod tests_extract_block_info_block_if_marker {
     #![allow(clippy::expect_used, clippy::unwrap_used)]
     use factory_dispatcher::executor::PluginOutcome;
+    use factory_dispatcher::indeterminate_marker::MarkerFields;
     use factory_dispatcher::invoke::PluginResult;
     use factory_dispatcher::registry::OnError;
 
@@ -1361,6 +1407,7 @@ mod tests_extract_block_info_block_if_marker {
                 fuel_consumed: 0,
             },
             block_if_marker_fired: true,
+            block_if_marker_fields: None,
         }];
 
         let (blocking_plugins, block_reason) = super::extract_block_info(&outcomes);
@@ -1377,12 +1424,108 @@ mod tests_extract_block_info_block_if_marker {
         );
         assert!(
             block_reason.contains("unvalidated-mutation.marker"),
-            "block_reason MUST name the marker file so operators know what to rm; \
-             got: {block_reason:?}"
+            "block_reason MUST name the marker file so the human operator (T3) knows \
+             which file break-glass rm targets; got: {block_reason:?}"
         );
         assert!(
             block_reason.contains("ADR-048"),
             "block_reason MUST cite ADR-048 for traceability; got: {block_reason:?}"
+        );
+    }
+
+    /// F-P2-001 (HIGH / BLOCKER) regression test — BC-1.18.002 v1.6 PC5 +
+    /// INV6/T4 (ADR-048 §Decision 3 amended v1.1 Four-Tier Recovery Model).
+    ///
+    /// The crash-path BLOCK message MUST:
+    ///   1. contain all four marker fields (plugin_name, artifact_path, cause,
+    ///      expires_at) with their actual values from the marker;
+    ///   2. present recovery options ordered T1 (agent re-validation via
+    ///      Edit/Write) before T2 (TTL auto-clear) before T3 (human
+    ///      out-of-band `rm`);
+    ///   3. NOT instruct the agent itself to run `rm` — a T3 human-action
+    ///      mention is allowed, but it must be framed as an operator action,
+    ///      never as a command the agent should execute to self-de-quarantine
+    ///      (CWE-636 per ADR-048 §Decision 3 / INV6/T4).
+    #[test]
+    fn block_if_marker_crash_message_has_fields_t1_first_and_no_agent_rm_instruction() {
+        let fields = MarkerFields {
+            timestamp: "2026-08-30T12:00:00Z".to_string(),
+            plugin_name: "validate-factory-path-staging".to_string(),
+            artifact_path: "/repo/.factory/STATE.md".to_string(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-abc123".to_string(),
+            expires_at: "2026-08-31T12:00:00Z".to_string(),
+        };
+        let outcomes = vec![PluginOutcome {
+            plugin_name: "validate-unvalidated-mutation-marker".to_string(),
+            plugin_version: "1.0.0".to_string(),
+            on_error: OnError::BlockIfMarker,
+            result: PluginResult::Crashed {
+                trap_string: "unreachable".to_string(),
+                stderr: String::new(),
+                elapsed_ms: 1,
+                fuel_consumed: 0,
+            },
+            block_if_marker_fired: true,
+            block_if_marker_fields: Some(Box::new(fields)),
+        }];
+
+        let (_, block_reason) = super::extract_block_info(&outcomes);
+
+        // (1) All four mandatory marker fields, with actual values, present.
+        assert!(
+            block_reason.contains("validate-factory-path-staging"),
+            "F-P2-001: block message MUST include the marker's plugin_name; \
+             got: {block_reason:?}"
+        );
+        assert!(
+            block_reason.contains("/repo/.factory/STATE.md"),
+            "F-P2-001: block message MUST include the marker's artifact_path; \
+             got: {block_reason:?}"
+        );
+        assert!(
+            block_reason.contains("\"fuel\""),
+            "F-P2-001: block message MUST include the marker's cause; \
+             got: {block_reason:?}"
+        );
+        assert!(
+            block_reason.contains("2026-08-31T12:00:00Z"),
+            "F-P2-001: block message MUST include the marker's expires_at; \
+             got: {block_reason:?}"
+        );
+
+        // (2) T1 (re-run Edit/Write) ordered before T2 (TTL) ordered before
+        // T3 (human out-of-band rm).
+        let t1_pos = block_reason
+            .find("T1")
+            .expect("F-P2-001: block message MUST mention T1 (primary agent recovery)");
+        let t2_pos = block_reason
+            .find("T2")
+            .expect("F-P2-001: block message MUST mention T2 (TTL auto-clear)");
+        let t3_pos = block_reason
+            .find("T3")
+            .expect("F-P2-001: block message MUST mention T3 (human out-of-band rm)");
+        assert!(
+            t1_pos < t2_pos && t2_pos < t3_pos,
+            "F-P2-001 / BC-1.18.002 v1.6 PC5: recovery options MUST be ordered \
+             T1 first, T2 second, T3 third; got positions T1={t1_pos} T2={t2_pos} T3={t3_pos} \
+             in: {block_reason:?}"
+        );
+
+        // (3) The agent is never instructed to run rm itself — only the human
+        // operator (T3) is described as able to. The forbidden CWE-636 pattern
+        // is an unqualified imperative directed at the caller (e.g. the old
+        // "recover via `rm ...`" phrasing this test guards against).
+        assert!(
+            !block_reason.contains("recover via `rm"),
+            "F-P2-001 / ADR-048 INV6/T4: block message MUST NOT instruct the agent \
+             to run rm (CWE-636 self-de-quarantine forbidden); got: {block_reason:?}"
+        );
+        assert!(
+            block_reason.contains("this agent MUST NOT perform that action")
+                || block_reason.contains("NOT an agent action"),
+            "F-P2-001 / ADR-048 INV6/T4: the T3 rm mention MUST be explicitly framed \
+             as a human/operator action, not an agent instruction; got: {block_reason:?}"
         );
     }
 
@@ -1402,6 +1545,7 @@ mod tests_extract_block_info_block_if_marker {
                 fuel_consumed: 0,
             },
             block_if_marker_fired: false,
+            block_if_marker_fields: None,
         }];
 
         let (blocking_plugins, block_reason) = super::extract_block_info(&outcomes);
@@ -1433,6 +1577,7 @@ mod tests_extract_block_info_block_if_marker {
                 fuel_consumed: 0,
             },
             block_if_marker_fired: false,
+            block_if_marker_fields: None,
         }];
 
         let (blocking_plugins, block_reason) = super::extract_block_info(&outcomes);

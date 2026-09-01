@@ -208,6 +208,30 @@ pub struct PluginOutcome {
     /// `false` for all other outcomes (advisory block, fail-closed Block,
     /// async plugins, load failures).
     pub block_if_marker_fired: bool,
+    /// The marker's parsed fields, populated by `execute_tiers` when
+    /// `block_if_marker_fired` is `true` (best-effort read of
+    /// `.factory/unvalidated-mutation.marker` at the moment the crash-path
+    /// block was confirmed).
+    ///
+    /// Used by `extract_block_info` (TD #71 surfacing path) / `main.rs`'s
+    /// crash-path BLOCK message construction to populate the mandatory
+    /// `plugin_name`, `artifact_path`, `cause`, `expires_at` fields required
+    /// by BC-1.18.002 v1.6 PC5 — the message MUST name the concrete marker
+    /// so the operator/agent can act on it, not just assert a marker exists.
+    ///
+    /// `None` when `block_if_marker_fired` is `false` (no marker to read),
+    /// or on the defensive fallback where the marker could not be re-read
+    /// (e.g., concurrently deleted between the crash-path check and the
+    /// field read — the marker's prior presence already satisfied PC5's
+    /// block decision; a `None` here degrades the message gracefully
+    /// rather than fabricating field values).
+    ///
+    /// Boxed: `MarkerFields` carries six owned `String`s, and `PluginOutcome`
+    /// is stored inline in `JoinWrap::Ready` alongside a bare `JoinHandle`
+    /// (8 bytes) — an unboxed `Option<MarkerFields>` would blow up
+    /// `clippy::large_enum_variant` on `JoinWrap`. `Option<Box<_>>` keeps
+    /// this field pointer-sized regardless of `MarkerFields`' own size.
+    pub block_if_marker_fields: Option<Box<MarkerFields>>,
 }
 
 /// Aggregated result of running every tier in order.
@@ -276,6 +300,27 @@ pub async fn execute_tiers(
             // can surface a non-empty reason for the BlockIfMarker crash-block case
             // (TD #71 / ADR-048 §Decision 1 / BC-1.18.002 PC5).
             outcome.block_if_marker_fired = bim_fired;
+            // F-P2-001 fix: when the crash-path block fired, read the marker's
+            // concrete fields so the block message can name plugin_name,
+            // artifact_path, cause, and expires_at instead of asserting a
+            // marker exists without saying which one (BC-1.18.002 v1.6 PC5).
+            // Best-effort: a read failure here (e.g. the marker was cleared by
+            // a racing T1 re-validation between the crash-path check and this
+            // read) leaves the field `None` — the message construction in
+            // main.rs degrades gracefully rather than fabricating values.
+            outcome.block_if_marker_fields = if bim_fired {
+                let marker_path = inputs
+                    .base_host_ctx
+                    .cwd
+                    .join(".factory")
+                    .join("unvalidated-mutation.marker");
+                read_all_marker_fields(&marker_path)
+                    .ok()
+                    .flatten()
+                    .map(Box::new)
+            } else {
+                None
+            };
             if plugin_requests_block(&outcome.result)
                 || plugin_fail_closed(&outcome.result, outcome.on_error)
                 || bim_fired
@@ -358,6 +403,7 @@ async fn execute_tier<'a>(
                     on_error,
                     result,
                     block_if_marker_fired: false,
+                    block_if_marker_fields: None,
                 }));
                 continue;
             }
@@ -384,6 +430,7 @@ async fn execute_tier<'a>(
                     on_error,
                     result,
                     block_if_marker_fired: false,
+                    block_if_marker_fields: None,
                 };
                 join_handles.push(JoinWrap::Ready(outcome));
                 continue;
@@ -542,6 +589,7 @@ async fn execute_tier<'a>(
                 // block_if_marker_fired is set post-hoc by execute_tiers after the
                 // tier completes, so this initial value is always false.
                 block_if_marker_fired: false,
+                block_if_marker_fields: None,
             }
         });
         join_handles.push(JoinWrap::Pending(handle));
@@ -568,6 +616,7 @@ async fn execute_tier<'a>(
                             fuel_consumed: 0,
                         },
                         block_if_marker_fired: false,
+                        block_if_marker_fields: None,
                     });
                 }
             },
@@ -665,6 +714,7 @@ pub fn spawn_async_plugin(
                     on_error,
                     result,
                     block_if_marker_fired: false,
+                    block_if_marker_fields: None,
                 };
             }
         };
@@ -685,6 +735,7 @@ pub fn spawn_async_plugin(
                     on_error,
                     result,
                     block_if_marker_fired: false,
+                    block_if_marker_fields: None,
                 };
             }
         };
@@ -830,6 +881,7 @@ pub fn spawn_async_plugin(
             // block_if_marker semantics are not applied to async-group outcomes
             // (BC-1.14.001 Invariant 3 — async group excluded from tier ordering).
             block_if_marker_fired: false,
+            block_if_marker_fields: None,
         }
     })
 }
@@ -1944,6 +1996,7 @@ mod tests {
                 fuel_consumed: 10,
             },
             block_if_marker_fired: false,
+            block_if_marker_fields: None,
         };
         assert!(
             plugin_requests_block(&outcome.result),
@@ -1969,6 +2022,7 @@ mod tests {
                 fuel_consumed: 5,
             },
             block_if_marker_fired: false,
+            block_if_marker_fields: None,
         };
         assert!(
             !plugin_requests_block(&outcome.result),
