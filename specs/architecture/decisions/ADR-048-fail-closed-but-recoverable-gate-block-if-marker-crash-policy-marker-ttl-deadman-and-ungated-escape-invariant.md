@@ -1,9 +1,9 @@
 ---
 document_type: adr
 adr_id: ADR-048
-version: "1.1"
+version: "1.2"
 title: "ADR-048: Fail-Closed-But-Recoverable Gate — block_if_marker Crash Policy, Marker TTL Deadman, and Ungated-Escape Invariant"
-status: proposed
+status: accepted
 date: 2026-08-31
 producer: architect
 timestamp: 2026-08-31T00:00:00Z
@@ -15,8 +15,10 @@ supersedes: ADR-047
 superseded_by: null
 extends: ADR-047
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
-last_amended: "2026-08-31 (v1.1) — Human-directed (HIGH-1 resolution): §Decision 3 amended — recovery model reframed (re-validation = primary agent recovery; human out-of-band rm = break-glass; agent-tool rm de-sanctioned; shared-crate fix rejected as unnecessary + unsound per Rice's theorem); §Decision 4 added — marker.cleared audited event (clear_mode ∈ {REVALIDATED,TTL_EXPIRED,OPERATOR_OVERRIDE}; trace_id linkage; RAW_DELETE_DETECTED reconciliation mode) + TTL-loudness. [v1.0 — Initial authoring. Human-directed gate redesign reversing D-1135 fail-open-on-crash ratification.]"
+last_amended: "2026-08-31 (v1.2) — Architect-directed (S-25.01 LOCAL adversary pass 2 F-P2-002 HIGH + F-P2-003 MED resolution): §Decision 4 emission-point architecture corrected. Root cause: `marker.cleared` emitted via the WASM `emit_event` host ABI is subject to RESERVED_FIELDS enrichment (`crates/factory-dispatcher/src/host/emit_event.rs`) — the host unconditionally overwrites plugin-supplied `trace_id`/`plugin_name` with the CURRENT gate-plugin's own dispatch identity, so a WASM plugin can never emit an event carrying a FOREIGN (marker-owned) trace_id/plugin_name. TTL_EXPIRED detection+auto-delete+emission is MOVED from the WASM gate plugin's `evaluate_gate` to a new dispatcher-native pre-check (`indeterminate_marker.rs`) that runs before every Arm 1/Arm 2 plugin invocation on the normal (non-crash) path, mirroring the already-correct REVALIDATED emission architecture. OPERATOR_OVERRIDE/RAW_DELETE_DETECTED reconciliation (previously entirely unimplemented) is likewise implemented dispatcher-native, in the same pre-check's marker-absent branch, with a bounded/best-effort FileSink scan. `evaluate_gate` is simplified to a pure presence check (no `expires_at` math, no delete, no emission). PROPOSED — awaiting human ratification (unchanged from v1.0/v1.1; this is a further pre-ratification revision, not a reopening of an already-ratified decision). [Prior: 2026-08-31 (v1.1) — Human-directed (HIGH-1 resolution): §Decision 3 amended — recovery model reframed (re-validation = primary agent recovery; human out-of-band rm = break-glass; agent-tool rm de-sanctioned; shared-crate fix rejected as unnecessary + unsound per Rice's theorem); §Decision 4 added — marker.cleared audited event (clear_mode ∈ {REVALIDATED,TTL_EXPIRED,OPERATOR_OVERRIDE}; trace_id linkage; RAW_DELETE_DETECTED reconciliation mode) + TTL-loudness. [v1.0 — Initial authoring. Human-directed gate redesign reversing D-1135 fail-open-on-crash ratification.]]"
 modified:
+  - "2026-09-01 (status: proposed→accepted) — Human-Ratified (POLICY 22; D-1139; state-manager; no content change, status flip only)"
+  - "2026-08-31 (v1.2) — §D4 emission-point correction: TTL_EXPIRED + OPERATOR_OVERRIDE moved dispatcher-native (S-25.01 pass-2 F-P2-002/F-P2-003)"
   - "2026-08-31 (v1.1) — §D3 recovery model reframe + §D4 audited clear event + TTL-loudness (HIGH-1 resolution)"
   - "2026-08-31 (v1.0) — Initial authoring"
 ---
@@ -29,7 +31,32 @@ modified:
 
 ## Status
 
-**PROPOSED — Awaiting human ratification.**
+**ACCEPTED — Human-Ratified 2026-09-01** (POLICY 22 — ratification complete. S-25.01 LOCAL adversary
+pass 2 F-P2-001/F-P2-002/F-P2-003 fix-burst COMPLETE; ADR-048 v1.0/v1.1/v1.2 all ratified as a
+single decision, v1.2's emission-point correction included. D-1139.)
+
+POLICY 22 ratification (2026-09-01) is to be recorded authoritatively in the decision-log (D-1139)
+by state-manager in the spec-burst commit. The ADR frontmatter `status: accepted` reflects the
+architectural decision; the decision-log entry is the authoritative ratification record.
+
+**v1.2 amendment (2026-08-31 — S-25.01 LOCAL adversary pass 2 F-P2-002/F-P2-003 resolution):**
+§Decision 4's emission-point architecture is corrected. F-P2-002 (HIGH) found that the
+TTL_EXPIRED `marker.cleared` emission, as specified in v1.1, was placed inside the WASM gate
+plugin — but the `emit_event` host ABI's RESERVED_FIELDS enrichment (`trace_id`, `plugin_name`)
+makes it STRUCTURALLY IMPOSSIBLE for a WASM plugin to emit an event carrying another dispatch's
+identity: the host always overwrites plugin-supplied `trace_id`/`plugin_name` with the CURRENT
+invocation's own values (the gate plugin's own trace and name), never the marker's. The v1.0
+draft implementation's workaround (`marker_trace_id`/`marker_plugin_name` custom fields +
+`reason=""`) is not the Event 9 wire contract and silently breaks trace-id correlation for the
+deadman path. F-P2-003 (MED) found OPERATOR_OVERRIDE/RAW_DELETE_DETECTED reconciliation entirely
+unimplemented, and noted it would hit the identical ABI wall if implemented WASM-side. This
+amendment moves BOTH TTL_EXPIRED and OPERATOR_OVERRIDE emission to dispatcher-native code
+(`indeterminate_marker.rs`), mirroring the already-correct REVALIDATED architecture (dispatcher
+`emit_marker_cleared`, which sets `.with_trace_id(&marker_fields.trace_id)` directly via
+`InternalLog`, entirely bypassing the WASM `emit_event` ABI and its RESERVED_FIELDS filter) and
+`plugin.indeterminate` (Event 8, also dispatcher-native per BC-3.08.001 Event 8 trigger:
+`invoke_plugin`/`executor.rs`). See the amended §Decision 4 subsections below for the corrected
+mechanism.
 
 **v1.1 amendment (2026-08-31 — HIGH-1 resolution):** §Decision 3 recovery model reframed: re-
 validation via Edit/Write elevated as primary sanctioned agent recovery (T1 — inherently ungated);
@@ -247,19 +274,28 @@ The two constants MUST NOT be unified. They model orthogonal expiry semantics.
 `crates/factory-dispatcher/src/indeterminate_marker.rs`.
 Value: `Utc::now() + Duration::seconds(UNVALIDATED_MUTATION_MARKER_TTL_SECONDS as i64)`.
 
-**Who checks `expires_at`:**
+**Who checks `expires_at` (v1.2 — corrected; supersedes the v1.0/v1.1 "gate plugin normal path"
+assignment per the Decision 4 v1.2 Emission-Point Correction below):**
 
-1. **Gate plugin (normal non-crash path):** After reading the marker TOML, parses `expires_at`.
-   If `expires_at <= now (UTC)`: treat as absent → return exit_code=0 (allow); auto-delete the
-   marker file (idempotent; swallow `NotFound`). The auto-delete prevents the marker from
-   accumulating as a dead artifact.
+1. **Dispatcher-native pre-check (normal path — MOVED here in v1.2; was WASM gate plugin in
+   v1.0/v1.1):** `check_and_clear_expired_marker` in `indeterminate_marker.rs`, invoked from
+   `executor.rs`'s tier-execution loop before every Arm 1/Arm 2 (`on_error = "block_if_marker"`)
+   plugin invocation. Reads the marker natively, parses `expires_at`. If `expires_at <= now
+   (UTC)`: auto-delete the marker file (idempotent; swallow `NotFound`) and emit
+   `marker.cleared(TTL_EXPIRED)` (Decision 4). The subsequent WASM plugin invocation then sees a
+   marker that is guaranteed either absent or non-expired — `evaluate_gate` performs NO
+   `expires_at` parsing of its own (v1.2 simplification; see Decision 4). The auto-delete
+   prevents the marker from accumulating as a dead artifact, exactly as in v1.0/v1.1 — only the
+   locus of the check has moved.
 
-2. **Dispatcher native `block_if_marker` check (crash path, Decision 1):** After detecting plugin
-   crash and finding the marker file exists, parses `expires_at`. If expired: allow (treat as
-   absent). If `expires_at` field absent (backward-compat: old marker written before ADR-048
-   implementation): treat as non-expired (conservative — old markers are not silently cleared).
-   Does NOT auto-delete (keep crash handler simple; auto-delete happens on next normal-path
-   plugin execution).
+2. **Dispatcher native `block_if_marker` check (crash path, Decision 1 — UNCHANGED by v1.2):**
+   After detecting plugin crash and finding the marker file exists, parses `expires_at`. If
+   expired: allow (treat as absent). If `expires_at` field absent (backward-compat: old marker
+   written before ADR-048 implementation): treat as non-expired (conservative — old markers are
+   not silently cleared). Does NOT auto-delete (keep crash handler simple) and does NOT emit
+   `marker.cleared` (BC-1.18.003 EC-014; VP-108 PC4) — this remains a genuinely distinct code
+   path from item 1 above, since a crash means the pre-check in item 1 either did not run or was
+   interrupted before completing.
 
 **Backward compatibility:** Markers written before ADR-048 implementation lack `expires_at`. These
 are treated as non-expired by both the plugin (normal path) and the dispatcher native check (crash
@@ -441,35 +477,146 @@ domain event set (BC-3.08.001) and requires that TTL auto-delete emit an audited
 | `reason` | string | Conditional | Mandatory when `clear_mode = "OPERATOR_OVERRIDE"`; `null` or omitted otherwise |
 | `timestamp` | ISO-8601 UTC | YES | Time of the clear event (not the original INDETERMINATE event) |
 
-**clear_mode values and emission points:**
+**clear_mode values and emission points (v1.2 — dispatcher-native for all three modes):**
 
-| `clear_mode` | `actor_type` | Trigger | Emission point |
+| `clear_mode` | `actor_type` | Trigger | Emission point (v1.2) |
 |---|---|---|---|
-| `REVALIDATED` | `validator` | `evaluate_gate` returns exit_code=0 while marker is present → `delete_marker_if_pass` removes marker file | Emit from `delete_marker_if_pass`, immediately after `std::fs::remove_file(marker_path)` succeeds |
-| `TTL_EXPIRED` | `deadman` | `evaluate_gate` finds `expires_at ≤ now` → treats marker as absent → auto-deletes marker file | Emit from the plugin's TTL-check branch, immediately after auto-delete |
-| `OPERATOR_OVERRIDE` | `operator` | Human operator clears marker via T3 (out-of-band `rm` in operator shell); not mediated by dispatcher | Emitted retroactively via RAW_DELETE_DETECTED reconciliation (see below) |
+| `REVALIDATED` | `validator` | Executor observes a PostToolUse PASS on the same plugin+artifact as the marker → `delete_marker_if_pass` removes marker file | Dispatcher-native: `emit_marker_cleared` in `indeterminate_marker.rs`, called from `delete_marker_if_pass`'s PostToolUse callsites in `executor.rs`, immediately after `std::fs::remove_file(marker_path)` succeeds. **UNCHANGED from v1.1 — this was already correctly dispatcher-native.** |
+| `TTL_EXPIRED` | `deadman` | Dispatcher-native pre-check (new — see below) finds `expires_at ≤ now` before invoking the Arm 1/Arm 2 WASM gate plugin → auto-deletes marker file | **MOVED (v1.2) to dispatcher-native**: `emit_marker_cleared` in `indeterminate_marker.rs`, called from the new `check_and_clear_expired_marker` pre-check in `executor.rs`'s tier-execution loop, immediately after the native `std::fs::remove_file` succeeds. The WASM plugin's `evaluate_gate` no longer performs TTL date-math, deletion, or emission — see §Decision 4 v1.2 Emission-Point Correction below. |
+| `OPERATOR_OVERRIDE` | `operator` | Human operator clears marker via T3 (out-of-band `rm` in operator shell); not mediated by dispatcher | **IMPLEMENTED (v1.2) as dispatcher-native**: retroactive reconciliation via `reconcile_raw_delete` in `indeterminate_marker.rs`, invoked from the same pre-check's marker-absent branch (see below). Previously unimplemented in any form (F-P2-003). |
 
-**RAW_DELETE_DETECTED reconciliation for OPERATOR_OVERRIDE:**
+**RAW_DELETE_DETECTED reconciliation for OPERATOR_OVERRIDE (v1.2 — dispatcher-native):**
 
 The T3 (human out-of-band `rm`) clear path is not mediated by the dispatcher. A real-time
 `marker.cleared(OPERATOR_OVERRIDE)` event cannot be emitted at the moment of deletion.
-Reconciliation: when the gate plugin evaluates and finds the marker absent, and the FileSink log
-contains an unmatched `plugin.indeterminate` for the same `(plugin_name, artifact_path)` with no
-corresponding `marker.cleared`, the plugin emits a retroactive `marker.cleared(OPERATOR_OVERRIDE)`
-with:
+Reconciliation runs DISPATCHER-NATIVE (not in the WASM plugin — see rationale in the v1.2
+Emission-Point Correction subsection below): as part of the same native pre-check that runs
+before every Arm 1/Arm 2 dispatch, in the branch where the marker is found absent, the dispatcher
+performs a bounded, best-effort scan of the current day's FileSink `events-*.jsonl` for an
+unmatched `plugin.indeterminate` (fail-closed) event — one for which no corresponding
+`marker.cleared` was subsequently written for the same `(plugin_name, artifact_path)`. If found,
+`reconcile_raw_delete` calls `emit_marker_cleared` with:
 
 - `reason = "RAW_DELETE_DETECTED: marker absent without prior marker.cleared event; inferred operator out-of-band clear"`
 - `timestamp` = current evaluation time (not the deletion time, which is unobservable)
 - `trace_id` = trace_id from the unmatched `plugin.indeterminate` event
+- `plugin_name` / `artifact_path` = from the same unmatched event
 
-**Best-effort:** if the FileSink log is unavailable or the unmatched record cannot be found, the
-annotation is omitted — no hard failure. An unreconciled gap is observable by tooling that monitors
-the event stream for `plugin.indeterminate` events without subsequent `marker.cleared`.
+**Best-effort and bounded (production-grade requirement, v1.2):** if the FileSink log is
+unavailable or the unmatched record cannot be found, the annotation is omitted — no hard failure.
+An unreconciled gap is observable by tooling that monitors the event stream for
+`plugin.indeterminate` events without subsequent `marker.cleared`. Because this check runs before
+EVERY Arm 1 (`^Agent$`) and Arm 2 (`^Bash$` git commit/push) dispatch in the common
+marker-absent case, the scan MUST be bounded to avoid unbounded I/O growth on the hot dispatch
+path: implementations MUST cap the scan to the current day's events file only (never scan prior
+days) and MUST cap total bytes/records read (e.g., a fixed-size tail read, not a full-file scan).
+This is an explicit production-grade constraint, not an optional optimization — an unbounded scan
+on every Agent/git-commit dispatch would reintroduce the same class of large-artifact resource
+cost this whole feature (S-25.01) exists to eliminate. The exact bound (byte cap or record cap)
+and any memoization strategy (e.g., a lightweight on-disk checkpoint to avoid re-scanning already-
+reconciled ranges across dispatcher process invocations) are implementation details left to the
+story spec / test-writer AC, not fixed by this ADR. This reconciliation step never gates the
+dispatch decision (BC-3.08.001 Invariant 3) — it MAY run either synchronously before the Allow
+result is returned or as a best-effort step after, at implementer's discretion.
 
 **Emission path:**
 
 `marker.cleared` events are emitted via the same FileSink/InternalLog path as `plugin.indeterminate`
-(BC-3.08.001 domain event catalog).
+(BC-3.08.001 domain event catalog) — for ALL three clear_modes, via the dispatcher-native
+`emit_marker_cleared` function, never via the WASM `emit_event` host ABI (see v1.2 Emission-Point
+Correction below for why).
+
+### Decision 4 v1.2 Emission-Point Correction (S-25.01 LOCAL Adversary Pass 2 — F-P2-002 HIGH, F-P2-003 MED)
+
+**The defect:** `crates/factory-dispatcher/src/host/emit_event.rs` enforces `RESERVED_FIELDS`
+(`trace_id`, `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`, `ts`,
+`ts_epoch`, `schema_version`, `type`) on every event a WASM plugin emits via
+`vsdd_hook_sdk::host::emit_event`. The host enrichment path is unconditional:
+
+```
+let ctx = caller.data();
+let mut ev = InternalEvent::now(&event_type)
+    .with_trace_id(&ctx.dispatcher_trace_id)   // ALWAYS the calling plugin's own dispatch trace
+    .with_plugin_name(&ctx.plugin_name)         // ALWAYS the calling plugin's own registry name
+    ...
+for (k, v) in pairs {
+    if is_reserved_field(&k) { continue; }      // plugin-supplied trace_id/plugin_name silently dropped
+    ev = ev.with_field(&k, Value::String(v));
+}
+```
+
+This is correct and load-bearing for every OTHER event in the BC-3.08.001 catalog — it prevents a
+plugin from spoofing another plugin's identity (BC-3.08.001 Invariant 5). But it makes
+`marker.cleared` a structural exception: the wire contract (BC-3.08.001 Event 9) requires
+`trace_id` and `plugin_name` to be the MARKER's stored values (linking back to the originating
+`plugin.indeterminate` event, itself produced by a DIFFERENT, earlier, already-completed
+dispatch) — not the CURRENT gate-plugin's own identity (`validate-unvalidated-mutation-marker` /
+`-git`, with the CURRENT dispatch's trace_id). No WASM plugin can ever emit an event carrying a
+foreign trace_id/plugin_name through `emit_event`, by design. The v1.0/v1.1 TTL_EXPIRED
+implementation in `guard_logic::evaluate_gate` (`crates/hook-plugins/validate-unvalidated-mutation-marker/src/lib.rs`)
+attempted a workaround — emitting `marker_trace_id`/`marker_plugin_name` as non-reserved custom
+field names, with `reason=""` — but this is NOT the Event 9 wire contract (which requires
+`trace_id` and `plugin_name` as top-level fields) and silently breaks the
+`plugin.indeterminate → marker.cleared` audit-correlation for the deadman path (F-P2-002 HIGH).
+The OPERATOR_OVERRIDE path (F-P2-003 MED) would hit the identical wall if implemented WASM-side —
+it was in fact never implemented at all for exactly this reason.
+
+**The working counterexample, and why it works:** REVALIDATED's emission (`emit_marker_cleared`
+in `crates/factory-dispatcher/src/executor.rs`, called from `delete_marker_if_pass`) is correct
+because it runs entirely dispatcher-side: it constructs an `InternalEvent` directly
+(`InternalEvent::now(PLUGIN_MARKER_CLEARED).with_trace_id(&marker_fields.trace_id)...`) and writes
+it to `InternalLog` directly — never crossing the WASM `emit_event` ABI boundary, so
+RESERVED_FIELDS enrichment never applies. `plugin.indeterminate` (Event 8) is emitted the same
+way — dispatcher-native, from `executor.rs`'s outcome-classification logic, per BC-3.08.001 Event
+8's own trigger description ("`invoke_plugin` (`executor.rs`) classifies a plugin's outcome as
+INDETERMINATE"). Dispatcher-native emission is therefore the ESTABLISHED pattern for any event in
+this catalog that must carry provenance from something other than the current WASM invocation's
+own identity — TTL_EXPIRED and OPERATOR_OVERRIDE are members of that class; they were simply
+misplaced in v1.0/v1.1.
+
+**The fix — decision: full dispatcher-native ownership of TTL detection, deletion, and emission
+(not a plugin-to-dispatcher signal-forwarding protocol).** Two designs were evaluated:
+
+- **(A) — SELECTED: Move TTL detection + auto-delete + emission entirely into a new
+  dispatcher-native pre-check.** A new function `check_and_clear_expired_marker(factory_root,
+  now) -> io::Result<Option<MarkerFields>>` in `indeterminate_marker.rs` performs: read the marker
+  via `read_all_marker_fields`; if present and `expires_at ≤ now`, delete it (idempotent, swallow
+  `NotFound`) and return `Some(fields)`. The dispatcher's tier-execution loop in `executor.rs`
+  calls this function for every registry entry with `on_error == OnError::BlockIfMarker`
+  (currently both `validate-unvalidated-mutation-marker` arms) BEFORE invoking the plugin, on the
+  normal (non-crash) path — every dispatch, not just on crash. If it returns `Some(fields)`, the
+  dispatcher immediately calls `emit_marker_cleared(..., "TTL_EXPIRED", "deadman", None)`. Because
+  the marker is guaranteed absent-or-non-expired by the time the WASM plugin's `evaluate_gate`
+  subsequently runs, `evaluate_gate` is SIMPLIFIED to a pure presence check with NO `expires_at`
+  parsing, NO deletion, and NO emission logic at all — the entire TTL branch (and its
+  non-compliant `marker_trace_id`/`marker_plugin_name`/`reason=""` workaround) is removed from the
+  WASM plugin. OPERATOR_OVERRIDE reconciliation is added to the SAME native pre-check's
+  marker-absent branch (see RAW_DELETE_DETECTED subsection above).
+- **(B) — REJECTED: Plugin performs the TTL delete as today, but signals back to the dispatcher
+  (via a reserved-but-distinguishable field, or a new host function) so the dispatcher can emit a
+  correctly-attributed event on the plugin's behalf.** Rejected because: (i) it requires inventing
+  new ABI surface (a signal-forwarding protocol) purely to work around a wall that dispatcher-side
+  ownership avoids entirely; (ii) it creates a TOCTOU-shaped trust problem — the dispatcher would
+  have to believe the plugin's self-report of "I deleted marker X as TTL_EXPIRED" rather than
+  observing the deletion directly; (iii) it does not simplify anything — the plugin still needs
+  full `expires_at` date-math and delete logic, so WASM fuel consumption and attack surface are
+  unchanged, whereas (A) removes that logic entirely; (iv) it is inconsistent with the established
+  dispatcher-native pattern for Events 8/9-REVALIDATED, introducing an unnecessary second pattern
+  for the same conceptual operation (marker mutation + its audit event).
+
+**Rationale for (A) over (B) — production-grade default, not the cheap path:** (A) is a larger
+diff (it touches both `executor.rs`/`indeterminate_marker.rs` and the WASM plugin's
+`evaluate_gate`) than a minimal (B)-style patch that only touches the emission call. It is
+selected anyway because it is the ARCHITECTURALLY CORRECT fix: it eliminates the ABI-wall class of
+bug rather than routing around it, it aligns TTL_EXPIRED and OPERATOR_OVERRIDE with the same
+dispatcher-native pattern already governing REVALIDATED and `plugin.indeterminate`, and it reduces
+rather than increases total system complexity (WASM plugin shrinks; no new ABI surface is added).
+
+**Consequence for Decision 2 ("Who checks `expires_at`"):** superseded by this v1.2 amendment —
+see the updated Decision 2 subsection above. Consequence for Decision 1 (`block_if_marker`
+crash-path check): UNCHANGED — `block_if_marker_check` retains its own independent TTL-awareness
+for the crash-path case (does not auto-delete, does not emit; see Decision 1 and BC-1.18.003
+EC-014/VP-108 PC4), which remains a distinct code path from the new normal-path native pre-check.
 
 **Event enumeration — nine-event dispatcher domain model:**
 
@@ -621,14 +768,22 @@ provide tamper-evidence at the VCS layer.
   ADR-048 is implemented, new markers always carry `expires_at`.
 - `UNVALIDATED_MUTATION_MARKER_TTL_SECONDS` is a new constant that must be kept consistent with
   documentation and any external tooling that reasons about marker lifetimes.
-- Gate plugin gains `emit_marker_cleared` call responsibilities for REVALIDATED and TTL_EXPIRED
-  clear modes; RAW_DELETE_DETECTED reconciliation adds a best-effort FileSink read dependency.
-  No hard failure if FileSink is unavailable — annotation omitted.
+- (v1.2 — supersedes the v1.1 bullet below) All three `marker.cleared` emissions — REVALIDATED,
+  TTL_EXPIRED, and OPERATOR_OVERRIDE — are dispatcher-native (`indeterminate_marker.rs` /
+  `executor.rs`), never WASM-plugin-side, per the Decision 4 v1.2 Emission-Point Correction. The
+  dispatcher gains a new pre-invocation native check (`check_and_clear_expired_marker`) that runs
+  before every Arm 1/Arm 2 dispatch on the normal path, plus the RAW_DELETE_DETECTED bounded
+  FileSink-scan reconciliation (`reconcile_raw_delete`). ~~Gate plugin gains `emit_marker_cleared`
+  call responsibilities for REVALIDATED and TTL_EXPIRED clear modes~~ (v1.1 framing — INCORRECT;
+  the gate plugin never gains this responsibility because the WASM ABI cannot honor the Event 9
+  wire contract; see v1.2 amendment). RAW_DELETE_DETECTED reconciliation remains a best-effort
+  FileSink read dependency (now bounded per-day and per-scan, dispatcher-native); no hard failure
+  if FileSink is unavailable — annotation omitted.
 - BC-3.08.001 event enumeration must be updated from eight to nine events (PO: BC amendment +
   new Event 9 wire format; test-writer: AC coverage for all three `clear_mode` values +
   RAW_DELETE_DETECTED form). This is a REQUIRED downstream flag, not optional.
 
-### Status as of 2026-08-31 (v1.0 / v1.1)
+### Status as of 2026-08-31 (v1.0 / v1.1 / v1.2)
 
 Proposed. Implementation scoped to S-25.01. The `on_error = "block_if_marker"` value requires:
 (a) a new Rust enum variant `OnError::BlockIfMarker` in the registry schema (S-21.10 pattern);
@@ -646,6 +801,24 @@ by either gate arm `^Agent$` / `^Bash$`) — not "rm is never gated"; (g) BC-1.1
 block-message reframe: crash-path block on agent-tool rm is ACCEPTABLE — update block message
 and INV6 text accordingly; (h) BC-1.18.003 clear-model amendment: audited clears (REVALIDATED,
 TTL_EXPIRED, OPERATOR_OVERRIDE); (i) BC-3.08.001 event enumeration seven→eight→nine sweep.
+
+**v1.1's item (d) "or gate plugin — implementer's choice" is RETRACTED by v1.2 — it was the seed
+of F-P2-002.** v1.2 makes the choice explicit and non-optional: dispatcher-native ONLY, for all
+three clear_modes. v1.2 adds/corrects: (j) `check_and_clear_expired_marker` function in
+`indeterminate_marker.rs` (new — native TTL detect+delete, called from `executor.rs` before every
+Arm 1/Arm 2 invocation on the normal path); (k) `reconcile_raw_delete` function in
+`indeterminate_marker.rs` (new — dispatcher-native, bounded FileSink scan, implements
+OPERATOR_OVERRIDE which was previously entirely unimplemented per F-P2-003); (l)
+`guard_logic::evaluate_gate` in `crates/hook-plugins/validate-unvalidated-mutation-marker/src/lib.rs`
+SIMPLIFIED — removes `expires_at` parsing, TTL auto-delete, and the `marker_trace_id`/
+`marker_plugin_name`/`reason=""` `emit_event` workaround entirely; becomes a pure
+presence-check (absent → Allow; present → Block with fields read from the marker); (m) BC-1.18.003
+PC4 + Architecture Anchors + BC-3.08.001 Event 9 "Emission point" table + VP-108 (all currently
+attribute TTL_EXPIRED emission to the gate plugin's "TTL-check branch") REQUIRE product-owner
+amendment to attribute it to the dispatcher-native pre-check instead — see the enumerated PO/
+story-writer change list this ADR amendment hands off (recorded in the architect's S-25.01 pass-2
+adjudication response, not duplicated verbatim here to avoid drift between this ADR and the BC/VP
+files themselves).
 
 ---
 
@@ -690,6 +863,19 @@ TTL_EXPIRED, OPERATOR_OVERRIDE); (i) BC-3.08.001 event enumeration seven→eight
   (audit event types); LOTO/e-stop (IEC 60204-1 §10.7 — bounded-deadman design). Common
   principle: the controlled agent must not hold an unmediated, unaudited path to erase its own
   constraint; recovery = independent re-validation | authenticated human override | timeout.
+- **S-25.01 LOCAL adversary pass 2 (v1.2 origin):** F-P2-002 (HIGH) — TTL_EXPIRED `marker.cleared`
+  emitted from inside the WASM gate plugin cannot honor the Event 9 wire contract's `trace_id`/
+  `plugin_name` fields because `emit_event`'s RESERVED_FIELDS enrichment unconditionally
+  overwrites plugin-supplied values with the current gate-plugin's own dispatch identity,
+  silently breaking `plugin.indeterminate → marker.cleared` audit correlation for the deadman
+  path. F-P2-003 (MED) — OPERATOR_OVERRIDE/RAW_DELETE_DETECTED reconciliation (AC-023,
+  BC-1.18.003 PC3, BC-3.08.001 Event 9 EC-013) is entirely unimplemented, and would hit the
+  identical wall if implemented WASM-side. Architect adjudication (2026-08-31, architect agent,
+  dispatched per CLAUDE.md Agent Routing Table): both findings resolved by moving TTL_EXPIRED and
+  OPERATOR_OVERRIDE emission to dispatcher-native code, mirroring the already-correct REVALIDATED
+  architecture. PROPOSED pending human ratification per POLICY 22 — this is a further revision to
+  a not-yet-ratified ADR (ADR-048 v1.0/v1.1 were themselves never ratified), not a reopening of an
+  accepted decision.
 - **Rice's theorem (v1.1 — shared-crate rejection):** Rice, H.G. (1953). "Classes of recursively
   enumerable sets and their decision problems." Trans. AMS 89(1):25–59. Applied: any command-
   filter classifying "this Bash dispatch deletes the marker file" is undecidable in the general
@@ -708,22 +894,51 @@ TTL_EXPIRED, OPERATOR_OVERRIDE); (i) BC-3.08.001 event enumeration seven→eight
 - **BC-1.18.002 v1.4:** `.factory/specs/behavioral-contracts/ss-01/BC-1.18.002.md` —
   gate behavior; PC1 `on_error = "continue"` superseded to `on_error = "block_if_marker"`;
   INV6/AC-020 block-message reframe: crash-path block on agent-tool rm is ACCEPTABLE (v1.1 PO).
-- **BC-1.18.003 v1.1:** `.factory/specs/behavioral-contracts/ss-01/BC-1.18.003.md` —
-  marker-clear protocol; TTL expiry becomes PC4 (new clear path, PO); audited-clears amendment
-  (REVALIDATED/TTL_EXPIRED/OPERATOR_OVERRIDE) required (v1.1 PO).
-- **BC-3.08.001 (v1.1 — new Event 9):** dispatcher domain event catalog. Current count before
-  ADR-048 §D4: eight events (ADR-039 six + ADR-047 `plugin.indeterminate` + ADR-039
-  `plugin.epoch_timeout`). ADR-048 §D4 adds `marker.cleared` as Event 9. PO must amend
-  BC-3.08.001 with Event 9 wire format. Enumeration "seven→eight→nine" sweep across BC-3.08.001,
-  story tests, and architecture docs is a REQUIRED downstream action.
-- **Architecture as-built (crates — PLANNED for S-25.01):**
+- **BC-1.18.003 v1.3 (v1.2 — supersession note):** `.factory/specs/behavioral-contracts/ss-01/BC-1.18.003.md` —
+  marker-clear protocol; TTL expiry is PC4; audited-clears (REVALIDATED/TTL_EXPIRED/
+  OPERATOR_OVERRIDE) already present as of v1.3, but PC4's "Emission point" and the Architecture
+  Anchors section still attribute TTL_EXPIRED emission to "the gate plugin's TTL-check branch" —
+  this is SUPERSEDED by the v1.2 Decision 4 Emission-Point Correction above and REQUIRES a PO
+  amendment (v1.4) to attribute it to the dispatcher-native pre-check instead; OPERATOR_OVERRIDE
+  language ("the plugin emits a retroactive marker.cleared") requires the same correction.
+- **BC-3.08.001 v1.30 (v1.2 — supersession note):** dispatcher domain event catalog, nine events
+  including `marker.cleared` (Event 9). Event 9's "clear_mode / actor_type correspondence" table
+  "Emission point" column for TTL_EXPIRED ("Plugin TTL-check branch after auto-delete") and
+  OPERATOR_OVERRIDE ("RAW_DELETE_DETECTED reconciliation path in gate plugin") is SUPERSEDED by
+  the v1.2 Decision 4 Emission-Point Correction above and REQUIRES a PO amendment (v1.31) to
+  attribute both to dispatcher-native code.
+- **VP-108 (v1.2 — supersession note):** `.factory/specs/verification-properties/VP-108.md` —
+  `marker.cleared` clear-path emission-correctness VP. Its `module` frontmatter field already
+  correctly names `crates/factory-dispatcher/src/indeterminate_marker.rs` (dispatcher-native), but
+  its Property Statement/Proof Harness (Postcondition 2, `test_ttl_expired_clear_emits_marker_cleared`)
+  still narrates "the gate plugin auto-deletes... and emits" and calls a non-existent
+  `evaluate_gate_with_sink` function that blends WASM-plugin logic with a dispatcher-side
+  `CapturingSink` — impossible across the WASM/host boundary. REQUIRES architect amendment
+  (v1.1) to correct the PC2/PC3 narration and harness to call the new
+  `check_and_clear_expired_marker`/`reconcile_raw_delete` dispatcher-native functions directly,
+  with no WASM invocation involved.
+- **Architecture as-built (crates — PLANNED for S-25.01, v1.2 emission-point-corrected):**
   `crates/factory-dispatcher/src/indeterminate_marker.rs` (add `expires_at` to
   `write_indeterminate_marker`; add `UNVALIDATED_MUTATION_MARKER_TTL_SECONDS = 86_400`; add
-  `emit_marker_cleared` for REVALIDATED/TTL_EXPIRED clear paths);
+  `emit_marker_cleared` — ALL THREE clear modes REVALIDATED/TTL_EXPIRED/OPERATOR_OVERRIDE are
+  emitted from this single dispatcher-native function; add `check_and_clear_expired_marker(
+  factory_root, now) -> io::Result<Option<MarkerFields>>` [NEW, v1.2] — native TTL detect+delete,
+  called before every Arm 1/Arm 2 invocation on the normal path; add `reconcile_raw_delete(
+  factory_root, log, session_id) -> io::Result<()>` [NEW, v1.2] — dispatcher-native bounded
+  FileSink scan + retroactive OPERATOR_OVERRIDE emission, implementing what was previously
+  entirely unimplemented per F-P2-003);
   `crates/factory-dispatcher/src/executor.rs` (add `block_if_marker_check` call in crash-handler,
-  new `OnError::BlockIfMarker` match arm);
-  `crates/hook-plugins/validate-unvalidated-mutation-marker/src/lib.rs` (add `expires_at` TTL
-  check + auto-delete + `marker.cleared(TTL_EXPIRED)` emission in `guard_logic::evaluate_gate`;
-  add RAW_DELETE_DETECTED reconciliation path; add `delete_marker_if_pass` + `marker.cleared
-  (REVALIDATED)` emission);
-  `plugins/vsdd-factory/hooks-registry.toml` (set `on_error = "block_if_marker"` for both arms).
+  new `OnError::BlockIfMarker` match arm; [NEW, v1.2] call `check_and_clear_expired_marker` +
+  `reconcile_raw_delete` from the tier-execution loop before invoking any `on_error =
+  "block_if_marker"` plugin on the normal path);
+  `crates/hook-plugins/validate-unvalidated-mutation-marker/src/lib.rs` (`guard_logic::evaluate_gate`
+  SIMPLIFIED [v1.2] — REMOVE `expires_at` parsing, TTL auto-delete, and `marker.cleared(TTL_EXPIRED)`
+  emission via `emit_event` (the v1.0/v1.1 `marker_trace_id`/`marker_plugin_name`/`reason=""`
+  workaround is deleted, not fixed-in-place); the plugin becomes a pure marker-presence check:
+  absent → Allow; present → Block with fields read from the marker. `delete_marker_if_pass` and
+  `marker.cleared(REVALIDATED)` emission were NEVER in this plugin — they remain, unchanged, in
+  `executor.rs`/`indeterminate_marker.rs` dispatcher-side, as v1.1's own architecture already
+  correctly had them; the v1.1 ADR text's item (d) "or gate plugin" framing was the drafting error
+  that seeded F-P2-002, not an actual code placement that needs undoing);
+  `plugins/vsdd-factory/hooks-registry.toml` (set `on_error = "block_if_marker"` for both arms;
+  unchanged by v1.2).

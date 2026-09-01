@@ -9871,3 +9871,96 @@ Parent SHA: `fe264d49` (factory(sha-patch): SESSION-WRAP-PAUSE-2026-08-29).
 Commit SHA: `20d0505d` (S1707-PRE-TDD-RECONCILIATION-BURST-2026-08-29; D-449(e) SHA-patch applied).
 
 ---
+
+## S2501-PASS2-FIX-BURST-INDEX-SYNC-2026-09-01
+
+**D-chain cite:** D-1139.
+
+**Trigger:** S-25.01 LOCAL adversary pass 2 (fresh context, frozen `feature/S-25.01` @ `65d3c585`)
+returned NOT-CLEAN: 2 HIGH + 1 MED.
+
+- **F-P2-001 (HIGH):** crash-path BLOCK message (`extract_block_info`, main.rs) dropped
+  agent-facing marker-field disclosure and instructed agent-tool `rm` directly, violating
+  BC-1.18.002 v1.6 PC5 and the ADR-048 Decision 3 INV6/T4 ban on agent-tool `rm` as a sanctioned
+  recovery path (CWE-636 self-de-quarantine). Fixed by threading `MarkerFields` from
+  `execute_tiers` into `PluginOutcome.block_if_marker_fields` (boxed to keep `JoinWrap` under
+  `clippy::large_enum_variant`) and rebuilding the message to name all four mandatory fields and
+  order recovery guidance T1 (Edit/Write, primary/ungated) before T2 (24h TTL auto-clear) before
+  T3 (human out-of-band rm). Implementer commit `d14d56d7`.
+- **F-P2-002 (HIGH) + F-P2-003 (MED):** Event 9 `marker.cleared` TTL_EXPIRED/OPERATOR_OVERRIDE
+  emission was specified WASM-gate-plugin-side, but the `emit_event` host ABI's RESERVED_FIELDS
+  enrichment unconditionally overwrites plugin-supplied `trace_id`/`plugin_name` with the invoking
+  plugin's own dispatch identity — structurally impossible for a WASM plugin to emit an event
+  carrying the marker's own (foreign) identity. OPERATOR_OVERRIDE reconciliation was never
+  implemented at all for the identical reason. **Human-ratified 2026-09-01 (POLICY 22):** ADR-048
+  amended v1.1→v1.2 (§Decision 4 Emission-Point Correction) — both TTL_EXPIRED and
+  OPERATOR_OVERRIDE emission moved to dispatcher-native `check_and_clear_expired_marker` +
+  `reconcile_raw_delete` (`indeterminate_marker.rs`), invoked from `executor.rs`'s tier-execution
+  loop before every Arm 1/Arm 2 (`on_error=block_if_marker`) plugin invocation, mirroring the
+  already-correct REVALIDATED architecture. `evaluate_gate` (WASM) simplified to a pure
+  marker-presence check. ADR-048 status `proposed`→`accepted`. Implementer commit `df61bfc7`.
+
+**PO cascade** (all narration-locus corrections; no wire-format/postcondition-semantic change):
+BC-1.18.001 v1.1→v1.2 (PC4 `expires_at` narration spot-check); BC-1.18.002 v1.6→v1.7 (INV6 T2 /
+Fail-Closed-But-Recoverable table / Traceability ADR narration spot-check — Block/Allow behavior
+UNCHANGED); BC-1.18.003 v1.3→v1.4 (TTL_EXPIRED+OPERATOR_OVERRIDE emission re-attributed
+dispatcher-native; VP attribution retargeted VP-106→VP-108); BC-3.08.001 v1.30→v1.31 (Event 9
+`clear_mode`/`actor_type` correspondence table "Emission point" cells re-attributed; event count
+unchanged at nine).
+
+**Architect same-burst:** VP-106 v1.4→v1.5 (PC-F/PC-G retargeted to `check_and_clear_expired_marker`);
+VP-108 v1.0→v1.1 (PC2/PC3 retargeted to dispatcher-native functions; proof harness rewritten,
+removed impossible cross-WASM-boundary `evaluate_gate_with_sink`); ARCH-INDEX v4.03 (ADR-048 row
+content, still cited PROPOSED pending this burst's ratification).
+
+**Story-writer:** S-25.01 v1.11→v1.12 — AC-021 rewritten (TTL_EXPIRED dispatcher-native
+attribution); AC-023 rewritten (OPERATOR_OVERRIDE dispatcher-native attribution + bounded-scan
+requirement); BC table synced to all 4 new versions; VP-108 added to `inputs` and
+`verification_properties` frontmatter (pre-existing gap since VP-108's origination, closed this
+burst); flagged (a) input-hash drift (VP-108.md added to inputs, hash not self-updated) and
+(b) AC-021/AC-022/AC-023 lacking dedicated Red Gate test stub coverage — both routed to
+state-manager.
+
+**State-manager this burst (4-index atomic advance):**
+- BC-INDEX v5.35→v5.36 — appended version-chain cells for all 4 BCs. BC-corpus-version-sync
+  literal-shell verification (Python replicating `extract_first_v_token_of_last_entry`):
+  BC-1.18.001 last-entry-first-v-token `v1.2` == frontmatter `1.2`; BC-1.18.002 `v1.7` == `1.7`;
+  BC-1.18.003 `v1.4` == `1.4`; BC-3.08.001 `v1.31` == `1.31`. ALL MATCH.
+- VP-INDEX v2.92→v2.93 — closed the §Story Anchors propagation gap for VP-106 (v1.5) and VP-108
+  (v1.1), which architect had updated in §Full Index but not §Story Anchors. total_vps UNCHANGED
+  108 (both are amendments, not new VPs). verification-architecture.md +
+  verification-coverage-matrix.md confirmed no change needed (architect-verified: no count/module
+  shift).
+- Input-hash re-sync via `bin/compute-input-hash --update`: BC-1.18.001 `63b0f4a`→`316baa6`;
+  BC-1.18.002 `2448fd6`→`4dbfa02`; BC-1.18.003 `815a46e`→`efafaef`; S-25.01 `e9a512d`→`1f203cb`.
+  BC-3.08.001 unchanged (`b64ffb3`, own inputs list unaffected). Re-verified all 5 files
+  `--check` exit 0 post-update.
+- STORY-INDEX v4.419→v4.420 — catalog row + 3 blockquotes (§E-25 delivery, §Input-hashes,
+  §E-25-authored) updated to v1.12/1f203cb/BC v1.2·v1.7·v1.4·v1.31/VP-102..108. POLICY 18
+  three-way parity VERIFIED (frontmatter=catalog-row=blockquote=1f203cb).
+- ARCH-INDEX v4.03→v4.04 — ADR-048 row tail flipped PROPOSED→ACCEPTED (Human-Ratified
+  2026-09-01, POLICY 22).
+- ADR-048 file: `status: proposed`→`accepted`; Status section banner rewritten to
+  **ACCEPTED — Human-Ratified 2026-09-01**, mirroring the ADR-047 precedent (ratification recorded
+  authoritatively in decision-log D-1139; ADR frontmatter reflects the architectural decision).
+
+**Confirmed (no fix needed):** OPERATOR_OVERRIDE `reason` field is correctly non-null in both
+BC-1.18.003 (EC-012, Canonical Test Vectors) and story S-25.01 (line 583: "MUST be non-null for
+OPERATOR_OVERRIDE") — consistent with VP-108 PC3 and ADR-048 §D4. No micro-fix routed back.
+
+**Drift Item recorded:** AC-021/AC-022/AC-023 (`marker.cleared` emission postconditions) lack a
+dedicated Red Gate test stub row in the story's Red Gate Test Inventory / T-3 checklist —
+pre-existing gap since story v1.10 introduced these ACs, not introduced by this burst. Actual TDD
+coverage exists via VP-108's 4 Rust test functions (implementer-side), so this is a
+story-bookkeeping density gap, not a missing-test defect. Follow-up story-writer/test-writer pass
+OWED.
+
+**feature/S-25.01:** `65d3c585`→`df61bfc7` (F-P2-001 `d14d56d7` + F-P2-002/003 `df61bfc7`).
+BC-5.39.001 streak stays 0/3 (findings-then-fix burst, no CLEAN pass). trajectory-tail
+→0→1→0→0 LENGTH=4 (UNCHANGED). NEXT: fresh LOCAL adversary pass 3 on frozen `df61bfc7`.
+
+**Housekeeping:** transient dispatcher/session telemetry (`logs/dispatcher-internal-*.jsonl`,
+`logs/events-*.jsonl`, `sidecar-learning.md`, `regression-state.json`) bundled into this SAME
+single commit per TD-VSDD-053.
+
+---

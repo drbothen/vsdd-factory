@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-08-31T00:00:00Z
@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/architecture/decisions/ADR-048-fail-closed-but-recoverable-gate-block-if-marker-crash-policy-marker-ttl-deadman-and-ungated-escape-invariant.md
   - .factory/feature-delta/validation-integrity-layer1/F1-delta-analysis.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.17.001.md
-input-hash: "63b0f4a"
+input-hash: "8e071e6"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -19,7 +19,7 @@ subsystem: "SS-01"
 capability: "CAP-041"
 lifecycle_status: draft
 introduced: v1.0-feature-validation-integrity-layer1
-modified: ["2026-08-31"]
+modified: ["2026-08-31", "2026-08-31-v1.2-adr-048-d4-v1.2-ttl-locus-narration-correction"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -104,8 +104,11 @@ PASS or FAIL semantics.
    Where `UNVALIDATED_MUTATION_MARKER_TTL_SECONDS = 86_400` (24-hour deadman constant defined in
    `crates/factory-dispatcher/src/indeterminate_marker.rs`). `expires_at` is computed as
    `timestamp + Duration::seconds(86_400)` and stamped by `write_indeterminate_marker` at
-   marker creation time. This field enables the gate plugin to auto-delete expired markers on
-   the normal path (BC-1.18.003 PC4) and enables the dispatcher's native `block_if_marker`
+   marker creation time. This field enables the dispatcher-native `check_and_clear_expired_marker`
+   pre-check (`indeterminate_marker.rs`, called from `executor.rs`'s tier-execution loop before the
+   Arm 1/Arm 2 WASM gate plugin runs) to auto-delete expired markers on the normal path
+   (BC-1.18.003 PC4; ADR-048 §Decision 4 v1.2 — the gate plugin's `evaluate_gate` performs no
+   `expires_at` parsing of its own) and enables the dispatcher's native `block_if_marker`
    crash-path check to honor TTL expiry (ADR-048 §Decision 2).
    Single-marker policy: if a marker already exists, it is overwritten (last-writer-wins). No
    per-plugin marker scheme in Layer 1 (ADR-047 §Decision 3 rationale).
@@ -212,7 +215,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 | Capability Anchor Justification | CAP-041 ("Validation Integrity: INDETERMINATE Outcome, Durable Mutation Marker, and Next-Advance Gate") per capabilities.md §CAP-041 — this BC specifies the complete outcome classification trichotomy and the marker-write PostToolUse behavior that is the core of what CAP-041 defines: "The dispatcher classifies plugin non-completion (fuel exhaustion, epoch timeout, host OutputTooLarge) as a named INDETERMINATE outcome … causes … atomic write of a durable marker file." |
 | L2 Domain Invariants | none (dispatcher runtime invariant, not L2 domain spec) |
 | Architecture Module | SS-01 (Hook Dispatcher Core — executor.rs classification + invoke.rs Store flag + indeterminate_marker.rs new module) |
-| ADR | ADR-047 §Decision 1 (outcome trichotomy); ADR-047 §Decision 2 (failure_policy reuse, no new field); ADR-047 §Decision 3 (durable marker path, TOML fields, atomic write, single-marker policy); ADR-047 §Decision 6 (OutputTooLarge Store-flag mechanism, per-invocation reset); ADR-047 §Decision 7 (backward-compatibility contract); ADR-039 §Decision 1 (failure_policy field semantics + axes-independence invariant); ADR-048 §Decision 2 (expires_at sixth required TOML field; UNVALIDATED_MUTATION_MARKER_TTL_SECONDS = 86_400 24h deadman constant; expires_at stamped by write_indeterminate_marker at creation; TTL checked by gate plugin on normal path + by dispatcher native block_if_marker check on crash path) |
+| ADR | ADR-047 §Decision 1 (outcome trichotomy); ADR-047 §Decision 2 (failure_policy reuse, no new field); ADR-047 §Decision 3 (durable marker path, TOML fields, atomic write, single-marker policy); ADR-047 §Decision 6 (OutputTooLarge Store-flag mechanism, per-invocation reset); ADR-047 §Decision 7 (backward-compatibility contract); ADR-039 §Decision 1 (failure_policy field semantics + axes-independence invariant); ADR-048 §Decision 2 (expires_at sixth required TOML field; UNVALIDATED_MUTATION_MARKER_TTL_SECONDS = 86_400 24h deadman constant; expires_at stamped by write_indeterminate_marker at creation; TTL checked by the dispatcher-native `check_and_clear_expired_marker` pre-check on the normal path + by dispatcher native `block_if_marker_check` on crash path — both dispatcher-native per ADR-048 §Decision 4 v1.2 Emission-Point Correction; the gate plugin's `evaluate_gate` has no `expires_at` awareness of its own) |
 | Stories | S-25.01 |
 | Cycle | v1.0-feature-validation-integrity-layer1 (F2 — product-owner spec burst) |
 | Feature | E-25 — Validation Integrity and Large-Artifact Resilience |
@@ -221,5 +224,6 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.2 | 2026-08-31 | product-owner | Spot-check correction (ADR-048 §Decision 4 v1.2 Emission-Point Correction; human-ratified; sibling of BC-1.18.003 v1.4/BC-3.08.001 v1.31). PC4's `expires_at` field description narrated the pre-v1.2 locus ("This field enables the gate plugin to auto-delete expired markers on the normal path") — corrected to attribute the normal-path TTL auto-delete to the new dispatcher-native `check_and_clear_expired_marker` pre-check (`indeterminate_marker.rs`, called from `executor.rs`'s tier-execution loop before the WASM gate plugin runs); the gate plugin's `evaluate_gate` has no `expires_at` awareness of its own. Traceability ADR row's ADR-048 §Decision 2 citation ("TTL checked by gate plugin on normal path") corrected to name `check_and_clear_expired_marker` and cite ADR-048 §Decision 4 v1.2. No postcondition, wire-format, or field-shape change — this BC's own scope (marker WRITE) is otherwise unaffected; only stale TTL-locus narration was corrected. |
 | 1.1 | 2026-08-31 | product-owner | ADR-048 §Decision 2 — adds `expires_at` as 6th required TOML marker field in PC4 (stamped by `write_indeterminate_marker` at creation; `UNVALIDATED_MUTATION_MARKER_TTL_SECONDS = 86_400` 24h deadman). Sweeps all "5 fields" → "6 fields": VP-104 Verification Properties row updated to reference all six fields including `expires_at`. Traceability ADR updated with ADR-048 §Decision 2 citation. ADR-048 added to inputs. |
 | 1.0 | 2026-08-30 | product-owner | Initial creation. F2 spec-evolution burst, validation-integrity-layer1. BC-1.18.001: INDETERMINATE outcome classification (fuel/epoch/OTL), plugin.indeterminate event, durable marker (PostToolUse+fail-closed), backward-compat (PC5). VPs VP-102/VP-103/VP-104 anchored. CAP-041 capability anchor. ADR-047 §D1/D2/D3/D6/D7 citations. |

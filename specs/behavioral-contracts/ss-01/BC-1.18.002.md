@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
+version: "1.7"
 status: draft
 producer: product-owner
 timestamp: 2026-08-31T00:00:00Z
@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/architecture/decisions/ADR-048-fail-closed-but-recoverable-gate-block-if-marker-crash-policy-marker-ttl-deadman-and-ungated-escape-invariant.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.001.md
   - .factory/feature-delta/validation-integrity-layer1/F1-delta-analysis.md
-input-hash: "2448fd6"
+input-hash: "28e238b"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -19,7 +19,7 @@ subsystem: "SS-01"
 capability: "CAP-041"
 lifecycle_status: draft
 introduced: v1.0-feature-validation-integrity-layer1
-modified: ["v1.1-2026-08-31-exact-subcommand-clarification", "v1.2-2026-08-31-command-detection-comprehensive-expansion", "v1.3-2026-08-31-fail-open-reconciliation-threat-model-quoting-scope", "v1.4-2026-08-31-read-error-vs-malformed-marker-distinction", "v1.5-2026-08-31-block_if_marker-crash-policy-TTL-ungated-escape", "v1.6-2026-08-31-recovery-model-reframe-HIGH-1-resolution"]
+modified: ["v1.1-2026-08-31-exact-subcommand-clarification", "v1.2-2026-08-31-command-detection-comprehensive-expansion", "v1.3-2026-08-31-fail-open-reconciliation-threat-model-quoting-scope", "v1.4-2026-08-31-read-error-vs-malformed-marker-distinction", "v1.5-2026-08-31-block_if_marker-crash-policy-TTL-ungated-escape", "v1.6-2026-08-31-recovery-model-reframe-HIGH-1-resolution", "v1.7-2026-08-31-adr-048-d4-v1.2-ttl-locus-narration-correction"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -314,10 +314,13 @@ SCOPE, handled via Phase 1b POSIX quote-aware tokenization using the `shell-word
 
    - **(T2 — Passive recovery) TTL auto-expiry (no dispatch required):**
      After `UNVALIDATED_MUTATION_MARKER_TTL_SECONDS` (86400s, defined in
-     `crates/factory-dispatcher/src/indeterminate_marker.rs`) have elapsed, any subsequent gate
-     evaluation on the normal path finds `expires_at ≤ now (UTC)` → Allow + auto-delete (gate
-     plugin per BC-1.18.003 PC4). Any crash-path evaluation also finds marker expired → Allow
-     (PC6). No operator dispatch is required. Ungated — passive self-healing.
+     `crates/factory-dispatcher/src/indeterminate_marker.rs`) have elapsed, the next dispatch's
+     normal-path dispatcher-native `check_and_clear_expired_marker` pre-check (called from
+     `executor.rs`'s tier-execution loop, before the WASM gate plugin's `evaluate_gate` runs)
+     finds `expires_at ≤ now (UTC)` → Allow + auto-delete (BC-1.18.003 PC4; ADR-048 §Decision 4
+     v1.2 — the gate plugin has no `expires_at` awareness of its own). Any crash-path evaluation
+     also finds marker expired → Allow (PC6). No operator dispatch is required. Ungated —
+     passive self-healing.
 
    - **(T3 — Human out-of-band recovery) Operator `rm` in own terminal (break-glass):**
      The PreToolUse hook chain is invoked only when the AI agent calls a tool through the
@@ -404,7 +407,7 @@ quarantine state (INV6 — Ungated-Escape invariant; ADR-048 §Decision 3 amende
 | Tier | Mechanism | Actor | Ungated? |
 |------|-----------|-------|---------|
 | T1 — Primary agent recovery | Re-validate artifact via Edit/Write → gate plugin PASS → `delete_marker_if_pass` clears marker (INV6-T1; PC3) | Agent | Yes — Edit/Write match neither `^Agent$` nor `^Bash$`; no arm fires; crash check not invoked |
-| T2 — Passive recovery | Wait 86400s; marker `expires_at` elapses; gate auto-deletes on next normal eval (INV6-T2) | Deadman | Yes — no dispatch needed; TTL self-heals unconditionally |
+| T2 — Passive recovery | Wait 86400s; marker `expires_at` elapses; dispatcher-native `check_and_clear_expired_marker` pre-check auto-deletes on next normal eval, before `evaluate_gate` runs (INV6-T2; ADR-048 §D4 v1.2) | Deadman | Yes — no dispatch needed; TTL self-heals unconditionally |
 | T3 — Human break-glass | Operator `rm .factory/unvalidated-mutation.marker` in own terminal (INV6-T3) | Operator | Yes — human shell outside dispatcher mediation; never intercepted |
 | T4 — Agent-tool rm (de-sanctioned) | Bash `rm .factory/unvalidated-mutation.marker` via dispatcher | Agent | NOT guaranteed — may be blocked on crash path (see INV6/T4); NOT relied upon by invariant |
 
@@ -534,7 +537,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 | Capability Anchor Justification | CAP-041 ("Validation Integrity: INDETERMINATE Outcome, Durable Mutation Marker, and Next-Advance Gate") per capabilities.md §CAP-041 — this BC specifies the next-advance gate behavior that is the third element of what CAP-041 defines: "blocking of the next state-advancing dispatch — the `validate-unvalidated-mutation-marker` PreToolUse plugin … blocks ALL `^Agent$` tool dispatches AND all Bash dispatches whose `command` identifies `commit` or `push` as the git subcommand (D9 extended gate; the illustrative regex `\bgit\b.*\b(commit\|push)\b` approximates but is not authoritative — see v1.1 clarification) while the marker exists." |
 | L2 Domain Invariants | none (dispatcher runtime gate invariant, not L2 domain spec) |
 | Architecture Module | SS-04 (Plugin Ecosystem — new `validate-unvalidated-mutation-marker` WASM plugin crate); SS-01 (Hook Dispatcher Core — evaluates block_intent from plugin exit_code=2 in PreToolUse dispatch chain) |
-| ADR | ADR-047 §Decision 4 (Next-Advance Gate plugin specification — two-arm registration, exit_code=2 block; crash behavior superseded by ADR-048 §Decision 1); ADR-047 §Decision 9 (extended gate scope — Agent dispatch AND git commit/push Bash arm; two-axis model); ADR-047 §Decision 5 (Marker clear protocol — rm unblocks both arms simultaneously); ADR-039 §Decision 1 (two-axis model — on_error orthogonal to failure_policy; axes-independence invariant); ADR-048 §Decision 1 (block_if_marker new on_error value — crash + non-expired marker → Block; crash + no/expired marker → Allow; supersedes ADR-047 §D4 crash posture; D-1135 reversed); ADR-048 §Decision 2 (expires_at TTL — gate plugin checks expires_at on normal path; dispatcher native check uses expires_at on crash path); ADR-048 §Decision 3 amended v1.1 (recovery model reframe: T1=re-validation via Edit/Write primary + inherently ungated; T2=TTL deadman; T3=human OOB rm break-glass; T4=agent-tool rm de-sanctioned — crash-path block ACCEPTABLE, NOT INV6 violation; VP-107 scope amended to verify T1 only; shared-crate fix rejected as unsound per Rice's theorem) |
+| ADR | ADR-047 §Decision 4 (Next-Advance Gate plugin specification — two-arm registration, exit_code=2 block; crash behavior superseded by ADR-048 §Decision 1); ADR-047 §Decision 9 (extended gate scope — Agent dispatch AND git commit/push Bash arm; two-axis model); ADR-047 §Decision 5 (Marker clear protocol — rm unblocks both arms simultaneously); ADR-039 §Decision 1 (two-axis model — on_error orthogonal to failure_policy; axes-independence invariant); ADR-048 §Decision 1 (block_if_marker new on_error value — crash + non-expired marker → Block; crash + no/expired marker → Allow; supersedes ADR-047 §D4 crash posture; D-1135 reversed); ADR-048 §Decision 2 (expires_at TTL — the dispatcher-native `check_and_clear_expired_marker` pre-check uses expires_at on the normal path; dispatcher native `block_if_marker_check` uses expires_at on the crash path; both dispatcher-native per ADR-048 §Decision 4 v1.2 Emission-Point Correction — `evaluate_gate` has no `expires_at` awareness of its own); ADR-048 §Decision 3 amended v1.1 (recovery model reframe: T1=re-validation via Edit/Write primary + inherently ungated; T2=TTL deadman; T3=human OOB rm break-glass; T4=agent-tool rm de-sanctioned — crash-path block ACCEPTABLE, NOT INV6 violation; VP-107 scope amended to verify T1 only; shared-crate fix rejected as unsound per Rice's theorem) |
 | Stories | S-25.01 |
 | Cycle | v1.0-feature-validation-integrity-layer1 (F2 — product-owner spec burst) |
 | Feature | E-25 — Validation Integrity and Large-Artifact Resilience |
@@ -543,6 +546,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.7 | 2026-08-31 | product-owner | Spot-check correction (ADR-048 §Decision 4 v1.2 Emission-Point Correction; human-ratified; sibling of BC-1.18.003 v1.4/BC-1.18.001 v1.2/BC-3.08.001 v1.31). Gate Block/Allow behavior is UNCHANGED — this is a narration-locus fix only: three sites attributed normal-path TTL auto-delete to "the gate plugin"; corrected to the new dispatcher-native `check_and_clear_expired_marker` pre-check (`indeterminate_marker.rs`, called from `executor.rs`'s tier-execution loop before `evaluate_gate` runs). (1) §INV6 T2 (Passive recovery) bullet corrected. (2) §Fail-Closed-But-Recoverable Design table T2 row corrected. (3) §Traceability ADR row's ADR-048 §Decision 2 citation corrected + ADR-048 §Decision 4 v1.2 parenthetical added. Crash-path (`block_if_marker_check`, Decision 1) narration is UNCHANGED per ADR-048 §D4 v1.2 (that code path was not touched by the architect's fix). VP-105 citations checked — VP-105's `evaluate_gate`/`block_if_marker` rows in this BC's §Verification Properties table describe marker presence/readability and the crash path only, neither of which cite normal-path TTL internals, so no VP-105 flag is needed. |
 | 1.6 | 2026-08-31 | product-owner | ADR-048 §Decision 3 amended v1.1 — recovery model reframe (HIGH-1 resolution). (1) INV6 restructured to four-tier model: T1 (Edit/Write re-validation — primary agent recovery, inherently ungated); T2 (TTL deadman); T3 (human OOB rm — break-glass); T4 (agent-tool Bash rm — de-sanctioned; crash-path block ACCEPTABLE, NOT INV6 violation). (2) INV6(i) v1.5 claim that "block_if_marker on crash does not affect rm because rm does not match Arm 1's ^Agent$ pattern" CORRECTED: Arm 2 (^Bash$) also has block_if_marker; crash handler runs for ALL ^Bash$ dispatches with no is_git_commit_or_push filter; rm CAN be blocked on crash path. (3) PC5 block message reframed: T1 (re-validate via Edit/Write) listed first; rm moved to T3 (human OOB only) and NOT recommended to agent. (4) INV2 last clause updated to T1/T2/T3/T4 framing. (5) Fail-Closed-But-Recoverable table restructured: four rows T1–T4. (6) VP-107 scope amended: verifies T1 only (Edit/Write not matched by either arm); NOT "rm is never gated". (7) Traceability ADR: ADR-048 §D3 citation updated to amended v1.1 form. |
 | 1.5 | 2026-08-31 | product-owner | ADR-048 §Decision 1/2/3 — fail-closed-but-recoverable gate redesign. (1) Both Arm 1 and Arm 2 `on_error` changed from `"continue"` to `"block_if_marker"` in PC1. (2) Two-axis model note in PC1 rewritten: axis (i) now describes the native block_if_marker crash-path (block iff non-expired marker; allow otherwise) superseding D-1135 fail-open-on-crash. (3) Added PC5: gate crash + non-expired marker → dispatcher BLOCKS. (4) Added PC6: gate crash + absent/expired marker → dispatcher ALLOWS. (5) INV2 rewritten: fail-closed-but-recoverable on crash replacing unconditional fail-open; IO-read-error fail-open (EC-030) unchanged. (6) Added INV6: Ungated-Escape invariant — `rm` + Edit/Write + TTL auto-expiry are never gated; VP-107 verification anchor. (7) Threat Model: added Fail-Closed-But-Recoverable subsection with three recoverability guarantees. (8) EC-009 updated for block_if_marker (crash+no-marker → allow); added EC-031 (crash+non-expired-marker → block) and EC-032 (crash+expired-marker → allow). (9) Canonical test vectors: added PC5/PC6 scenarios. (10) VP-105 updated to cover block_if_marker. (11) Traceability ADR: ADR-048 §D1/D2/D3 citations added. ADR-048 added to inputs. |
 | 1.4 | 2026-08-31 | product-owner | Adversary MEDIUM-1 adjudication: resolved read-error vs malformed-marker self-contradiction. (1) EC-008 rewritten to scope explicitly to "marker present and READABLE but content malformed/unparseable (bad TOML, missing required fields) → BLOCK (exit_code=2)" — the unreadable-IO-error case is now excluded from EC-008. (2) Added EC-030: "marker present but UNREADABLE (IO/permission error, e.g. EACCES) → ALLOW (fail-open)" citing INV2 — an unreadable marker cannot be trusted as a quarantine signal, and rm may also fail under the same fault, creating an unclearable self-lock; fail-open is the correct posture. (3) INV2 expanded to explicitly cover the unreadable-marker self-lock avoidance case (not just fuel-exhaustion/plugin-crash). (4) VP-105 unit-test property row updated to distinguish all four cases: absent→Allow; readable+valid→Block; readable+malformed→Block (EC-008); unreadable IO error→Allow (EC-030). (5) Added four canonical test vectors: unreadable-EACCES Agent→Allow, unreadable-EACCES git commit→Allow, readable-malformed Agent→Block, readable-malformed git commit→Block. |
