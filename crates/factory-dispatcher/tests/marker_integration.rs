@@ -710,3 +710,318 @@ async fn test_BC_1_18_003_EC_009_empty_marker_artifact_path_clears_via_execute_t
          Empty artifact_path is the non-artifact-scoped fallback; cleared unconditionally."
     );
 }
+
+// ---------------------------------------------------------------------------
+// F-P9-001 (human-ratified): marker.cleared(SUPERSEDED) MUST be emitted only
+// AFTER a successful marker write — symmetric to the v1.4 marker.written fix
+// (F-P6-001). Before this fix, execute_tier / spawn_async_plugin called
+// emit_superseded_if_cross_pair UNCONDITIONALLY before attempting the write,
+// so a write failure left the OLD marker on disk while a SUPERSEDED audit
+// record falsely claimed it had been overwritten.
+//
+// These tests drive the REAL execute_tiers / execute_tier path (same
+// discipline as the BLOCKER-1/BLOCKER-2 tests above) — a direct unit call to
+// emit_superseded_if_cross_pair would not exercise the callsite ordering bug
+// and would be a paper-fix per TD-VSDD-059.
+// ---------------------------------------------------------------------------
+
+/// Reads every internal-log event of `event_type` from today's rotated JSONL
+/// file under `log_dir` (`dispatcher-internal-<date>.jsonl`).
+///
+/// No polling: safe to call immediately after an `.await`ed `execute_tiers`
+/// call because `InternalLog::write` appends directly to the file (no
+/// buffering, no async queue) before `HostContext::emit_internal` returns —
+/// see `wait_for_log_event`'s doc comment in `full_stack_plugin_invocation.rs`
+/// for the underlying guarantee this relies on.
+fn read_events_of_type(log_dir: &std::path::Path, event_type: &str) -> Vec<serde_json::Value> {
+    let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+    let log_file = log_dir.join(format!("dispatcher-internal-{today}.jsonl"));
+    let Ok(content) = std::fs::read_to_string(&log_file) else {
+        return Vec::new();
+    };
+    content
+        .lines()
+        .filter_map(|line| serde_json::from_str::<serde_json::Value>(line).ok())
+        .filter(|v| v.get("type").and_then(|t| t.as_str()) == Some(event_type))
+        .collect()
+}
+
+/// Reads the ordered sequence of `type` values from today's rotated JSONL
+/// file — used to verify emission ORDER (append-only file, single-threaded
+/// dispatch in these tests, so line order == emission order).
+fn read_event_type_sequence(log_dir: &std::path::Path) -> Vec<String> {
+    let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+    let log_file = log_dir.join(format!("dispatcher-internal-{today}.jsonl"));
+    let Ok(content) = std::fs::read_to_string(&log_file) else {
+        return Vec::new();
+    };
+    content
+        .lines()
+        .filter_map(|line| serde_json::from_str::<serde_json::Value>(line).ok())
+        .filter_map(|v| v.get("type").and_then(|t| t.as_str()).map(str::to_string))
+        .collect()
+}
+
+/// F-P9-001 REGRESSION (RED before the fix): cross-pair marker present +
+/// `write_indeterminate_marker` returns `Err` ⟹ NO `marker.cleared(SUPERSEDED)`
+/// and NO `marker.written` are emitted. The pre-existing (OLD pair) marker
+/// MUST survive untouched on disk.
+///
+/// Write failure is forced the same way the existing F-P6-001
+/// `test_marker_written_emitted_on_successful_write_only` unit test forces
+/// it — by making the write target unwritable — but here via `.factory`
+/// directory permissions (0o555, no write bit) rather than an absent parent
+/// dir, because the OLD marker file must remain present and READABLE (so
+/// `read_all_marker_fields` still succeeds and the cross-pair precondition
+/// holds) while the temp-file WRITE inside `.factory` fails with EACCES
+/// before ever reaching the rename step.
+#[cfg(unix)]
+#[tokio::test(flavor = "current_thread")]
+async fn test_F_P9_001_cross_pair_write_failure_suppresses_superseded_and_marker_written() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let dir = tempfile::tempdir().unwrap();
+    let engine = build_engine().unwrap();
+    let _ticker = EpochTicker::start(engine.clone());
+    let cache = PluginCache::new(engine.clone());
+
+    let factory_dir = dir.path().join(".factory");
+    std::fs::create_dir_all(&factory_dir).unwrap();
+    let marker_path = factory_dir.join("unvalidated-mutation.marker");
+    // Pre-existing marker for a DIFFERENT (plugin_name, artifact_path) pair —
+    // the cross-pair precondition emit_superseded_if_cross_pair requires.
+    write_test_marker_with_artifact(&marker_path, "old-plugin", "/abs/old.md");
+    assert!(
+        marker_path.exists(),
+        "pre-condition: old (cross-pair) marker must exist before dispatch"
+    );
+
+    // Remove write permission on .factory AFTER the marker above was created,
+    // so write_indeterminate_marker's temp-file write (inside .factory) hits
+    // EACCES before ever reaching the rename step. Read/execute bits remain,
+    // so the pre-existing marker stays readable.
+    std::fs::set_permissions(&factory_dir, std::fs::Permissions::from_mode(0o555)).unwrap();
+
+    let hang_wasm = compile_to(dir.path(), "new-plugin", WAT_HANG);
+    let entry = make_indeterminate_entry(&hang_wasm, "new-plugin", "PostToolUse");
+    let registry = make_registry(vec![entry]);
+    let tiers: Vec<Vec<&RegistryEntry>> =
+        group_by_priority(&registry, registry.hooks.iter().collect());
+
+    let payload = serde_json::json!({
+        "tool_name": "Edit",
+        "tool_input": { "file_path": "/abs/new.md" }
+    });
+    let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
+    execute_tiers(
+        executor_inputs_with_cwd(
+            &engine,
+            &cache,
+            &registry,
+            &internal_log,
+            dir.path().to_path_buf(),
+            payload,
+        ),
+        tiers,
+    )
+    .await;
+
+    // Restore write permission so tempdir Drop-cleanup can remove files.
+    std::fs::set_permissions(&factory_dir, std::fs::Permissions::from_mode(0o755)).unwrap();
+
+    // The write must actually have failed: the OLD marker survives untouched.
+    assert!(
+        marker_path.exists(),
+        "pre-condition: a failed overwrite must leave the OLD marker on disk"
+    );
+    let surviving = std::fs::read_to_string(&marker_path).unwrap();
+    assert!(
+        surviving.contains("old-plugin"),
+        "pre-condition: the marker on disk after the failed write must still be \
+         the OLD (pre-existing) marker, not a partially-written new one: {surviving}"
+    );
+
+    let log_dir = dir.path().join("logs");
+    let superseded_events = read_events_of_type(&log_dir, "marker.cleared");
+    assert!(
+        superseded_events.is_empty(),
+        "F-P9-001 regression: write_indeterminate_marker returned Err, so \
+         marker.cleared(SUPERSEDED) MUST NOT be emitted — the old marker was never \
+         actually overwritten, so emitting SUPERSEDED here would be a false audit \
+         record. Got: {superseded_events:?}"
+    );
+
+    let written_events = read_events_of_type(&log_dir, "marker.written");
+    assert!(
+        written_events.is_empty(),
+        "F-P9-001 / F-P6-001: a failed marker write MUST NOT emit marker.written. \
+         Got: {written_events:?}"
+    );
+}
+
+/// F-P9-001 PRESERVE: cross-pair marker present + write SUCCEEDS ⟹ exactly one
+/// `marker.cleared(SUPERSEDED)` (carrying the OLD pair's fields) AND exactly one
+/// `marker.written` (carrying the NEW pair's fields) are emitted — both AFTER
+/// the write, and SUPERSEDED strictly before marker.written within the Ok arm.
+#[tokio::test(flavor = "current_thread")]
+async fn test_F_P9_001_cross_pair_write_success_emits_superseded_then_marker_written() {
+    let dir = tempfile::tempdir().unwrap();
+    let engine = build_engine().unwrap();
+    let _ticker = EpochTicker::start(engine.clone());
+    let cache = PluginCache::new(engine.clone());
+
+    let factory_dir = dir.path().join(".factory");
+    std::fs::create_dir_all(&factory_dir).unwrap();
+    let marker_path = factory_dir.join("unvalidated-mutation.marker");
+    write_test_marker_with_artifact(&marker_path, "old-plugin", "/abs/old.md");
+
+    let hang_wasm = compile_to(dir.path(), "new-plugin", WAT_HANG);
+    let entry = make_indeterminate_entry(&hang_wasm, "new-plugin", "PostToolUse");
+    let registry = make_registry(vec![entry]);
+    let tiers: Vec<Vec<&RegistryEntry>> =
+        group_by_priority(&registry, registry.hooks.iter().collect());
+
+    let payload = serde_json::json!({
+        "tool_name": "Edit",
+        "tool_input": { "file_path": "/abs/new.md" }
+    });
+    let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
+    execute_tiers(
+        executor_inputs_with_cwd(
+            &engine,
+            &cache,
+            &registry,
+            &internal_log,
+            dir.path().to_path_buf(),
+            payload,
+        ),
+        tiers,
+    )
+    .await;
+
+    assert!(
+        marker_path.exists(),
+        "pre-condition: the write must have succeeded"
+    );
+    let new_marker_content = std::fs::read_to_string(&marker_path).unwrap();
+    assert!(
+        new_marker_content.contains("new-plugin"),
+        "post-condition: marker on disk must now be the NEW pair after a \
+         successful overwrite: {new_marker_content}"
+    );
+
+    let log_dir = dir.path().join("logs");
+
+    let superseded_events = read_events_of_type(&log_dir, "marker.cleared");
+    assert_eq!(
+        superseded_events.len(),
+        1,
+        "exactly one marker.cleared(SUPERSEDED) event for the OLD pair — got {superseded_events:?}"
+    );
+    let sup = &superseded_events[0];
+    assert_eq!(
+        sup.get("clear_mode").and_then(|v| v.as_str()),
+        Some("SUPERSEDED")
+    );
+    assert_eq!(
+        sup.get("plugin_name").and_then(|v| v.as_str()),
+        Some("old-plugin"),
+        "SUPERSEDED event MUST carry the OLD pair's plugin_name"
+    );
+    assert_eq!(
+        sup.get("artifact_path").and_then(|v| v.as_str()),
+        Some("/abs/old.md"),
+        "SUPERSEDED event MUST carry the OLD pair's artifact_path"
+    );
+
+    let written_events = read_events_of_type(&log_dir, "marker.written");
+    assert_eq!(
+        written_events.len(),
+        1,
+        "exactly one marker.written event for the NEW pair — got {written_events:?}"
+    );
+    let w = &written_events[0];
+    assert_eq!(
+        w.get("plugin_name").and_then(|v| v.as_str()),
+        Some("new-plugin"),
+        "marker.written event MUST carry the NEW pair's plugin_name"
+    );
+    assert_eq!(
+        w.get("artifact_path").and_then(|v| v.as_str()),
+        Some("/abs/new.md"),
+        "marker.written event MUST carry the NEW pair's artifact_path"
+    );
+
+    // Sequencing within the Ok arm: SUPERSEDED (closing the old pair's key)
+    // is emitted strictly BEFORE marker.written (opening the new pair's key).
+    let sequence = read_event_type_sequence(&log_dir);
+    let cleared_idx = sequence.iter().position(|t| t == "marker.cleared");
+    let written_idx = sequence.iter().position(|t| t == "marker.written");
+    assert!(
+        matches!((cleared_idx, written_idx), (Some(c), Some(w)) if c < w),
+        "F-P9-001: within the Ok arm, marker.cleared(SUPERSEDED) MUST be emitted \
+         (and thus logged) strictly before marker.written — sequence: {sequence:?}"
+    );
+}
+
+/// F-P9-001 PRESERVE: same-pair overwrite (continuous quarantine of the same
+/// target) + write SUCCEEDS ⟹ NO `marker.cleared(SUPERSEDED)` is emitted, but
+/// `marker.written` still is (the write itself succeeded; only the
+/// cross-pair-supersession record is suppressed for a same-pair overwrite).
+#[tokio::test(flavor = "current_thread")]
+async fn test_F_P9_001_same_pair_overwrite_no_superseded_via_execute_tiers() {
+    let dir = tempfile::tempdir().unwrap();
+    let engine = build_engine().unwrap();
+    let _ticker = EpochTicker::start(engine.clone());
+    let cache = PluginCache::new(engine.clone());
+
+    let factory_dir = dir.path().join(".factory");
+    std::fs::create_dir_all(&factory_dir).unwrap();
+    let marker_path = factory_dir.join("unvalidated-mutation.marker");
+    // Same (plugin_name, artifact_path) pair as the NEW dispatch below.
+    write_test_marker_with_artifact(&marker_path, "same-plugin", "/abs/same.md");
+
+    let hang_wasm = compile_to(dir.path(), "same-plugin", WAT_HANG);
+    let entry = make_indeterminate_entry(&hang_wasm, "same-plugin", "PostToolUse");
+    let registry = make_registry(vec![entry]);
+    let tiers: Vec<Vec<&RegistryEntry>> =
+        group_by_priority(&registry, registry.hooks.iter().collect());
+
+    let payload = serde_json::json!({
+        "tool_name": "Edit",
+        "tool_input": { "file_path": "/abs/same.md" }
+    });
+    let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
+    execute_tiers(
+        executor_inputs_with_cwd(
+            &engine,
+            &cache,
+            &registry,
+            &internal_log,
+            dir.path().to_path_buf(),
+            payload,
+        ),
+        tiers,
+    )
+    .await;
+
+    assert!(
+        marker_path.exists(),
+        "pre-condition: the write must have succeeded"
+    );
+
+    let log_dir = dir.path().join("logs");
+    let superseded_events = read_events_of_type(&log_dir, "marker.cleared");
+    assert!(
+        superseded_events.is_empty(),
+        "same-pair overwrite (continuous quarantine of the same target) MUST NOT \
+         emit marker.cleared(SUPERSEDED) — got {superseded_events:?}"
+    );
+    let written_events = read_events_of_type(&log_dir, "marker.written");
+    assert_eq!(
+        written_events.len(),
+        1,
+        "same-pair overwrite MUST still emit marker.written on a successful \
+         write — got {written_events:?}"
+    );
+}

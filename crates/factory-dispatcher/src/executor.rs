@@ -612,26 +612,40 @@ async fn execute_tier<'a>(
                         .to_rfc3339(),
                     };
                     // F-P3-002 (ADR-048 §D4 v1.3): read the pre-existing marker BEFORE
-                    // the overwrite and emit marker.cleared(SUPERSEDED) for it when it
-                    // belongs to a DIFFERENT (plugin_name, artifact_path) pair —
-                    // otherwise reconcile_raw_delete would later mis-attribute the
-                    // superseded pair's clearance to a human OPERATOR_OVERRIDE that
-                    // never happened (BC-1.18.001 INV3 last-writer-wins).
+                    // the overwrite so its fields are captured prior to being clobbered
+                    // by the rename. F-P9-001 (ADR-048 §D4 v1.5, symmetric to the v1.4
+                    // marker.written fix): emit marker.cleared(SUPERSEDED) for it ONLY
+                    // immediately after a confirmed successful write — never before the
+                    // write is attempted, never on Err. Emitting SUPERSEDED
+                    // unconditionally (before the write) falsely records the old marker
+                    // as overwritten even when write_indeterminate_marker returns Err
+                    // and the old marker is still on disk untouched — otherwise
+                    // reconcile_raw_delete would later mis-attribute the superseded
+                    // pair's clearance to a human OPERATOR_OVERRIDE that never happened
+                    // (BC-1.18.001 INV3 last-writer-wins requires the audit trail to
+                    // reflect what actually happened, not what was attempted).
                     let existing_marker = read_all_marker_fields(&marker_path).ok().flatten();
-                    emit_superseded_if_cross_pair(
-                        &base_ctx_for_event,
-                        existing_marker.as_ref(),
-                        &fields,
-                    );
                     // HIGH-2: log marker-write failures instead of silently swallowing them.
                     // Best-effort: write failure does NOT fail the dispatch result.
                     // The plugin.indeterminate event was already emitted above.
                     match write_indeterminate_marker(&fields, &marker_path) {
-                        // ADR-048 §D4 v1.4 / F-P6-001: emit marker.written ONLY
-                        // immediately after a confirmed successful write — never
-                        // before the write, never on Err — so reconcile_raw_delete's
-                        // unmatched-marker.written inference is sound by construction.
-                        Ok(()) => emit_marker_written(&base_ctx_for_event, &fields),
+                        Ok(()) => {
+                            // F-P9-001: the overwrite has actually happened now, so the
+                            // old (pre-existing) pair really was superseded — emit its
+                            // SUPERSEDED closure record before the new pair's creation
+                            // record (marker.written), preserving the audit trail's
+                            // close-then-open ordering.
+                            emit_superseded_if_cross_pair(
+                                &base_ctx_for_event,
+                                existing_marker.as_ref(),
+                                &fields,
+                            );
+                            // ADR-048 §D4 v1.4 / F-P6-001: emit marker.written ONLY
+                            // immediately after a confirmed successful write — never
+                            // before the write, never on Err — so reconcile_raw_delete's
+                            // unmatched-marker.written inference is sound by construction.
+                            emit_marker_written(&base_ctx_for_event, &fields);
+                        }
                         Err(e) => {
                             tracing::warn!(
                                 plugin = %entry_clone.name,
@@ -920,26 +934,40 @@ pub fn spawn_async_plugin(
                     .to_rfc3339(),
                 };
                 // F-P3-002 (ADR-048 §D4 v1.3): read the pre-existing marker BEFORE
-                // the overwrite and emit marker.cleared(SUPERSEDED) for it when it
-                // belongs to a DIFFERENT (plugin_name, artifact_path) pair —
-                // otherwise reconcile_raw_delete would later mis-attribute the
-                // superseded pair's clearance to a human OPERATOR_OVERRIDE that
-                // never happened (BC-1.18.001 INV3 last-writer-wins).
+                // the overwrite so its fields are captured prior to being clobbered
+                // by the rename. F-P9-001 (ADR-048 §D4 v1.5, symmetric to the v1.4
+                // marker.written fix): emit marker.cleared(SUPERSEDED) for it ONLY
+                // immediately after a confirmed successful write — never before the
+                // write is attempted, never on Err. Emitting SUPERSEDED
+                // unconditionally (before the write) falsely records the old marker
+                // as overwritten even when write_indeterminate_marker returns Err
+                // and the old marker is still on disk untouched — otherwise
+                // reconcile_raw_delete would later mis-attribute the superseded
+                // pair's clearance to a human OPERATOR_OVERRIDE that never happened
+                // (BC-1.18.001 INV3 last-writer-wins requires the audit trail to
+                // reflect what actually happened, not what was attempted).
                 let existing_marker = read_all_marker_fields(&marker_path).ok().flatten();
-                emit_superseded_if_cross_pair(
-                    &base_ctx_for_event,
-                    existing_marker.as_ref(),
-                    &fields,
-                );
                 // HIGH-2: log marker-write failures instead of silently swallowing them.
                 // Best-effort: write failure does NOT fail the dispatch result.
                 // The plugin.indeterminate event was already emitted above.
                 match write_indeterminate_marker(&fields, &marker_path) {
-                    // ADR-048 §D4 v1.4 / F-P6-001: emit marker.written ONLY
-                    // immediately after a confirmed successful write — never
-                    // before the write, never on Err — so reconcile_raw_delete's
-                    // unmatched-marker.written inference is sound by construction.
-                    Ok(()) => emit_marker_written(&base_ctx_for_event, &fields),
+                    Ok(()) => {
+                        // F-P9-001: the overwrite has actually happened now, so the
+                        // old (pre-existing) pair really was superseded — emit its
+                        // SUPERSEDED closure record before the new pair's creation
+                        // record (marker.written), preserving the audit trail's
+                        // close-then-open ordering.
+                        emit_superseded_if_cross_pair(
+                            &base_ctx_for_event,
+                            existing_marker.as_ref(),
+                            &fields,
+                        );
+                        // ADR-048 §D4 v1.4 / F-P6-001: emit marker.written ONLY
+                        // immediately after a confirmed successful write — never
+                        // before the write, never on Err — so reconcile_raw_delete's
+                        // unmatched-marker.written inference is sound by construction.
+                        emit_marker_written(&base_ctx_for_event, &fields);
+                    }
                     Err(e) => {
                         tracing::warn!(
                             plugin = %entry.name,

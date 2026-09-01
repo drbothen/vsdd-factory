@@ -552,13 +552,19 @@ pub(crate) fn emit_marker_written(ctx: &HostContext, fields: &MarkerFields) {
 }
 
 /// Detect a cross-pair marker overwrite and emit `marker.cleared(SUPERSEDED)`
-/// for the superseded pair BEFORE the new marker is written (BC-1.18.001
-/// INV3 single-marker last-writer-wins; ADR-048 §D4 v1.3 F-P3-002).
+/// for the superseded pair (BC-1.18.001 INV3 single-marker last-writer-wins;
+/// ADR-048 §D4 v1.3 F-P3-002).
 ///
 /// Called by `write_indeterminate_marker`'s caller (`executor.rs`) with
 /// `existing` = the marker's fields read via [`read_all_marker_fields`]
-/// BEFORE the temp+rename overwrite, and `new_fields` = the fields about to
-/// be written. No-ops when:
+/// BEFORE the temp+rename overwrite is attempted, and `new_fields` = the
+/// fields about to be written — but the call itself is made ONLY immediately
+/// after `write_indeterminate_marker` returns `Ok(())`, alongside
+/// [`emit_marker_written`] (ADR-048 §D4 v1.5 / F-P9-001, symmetric to the
+/// v1.4 marker.written fix: SUPERSEDED must never be emitted before the
+/// write is attempted, and never on `Err` — doing so would falsely record
+/// the old marker as overwritten while it is still on disk untouched).
+/// No-ops when:
 /// - `existing` is `None` (no marker to supersede), or
 /// - the existing marker's `(plugin_name, artifact_path)` pair is IDENTICAL
 ///   to `new_fields`'s (continuous quarantine of the same target — not a
