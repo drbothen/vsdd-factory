@@ -181,8 +181,26 @@ pub mod guard_logic {
                     && exp <= chrono::Utc::now()
                 {
                     // TTL elapsed: auto-delete the stale marker (idempotent).
+                    // ADR-048 v1.1 / BC-3.08.001 Event 9: emit marker.cleared(TTL_EXPIRED)
+                    // ONLY when remove_file succeeds (i.e., this call deleted the file).
+                    // `trace_id` is a reserved field in the WASM plugin event ABI — the
+                    // dispatcher overrides it with the current dispatch's trace_id. Pass the
+                    // marker's trace_id as `marker_trace_id` to preserve provenance linkage to
+                    // the originating `plugin.indeterminate` (Event 8).
                     match std::fs::remove_file(marker_path) {
-                        Ok(()) => {}
+                        Ok(()) => {
+                            vsdd_hook_sdk::host::emit_event(
+                                "marker.cleared",
+                                &[
+                                    ("clear_mode", "TTL_EXPIRED"),
+                                    ("actor_type", "deadman"),
+                                    ("artifact_path", artifact_path.as_str()),
+                                    ("marker_trace_id", trace_id.as_str()),
+                                    ("marker_plugin_name", plugin_name.as_str()),
+                                    ("reason", ""),
+                                ],
+                            );
+                        }
                         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
                         Err(e) => {
                             tracing::warn!(
@@ -497,8 +515,12 @@ pub(crate) fn on_pre_tool_use_impl(
             cause,
             trace_id,
         } => {
-            // Build structured block message (AC-007/AC-008 + BC-1.18.002 INV4).
-            // Message MUST be machine-parseable. Use JSON-encoded fields.
+            // Build structured block message (AC-007/AC-008 + BC-1.18.002 v1.6 INV4).
+            // BC-1.18.002 v1.6 PC5: three-tier recovery guidance.
+            // Tier-1 directs the AGENT to re-validate the artifact via Edit/Write.
+            // Tier-2 notes the 24 h TTL auto-expiry.
+            // Tier-3 mentions human operator rm as the break-glass escape — this agent
+            // MUST NOT be instructed to perform rm to bypass the gate.
             let reason = serde_json::json!({
                 "blocked_by": "validate-unvalidated-mutation-marker",
                 "marker_plugin_name": plugin_name,
@@ -506,11 +528,17 @@ pub(crate) fn on_pre_tool_use_impl(
                 "marker_cause": cause,
                 "marker_trace_id": trace_id,
                 "recovery": {
-                    "revalidate": format!(
-                        "Re-run {} to clear the marker (must produce exit_code=0)",
-                        plugin_name
+                    "tier_1_revalidate": format!(
+                        "Edit or re-write the artifact at '{}' so that '{}' produces \
+                         exit_code=0 on the next dispatch; this clears the quarantine \
+                         via the REVALIDATED path",
+                        artifact_path, plugin_name
                     ),
-                    "manual_escape_hatch": "rm .factory/unvalidated-mutation.marker"
+                    "tier_2_ttl_expiry": "If immediate re-validation is not possible, \
+                        the quarantine auto-expires after 24 h via TTL_EXPIRED auto-clear",
+                    "tier_3_operator_break_glass": "Human operator only: \
+                        rm .factory/unvalidated-mutation.marker — \
+                        this agent MUST NOT perform rm operations to bypass the gate"
                 }
             })
             .to_string();
@@ -1442,8 +1470,8 @@ mod tests {
     /// LOW-6: `on_pre_tool_use_impl` produces a JSON block message whose ACTUAL
     /// emitted structure (not a reconstruction) MUST contain:
     ///   - `marker_plugin_name` — the plugin_name from the marker TOML
-    ///   - `recovery.revalidate` — references the blocking plugin name
-    ///   - `recovery.manual_escape_hatch` — exactly "rm .factory/unvalidated-mutation.marker"
+    ///   - `recovery.tier_1_revalidate` — references the blocking plugin name (BC-1.18.002 v1.6 PC5 Tier-1)
+    ///   - `recovery.tier_3_operator_break_glass` — human-only rm reference, MUST NOT instruct agent to rm (PC5 Tier-3)
     ///   - be machine-parseable (valid JSON)
     ///
     /// AC-007 / AC-008 / BC-1.18.002 INV4.
@@ -1523,31 +1551,42 @@ mod tests {
             "AC-007 / BC-1.18.002 INV4: 'marker_plugin_name' MUST equal marker plugin_name '{expected_plugin}'"
         );
 
-        // AC-007: recovery object MUST be present with both required subfields
+        // AC-007: recovery object MUST be present with all three PC5 tier subfields
         let agent_recovery = agent_parsed.get("recovery").expect(
             "AC-007 / BC-1.18.002 INV4: block reason MUST have a structured 'recovery' field",
         );
 
-        let revalidate = agent_recovery
-            .get("revalidate")
+        // PC5 Tier-1: must reference the blocking plugin name so the agent knows which
+        // artifact/validator to re-run.
+        let tier_1 = agent_recovery
+            .get("tier_1_revalidate")
             .and_then(|v| v.as_str())
-            .expect("AC-007: recovery MUST have 'revalidate' subfield");
-        // The revalidate command MUST reference the blocking plugin by name so the
-        // operator knows which plugin to re-run.
+            .expect("AC-007 (BC-1.18.002 v1.6 PC5 Tier-1): recovery MUST have 'tier_1_revalidate' subfield");
         assert!(
-            revalidate.contains(expected_plugin),
-            "AC-007: revalidate command MUST reference the marker plugin_name '{expected_plugin}' \
-             so the operator knows what to re-run — got: {revalidate}"
+            tier_1.contains(expected_plugin),
+            "AC-007 (PC5 Tier-1): tier_1_revalidate MUST reference the marker plugin_name \
+             '{expected_plugin}' — got: {tier_1}"
         );
 
-        let escape_hatch = agent_recovery
-            .get("manual_escape_hatch")
+        // PC5 Tier-3: must reference the marker path for the human operator, but MUST NOT
+        // instruct this agent to run rm (BC-1.18.002 v1.6 PC5 Tier-3).
+        let tier_3 = agent_recovery
+            .get("tier_3_operator_break_glass")
             .and_then(|v| v.as_str())
-            .expect("AC-007: recovery MUST have 'manual_escape_hatch' subfield");
-        assert_eq!(
-            escape_hatch, "rm .factory/unvalidated-mutation.marker",
-            "AC-007 / BC-1.18.003 PC3: manual_escape_hatch MUST be \
-             'rm .factory/unvalidated-mutation.marker' — the fully supported operator escape hatch"
+            .expect("AC-007 (BC-1.18.002 v1.6 PC5 Tier-3): recovery MUST have 'tier_3_operator_break_glass' subfield");
+        assert!(
+            tier_3.contains(".factory/unvalidated-mutation.marker"),
+            "AC-007 (PC5 Tier-3): tier_3_operator_break_glass MUST reference the marker path \
+             '.factory/unvalidated-mutation.marker' — got: {tier_3}"
+        );
+        // PC5 key invariant: the break-glass message MUST be framed as a human-only operation.
+        // The agent MUST NOT be directed to rm. Check for "MUST NOT" or "Human operator" framing.
+        assert!(
+            tier_3.to_ascii_uppercase().contains("MUST NOT")
+                || tier_3.contains("Human operator")
+                || tier_3.contains("human operator"),
+            "AC-007 (BC-1.18.002 v1.6 PC5): tier_3_operator_break_glass MUST frame rm as \
+             human-only (contains 'MUST NOT' or 'Human operator') — got: {tier_3}"
         );
 
         // ── Arm 2: Bash git commit dispatch ───────────────────────────────────
@@ -1587,14 +1626,19 @@ mod tests {
             "AC-008 / BC-1.18.002 INV4: Bash arm 'marker_plugin_name' MUST equal \
              marker plugin_name '{expected_plugin}'"
         );
-        assert_eq!(
-            bash_parsed
-                .get("recovery")
-                .and_then(|r| r.get("manual_escape_hatch"))
-                .and_then(|v| v.as_str()),
-            Some("rm .factory/unvalidated-mutation.marker"),
-            "AC-008 / BC-1.18.003 PC3: Bash arm escape hatch MUST be \
-             'rm .factory/unvalidated-mutation.marker'"
+        // PC5 Tier-3: Bash arm must also have human-only operator break-glass reference.
+        let bash_tier_3 = bash_parsed
+            .get("recovery")
+            .and_then(|r| r.get("tier_3_operator_break_glass"))
+            .and_then(|v| v.as_str())
+            .expect(
+                "AC-008 (BC-1.18.002 v1.6 PC5 Tier-3): Bash arm recovery MUST have \
+                     'tier_3_operator_break_glass' subfield",
+            );
+        assert!(
+            bash_tier_3.contains(".factory/unvalidated-mutation.marker"),
+            "AC-008 (PC5 Tier-3): Bash arm tier_3_operator_break_glass MUST reference the \
+             marker path '.factory/unvalidated-mutation.marker' — got: {bash_tier_3}"
         );
     }
 

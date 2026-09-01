@@ -28,12 +28,12 @@ use wasmtime::Engine;
 use crate::host::HostContext;
 use crate::indeterminate_marker::{
     MarkerFields, UNVALIDATED_MUTATION_MARKER_TTL_SECONDS, block_if_marker_check,
-    delete_marker_if_pass, read_marker_plugin_name, should_write_marker,
+    delete_marker_if_pass, read_all_marker_fields, read_marker_plugin_name, should_write_marker,
     write_indeterminate_marker,
 };
 use crate::internal_log::{
     InternalEvent, InternalLog, PLUGIN_COMPLETED, PLUGIN_CRASHED, PLUGIN_INDETERMINATE,
-    PLUGIN_INVOKED, PLUGIN_TIMEOUT,
+    PLUGIN_INVOKED, PLUGIN_MARKER_CLEARED, PLUGIN_TIMEOUT,
 };
 use crate::invoke::{InvokeLimits, PluginResult, TimeoutCause, invoke_plugin};
 use crate::plugin_loader::PluginCache;
@@ -454,14 +454,34 @@ async fn execute_tier<'a>(
                 if let Ok(Some(marker_plugin)) = read_marker_plugin_name(&marker_path)
                     && marker_plugin == entry_clone.name
                     && entry_clone.event == "PostToolUse"
-                    && let Err(e) = delete_marker_if_pass(&marker_path, &artifact_path_for_marker)
                 {
-                    tracing::warn!(
-                        plugin = %entry_clone.name,
-                        marker_path = %marker_path.display(),
-                        error = %e,
-                        "best-effort marker clear failed on PASS; dispatch continues"
-                    );
+                    // ADR-048 v1.1: read all marker fields BEFORE delete so we have the
+                    // trace_id and other provenance fields for the marker.cleared event.
+                    let all_fields = read_all_marker_fields(&marker_path).ok().flatten();
+                    match delete_marker_if_pass(&marker_path, &artifact_path_for_marker) {
+                        Ok(true) => {
+                            // Marker was actually removed — emit marker.cleared(REVALIDATED).
+                            if let Some(ref fields) = all_fields {
+                                emit_marker_cleared(
+                                    &internal_log,
+                                    &base_ctx_for_event.session_id,
+                                    fields,
+                                    "REVALIDATED",
+                                    "validator",
+                                    None,
+                                );
+                            }
+                        }
+                        Ok(false) => {}
+                        Err(e) => {
+                            tracing::warn!(
+                                plugin = %entry_clone.name,
+                                marker_path = %marker_path.display(),
+                                error = %e,
+                                "best-effort marker clear failed on PASS; dispatch continues"
+                            );
+                        }
+                    }
                 }
             }
 
@@ -726,14 +746,33 @@ pub fn spawn_async_plugin(
             if let Ok(Some(marker_plugin)) = read_marker_plugin_name(&marker_path)
                 && marker_plugin == entry.name
                 && entry.event == "PostToolUse"
-                && let Err(e) = delete_marker_if_pass(&marker_path, &artifact_path_for_marker)
             {
-                tracing::warn!(
-                    plugin = %entry.name,
-                    marker_path = %marker_path.display(),
-                    error = %e,
-                    "best-effort marker clear failed on PASS; dispatch continues"
-                );
+                // ADR-048 v1.1: read all marker fields BEFORE delete for marker.cleared event.
+                let all_fields = read_all_marker_fields(&marker_path).ok().flatten();
+                match delete_marker_if_pass(&marker_path, &artifact_path_for_marker) {
+                    Ok(true) => {
+                        // Marker was actually removed — emit marker.cleared(REVALIDATED).
+                        if let Some(ref fields) = all_fields {
+                            emit_marker_cleared(
+                                &internal_log,
+                                &base_ctx_for_event.session_id,
+                                fields,
+                                "REVALIDATED",
+                                "validator",
+                                None,
+                            );
+                        }
+                    }
+                    Ok(false) => {}
+                    Err(e) => {
+                        tracing::warn!(
+                            plugin = %entry.name,
+                            marker_path = %marker_path.display(),
+                            error = %e,
+                            "best-effort marker clear failed on PASS; dispatch continues"
+                        );
+                    }
+                }
             }
         }
 
@@ -1223,6 +1262,48 @@ fn emit_indeterminate(
     log.write(&ev);
 }
 
+/// Emit `marker.cleared` (BC-3.08.001 Event 9 / ADR-048 v1.1) after the
+/// `.factory/unvalidated-mutation.marker` has been removed.
+///
+/// The `trace_id` on this event is set to the MARKER'S stored `trace_id`
+/// (not the current dispatch's trace), so the event links back to the
+/// originating `plugin.indeterminate` (Event 8) that wrote the marker.
+///
+/// Best-effort: errors in `log.write` are swallowed (see `InternalLog::write`).
+fn emit_marker_cleared(
+    log: &InternalLog,
+    session_id: &str,
+    marker_fields: &MarkerFields,
+    clear_mode: &str,
+    actor_type: &str,
+    reason: Option<&str>,
+) {
+    let ev = InternalEvent::now(PLUGIN_MARKER_CLEARED)
+        // Use marker's trace_id (not current dispatch's) to link back to plugin.indeterminate.
+        .with_trace_id(&marker_fields.trace_id)
+        .with_session_id(session_id)
+        .with_plugin_name(&marker_fields.plugin_name)
+        .with_field(
+            "artifact_path",
+            serde_json::Value::String(marker_fields.artifact_path.clone()),
+        )
+        .with_field(
+            "clear_mode",
+            serde_json::Value::String(clear_mode.to_string()),
+        )
+        .with_field(
+            "actor_type",
+            serde_json::Value::String(actor_type.to_string()),
+        )
+        .with_field(
+            "reason",
+            reason.map_or(serde_json::Value::Null, |r| {
+                serde_json::Value::String(r.to_string())
+            }),
+        );
+    log.write(&ev);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1478,8 +1559,12 @@ mod tests {
 
         // marker has artifact_path = "" (empty) → M-1 predicate: empty artifact_path →
         // vacuously satisfied → delete regardless of current_artifact_path.
-        delete_marker_if_pass(&marker_path, "")
-            .expect("AC-012: delete_marker_if_pass MUST return Ok(()) when file exists");
+        let deleted = delete_marker_if_pass(&marker_path, "")
+            .expect("AC-012: delete_marker_if_pass MUST return Ok(_) when file exists");
+        assert!(
+            deleted,
+            "AC-012: delete_marker_if_pass MUST return Ok(true) when the marker was removed"
+        );
 
         assert!(
             !marker_path.exists(),

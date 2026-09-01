@@ -162,6 +162,59 @@ pub fn write_indeterminate_marker(fields: &MarkerFields, marker_path: &Path) -> 
     Ok(())
 }
 
+/// Read all six TOML fields from the unvalidated-mutation marker file.
+///
+/// Returns:
+/// - `Ok(Some(fields))` if the file exists and all six fields are present and parseable.
+/// - `Ok(None)` if the file does not exist (NotFound → no marker).
+/// - `Ok(None)` if the file exists but cannot be parsed or any field is missing
+///   (corrupt/legacy marker → treat as absent; conservative for the caller).
+///
+/// Used by the dispatcher's PASS-clear path to obtain the marker's `trace_id`,
+/// `plugin_name`, and `artifact_path` before deleting the marker, so that
+/// `marker.cleared` (BC-3.08.001 Event 9 / ADR-048 v1.1) can be emitted with
+/// the correct provenance fields linking back to the originating `plugin.indeterminate`.
+pub fn read_all_marker_fields(marker_path: &Path) -> io::Result<Option<MarkerFields>> {
+    match std::fs::read_to_string(marker_path) {
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(e),
+        Ok(content) => {
+            let table: toml::Table = match toml::from_str(&content) {
+                Ok(t) => t,
+                Err(_) => return Ok(None),
+            };
+            let get_str =
+                |key: &str| -> Option<String> { table.get(key)?.as_str().map(str::to_string) };
+            // All five required fields must be present; missing/non-string fields → None.
+            // `expires_at` may be absent on legacy pre-ADR-048 markers → default empty string.
+            let (
+                Some(timestamp),
+                Some(plugin_name),
+                Some(artifact_path),
+                Some(cause),
+                Some(trace_id),
+            ) = (
+                get_str("timestamp"),
+                get_str("plugin_name"),
+                get_str("artifact_path"),
+                get_str("cause"),
+                get_str("trace_id"),
+            )
+            else {
+                return Ok(None);
+            };
+            Ok(Some(MarkerFields {
+                timestamp,
+                plugin_name,
+                artifact_path,
+                cause,
+                trace_id,
+                expires_at: get_str("expires_at").unwrap_or_default(),
+            }))
+        }
+    }
+}
+
 /// Read the `plugin_name` field from the unvalidated-mutation marker file.
 ///
 /// Returns:
@@ -219,11 +272,18 @@ pub fn read_marker_plugin_name(marker_path: &Path) -> io::Result<Option<String>>
 /// If the marker file exists but cannot be parsed as TOML, this function returns `Ok(())`
 /// WITHOUT deleting the file — quarantine is preserved. The normal call path already checks
 /// `read_marker_plugin_name` before calling this, so a corrupt marker prevents the call.
-pub fn delete_marker_if_pass(marker_path: &Path, current_artifact_path: &str) -> io::Result<()> {
+/// Returns:
+/// - `Ok(true)`  — the marker file was actually removed by this call.
+/// - `Ok(false)` — no-op: marker absent, artifact-path mismatch, or corrupt TOML.
+/// - `Err(_)`    — I/O error other than `NotFound` during read or delete.
+///
+/// Callers use the `bool` return to decide whether to emit `marker.cleared`
+/// (BC-3.08.001 Event 9 / ADR-048 v1.1): only emit when `Ok(true)`.
+pub fn delete_marker_if_pass(marker_path: &Path, current_artifact_path: &str) -> io::Result<bool> {
     // Read the marker to obtain its artifact_path for the scoped-clear predicate.
     let marker_artifact: String = match std::fs::read_to_string(marker_path) {
-        // NotFound: no marker exists — idempotent Ok(()) (AC-013).
-        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(()),
+        // NotFound: no marker exists — idempotent no-op (AC-013).
+        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(false),
         // Other I/O errors: propagate.
         Err(e) => return Err(e),
         Ok(content) => {
@@ -234,7 +294,7 @@ pub fn delete_marker_if_pass(marker_path: &Path, current_artifact_path: &str) ->
                     .unwrap_or("")
                     .to_string(),
                 // Corrupt marker: conservative posture — preserve quarantine, do NOT delete.
-                Err(_) => return Ok(()),
+                Err(_) => return Ok(false),
             }
         }
     };
@@ -248,13 +308,14 @@ pub fn delete_marker_if_pass(marker_path: &Path, current_artifact_path: &str) ->
     if !should_clear {
         // Artifact mismatch: this marker belongs to a different artifact; quarantine persists.
         // BC-1.18.003 INV2: marker{plugin=p, artifact=A} MUST NOT clear on p PASSing artifact B.
-        return Ok(());
+        return Ok(false);
     }
 
-    // Idempotent delete: NotFound silently swallowed (AC-013; BC-1.18.003 PC2).
+    // Delete the marker. NotFound means a concurrent process already cleared it — treat as
+    // no-op (Ok(false)), since THIS call did not perform the removal.
     match std::fs::remove_file(marker_path) {
-        Ok(()) => Ok(()),
-        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(()),
+        Ok(()) => Ok(true),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(false),
         Err(e) => Err(e),
     }
 }
