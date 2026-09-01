@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-31T21:07:03Z","command":"cargo test -p validate-cross-site-correspondence test_BC_corpus_version_sync_all_indexed_bcs_match_frontmatter 2>&1 | tail -20"}
+{"status":"pass","timestamp":"2026-09-01T01:01:15Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-25.01 && cargo test -p validate-cross-site-correspondence 2>&1 | tail -30"}

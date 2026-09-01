@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.5"
+version: "1.6"
 status: draft
 producer: product-owner
 timestamp: 2026-08-31T00:00:00Z
@@ -19,7 +19,7 @@ subsystem: "SS-01"
 capability: "CAP-041"
 lifecycle_status: draft
 introduced: v1.0-feature-validation-integrity-layer1
-modified: ["v1.1-2026-08-31-exact-subcommand-clarification", "v1.2-2026-08-31-command-detection-comprehensive-expansion", "v1.3-2026-08-31-fail-open-reconciliation-threat-model-quoting-scope", "v1.4-2026-08-31-read-error-vs-malformed-marker-distinction", "v1.5-2026-08-31-block_if_marker-crash-policy-TTL-ungated-escape"]
+modified: ["v1.1-2026-08-31-exact-subcommand-clarification", "v1.2-2026-08-31-command-detection-comprehensive-expansion", "v1.3-2026-08-31-fail-open-reconciliation-threat-model-quoting-scope", "v1.4-2026-08-31-read-error-vs-malformed-marker-distinction", "v1.5-2026-08-31-block_if_marker-crash-policy-TTL-ungated-escape", "v1.6-2026-08-31-recovery-model-reframe-HIGH-1-resolution"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -224,10 +224,21 @@ SCOPE, handled via Phase 1b POSIX quote-aware tokenization using the `shell-word
    `Trap::Interrupt`) while a non-expired `.factory/unvalidated-mutation.marker` exists, the
    dispatcher's native `block_if_marker` crash-handler reads the marker file, parses `expires_at`,
    confirms `expires_at > now (UTC)`, and emits `exit_code = 2` (block). The block message
-   includes the marker's `plugin_name`, `artifact_path`, `cause`, `expires_at`, and the three
-   recovery options: (a) `rm .factory/unvalidated-mutation.marker`; (b) re-validate via
-   Edit/Write to the failing artifact; (c) wait for TTL expiry (ADR-048 §Decision 1;
-   fail-closed on the durable quarantine signal even through WASM plugin unavailability).
+   MUST direct the agent to use the primary agent recovery path (T1) and MUST NOT instruct the
+   agent to run `rm` (agent-tool rm is de-sanctioned per INV6/T4). The block message includes
+   the marker's `plugin_name`, `artifact_path`, `cause`, `expires_at`, and the three supported
+   recovery options ordered by sanctioned preference:
+   - **(a) Re-validate via Edit/Write (T1 — primary agent recovery):** re-write or re-validate
+     the artifact named in `artifact_path` using Edit or Write, then wait for the gate plugin to
+     run and produce PASS — this clears the marker per BC-1.18.003 PC1. This path is inherently
+     ungated even during a plugin crash (Edit/Write match neither `^Agent$` nor `^Bash$`).
+   - **(b) Wait for TTL expiry (T2 — passive):** after 86400 seconds from the `expires_at`
+     timestamp, any subsequent gate evaluation will treat the marker as absent and allow.
+   - **(c) Human out-of-band `rm` (T3 — break-glass):** the operator may run
+     `rm .factory/unvalidated-mutation.marker` in their own terminal (outside dispatcher
+     mediation). This path is never intercepted and is the break-glass operator action.
+   (ADR-048 §Decision 1 — fail-closed on the durable quarantine signal even through WASM plugin
+   unavailability; ADR-048 §Decision 3 amended v1.1 — recovery model reframe.)
    I/O failures in the crash-handler's native file-read (ENOENT, EACCES) are treated as
    "absent" (Allow) — keeping the crash-handler fail-open on its own I/O failures; not a
    contradiction of PC5 because the marker's existence cannot be confirmed.
@@ -256,9 +267,13 @@ SCOPE, handled via Phase 1b POSIX quote-aware tokenization using the `shell-word
    `.factory/unvalidated-mutation.marker`, parses `expires_at`; if a non-expired marker exists →
    Block; if marker is absent or TTL expired → Allow (PC5/PC6). This ensures real quarantine
    signals are enforced even through plugin crashes while preserving the no-marker → Allow branch
-   to prevent unconditional self-lock. The self-lock hazard is bounded by three recoverability
-   guarantees (INV6): marker is removable via `rm` (ungated); re-validation via Edit/Write is
-   ungated; TTL auto-expiry provides passive self-healing within 86400s.
+   to prevent unconditional self-lock. The self-lock hazard is bounded by three independent
+   recoverability guarantees (INV6): (T1) re-validation via Edit/Write is inherently ungated
+   even through a plugin crash; (T2) TTL auto-expiry provides passive self-healing within
+   86400s; (T3) human out-of-band `rm` in the operator terminal is never intercepted. Agent-tool
+   Bash `rm` (T4) is de-sanctioned — it may be blocked on the crash path because the native
+   `block_if_marker_check` applies to ALL `^Bash$` dispatches with no `is_git_commit_or_push`
+   filter; the agent's genuine ungated recovery is T1 (Edit/Write).
    **The fail-open posture for IO-read errors within normal gate plugin execution is UNCHANGED:**
    if the marker file exists but cannot be read by the plugin (e.g., EACCES, EPERM during normal
    non-crash execution), `guard_logic::evaluate_gate` MUST return Allow — an unreadable marker is
@@ -285,27 +300,53 @@ SCOPE, handled via Phase 1b POSIX quote-aware tokenization using the `shell-word
    §Decision 3 applied to the marker gate. The tightened block_if_marker crash policy (INV2/PC5)
    does not narrow the escape surface: see INV6 for the formal ungated-escape guarantee.
 
-6. **Ungated-Escape invariant (ADR-048 §Decision 3).** The three recovery operations MUST NEVER
-   be gated by this plugin's PreToolUse registrations while the system is in a quarantined
-   (marker-active) state:
-   - **(i) `rm .factory/unvalidated-mutation.marker` (Bash dispatch):** `is_git_commit_or_push`
-     returns `false` for this command (`basename("rm") = "rm" ≠ "git"`); Arm 2 does NOT gate
-     this dispatch. Arm 1 fires only on `^Agent$`; a Bash `rm` dispatch is not `^Agent$`. This
-     escape is ungated by construction. Block_if_marker on crash (INV2/PC5) does not affect it
-     because a Bash `rm` dispatch does not match Arm 1's `^Agent$` pattern.
-   - **(ii) Edit/Write to the artifact (re-validation dispatch):** Edit and Write tool dispatches
-     do not match `^Agent$` (Arm 1) or the `is_git_commit_or_push` filter (Arm 2); they are
-     ungated per PC3. Neither arm applies block_if_marker to these tools. Confirmed ungated
-     by construction.
-   - **(iii) TTL auto-expiry (no dispatch required):** After `UNVALIDATED_MUTATION_MARKER_TTL_SECONDS`
-     (86400s, defined in `crates/factory-dispatcher/src/indeterminate_marker.rs`) have elapsed
-     since the INDETERMINATE event, any subsequent gate evaluation on the normal path finds
-     `expires_at ≤ now (UTC)` → Allow (gate plugin auto-deletes the marker per BC-1.18.003 PC4).
-     Any crash-path evaluation also finds marker expired → Allow (PC6). No operator dispatch is
-     required. This escape is ungated — passive self-healing.
-   Any future change to this gate's `tool` patterns or Arm 2 command filter MUST verify all
-   three escape paths remain ungated after the change. This invariant is verified by VP-107
-   (to be authored by test-writer after ADR-048 ratification).
+6. **Ungated-Escape invariant (ADR-048 §Decision 3 amended v1.1 — Four-Tier Recovery Model).**
+   The system is NEVER in an irrecoverable state. Three independent recovery tiers (T1/T2/T3)
+   guarantee the quarantine is escapable:
+
+   - **(T1 — Primary agent recovery) Edit/Write to the artifact (re-validation dispatch):**
+     Edit and Write tool dispatches do not match `^Agent$` (Arm 1) OR `^Bash$` (Arm 2). No arm
+     fires; the crash-path native `block_if_marker_check` is not invoked (it only runs when a
+     matched arm's plugin crashes — since no arm matches Edit/Write, the crash check never runs
+     for them). This path is INHERENTLY ungated: invariant to the gate plugin's crash behavior,
+     to the marker's presence or expiry state, and to any `on_error` value on any arm. Confirmed
+     ungated by construction (PC3). VP-107 verifies this T1 claim explicitly.
+
+   - **(T2 — Passive recovery) TTL auto-expiry (no dispatch required):**
+     After `UNVALIDATED_MUTATION_MARKER_TTL_SECONDS` (86400s, defined in
+     `crates/factory-dispatcher/src/indeterminate_marker.rs`) have elapsed, any subsequent gate
+     evaluation on the normal path finds `expires_at ≤ now (UTC)` → Allow + auto-delete (gate
+     plugin per BC-1.18.003 PC4). Any crash-path evaluation also finds marker expired → Allow
+     (PC6). No operator dispatch is required. Ungated — passive self-healing.
+
+   - **(T3 — Human out-of-band recovery) Operator `rm` in own terminal (break-glass):**
+     The PreToolUse hook chain is invoked only when the AI agent calls a tool through the
+     dispatcher. A terminal `rm .factory/unvalidated-mutation.marker` executed by the human
+     operator in their own shell is NOT a dispatcher-mediated agent tool call and is NEVER
+     intercepted by the hook chain. This is the break-glass pattern: the human principal, acting
+     outside the mediation boundary, retains unconditional filesystem access.
+
+   - **(T4 — Agent-tool `rm`, DE-SANCTIONED) NOT a recovery path the invariant relies upon:**
+     On the non-crash path, `is_git_commit_or_push("rm .factory/...")` returns `false`
+     (`basename("rm") = "rm" ≠ "git"`) → Arm 2 does NOT gate the dispatch on the normal path.
+     However, on the CRASH PATH (`on_error = "block_if_marker"`): when the `^Bash$` gate
+     plugin crashes, the dispatcher's native `block_if_marker_check` runs for ALL `^Bash$`
+     dispatches — including `rm .factory/unvalidated-mutation.marker` — with no
+     `is_git_commit_or_push` filter. If a non-expired marker is present, the native check
+     BLOCKS the `rm` dispatch. This is ACCEPTABLE — NOT an INV6 violation — because:
+     (1) T1 (Edit/Write re-validation) is the agent's genuine ungated primary recovery; (2) a
+     command-filter to whitelist `rm` in the crash handler is UNSOUND per Rice's theorem (same
+     undecidable class as the `is_git_commit_or_push` scope, already accepted out-of-scope) and
+     UNNECESSARY given T1; (3) allowing the agent to erase its own quarantine constraint in an
+     anomalous crash state would be a CWE-636 regression.
+
+   **VP-107 scope (amended):** VP-107 verifies T1 — that Edit/Write tool dispatch does NOT
+   match either gate arm's tool pattern (`^Agent$`, `^Bash$`). VP-107 does NOT verify "rm is
+   never gated" (that claim is de-sanctioned under T4). T3 is verified by architectural
+   argument (human shell outside dispatcher mediation). T2 is covered by the TTL invariant test.
+
+   Any future change to this gate's `tool` patterns MUST verify that T1 (Edit/Write ungated)
+   remains intact after the change. This invariant is verified by VP-107.
 
 ## Threat Model & Scope
 
@@ -357,14 +398,15 @@ The gate's crash behavior follows a fail-closed-but-recoverable design: the ONLY
 case is crash-with-no-(valid)-marker, which enforces nothing because there is no quarantine signal.
 Every real (non-expired) quarantine signal is enforced even through plugin crashes (PC5).
 
-Three independent recoverability guarantees ensure the system is never in an irrecoverable
-quarantine state (INV6 — Ungated-Escape invariant; ADR-048 §Decision 3):
+Three independent recoverability tiers (T1/T2/T3) ensure the system is never in an irrecoverable
+quarantine state (INV6 — Ungated-Escape invariant; ADR-048 §Decision 3 amended v1.1):
 
-| Guarantee | Mechanism | Dispatch required? |
-|-----------|-----------|-------------------|
-| Marker is removable | `rm .factory/unvalidated-mutation.marker` (Bash; INV6-i) | Yes, Bash `rm` (never gated) |
-| Re-validation is ungated | Edit/Write to the failing artifact (INV6-ii; PC3) | Yes, Edit/Write (never gated) |
-| TTL deadman | marker `expires_at` elapses after 86400s; gate auto-deletes on next normal eval (INV6-iii) | No — passive self-healing |
+| Tier | Mechanism | Actor | Ungated? |
+|------|-----------|-------|---------|
+| T1 — Primary agent recovery | Re-validate artifact via Edit/Write → gate plugin PASS → `delete_marker_if_pass` clears marker (INV6-T1; PC3) | Agent | Yes — Edit/Write match neither `^Agent$` nor `^Bash$`; no arm fires; crash check not invoked |
+| T2 — Passive recovery | Wait 86400s; marker `expires_at` elapses; gate auto-deletes on next normal eval (INV6-T2) | Deadman | Yes — no dispatch needed; TTL self-heals unconditionally |
+| T3 — Human break-glass | Operator `rm .factory/unvalidated-mutation.marker` in own terminal (INV6-T3) | Operator | Yes — human shell outside dispatcher mediation; never intercepted |
+| T4 — Agent-tool rm (de-sanctioned) | Bash `rm .factory/unvalidated-mutation.marker` via dispatcher | Agent | NOT guaranteed — may be blocked on crash path (see INV6/T4); NOT relied upon by invariant |
 
 The canonical gate claim language remains: "A fast, fail-open [on no-signal], accidental-misuse
 interlock for a cooperating agent — NOT an adversary-resistant authorization boundary." The
@@ -471,7 +513,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 ## VP Anchors
 
 - VP-105 — Next-Advance Gate Blocks Agent Dispatch and git commit/push While Marker Exists, Passes When Absent; block_if_marker crash policy (integration + unit-test; covers PC1/PC2/PC3/PC4/PC5/PC6 all arms)
-- VP-107 — Ungated-Escape Invariant: `rm`, Edit/Write re-validation, and TTL auto-expiry are never gated even under quarantine (unit-test; covers INV6; to be authored by test-writer after ADR-048 ratification)
+- VP-107 — Ungated-Escape Invariant T1 (INV6/T1): Edit/Write tool dispatch does NOT match either gate arm's `tool` pattern (`^Agent$`, `^Bash$`); no arm fires for Edit/Write dispatches; the `block_if_marker` crash-path native check is never invoked for Edit/Write; T1 re-validation remains genuinely ungated even through a gate-plugin crash. (VP-107 does NOT verify "agent-tool rm is never gated" — T4 is de-sanctioned per INV6/T4; T2/T3 verified by TTL test + architectural argument.) (unit-test; covers INV6/T1; to be authored by test-writer after ADR-048 ratification)
 
 ## Verification Properties
 
@@ -482,7 +524,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 | VP-105 | guard_logic::evaluate_gate — four cases, all distinct: (1) marker absent (NotFound) → Allow; (2) marker present and readable with valid TOML content → BlockDispatch (exit_code=2); (3) marker present and readable but content malformed/unparseable (bad TOML, missing plugin_name) → BlockDispatch (exit_code=2, EC-008); (4) marker present but UNREADABLE due to IO/permission error (EACCES/EPERM) → Allow (fail-open, EC-030). Cases (3) and (4) MUST NOT be conflated: the block/allow split hinges on whether the file bytes were successfully read, not merely whether the file exists. | unit-test |
 | VP-105 | guard_logic::is_git_commit_or_push (v1.3 algorithm): (1) exact subcommand — `commit`/`push` match; `status`/`log`/`diff`/`fetch`/`commit-graph` do NOT match; (2) complete arg-taking option set — each of `-C`, `-c`, `--namespace`, `--git-dir`, `--work-tree`, `--super-prefix`, `--config-env` skips its following separate-token argument before subcommand identification; (3) compound splitting — `&&`, `\|\|`, `;`, `\|`, `&`, newline each split the command into independent segments; any-segment `true` returns `true`; (4) basename matching — `/usr/bin/git commit` → blocked, `./git push` → blocked, `env GIT_DIR=x git commit` → blocked, `cat gitfile` → NOT blocked; (5) fail-safe on unrecognized options — `git --unknown-flag commit` → blocked (subcommand position uncertain); (6) POSIX quote-aware tokenization via `shell-words` crate (Phase 1b) — `git "commit"` → blocked (EC-024), `git 'push' origin` → blocked (EC-025), `g'i't commit` → blocked (EC-026); documented out-of-scope (NOT blocked by design): `$(git commit)` → NOT blocked (command substitution; EC-027), `xargs git commit` → NOT blocked (command indirection, `xargs` is the executable; EC-028), `eval "git push"` → NOT blocked (dynamic evaluation; EC-029) | unit-test |
 | VP-105 | block_if_marker crash policy — dispatcher native check on plugin crash/fuel/epoch: (1) crash + non-expired marker → Block (exit_code=2, PC5, EC-031) for both Arm 1 (^Agent$) and Arm 2 (^Bash$ git commit/push); (2) crash + no marker → Allow (exit_code=0, PC6, EC-009); (3) crash + expired marker (expires_at ≤ now UTC) → Allow (exit_code=0, PC6, EC-032); (4) crash-handler I/O failures (ENOENT on marker path) → Allow (conservative; crash-handler fail-open on its own I/O, PC5 note) | unit-test |
-| VP-107 | Ungated-Escape invariant (INV6): `rm .factory/unvalidated-mutation.marker` Bash dispatch → NOT gated (is_git_commit_or_push returns false; Arm 1 does not match Bash `rm`); Edit/Write dispatch → NOT gated (PC3; neither arm matches); TTL auto-expiry → gate allows without any dispatch after expires_at elapsed; none of the three recovery operations is blockable by this gate's registrations | unit-test |
+| VP-107 | Ungated-Escape invariant T1 (INV6/T1): Edit/Write tool dispatch does NOT match either gate arm (`^Agent$`, `^Bash$`); the crash-path `block_if_marker_check` is not invoked for Edit/Write dispatches (no matched arm → no crash check); T1 re-validation is inherently ungated even when gate plugin crashes with a non-expired marker present. (T4 de-sanctioned: agent-tool Bash `rm` MAY be blocked on crash path — `block_if_marker_check` runs for ALL `^Bash$` dispatches with no `is_git_commit_or_push` filter; ACCEPTABLE per INV6/T4 — T1 provides the genuine agent recovery.) | unit-test |
 
 ## Traceability
 
@@ -492,7 +534,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 | Capability Anchor Justification | CAP-041 ("Validation Integrity: INDETERMINATE Outcome, Durable Mutation Marker, and Next-Advance Gate") per capabilities.md §CAP-041 — this BC specifies the next-advance gate behavior that is the third element of what CAP-041 defines: "blocking of the next state-advancing dispatch — the `validate-unvalidated-mutation-marker` PreToolUse plugin … blocks ALL `^Agent$` tool dispatches AND all Bash dispatches whose `command` identifies `commit` or `push` as the git subcommand (D9 extended gate; the illustrative regex `\bgit\b.*\b(commit\|push)\b` approximates but is not authoritative — see v1.1 clarification) while the marker exists." |
 | L2 Domain Invariants | none (dispatcher runtime gate invariant, not L2 domain spec) |
 | Architecture Module | SS-04 (Plugin Ecosystem — new `validate-unvalidated-mutation-marker` WASM plugin crate); SS-01 (Hook Dispatcher Core — evaluates block_intent from plugin exit_code=2 in PreToolUse dispatch chain) |
-| ADR | ADR-047 §Decision 4 (Next-Advance Gate plugin specification — two-arm registration, exit_code=2 block; crash behavior superseded by ADR-048 §Decision 1); ADR-047 §Decision 9 (extended gate scope — Agent dispatch AND git commit/push Bash arm; two-axis model); ADR-047 §Decision 5 (Marker clear protocol — rm unblocks both arms simultaneously); ADR-039 §Decision 1 (two-axis model — on_error orthogonal to failure_policy; axes-independence invariant); ADR-048 §Decision 1 (block_if_marker new on_error value — crash + non-expired marker → Block; crash + no/expired marker → Allow; supersedes ADR-047 §D4 crash posture; D-1135 reversed); ADR-048 §Decision 2 (expires_at TTL — gate plugin checks expires_at on normal path; dispatcher native check uses expires_at on crash path); ADR-048 §Decision 3 (ungated-escape invariant — rm/Edit/Write/TTL escape paths confirmed ungated; VP-107 verification) |
+| ADR | ADR-047 §Decision 4 (Next-Advance Gate plugin specification — two-arm registration, exit_code=2 block; crash behavior superseded by ADR-048 §Decision 1); ADR-047 §Decision 9 (extended gate scope — Agent dispatch AND git commit/push Bash arm; two-axis model); ADR-047 §Decision 5 (Marker clear protocol — rm unblocks both arms simultaneously); ADR-039 §Decision 1 (two-axis model — on_error orthogonal to failure_policy; axes-independence invariant); ADR-048 §Decision 1 (block_if_marker new on_error value — crash + non-expired marker → Block; crash + no/expired marker → Allow; supersedes ADR-047 §D4 crash posture; D-1135 reversed); ADR-048 §Decision 2 (expires_at TTL — gate plugin checks expires_at on normal path; dispatcher native check uses expires_at on crash path); ADR-048 §Decision 3 amended v1.1 (recovery model reframe: T1=re-validation via Edit/Write primary + inherently ungated; T2=TTL deadman; T3=human OOB rm break-glass; T4=agent-tool rm de-sanctioned — crash-path block ACCEPTABLE, NOT INV6 violation; VP-107 scope amended to verify T1 only; shared-crate fix rejected as unsound per Rice's theorem) |
 | Stories | S-25.01 |
 | Cycle | v1.0-feature-validation-integrity-layer1 (F2 — product-owner spec burst) |
 | Feature | E-25 — Validation Integrity and Large-Artifact Resilience |
@@ -501,6 +543,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.6 | 2026-08-31 | product-owner | ADR-048 §Decision 3 amended v1.1 — recovery model reframe (HIGH-1 resolution). (1) INV6 restructured to four-tier model: T1 (Edit/Write re-validation — primary agent recovery, inherently ungated); T2 (TTL deadman); T3 (human OOB rm — break-glass); T4 (agent-tool Bash rm — de-sanctioned; crash-path block ACCEPTABLE, NOT INV6 violation). (2) INV6(i) v1.5 claim that "block_if_marker on crash does not affect rm because rm does not match Arm 1's ^Agent$ pattern" CORRECTED: Arm 2 (^Bash$) also has block_if_marker; crash handler runs for ALL ^Bash$ dispatches with no is_git_commit_or_push filter; rm CAN be blocked on crash path. (3) PC5 block message reframed: T1 (re-validate via Edit/Write) listed first; rm moved to T3 (human OOB only) and NOT recommended to agent. (4) INV2 last clause updated to T1/T2/T3/T4 framing. (5) Fail-Closed-But-Recoverable table restructured: four rows T1–T4. (6) VP-107 scope amended: verifies T1 only (Edit/Write not matched by either arm); NOT "rm is never gated". (7) Traceability ADR: ADR-048 §D3 citation updated to amended v1.1 form. |
 | 1.5 | 2026-08-31 | product-owner | ADR-048 §Decision 1/2/3 — fail-closed-but-recoverable gate redesign. (1) Both Arm 1 and Arm 2 `on_error` changed from `"continue"` to `"block_if_marker"` in PC1. (2) Two-axis model note in PC1 rewritten: axis (i) now describes the native block_if_marker crash-path (block iff non-expired marker; allow otherwise) superseding D-1135 fail-open-on-crash. (3) Added PC5: gate crash + non-expired marker → dispatcher BLOCKS. (4) Added PC6: gate crash + absent/expired marker → dispatcher ALLOWS. (5) INV2 rewritten: fail-closed-but-recoverable on crash replacing unconditional fail-open; IO-read-error fail-open (EC-030) unchanged. (6) Added INV6: Ungated-Escape invariant — `rm` + Edit/Write + TTL auto-expiry are never gated; VP-107 verification anchor. (7) Threat Model: added Fail-Closed-But-Recoverable subsection with three recoverability guarantees. (8) EC-009 updated for block_if_marker (crash+no-marker → allow); added EC-031 (crash+non-expired-marker → block) and EC-032 (crash+expired-marker → allow). (9) Canonical test vectors: added PC5/PC6 scenarios. (10) VP-105 updated to cover block_if_marker. (11) Traceability ADR: ADR-048 §D1/D2/D3 citations added. ADR-048 added to inputs. |
 | 1.4 | 2026-08-31 | product-owner | Adversary MEDIUM-1 adjudication: resolved read-error vs malformed-marker self-contradiction. (1) EC-008 rewritten to scope explicitly to "marker present and READABLE but content malformed/unparseable (bad TOML, missing required fields) → BLOCK (exit_code=2)" — the unreadable-IO-error case is now excluded from EC-008. (2) Added EC-030: "marker present but UNREADABLE (IO/permission error, e.g. EACCES) → ALLOW (fail-open)" citing INV2 — an unreadable marker cannot be trusted as a quarantine signal, and rm may also fail under the same fault, creating an unclearable self-lock; fail-open is the correct posture. (3) INV2 expanded to explicitly cover the unreadable-marker self-lock avoidance case (not just fuel-exhaustion/plugin-crash). (4) VP-105 unit-test property row updated to distinguish all four cases: absent→Allow; readable+valid→Block; readable+malformed→Block (EC-008); unreadable IO error→Allow (EC-030). (5) Added four canonical test vectors: unreadable-EACCES Agent→Allow, unreadable-EACCES git commit→Allow, readable-malformed Agent→Block, readable-malformed git commit→Block. |
 | 1.3 | 2026-08-31 | product-owner | Adversary ruling reconciliation (HIGH-1 + MEDIUM-2). (1) Fail-open-on-crash self-contradiction resolved: `on_error = "block"` → `on_error = "continue"` for both Arm 1 and Arm 2 registrations; added two-axis model note (ADR-039; ADR-047 §Decision 9) distinguishing dispatcher-level fail-open-on-crash from filter-internal fail-SAFE posture (Phase 3 unrecognized-option block) — these axes are orthogonal and must not be conflated. (2) Threat model bounded: actor model = cooperating AI agent, NOT adversarial exfiltrator; canonical gate-claim language established. QUOTED-literal forms (`git "commit"`, `git 'push' origin`, `g'i't commit`) added to IN SCOPE via Phase 1b POSIX quote-aware tokenization (`shell-words` crate); ad-hoc quote-stripping forbidden. OUT-OF-SCOPE class documented with Rice's theorem rationale: `eval`, variable/alias/function indirection, `xargs`/`bash -c`, command substitution. Added EC-024..EC-029 and 7 canonical test vectors (3 IN-SCOPE quoting + 4 OUT-OF-SCOPE-documented). Updated VP-105 unit-test property to v1.3 algorithm. |

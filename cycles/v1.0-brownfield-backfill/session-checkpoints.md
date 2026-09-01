@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "4e82907"
+input-hash: "c16a25a"
 traces_to: STATE.md
 ---
 
@@ -3962,3 +3962,21 @@ Key state at archive:
 - develop `9ab5a6f6`; main `89f6f87c`.
 - IMMEDIATE NEXT at archive: LOCAL adversary pass 1 on feature/S-25.01 @ ca295259 (fresh context; D-1136 ADR-048 scope; BC-5.39.001 streak 0/3).
 BC-4.17.001 v1.29 active. BC-6.28.001 v1.3 active. BC-1.18.001 v1.1 active. BC-1.18.002 v1.5 active. BC-1.18.003 v1.2 active. BC-INDEX v5.34 (1,993 BCs). VP-INDEX v2.91 (107 VPs). STORY-INDEX v4.418 (175 stories; 25 epics). ARCH-INDEX v4.01 (48 ADRs). merged_count 115. develop `9ab5a6f6`. feature/S-25.01 `ca295259`. BC-5.39.001 streak 0/3.
+
+---
+
+## Session Resume Checkpoint (2026-08-31 — S2501-LOCAL-ADV-PASS1-CLEAN-STREAK-1of3; develop 9ab5a6f6; merged_count 115; S-25.01 F4 TDD IN PROGRESS; BC-5.39.001 streak 1/3; artifact FROZEN @ 92990371)
+
+Archived from STATE.md by SESSION-WRAP-PAUSE-2026-08-31 burst (state-manager single-commit TD-VSDD-053). Full content preserved in git on factory-artifacts branch.
+
+Key state at archive:
+- LOCAL adversary pass 1 CLEAN 2026-08-31 (0 BLOCKER / 0 MEDIUM+; 1 LOW + 3 OBS, all non-blocking). D-chain cite D-1136 (LIGHT state-only burst; no spec/BC/code/index change). BC-5.39.001 streak 0/3→1/3.
+- LOW-1: RegistryError::AsyncBlockConflict message hardcodes on_error="block" — reword to cover both blocking policies. OBS-3: write_indeterminate_marker orphaned .tmp on rename-fail — add remove_file. [process-gap] registry-comment-lint. All batched per D-1127 (swept after 3-CLEAN).
+- OBS-1 (crash posture) + OBS-2 (quoting) VERIFIED CONFORMANT (no action required).
+- Artifact FROZEN @ feature/S-25.01 `92990371` for BC-5.39.001 3-CLEAN cascade.
+- BC-INDEX v5.34 (1,993 BCs; BC-1.18.001 v1.1/BC-1.18.002 v1.5/BC-1.18.003 v1.2 UNCHANGED). VP-INDEX v2.91 (107 VPs UNCHANGED). STORY-INDEX v4.418 (175 stories; 25 epics; S-25.01 v1.9 input-hash 8bf7fa8 UNCHANGED). ARCH-INDEX v4.01 (48 ADRs UNCHANGED).
+- factory-artifacts @ `81a775c0` (BC-INDEX-STORY-INDEX-LAST-AMENDED-COMPACTION-AND-D-PARITY-2026-08-31 v9.49→v9.50).
+- develop `9ab5a6f6`; main `89f6f87c`.
+- IMMEDIATE NEXT at archive: SESSION-WRAP-PAUSE-2026-08-31 with ADR-048 v1.1 recovery model reframe (D-1137) index reconciliation before pausing.
+
+**This checkpoint superseded by SESSION-WRAP-PAUSE-2026-08-31 burst (2026-08-31) which applied ADR-048 v1.1 D-1137 index reconciliation and PAUSED the pipeline.**
