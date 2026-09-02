@@ -10283,3 +10283,205 @@ dispatch fresh-context LOCAL adversary pass 11 against the newly-frozen `feature
 `df855ed8`; needs 3 consecutive clean passes for LOCAL BC-5.39.001 3-CLEAN convergence.
 
 ---
+
+## D-1144-S2501-PASS11-FIX-BURST-VP108-ARCH-DOC-PROPAGATION-AND-ADR048-CITE-NORMALIZATION
+
+**Block 1: Parent-commit**
+
+**Parent-commit:** `1e9cb131` — `spec(story): S-25.01 v1.17 — normalize ADR-048 §Decision cites to
+non-load-bearing provenance (F-P11-002 POLICY 19)` (factory-artifacts HEAD at burst start;
+story-writer's pre-burst commit, confirmed via literal shell):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+1e9cb131 spec(story): S-25.01 v1.17 — normalize ADR-048 §Decision cites to non-load-bearing provenance (F-P11-002 POLICY 19)
+```
+
+**Block 2: Adversary verdict**
+
+S-25.01 LOCAL adversary pass 11 (fresh context, frozen `feature/S-25.01` @ `df855ed8`) = **NOT-CLEAN
+(1 HIGH + 1 LOW), 0 additional OBS reported this pass.** BC-5.39.001 streak RESETS 0/3 (already 0/3
+entering this pass — pass 10's F-P10-001/F-P10-002 reset it; this pass's findings hold it at 0/3, not
+a further decrement).
+
+- **F-P11-001 (HIGH, POLICY 9 propagation gap + POLICY 4 mis-anchor):** VP-108's title/scope grew
+  across passes 6 (write-path added), 9 (SUPERSEDED emission-point), and 10 (timestamp field) into
+  "Marker Lifecycle Audited Events — Write and Clear Path Emission Correctness." VP-INDEX.md's own
+  §Full Index + §Story Anchors rows carried this current SoT title correctly, but the two
+  ARCH-INDEX-registered architecture derived-view documents — `verification-architecture.md`
+  (§SS-01 Provable Properties Catalog) and `verification-coverage-matrix.md` (SS-01 module table) —
+  still carried the STALE pre-write-path title ("marker.cleared Audited-Clear Event — Clear Path
+  Emission Correctness") and an incomplete BC-anchor (omitting BC-1.18.001 §PC4 and BC-3.08.001
+  Event 10).
+- **F-P11-002 (LOW, POLICY 19 / D-1079 volatile-pin normalization):** the S-25.01 story body cited
+  "ADR-048 §D4/§Decision N vX.Y" with load-bearing sub-version pins in several AC headers, tables,
+  and prose locations, rather than the POLICY-19-mandated §Decision-anchor-only form with
+  correction-event provenance carried as a non-load-bearing historical parenthetical.
+
+Both findings are **SPEC/DOC-ONLY — NO code change.** No ADR change, no BC change, no wire-format
+change, no security-model change — **POLICY 22 human-ratification NOT required.**
+
+**Block 3: Files touched**
+
+- `.factory/specs/architecture/verification-architecture.md` — v1.16→v1.17 (architect, pre-burst;
+  §SS-01 catalog VP-108 row title + BC-anchor corrected to VP-108.md v1.5 SoT; commit `e070941a`)
+- `.factory/specs/architecture/verification-coverage-matrix.md` — v1.14→v1.15 (architect, pre-burst;
+  SS-01 module table VP-108 row title + BC-anchor corrected; commit `e070941a`; both arch docs now
+  share input-hash `48958bc` via `compute-input-hash --update`)
+- `.factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md` — v1.16→v1.17 (story-writer,
+  pre-burst; ADR-048 §Decision-anchor citation-form normalization; commit `1e9cb131`; input-hash
+  `4727383` UNCHANGED — no BC/VP/ADR/architecture input file changed on disk)
+- `.factory/specs/architecture/ARCH-INDEX.md` — v4.07→v4.08 (state-manager, this burst; §Document Map
+  section-file version-pointer cells for `verification-architecture.md`/`verification-coverage-matrix.md`
+  advanced v1.13→v1.17 / v1.11→v1.15; last_amended prepended)
+- `.factory/stories/STORY-INDEX.md` — v4.424→v4.425 (state-manager, this burst; catalog row + §E-25
+  delivery blockquote + §Input-hashes blockquote + §E-25-authored blockquote all updated)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1144 appended (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — `L-BB-D1144` appended (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (frontmatter phase/last_amended/pipeline/current_step; Phase
+  Progress row; Current Phase Steps row [oldest dropped, last-5 window]; Decisions Log D-1144 row;
+  Drift Items; version v9.57→v9.58)
+- `.factory/logs/dispatcher-internal-2026-09-01.jsonl`, `.factory/logs/events-2026-09-01.jsonl`,
+  `.factory/sidecar-learning.md`, `.factory/regression-state.json` — pre-existing transient telemetry
+  drift, bundled into this single commit per TD-VSDD-053
+- `VP-INDEX.md`, `BC-INDEX.md` — **CONFIRMED UNCHANGED this burst** (VP-108's own rows were already
+  SoT-correct; no BC file changed)
+
+**Block 4: Codifications**
+
+One new lesson codified in `lessons.md`:
+`L-BB-D1144-POLICY9-VP-title-scope-change-must-sweep-both-arch-derived-views` — a VP whose
+ARCH-INDEX §Document Map entry states "Derived from VP-INDEX" (currently `verification-architecture.md`
+and `verification-coverage-matrix.md`) carries an independent, manually-maintained mirror of its
+title/BC-anchor outside VP-INDEX; "VP-INDEX §Full Index + §Story Anchors both updated same-burst"
+is NOT a complete POLICY 9 sweep for such a VP. Going-forward discipline: every title/scope/BC-anchor
+change to such a VP requires a literal-grep-verified match in BOTH derived-view files, every burst
+that changes it — a prior burst's correct "no textual change needed" finding does not exempt a LATER,
+title-changing burst from re-checking. Secondary finding: the ARCH-INDEX §Document Map
+version-pointer cells for these two files had independently drifted stale (v1.13/v1.11 vs actual
+v1.16/v1.14) — a second, compounding META-level propagation gap, now corrected.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+Input-hash / POLICY 18 three-way parity gate (literal shell, D-449(a)):
+
+```
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md --check
+(exit 0 — no drift)
+$ grep -n '^input-hash:' .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md
+154:input-hash: "4727383"
+$ grep -o "input-hash 4727383; v1\.17" .factory/stories/STORY-INDEX.md
+input-hash 4727383; v1.17
+$ grep -o "S-25.01=4727383 (v1\.17" .factory/stories/STORY-INDEX.md
+S-25.01=4727383 (v1.17
+```
+
+All three sites literal-grep VERIFIED equal (`4727383`) at the new story version (`v1.17`) — POLICY 18
+holds even though the story body changed, because the body edit was citation-form-only and touched no
+declared POLICY-18 input file.
+
+Architect-fixed arch-doc version + input-hash gate (literal shell):
+
+```
+$ grep -n '^version:\|^input-hash:' .factory/specs/architecture/verification-architecture.md
+5:version: "1.17"
+31:input-hash: "48958bc"
+$ grep -n '^version:\|^input-hash:' .factory/specs/architecture/verification-coverage-matrix.md
+5:version: "1.15"
+29:input-hash: "48958bc"
+```
+
+Both arch docs now share input-hash `48958bc` (their `inputs:` include VP-INDEX.md) — confirming the
+architect's F-P11-001 fix landed and both files are mutually consistent post-fix.
+
+4-index + STORY-INDEX frontmatter version gate (literal shell):
+
+```
+$ grep -n '^version:' .factory/specs/verification-properties/VP-INDEX.md .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/architecture/ARCH-INDEX.md .factory/stories/STORY-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:4:version: "2.97"
+.factory/specs/behavioral-contracts/BC-INDEX.md:4:version: "5.39"
+.factory/specs/architecture/ARCH-INDEX.md:4:version: "4.08"
+.factory/stories/STORY-INDEX.md:4:version: "4.425"
+```
+
+VP-INDEX (`2.97`) and BC-INDEX (`5.39`) match their pre-burst values exactly — CONFIRMED UNCHANGED
+this burst. ARCH-INDEX advanced `4.07`→`4.08` (Document Map pointer sync). STORY-INDEX advanced
+`4.424`→`4.425`.
+
+D-448(a)-style source-attestation gate (finding-ID set consistency between this burst's own
+decision-log D-1144 row and this burst-log entry's own Block 2 — no separate persisted
+`adv-*-pass-11.md` file exists for the S-25.01 LOCAL cascade, consistent with prior local-cascade
+precedent):
+
+```
+$ grep -oE "F-P11-[0-9]{3}" <(grep "^| D-1144" cycles/v1.0-brownfield-backfill/decision-log.md) | sort -u
+F-P11-001
+F-P11-002
+```
+
+Finding-ID set matches Block 2 exactly (`F-P11-001`, `F-P11-002`) — no finding dropped or fabricated
+between the orchestrator's task briefing and this burst's codification. (Note: `lessons.md`
+`L-BB-D1144` intentionally cites only `F-P11-001` — F-P11-002 is a routine POLICY 19 citation-form
+fix with no novel process-gap lesson attached, unlike F-P11-001's POLICY 9 sibling-sweep-miss class;
+this is a scoping choice, not a dropped finding, since decision-log D-1144 and burst-log Block 2 both
+carry the complete two-finding set.)
+
+**Block 6 (Dim-5): Closes**
+
+- **`F-P11-001`** (HIGH, POLICY 9 propagation + POLICY 4 mis-anchor) — **FIXED**,
+  `verification-architecture.md` v1.17 + `verification-coverage-matrix.md` v1.15 now derive the
+  VP-108 row title/BC-anchor from VP-108.md v1.5 SoT.
+- **`F-P11-002`** (LOW, POLICY 19 D-1079 normalization) — **FIXED**, S-25.01 v1.17 ADR-048
+  sub-version citations normalized to §Decision-anchor form.
+- **`BC-5.39.001 3-CLEAN streak`** — RESET 0/3 (findings-then-fix burst; held at 0/3, not a further
+  decrement).
+- **No human decision required this burst** — SPEC/DOC-ONLY fix, POLICY 22 NOT triggered.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading
+`## D-1144-S2501-PASS11-FIX-BURST-VP108-ARCH-DOC-PROPAGATION-AND-ADR048-CITE-NORMALIZATION` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation
+gate: literal-shell diff captured in Block 5 — finding-ID sets match exactly between decision-log
+D-1144 and this entry's own Block 2 (the source-of-record for this local cascade). D-449(a)
+literal-shell-execution SELF-APPLICATION: `compute-input-hash --check`, POLICY 18 three-way parity
+grep, arch-doc version/input-hash grep, 4-index/STORY-INDEX frontmatter grep, and the D-448(a)
+finding-ID consistency check all use actual shell with verbatim stdout captured (Block 5) — no
+pseudocode, no estimated counts, no trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (S-25.01 LOCAL pass 11) — content-bearing, 1 HIGH + 1 LOW
+  findings fixed, 0 additional OBS.
+- Streak: RESET 0/3 (held at 0/3; not a further decrement). Fresh pass 12 is NEXT.
+- 4-INDEX: BC-INDEX v5.39 UNCHANGED / VP-INDEX v2.97 UNCHANGED / STORY-INDEX v4.424→v4.425 /
+  ARCH-INDEX v4.07→v4.08.
+- `policies.yaml` UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` remains `in_progress` this burst (human actively driving the cycle; no session wrap
+  combined into this burst). trajectory-tail →1→1→0→0 LENGTH=4 (UNCHANGED — findings-then-fix burst,
+  no CLEAN pass to advance the tail).
+- New Drift Item recorded (NOT fixed this burst): S-25.01's (and likely other story files')
+  frontmatter `last_amended` contains unescaped double-quotes that fail STRICT YAML parsing
+  (pre-existing since ≤v1.16; current lenient tooling — including `compute-input-hash --check` —
+  tolerates it, exit 0); anchored to a future spec-steward frontmatter-hygiene sweep, likely
+  systematic across the story corpus.
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed via
+  the `factory-cas-push.sh` fetch-then-`--force-with-lease` CAS sequence (BC-5.40.001 PC5 / S-17.01
+  D6)
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `1e9cb131` — `spec(story):
+  S-25.01 v1.17 — normalize ADR-048 §Decision cites to non-load-bearing provenance (F-P11-002
+  POLICY 19)`
+
+**Closes:** `F-P11-001` HIGH POLICY-9-propagation/POLICY-4-mis-anchor FIXED. `F-P11-002` LOW
+POLICY-19 citation-normalization FIXED. 0 additional OBS this pass. No spec-vs-code contradictions
+beyond the two fixed findings (this burst is SPEC/DOC-ONLY — no code touched). BC-5.39.001 streak
+RESET 0/3 (held). **NEXT ACTION:** dispatch fresh-context LOCAL adversary pass 12 against the
+still-frozen `feature/S-25.01` @ `df855ed8` (code HEAD UNCHANGED from pass 10); needs 3 consecutive
+clean passes for LOCAL BC-5.39.001 3-CLEAN convergence.
+
+---
