@@ -10485,3 +10485,237 @@ still-frozen `feature/S-25.01` @ `df855ed8` (code HEAD UNCHANGED from pass 10); 
 clean passes for LOCAL BC-5.39.001 3-CLEAN convergence.
 
 ---
+
+## D-1145-S2501-PASS12-FIX-BURST-VP108-PC8-COVERAGE-GAP-AND-PROOF-HARNESS-ANCHOR-CORRECTION
+
+**Block 1: Parent-commit**
+
+**Parent-commit:** `87a5aeec` — `spec(vp): VP-108 v1.7 — correct PC1-PC7 harness anchors to real
+test names` (factory-artifacts HEAD at burst start; architect's pre-burst commit, confirmed via
+literal shell):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+87a5aeec spec(vp): VP-108 v1.7 — correct PC1-PC7 harness anchors to real test names
+```
+
+**Block 2: Adversary verdict**
+
+S-25.01 LOCAL adversary pass 12 (fresh context, frozen `feature/S-25.01` @ `df855ed8`) = **NOT-CLEAN
+(1 MED), 2 additional non-blocking OBSERVATIONS reported this pass.** BC-5.39.001 streak RESETS 0/3
+(already 0/3 entering this pass; this pass's finding holds it at 0/3, not a further decrement).
+
+- **F-P12-001 (MEDIUM, TD-VSDD-059 paper-coverage gap + TD-VSDD-060 sibling-duplication):** VP-108
+  Postcondition 8 — the F-P9-001 negative-control regression requirement that a cross-pair marker
+  overwrite whose write fails must emit NEITHER `marker.cleared(SUPERSEDED)` NOR `marker.written` —
+  had NO implementing test anywhere in the crate; the v1.4 proof-harness skeleton's cited test name
+  was never authored. The emission-decision logic for the write's two write-tied audit events was
+  ALSO duplicated verbatim at two callsites (`execute_tier` and `spawn_async_plugin`), a
+  TD-VSDD-060-class sibling-duplication risk that could let a future edit fix one callsite's
+  emission rule and miss the other, re-introducing the F-P6-001/F-P9-001 defect class.
+- **F-P12-002 (non-blocking OBSERVATION, spec-conformant):** T1/T2 recovery is limited for
+  corrupt/legacy markers — INV6 holds via T3 (human out-of-band `rm`), and ADR-048 §D2's
+  backward-compat clause already documents this as intentional. No Drift Item needed.
+- **F-P12-003 (non-blocking OBSERVATION, spec-conformant):** Phase 1 raw-split over-blocks on
+  quoted shell operators — a conservative direction, consistent with the spec-mandated
+  Phase-1-before-1b ordering. No Drift Item needed.
+
+No ADR change, no BC change, no wire-format change, no security-model change — **POLICY 22
+human-ratification NOT required.** This burst DID change code (a semantics-preserving refactor + a
+new regression test), so the frozen re-review code HEAD **ADVANCES** `feature/S-25.01`
+`df855ed8`→`817c52ae`.
+
+**Block 3: Files touched**
+
+- `crates/factory-dispatcher/src/indeterminate_marker.rs` — implementer, pre-burst; extracted
+  `emit_write_tied_audit_events(ctx, write_result, marker_path, existing, fields)` (pub(crate) fn,
+  line 639), the single source of truth for the ADR-048 §D4 emission-point discipline; commit
+  `adf3a1b1`
+- `crates/factory-dispatcher/src/executor.rs` — implementer, pre-burst; both `execute_tier` (line
+  637) and `spawn_async_plugin` (line 945) callsites now call only `emit_write_tied_audit_events`,
+  closing the TD-VSDD-060 sibling-duplication; commit `adf3a1b1`
+- `crates/factory-dispatcher/src/indeterminate_marker.rs` — test-writer, pre-burst; added
+  `test_ADR_048_D4_PC8_no_emit_on_cross_pair_write_failure` (line 1989); GREEN, 290 passed; commit
+  `817c52ae` (**NEW frozen re-review HEAD**)
+- `.factory/specs/verification-properties/VP-108.md` — architect, pre-burst; v1.5→v1.6 (commit
+  `fc7760a5`; phantom proof-harness file reference removed, PC8 anchor corrected) →v1.7 (commit
+  `87a5aeec`; PC1–PC7 proof-harness anchors corrected to real crate test fn names, grep-verified)
+- `.factory/specs/verification-properties/VP-INDEX.md` — v2.97→v2.98 (state-manager, this burst;
+  §Full Index + §Story Anchors VP-108 rows both updated; total_vps UNCHANGED 108)
+- `.factory/stories/STORY-INDEX.md` — v4.425→v4.426 (state-manager, this burst; catalog row + §E-25
+  delivery blockquote + §Input-hashes blockquote + §E-25-authored blockquote all updated)
+- `.factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md` — v1.17→v1.18 (state-manager,
+  this burst; input-hash re-sync class only, `4727383`→`f3da248`, no body prose change)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1145 appended (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — `L-BB-D1145` appended (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — pass-11 checkpoint archived
+  (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (frontmatter phase/last_amended/current_step; Phase Progress
+  row; Current Phase Steps row [oldest dropped, last-5 window]; Decisions Log D-1145 row; Session
+  Resume Checkpoint replaced; version v9.58→v9.59)
+- `.factory/logs/dispatcher-internal-2026-09-01.jsonl`, `.factory/logs/dispatcher-internal-2026-09-02.jsonl`,
+  `.factory/logs/events-2026-09-02.jsonl`, `.factory/sidecar-learning.md`, `.factory/regression-state.json`
+  — pre-existing/new transient telemetry drift, bundled into this single commit per TD-VSDD-053
+- `VP-108.md`, `verification-architecture.md`, `verification-coverage-matrix.md`, `ARCH-INDEX.md`,
+  `BC-INDEX.md` — **verification-architecture.md/verification-coverage-matrix.md/ARCH-INDEX.md/BC-INDEX.md
+  CONFIRMED UNCHANGED this burst** (VP-108 title/BC-anchor already SoT-correct in the two arch
+  derived-views since the pass-11 fix; no BC file changed)
+
+**Block 4: Codifications**
+
+One new lesson codified in `lessons.md`:
+`L-BB-D1145-VP-postcondition-without-test-plus-phantom-proof-harness-anchors` — two coupled roots:
+(a) a VP mandated a postcondition (PC8) with NO implementing test (TD-VSDD-059-class paper-coverage
+gap), compounded by the emission-decision logic itself being duplicated at two callsites
+(TD-VSDD-060-class sibling-duplication), closed by extracting a single-source helper that also
+became the natural attachment point for the missing regression test; (b) the VP-108 proof-harness
+skeleton cited PHANTOM test fn names for PC1 through PC8 — the same class as the earlier v1.6
+phantom-FILE finding, now found systemic across individual test-name anchors and closed class-wide
+in v1.7. Going-forward discipline: proof-harness skeleton anchors MUST be grep-verified against the
+real crate, and a single mis-anchor finding for one postcondition should trigger an immediate
+class-wide audit of every other postcondition's anchor in the same VP.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+Parent-commit gate (literal shell, D-449(a)):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+87a5aeec spec(vp): VP-108 v1.7 — correct PC1-PC7 harness anchors to real test names
+```
+
+F-P12-001 fix landed in the frozen worktree (literal shell):
+
+```
+$ grep -n "fn emit_write_tied_audit_events" crates/factory-dispatcher/src/indeterminate_marker.rs
+639:pub(crate) fn emit_write_tied_audit_events(
+$ grep -n "fn test_ADR_048_D4_PC8_no_emit_on_cross_pair_write_failure" crates/factory-dispatcher/src/indeterminate_marker.rs
+1989:    fn test_ADR_048_D4_PC8_no_emit_on_cross_pair_write_failure() {
+$ grep -rn "emit_write_tied_audit_events(" crates/factory-dispatcher/src/executor.rs
+637:                    emit_write_tied_audit_events(
+945:                emit_write_tied_audit_events(
+```
+
+Both `execute_tier` and `spawn_async_plugin` callsites now route through the single extracted
+helper — TD-VSDD-060 sibling-duplication closed by construction.
+
+Input-hash / POLICY 18 three-way parity gate (literal shell, D-449(a)):
+
+```
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md --check
+(exit 0 — no drift)
+$ grep -n '^input-hash:' .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md
+154:input-hash: "f3da248"
+$ grep -o "input-hash f3da248; v1\.18" .factory/stories/STORY-INDEX.md
+input-hash f3da248; v1.18
+$ grep -o "S-25.01=f3da248 (v1\.18" .factory/stories/STORY-INDEX.md
+S-25.01=f3da248 (v1.18
+$ grep -o "input-hash f3da248; BC-1\.18\.001" .factory/stories/STORY-INDEX.md
+input-hash f3da248; BC-1.18.001
+```
+
+All catalog sites literal-grep VERIFIED equal (`f3da248`) at the new story version (`v1.18`) —
+POLICY 18 holds; the input-hash changed because VP-108.md (a declared S-25.01 input) changed on
+disk this burst.
+
+ARCH-INDEX/VP-108 propagation gate — confirming NO propagation needed this burst (literal shell):
+
+```
+$ grep -n "^# VP-108:" .factory/specs/verification-properties/VP-108.md
+154:# VP-108: Marker Lifecycle Audited Events — Write and Clear Path Emission Correctness (BC-1.18.001 §PC4; BC-1.18.003 §PC1/PC3/PC4/PC5; ADR-048 §D4 v1.5)
+$ grep -n "| VP-108 |" .factory/specs/architecture/verification-architecture.md
+132:| VP-108 | Marker Lifecycle Audited Events — Write and Clear Path Emission Correctness | unit-test | BC-1.18.001 PC4, BC-1.18.003 PC1/PC3/PC4/PC5, BC-3.08.001 Events 9-10 | draft |
+$ grep -n "| VP-108 |" .factory/specs/architecture/verification-coverage-matrix.md
+144:| VP-108 | Marker Lifecycle Audited Events — Write and Clear Path Emission Correctness (BC-1.18.001 §PC4, BC-1.18.003 §PC1/PC3/PC4/PC5, BC-3.08.001 Events 9-10; ADR-048 §D4) | SS-01 | | | ✓ | | |
+```
+
+Title and BC-anchor match exactly across all three sites — CONFIRMED no POLICY 9 propagation gap
+this burst (this burst's VP-108 change was proof-harness-anchor-only, not title/scope, unlike
+pass 11's F-P11-001).
+
+4-index + STORY-INDEX frontmatter version gate (literal shell):
+
+```
+$ grep -n '^version:' .factory/specs/verification-properties/VP-INDEX.md .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/architecture/ARCH-INDEX.md .factory/stories/STORY-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:4:version: "2.98"
+.factory/specs/behavioral-contracts/BC-INDEX.md:4:version: "5.39"
+.factory/specs/architecture/ARCH-INDEX.md:4:version: "4.08"
+.factory/stories/STORY-INDEX.md:4:version: "4.426"
+```
+
+VP-INDEX advanced `2.97`→`2.98` (VP-108 v1.5→v1.7). BC-INDEX (`5.39`) and ARCH-INDEX (`4.08`) match
+their pre-burst values exactly — CONFIRMED UNCHANGED this burst. STORY-INDEX advanced `4.425`→`4.426`.
+
+D-448(a)-style source-attestation gate (finding-ID set consistency between this burst's own
+decision-log D-1145 row and this burst-log entry's own Block 2):
+
+```
+$ grep -oE "F-P12-[0-9]{3}" <(grep "^| D-1145" cycles/v1.0-brownfield-backfill/decision-log.md) | sort -u
+F-P12-001
+F-P12-002
+F-P12-003
+```
+
+Finding-ID set matches Block 2 exactly (`F-P12-001`, `F-P12-002`, `F-P12-003`) — no finding dropped
+or fabricated between the orchestrator's task briefing and this burst's codification.
+
+**Block 6 (Dim-5): Closes**
+
+- **`F-P12-001`** (MED, VP-108 PC8 coverage gap + emission-block dedup) — **FIXED**, helper
+  `emit_write_tied_audit_events` extracted (implementer `adf3a1b1`) + PC8 regression test added
+  (test-writer `817c52ae`) + VP-108 v1.7 proof-harness anchor correction (architect `fc7760a5`+
+  `87a5aeec`).
+- **`F-P12-002`**, **`F-P12-003`** (non-blocking OBSERVATIONS) — **VERIFIED spec-conformant, no
+  action required, no Drift Item.**
+- **`BC-5.39.001 3-CLEAN streak`** — RESET 0/3 (findings-then-fix burst; held at 0/3, not a further
+  decrement).
+- **No human decision required this burst** — no ADR/BC/wire-format/security-model change, POLICY 22
+  NOT triggered.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading
+`## D-1145-S2501-PASS12-FIX-BURST-VP108-PC8-COVERAGE-GAP-AND-PROOF-HARNESS-ANCHOR-CORRECTION` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation
+gate: literal-shell diff captured in Block 5 — finding-ID sets match exactly between decision-log
+D-1145 and this entry's own Block 2. D-449(a) literal-shell-execution SELF-APPLICATION: parent-commit
+grep, F-P12-001 fix-landed grep, `compute-input-hash --check`, POLICY 18 three-way parity grep,
+ARCH-INDEX/VP-108 propagation grep, 4-index/STORY-INDEX frontmatter grep, and the D-448(a)
+finding-ID consistency check all use actual shell with verbatim stdout captured (Block 5) — no
+pseudocode, no estimated counts, no trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (S-25.01 LOCAL pass 12) — content-bearing, 1 MEDIUM finding
+  fixed, 2 additional non-blocking OBSERVATIONS verified spec-conformant.
+- Streak: RESET 0/3 (held at 0/3; not a further decrement). Fresh pass 13 is NEXT.
+- 4-INDEX: BC-INDEX v5.39 UNCHANGED / VP-INDEX v2.97→v2.98 / STORY-INDEX v4.425→v4.426 / ARCH-INDEX
+  v4.08 UNCHANGED.
+- `policies.yaml` UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` remains `in_progress` this burst (human actively driving the cycle; no session wrap
+  combined into this burst). trajectory-tail →1→1→0→0 LENGTH=4 (UNCHANGED — findings-then-fix burst,
+  no CLEAN pass to advance the tail).
+- No new Drift Items recorded this burst (F-P12-002/F-P12-003 are non-blocking OBSERVATIONS
+  verified spec-conformant, not deferred defects).
+- **Code HEAD advanced** — unlike pass 11 (SPEC/DOC-ONLY), this burst's fix required a source-code
+  change (helper extraction + regression test), so the frozen re-review artifact for pass 13 is
+  `817c52ae`, not `df855ed8`.
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed via
+  the `factory-cas-push.sh` fetch-then-`--force-with-lease` CAS sequence (BC-5.40.001 PC5 / S-17.01
+  D6)
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `87a5aeec` — `spec(vp):
+  VP-108 v1.7 — correct PC1-PC7 harness anchors to real test names`
+
+**Closes:** `F-P12-001` MEDIUM VP-108-PC8-coverage-gap-and-emission-dedup FIXED. `F-P12-002` and
+`F-P12-003` non-blocking OBSERVATIONS verified spec-conformant, no Drift Item. No spec-vs-code
+contradictions beyond the one fixed finding. BC-5.39.001 streak RESET 0/3 (held). Code HEAD ADVANCED
+`feature/S-25.01` `df855ed8`→`817c52ae`. **NEXT ACTION:** dispatch fresh-context LOCAL adversary
+pass 13 against the NEW frozen `feature/S-25.01` @ `817c52ae`; needs 3 consecutive clean passes for
+LOCAL BC-5.39.001 3-CLEAN convergence.
+
+---
