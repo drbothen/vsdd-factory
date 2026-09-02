@@ -2,18 +2,18 @@
 document_type: domain-spec-section
 level: L2
 section: capabilities
-version: "1.15"
+version: "1.16"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: 2026-08-30
+last_amended: 2026-09-02
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "65ddd1c"
+input-hash: "7704e8c"
 traces_to: L2-INDEX.md
 ---
 
@@ -372,10 +372,57 @@ override for self-locking gates — a complementary escape hatch for a different
 (gate itself wedges) rather than the marker quarantine this capability defines. Append-only P1
 addition; CAP-040 is the prior entry.
 
+**CAP-042 — `last_amended` Write-Path Durable Fix: current-entry-only scalar, `changelog:` prepend discipline, sanctioned migration/rotation tooling, and bash-adapter fuel-budget relief**
+D-1149 (2026-09-02) performed a one-time, human-authorized mitigation that split a `last_amended`
+frontmatter mega-line (up to 323,499 chars) into a slim current-entry-plus-pointer form on five
+files (`STORY-INDEX.md`, `BC-INDEX.md`, `ARCH-INDEX.md`, `VP-INDEX.md`, `STATE.md`), moving the
+removed tail into `*-amendment-history.md` sidecars — but the root cause (every state-manager
+burst PREPENDING the new entry and wrapping the entire prior value inline as a nested
+`[Prior: ...]` bracket chain) remained unfixed, so the field would regrow without bound. This
+capability is the durable cure, ratified by ADR-049 (Human-Ratified 2026-09-02, POLICY 22,
+Decision Option 2): (a) `last_amended:` becomes current-entry-only on every future write, on all
+five files plus every other `.factory/` artifact carrying the field — the burst overwrites it
+with a single-line, D-1144-escaped scalar holding ONLY the new entry, never reading or
+bracket-wrapping the prior value; (b) the entry displaced from `last_amended` is instead
+PREPENDED as one new `changelog:` sequence list item (`ARCH-INDEX.md`/`BC-INDEX.md`/`VP-INDEX.md`
+already carry `changelog:`; `STORY-INDEX.md` gains it, completing the D-448(b)/D-414(c)
+deferral; `STATE.md` relies on its existing body-level `## Decisions Log`/`## Phase Progress`
+instead of a frontmatter `changelog:`) — existing `changelog:` items are left byte-for-byte
+untouched, list-item append rather than single-scalar concatenation; (c) a sanctioned,
+platform-agnostic Rust `bin/` binary (POLICY 21 `no_new_shell_scripts`) performs the one-time
+migration (adding `changelog:` to `STORY-INDEX.md`, confirming current-entry-only shape on all
+five files, remediating the pre-existing D-1144 unescaped-double-quote defect in
+`BC-INDEX.md`/`ARCH-INDEX.md`/`STATE.md`) and, as a safety-net utility, rotates an
+over-long `changelog:` sequence into a per-cycle archive; (d) the write-path fix eliminates the
+743-fuel-timeouts/day symptom (2026-09-02) by ensuring the bash-adapter-hosted WASM validators
+that scan these five files never again encounter an unbounded single physical line. The AC-002
+validator-compatibility audit (ADR-049 findings 1-6) established that zero production validator
+code changes are required — `changelog:` is inert to every current reader, and arm_e's Class E1/E2
+checks never fire on any of these five files today.
+Subsystems: SS-04 (bash-adapter-hosted WASM validators; fuel-budget relief), SS-05 (state-manager
+agent + orchestration write-path discipline), SS-06 (`state-burst` skill canonical write-path),
+SS-10 (the new sanctioned migration/rotation `bin/` tool). Outcome: no future state-manager burst
+can ever regrow a `last_amended` mega-line on any governed file, no future fuel-exhaustion
+incident of the 2026-09-02 class recurs, and the one-time D-1149 sidecar-and-migration debt is
+retired via a sanctioned tool rather than a repeat ad hoc POL-3 exception.
+Source: ADR-049 (Decision 1-7; Rationale; Alternatives Considered); D-1149 + `L-BB-D1149`
+(`.factory/cycles/v1.0-brownfield-backfill/decision-log.md`); S-15.03 §Scope Extension
+(`last_amended` Write-Path Durable Fix), AC-001..AC-010; BC-5.45.001 (write-path invariant);
+BC-10.13.001 (migration/rotation tool); BC-4.18.001 (fuel-budget relief). Justification: no
+existing capability covers frontmatter write-path discipline for history-bearing fields. CAP-031
+covers single-writer lock semantics on `factory-artifacts` (distinct concern — this capability
+governs the SHAPE of one field's write, not who may write). CAP-032 covers wave-boundary
+checkpoint/PreCompact-flush continuity (distinct concern — durability across context-window
+transitions, not per-field write discipline). CAP-011 covers fuel/epoch budget enforcement as a
+block-or-pass decision axis (distinct concern — this capability removes the ROOT CAUSE of the
+payload growth that exhausts that budget on these five files, rather than changing the budget or
+its enforcement). Append-only P1 addition; CAP-041 is the prior entry.
+
 ## CHANGELOG
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.16 | 2026-09-02 | S-15.03 Phase B (product-owner, orchestrator-dispatched): authored CAP-042 (P1 — `last_amended` Write-Path Durable Fix: current-entry-only scalar, `changelog:` prepend discipline, sanctioned migration/rotation tooling, and bash-adapter fuel-budget relief; SS-04/SS-05/SS-06/SS-10; ADR-049 §Decision 1-7; BC-5.45.001/BC-10.13.001/BC-4.18.001; S-15.03). Closes the D-1149 mitigation-not-cure gap (`L-BB-D1149`). Distinguishes from CAP-031 (lock semantics), CAP-032 (wave-boundary/PreCompact continuity), CAP-011 (fuel/epoch budget enforcement — this capability removes the root-cause payload growth rather than changing the budget). CAP count advance 41→42. |
 | v1.15 | 2026-08-30 | F2 validation-integrity-layer1 (product-owner, orchestrator-dispatched): authored CAP-041 (P1 — Validation Integrity: INDETERMINATE Outcome, Durable Mutation Marker, and Next-Advance Gate; SS-01/SS-04/SS-07; ADR-047 §D1–D9; BC-1.18.001–004; BC-3.08.001 Event 8; S-25.01). Closes pre-Layer-1 CWE-754 false-PASS vulnerability. Cohort A = 3 human-confirmed fail-closed validators in S-25.01 Layer 1. Distinguishes from CAP-003 (sink observability), CAP-011 (fuel/epoch budget enforcement), CAP-039 (break-glass gate bypass). CAP count advance 40→41. |
 | v1.14 | 2026-08-29 | F2 feature-mode wrap-skill (product-owner, orchestrator-dispatched): authored CAP-040 (P1 — human-initiated factory session pause and resume checkpoint orchestration; SS-06; BC-6.28.001; BC-6.23.001 Invariant 5; BC-6.24.001; BC-5.39.005). Distinguishes from CAP-031 (raw lock acquire/release protocol) and CAP-032 (wave-boundary checkpoint / PreCompact flush). CAP count advance 39→40. |
 | v1.13 | 2026-08-20 | S-21.25 adversarial pass-2 fix (LOW; brownfield cycle v1.0-brownfield-backfill, product-owner, orchestrator-dispatched): CAP-011 body's ADR-042 section cite corrected "§Decision 2" → "§Decision 1". ADR-042 §Decision 1 ("New fuel budget value: 20,000,000 (20M), derivation from measured data") is the section that actually sets the 20M default; §Decision 2 covers a different concern ("Raise is global … not per-plugin"). The v1.12 fix (immediately below) introduced the wrong section number while correcting the stale "10M" figure; this row aligns the cite with `crates/factory-dispatcher/src/invoke.rs`'s `DEFAULT_FUEL_CAP` doc comment and BC-1.03.019 Precondition 2/Architecture Anchors, both of which already cite "§Decision 1" correctly. No capability semantics, subsystem mapping, or outcome statement altered — precision fix only. |

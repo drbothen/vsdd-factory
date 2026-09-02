@@ -1,17 +1,20 @@
 ---
 document_type: story-index
 level: ops
-version: "4.429"
+version: "4.430"
 status: current
-producer: architect
-timestamp: 2026-09-02T20:00:00Z
-last_amended: "2026-09-02 (v4.429) — architect, S-15.03 Phase A design + AC-002 audit closure: S-15.03 v1.3→v1.4 (ADR-049 registered; Shape 2 changelog: sequence CHOSEN over Shape 1/stop-accumulating; AC-002(i)/AC-007 arm_e-applicability premise corrected — Class E never fires on the 5 target files; AC-001/AC-004..AC-010 amended in place); catalog row cite updated to v1.4. Full prior text is in `git log -p -- .factory/stories/STORY-INDEX.md`; the STORY-INDEX-amendment-history.md sidecar is unchanged and remains a frozen pre-migration archive. [Prior history → STORY-INDEX-amendment-history.md]"
+producer: product-owner
+timestamp: 2026-09-02T21:00:00Z
+last_amended: "2026-09-02 (v4.430) — product-owner, S-15.03 Phase B BC authorship per ADR-049: S-15.03 v1.4→v1.5 (authored BC-5.45.001/BC-10.13.001/BC-4.18.001; bcs: [] → 3 BCs); catalog row BCs column + version cite updated to v1.5. changelog: sequence BOOTSTRAPPED this burst (BC-5.45.001 EC-001(b) — this file had none yet; first item below carries the immediately-prior last_amended entry verbatim). Refs: ADR-049, S-15.03, BC-5.45.001."
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
   - .factory/phase-0-ingestion/pass-6-synthesis.md
   - .factory/specs/architecture/ARCH-INDEX.md
 traces_to: .factory/specs/domain-spec/capabilities.md
+changelog:
+  - date: 2026-09-02
+    change: "v4.429 (2026-09-02; architect, S-15.03 Phase A design + AC-002 audit closure): S-15.03 v1.3→v1.4 (ADR-049 registered; Shape 2 changelog: sequence CHOSEN over Shape 1/stop-accumulating; AC-002(i)/AC-007 arm_e-applicability premise corrected — Class E never fires on the 5 target files; AC-001/AC-004..AC-010 amended in place); catalog row cite updated to v1.4. Full prior text is in `git log -p -- .factory/stories/STORY-INDEX.md`; the STORY-INDEX-amendment-history.md sidecar is unchanged and remains a frozen pre-migration archive. [Prior history → STORY-INDEX-amendment-history.md]"
 ---
 
 # Story Index — vsdd-factory v1.0 (brownfield)
@@ -541,7 +544,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-12.06 | HOST_ABI context-injection contract docs (factory-agnostic) | E-12 | TBD | P0 | [] | [S-12.03, S-12.04, S-12.05] | merged | [BC-1.13.001, BC-4.12.001, BC-4.12.002, BC-4.12.003, BC-4.12.004, BC-4.12.005] (10 ACs; merged 2026-05-07 at 15432c6; Step 4.5 converged D-375; decay 5→3→2→0→0→0) |
 | S-12.07 | vsdd-context-resolvers crate + WaveContextResolver (first concrete resolver) | E-12 | TBD | P0 | [S-12.04, S-12.05] | [S-12.08] | merged | [BC-4.12.001, BC-4.12.002, BC-4.12.003, BC-4.12.004, BC-4.12.005] (10 ACs, tdd_mode strict; merged 2026-05-10 PR #122; D-396 propagation fix F-P19-002) |
 | S-12.08 | Migrate validate-per-story-adversary-convergence to consume plugin_config.wave_context.stories (closes F-P2-001) | E-12 | TBD | P0 | [S-12.07] | [] | merged | [BC-1.13.001, BC-4.10.001, BC-4.12.005] (10 ACs, tdd_mode strict; merged 2026-05-10 PR #123; D-396 propagation fix F-P19-002) |
-| S-15.03 | ARCH-INDEX Cite-Refresh Hook + Lessons Retroactive-Sweep Verification | E-12 | TBD | P2 | [] | [] | draft | [] (v1.4, size M→L; F5 pass-20 process-gap; re-anchored E-15→E-12 per F-P21-003 fix-burst-20; SS-01+SS-04; codified-not-enforced recurrence; F-P20-002 + L-P20-002; extended 2026-09-02 with §Scope Extension [last_amended write-path durable fix]; Phase A design CLOSED 2026-09-02 by architect per ADR-049 — Shape 2 changelog: sequence chosen over Shape 1/stop-accumulating, arm_e-applicability premise in AC-002(i)/AC-007 corrected [Class E never fires on these 5 files]; bcs still empty, status stays draft per S-7.01) |
+| S-15.03 | ARCH-INDEX Cite-Refresh Hook + Lessons Retroactive-Sweep Verification | E-12 | TBD | P2 | [] | [] | draft | [BC-5.45.001, BC-10.13.001, BC-4.18.001] (v1.5, size M→L; F5 pass-20 process-gap; re-anchored E-15→E-12 per F-P21-003 fix-burst-20; SS-01+SS-04+SS-05+SS-10; codified-not-enforced recurrence; F-P20-002 + L-P20-002; extended 2026-09-02 with §Scope Extension [last_amended write-path durable fix]; Phase A design CLOSED 2026-09-02 by architect per ADR-049 — Shape 2 changelog: sequence chosen over Shape 1/stop-accumulating, arm_e-applicability premise in AC-002(i)/AC-007 corrected [Class E never fires on these 5 files]; Phase B BC authorship CLOSED 2026-09-02 by product-owner — 3 BCs authored [BC-5.45.001 write-path invariant, BC-10.13.001 migration/rotation tool, BC-4.18.001 fuel-relief]; status stays draft pending Phase C TDD implementation per S-7.01) |
 
 > **E-12 delivery chain:** S-12.01 → S-12.02 (original 2 stories, completed). F3-amendment adds 6 platform stories. S-15.03 re-anchored to E-12 from E-15 per F-P21-003 (fix-burst-20).
 > Platform delivery order: S-12.06 (foundation, ships first) → {S-12.03, S-12.05} parallel → S-12.04 → S-12.07 → S-12.08.
