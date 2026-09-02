@@ -1,0 +1,34 @@
+[package]
+name = "last-amended-migrate"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "Sanctioned Rust CLI for one-time last_amended/changelog: migration plus changelog rotation across the 5 ADR-049-governed index/state files (BC-10.13.001, POLICY 21-compliant; S-15.03 AC-006)"
+publish = false
+
+# Standalone native CLI binary — NOT a WASM hook plugin. Unlike the
+# crates/hook-plugins/* crates, this tool has no vsdd-hook-sdk dependency and
+# is not built for the wasm32-wasip1 target: it is invoked directly by an
+# operator or an orchestrator-dispatched agent (BC-10.13.001 Precondition 1),
+# not dispatched by the factory-dispatcher hook chain. [lib] carries testable
+# logic; [[bin]] is the invoked entry point.
+[lib]
+name = "last_amended_migrate"
+path = "src/lib.rs"
+
+[[bin]]
+name = "last-amended-migrate"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+
+[lints]
+workspace = true
