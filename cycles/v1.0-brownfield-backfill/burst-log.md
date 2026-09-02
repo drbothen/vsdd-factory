@@ -10084,3 +10084,202 @@ NEXT: fresh LOCAL adversary pass 7 on frozen `fdbff54f`.
 `logs/events-*.jsonl`) bundled into this SAME single commit per TD-VSDD-053.
 
 ---
+
+## D-1143-S2501-PASS10-FIX-BURST-TIMESTAMP-PARITY-AND-VP108-HARNESS-GAP
+
+**Block 1: Parent-commit**
+
+**Parent-commit:** `b7b986e9` — `spec(vp): VP-108 v1.5 — harness asserts mandatory timestamp on
+marker.cleared (F-P10-002)` (factory-artifacts HEAD at burst start; architect's pre-burst VP-108
+commit, confirmed via literal shell):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+b7b986e9 spec(vp): VP-108 v1.5 — harness asserts mandatory timestamp on marker.cleared (F-P10-002)
+```
+
+**Block 2: Adversary verdict**
+
+S-25.01 LOCAL adversary pass 10 (fresh context, frozen `feature/S-25.01` @ `00d3166c`) = **NOT-CLEAN
+(2 MEDIUM), 0 LOW/OBS reported this pass.** BC-5.39.001 streak RESETS 0/3 (already 0/3 entering this
+pass — pass 9's F-P9-001 reset it; this pass's findings hold it at 0/3, not a further decrement).
+
+- **F-P10-001 (MEDIUM, code — TD-VSDD-060 sibling-parity sweep miss):** `emit_indeterminate` (Event 8
+  `plugin.indeterminate`, `executor.rs`) and `emit_marker_cleared` (Event 9 `marker.cleared`,
+  `indeterminate_marker.rs`) omitted the BC-3.08.001/VP-108-mandated distinct `timestamp` wire field
+  that all 7 sibling emitters in `host/emit_event.rs` already carry. The two newest dispatcher-native
+  emitters (added across the ADR-047/ADR-048 cascade) were never diffed against the full sibling
+  field-set at authoring time.
+- **F-P10-002 (MEDIUM, verification-gap — TD-VSDD-059 paper-coverage gap, the process-gap root of
+  F-P10-001's 9-pass survival):** VP-108's own proof harness declared `timestamp` mandatory in its
+  Property Statement and BC-3.08.001's wire-format table but never asserted it in Postconditions
+  1/2/3/5 (the four `marker.cleared` emission-positive tests) — a harness proving 7-of-8 mandatory
+  wire fields while silently never checking the 8th.
+
+No ADR change, no BC change, no wire-format-contract change, no security-model change — a pure
+conformance/verification-gap fix. **POLICY 22 human-ratification NOT required** this burst (unlike
+passes 2/3/6/9, each of which required a distinct ADR-048 amendment) — this is the FIRST fix-burst
+in the S-25.01 cascade requiring no ADR/BC amendment.
+
+**Block 3: Files touched**
+
+- `crates/factory-dispatcher/src/executor.rs` — `emit_indeterminate` gains `.with_field("timestamp",
+  ts.as_str())` (implementer; F-P10-001)
+- `crates/factory-dispatcher/src/indeterminate_marker.rs` — `emit_marker_cleared` gains
+  `.with_field("timestamp", ts.as_str())` (implementer; F-P10-001)
+- Test files (5 tests amended with timestamp assertions; test-writer; F-P10-002 regression coverage)
+- `.factory/specs/verification-properties/VP-108.md` — v1.4→v1.5 (architect, pre-burst; Proof Harness
+  Skeleton Postconditions 1/2/3/5 corrected to assert the mandatory `timestamp` field; commit
+  `b7b986e9`)
+- `.factory/specs/verification-properties/VP-INDEX.md` — v2.96→v2.97 (state-manager, this burst;
+  §Full Index + §Story Anchors VP-108 rows both appended a `(v1.5 ...)` clause; `total_vps` UNCHANGED
+  108)
+- `.factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md` — v1.15→v1.16 (state-manager,
+  this burst; frontmatter `input-hash` `3b569a1`→`4727383` via `compute-input-hash --update`;
+  Changelog row + `last_amended` prepend; NO body prose edited)
+- `.factory/stories/STORY-INDEX.md` — v4.423→v4.424 (state-manager, this burst; catalog row + §E-25
+  delivery blockquote + §Input-hashes blockquote + §E-25-authored blockquote all updated)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1143 appended (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — `L-BB-D1143` appended (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — prior Session Resume Checkpoint
+  (SESSION-WRAP-PAUSE-2026-09-01 / pass-9 layer) archived here
+- `.factory/STATE.md` — full advance (frontmatter phase/last_amended/pipeline/current_step; Phase
+  Progress row; Current Phase Steps row [oldest dropped, last-5 window]; Story Status; Active
+  Branches; Concurrent Cycles; Decisions Log D-1143 row; Session Resume Checkpoint replaced; version
+  v9.56→v9.57)
+- `.factory/logs/dispatcher-internal-2026-09-01.jsonl`, `.factory/logs/events-2026-09-01.jsonl`,
+  `.factory/regression-state.json`, `.factory/sidecar-learning.md` — pre-existing transient
+  telemetry drift, bundled into this single commit per TD-VSDD-053
+- `BC-INDEX.md`, `ARCH-INDEX.md` — **CONFIRMED UNCHANGED this burst** (no BC file changed; no ADR
+  change)
+
+**Block 4: Codifications**
+
+One new lesson codified in `lessons.md`: `L-BB-D1143-TD-VSDD-060-plus-TD-VSDD-059-timestamp-field-
+sibling-and-paper-coverage-miss` — a two-layer defect (TD-VSDD-060 sibling-parity code miss +
+TD-VSDD-059 paper-coverage verification miss) that compounded to survive 9 adversary passes: the
+code never got the field (sibling-sweep gap), and nothing detected the omission because the harness
+that should have caught it was itself incomplete on the exact same dimension (paper-coverage gap).
+Going-forward discipline: a new dispatcher-native audit emitter's sibling-sweep must diff its
+field-set against ALL existing emitters in the same host-function family, not just same-named
+functions; a proof harness's assertions must be cross-checked against its own Property Statement's
+claimed-mandatory field list whenever a new mandatory field is added anywhere in the wire-format
+table.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+Input-hash recompute + POLICY 18 three-way parity (literal shell, D-449(a)):
+
+```
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md --check
+compute-input-hash: DRIFT — input-hash 3b569a1 ≠ computed 4727383
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md --update
+4727383
+compute-input-hash: updated .../S-25.01-....md input-hash → 4727383
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md --check
+(exit 0 — no drift)
+```
+
+POLICY 18 three-way parity gate (literal shell):
+
+```
+$ grep -n '^input-hash:' .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md
+154:input-hash: "4727383"
+$ grep -o "input-hash 4727383; v1\.16" .factory/stories/STORY-INDEX.md
+input-hash 4727383; v1.16
+$ grep -o "S-25.01=4727383 (v1.16" .factory/stories/STORY-INDEX.md
+S-25.01=4727383 (v1.16
+```
+
+All three sites literal-grep VERIFIED equal (`4727383`).
+
+Frontmatter + total_vps verification gate (literal shell):
+
+```
+$ grep -n '^version:\|^total_vps:' .factory/specs/verification-properties/VP-INDEX.md
+4:version: "2.97"
+11:total_vps: 108
+$ grep -n '^version:\|^status:' .factory/specs/verification-properties/VP-108.md
+5:version: "1.5"
+6:status: draft
+$ grep -n '^version:' .factory/stories/STORY-INDEX.md
+4:version: "4.424"
+$ grep -n '^version:' .factory/specs/behavioral-contracts/BC-INDEX.md
+4:version: "5.39"
+$ grep -n '^version:' .factory/specs/architecture/ARCH-INDEX.md
+4:version: "4.07"
+```
+
+BC-INDEX (`5.39`) and ARCH-INDEX (`4.07`) match their pre-burst values exactly — CONFIRMED
+UNCHANGED this burst.
+
+D-448(a)-style source-attestation gate (finding-ID set consistency across this burst's own
+artifacts — no separate persisted `adv-*-pass-10.md` file exists for the S-25.01 LOCAL cascade,
+consistent with the S2501-PASS2/PASS6 precedent; the orchestrator-supplied finding set is the
+source of record for this local cascade):
+
+```
+$ grep -oE "F-P10-[0-9]{3}" <(tail -1 cycles/v1.0-brownfield-backfill/decision-log.md) | sort -u
+F-P10-001
+F-P10-002
+$ grep -oE "F-P10-[0-9]{3}" <(grep -A5 "L-BB-D1143" cycles/v1.0-brownfield-backfill/lessons.md) | sort -u
+F-P10-001
+F-P10-002
+```
+
+Finding-ID sets match exactly (`F-P10-001`, `F-P10-002`) across decision-log.md D-1143 and
+lessons.md L-BB-D1143 — no finding dropped or fabricated between the orchestrator's task briefing
+and this burst's codification.
+
+**Block 6 (Dim-5): Closes**
+
+- **`F-P10-001`** (MEDIUM, timestamp field sibling-parity) — **FIXED**, `emit_indeterminate` +
+  `emit_marker_cleared` both gained the mandatory `timestamp` wire field.
+- **`F-P10-002`** (MEDIUM, VP-108 proof-harness paper-coverage gap) — **FIXED**, VP-108 v1.4→v1.5
+  Postconditions 1/2/3/5 now assert `timestamp`.
+- **`BC-5.39.001 3-CLEAN streak`** — RESET 0/3 (findings-then-fix burst; per frozen-artifact-reset
+  protocol L-EDP1-007/051/061, streak resets regardless of prior progress — already 0/3 entering
+  this pass, held at 0/3).
+- **No human decision required this burst** — pure conformance fix, POLICY 22 NOT triggered.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1143-S2501-PASS10-FIX-BURST-TIMESTAMP-PARITY-AND-VP108-HARNESS-GAP`
+present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a)
+source-attestation gate: literal-shell diff captured in Block 5 — finding-ID sets match exactly
+between decision-log D-1143 and lessons.md L-BB-D1143 (the source-of-record for this local cascade,
+since no separate persisted adversary-pass file exists for S-25.01's LOCAL cascade). D-449(a)
+literal-shell-execution SELF-APPLICATION: `compute-input-hash` recompute/update/check, POLICY 18
+three-way parity grep, VP-INDEX/BC-INDEX/ARCH-INDEX frontmatter verification, and the D-448(a)
+finding-ID consistency check all use actual shell with verbatim stdout captured (Block 5) — no
+pseudocode, no estimated counts, no trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (S-25.01 LOCAL pass 10) — content-bearing, 2 MEDIUM
+  findings fixed, 0 LOW/OBS.
+- Streak: RESET 0/3 (held at 0/3; not a further decrement). Fresh pass 11 is NEXT.
+- 4-INDEX: BC-INDEX v5.39 UNCHANGED / VP-INDEX v2.96→v2.97 / STORY-INDEX v4.423→v4.424 / ARCH-INDEX
+  v4.07 UNCHANGED.
+- `policies.yaml` UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` set to `in_progress` this burst (human actively driving the cycle; no session wrap
+  combined into this burst, unlike D-1142's SESSION-WRAP-PAUSE combination). trajectory-tail
+  →0→1→1→0 LENGTH=4 (UNCHANGED — findings-then-fix burst, no CLEAN pass to advance the tail).
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed via
+  the `factory-cas-push.sh` fetch-then-`--force-with-lease` CAS sequence (BC-5.40.001 PC5 / S-17.01
+  D6)
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `b7b986e9` — `spec(vp):
+  VP-108 v1.5 — harness asserts mandatory timestamp on marker.cleared (F-P10-002)`
+
+**Closes:** `F-P10-001` MEDIUM timestamp-field sibling-parity FIXED. `F-P10-002` MEDIUM VP-108
+proof-harness paper-coverage gap FIXED. 0 LOW observations this pass. No spec-vs-code
+contradictions beyond the two fixed findings. BC-5.39.001 streak RESET 0/3 (held). **NEXT ACTION:**
+dispatch fresh-context LOCAL adversary pass 11 against the newly-frozen `feature/S-25.01` @
+`df855ed8`; needs 3 consecutive clean passes for LOCAL BC-5.39.001 3-CLEAN convergence.
+
+---
