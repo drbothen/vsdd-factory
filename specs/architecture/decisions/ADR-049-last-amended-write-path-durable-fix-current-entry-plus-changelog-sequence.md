@@ -1,7 +1,7 @@
 ---
 document_type: adr
 adr_id: ADR-049
-status: proposed
+status: accepted
 date: 2026-09-02
 subsystems_affected: [SS-04, SS-05, SS-06, SS-10]
 supersedes: null
@@ -266,10 +266,14 @@ sequence") over Option 1 ("YAML block scalar on `last_amended` itself") and over
 
 ### Status as of 2026-09-02
 
-Proposed. Zero code has been written or changed under this ADR — Phase A is design/audit only per
-the S-15.03 dispatch instructions. Phase B (product-owner BCs) and Phase C (TDD implementation of
-the AC-006 tool, the write-path discipline update in `state-burst`/`state-manager`, and the
-one-time migration) are gated on this ADR's acceptance.
+**ACCEPTED — Human-Ratified 2026-09-02 (POLICY 22).** The human read this ADR in full and
+explicitly approved its Decision Option 2 (`last_amended` = current-entry-only scalar; history
+routes to the existing `changelog:` sequence; zero validator code changes required per findings
+1-5; the five D-1149 sidecars remain frozen per Decision item 5). Zero code has been written or
+changed under this ADR — Phase A was design/audit only per the S-15.03 dispatch instructions.
+Phase B (product-owner BCs) and Phase C (TDD implementation of the AC-006 tool, the write-path
+discipline update in `state-burst`/`state-manager`, and the one-time migration) are now unblocked
+by this acceptance.
 
 ## Alternatives Considered
 
