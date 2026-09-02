@@ -478,11 +478,16 @@ pub(crate) fn emit_marker_cleared(
     actor_type: &str,
     reason: Option<&str>,
 ) {
-    let ev = InternalEvent::now(PLUGIN_MARKER_CLEARED)
+    let ev = InternalEvent::now(PLUGIN_MARKER_CLEARED);
+    // BC-3.08.001 wire format: mandatory `timestamp` field distinct from `ts` (DI-017).
+    // `with_field("timestamp", ...)` adds the BC-required `timestamp` alias for `ts`.
+    let ts = ev.ts.clone();
+    let ev = ev
         // Use marker's trace_id (not current dispatch's) to link back to plugin.indeterminate.
         .with_trace_id(&marker_fields.trace_id)
         .with_session_id(&ctx.session_id)
         .with_plugin_name(&marker_fields.plugin_name)
+        .with_field("timestamp", ts.as_str())
         .with_field(
             "artifact_path",
             serde_json::Value::String(marker_fields.artifact_path.clone()),
