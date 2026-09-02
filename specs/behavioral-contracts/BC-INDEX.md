@@ -1,17 +1,19 @@
 ---
 document_type: bc-index
 level: L3
-version: "5.41"
+version: "5.42"
 status: draft
 producer: state-manager
 timestamp: 2026-09-02T00:00:00Z
-last_amended: "2026-09-02 (v5.41) — S-15.03 consistency-audit remediation (state-manager; D-1151; runs after product-owner's F-5/F-6/F-8 BC title/scope fixes, commit f792dd4a; BC-5.45.001 PC2 reference application): F-7 BLOCKER — removed the premature v5.40 self-summary `changelog:` item that duplicated the still-live `last_amended` entry (PC2 violation: two items prepended where exactly one — the displaced prior entry — is permitted); the correctly-displaced v5.39 entry was retained. F-1 — §Summary Count column reconciled to literal grep ground truth (whole-file grep -c on the '| [BC-N.' row-anchor pattern, per subsystem prefix): SS-01 124→127, SS-04 43→45, SS-05 657→661, SS-06 590→592; sum verified = 1996 = total_bcs. F-2 — §Index-by-subsystem inline header counts swept (TD-VSDD-060 sibling-sweep): SS-01 125→127, SS-04 44→45 BCs. F-3 — BC-4.18.001/BC-4.17.001 row order corrected to ascending numeric (BC-4.17.001 now precedes BC-4.18.001). total_bcs UNCHANGED (1996; no BCs added/removed this burst). Refs: D-1151, F-1, F-2, F-3, F-7, S-15.03 consistency audit."
+last_amended: "2026-09-02 (v5.42) — BC-10.13.001 FULL-RECOVERY/SPLIT amendment (product-owner; human-directed; BC-5.45.001 PC1/PC2 write-path discipline applied): BC-10.13.001 v1.0→v1.1 H1 retitled (dropped 'One-Time'; added 'Full-Recovery Split') and row title cell synced verbatim (POLICY 7). No count change (0 BCs added/removed; total_bcs UNCHANGED 1996). Refs: BC-10.13.001 v1.1, S-15.03 AC-006/AC-010."
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1996
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-09-02
+    change: "2026-09-02 (v5.41) — S-15.03 consistency-audit remediation (state-manager; D-1151; runs after product-owner's F-5/F-6/F-8 BC title/scope fixes, commit f792dd4a; BC-5.45.001 PC2 reference application): F-7 BLOCKER — removed the premature v5.40 self-summary `changelog:` item that duplicated the still-live `last_amended` entry (PC2 violation: two items prepended where exactly one — the displaced prior entry — is permitted); the correctly-displaced v5.39 entry was retained. F-1 — §Summary Count column reconciled to literal grep ground truth (whole-file grep -c on the '| [BC-N.' row-anchor pattern, per subsystem prefix): SS-01 124→127, SS-04 43→45, SS-05 657→661, SS-06 590→592; sum verified = 1996 = total_bcs. F-2 — §Index-by-subsystem inline header counts swept (TD-VSDD-060 sibling-sweep): SS-01 125→127, SS-04 44→45 BCs. F-3 — BC-4.18.001/BC-4.17.001 row order corrected to ascending numeric (BC-4.17.001 now precedes BC-4.18.001). total_bcs UNCHANGED (1996; no BCs added/removed this burst). Refs: D-1151, F-1, F-2, F-3, F-7, S-15.03 consistency audit."
   - date: 2026-09-02
     change: "2026-09-02 (v5.40) — S-15.03 Phase B BC authorship (product-owner; ADR-049 write-path discipline applied to this very edit, first BC-INDEX write post-ADR-049): registered 3 new BCs implementing the last_amended Write-Path Durable Fix (BC-5.45.001 write-path invariant; BC-10.13.001 sanctioned migration/rotation tool; BC-4.18.001 bash-adapter fuel-budget relief). total_bcs 1993→1996. SS-04/SS-05/SS-10 counts +1 each. S-15.03 bcs: [] → [BC-5.45.001, BC-10.13.001, BC-4.18.001]. Refs: ADR-049, S-15.03."
   - date: 2026-09-01
@@ -2596,7 +2598,7 @@ input-hash: "8ec28bf"
 | [BC-10.11.004](ss-10/BC-10.11.004.md) | research-cache: stats output `entries=N bytes=M dir=PATH` | draft | TBD | TBD |
 | [BC-10.11.005](ss-10/BC-10.11.005.md) | research-cache: clear is idempotent and removes only `*.json` (not the dir itself) | draft | TBD | TBD |
 | [BC-10.12.001](ss-10/BC-10.12.001.md) | wave-state: read-only query against .factory/stories/sprint-state.yaml | draft | TBD | TBD |
-| [BC-10.13.001](ss-10/BC-10.13.001.md) | last-amended-migrate — Sanctioned Rust CLI for One-Time `last_amended`/`changelog:` Migration Plus Changelog Rotation (POLICY 21-Compliant) | draft | CAP-042 | S-15.03 |
+| [BC-10.13.001](ss-10/BC-10.13.001.md) | last-amended-migrate — Sanctioned Rust CLI for `last_amended`/`changelog:` Migration, Full-Recovery Split, and Changelog Rotation (POLICY 21-Compliant) | draft | CAP-042 | S-15.03 |
 | [BC-10.12.002](ss-10/BC-10.12.002.md) | wave-state: 4 subcommands (current, stories, ready, summary) | draft | TBD | TBD |
 | [BC-10.12.003](ss-10/BC-10.12.003.md) | wave-state: schema fallback — `.current_wave // .active_wave // 1`; both wave-shapes supported | draft | TBD | TBD |
 | [BC-10.12.004](ss-10/BC-10.12.004.md) | wave-state: ready exit code — 0 if all ready, 1 otherwise | draft | TBD | TBD |
