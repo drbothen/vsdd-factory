@@ -11088,3 +11088,222 @@ fresh-context LOCAL adversary pass 15 against the NEW frozen `feature/S-25.01` @
 consecutive clean passes for LOCAL BC-5.39.001 3-CLEAN convergence (restarting from 0/3).
 
 ---
+
+## D-1148-S2501-PASS15-FIX-BURST-VP108-PC1-REVALIDATED-PARTIAL-FIX-SWEEP-COMPLETION
+
+**Block 1: Parent-commit**
+
+**Parent-commit:** `90675c7d` — `spec(vp): VP-108 v1.8 — correct PC1 REVALIDATED trace_id-source/
+emission-locus/trigger to match BC-3.08.001 + code (F-P15-001)` (factory-artifacts HEAD at burst
+start; architect's pass-15 VP-108 fix commit, confirmed via literal shell):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+90675c7d spec(vp): VP-108 v1.8 — correct PC1 REVALIDATED trace_id-source/emission-locus/trigger to match BC-3.08.001 + code (F-P15-001)
+```
+
+**Block 2: Adversary verdict**
+
+S-25.01 LOCAL adversary pass 15 (fresh context, frozen `feature/S-25.01` @ `3919ebcb`) = **NOT-CLEAN
+(1 HIGH).** BC-5.39.001 streak **stays 0/3** (findings-then-fix; pass 15 was the first pass against
+the pass-14 fix-burst's new frozen HEAD, so no accumulated streak existed to reset).
+
+- **F-P15-001 (HIGH, `[regression]` — TD-VSDD-060-class partial-fix-propagation miss):** VP-108
+  Postcondition 1 (REVALIDATED clear)'s Property Statement paragraph contradicted BC-3.08.001 Event 9
+  `trace_id` semantics, the sibling PC2/PC3/PC5 emission-locus wording, and the code. The
+  F-P2-002/F-P3-001 corrections (dispatcher-native emission locus; `trace_id` sourced from the
+  marker itself, not the "current" trace_id) were swept into PC2/PC3 at pass 2 and PC5 at pass 3, but
+  were never applied to PC1 — the stale pre-correction wording survived 12+ subsequent adversary
+  passes undetected because the code and PC1's own implementing test were already correct throughout,
+  so no test failure or runtime symptom ever surfaced the drift.
+
+No ADR change, no wire-format contract change, no security-model change, no code/test change (the
+code and PC1's implementing test were already correct — this is a SPEC-TEXT-ONLY regression) —
+**POLICY 22 human-ratification NOT required.** This burst did NOT change code, so the frozen
+re-review code HEAD **stays UNCHANGED** `feature/S-25.01` @ `3919ebcb`.
+
+**Block 3: Files touched**
+
+- `.factory/specs/verification-properties/VP-108.md` — architect, pre-burst; v1.7→v1.8; PC1's
+  Property Statement corrected (trace_id source, emission locus, trigger); PC2–PC8 + both wire-format
+  tables + Proof Method + Proof Harness Skeleton + Feasibility Assessment + Traceability sibling-swept
+  clean; commit `90675c7d`
+- `.factory/specs/verification-properties/VP-INDEX.md` — state-manager, this burst; v2.98→v2.99;
+  §Full Index (line 495) + §Story Anchors (line 571) VP-108 rows both append a `(v1.8 ...)` changelog
+  note; frontmatter `last_amended` prepended; `total_vps` UNCHANGED 108
+- `.factory/stories/STORY-INDEX.md` — state-manager, this burst; v4.426→v4.427; S-25.01 catalog row +
+  §Input-hashes blockquote + §E-25-authored blockquote all updated to v1.19/`6ca47ed`; frontmatter
+  `last_amended` prepended
+- `.factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md` — state-manager, this burst;
+  v1.18→v1.19; input-hash re-sync `f3da248`→`6ca47ed` via `bin/compute-input-hash --update`; frontmatter
+  `last_amended` prepended; body prose UNCHANGED (input-hash re-sync class only)
+- `.factory/STATE.md` — full advance (frontmatter phase/last_amended/current_step; Phase Progress row;
+  Current Phase Steps row [oldest dropped, last-5 window]; Decisions Log D-1148 row; Session Resume
+  Checkpoint replaced; version v9.61→v9.62)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1148 appended (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — `L-BB-D1148` appended (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — pass-14 checkpoint archived
+  (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/logs/dispatcher-internal-2026-09-02.jsonl`, `.factory/sidecar-learning.md` — pre-existing
+  transient telemetry drift, bundled into this single commit per TD-VSDD-053
+- `.factory/specs/behavioral-contracts/BC-INDEX.md`, `.factory/specs/architecture/ARCH-INDEX.md` —
+  **CONFIRMED UNCHANGED this burst** (no BC file changed; architect verified no arch-doc change
+  needed — VP-108 title/scope/BC-anchor unchanged, POLICY 9 verified no-op)
+
+**Block 4: Codifications**
+
+One new lesson codified in `lessons.md`:
+`L-BB-D1148-VP-postcondition-class-wide-sweep-must-cover-ALL-postconditions-not-only-the-named-ones`
+— when a fix corrects a property-statement error class in some postconditions of a VP, the SAME burst
+must re-read EVERY OTHER postcondition of that VP describing an emission of the same event family for
+the identical error class, not only the postcondition(s) the triggering finding happened to cite; a
+fix that corrects 3 of 4 sibling postconditions has narrowed the error class, not closed it. No Drift
+Items closed or opened this burst.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+Parent-commit gate (literal shell, D-449(a)):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+90675c7d spec(vp): VP-108 v1.8 — correct PC1 REVALIDATED trace_id-source/emission-locus/trigger to match BC-3.08.001 + code (F-P15-001)
+```
+
+VP-108 version-bump gate (literal shell):
+
+```
+$ grep -n '^version:' .factory/specs/verification-properties/VP-108.md
+5:version: "1.8"
+```
+
+VP-INDEX sibling-sweep-note propagation gate — confirming BOTH §Full Index and §Story Anchors rows
+carry the v1.8 changelog note (literal shell):
+
+```
+$ grep -c "v1.8 2026-09-02: S-25.01 pass 15 F-P15-001" .factory/specs/verification-properties/VP-INDEX.md
+2
+```
+
+2 matches — both VP-108 rows (Full Index + Story Anchors) updated, per POLICY 9.
+
+POLICY 18 three-way parity gate — S-25.01 input-hash re-sync (literal shell):
+
+```
+$ bin/compute-input-hash .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md --check
+compute-input-hash: DRIFT — .../S-25.01-dispatcher-indeterminate-outcome-layer1.md input-hash f3da248 ≠ computed 6ca47ed
+  Inputs may have changed since this artifact was produced.
+(exit 2, run BEFORE --update)
+
+$ bin/compute-input-hash .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md --update
+6ca47ed
+compute-input-hash: updated .../S-25.01-dispatcher-indeterminate-outcome-layer1.md input-hash → 6ca47ed
+
+$ bin/compute-input-hash .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md --check
+(exit 0 — MATCH)
+```
+
+Three-way parity confirmed (literal shell):
+
+```
+$ grep -n '^input-hash:' .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md
+154:input-hash: "6ca47ed"
+$ grep -o "input-hash 6ca47ed; v1.19" .factory/stories/STORY-INDEX.md
+input-hash 6ca47ed; v1.19
+$ grep -o "S-25.01=6ca47ed" .factory/stories/STORY-INDEX.md
+S-25.01=6ca47ed
+S-25.01=6ca47ed
+```
+
+Frontmatter=catalog-row=blockquote all `6ca47ed` — POLICY 18 three-way parity VERIFIED.
+
+4-index frontmatter version gate — BC-INDEX/ARCH-INDEX UNCHANGED, VP-INDEX/STORY-INDEX ADVANCED
+(literal shell):
+
+```
+$ grep -n '^version:' .factory/specs/verification-properties/VP-INDEX.md .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/architecture/ARCH-INDEX.md .factory/stories/STORY-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:4:version: "2.99"
+.factory/specs/behavioral-contracts/BC-INDEX.md:4:version: "5.39"
+.factory/specs/architecture/ARCH-INDEX.md:4:version: "4.08"
+.factory/stories/STORY-INDEX.md:4:version: "4.427"
+```
+
+BC-INDEX v5.39 and ARCH-INDEX v4.08 match the pre-burst values exactly — CONFIRMED UNCHANGED.
+VP-INDEX v2.98→v2.99 and STORY-INDEX v4.426→v4.427 — CONFIRMED ADVANCED as expected.
+
+D-448(a)-style source-attestation gate (finding-ID set consistency between this burst's own
+decision-log D-1148 row and this burst-log entry's own Block 2):
+
+```
+$ grep -oE "F-P15-[0-9]{3}" <(grep "^| D-1148" cycles/v1.0-brownfield-backfill/decision-log.md) | sort -u
+F-P15-001
+```
+
+Finding-ID set matches Block 2 exactly (`F-P15-001`) — no finding dropped or fabricated between the
+orchestrator's task briefing and this burst's codification.
+
+Codification-presence gate (literal shell):
+
+```
+$ grep -c "D-1148-S2501-PASS15" cycles/v1.0-brownfield-backfill/decision-log.md
+1
+$ grep -c "L-BB-D1148" cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+
+**Block 6 (Dim-5): Closes**
+
+- **`F-P15-001`** (HIGH, VP-108 PC1 REVALIDATED trace_id-source/emission-locus/trigger regression) —
+  **FIXED**, architect `90675c7d` (VP-108 v1.7→v1.8; PC1 corrected; PC2–PC8 sibling-swept clean, no
+  other instance found).
+- **`BC-5.39.001 3-CLEAN streak`** — **stays 0/3** (findings-then-fix; no streak existed to reset —
+  pass 15 was the first pass against the pass-14 fix-burst's new frozen HEAD).
+- **No human decision required this burst** — no ADR/BC/wire-format/security-model change, POLICY 22
+  NOT triggered.
+- **No Drift Items opened or closed this burst.**
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading
+`## D-1148-S2501-PASS15-FIX-BURST-VP108-PC1-REVALIDATED-PARTIAL-FIX-SWEEP-COMPLETION` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation
+gate: literal-shell diff captured in Block 5 — finding-ID sets match exactly between decision-log
+D-1148 and this entry's own Block 2. D-449(a) literal-shell-execution SELF-APPLICATION: parent-commit
+grep, VP-108 version-bump grep, VP-INDEX sibling-sweep-note count grep, the `compute-input-hash`
+`--check`/`--update`/`--check` sequence, the three-way-parity greps, the 4-index version grep, the
+D-448(a) finding-ID consistency check, and the codification-presence greps all use actual shell with
+verbatim stdout captured (Block 5) — no pseudocode, no estimated counts, no trusted-but-unverified
+claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (S-25.01 LOCAL pass 15) — content-bearing, 1 HIGH finding
+  fixed.
+- Streak: **stays 0/3.** Fresh pass 16 is NEXT (needs 3 consecutive CLEAN passes for LOCAL 3-CLEAN
+  convergence, restarting the count from 0/3).
+- 4-INDEX: BC-INDEX v5.39 UNCHANGED / ARCH-INDEX v4.08 UNCHANGED / VP-INDEX v2.98→v2.99 (VP-108
+  v1.7→v1.8) / STORY-INDEX v4.426→v4.427 (S-25.01 v1.18→v1.19, input-hash re-sync).
+- `policies.yaml` UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` remains `in_progress` this burst (no session wrap combined into this burst).
+  trajectory-tail →0→1→0→0 LENGTH=4 (pass 15 NOT-CLEAN appended, streak held at 0/3).
+- No Drift Items opened or closed this burst.
+- **Code HEAD UNCHANGED** — this burst was SPEC-TEXT-ONLY (no source/test change), so the frozen
+  re-review artifact for pass 16 remains `3919ebcb`, the SAME commit reviewed at pass 15.
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed via
+  the `factory-cas-push.sh` fetch-then-`--force-with-lease` CAS sequence (BC-5.40.001 PC5 / S-17.01
+  D6)
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `90675c7d` — `spec(vp):
+  VP-108 v1.8 — correct PC1 REVALIDATED trace_id-source/emission-locus/trigger to match BC-3.08.001 +
+  code (F-P15-001)`
+
+**Closes:** `F-P15-001` HIGH VP-108-PC1-REVALIDATED-partial-fix-regression FIXED. BC-5.39.001 streak
+stays 0/3 (findings-then-fix). Code HEAD UNCHANGED `feature/S-25.01` @ `3919ebcb`. **NEXT ACTION:**
+dispatch fresh-context LOCAL adversary pass 16 against the frozen `feature/S-25.01` @ `3919ebcb`
+(code HEAD unchanged from pass 15); needs 3 consecutive clean passes for LOCAL BC-5.39.001 3-CLEAN
+convergence (restarting from 0/3).
+
+---
