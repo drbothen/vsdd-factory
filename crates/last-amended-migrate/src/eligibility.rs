@@ -1,31 +1,48 @@
-//! Eligibility classification for BC-10.13.001 Precondition 2 / EC-003.
+//! Eligibility classification for BC-10.13.001 v1.1 Precondition 2 / EC-003
+//! / PC7.
 
 /// Whether a file's `last_amended` value is eligible for this tool's
-/// migration subcommand.
+/// migration subcommand, and — as of the v1.1 full-recovery-split amendment
+/// — which of the two ELIGIBLE shapes it is in (Precondition 2 now names
+/// both shapes eligible; the only remaining `NotEligible` outcome is the
+/// EC-008 malformed-frontmatter case, which is not representable by this
+/// enum at all since it is detected before a `last_amended` string exists to
+/// classify — see `MigrateError::NotEligible`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Eligibility {
     /// Already a single dated entry with no nested `[Prior: ...]` chain —
-    /// migration for this field is a verified no-op (PC2, PC4).
+    /// migration for this field is a verified no-op (PC2, PC4). This is also
+    /// the shape a file settles into immediately after a `PriorChainSplit`
+    /// has been resolved (PC7 step 8 / Invariant 2) — a re-run against the
+    /// freshly-split file reclassifies as `CurrentEntryOnly`, never
+    /// re-detects a chain.
     CurrentEntryOnly,
-    /// Still contains a nested `[Prior: <date> (vX.Y) — ...]` bracket
-    /// referencing a different dated entry. Out of scope for this tool
-    /// (Precondition 2) — the tool must report NOT ELIGIBLE (EC-003) and
-    /// never attempt to split it.
-    NotEligiblePriorChain,
+    /// Contains one or more nested `[Prior: <date> (vX.Y) — ...]` bracket
+    /// entries (Precondition 2(b)) — ELIGIBLE (v1.1 amendment; supersedes
+    /// the v1.0 `NotEligiblePriorChain` framing, which wrongly treated chain
+    /// presence as out-of-scope). The tool performs the PC7 full-recovery
+    /// split: the current entry is re-emitted as the new current-entry-only
+    /// `last_amended`, and every chained entry is relocated into
+    /// `changelog:`, newest-first.
+    PriorChainSplit,
 }
 
-/// Classify `last_amended_raw` per BC-10.13.001 Precondition 2 / EC-003.
+/// Classify `last_amended_raw` per BC-10.13.001 v1.1 Precondition 2 / EC-003
+/// / PC7.
 ///
-/// MUST NOT perform or begin any bracket-splitting surgery — this function
-/// only classifies; splitting a detected chain is explicitly out of scope
-/// (Precondition 2, EC-003) and remains a human-authorized POL-3 exception if
-/// it recurs elsewhere.
+/// This function only classifies which of the two ELIGIBLE shapes the value
+/// is in — it MUST NOT itself perform the PC7 bracket-splitting surgery;
+/// that orchestration lives in `crate::migrate::migrate_file`, which invokes
+/// this classifier and then dispatches to the split path when the result is
+/// `Eligibility::PriorChainSplit`.
 ///
 /// # BC-5.38.001 compliance
 ///
 /// NON-TRIVIAL: requires scanning for a `[Prior: ` marker while tolerating
 /// arbitrarily long input (Invariant 3) without misclassifying a literal `[`
-/// that is not the prior-chain marker. Body is `todo!()`.
+/// that is not the prior-chain marker, and without confusing it with the
+/// unrelated, non-growing `[Prior history → ...]` pointer note. Body is
+/// `todo!()`.
 ///
 /// # Self-Check (BC-5.38.005 invariant 1)
 ///
@@ -36,8 +53,9 @@ pub enum Eligibility {
 pub fn check_eligibility(last_amended_raw: &str) -> Eligibility {
     todo!(
         "classify {} bytes of last_amended as CurrentEntryOnly vs \
-        NotEligiblePriorChain by scanning for a `[Prior: ` marker without \
-        backtracking (BC-10.13.001 PC2 / EC-003)",
+        PriorChainSplit by scanning for a `[Prior: ` marker without \
+        backtracking, distinguishing it from a `[Prior history \u{2192} ...]` \
+        pointer note (BC-10.13.001 v1.1 PC2 / PC7 / EC-003)",
         last_amended_raw.len()
     )
 }

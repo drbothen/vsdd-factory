@@ -105,15 +105,43 @@ pub fn quote_defect_current_entry(date: &str, version: &str) -> String {
     format!("{date} ({version}) — fixed the \"quoted term\" defect")
 }
 
-/// A `last_amended` value still carrying a nested `[Prior: <date> (vX.Y) —
-/// ...]` bracket chain — the pre-D-1149 / non-conforming shape BC-10.13.001
-/// Precondition 2 / EC-003 places OUT OF SCOPE (NOT eligible; the tool must
-/// NOT attempt to split it — see this module's doc + the eligibility test
-/// file's header for the full BC-vs-instruction reconciliation note).
+/// A `last_amended` value carrying a nested `[Prior: <date> (vX.Y) — ...]`
+/// bracket chain (2 historical entries) — the pre-D-1149 / unbounded-growth
+/// shape that BC-10.13.001 v1.1 Precondition 2(b) classifies as ELIGIBLE for
+/// the PC7 full-recovery split (superseding the v1.0 "out of scope, NOT
+/// eligible" framing this helper predates — see `chain_last_amended` for the
+/// general N-entry builder new v1.1 fixtures use).
 pub fn prior_chain_last_amended(date: &str, version: &str) -> String {
-    format!(
-        "{date} ({version}) — current entry text [Prior: 2026-08-01 (v0.9) — older entry text [Prior: 2026-07-01 (v0.8) — oldest entry text]]"
+    chain_last_amended(
+        (date, version, "current entry text"),
+        &[
+            ("2026-08-01", "v0.9", "older entry text"),
+            ("2026-07-01", "v0.8", "oldest entry text"),
+        ],
     )
+}
+
+/// Build a `last_amended` inline `[Prior: ...]` bracket chain with an
+/// arbitrary number of nested historical entries (BC-10.13.001 v1.1 PC7 step
+/// 3). `current` is `(date, version, text)` for the entry that stays in
+/// `last_amended` after the split. `priors` lists each historical entry as
+/// `(date, version, text)`, ordered newest-of-the-priors-first: `priors[0]`
+/// is nested immediately inside the CURRENT entry's own `[Prior: ...]`
+/// bracket (PC7 step 5 — it becomes the first/topmost new `changelog:`
+/// item), `priors[last]` is the oldest / innermost-nested entry. Returns the
+/// raw (unescaped-by-this-helper) `last_amended` value — callers control
+/// escaping of embedded text precisely, matching `frontmatter_file`'s own
+/// verbatim-between-quotes convention.
+pub fn chain_last_amended(current: (&str, &str, &str), priors: &[(&str, &str, &str)]) -> String {
+    let (date, version, text) = current;
+    let mut s = format!("{date} ({version}) — {text}");
+    for (prior_date, prior_version, prior_text) in priors {
+        s.push_str(&format!(
+            " [Prior: {prior_date} ({prior_version}) — {prior_text}"
+        ));
+    }
+    s.push_str(&"]".repeat(priors.len()));
+    s
 }
 
 /// Synthetic MEGA-LINE `last_amended` value reproducing the D-1149
@@ -122,9 +150,11 @@ pub fn prior_chain_last_amended(date: &str, version: &str) -> String {
 /// (350,000 `x` filler characters — no quotes/colons, so the fixture's
 /// *shape* is unambiguous regardless of how the eventual implementation
 /// tokenizes it). Proves Invariant 3 (bounded-resource safety on
-/// arbitrarily long input) — this is "the whole reason the tool exists":
-/// Edit/Write-tool-mediated manual editing cannot safely handle content at
-/// this scale (BC-10.13.001 Invariant 3 doc note).
+/// arbitrarily long input) at the EC-009 calibration scale — this is "the
+/// whole reason the tool exists": Edit/Write-tool-mediated manual editing
+/// cannot safely handle content at this scale (BC-10.13.001 v1.1 Invariant 3
+/// doc note), which is why the v1.1 amendment makes the tool actively SPLIT
+/// this shape rather than merely refusing/tolerating it.
 pub fn mega_line_prior_chain(filler_len: usize) -> String {
     let filler = "x".repeat(filler_len);
     format!("2026-09-02 (v1.0) — current entry text [Prior: {filler} (v0.9) — old]")

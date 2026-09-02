@@ -35,6 +35,12 @@ pub struct FileMigrationReport {
     pub eligibility: Eligibility,
     pub changelog_mutation: ChangelogMutation,
     pub escape_fixed: bool,
+    /// Count of historical entries PC7's full-recovery split relocated from
+    /// an inline `[Prior: ...]` chain into `changelog:`, newest-first.
+    /// `0` when `eligibility` is `Eligibility::CurrentEntryOnly` (no split
+    /// occurred — including the PC4/PC7-step-8 no-op re-run case after a
+    /// prior split has already resolved the chain).
+    pub entries_recovered: usize,
     /// `true` iff any of the above resulted in an actual file write —
     /// always `false` in `MigrationMode::Check`, by definition.
     pub mutated: bool,
@@ -63,37 +69,49 @@ impl MigrationReport {
 }
 
 /// Run the migration subcommand against exactly one target file
-/// (BC-10.13.001 PC1-PC4, PC6).
+/// (BC-10.13.001 v1.1 PC1-PC4, PC6, PC7).
 ///
 /// Orchestration order: parse (`parse_frontmatter`) → classify eligibility
-/// (`check_eligibility`, PC2/EC-003) → (`Apply` only) ensure `changelog:`
-/// (`ensure_changelog_field`, PC1) → (`Apply` only) D-1144 escape remediation
-/// (`needs_escaping`/`escape_value`, PC3) → (`Apply` only) write. `Check`
-/// mode never writes (PC4 verified-clean-report semantics).
+/// (`check_eligibility`, PC2/PC7) → (`Apply` only) either ensure
+/// `changelog:` + D-1144 escape remediation on the current entry
+/// (`CurrentEntryOnly` path: `ensure_changelog_field` PC1,
+/// `needs_escaping`/`escape_value` PC3) OR perform the PC7 full-recovery
+/// split (`PriorChainSplit` path: re-emit the current entry as the new
+/// current-entry-only `last_amended`, PC3-escape and prepend every relocated
+/// historical entry into `changelog:` newest-first, bootstrapping
+/// `changelog:` first via `ensure_changelog_field` if absent per PC7 step 6)
+/// → (`Apply` only) write. `Check` mode never writes (PC4 verified-clean-
+/// report semantics).
 ///
-/// Returns `Err(MigrateError::NotEligible)` per EC-003 rather than attempting
-/// any bracket-splitting surgery when `check_eligibility` classifies the
-/// file as `NotEligiblePriorChain` — that remains out of this tool's scope
-/// (Precondition 2).
+/// Returns `Err(MigrateError::NotEligible)` only for the EC-008 case — a
+/// `last_amended` field that cannot be located at all in `path`'s
+/// frontmatter (a corrupted/unparseable frontmatter delimiter surfaces as
+/// `Err(MigrateError::FrontmatterParse)` from the `parse_frontmatter` step
+/// instead). A `PriorChainSplit` classification is no longer an error path
+/// as of the v1.1 amendment — it is resolved in the same `Apply` run via
+/// PC7, superseding the v1.0 EC-003 refusal behavior.
 ///
 /// # BC-5.38.001 compliance
 ///
-/// NON-TRIVIAL: multi-step orchestration with I/O and branching over 3
-/// independent outcomes plus the idempotency guarantee (PC4: a second
-/// `Apply` run must report zero mutations). Body is `todo!()`.
+/// NON-TRIVIAL: multi-step orchestration with I/O and branching over the
+/// `CurrentEntryOnly`/`PriorChainSplit` outcomes plus the idempotency
+/// guarantee (PC4/PC7 step 8: a second `Apply` run — including one
+/// immediately after a split — must report zero mutations). Body is
+/// `todo!()`.
 ///
 /// # Self-Check (BC-5.38.005 invariant 1)
 ///
 /// "If I include this real implementation, will the test for this function
 /// pass trivially without any implementer work?" — No; this is the function
-/// the story's 3 canonical test vectors (happy-path, edge-case, idempotency)
-/// directly target. Therefore: `todo!()`.
+/// the story's canonical test vectors (happy-path, edge-case, split,
+/// idempotency) directly target. Therefore: `todo!()`.
 pub fn migrate_file(path: &Path, mode: MigrationMode) -> Result<FileMigrationReport, MigrateError> {
     todo!(
-        "orchestrate parse_frontmatter -> check_eligibility -> \
-        ensure_changelog_field -> needs_escaping/escape_value -> \
+        "orchestrate parse_frontmatter -> check_eligibility -> either \
+        (CurrentEntryOnly) ensure_changelog_field + needs_escaping/escape_value \
+        or (PriorChainSplit) PC7 full-recovery split into changelog: -> \
         (Apply-mode only) write, for {path:?} in {mode:?} mode \
-        (BC-10.13.001 PC1-PC4, PC6)"
+        (BC-10.13.001 v1.1 PC1-PC4, PC6, PC7)"
     )
 }
 

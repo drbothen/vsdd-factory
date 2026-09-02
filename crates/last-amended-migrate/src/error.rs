@@ -26,13 +26,18 @@ pub enum MigrateError {
     #[error("frontmatter parse error in {path}: {reason}")]
     FrontmatterParse { path: PathBuf, reason: String },
 
-    /// `path`'s `last_amended` still contains a nested `[Prior: ...]` chain
-    /// (BC-10.13.001 Precondition 2 / EC-003) — out of scope for this tool.
+    /// `path`'s `last_amended` field cannot be located at all in frontmatter
+    /// (BC-10.13.001 v1.1 EC-008 — the ONLY remaining `NotEligible` outcome
+    /// as of the v1.1 full-recovery-split amendment; an inline `[Prior:
+    /// ...]` chain is no longer this variant's trigger — see
+    /// `crate::eligibility::Eligibility::PriorChainSplit`, which is now an
+    /// ELIGIBLE, not an error, classification. A corrupted/unparseable
+    /// frontmatter delimiter is instead reported via `FrontmatterParse`.)
     #[error(
-        "{path} is not eligible for migration: last_amended still contains \
-        a [Prior: ...] chain (Precondition 2 / EC-003; out of scope for this \
-        tool — that surgery remains a human-authorized POL-3 exception if it \
-        recurs)"
+        "{path} is not eligible for migration: last_amended field could not \
+        be located in frontmatter (BC-10.13.001 v1.1 EC-008 — the only \
+        remaining NotEligible outcome; a malformed-frontmatter condition, \
+        not a chain-length or chain-presence condition)"
     )]
     NotEligible { path: PathBuf },
 
