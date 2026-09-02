@@ -1963,10 +1963,31 @@ mod tests {
             Some("fail-closed"),
             "BC-3.08.001 Event 8: failure_policy must be 'fail-closed' for FailClosed"
         );
-        // Field 8: timestamp (the 'ts' field — RFC 3339 shape, non-null)
+        // Field 8a: the common 'ts' field (always present on every InternalEvent).
         assert!(
             event["ts"].as_str().map(|s| !s.is_empty()).unwrap_or(false),
             "BC-3.08.001 Event 8: ts (timestamp) field must be present and non-empty"
+        );
+        // Field 8b (F-P10-002): BC-3.08.001 §Event 8 Wire format + Mandatory fields
+        // ALSO declares a distinct top-level `timestamp` field (ISO-8601), separate
+        // from the common `ts`/`ts_epoch` fields every InternalEvent carries — the
+        // same convention the seven sibling BC-3.08.001 emitters in
+        // `host/emit_event.rs` follow via `.with_field("timestamp", ts.as_str())`
+        // (see e.g. `test_s19_09_t013_emit_plugin_completed_async_has_timestamp_field`).
+        // No prior test asserted this field on `plugin.indeterminate`, which let the
+        // real `emit_indeterminate` implementation ship without it (F-P10-002).
+        let timestamp_value = event.get("timestamp");
+        assert!(
+            timestamp_value.is_some(),
+            "F-P10-002 / BC-3.08.001 Event 8: emit_indeterminate must emit a distinct \
+             'timestamp' field (Wire format + Mandatory fields list), separate from the \
+             common 'ts' field; field is absent"
+        );
+        let timestamp_str = timestamp_value.and_then(|v| v.as_str()).unwrap_or("");
+        assert!(
+            !timestamp_str.is_empty(),
+            "F-P10-002 / BC-3.08.001 Event 8: 'timestamp' field value must be non-empty; \
+             got empty string"
         );
 
         // ADR-048 §D4 v1.3 F-P3-001 dual-write assertion: emit_indeterminate MUST
@@ -1981,6 +2002,18 @@ mod tests {
         );
         assert_eq!(drained[0].type_, PLUGIN_INDETERMINATE);
         assert_eq!(drained[0].dispatcher_trace_id.as_deref(), Some("trace-xyz"));
+        // F-P10-002: the drained (queue-sink) copy of the event must ALSO carry the
+        // distinct 'timestamp' field, not just the durable-log copy asserted above.
+        let drained_timestamp = drained[0]
+            .fields
+            .get("timestamp")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        assert!(
+            !drained_timestamp.is_empty(),
+            "F-P10-002 / BC-3.08.001 Event 8: drained ctx.events copy of plugin.indeterminate \
+             must also carry a non-empty 'timestamp' field"
+        );
     }
 
     // ── End S-25.01 Red Gate stubs 1–12 ──────────────────────────────────────

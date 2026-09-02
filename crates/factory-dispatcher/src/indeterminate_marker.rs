@@ -1314,6 +1314,20 @@ mod tests {
             event["reason"].is_null(),
             "VP-108 PC2: reason must be null/absent for TTL_EXPIRED"
         );
+        // F-P10-002 / BC-3.08.001 §Event 9 Wire format + Mandatory fields: `marker.cleared`
+        // declares a distinct top-level `timestamp` field (ISO-8601 UTC — time of the
+        // clear, not the original INDETERMINATE event), separate from the common `ts`
+        // field. No prior test asserted this on any marker.cleared clear_mode, which let
+        // the real `emit_marker_cleared` implementation ship without it (F-P10-002).
+        let timestamp_str = event
+            .get("timestamp")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        assert!(
+            !timestamp_str.is_empty(),
+            "F-P10-002 / BC-3.08.001 Event 9: emit_marker_cleared(TTL_EXPIRED) must emit a \
+             non-empty distinct 'timestamp' field; field is absent or empty"
+        );
 
         // Drained-events-queue sink assertion (ADR-048 §D4 v1.3 F-P3-001):
         // `emit_internal` pushes onto `ctx.events` in addition to the durable
@@ -1334,6 +1348,14 @@ mod tests {
             dev.dispatcher_trace_id.as_deref(),
             Some(fields.trace_id.as_str()),
             "VP-108 PC2: drained event trace_id must be the marker's own trace_id"
+        );
+        assert!(
+            dev.fields
+                .get("timestamp")
+                .and_then(|v| v.as_str())
+                .is_some_and(|s| !s.is_empty()),
+            "F-P10-002 / BC-3.08.001 Event 9: drained ctx.events copy of \
+             marker.cleared(TTL_EXPIRED) must also carry a non-empty 'timestamp' field"
         );
     }
 
@@ -1508,6 +1530,19 @@ mod tests {
              OPERATOR_OVERRIDE — got {:?}",
             event["reason"]
         );
+        // F-P10-002 / BC-3.08.001 §Event 9 Wire format + Mandatory fields: `marker.cleared`
+        // declares a distinct top-level `timestamp` field, separate from the common `ts`
+        // field. No prior test asserted this on the OPERATOR_OVERRIDE clear_mode, which
+        // let the real `emit_marker_cleared` implementation ship without it (F-P10-002).
+        let timestamp_str = event
+            .get("timestamp")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        assert!(
+            !timestamp_str.is_empty(),
+            "F-P10-002 / BC-3.08.001 Event 9: emit_marker_cleared(OPERATOR_OVERRIDE) must \
+             emit a non-empty distinct 'timestamp' field; field is absent or empty"
+        );
 
         // Drained-events-queue sink assertion. drain_events() so far contains
         // [marker.written, marker.cleared] (the seed call also pushed onto
@@ -1536,6 +1571,15 @@ mod tests {
                 .and_then(|v| v.as_str())
                 .is_some_and(|r| !r.is_empty()),
             "VP-108 PC3: drained event reason MUST also be non-null for OPERATOR_OVERRIDE"
+        );
+        assert!(
+            clear_events[0]
+                .fields
+                .get("timestamp")
+                .and_then(|v| v.as_str())
+                .is_some_and(|s| !s.is_empty()),
+            "F-P10-002 / BC-3.08.001 Event 9: drained ctx.events copy of \
+             marker.cleared(OPERATOR_OVERRIDE) must also carry a non-empty 'timestamp' field"
         );
     }
 
@@ -1778,6 +1822,18 @@ mod tests {
                 .and_then(|v| v.as_str())
                 .is_some_and(|r| !r.is_empty()),
             "VP-108 PC5: reason MUST be non-null for SUPERSEDED"
+        );
+        // F-P10-002 / BC-3.08.001 §Event 9 Wire format + Mandatory fields: `marker.cleared`
+        // declares a distinct top-level `timestamp` field, separate from the common `ts`
+        // field. No prior test asserted this on the SUPERSEDED clear_mode, which let the
+        // real `emit_marker_cleared` implementation ship without it (F-P10-002).
+        assert!(
+            ev.fields
+                .get("timestamp")
+                .and_then(|v| v.as_str())
+                .is_some_and(|s| !s.is_empty()),
+            "F-P10-002 / BC-3.08.001 Event 9: emit_marker_cleared(SUPERSEDED) must emit a \
+             non-empty distinct 'timestamp' field; field is absent or empty"
         );
 
         // Positive control: the marker on disk is now pair B's.

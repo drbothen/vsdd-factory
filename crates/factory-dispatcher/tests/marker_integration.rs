@@ -228,6 +228,34 @@ async fn test_BC_1_18_003_named_plugin_pass_clears_marker_via_execute_tiers() {
          the marker at .factory/unvalidated-mutation.marker. \
          FAILS because execute_tier has no delete_marker_if_pass in its PASS arm."
     );
+
+    // F-P10-002 / VP-108 PC1 / BC-3.08.001 §Event 9 Wire format + Mandatory fields:
+    // `marker.cleared(REVALIDATED)` (emitted by `emit_marker_cleared`, called from the
+    // execute_tiers PASS arm in executor.rs after `delete_marker_if_pass` succeeds)
+    // MUST carry a distinct top-level `timestamp` field, separate from the common `ts`
+    // field. No prior test asserted this on the REVALIDATED clear_mode, which let the
+    // real `emit_marker_cleared` implementation ship without it (F-P10-002).
+    let log_dir = dir.path().join("logs");
+    let cleared_events = read_events_of_type(&log_dir, "marker.cleared");
+    assert_eq!(
+        cleared_events.len(),
+        1,
+        "VP-108 PC1: exactly one marker.cleared event must be durably logged for the \
+         REVALIDATED clear — got {cleared_events:?}"
+    );
+    assert_eq!(
+        cleared_events[0]["clear_mode"], "REVALIDATED",
+        "VP-108 PC1: clear_mode must be REVALIDATED"
+    );
+    let timestamp_str = cleared_events[0]
+        .get("timestamp")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    assert!(
+        !timestamp_str.is_empty(),
+        "F-P10-002 / BC-3.08.001 Event 9: emit_marker_cleared(REVALIDATED) must emit a \
+         non-empty distinct 'timestamp' field; field is absent or empty"
+    );
 }
 
 /// MEDIUM-1 (PreToolUse-does-not-clear complement): PASS from the NAMED plugin on a
