@@ -10880,3 +10880,211 @@ pass. BC-5.39.001 streak ADVANCES 0/3 → 1/3. Code HEAD UNCHANGED `feature/S-25
 convergence.
 
 ---
+
+## D-1147-S2501-PASS14-FIX-BURST-EVENT8-EXCLUDED-FIELD-DIVERGENCE
+
+**Block 1: Parent-commit**
+
+**Parent-commit:** `c77af15f` — `state(s25.01): pass-13 CLEAN — BC-5.39.001 streak advances 0/3 → 1/3
+(D-1146)` (factory-artifacts HEAD at burst start; state-manager's pass-13 bookkeeping commit,
+confirmed via literal shell):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+c77af15f state(s25.01): pass-13 CLEAN — BC-5.39.001 streak advances 0/3 → 1/3 (D-1146)
+```
+
+**Block 2: Adversary verdict**
+
+S-25.01 LOCAL adversary pass 14 (fresh context, frozen `feature/S-25.01` @ `817c52ae`) = **NOT-CLEAN
+(1 MED, 1 LOW).** BC-5.39.001 streak **RESETS 1/3 → 0/3** (voiding the pass-13 CLEAN advance).
+
+- **F-P14-001 (MEDIUM, TD-VSDD-060 sibling-emitter inconsistency / spec↔code wire divergence):**
+  `emit_indeterminate` (Event 8 `plugin.indeterminate`, `executor.rs`) called
+  `.with_plugin_version(&base_ctx.plugin_version)`, but BC-3.08.001 §Common Fields explicitly states
+  `plugin_version` is NOT emitted by Events 1, 4, 5, 7, and 8 — sibling emitters
+  `emit_marker_cleared`/`emit_marker_written` correctly omit the call. Mirror-image defect class to
+  F-P10-001 (D-1143): that pass found a MISSING mandatory field on the same emitter family; this pass
+  finds an EXTRA excluded field.
+- **F-P14-002 (LOW, doc-clarity — RESOLVES the F-P13-002 Drift Item recorded in D-1146):**
+  `read_all_marker_fields`'s doc comment said "five required fields" while
+  `write_indeterminate_marker`'s doc comment said "six required" fields, reading as contradictory
+  without the ADR-048 §D2 backward-compat cross-reference.
+
+No ADR change, no BC change, no VP change, no story change, no wire-format contract change (the wire
+contract already excluded `plugin_version`; the code was non-conformant, not the spec), no
+security-model change — **POLICY 22 human-ratification NOT required.** This burst DID change code (a
+negative-assertion RED test + a one-line removal + a doc-comment correction), so the frozen re-review
+code HEAD **ADVANCES** `feature/S-25.01` `817c52ae`→`3919ebcb`.
+
+**Block 3: Files touched**
+
+- `crates/factory-dispatcher/src/executor.rs` — test-writer, pre-burst; added negative assertion
+  `plugin_version.is_none()` to the existing Event 8 timestamp-parity test, on both sinks (durable-log
+  JSON + drained `ctx.events` copy); RED against `emit_indeterminate`; commit `5e9d4f7b`
+- `crates/factory-dispatcher/src/executor.rs` — implementer, pre-burst; removed
+  `.with_plugin_version(&base_ctx.plugin_version)` call from `emit_indeterminate`; GREEN, 290 passed;
+  commit `3919ebcb` (**NEW frozen re-review HEAD**)
+- `crates/factory-dispatcher/src/indeterminate_marker.rs` — implementer, pre-burst; `read_all_marker_fields`
+  doc comment corrected from "All five required fields must be present" to "Five strictly-required
+  fields must be present... `expires_at` is optional for legacy pre-ADR-048 markers"; comment-only, no
+  behavior change; commit `3919ebcb`
+- `.factory/STATE.md` — full advance (frontmatter phase/last_amended/current_step; Phase Progress row;
+  Current Phase Steps row [oldest dropped, last-5 window]; Decisions Log D-1147 row; Drift Items —
+  F-P13-002 row marked RESOLVED/CLOSED, F-P13-001 row left OPEN UNCHANGED; Session Resume Checkpoint
+  replaced; version v9.60→v9.61)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1147 appended (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — `L-BB-D1147` appended (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — pass-13 checkpoint archived
+  (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/logs/dispatcher-internal-2026-09-02.jsonl`, `.factory/logs/events-2026-09-02.jsonl`,
+  `.factory/regression-state.json`, `.factory/sidecar-learning.md` — pre-existing/new transient
+  telemetry drift, bundled into this single commit per TD-VSDD-053
+- `.factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md`,
+  `.factory/specs/verification-properties/VP-108.md`,
+  `.factory/specs/behavioral-contracts/BC-INDEX.md`,
+  `.factory/specs/verification-properties/VP-INDEX.md`,
+  `.factory/stories/STORY-INDEX.md`,
+  `.factory/specs/architecture/ARCH-INDEX.md` — **CONFIRMED UNCHANGED this burst** (no spec/BC/VP/story
+  input file changed on disk; only worktree code+test changed)
+
+**Block 4: Codifications**
+
+One new lesson codified in `lessons.md`:
+`L-BB-D1147-emitter-conformance-tests-must-assert-excluded-field-absence-not-only-mandatory-field-presence`
+— emitter conformance tests must assert BOTH mandatory-field presence AND excluded-field absence (a
+full-closure characterization of the wire contract), not presence alone, since the two assertions are
+logically independent; plus the TD-VSDD-060 sibling-divergence angle (`emit_indeterminate` diverged
+from `emit_marker_cleared`/`emit_marker_written`, the mirror-image of the F-P10-001/L-BB-D1143 miss on
+the same emitter family). One Drift Item CLOSED: F-P13-002 (D-1146) marked RESOLVED in STATE.md,
+fixed by F-P14-002 same commit.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+Parent-commit gate (literal shell, D-449(a)):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+c77af15f state(s25.01): pass-13 CLEAN — BC-5.39.001 streak advances 0/3 → 1/3 (D-1146)
+```
+
+F-P14-001 fix-landed gate — sibling-parity restored (literal shell):
+
+```
+$ grep -n "with_plugin_version" crates/factory-dispatcher/src/executor.rs
+653:        .with_plugin_version(&base_ctx.plugin_version)
+741:        .with_plugin_version(&base_ctx.plugin_version)
+```
+
+Exactly 2 matches remain — the 2 sibling emitters (`emit_marker_cleared`/`emit_marker_written`) —
+confirming `emit_indeterminate`'s call was removed and sibling-parity is restored.
+
+Commit-diff scope gate — confirming the fix touches exactly the 2 files matching the 2-finding scope
+(literal shell):
+
+```
+$ git diff 817c52ae..3919ebcb --stat
+ crates/factory-dispatcher/src/executor.rs             | 19 ++++++++++++++++++-
+ crates/factory-dispatcher/src/indeterminate_marker.rs |  5 +++--
+ 2 files changed, 21 insertions(+), 3 deletions(-)
+```
+
+2 files changed, matching F-P14-001 (`executor.rs`) + F-P14-002 (`indeterminate_marker.rs`) 1:1 —
+D-448(a) source-attestation parity confirmed.
+
+Corpus test-count gate (literal shell):
+
+```
+$ cd .worktrees/S-25.01 && cargo test -p factory-dispatcher --lib 2>&1 | tail -1
+test result: ok. 290 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.69s
+```
+
+290 passed — count UNCHANGED from pass 12/13 (the fix added 2 assertions to the existing test
+function, not a new test fn).
+
+D-448(a)-style source-attestation gate (finding-ID set consistency between this burst's own
+decision-log D-1147 row and this burst-log entry's own Block 2):
+
+```
+$ grep -oE "F-P14-[0-9]{3}" <(grep "^| D-1147" cycles/v1.0-brownfield-backfill/decision-log.md) | sort -u
+F-P14-001
+F-P14-002
+```
+
+Finding-ID set matches Block 2 exactly (`F-P14-001`, `F-P14-002`) — no finding dropped or fabricated
+between the orchestrator's task briefing and this burst's codification.
+
+4-index + STORY-INDEX frontmatter UNCHANGED gate (literal shell):
+
+```
+$ grep -n '^version:' .factory/specs/verification-properties/VP-INDEX.md .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/architecture/ARCH-INDEX.md .factory/stories/STORY-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:4:version: "2.98"
+.factory/specs/behavioral-contracts/BC-INDEX.md:4:version: "5.39"
+.factory/specs/architecture/ARCH-INDEX.md:4:version: "4.08"
+.factory/stories/STORY-INDEX.md:4:version: "4.426"
+```
+
+All 4 index versions match the pre-burst values cited in D-1146/pass-13's closing state exactly —
+CONFIRMED UNCHANGED this burst (no spec/story input file changed on disk).
+
+**Block 6 (Dim-5): Closes**
+
+- **`F-P14-001`** (MED, Event 8 excluded-field `plugin_version` wire divergence) — **FIXED**,
+  test-writer `5e9d4f7b` (RED negative assertion) + implementer `3919ebcb` (GREEN — call removed,
+  grep-verified sibling-parity restored).
+- **`F-P14-002`** (LOW, doc-clarity) — **FIXED**, implementer `3919ebcb` (doc comment corrected);
+  RESOLVES the previously-DEFERRED **`F-P13-002`** Drift Item (D-1146) — CLOSED this burst.
+- **`F-P13-001`** Drift Item (D-1146) — **remains OPEN, UNCHANGED** (AC-007 parenthetical example,
+  still anchored to the pre-PR S-25.01 finalization-doc-sweep; NOT touched this burst).
+- **`BC-5.39.001 3-CLEAN streak`** — **RESETS 1/3 → 0/3** (the pass-13 CLEAN advance is voided by
+  pass 14's NOT-CLEAN verdict; 3-CLEAN accumulation restarts from 0/3 against the NEW frozen HEAD).
+- **No human decision required this burst** — no ADR/BC/wire-format/security-model change, POLICY 22
+  NOT triggered.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1147-S2501-PASS14-FIX-BURST-EVENT8-EXCLUDED-FIELD-DIVERGENCE`
+present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a)
+source-attestation gate: literal-shell diff captured in Block 5 — finding-ID sets match exactly
+between decision-log D-1147 and this entry's own Block 2. D-449(a) literal-shell-execution
+SELF-APPLICATION: parent-commit grep, `with_plugin_version` sibling-parity grep, `git diff --stat`
+scope grep, `cargo test` corpus-count run, the D-448(a) finding-ID consistency check, and the 4-index
+version-UNCHANGED grep all use actual shell with verbatim stdout captured (Block 5) — no pseudocode,
+no estimated counts, no trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (S-25.01 LOCAL pass 14) — content-bearing, 1 MEDIUM finding
+  fixed, 1 LOW finding fixed (resolving a prior-pass Drift Item).
+- Streak: **RESETS 1/3 → 0/3.** Fresh pass 15 is NEXT (needs 3 consecutive CLEAN passes for LOCAL
+  3-CLEAN convergence, restarting the count).
+- 4-INDEX: BC-INDEX v5.39 UNCHANGED / VP-INDEX v2.98 UNCHANGED / STORY-INDEX v4.426 UNCHANGED /
+  ARCH-INDEX v4.08 UNCHANGED (no index touched this burst — no spec/story input file changed).
+- `policies.yaml` UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` remains `in_progress` this burst (human actively driving the cycle; no session wrap
+  combined into this burst). trajectory-tail →0→0→1→0 LENGTH=4 (CLEAN-pass voided by reset, from
+  →1→0→0→1).
+- 1 Drift Item CLOSED this burst (F-P13-002, D-1146 — resolved by F-P14-002); F-P13-001 (D-1146)
+  remains OPEN, carried forward UNCHANGED. No new Drift Items recorded this burst (both pass-14
+  findings were FIXED in-scope, not deferred).
+- **Code HEAD advanced** — this burst's fix required a source-code change (RED assertion + GREEN
+  removal + doc comment), so the frozen re-review artifact for pass 15 is `3919ebcb`, not `817c52ae`.
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed via
+  the `factory-cas-push.sh` fetch-then-`--force-with-lease` CAS sequence (BC-5.40.001 PC5 / S-17.01
+  D6)
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `c77af15f` — `state(s25.01):
+  pass-13 CLEAN — BC-5.39.001 streak advances 0/3 → 1/3 (D-1146)`
+
+**Closes:** `F-P14-001` MEDIUM Event-8-excluded-field-plugin_version-wire-divergence FIXED.
+`F-P14-002` LOW doc-clarity FIXED, resolving the previously-DEFERRED `F-P13-002` Drift Item (D-1146),
+now CLOSED. `F-P13-001` (D-1146) remains OPEN, unaddressed this burst. BC-5.39.001 streak RESETS
+1/3 → 0/3. Code HEAD ADVANCED `feature/S-25.01` `817c52ae`→`3919ebcb`. **NEXT ACTION:** dispatch
+fresh-context LOCAL adversary pass 15 against the NEW frozen `feature/S-25.01` @ `3919ebcb`; needs 3
+consecutive clean passes for LOCAL BC-5.39.001 3-CLEAN convergence (restarting from 0/3).
+
+---

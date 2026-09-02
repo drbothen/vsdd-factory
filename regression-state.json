@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-09-02T14:59:21Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-25.01 && cargo test -p factory-dispatcher --all-targets 2>&1 | grep -E \"FAILED|error\\[|test result: FAILED|panicked\" ; echo \"---exit check done---\""}
+{"status":"pass","timestamp":"2026-09-02T15:13:40Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-25.01\ncargo test -p factory-dispatcher --lib 2>&1 | tail -25"}
