@@ -1991,6 +1991,24 @@ mod tests {
             "F-P10-002 / BC-3.08.001 Event 8: drained ctx.events copy of plugin.indeterminate \
              must also carry a non-empty 'timestamp' field"
         );
+
+        // F-P14-001 / BC-3.08.001 §Common Fields: "plugin_version is NOT emitted
+        // by Events 1, 4, 5, 7, and 8." Event 8's mandatory-fields list (asserted
+        // field-by-field above) is exactly the 8 fields checked above;
+        // plugin_version is NOT among them and MUST be absent from the wire
+        // event on BOTH sinks emit_indeterminate writes through.
+        assert!(
+            event.get("plugin_version").is_none(),
+            "F-P14-001 / BC-3.08.001 §Common Fields: plugin_version is NOT emitted by \
+             Event 8 (plugin.indeterminate) — the durable-log JSON must not carry a \
+             'plugin_version' field, but it does"
+        );
+        assert!(
+            drained[0].plugin_version.is_none(),
+            "F-P14-001 / BC-3.08.001 §Common Fields: plugin_version is NOT emitted by \
+             Event 8 (plugin.indeterminate) — the drained ctx.events copy must not carry \
+             a plugin_version value, but it does"
+        );
     }
 
     // ── End S-25.01 Red Gate stubs 1–12 ──────────────────────────────────────
