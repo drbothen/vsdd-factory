@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/architecture/decisions/ADR-049-last-amended-write-path-durable-fix-current-entry-plus-changelog-sequence.md
   - .factory/stories/S-15.03-index-cite-refresh-hook.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "0d49431"
+input-hash: "894dbff"
 traces_to: .factory/specs/architecture/decisions/ADR-049-last-amended-write-path-durable-fix-current-entry-plus-changelog-sequence.md
 origin: greenfield
 extracted_from: null
@@ -31,7 +31,7 @@ section: "4.18"
 last_amended: "2026-09-02 (v1.0) — Initial authoring (product-owner; ADR-049 Phase B; S-15.03 last_amended Write-Path Durable Fix)."
 ---
 
-# BC-4.18.001: Bash-Adapter WASM Fuel-Budget Relief on `last_amended`/`changelog:` Edits — No Fuel Exhaustion After the Write-Path Fix
+# BC-4.18.001: legacy-bash-adapter Fuel-Budget Relief on `last_amended`/`changelog:` Edits to the 5 ADR-049-Governed Files — No Fuel Exhaustion After the Write-Path Fix
 
 ## Description
 
