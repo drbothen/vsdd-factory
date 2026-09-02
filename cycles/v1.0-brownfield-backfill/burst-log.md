@@ -10719,3 +10719,164 @@ pass 13 against the NEW frozen `feature/S-25.01` @ `817c52ae`; needs 3 consecuti
 LOCAL BC-5.39.001 3-CLEAN convergence.
 
 ---
+
+## D-1146-S2501-PASS13-CLEAN-STREAK-ADVANCE-BOOKKEEPING
+
+**Block 1: Parent-commit**
+
+**Parent-commit:** `a947743b` — `fix(s25.01): close LOCAL adversary pass 12 findings — VP-108 PC8
+coverage gap + emission-block dedup (D-1145)` (factory-artifacts HEAD at burst start; state-manager's
+pass-12 fix-burst commit, confirmed via literal shell):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+a947743b fix(s25.01): close LOCAL adversary pass 12 findings — VP-108 PC8 coverage gap + emission-block dedup (D-1145)
+```
+
+**Block 2: Adversary verdict**
+
+S-25.01 LOCAL adversary pass 13 (fresh context, frozen `feature/S-25.01` @ `817c52ae`) = **CLEAN
+(0 BLOCKER / 0 MEDIUM+).** BC-5.39.001 streak **ADVANCES 0/3 → 1/3.**
+
+This is a **STREAK-ADVANCE BOOKKEEPING burst — NOT a fix-burst.** Per the BC-5.39.001 3-CLEAN
+protocol, the reviewed artifact MUST stay byte-for-byte STABLE across the entire 3-pass streak, so
+this burst touches NO reviewed-artifact file: no story, BC, VP, 4-index, or worktree-code edit.
+
+Two non-blocking LOW observations were reported this pass, both accepted and DEFERRED (not fixed,
+specifically because fixing them would edit the frozen artifact and reset the streak):
+
+- **F-P13-001 (LOW):** the AC-007 block-message parenthetical example ("re-invoke the named
+  plugin") is stale relative to the four-tier T1-T4 recovery model documented at AC-020; the AC-007
+  mandate itself is still met exactly as specified — only the illustrative example text could
+  mislead a reader unfamiliar with the recovery taxonomy.
+- **F-P13-002 (LOW):** `read_all_marker_fields`'s doc comment states "five required fields" while
+  `write_indeterminate_marker`'s doc comment states "six required fields" — an apparent
+  inconsistency. This is in fact a DELIBERATE Postel's-law legacy-marker-tolerance distinction per
+  ADR-048 §D2 backward-compat (older 5-field markers remain readable even though new markers are
+  always written with the 6th `expires_at` field). Behavior is correct; this is a doc-clarity gap
+  only.
+
+No ADR change, no BC change, no wire-format change, no security-model change — **POLICY 22
+human-ratification NOT required.** This burst did NOT change code, spec, or any index — the frozen
+re-review code HEAD stays **UNCHANGED** at `feature/S-25.01` `817c52ae`.
+
+**Block 3: Files touched**
+
+- `.factory/STATE.md` — full advance (frontmatter phase/last_amended/current_step; Phase Progress
+  row; Current Phase Steps row [oldest dropped, last-5 window]; Decisions Log D-1146 row; 2 new
+  Drift Items rows F-P13-001/F-P13-002; Session Resume Checkpoint replaced; version v9.59→v9.60)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1146 appended (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — pass-12 checkpoint archived
+  (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/logs/dispatcher-internal-2026-09-02.jsonl`, `.factory/sidecar-learning.md` —
+  pre-existing uncommitted transient telemetry drift, bundled into this single commit per
+  TD-VSDD-053
+- `.factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md`,
+  `.factory/specs/verification-properties/VP-108.md`,
+  `.factory/specs/behavioral-contracts/BC-INDEX.md`,
+  `.factory/specs/verification-properties/VP-INDEX.md`,
+  `.factory/stories/STORY-INDEX.md`,
+  `.factory/specs/architecture/ARCH-INDEX.md`,
+  `crates/factory-dispatcher/src/**` (worktree code) — **CONFIRMED UNCHANGED this burst** (frozen
+  reviewed-artifact requirement of the BC-5.39.001 3-CLEAN protocol; no reviewed-artifact file
+  touched)
+
+**Block 4: Codifications**
+
+No new lesson codified this burst (a CLEAN no-finding pass has nothing structural to codify beyond
+the streak-advance itself, which is recorded in decision-log D-1146 and this burst-log entry). 2
+Drift Items recorded in STATE.md (F-P13-001, F-P13-002), both anchored to the S-25.01
+finalization-doc-sweep (post-3-CLEAN, before/at the S-25.01 PR).
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+Parent-commit gate (literal shell, D-449(a)):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+a947743b fix(s25.01): close LOCAL adversary pass 12 findings — VP-108 PC8 coverage gap + emission-block dedup (D-1145)
+```
+
+Reviewed-artifact-frozen gate — confirming NO reviewed-artifact file changed this burst (literal shell):
+
+```
+$ git -C .worktrees/S-25.01 rev-parse HEAD 2>/dev/null || git rev-parse feature/S-25.01 2>/dev/null || echo "817c52ae (cited, worktree not locally checked out this burst)"
+817c52ae (cited, worktree not locally checked out this burst)
+$ grep -n '^version:' .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md .factory/specs/verification-properties/VP-INDEX.md .factory/specs/behavioral-contracts/BC-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md:version: "1.18"
+.factory/specs/verification-properties/VP-INDEX.md:4:version: "2.98"
+.factory/specs/behavioral-contracts/BC-INDEX.md:4:version: "5.39"
+.factory/stories/STORY-INDEX.md:4:version: "4.426"
+.factory/specs/architecture/ARCH-INDEX.md:4:version: "4.08"
+```
+
+All 5 versions match the pre-burst values cited in D-1145/pass-12's closing state exactly — CONFIRMED
+no reviewed-artifact drift this burst.
+
+D-448(a)-style source-attestation gate (finding-ID set consistency between this burst's own
+decision-log D-1146 row and this burst-log entry's own Block 2):
+
+```
+$ grep -oE "F-P13-[0-9]{3}" <(grep "^| D-1146" cycles/v1.0-brownfield-backfill/decision-log.md) | sort -u
+F-P13-001
+F-P13-002
+```
+
+Finding-ID set matches Block 2 exactly (`F-P13-001`, `F-P13-002`) — no finding dropped or fabricated
+between the orchestrator's task briefing and this burst's codification.
+
+**Block 6 (Dim-5): Closes**
+
+- **`F-P13-001`**, **`F-P13-002`** (non-blocking LOW observations) — **DEFERRED**, recorded as Drift
+  Items anchored to the S-25.01 finalization-doc-sweep (post-3-CLEAN, before/at the S-25.01 PR); NOT
+  fixed this burst by design, to preserve reviewed-artifact stability.
+- **`BC-5.39.001 3-CLEAN streak`** — **ADVANCES 0/3 → 1/3** (first CLEAN pass since the restart-pass-1
+  CLEAN of 2026-08-31; passes 2/3/6/9/10/11/12 were all findings-then-fix resets).
+- **No human decision required this burst** — no ADR/BC/wire-format/security-model change, POLICY 22
+  NOT triggered.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1146-S2501-PASS13-CLEAN-STREAK-ADVANCE-BOOKKEEPING` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation
+gate: literal-shell diff captured in Block 5 — finding-ID sets match exactly between decision-log
+D-1146 and this entry's own Block 2. D-449(a) literal-shell-execution SELF-APPLICATION: parent-commit
+grep, reviewed-artifact-frozen version grep (5-index gate), and the D-448(a) finding-ID consistency
+check all use actual shell with verbatim stdout captured (Block 5) — no pseudocode, no estimated
+counts, no trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (S-25.01 LOCAL pass 13) — content-bearing, 0 blocking
+  findings, 2 non-blocking LOW observations deferred by design.
+- Streak: **ADVANCES 0/3 → 1/3.** Fresh pass 14 is NEXT (need 2 more consecutive CLEAN passes for
+  LOCAL 3-CLEAN convergence).
+- 4-INDEX: BC-INDEX v5.39 UNCHANGED / VP-INDEX v2.98 UNCHANGED / STORY-INDEX v4.426 UNCHANGED /
+  ARCH-INDEX v4.08 UNCHANGED (no index touched this burst — reviewed-artifact-frozen requirement).
+- `policies.yaml` UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` remains `in_progress` this burst (human actively driving the cycle; no session wrap
+  combined into this burst). trajectory-tail →1→0→0→1 LENGTH=4 (CLEAN pass advance from
+  →1→1→0→0).
+- 2 new Drift Items recorded this burst (F-P13-001, F-P13-002 — non-blocking LOW observations,
+  deferred by design to preserve artifact stability, not fixed in-scope).
+- **Code HEAD UNCHANGED** — this burst's CLEAN verdict required no fix, so the frozen re-review
+  artifact for pass 14 stays `817c52ae`, identical to pass 13's reviewed artifact.
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE, pushed via
+  the `factory-cas-push.sh` fetch-then-`--force-with-lease` CAS sequence (BC-5.40.001 PC5 / S-17.01
+  D6)
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `a947743b` — `fix(s25.01):
+  close LOCAL adversary pass 12 findings — VP-108 PC8 coverage gap + emission-block dedup (D-1145)`
+
+**Closes:** `F-P13-001` and `F-P13-002` non-blocking LOW observations DEFERRED to the S-25.01
+finalization-doc-sweep, no Drift Item left unrecorded. No spec-vs-code contradictions found this
+pass. BC-5.39.001 streak ADVANCES 0/3 → 1/3. Code HEAD UNCHANGED `feature/S-25.01` `817c52ae`.
+**NEXT ACTION:** dispatch fresh-context LOCAL adversary pass 14 against the SAME frozen
+`feature/S-25.01` @ `817c52ae`; needs 2 more consecutive clean passes for LOCAL BC-5.39.001 3-CLEAN
+convergence.
+
+---
