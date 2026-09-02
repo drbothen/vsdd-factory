@@ -29,8 +29,8 @@ use crate::host::HostContext;
 use crate::indeterminate_marker::{
     MarkerFields, UNVALIDATED_MUTATION_MARKER_TTL_SECONDS, block_if_marker_check,
     check_and_clear_expired_marker, delete_marker_if_pass, emit_marker_cleared,
-    emit_marker_written, emit_superseded_if_cross_pair, read_all_marker_fields,
-    read_marker_plugin_name, reconcile_raw_delete, should_write_marker, write_indeterminate_marker,
+    emit_write_tied_audit_events, read_all_marker_fields, read_marker_plugin_name,
+    reconcile_raw_delete, should_write_marker, write_indeterminate_marker,
 };
 use crate::internal_log::{
     InternalEvent, InternalLog, PLUGIN_COMPLETED, PLUGIN_CRASHED, PLUGIN_INDETERMINATE,
@@ -628,33 +628,19 @@ async fn execute_tier<'a>(
                     // HIGH-2: log marker-write failures instead of silently swallowing them.
                     // Best-effort: write failure does NOT fail the dispatch result.
                     // The plugin.indeterminate event was already emitted above.
-                    match write_indeterminate_marker(&fields, &marker_path) {
-                        Ok(()) => {
-                            // F-P9-001: the overwrite has actually happened now, so the
-                            // old (pre-existing) pair really was superseded — emit its
-                            // SUPERSEDED closure record before the new pair's creation
-                            // record (marker.written), preserving the audit trail's
-                            // close-then-open ordering.
-                            emit_superseded_if_cross_pair(
-                                &base_ctx_for_event,
-                                existing_marker.as_ref(),
-                                &fields,
-                            );
-                            // ADR-048 §D4 v1.4 / F-P6-001: emit marker.written ONLY
-                            // immediately after a confirmed successful write — never
-                            // before the write, never on Err — so reconcile_raw_delete's
-                            // unmatched-marker.written inference is sound by construction.
-                            emit_marker_written(&base_ctx_for_event, &fields);
-                        }
-                        Err(e) => {
-                            tracing::warn!(
-                                plugin = %entry_clone.name,
-                                marker_path = %marker_path.display(),
-                                error = %e,
-                                "marker write failed on INDETERMINATE; dispatch continues"
-                            );
-                        }
-                    }
+                    //
+                    // TD-VSDD-060 (F-P12-001 pre-req): the tied emission decision
+                    // (SUPERSEDED-then-written on Ok, nothing on Err) is delegated
+                    // to emit_write_tied_audit_events — the single source of truth
+                    // for this discipline, shared with spawn_async_plugin below.
+                    let write_result = write_indeterminate_marker(&fields, &marker_path);
+                    emit_write_tied_audit_events(
+                        &base_ctx_for_event,
+                        write_result,
+                        &marker_path,
+                        existing_marker.as_ref(),
+                        &fields,
+                    );
                 }
             }
 
@@ -950,33 +936,19 @@ pub fn spawn_async_plugin(
                 // HIGH-2: log marker-write failures instead of silently swallowing them.
                 // Best-effort: write failure does NOT fail the dispatch result.
                 // The plugin.indeterminate event was already emitted above.
-                match write_indeterminate_marker(&fields, &marker_path) {
-                    Ok(()) => {
-                        // F-P9-001: the overwrite has actually happened now, so the
-                        // old (pre-existing) pair really was superseded — emit its
-                        // SUPERSEDED closure record before the new pair's creation
-                        // record (marker.written), preserving the audit trail's
-                        // close-then-open ordering.
-                        emit_superseded_if_cross_pair(
-                            &base_ctx_for_event,
-                            existing_marker.as_ref(),
-                            &fields,
-                        );
-                        // ADR-048 §D4 v1.4 / F-P6-001: emit marker.written ONLY
-                        // immediately after a confirmed successful write — never
-                        // before the write, never on Err — so reconcile_raw_delete's
-                        // unmatched-marker.written inference is sound by construction.
-                        emit_marker_written(&base_ctx_for_event, &fields);
-                    }
-                    Err(e) => {
-                        tracing::warn!(
-                            plugin = %entry.name,
-                            marker_path = %marker_path.display(),
-                            error = %e,
-                            "marker write failed on INDETERMINATE; dispatch continues"
-                        );
-                    }
-                }
+                //
+                // TD-VSDD-060 (F-P12-001 pre-req): the tied emission decision
+                // (SUPERSEDED-then-written on Ok, nothing on Err) is delegated
+                // to emit_write_tied_audit_events — the single source of truth
+                // for this discipline, shared with execute_tier above.
+                let write_result = write_indeterminate_marker(&fields, &marker_path);
+                emit_write_tied_audit_events(
+                    &base_ctx_for_event,
+                    write_result,
+                    &marker_path,
+                    existing_marker.as_ref(),
+                    &fields,
+                );
             }
         }
 

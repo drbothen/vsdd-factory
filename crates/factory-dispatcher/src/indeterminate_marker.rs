@@ -606,6 +606,68 @@ pub(crate) fn emit_superseded_if_cross_pair(
     );
 }
 
+/// Single source of truth for the ADR-048 §D4 v1.5 emission-point discipline
+/// tied to a `write_indeterminate_marker` call (TD-VSDD-060 sibling-duplication
+/// fix; F-P12-001 pre-req).
+///
+/// Both `executor.rs` call sites (`execute_tier` and `spawn_async_plugin`) call
+/// `write_indeterminate_marker`, then immediately hand this function the exact
+/// `io::Result<()>` it returned (never inspected or branched on beforehand) so
+/// that THIS function — not the callsite — is the one place that decides
+/// whether the tied audit events fire:
+///
+/// - `Ok(())` — the write has actually happened, so:
+///   1. [`emit_superseded_if_cross_pair`] first (F-P9-001: close the
+///      superseded pair's record before the new pair's creation record), then
+///   2. [`emit_marker_written`] (F-P6-001: positive creation record).
+/// - `Err(_)` — the write did NOT happen: emit NEITHER audit event, only a
+///   `tracing::warn!` (the `plugin.indeterminate` event was already emitted by
+///   the caller before the write was attempted; best-effort write failure does
+///   not fail the dispatch).
+///
+/// # Why the `Result` is a parameter, not re-derived
+///
+/// Passing `write_result` in (rather than having this function call
+/// `write_indeterminate_marker` itself) is what makes the `Err(_)` no-emit
+/// path directly unit-testable: a test can synthesize a failing `io::Result`
+/// without needing to force a real filesystem failure.
+///
+/// `marker_path` is used only for the failure-path `tracing::warn!` (matches
+/// the pre-refactor inline log fields at both call sites); `fields.plugin_name`
+/// supplies the warn log's `plugin` field, since both call sites already set
+/// it from the same `entry.name` used to populate `fields`.
+pub(crate) fn emit_write_tied_audit_events(
+    ctx: &HostContext,
+    write_result: io::Result<()>,
+    marker_path: &Path,
+    existing: Option<&MarkerFields>,
+    fields: &MarkerFields,
+) {
+    match write_result {
+        Ok(()) => {
+            // F-P9-001: the overwrite has actually happened now, so the
+            // old (pre-existing) pair really was superseded — emit its
+            // SUPERSEDED closure record before the new pair's creation
+            // record (marker.written), preserving the audit trail's
+            // close-then-open ordering.
+            emit_superseded_if_cross_pair(ctx, existing, fields);
+            // ADR-048 §D4 v1.4 / F-P6-001: emit marker.written ONLY
+            // immediately after a confirmed successful write — never
+            // before the write, never on Err — so reconcile_raw_delete's
+            // unmatched-marker.written inference is sound by construction.
+            emit_marker_written(ctx, fields);
+        }
+        Err(e) => {
+            tracing::warn!(
+                plugin = %fields.plugin_name,
+                marker_path = %marker_path.display(),
+                error = %e,
+                "marker write failed on INDETERMINATE; dispatch continues"
+            );
+        }
+    }
+}
+
 /// Dispatcher-native pre-check: detect and clear an expired
 /// `.factory/unvalidated-mutation.marker`, emitting the audited
 /// `marker.cleared(TTL_EXPIRED)` event (BC-3.08.001 Event 9 / ADR-048 §D4 v1.2).
