@@ -1967,6 +1967,64 @@ mod tests {
         );
     }
 
+    // ── VP-108 PC8 / F-P9-001 / F-P12-001: emit_write_tied_audit_events no-emit-on-Err ──
+
+    /// VP-108 Postcondition 8 (F-P12-001 gap closure): the F-P9-001 negative-control
+    /// regression test. A cross-pair marker overwrite whose write FAILS must emit
+    /// NEITHER `marker.cleared(SUPERSEDED)` for the superseded pair NOR
+    /// `marker.written` for the new pair — fabricating either audit record on a
+    /// write that never durably happened would be a false NIST AU-3/AU-10 audit
+    /// entry (BC-1.18.001 §PC4).
+    ///
+    /// Calls [`emit_write_tied_audit_events`] DIRECTLY (not through a real
+    /// filesystem failure) with a synthesized `Err(io::Error)` as `write_result`,
+    /// and `existing = Some(&pair_a)` for a DIFFERENT `(plugin_name, artifact_path)`
+    /// pair than `fields` (pair B) — proving the cross-pair SUPERSEDED path WOULD
+    /// fire on `Ok(())` (see the sibling positive control,
+    /// `test_ADR_048_D4_v1_3_superseded_clear_emits_for_cross_pair_overwrite`, which
+    /// already covers that `Ok` path and is intentionally not duplicated here), and
+    /// that the absence of both events on `Err(_)` is caused by the write failure,
+    /// not by pair_a/fields already being the same pair.
+    #[test]
+    fn test_ADR_048_D4_PC8_no_emit_on_cross_pair_write_failure() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let marker_path = dir.path().join("unvalidated-mutation.marker");
+        let ctx = test_ctx(dir.path(), "sess-pc8-write-failure");
+
+        let pair_a = MarkerFields {
+            timestamp: "2026-08-31T00:00:00Z".to_string(),
+            plugin_name: "plugin-a".to_string(),
+            artifact_path: "/tmp/A.md".to_string(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-pc8-pair-a".to_string(),
+            expires_at: "2099-01-01T00:00:00Z".to_string(),
+        };
+        let pair_b = MarkerFields {
+            timestamp: "2026-08-31T01:00:00Z".to_string(),
+            plugin_name: "plugin-b".to_string(),
+            artifact_path: "/tmp/B.md".to_string(),
+            cause: "epoch".to_string(),
+            trace_id: "trace-pc8-pair-b".to_string(),
+            expires_at: "2099-01-01T01:00:00Z".to_string(),
+        };
+
+        // Synthesize a failing write result without touching the filesystem —
+        // the whole point of threading `write_result` in as a parameter
+        // (see emit_write_tied_audit_events's doc comment) is that this path
+        // is directly unit-testable this way.
+        let write_result: io::Result<()> =
+            Err(io::Error::other("forced write failure (VP-108 PC8 test)"));
+
+        emit_write_tied_audit_events(&ctx, write_result, &marker_path, Some(&pair_a), &pair_b);
+
+        assert!(
+            ctx.drain_events().is_empty(),
+            "VP-108 PC8 / F-P9-001: a cross-pair overwrite whose write FAILS must emit \
+             NEITHER marker.cleared(SUPERSEDED) for the superseded pair NOR marker.written \
+             for the new pair — no fabricated audit record on write failure"
+        );
+    }
+
     // ── F-P3-004: orphan .tmp file on rename failure ──
 
     /// F-P3-004 (direct unit test of the cleanup branch): simulate a rename
