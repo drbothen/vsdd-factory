@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-09-01T19:46:04Z","command":"cargo test -p factory-dispatcher 2>&1 | tail -20"}
+{"status":"pass","timestamp":"2026-09-01T21:19:14Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-25.01 && cargo test --workspace --all-targets > /tmp/full2.log 2>&1; echo \"EXIT_CODE=$?\"; tail -20 /tmp/full2.log"}

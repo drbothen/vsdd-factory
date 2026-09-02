@@ -1,7 +1,7 @@
 ---
 document_type: adr
 adr_id: ADR-048
-version: "1.4"
+version: "1.5"
 title: "ADR-048: Fail-Closed-But-Recoverable Gate — block_if_marker Crash Policy, Marker TTL Deadman, and Ungated-Escape Invariant"
 status: accepted
 date: 2026-08-31
@@ -15,7 +15,26 @@ supersedes: ADR-047
 superseded_by: null
 extends: ADR-047
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
-last_amended: "2026-09-01 (v1.4) — Architect adjudication (S-25.01 adversary pass 6 F-P6-001 MEDIUM
+last_amended: "2026-09-01 (v1.5) — Architect adjudication (S-25.01 adversary pass 9 F-P9-001 MEDIUM
+  resolution): §Decision 4 SUPERSEDED emission-POINT correction — symmetric to the v1.4
+  marker.written fix. `emit_superseded_if_cross_pair` was emitting `marker.cleared(SUPERSEDED,
+  system, reason=non-null)` for the OLD `(plugin_name, artifact_path)` pair UNCONDITIONALLY, BEFORE
+  `write_indeterminate_marker` attempted the overwrite. If the write then returned `Err(_)` (EC-007,
+  swallowed best-effort), the OLD marker was still on disk and still enforcing, yet a SUPERSEDED
+  record had already been emitted falsely claiming it was overwritten — a fabricated audit record
+  (NIST AU-3/AU-10), the exact class ADR-048 v1.3/v1.4 exist to eliminate; the un-swept sibling of
+  the v1.4 marker.written \"emit only after Ok\" discipline (TD-VSDD-060 sibling-sweep miss). Fix:
+  the `emit_superseded_if_cross_pair` call MOVES to inside the `Ok(())` arm of
+  `write_indeterminate_marker`'s result, alongside the (unchanged) `emit_marker_written` call the
+  v1.4 amendment already placed there — the OLD marker's fields are still read BEFORE the write
+  (unavoidable, since the write overwrites them), but the EMISSION now fires only AFTER the
+  overwrite is confirmed durable. On `Err(_)`, NEITHER `marker.cleared(SUPERSEDED)` NOR
+  `marker.written` is emitted. This closes the emit-after-success class for §Decision 4:
+  `marker.written` and `marker.cleared(SUPERSEDED)` are the only two write-tied audit events this
+  ADR's marker-write callsite produces, and both now share the identical rule. HUMAN-RATIFIED
+  2026-09-01 (POLICY 22; D-1142) — a further revision to the v1.4-ratified ADR per D-1141; does not
+  reopen v1.0–v1.4's ratified decisions. [Prior: 2026-09-01 (v1.4) — Architect adjudication
+  (S-25.01 adversary pass 6 F-P6-001 MEDIUM
   resolution): §Decision 4 reconciliation-PREMISE correction. `reconcile_raw_delete`'s inference
   'unmatched fail-closed plugin.indeterminate ⟹ a marker was durably written and later raw-deleted'
   is FALSE in two cases: (1) a PreToolUse fail-closed INDETERMINATE (BC-1.18.001 INV4 — marker
@@ -37,8 +56,10 @@ last_amended: "2026-09-01 (v1.4) — Architect adjudication (S-25.01 adversary p
   reconciliation premise TRUE BY CONSTRUCTION rather than inferred from a proxy signal.
   HUMAN-RATIFIED 2026-09-01 (POLICY 22; D-1141) — a further revision to the v1.3-ratified ADR per
   D-1140; does not reopen v1.0–v1.3's ratified decisions. [Prior: 2026-09-01 (v1.3) — Architect adjudication
-  (S-25.01 LOCAL adversary pass 3 F-P3-001 MEDIUM + F-P3-002 LOW resolution): §Decision 4 emission-MECHANISM precision correction — Events 8/9 emission (`emit_indeterminate`, `emit_marker_cleared`, `check_and_clear_expired_marker`, `reconcile_raw_delete`) MUST route through `HostContext::emit_internal` (the same dual-sink helper Events 1/2/3/5/6 already use — writes InternalLog when wired AND pushes the stub `ctx.events` queue that VSDD_SINK_FILE/the future S-4.x Router→FileSink drain), not a raw `InternalLog::write` call that silently bypasses the queue. `reconcile_raw_delete`'s bounded scan target is corrected to `dispatcher-internal-{date}.jsonl` (the only sink unconditionally durable in every production dispatcher run, independent of `observability-config.toml`) — NOT a literal `events-{date}.jsonl`, which is not durably written absent an opt-in `VSDD_SINK_FILE` or the not-yet-main.rs-wired S-4.07 Router/FileSink. New `clear_mode = \"SUPERSEDED\" / actor_type = \"system\"` added to Event 9 to close the F-P3-002 cross-pair-overwrite false-attribution gap: when `write_indeterminate_marker` overwrites a live marker belonging to a DIFFERENT `(plugin_name, artifact_path)` pair (last-writer-wins, BC-1.18.001 INV3), the superseded pair's fields are read before overwrite and `marker.cleared(SUPERSEDED, system)` is emitted immediately — preventing `reconcile_raw_delete` from later mis-attributing the superseded pair's clearance to a human `OPERATOR_OVERRIDE` that never happened. HUMAN-RATIFIED 2026-09-01 (POLICY 22; D-1140) — further revision to an already-ratified ADR; does not reopen v1.0–v1.2's ratified decisions. [Prior: 2026-08-31 (v1.2) — Architect-directed (S-25.01 LOCAL adversary pass 2 F-P2-002 HIGH + F-P2-003 MED resolution): §Decision 4 emission-point architecture corrected. Root cause: `marker.cleared` emitted via the WASM `emit_event` host ABI is subject to RESERVED_FIELDS enrichment (`crates/factory-dispatcher/src/host/emit_event.rs`) — the host unconditionally overwrites plugin-supplied `trace_id`/`plugin_name` with the CURRENT gate-plugin's own dispatch identity, so a WASM plugin can never emit an event carrying a FOREIGN (marker-owned) trace_id/plugin_name. TTL_EXPIRED detection+auto-delete+emission is MOVED from the WASM gate plugin's `evaluate_gate` to a new dispatcher-native pre-check (`indeterminate_marker.rs`) that runs before every Arm 1/Arm 2 plugin invocation on the normal (non-crash) path, mirroring the already-correct REVALIDATED emission architecture. OPERATOR_OVERRIDE/RAW_DELETE_DETECTED reconciliation (previously entirely unimplemented) is likewise implemented dispatcher-native, in the same pre-check's marker-absent branch, with a bounded/best-effort FileSink scan. `evaluate_gate` is simplified to a pure presence check (no `expires_at` math, no delete, no emission). PROPOSED — awaiting human ratification (unchanged from v1.0/v1.1; this is a further pre-ratification revision, not a reopening of an already-ratified decision). [Prior: 2026-08-31 (v1.1) — Human-directed (HIGH-1 resolution): §Decision 3 amended — recovery model reframed (re-validation = primary agent recovery; human out-of-band rm = break-glass; agent-tool rm de-sanctioned; shared-crate fix rejected as unnecessary + unsound per Rice's theorem); §Decision 4 added — marker.cleared audited event (clear_mode ∈ {REVALIDATED,TTL_EXPIRED,OPERATOR_OVERRIDE}; trace_id linkage; RAW_DELETE_DETECTED reconciliation mode) + TTL-loudness. [v1.0 — Initial authoring. Human-directed gate redesign reversing D-1135 fail-open-on-crash ratification.]]]]"
+  (S-25.01 LOCAL adversary pass 3 F-P3-001 MEDIUM + F-P3-002 LOW resolution): §Decision 4 emission-MECHANISM precision correction — Events 8/9 emission (`emit_indeterminate`, `emit_marker_cleared`, `check_and_clear_expired_marker`, `reconcile_raw_delete`) MUST route through `HostContext::emit_internal` (the same dual-sink helper Events 1/2/3/5/6 already use — writes InternalLog when wired AND pushes the stub `ctx.events` queue that VSDD_SINK_FILE/the future S-4.x Router→FileSink drain), not a raw `InternalLog::write` call that silently bypasses the queue. `reconcile_raw_delete`'s bounded scan target is corrected to `dispatcher-internal-{date}.jsonl` (the only sink unconditionally durable in every production dispatcher run, independent of `observability-config.toml`) — NOT a literal `events-{date}.jsonl`, which is not durably written absent an opt-in `VSDD_SINK_FILE` or the not-yet-main.rs-wired S-4.07 Router/FileSink. New `clear_mode = \"SUPERSEDED\" / actor_type = \"system\"` added to Event 9 to close the F-P3-002 cross-pair-overwrite false-attribution gap: when `write_indeterminate_marker` overwrites a live marker belonging to a DIFFERENT `(plugin_name, artifact_path)` pair (last-writer-wins, BC-1.18.001 INV3), the superseded pair's fields are read before overwrite and `marker.cleared(SUPERSEDED, system)` is emitted immediately — preventing `reconcile_raw_delete` from later mis-attributing the superseded pair's clearance to a human `OPERATOR_OVERRIDE` that never happened. HUMAN-RATIFIED 2026-09-01 (POLICY 22; D-1140) — further revision to an already-ratified ADR; does not reopen v1.0–v1.2's ratified decisions. [Prior: 2026-08-31 (v1.2) — Architect-directed (S-25.01 LOCAL adversary pass 2 F-P2-002 HIGH + F-P2-003 MED resolution): §Decision 4 emission-point architecture corrected. Root cause: `marker.cleared` emitted via the WASM `emit_event` host ABI is subject to RESERVED_FIELDS enrichment (`crates/factory-dispatcher/src/host/emit_event.rs`) — the host unconditionally overwrites plugin-supplied `trace_id`/`plugin_name` with the CURRENT gate-plugin's own dispatch identity, so a WASM plugin can never emit an event carrying a FOREIGN (marker-owned) trace_id/plugin_name. TTL_EXPIRED detection+auto-delete+emission is MOVED from the WASM gate plugin's `evaluate_gate` to a new dispatcher-native pre-check (`indeterminate_marker.rs`) that runs before every Arm 1/Arm 2 plugin invocation on the normal (non-crash) path, mirroring the already-correct REVALIDATED emission architecture. OPERATOR_OVERRIDE/RAW_DELETE_DETECTED reconciliation (previously entirely unimplemented) is likewise implemented dispatcher-native, in the same pre-check's marker-absent branch, with a bounded/best-effort FileSink scan. `evaluate_gate` is simplified to a pure presence check (no `expires_at` math, no delete, no emission). PROPOSED — awaiting human ratification (unchanged from v1.0/v1.1; this is a further pre-ratification revision, not a reopening of an already-ratified decision). [Prior: 2026-08-31 (v1.1) — Human-directed (HIGH-1 resolution): §Decision 3 amended — recovery model reframed (re-validation = primary agent recovery; human out-of-band rm = break-glass; agent-tool rm de-sanctioned; shared-crate fix rejected as unnecessary + unsound per Rice's theorem); §Decision 4 added — marker.cleared audited event (clear_mode ∈ {REVALIDATED,TTL_EXPIRED,OPERATOR_OVERRIDE}; trace_id linkage; RAW_DELETE_DETECTED reconciliation mode) + TTL-loudness. [v1.0 — Initial authoring. Human-directed gate redesign reversing D-1135 fail-open-on-crash ratification.]]]]]"
 modified:
+  - "2026-09-01 (v1.5 ratified) — Human-Ratified (POLICY 22; D-1142; state-manager; no content change, status flip only)"
+  - "2026-09-01 (v1.5) — §D4 SUPERSEDED emission-point correction (S-25.01 adversary pass 9 F-P9-001 MEDIUM): emit_superseded_if_cross_pair call moved from before write_indeterminate_marker to inside its Ok(()) arm (symmetric with the v1.4 marker.written fix); on Err neither event emits; Human-Ratified 2026-09-01 (POLICY 22; D-1142)"
   - "2026-09-01 (v1.4 ratified) — Human-Ratified (POLICY 22; D-1141; state-manager; no content change, status flip only)"
   - "2026-09-01 (v1.4) — §D4 reconciliation-premise correction (S-25.01 adversary pass 6 F-P6-001 MEDIUM): new marker.written event (BC-3.08.001 Event 10); reconcile_raw_delete retargeted to scan unmatched marker.written instead of unmatched plugin.indeterminate; Human-Ratified 2026-09-01 (POLICY 22; D-1141)"
   - "2026-09-01 (v1.3 ratified) — Human-Ratified (POLICY 22; D-1140; state-manager; no content change, status flip only)"
@@ -57,21 +78,51 @@ modified:
 
 ## Status
 
-**ACCEPTED — Human-Ratified 2026-09-01 for v1.0–v1.3** (POLICY 22 — ratification complete. S-25.01
+**ACCEPTED — Human-Ratified 2026-09-01 for v1.0–v1.5** (POLICY 22 — ratification complete. S-25.01
 LOCAL adversary pass 2 F-P2-001/F-P2-002/F-P2-003 fix-burst COMPLETE; ADR-048 v1.0/v1.1/v1.2 all
 ratified as a single decision, v1.2's emission-point correction included. D-1139. **v1.3's
 §Decision 4 emission-mechanism precision correction and SUPERSEDED clear_mode addition are
 SEPARATELY Human-Ratified 2026-09-01, POLICY 22, D-1140** — a further revision to this
 already-ratified ADR, not a reopening of the D-1139 decision. **v1.4's §Decision 4
-reconciliation-premise correction (below) is SEPARATELY Human-Ratified 2026-09-01, POLICY 22,
+reconciliation-premise correction is SEPARATELY Human-Ratified 2026-09-01, POLICY 22,
 D-1141** — a further revision to this already-ratified ADR, following the same v1.2/v1.3 precedent
 (each content revision to an already-ratified ADR is its own ratification event; it does not
-reopen the prior ratified decisions).)
+reopen the prior ratified decisions). **v1.5's §Decision 4 SUPERSEDED emission-point correction
+(below) is SEPARATELY Human-Ratified 2026-09-01, POLICY 22, D-1142** — a further revision to this
+already-ratified ADR, following the same v1.2/v1.3/v1.4 precedent.)
 
 POLICY 22 ratification (2026-09-01) is recorded authoritatively in the decision-log (D-1139 for
-v1.0–v1.2; D-1140 for v1.3; D-1141 for v1.4) by state-manager in the spec-burst commit. The ADR
-frontmatter `status: accepted` reflects the architectural decision as of its last-ratified version
-(v1.4); the decision-log entries are the authoritative ratification record.
+v1.0–v1.2; D-1140 for v1.3; D-1141 for v1.4; D-1142 for v1.5) by state-manager in the spec-burst
+commit. The ADR frontmatter `status: accepted` reflects the architectural decision as of its
+last-ratified version (v1.5); the decision-log entries are the authoritative ratification record.
+
+**v1.5 amendment (2026-09-01 — S-25.01 adversary pass 9 F-P9-001 MEDIUM resolution; architect
+adjudication):** F-P9-001 found that `emit_superseded_if_cross_pair` (added by §Decision 4 v1.3 to
+close F-P3-002) emits `marker.cleared(clear_mode=SUPERSEDED, actor_type=system, reason=non-null)`
+for the OLD `(plugin_name, artifact_path)` pair UNCONDITIONALLY, BEFORE `write_indeterminate_marker`
+attempts the overwrite that the SUPERSEDED record purports to describe. If that write then returns
+`Err(_)` (EC-007, swallowed best-effort), the OLD marker is still durably present on disk and still
+enforcing its quarantine, yet a SUPERSEDED record has already been emitted falsely claiming it was
+overwritten — a fabricated audit record (NIST AU-3/AU-10 non-repudiation defect), the exact class
+ADR-048 v1.3/v1.4 exist to eliminate. This is the un-swept sibling of the v1.4 `marker.written`
+"emit only after `Ok(())`" discipline (TD-VSDD-060 sibling-sweep miss): v1.4 established that
+`marker.written` — the write's POSITIVE creation record — may be emitted only after
+`write_indeterminate_marker` confirms success; the identical discipline was never applied to
+`marker.cleared(SUPERSEDED)` — the SAME write's side-effect clearance record for the marker it
+displaces. Fix (selected over a compensating "supersede-failed" corrective event — see §Decision 4
+v1.5 below for the full rejected-alternative analysis): `emit_superseded_if_cross_pair`'s call
+MOVES to inside the `Ok(())` arm of `write_indeterminate_marker`'s result, alongside the (unchanged)
+`emit_marker_written` call the v1.4 amendment already placed there. The OLD marker's fields are
+still read via `read_all_marker_fields` BEFORE the write (unavoidable — the write overwrites them),
+but the EMISSION now fires only once the overwrite is confirmed durable. On `Err(_)`, NEITHER
+`marker.cleared(SUPERSEDED)` NOR `marker.written` is emitted. This closes the "emit-audit-event-
+only-after-filesystem-action-succeeds" principle uniformly across BOTH write-tied audit events this
+ADR's marker-write callsite produces — `marker.written` and `marker.cleared(SUPERSEDED)` are the
+only two, and no further sweep of this class remains within §Decision 4. HUMAN-RATIFIED 2026-09-01
+(POLICY 22; D-1142) — a further revision to the v1.4-ratified ADR per D-1141; does not reopen
+v1.0–v1.4's ratified decisions. See the enumerated PO (BC-1.18.001/BC-1.18.003/BC-3.08.001) and
+story-writer (S-25.01) change list in the architect's S-25.01 pass-9 adjudication response (not
+duplicated verbatim here to avoid drift between this ADR and the BC/VP/story files themselves).
 
 **v1.4 amendment (2026-09-01 — S-25.01 adversary pass 6 F-P6-001 MEDIUM resolution; architect
 adjudication):** F-P6-001 found that `reconcile_raw_delete`'s RAW_DELETE_DETECTED inference —
@@ -1004,6 +1055,96 @@ implementation lands. This is symmetric with the existing `expires_at`-absent le
 handling (Decision 2) — pre-amendment artifacts are conservatively treated as unreconcilable rather
 than incorrectly reconciled.
 
+### Decision 4 v1.5 — Emission-Point Correction: SUPERSEDED Emitted Only After Write-Success (S-25.01 adversary pass 9 F-P9-001 MEDIUM)
+
+**The defect:** `emit_superseded_if_cross_pair` (introduced by §Decision 4 v1.3 to close F-P3-002)
+is called BEFORE `write_indeterminate_marker` attempts the overwrite it describes, and its
+emission is UNCONDITIONAL on that attempt's outcome. `write_indeterminate_marker`'s `Err(_)` arm
+(EC-007 — disk full, permissions; logged via `tracing::warn` and swallowed best-effort, identically
+to the pre-v1.4 `marker.written` gap) leaves the OLD marker durably present on disk, still
+enforcing the OLD pair's quarantine — yet a `marker.cleared(clear_mode="SUPERSEDED",
+actor_type="system", reason=<non-null>)` record has already been emitted, falsely asserting the OLD
+pair was overwritten and cleared. This is a fabricated audit record under the identical NIST AU-3
+(event content does not reflect what actually occurred) / AU-10 (non-repudiation — a system
+clearance action is attributed when none occurred) defect class that §Decision 4 v1.3 (SUPERSEDED)
+and v1.4 (`marker.written`) both exist to eliminate. It is the un-swept sibling of the v1.4 fix
+specifically: v1.4 established that `marker.written` — the write's own POSITIVE creation record —
+may be emitted only after `write_indeterminate_marker` confirms success (`Ok(())`); the identical
+"emit only after the filesystem action it describes has actually succeeded" discipline was never
+applied to `marker.cleared(SUPERSEDED)`, even though that event describes a SIDE EFFECT of the
+exact same write (displacing the OLD marker) and is equally invalid — for the identical reason — if
+that write never durably lands.
+
+**Two designs evaluated:**
+
+- **(A) — SELECTED: move the `emit_superseded_if_cross_pair` call to after write-success.** The
+  call site relocates from immediately-before to inside the `Ok(())` arm of
+  `write_indeterminate_marker`'s result — the SAME arm the v1.4 amendment already placed
+  `emit_marker_written` in, and the two calls now execute back-to-back in that arm (SUPERSEDED for
+  the OLD pair, if applicable, then `marker.written` for the NEW pair). The OLD marker's fields are
+  still read via `read_all_marker_fields` BEFORE the write is attempted — this read is unavoidable,
+  since the write is what overwrites the file the fields are read from — but the read result is
+  simply held (not emitted) until the write's outcome is known. On `Err(_)`: NEITHER
+  `marker.cleared(SUPERSEDED)` NOR `marker.written` is emitted; the OLD marker remains on disk,
+  genuinely still enforcing, and no record describes an overwrite that did not happen.
+- **(B) — REJECTED: keep emission before the write; emit a compensating corrective event on
+  `Err(_)`.** E.g. a new `marker.cleared.retracted`-style event, or a boolean "confirmed" field
+  updated retroactively. Rejected because: (i) it treats the symptom (a false record now exists and
+  must be corrected) rather than the cause (the record was emitted before its precondition was
+  confirmed); (ii) it doubles the event surface for what is already a rare failure path (EC-007),
+  requiring either a new event type or a mutable-after-the-fact field on an already-emitted
+  append-only audit record — the latter is itself an audit-integrity anti-pattern (append-only logs
+  must not be revised after emission); (iii) it is asymmetric with the v1.4 fix, which solved the
+  parallel `marker.written` problem by relocating the emission point, not by adding a corrective
+  event — introducing a second pattern for the identical class of bug is unjustified additional
+  complexity.
+
+**Rationale for (A) over (B) — production-grade default, not the cheap path:** (A) requires
+reordering two statements already in scope at the same call sites (`executor.rs`, both
+`write_indeterminate_marker` callsites) — genuinely the smaller diff, not merely the architecturally
+correct one this time. It is selected because it is BOTH: it eliminates the fabrication at its
+source rather than compensating for it after the fact, and it makes `marker.written` and
+`marker.cleared(SUPERSEDED)` — the only two audit events tied to `write_indeterminate_marker`'s
+outcome — governed by one uniform rule instead of two different ones.
+
+**Fix — corrected ordering at the `write_indeterminate_marker` call sites (`executor.rs`, both
+callsites, mirroring the v1.4 `marker.written` placement):**
+
+1. Read the existing marker's fields (if any) via `read_all_marker_fields` — UNCHANGED from v1.3;
+   this must still happen before the overwrite, since the write is what destroys the old content.
+2. Call `write_indeterminate_marker(&new_fields, &marker_path)`.
+3. On `Ok(())` — **both calls now live here, in this order:**
+   a. If the pre-overwrite marker existed and its `(plugin_name, artifact_path)` differs from the
+      NEW event's pair, call `emit_superseded_if_cross_pair` — emits
+      `marker.cleared(SUPERSEDED, system, ...)` for the OLD pair (v1.3 field contract, unchanged).
+   b. Call `emit_marker_written` (v1.4, unchanged) — emits `marker.written` for the NEW pair.
+4. On `Err(e)`: log via `tracing::warn!` (unchanged EC-007 handling) — emit **neither** event. This
+   is the entire point of the fix: a write FAILURE must never produce either of the two
+   write-outcome-tied audit records a write SUCCESS produces.
+
+**Wire format:** UNCHANGED. Neither `marker.cleared`'s Event 9 field contract (including the
+`SUPERSEDED` value established in v1.3) nor `marker.written`'s Event 10 field contract (v1.4) is
+touched by this correction — it is purely an emission-POINT fix (WHEN the call fires), not a
+WHAT-is-emitted change.
+
+**Event/field-count consequence:** NONE. This is neither a new event type nor a new `clear_mode`
+value. The ten-event dispatcher domain model established through v1.4 (Event 9 `marker.cleared`
+including its `SUPERSEDED` value; Event 10 `marker.written`) is unchanged by v1.5.
+
+**Symmetry statement — this closes the emit-after-success class for §Decision 4:** with this
+correction, BOTH audit events tied to `write_indeterminate_marker`'s own outcome —
+`marker.written` (Event 10, the marker's own creation) and `marker.cleared(SUPERSEDED)` (Event 9's
+SUPERSEDED value, the displaced OLD marker's clearance, which is a direct side effect of the same
+write) — are now emitted under the identical rule: only after `write_indeterminate_marker` returns
+`Ok(())`, never before the write is attempted, never on `Err(_)`. No other §Decision 4 event is
+tied to `write_indeterminate_marker`'s outcome: REVALIDATED, TTL_EXPIRED, and OPERATOR_OVERRIDE are
+each tied to a DIFFERENT underlying operation (`delete_marker_if_pass`, `check_and_clear_expired_
+marker`, and `reconcile_raw_delete`'s inference respectively), each of which already emits only
+after its own underlying operation is confirmed (a successful delete, a successful delete, and — for
+OPERATOR_OVERRIDE — an inference with no filesystem action of its own to gate on). There is no third
+write-tied event remaining to sweep; §Decision 4's emit-after-success discipline is now applied
+uniformly across its full event set.
+
 ---
 
 ## Rationale
@@ -1095,6 +1236,12 @@ provide tamper-evidence at the VCS layer.
   closing a false-attribution audit-integrity defect (NIST AU-3/AU-10) that was silently, reliably
   reachable via any PreToolUse fail-closed gate (e.g. `validate-factory-path-staging`, already
   EFFECTIVE-NOW) or any PostToolUse marker-write I/O failure.
+- (v1.5) `marker.cleared(SUPERSEDED)` and `marker.written` are now governed by one uniform
+  emit-only-after-write-success rule, closing the last remaining fabrication route in
+  §Decision 4: a `write_indeterminate_marker` I/O failure (EC-007) can no longer produce a
+  SUPERSEDED record for a marker that was never actually overwritten. This completes the
+  emit-after-success class for both write-tied audit events this ADR's marker-write callsite
+  produces — no third such event remains to sweep.
 
 ### Negative / Trade-offs
 
@@ -1151,6 +1298,26 @@ provide tamper-evidence at the VCS layer.
   conservative trade-off: no retroactive reconciliation for markers created before the fix lands, in
   exchange for eliminating false OPERATOR_OVERRIDE fabrication going forward. Symmetric with the
   existing `expires_at`-absent legacy-marker conservative-non-expiry handling (Decision 2).
+- (v1.5) The `emit_superseded_if_cross_pair` call site moves from before to after
+  `write_indeterminate_marker`'s call at both `executor.rs` callsites — a pure statement-reordering
+  change (the read via `read_all_marker_fields` remains before the write; only the emission moves).
+  No new plumbing, parameter, or field is introduced. On a rare `write_indeterminate_marker`
+  `Err(_)` (EC-007), the OLD marker now correctly remains the enforcing marker with no misleading
+  `marker.cleared(SUPERSEDED)` record on the wire — a strictly more conservative outcome than the
+  pre-v1.5 behavior, at the cost of the OLD marker's SUPERSEDED-clear notification being deferred
+  to (or omitted from, on repeated failures) the NEXT successful write for that pair, if any.
+
+### Status as of 2026-09-01 (v1.5)
+
+§Decision 4 v1.5's SUPERSEDED emission-point correction (`emit_superseded_if_cross_pair` relocated
+to inside `write_indeterminate_marker`'s `Ok(())` arm, alongside `emit_marker_written`) is
+**HUMAN-RATIFIED 2026-09-01 per POLICY 22 (D-1142)** — a further revision to an ALREADY-RATIFIED ADR
+(v1.0–v1.2 ratified as a single decision, D-1139; v1.3 separately ratified, D-1140; v1.4 separately
+ratified, D-1141), not a reopening of any prior ratified decision, following the v1.2/v1.3/v1.4
+precedent: each content revision to an already-ratified ADR is ratified on its own. Architect
+adjudication (2026-09-01, architect agent, dispatched per CLAUDE.md Agent Routing Table): F-P9-001
+resolved per §Decision 4 v1.5 above. All prior Decisions 1–3 and the non-SUPERSEDED-emission-point
+parts of Decision 4 are UNCHANGED by v1.5.
 
 ### Status as of 2026-09-01 (v1.4)
 
@@ -1296,6 +1463,20 @@ files themselves).
   retargeting `reconcile_raw_delete`'s scan to match on it instead of `plugin.indeterminate` — see
   §Decision 4 v1.4 above. HUMAN-RATIFIED 2026-09-01 per POLICY 22 (D-1141) — a further revision to
   the v1.3-ratified ADR-048 (D-1140), not a reopening of that ratified decision.
+- **S-25.01 adversary pass 9 (v1.5 origin):** F-P9-001 (MEDIUM) — `emit_superseded_if_cross_pair`
+  emits `marker.cleared(SUPERSEDED, system, reason=non-null)` for the OLD `(plugin_name,
+  artifact_path)` pair UNCONDITIONALLY, BEFORE `write_indeterminate_marker` attempts the overwrite
+  the SUPERSEDED record purports to describe; a subsequent `write_indeterminate_marker` `Err(_)`
+  (EC-007) leaves the OLD marker durably present and still enforcing, yet a SUPERSEDED record has
+  already falsely claimed it was overwritten — a fabricated audit record (NIST AU-3/AU-10),
+  identified as the un-swept sibling of the F-P6-001 `marker.written` "emit only after `Ok(())`"
+  fix (v1.4 applied the discipline to the marker's own creation record; F-P9-001 is the same
+  discipline never applied to the same write's SUPERSEDED clearance side effect). Architect
+  adjudication (2026-09-01, architect agent, dispatched per CLAUDE.md Agent Routing Table): resolved
+  by relocating the `emit_superseded_if_cross_pair` call from before `write_indeterminate_marker` to
+  inside its `Ok(())` arm, alongside the existing `emit_marker_written` call — see §Decision 4 v1.5
+  above. HUMAN-RATIFIED 2026-09-01 per POLICY 22 (D-1142) — a further revision to the v1.4-ratified
+  ADR-048 (D-1141), not a reopening of that ratified decision.
 - **Rice's theorem (v1.1 — shared-crate rejection):** Rice, H.G. (1953). "Classes of recursively
   enumerable sets and their decision problems." Trans. AMS 89(1):25–59. Applied: any command-
   filter classifying "this Bash dispatch deletes the marker file" is undecidable in the general
@@ -1387,3 +1568,33 @@ files themselves).
   v1.4); new negative-control postcondition added proving a PreToolUse-fail-closed
   `plugin.indeterminate` with NO `marker.written` does NOT trigger a fabricated
   `marker.cleared(OPERATOR_OVERRIDE)`.
+- **BC-1.18.001 (v1.5 — supersession note):** `.factory/specs/behavioral-contracts/ss-01/BC-1.18.001.md`
+  — PC4 (marker write) REQUIRES a further PO amendment on top of the v1.4 addition: the postcondition
+  text describing the write-success path now emits BOTH `marker.written` AND (conditionally, cross-
+  pair only) `marker.cleared(SUPERSEDED)` in the same `Ok(())` outcome — the SUPERSEDED emission,
+  previously described (v1.3-era BC text) as occurring at read-time BEFORE the write, must be
+  reframed as occurring AFTER write-success, alongside `marker.written`.
+- **BC-1.18.003 (v1.5 — supersession note):** `.factory/specs/behavioral-contracts/ss-01/BC-1.18.003.md`
+  — PC5 (SUPERSEDED clear, added v1.3-era) REQUIRES a PO amendment: the emission-point language
+  ("the superseded pair's fields are read before overwrite and `marker.cleared(SUPERSEDED, system)`
+  is emitted immediately") is SUPERSEDED — emission now occurs only after
+  `write_indeterminate_marker` returns `Ok(())`; the read-before-overwrite step is unchanged. A NEW
+  edge case documenting the write-failure non-fabrication behavior (cross-pair + write-FAILURE ⟹ NO
+  SUPERSEDED emitted, parallel to the existing PC6/EC-017-class write-failure non-fabrication
+  coverage for `marker.written`) is also required.
+- **BC-3.08.001 (v1.5 — supersession note):** dispatcher domain event catalog. REQUIRES a PO
+  amendment: Event 9's `SUPERSEDED` `clear_mode` row/description updated to state the emission point
+  is "after `write_indeterminate_marker` returns `Ok(())`, immediately following `marker.written`
+  emission for the same write" rather than "before the overwrite." No new event, field, or
+  `clear_mode` value is added — this is a trigger/emission-point correction only, not a wire-format
+  change.
+- **VP-108 (v1.5 — supersession note):** `.factory/specs/verification-properties/VP-108.md` —
+  amended in this same architect adjudication (see below): Postcondition 5 (SUPERSEDED)'s emission
+  point corrected from "before overwrite" to "after `write_indeterminate_marker` returns `Ok(())`";
+  proof harness `test_superseded_clear_emits_marker_cleared_for_overwritten_pair` reordered so the
+  `emit_marker_cleared(SUPERSEDED, ...)` call and the `emit_marker_written` call both happen after
+  the (now-preceding) `write_indeterminate_marker(&pair_b, ...)` call, not before it; new negative-
+  control postcondition (PC8) added: cross-pair overwrite + `write_indeterminate_marker` `Err(_)` ⟹
+  `ctx.drain_events()` yields ZERO events (neither SUPERSEDED nor `marker.written`) — the direct
+  regression test for F-P9-001, parallel in structure to PC7's write-failure negative control for
+  `marker.written`.
