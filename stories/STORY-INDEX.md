@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "4.427"
+version: "4.428"
 status: current
-producer: state-manager
+producer: story-writer
 timestamp: 2026-09-02T15:00:00Z
-last_amended: "2026-09-02 (v4.427) — S2501-PASS15-FIX-BURST-VP108-PC1-REVALIDATED-SWEEP-COMPLETION (state-manager; single-commit TD-VSDD-053; D-1148): S-25.01 v1.18→v1.19 (input-hash re-sync class only, no body prose change — VP-108 v1.7→v1.8 changed on disk this burst [architect commit `90675c7d`, F-P15-001 HIGH resolution]; `bin/compute-input-hash --update` re-synced input-hash f3da248→6ca47ed; POLICY 18 three-way parity VERIFIED frontmatter=catalog-row=blockquote=6ca47ed). Catalog row + §E-25 delivery blockquote + §Input-hashes blockquote + §E-25-authored blockquote all updated to v1.19/6ca47ed (BC v1.5·v1.7·v1.7·v1.1·v1.34 UNCHANGED)/VP-108 v1.8. ARCH-INDEX v4.08 CONFIRMED UNCHANGED (architect verified no arch-doc change needed — VP-108 title/scope/BC-anchor unchanged). BC-INDEX v5.39 CONFIRMED UNCHANGED (no BC file changed). VP-INDEX v2.98→v2.99 (VP-108 v1.7→v1.8; total_vps UNCHANGED 108). feature/S-25.01 code HEAD UNCHANGED @ `3919ebcb` (SPEC-TEXT-ONLY burst). BC-5.39.001 streak 0/3 unchanged. STORY-INDEX v4.426→v4.427. [Prior history → STORY-INDEX-amendment-history.md]"
+last_amended: "2026-09-02 (v4.428) — story-writer, human-directed follow-up to D-1149: S-15.03 extended (v1.1→v1.3, estimated_size M→L, AC-001..AC-010 added) with §Scope Extension (last_amended Write-Path Durable Fix) — primary design is multi-line newline-append (one entry per physical line/changelog: item, appended not nested-inline), with stop-accumulating and append-to-sidecar+rotation documented as alternatives considered and not chosen; catalog row BCs-annotation updated. Per explicit human direction this entry itself is kept slim (new position-0 entry only, not re-expanded into a `[Prior: ...]` chain) — full prior v4.427 text is in `git log -p -- .factory/stories/STORY-INDEX.md`; the STORY-INDEX-amendment-history.md sidecar is unchanged (still holds entries through v4.426) and is left as a frozen pre-migration archive per S-15.03's own §Migration recommendation. [Prior history → STORY-INDEX-amendment-history.md]"
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -541,7 +541,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-12.06 | HOST_ABI context-injection contract docs (factory-agnostic) | E-12 | TBD | P0 | [] | [S-12.03, S-12.04, S-12.05] | merged | [BC-1.13.001, BC-4.12.001, BC-4.12.002, BC-4.12.003, BC-4.12.004, BC-4.12.005] (10 ACs; merged 2026-05-07 at 15432c6; Step 4.5 converged D-375; decay 5→3→2→0→0→0) |
 | S-12.07 | vsdd-context-resolvers crate + WaveContextResolver (first concrete resolver) | E-12 | TBD | P0 | [S-12.04, S-12.05] | [S-12.08] | merged | [BC-4.12.001, BC-4.12.002, BC-4.12.003, BC-4.12.004, BC-4.12.005] (10 ACs, tdd_mode strict; merged 2026-05-10 PR #122; D-396 propagation fix F-P19-002) |
 | S-12.08 | Migrate validate-per-story-adversary-convergence to consume plugin_config.wave_context.stories (closes F-P2-001) | E-12 | TBD | P0 | [S-12.07] | [] | merged | [BC-1.13.001, BC-4.10.001, BC-4.12.005] (10 ACs, tdd_mode strict; merged 2026-05-10 PR #123; D-396 propagation fix F-P19-002) |
-| S-15.03 | ARCH-INDEX Cite-Refresh Hook + Lessons Retroactive-Sweep Verification | E-12 | TBD | P2 | [] | [] | draft | [] (F5 pass-20 process-gap; re-anchored E-15→E-12 per F-P21-003 fix-burst-20; SS-01+SS-04; codified-not-enforced recurrence; F-P20-002 + L-P20-002) |
+| S-15.03 | ARCH-INDEX Cite-Refresh Hook + Lessons Retroactive-Sweep Verification | E-12 | TBD | P2 | [] | [] | draft | [] (v1.3, size M→L; F5 pass-20 process-gap; re-anchored E-15→E-12 per F-P21-003 fix-burst-20; SS-01+SS-04; codified-not-enforced recurrence; F-P20-002 + L-P20-002; extended 2026-09-02 with §Scope Extension [last_amended write-path durable fix: multi-line newline-append primary design, AC-001..AC-010] per D-1149 human-directed follow-up; bcs still empty, status stays draft per S-7.01) |
 
 > **E-12 delivery chain:** S-12.01 → S-12.02 (original 2 stories, completed). F3-amendment adds 6 platform stories. S-15.03 re-anchored to E-12 from E-15 per F-P21-003 (fix-burst-20).
 > Platform delivery order: S-12.06 (foundation, ships first) → {S-12.03, S-12.05} parallel → S-12.04 → S-12.07 → S-12.08.
