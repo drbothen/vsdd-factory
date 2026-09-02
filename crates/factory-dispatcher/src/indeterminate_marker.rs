@@ -202,8 +202,9 @@ pub fn read_all_marker_fields(marker_path: &Path) -> io::Result<Option<MarkerFie
             };
             let get_str =
                 |key: &str| -> Option<String> { table.get(key)?.as_str().map(str::to_string) };
-            // All five required fields must be present; missing/non-string fields → None.
-            // `expires_at` may be absent on legacy pre-ADR-048 markers → default empty string.
+            // Five strictly-required fields must be present; missing/non-string fields → None.
+            // `expires_at` is optional for legacy pre-ADR-048 markers (treated as non-expired
+            // when absent) — default empty string in that case.
             let (
                 Some(timestamp),
                 Some(plugin_name),

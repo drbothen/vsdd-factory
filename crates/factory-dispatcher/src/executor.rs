@@ -1390,7 +1390,6 @@ fn emit_indeterminate(
         .with_trace_id(&base_ctx.dispatcher_trace_id)
         .with_session_id(&base_ctx.session_id)
         .with_plugin_name(&entry.name)
-        .with_plugin_version(&base_ctx.plugin_version)
         .with_field("timestamp", ts.as_str())
         .with_field(
             "artifact_path",
