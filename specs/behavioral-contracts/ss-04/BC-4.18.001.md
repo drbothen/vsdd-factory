@@ -1,26 +1,27 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
-status: draft
-producer: product-owner
-timestamp: 2026-09-02T00:00:00Z
+version: "1.2"
+status: active
+producer: state-manager
+timestamp: 2026-09-03T10:43:17Z
 phase: F2
 cycle: v1.0-feature-engine-discipline-pass-1
 inputs:
   - .factory/specs/architecture/decisions/ADR-049-last-amended-write-path-durable-fix-current-entry-plus-changelog-sequence.md
   - .factory/stories/S-15.03-index-cite-refresh-hook.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "2eeae3a"
+input-hash: "3c581d6"
 traces_to: .factory/specs/architecture/decisions/ADR-049-last-amended-write-path-durable-fix-current-entry-plus-changelog-sequence.md
 origin: greenfield
 extracted_from: null
 subsystem: "SS-04"
 capability: "CAP-042"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-feature-engine-discipline-pass-1
 modified:
   - "2026-09-02 (v1.1)"
+  - "2026-09-03 (v1.2)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,7 +30,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.18.001
 section: "4.18"
-last_amended: "2026-09-02 (v1.1) — VP registration (architect; S-15.03 pre-PR spec-package completion): 3 flagged VP-NNN rows consolidated into VP-115 (PC1 structural byte-length bound proven via real crate unit tests; PC2/PC3 dispatcher-level fuel-budget regression legs registered feasible-pending-harness); Verification Properties + VP Anchors sections updated TBD->VP-115; POLICY 9 propagated same-burst to verification-architecture.md + verification-coverage-matrix.md; no PC/Invariant/EC substance change."
+last_amended: "2026-09-03 (v1.2) — POL-14 auto-promotion: draft→active (state-manager; S-15.03 PR #805 squash-merged `b4ff2383` 2026-09-03T10:43:17Z into develop); BC-INDEX v5.42→v5.43; D-1152."
 ---
 
 # BC-4.18.001: legacy-bash-adapter Fuel-Budget Relief on `last_amended`/`changelog:` Edits to the 5 ADR-049-Governed Files — No Fuel Exhaustion After the Write-Path Fix
@@ -189,5 +190,6 @@ instantiation is test-writer/formal-verifier follow-up work, not a spec gap.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.2 | 2026-09-03 | **POL-14 auto-promotion** (state-manager): `lifecycle_status`/`status` draft→active on S-15.03 PR #805 squash-merge `b4ff2383` (2026-09-03T10:43:17Z) into develop. BC-INDEX v5.42→v5.43. No PC/Invariant/EC/test-vector substance change. D-1152. |
 | 1.1 | 2026-09-02 | **VP registration (architect; S-15.03 pre-PR spec-package completion).** All 3 flagged VP-NNN rows consolidated into one registered property, VP-115 (PC1 structural byte-length bound — proven via real `crates/last-amended-migrate/tests/bc_4_18_001_fuel_relief_proxy_test.rs` unit tests; PC2 synthetic-burst fuel-budget regression and PC3 differential pre-fix/post-fix reproduction — both `feasible-pending-harness`, fully specified but requiring a dispatcher-level regression fixture outside `last-amended-migrate`'s own crate scope). Verification Properties table and VP Anchors section updated TBD -> VP-115. No PC/Invariant/EC/test-vector substance change. POLICY 9: verification-architecture.md + verification-coverage-matrix.md propagated same-burst. |
 | 1.0 | 2026-09-02 | Initial authoring (product-owner; ADR-049 Phase B; S-15.03 AC-009). PC1 bounded `last_amended` byte length; PC2 synthetic-burst regression within fuel budget; PC3 differential pre-fix/post-fix symptom-non-recurrence proof. 3 invariants (linear-not-superlinear fuel growth, zero validator/fuel-cap code change, fixture reproducibility). 4 edge cases EC-001..EC-004. 3 test vectors. 3 VP candidates flagged for architect. lifecycle_status: draft. |

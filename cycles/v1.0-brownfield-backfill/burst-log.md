@@ -11307,3 +11307,149 @@ dispatch fresh-context LOCAL adversary pass 16 against the frozen `feature/S-25.
 convergence (restarting from 0/3).
 
 ---
+
+## D-1152-S1503-POST-MERGE-BOOKKEEPING-PR805-POL14-PROMOTION
+
+**Block 1 (Dim-1): Adversary verdict**
+
+No adversary pass ran this burst. This is the post-merge delivery bookkeeping burst for S-15.03.
+S-15.03's PR review/CI cycle was executed by pr-manager prior to this burst (facts as reported to
+state-manager, not independently re-verified from GitHub in this burst): CI fully green across 16
+checks (including windows-x64) after 3 Windows-only root-cause fixes (path-separator handling,
+SEC-003 failure-injection being Unix-only, an escape-lookahead collision) plus additional
+portability fixes.
+
+PR #805 (`feature/S-15.03`) squash-merged into `develop` as `b4ff2383` 2026-09-03T10:43:17Z
+(branch base `8b4b60e6`). Feature branch DELETED; `.worktrees/S-15.03` removed.
+
+---
+
+**Block 2 (Dim-2): Files touched**
+
+Modified (this burst — factory-artifacts bookkeeping only):
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.45.001.md` — v1.2→v1.3, draft→active (POL-14), `changelog:` row added, `input-hash` re-synced `28e9e63`→`ef6577c`.
+- `.factory/specs/behavioral-contracts/ss-10/BC-10.13.001.md` — v1.2→v1.3, draft→active (POL-14), `changelog:` row added, `input-hash` re-synced `a0a5e4f`→`5d7ec46`.
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.18.001.md` — v1.1→v1.2, draft→active (POL-14), `changelog:` row added, `input-hash` re-synced `2eeae3a`→`3c581d6`.
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v5.42→v5.43; 3 rows' Status cells + version-chain cells updated; `last_amended` current-entry-only + exactly-one-`changelog:`-prepend of the displaced v5.42 entry (BC-5.45.001 PC2 self-application/dogfood).
+- `.factory/stories/S-15.03-index-cite-refresh-hook.md` — v1.7→v1.8, status draft→merged.
+- `.factory/stories/STORY-INDEX.md` — v4.430→v4.431; S-15.03 row status draft→merged, note refreshed; `last_amended` current-entry-only + exactly-one-`changelog:`-prepend of the displaced v4.430 entry (same BC-5.45.001 discipline applied to a non-D-1149-mandated file, by choice, for consistency).
+- `.factory/stories/sprint-state.yaml` — flat-list S-15.03 entry draft→merged; new merged-story detail block appended (pr 805, merge_sha `b4ff2383`, merged_at 2026-09-03).
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1151 BACKFILLED (was recorded in STATE.md's Decisions Log table but missing from this SoT file — corrected in scope) + D-1152 codification appended, in correct chronological order (D-1150, D-1151, D-1152).
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 2 process-gap lessons appended (`L-BB-D1152-pr-manager-runaway-subagent-spawning-and-shared-worktree-clobber`, `L-BB-D1152-validate-factory-path-staging-branch-detection-uses-session-cwd-not-bash-tool-cwd`).
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this burst entry (8 blocks; D-444(c)).
+- `.factory/STATE.md` — v9.65→v9.66 (frontmatter `changelog:` bootstrapped; develop `8b4b60e6`→`b4ff2383`; `merged_count` 115→116; S-15.03 MERGED; Phase Progress row added; Current Phase Steps updated [last 5]; Active Branches updated; Drift Items: 3 new rows; Session Resume Checkpoint refreshed).
+
+Source code NOT modified by this burst (S-15.03 delivery was squash-merged to `develop` from
+`feature/S-15.03` @ `b4ff2383` prior to this burst; this burst is state-manager bookkeeping only).
+
+---
+
+**Block 3 (Dim-3): Codifications**
+
+D-1152 allocated and codified in `decision-log.md`: S-15.03 POST-MERGE + POL-14 PROMOTION. Canonical
+6-column row added to STATE.md Decisions Log. D-1151 backfilled into `decision-log.md` (production-grade
+Rule 4 fix-in-scope-on-discovery; it existed only in STATE.md's mirror table before this burst).
+
+Two process-gap lessons codified (see Block 2) — pr-manager CI-watcher sprawl + shared-worktree
+clobber; `validate-factory-path-staging` branch-detection cwd fallback false-positive.
+
+One incidental pre-existing defect recorded as a new Drift Item, NOT caused by this burst:
+`validate-table-cell-count` fires on every write to `stories/STORY-INDEX.md` (S-19.01 catalog row,
+~line 718, 13 pipes vs. the 9-column/10-pipe header) — confirmed via `git diff` that this burst's
+own edits (frontmatter-block only) do not touch that line.
+
+---
+
+**Block 4 (Dim-4): Governance**
+
+**POL-14 auto-promotion APPLIED:** BC-5.45.001 v1.2→v1.3, BC-10.13.001 v1.2→v1.3, BC-4.18.001
+v1.1→v1.2 — all `status`/`lifecycle_status` draft→active on S-15.03's merge, per POLICY 14
+(auto-promotion at merge). CAP-042 (`capabilities.md`) checked for a per-capability draft/active
+lifecycle field to promote — NONE EXISTS (the file carries only a document-level `status: accepted`
+covering the whole domain-spec section); no CAP-042 action taken, verified as legitimately
+not-applicable rather than a skipped obligation.
+
+No ADR/BC-title/wire-format/security-model change beyond the POL-14 status flip itself (a mechanical
+POLICY-14 consequence of merge, not a new ratification) — POLICY 22 human-ratification NOT required.
+
+**S-25.01 convergence explicitly UNTOUCHED this burst** — frozen `feature/S-25.01` code HEAD stays
+`3919ebcb`; BC-5.39.001 streak stays 0/3; NEXT remains fresh LOCAL adversary pass 16; no S-25.01
+spec/BC/VP/story content read or touched.
+
+---
+
+**Block 5 (Dim-5): Frozen-artifact attestation**
+
+D-449(a) literal-shell-execution evidence:
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "5.43"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "4.431"
+$ grep -A1 "id: S-15.03" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/sprint-state.yaml | head -2
+  - id: S-15.03
+    status: merged
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/specs/behavioral-contracts/ss-05/BC-5.45.001.md --check; echo "exit=$?"
+exit=0
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/specs/behavioral-contracts/ss-10/BC-10.13.001.md --check; echo "exit=$?"
+exit=0
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/specs/behavioral-contracts/ss-04/BC-4.18.001.md --check; echo "exit=$?"
+exit=0
+$ grep -c "^| D-1150 \|^| D-1151 \|^| D-1152 " /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/decision-log.md
+3
+```
+All PASS — BC-INDEX/STORY-INDEX versions match this burst's claims, sprint-state.yaml S-15.03 status
+= merged, all 3 promoted BCs' input-hashes verified CURRENT post-edit, decision-log.md carries
+exactly one row each for D-1150/D-1151/D-1152 in the correct order.
+
+---
+
+**Block 6 (Dim-6): Files opened/closed**
+
+Closes:
+- S-15.03 delivery: PR #805 MERGED `b4ff2383` 2026-09-03. `feature/S-15.03` DELETED.
+- `merged_count` 115→116. `develop` `8b4b60e6`→`b4ff2383`.
+- S-15.03 draft status CLEARED from Story Status.
+- D-1150(a) artifact-path-registry Drift Item CLOSED (5 sidecar paths registered on `develop` by S-15.03's own delivery).
+
+Opens / advances:
+- Two process-gap lessons (pr-manager watcher-sprawl/worktree-clobber; `validate-factory-path-staging`
+  cwd-fallback false-positive) — both anchored to a future fix (E-12 follow-up story for the former;
+  devops-engineer/architect for the latter's source-code fix), no story ID allocated yet.
+- One environmental Drift Item (macOS TCC EPERM read-block; mitigation: grant Full Disk Access).
+- One incidental pre-existing Drift Item (STORY-INDEX.md S-19.01 row pipe-count defect).
+- S-15.03 Phase D (running `last-amended-migrate migrate` on the 5 real `.factory/` index/state
+  files) remains OPTIONAL/OWED, anchored post-release (the 5 files are already slim from the D-1149
+  surgery). The tool's RELEASE itself is HELD per human — not actioned this burst.
+
+---
+
+**Block 7 (Dim-7): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1152-S1503-POST-MERGE-BOOKKEEPING-PR805-POL14-PROMOTION` present. PASS.
+D-446(a) own-burst-log 8-block gate: this entry contains Blocks 1-8. PASS.
+D-448(a) source-attestation gate: Block 1's PR/CI narrative faithfully restates the orchestrator's
+dispatch-brief facts verbatim (SHA, timestamp, check count) without embellishment or independent
+unverified GitHub re-query. PASS.
+D-449(a) literal-shell-execution: BC-INDEX/STORY-INDEX version greps, sprint-state status grep, 3×
+`compute-input-hash --check`, and the decision-log row-count grep all executed with captured stdout
+in Block 5. PASS.
+Per TD-FACTORY-HOOK-BYPASS-001 P0: all `.factory/` mutations via Edit/Write tools only; no
+Python/sed/echo bypass. PASS.
+BC-5.45.001/BC-10.13.001/BC-4.18.001 status confirmed ACTIVE (POL-14) via literal grep. PASS.
+`merged_count` updated to 116 in STATE.md + `sprint-state.yaml`. PASS.
+S-25.01 convergence fields (code HEAD `3919ebcb`, streak 0/3) confirmed UNCHANGED — not touched by
+any edit in this burst. PASS.
+
+---
+
+**Block 8: factory-artifacts commit**
+
+Parent SHA: `git -C .factory log -1` at burst start (per TD-VSDD-053 SHA-patch anti-pattern
+retirement, the live prior HEAD is read from git, not asserted here as a string).
+Commit SHA: recorded via `git -C .factory log -1` immediately after this burst's single commit
+lands (D-449(e) SHA-patch convention — this burst does not self-cite its own resulting commit SHA
+pre-commit).
+
+---

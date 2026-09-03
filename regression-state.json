@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-09-03T01:13:57Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-15.03 && cargo test -p last-amended-migrate --all-targets 2>&1 | tail -60"}
+{"status":"pass","timestamp":"2026-09-03T09:18:10Z","command":"cargo test -p last-amended-migrate --all-targets 2>&1 | grep -E \"^test result:|^running|error\\[|error:|FAILED|warning:\" "}

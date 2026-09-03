@@ -280,7 +280,7 @@ stories:
   - id: S-14.09
     status: draft
   - id: S-15.03
-    status: draft
+    status: merged
   - id: S-21.04
     status: ready
   - id: S-21.05
@@ -693,3 +693,10 @@ story_updates:
     merge_sha: 9ab5a6f6
     merged_at: 2026-08-30
     note: "vsdd-factory:wrap skill — session pause, checkpoint, and lock-release orchestration (E-24 W1). tdd_mode facade; BC-6.28.001 active (POL-14 auto-promotion v1.2). PR #802 squash-merged 9ab5a6f6 2026-08-30. merged_count 114→115. BC-6.28.001 v1.2 POL-14 active. D-1132."
+
+  S-15.03:
+    status: merged
+    pr: 805
+    merge_sha: b4ff2383
+    merged_at: 2026-09-03
+    note: "ARCH-INDEX Cite-Refresh Hook + last_amended Write-Path Durable Fix (E-12). Delivered crates/last-amended-migrate (PC7 full-recovery split, bounded O(n) scan, escape_raw_value, SEC-003 portable atomic write, register CLI); write-path discipline codified in plugins/vsdd-factory/skills/state-burst/SKILL.md + plugins/vsdd-factory/agents/state-manager.md; 5 sidecar paths registered in plugins/vsdd-factory/config/artifact-path-registry.yaml. CI fully green (16 checks incl. windows-x64) after 3 Windows-only root-cause fixes (path-separator, SEC-003 Unix-only failure injection, escape-lookahead collision) + portability fixes. PR #805 squash-merged b4ff2383 2026-09-03T10:43:17Z (branch base 8b4b60e6); feature branch + .worktrees/S-15.03 deleted. merged_count 115→116. BC-5.45.001 v1.2→v1.3 / BC-10.13.001 v1.2→v1.3 / BC-4.18.001 v1.1→v1.2 — all draft→active (POL-14). D-1152."
