@@ -431,3 +431,28 @@ artifacts:
       - author
       - date
     enforcement_level: block
+
+  - artifact_type: story-index-amendment-history
+    canonical_path_pattern: ".factory/stories/STORY-INDEX-amendment-history.md"
+    description: Frozen pre-migration D-1149 amendment-history sidecar for stories/STORY-INDEX.md (BC-10.13.001 PC6 — read-only; last-amended-migrate never mutates it)
+    enforcement_level: block
+
+  - artifact_type: bc-index-amendment-history
+    canonical_path_pattern: ".factory/specs/behavioral-contracts/BC-INDEX-amendment-history.md"
+    description: Frozen pre-migration D-1149 amendment-history sidecar for specs/behavioral-contracts/BC-INDEX.md (BC-10.13.001 PC6 — read-only; last-amended-migrate never mutates it)
+    enforcement_level: block
+
+  - artifact_type: arch-index-amendment-history
+    canonical_path_pattern: ".factory/specs/architecture/ARCH-INDEX-amendment-history.md"
+    description: Frozen pre-migration D-1149 amendment-history sidecar for specs/architecture/ARCH-INDEX.md (BC-10.13.001 PC6 — read-only; last-amended-migrate never mutates it)
+    enforcement_level: block
+
+  - artifact_type: vp-index-amendment-history
+    canonical_path_pattern: ".factory/specs/verification-properties/VP-INDEX-amendment-history.md"
+    description: Frozen pre-migration D-1149 amendment-history sidecar for specs/verification-properties/VP-INDEX.md (BC-10.13.001 PC6 — read-only; last-amended-migrate never mutates it)
+    enforcement_level: block
+
+  - artifact_type: state-amendment-history
+    canonical_path_pattern: ".factory/STATE-amendment-history.md"
+    description: Frozen pre-migration D-1149 amendment-history sidecar for STATE.md (BC-10.13.001 PC6 — read-only; last-amended-migrate never mutates it)
+    enforcement_level: block
