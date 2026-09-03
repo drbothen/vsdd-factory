@@ -183,6 +183,8 @@ submitting the S-25.01 PR. Owner: implementer (LOW-1/OBS-3), story-writer/orches
 | O-P16-3 (`reconcile_raw_delete` today-only + 256KB-tail bounds) | **VERIFIED CONFORMANT — no action (bounded/best-effort per BC-3.08.001 Inv 3 / ADR-048 §D4)** | adversary pass 16 |
 | O-P17-001 (`[audit-robustness]` REVALIDATED-clear guard/emission read-function asymmetry) | **OPEN — sweep after 3-CLEAN** | implementer, IF actioned (post-3-CLEAN doc-sweep) |
 | O-P17-002 (VP-108 Event 9/10 wire tables omit `session_id`) | **OPEN — doc-completeness candidate, surface to architect** | architect (post-3-CLEAN doc-sweep, if actioned) |
+| O-P18-001 (audit-timestamp LOCAL-offset ISO-8601 vs ADR-048 §D4 "ISO-8601 UTC" wording) | **OPEN — PENDING ARCHITECT/PRODUCT-OWNER ADJUDICATION (project-wide, outside S-25.01 delta)** | architect/product-owner (post-3-CLEAN doc-sweep) |
+| O-P18-002 (VP-108 PC1 REVALIDATED integration test missing `trace_id`-equality assertion) | **OPEN — sweep now (3-CLEAN ACHIEVED)** | test-writer (post-3-CLEAN doc-sweep) |
 
 *S-25.01 section added: 2026-08-31 (S2501-LOCAL-ADV-PASS1-CLEAN-STREAK-1of3-2026-08-31 — state-manager; BC-5.39.001 streak 1/3; artifact FROZEN @ 92990371)*
 
@@ -268,3 +270,40 @@ submitting the S-25.01 PR. Owner: implementer (LOW-1/OBS-3), story-writer/orches
 ---
 
 *Pass 17 items added: 2026-09-03 (S2501-PASS17-CLEAN-STREAK-ADVANCE-BOOKKEEPING — state-manager; BC-5.39.001 streak 1/3→2/3; artifact FROZEN @ 3919ebcb; D-1154)*
+
+---
+
+### O-P18-001 — Audit event timestamps use LOCAL-offset ISO-8601, not the "ISO-8601 UTC" wording ADR-048 §D4 uses (project-wide convention question, not an S-25.01-specific defect)
+
+| Field | Value |
+|-------|-------|
+| **Finding ID** | O-P18-001 |
+| **Severity** | LOW / `[spec-vs-code-convention]` — REQUIRES ARCHITECT/PRODUCT-OWNER ADJUDICATION |
+| **Source pass** | Pass 18 (LOCAL adversary pass 18 CLEAN 2026-09-03 — LOCAL BC-5.39.001 3-CLEAN CONVERGENCE ACHIEVED, D-1155) |
+| **File** | `crates/factory-dispatcher/src/internal_log.rs` (`InternalEvent::now`/`with_ts`), `indeterminate_marker.rs` (`emit_marker_cleared`), `executor.rs` (`emit_indeterminate`) — all in the frozen `feature/S-25.01` worktree |
+| **Observation** | Audit event timestamps (`marker.cleared`/`marker.written`/`plugin.indeterminate`) use LOCAL-offset ISO-8601 via `InternalEvent::now`/`with_ts` (`Local::now()` + `%z`, e.g. `2026-08-30T12:00:00-0500`), while ADR-048 §D4's field contract says "ISO-8601 UTC" in 4 places (confirmed via literal `grep`, burst-log D-1155 Block 5, e.g. its §Wire Format Event 9 field table row for `timestamp` reads "ISO-8601 UTC", "YES"). |
+| **Scope** | The value is a valid offset-unambiguous ISO-8601 instant and is the UNIFORM dispatcher-wide convention across EVERY BC-3.08.001 event (Event 8 included, already shipped/audited) — so there is NO consumer ambiguity, and this is NOT an S-25.01-specific defect. It is a pre-existing, dispatcher-wide convention that predates this story. |
+| **Reconciliation options** | (a) Relax the ADR-048 §D4 wording from "ISO-8601 UTC" to "ISO-8601 with offset" (documentary fix, matches shipped behavior); or (b) normalize all emitters to a UTC field (code change, risks a breaking change to existing audit-log consumers who may already parse the local-offset form). |
+| **Disposition** | Recorded and marked **PENDING ARCHITECT/PRODUCT-OWNER ADJUDICATION — project-wide, outside S-25.01 delta.** NOT fixed in this cascade; fixing it in-scope of S-25.01 would either edit the frozen 3-CLEAN-certified artifact (option b) or edit an ADR outside S-25.01's own delta (option a) without the cross-component reasoning a project-wide convention change requires. |
+| **Routing** | architect (ADR-048 owner) + product-owner (BC-3.08.001 owner), joint adjudication |
+| **Blocking?** | No — ADVISORY only; does NOT affect S-25.01 convergence (3-CLEAN already ACHIEVED) |
+
+---
+
+### O-P18-002 — VP-108 PC1 REVALIDATED integration test does not assert `trace_id` equality (test-tightening, transitively covered elsewhere)
+
+| Field | Value |
+|-------|-------|
+| **Finding ID** | O-P18-002 |
+| **Severity** | LOW / `[test-tightening]` |
+| **Source pass** | Pass 18 (LOCAL adversary pass 18 CLEAN 2026-09-03 — LOCAL BC-5.39.001 3-CLEAN CONVERGENCE ACHIEVED, D-1155) |
+| **File** | `crates/factory-dispatcher/tests/marker_integration.rs` — `test_BC_1_18_003_named_plugin_pass_clears_marker_via_execute_tiers` (VP-108 PC1) in the frozen `feature/S-25.01` worktree |
+| **Observation** | The test asserts `cleared_events[0]["clear_mode"] == "REVALIDATED"` plus a non-empty `timestamp` field (confirmed via literal `sed` excerpt, burst-log D-1155 Block 5, lines 247-256), but does NOT assert that the emitted event's `trace_id` equals the marker's own fixture value (`"trace-integ-test"`, confirmed via literal `grep`, Block 5, lines 139/153). |
+| **Coverage status** | Covered transitively via `emit_marker_cleared`'s shared unit tests exercising PC2/PC3/PC5's `trace_id` provenance paths — this is a coverage-density gap on THIS integration test specifically, not an unverified production behavior. |
+| **Fix** | Add `assert_eq!(cleared_events[0]["trace_id"], "trace-integ-test");` to the test body. One line. |
+| **Routing** | test-writer |
+| **Blocking?** | No — does not affect S-25.01 convergence (3-CLEAN already ACHIEVED); transitively covered by sibling unit tests |
+
+---
+
+*Pass 18 items added: 2026-09-03 (S2501-PASS18-3CLEAN-CONVERGED-BURST — state-manager; BC-5.39.001 streak 2/3→3/3 CONVERGED; artifact FROZEN @ 3919ebcb; D-1155)*

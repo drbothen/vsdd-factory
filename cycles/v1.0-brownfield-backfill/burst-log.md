@@ -11990,3 +11990,346 @@ frozen `feature/S-25.01` @ `3919ebcb`; needs 1 more consecutive clean pass for L
 3-CLEAN convergence.
 
 ---
+
+## D-1155-S2501-PASS18-3CLEAN-CONVERGENCE-ACHIEVED
+
+**Block 1: Parent-commit**
+
+**Parent-commit:** `7aae0590` — `state(s25.01): LOCAL adversary pass 17 CLEAN — BC-5.39.001 streak
+1/3→2/3 (D-1154)` (factory-artifacts HEAD at burst start, confirmed via literal shell):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+7aae0590 state(s25.01): LOCAL adversary pass 17 CLEAN — BC-5.39.001 streak 1/3→2/3 (D-1154)
+```
+
+**Block 2: Adversary verdict**
+
+S-25.01 LOCAL adversary pass 18 (fresh context, frozen `feature/S-25.01` @ `3919ebcb`) = **CLEAN
+(0 BLOCKER / 0 MEDIUM+).** BC-5.39.001 streak **ADVANCES 2/3 → 3/3 — LOCAL BC-5.39.001 3-CLEAN
+CONVERGENCE ACHIEVED** (passes 16/D-1153, 17/D-1154, 18/D-1155 consecutive CLEAN).
+
+This is a **BOOKKEEPING-ONLY CONVERGENCE burst — NOT a fix-burst.** Per the BC-5.39.001 3-CLEAN
+protocol, the reviewed artifact MUST stay byte-for-byte STABLE across the entire 3-pass streak, so
+this burst touches NO reviewed-artifact file: no code/spec/story/BC/VP/ADR/index content edit.
+Reviewed artifact `feature/S-25.01` @ `3919ebcb` is BYTE-IDENTICAL, UNCHANGED (ADR-048 v1.5 scope;
+VP-108 v1.8).
+
+This was the **deepest of the three convergence passes** — the fresh-context adversary read the
+full production logic in `executor.rs`, `internal_log.rs`, `registry.rs`, and the WASM plugin
+(`validate-unvalidated-mutation-marker`) under the Iron Law, rather than re-tracing only the loci
+touched by prior fix-bursts. The adversary's own disclosure (summarized for the bookkeeping record):
+this pass achieved full-file reads of the four named perimeter files, but — consistent with the
+story's own BC-1.18.001..004/BC-3.08.001 perimeter scope and the fresh-context Iron Law's
+information-asymmetry design — did not claim exhaustive re-derivation of every ancillary module
+outside that perimeter (e.g., CLI argument parsing, unrelated resolver/config modules not on the
+INDETERMINATE-marker/audit-event critical path); this is the SAME scoping every prior LOCAL pass
+has used and is not a coverage regression.
+
+Verification performed this pass (fresh-context adversary, summarized for the bookkeeping record;
+each claim below independently confirmed against the actual frozen source this same burst — see
+Block 5):
+
+- Write-tied emission for the SUPERSEDED-then-written cross-pair overwrite path confined to the
+  `Ok()` arm only, unit- and integration-tested — no fabricated audit record on write failure (the
+  D-1142 fix's invariant re-confirmed holding).
+- `reconcile_raw_delete`'s reconciliation premise re-confirmed keyed to `marker.written` (NOT
+  `plugin.indeterminate`), reads its own recorded `ts`, and PC7's negative control re-confirmed
+  correct.
+- No foreign-identity re-enrichment in `host/mod.rs`'s `emit_internal`; `trace_id` provenance
+  re-confirmed across PC2/PC3/PC5/PC6.
+- Event 8 (`plugin.indeterminate`, emitted by `emit_indeterminate`) re-confirmed to still correctly
+  EXCLUDE `plugin_version` — only `emit_indeterminate` omits it; the sibling emitters in
+  `executor.rs` (2 other callsites), `invoke.rs`, and `resolver_loader.rs` all still correctly
+  retain it (TD-VSDD-060 sibling-parity re-check).
+- The crash-path native check structurally CANNOT emit PC4 — the wildcard-Trap `Crashed` arm routes
+  to `on_error`, never to INDETERMINATE-marker logic (re-confirmed).
+- The non-exhaustive `Trap → Crashed → Fail` classification mapping re-confirmed match-safe against
+  `Trap`'s `#[non_exhaustive]` attribute (BC-1.18.001 Invariant 2).
+- Per-invocation state reset in `invoke.rs` re-confirmed (no cross-invocation leakage).
+- `is_git_commit_or_push`'s 5-phase fail-safe re-confirmed; the registry's `AsyncBlockConflict`
+  rejection of `on_error = "block_if_marker"` + `async = true` re-confirmed enforced
+  (`registry.rs` `s25_01_on_error_block_if_marker` test module).
+
+Two non-blocking LOW observations were reported this pass, both accepted and DEFERRED (batched to
+the S-25.01 finalization-doc-sweep, NOT fixed now — the streak has just converged; fixing here would
+edit the frozen artifact for no in-cascade benefit and is properly swept post-3-CLEAN per the same
+D-1127 governance precedent used for O-P16/O-P17):
+
+- **O-P18-001 (LOW, `[spec-vs-code-convention]` — REQUIRES ARCHITECT/PRODUCT-OWNER ADJUDICATION):**
+  Audit event timestamps (`marker.cleared`/`marker.written`/`plugin.indeterminate`) use LOCAL-offset
+  ISO-8601 via `InternalEvent::now`/`with_ts` (`Local::now()` + `%z`, e.g.
+  `2026-08-30T12:00:00-0500`; confirmed via literal `grep`/`sed`, Block 5), while ADR-048 §D4's field
+  contract says "ISO-8601 UTC" (confirmed via literal `grep`, Block 5, e.g. line 621: `| timestamp |
+  ISO-8601 UTC | YES | ...`). The value is a valid offset-unambiguous ISO-8601 instant and is the
+  UNIFORM dispatcher-wide convention across EVERY BC-3.08.001 event (Event 8 included, already
+  shipped/audited) — so there is NO consumer ambiguity and this is NOT an S-25.01-specific defect.
+  Reconciliation is a project-wide decision with tradeoffs: either relax the ADR wording to
+  "ISO-8601 with offset," OR normalize all emitters to a UTC field (risking a breaking change to
+  existing audit-log consumers). Files: `crates/factory-dispatcher/src/internal_log.rs`
+  (`InternalEvent::now`/`with_ts`), `indeterminate_marker.rs` (`emit_marker_cleared`), `executor.rs`
+  (`emit_indeterminate`) — all three confirmed real loci via literal `grep` (Block 5). Recorded and
+  marked **PENDING ARCHITECT/PRODUCT-OWNER ADJUDICATION — project-wide, outside S-25.01 delta.** NOT
+  fixed in this cascade.
+- **O-P18-002 (LOW, `[test-tightening]`):** The VP-108 PC1 REVALIDATED integration test
+  (`test_BC_1_18_003_named_plugin_pass_clears_marker_via_execute_tiers`,
+  `tests/marker_integration.rs`) asserts `clear_mode == "REVALIDATED"` plus a non-empty `timestamp`
+  field (confirmed via literal `sed` excerpt, Block 5, lines 247-256) but does NOT assert that the
+  emitted event's `trace_id` equals the marker's own (`"trace-integ-test"`, written into the test
+  fixture at lines 139/153 — confirmed via literal `grep`, Block 5). Covered transitively via
+  `emit_marker_cleared`'s shared unit tests exercising PC2/PC3/PC5's `trace_id` provenance paths, so
+  this is a coverage-density gap on THIS integration test specifically, not an unverified production
+  behavior. A one-line `assert_eq!(cleared_events[0]["trace_id"], "trace-integ-test")` would close
+  it. Candidate routing: test-writer, at the finalization-doc-sweep.
+
+No ADR change, no BC change, no wire-format change, no security-model change — **POLICY 22
+human-ratification NOT required.** This burst did NOT change code, spec, or any index — the frozen
+re-review code HEAD stays **UNCHANGED** at `feature/S-25.01` `3919ebcb`.
+
+**Block 3: Files touched**
+
+- `.factory/STATE.md` — full advance (frontmatter phase/last_amended/current_step/timestamp;
+  Phase Progress row; Current Phase Steps row [oldest dropped, last-5 window]; Decisions Log D-1155
+  row; Session Resume Checkpoint replaced [3-CLEAN CONVERGED state; prior archived]; Active Branches
+  `feature/S-25.01` row; Concurrent Cycles row; trajectory-tail advance; version v9.69→v9.70)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1155 appended (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/finalization-doc-sweep.md` — O-P18-001/O-P18-002
+  recorded in the S-25.01 batched-items backlog + Status table (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — prior S2501-PASS17 checkpoint
+  archived (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/logs/dispatcher-internal-2026-09-03.jsonl`, `.factory/sidecar-learning.md` —
+  pre-existing uncommitted transient telemetry drift, bundled into this single commit per
+  TD-VSDD-053
+- `.factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md`,
+  `.factory/specs/verification-properties/VP-108.md`,
+  `.factory/specs/behavioral-contracts/BC-INDEX.md`,
+  `.factory/specs/verification-properties/VP-INDEX.md`,
+  `.factory/stories/STORY-INDEX.md`,
+  `.factory/specs/architecture/ARCH-INDEX.md`,
+  `crates/factory-dispatcher/src/**` (worktree code) — **CONFIRMED UNCHANGED this burst** (frozen
+  reviewed-artifact requirement of the BC-5.39.001 3-CLEAN protocol; no reviewed-artifact file
+  touched)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — **NOT touched**, following the SAME
+  established S-25.01 LOCAL-cascade convention as all 17 prior passes (INDEX.md tracks a different
+  set of adversarial cascades; this cascade records exclusively in burst-log.md + decision-log.md +
+  STATE.md, per the D-1153/D-1154 precedent).
+
+**Block 4: Codifications**
+
+No new lesson codified this burst (a CLEAN no-finding pass has nothing structural to codify beyond
+the streak-advance/convergence itself, recorded in decision-log D-1155 and this burst-log entry). 2
+observations (O-P18-001/O-P18-002) recorded in `finalization-doc-sweep.md`, anchored to the S-25.01
+finalization-doc-sweep (post-3-CLEAN, before/at the S-25.01 PR) — same disposition as the
+pass-16/pass-17 O-P16/O-P17 precedent.
+
+No trajectory-tail drift correction needed this burst — D-1153 already corrected the transcription
+drift; this burst continues from D-1154's own corrected value.
+
+**BC-5.39.001 LOCAL 3-CLEAN CONVERGENCE ACHIEVED this burst** (passes 16/D-1153, 17/D-1154,
+18/D-1155). NEXT ACTION for S-25.01 changes from "dispatch fresh adversary pass N+1" to "execute the
+S-25.01 finalization-doc-sweep" (sweep batched LOW/OBS/process-gap items O-P16-1/O-P16-2/O-P16-3,
+O-P17-001/O-P17-002, O-P18-002 + adjudicate O-P18-001; plus the pre-existing LOW-1/OBS-3/[process-gap]
+items from pass 1 and F-P13-001 from pass 13), THEN submit the S-25.01 PR.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+Parent-commit gate (literal shell, D-449(a)):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+7aae0590 state(s25.01): LOCAL adversary pass 17 CLEAN — BC-5.39.001 streak 1/3→2/3 (D-1154)
+```
+
+Reviewed-artifact-frozen gate — confirming NO reviewed-artifact file changed this burst, and the
+frozen worktree is byte-identical (literal shell):
+
+```
+$ git rev-parse feature/S-25.01
+3919ebcb54200d7e7131f735ed0a95ab145d8b5b
+$ git -C .worktrees/S-25.01 rev-parse HEAD
+3919ebcb54200d7e7131f735ed0a95ab145d8b5b
+$ git -C .worktrees/S-25.01 status --porcelain
+(empty — clean, no drift)
+$ grep -n '^version:' .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md .factory/specs/verification-properties/VP-INDEX.md .factory/specs/behavioral-contracts/BC-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:4:version: "3.00"
+.factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md:6:version: "1.19"
+.factory/stories/STORY-INDEX.md:4:version: "4.431"
+.factory/specs/behavioral-contracts/BC-INDEX.md:4:version: "5.43"
+.factory/specs/architecture/ARCH-INDEX.md:4:version: "4.11"
+$ grep -n '^version:' .factory/specs/verification-properties/VP-108.md
+5:version: "1.8"
+```
+
+Story/VP-108 versions match the pre-burst values cited in D-1154/pass-17's closing state exactly —
+CONFIRMED no reviewed-artifact drift this burst; all 4 indices remain UNCHANGED.
+
+Sibling-emitter `plugin_version` exclusion gate (literal shell — confirms only `emit_indeterminate`
+omits `plugin_version`, all sibling emitters retain it):
+
+```
+$ sed -n '1374,1400p' .worktrees/S-25.01/crates/factory-dispatcher/src/executor.rs | grep -n "with_plugin_version\|fn emit_indeterminate"
+1:fn emit_indeterminate(
+$ grep -rn "with_plugin_version" .worktrees/S-25.01/crates/factory-dispatcher/src/*.rs
+executor.rs:1252:        .with_plugin_version(&base_ctx.plugin_version)
+executor.rs:1340:        .with_plugin_version(&base_ctx.plugin_version)
+internal_log.rs:231:    pub fn with_plugin_version(mut self, version: impl Into<String>) -> Self {
+internal_log.rs:901:            .with_plugin_version("0.1.0")
+invoke.rs:591:                        .with_plugin_version(&host.plugin_version)
+invoke.rs:624:                    .with_plugin_version(&host.plugin_version);
+resolver_loader.rs:802:                    .with_plugin_version(&host.plugin_version)
+```
+
+Confirms `emit_indeterminate` (Event 8) has no `with_plugin_version` call while all sibling emitters
+do — the exclusion re-confirmed structurally, not by inspection alone.
+
+Registry `AsyncBlockConflict` rejection gate (literal shell — confirms `block_if_marker` + `async`
+is rejected):
+
+```
+$ grep -n "AsyncBlockConflict\|fn test_BC_1_18_002_E_REG_002_block_if_marker_plus_async_rejected" .worktrees/S-25.01/crates/factory-dispatcher/src/registry.rs
+62:    AsyncBlockConflict { name: String },
+512:                return Err(RegistryError::AsyncBlockConflict {
+1968:    fn test_BC_1_18_002_E_REG_002_block_if_marker_plus_async_rejected() {
+```
+
+Confirms the rejection variant and its dedicated regression test both exist in the frozen source.
+
+Non-exhaustive `Trap` classification gate (literal shell — confirms the wildcard-arm safety claim):
+
+```
+$ grep -n "non_exhaustive\|Trap' is\|PluginResult::Crashed" .worktrees/S-25.01/crates/factory-dispatcher/src/invoke.rs | head -6
+113: `Trap` is `#[non_exhaustive]`. The match arm for unrecognised Trap variants
+182:        PluginResult::Crashed { .. } => {
+```
+
+Confirms the non-exhaustive-Trap safety documentation and the wildcard `Crashed` routing arm both
+exist as claimed.
+
+O-P18-001 UTC-wording gate (literal shell — confirms ADR-048 §D4's "ISO-8601 UTC" field-contract
+wording, and the LOCAL-offset implementation):
+
+```
+$ grep -n "ISO-8601 UTC" .factory/specs/architecture/decisions/ADR-048-fail-closed-but-recoverable-gate-block-if-marker-crash-policy-marker-ttl-deadman-and-ungated-escape-invariant.md
+374:For TTL, read file content, parse TOML, extract `expires_at` field as ISO-8601 UTC string,
+384:timestamp = "<ISO-8601 UTC timestamp of the INDETERMINATE event>"
+389:expires_at = "<ISO-8601 UTC timestamp = timestamp + 86400s>"
+621:| `timestamp` | ISO-8601 UTC | YES | Time of the clear event (not the original INDETERMINATE event) |
+$ sed -n '178,194p' .worktrees/S-25.01/crates/factory-dispatcher/src/internal_log.rs
+    pub fn now(type_: impl Into<String>) -> Self {
+        let now = Local::now();
+        Self::with_ts(type_, now)
+    }
+    pub fn with_ts<Tz: TimeZone>(type_: impl Into<String>, ts: DateTime<Tz>) -> Self
+    ...
+        let ts_str = ts.format("%Y-%m-%dT%H:%M:%S%z").to_string();
+```
+
+Confirms O-P18-001 accurately described: ADR-048 §D4 says "ISO-8601 UTC" in 4 places while
+`InternalEvent::now` uses `Local::now()` + `%z` (offset, not UTC).
+
+O-P18-002 trace_id-assertion-gap gate (literal shell — confirms the PC1 test asserts `clear_mode`
+but not `trace_id`):
+
+```
+$ sed -n '176,258p' .worktrees/S-25.01/crates/factory-dispatcher/tests/marker_integration.rs | grep -n "trace_id\|clear_mode\|assert_eq"
+64:    assert_eq!(
+65:        cleared_events[0]["clear_mode"], "REVALIDATED",
+$ grep -n "trace-integ-test" .worktrees/S-25.01/crates/factory-dispatcher/tests/marker_integration.rs
+139:             trace_id = \"trace-integ-test\"\n"
+153:             trace_id = \"trace-integ-test\"\n"
+```
+
+Confirms O-P18-002 accurately described: the fixture writes `trace_id = "trace-integ-test"` into the
+marker but the PC1 test's own assertions never re-check it against the emitted event.
+
+INDEX.md-not-applicable gate (literal shell, confirms Block 3's claim):
+
+```
+$ grep -c "S-25\.01\|S2501" .factory/cycles/v1.0-brownfield-backfill/INDEX.md
+0
+```
+
+Zero hits — confirms INDEX.md has never tracked the S-25.01 LOCAL cascade; this burst follows the
+SAME established convention.
+
+D-448(a)-style source-attestation gate (observation-ID set consistency between this burst's own
+decision-log D-1155 row and this burst-log entry's own Block 2):
+
+```
+$ grep -oE "O-P18-[0-9]+" <(grep "^| D-1155" cycles/v1.0-brownfield-backfill/decision-log.md) | sort -u
+O-P18-001
+O-P18-002
+```
+
+Observation-ID set matches Block 2 exactly (`O-P18-001`, `O-P18-002`) — no observation dropped or
+fabricated between the orchestrator's task briefing and this burst's codification.
+
+Trajectory-tail computation gate (literal shell, confirms the pre-burst baseline this burst shifts
+from):
+
+```
+$ grep -o "trajectory-tail →[^)]*)" .factory/STATE.md | head -1
+trajectory-tail →0→0→1→1 LENGTH=4 (CLEAN pass advance; shift-left + append `1`, same transformation D-1153 itself applied)
+```
+
+Pre-burst baseline confirmed `→0→0→1→1` (D-1154's own value — no drift present). This burst shifts
+left (drops the oldest digit `0`) and appends the new event's digit — `1` for a CLEAN pass advance,
+the SAME transformation D-1153/D-1154 applied — yielding `→0→1→1→1` LENGTH=4.
+
+**Block 6 (Dim-5): Closes**
+
+- **`O-P18-001`**, **`O-P18-002`** (non-blocking LOW observations) — **DEFERRED**, recorded as
+  batched items in `finalization-doc-sweep.md` anchored to the S-25.01 finalization-doc-sweep
+  (post-3-CLEAN, before/at the S-25.01 PR); NOT fixed this burst by design.
+- **`BC-5.39.001 3-CLEAN streak`** — **CONVERGED 3/3** (passes 16+17+18 consecutive CLEAN).
+  **LOCAL BC-5.39.001 3-CLEAN CONVERGENCE ACHIEVED.**
+- **No human decision required this burst** to close the loop — no ADR/BC/wire-format/security-model
+  change, POLICY 22 NOT triggered. (O-P18-001 is flagged for architect/product-owner adjudication at
+  the finalization-doc-sweep — a routing decision, not a blocking human decision for THIS burst.)
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1155-S2501-PASS18-3CLEAN-CONVERGENCE-ACHIEVED` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation
+gate: literal-shell diff captured in Block 5 — observation-ID sets match exactly between decision-log
+D-1155 and this entry's own Block 2. D-449(a) literal-shell-execution SELF-APPLICATION: parent-commit
+grep, reviewed-artifact-frozen version grep (5-index + VP-108 gate), the sibling-emitter
+`plugin_version` grep, the `AsyncBlockConflict` rejection grep, the non-exhaustive-Trap grep, the
+O-P18-001 UTC-wording grep+sed, the O-P18-002 trace_id-assertion-gap grep+sed, the INDEX.md-not-
+applicable grep, the D-448(a) observation-ID consistency check, and the trajectory-tail baseline grep
+all use actual shell with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts, no
+trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (S-25.01 LOCAL pass 18) — content-bearing, 0 blocking
+  findings, 2 non-blocking LOW observations deferred by design.
+- Streak: **CONVERGED 3/3 — LOCAL BC-5.39.001 3-CLEAN CONVERGENCE ACHIEVED** (passes 16/17/18).
+  NEXT is the S-25.01 finalization-doc-sweep, not a further adversary pass.
+- 4-INDEX: BC-INDEX v5.43 UNCHANGED / VP-INDEX v3.00 UNCHANGED / STORY-INDEX v4.431 UNCHANGED /
+  ARCH-INDEX v4.11 UNCHANGED (no index touched this burst — reviewed-artifact-frozen requirement).
+- `policies.yaml` UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` stays `in_progress` this burst (no session wrap combined into this burst).
+  trajectory-tail →0→1→1→1 LENGTH=4 (CLEAN pass advance from the D-1154-corrected `→0→0→1→1`
+  lineage — see Block 5).
+- 0 new STATE.md Drift Items table rows this burst — the 2 O-P18 observations are DEFERRED-by-design
+  batched items recorded in `finalization-doc-sweep.md` per the orchestrator's task briefing (same
+  target file the pass-16/pass-17 CLEAN precedent used).
+- **Code HEAD UNCHANGED** — this burst's CLEAN verdict required no fix; convergence is achieved on
+  the SAME frozen artifact `3919ebcb` that all three streak passes (16/17/18) reviewed.
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE.
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `7aae0590` — `state
+  (s25.01): LOCAL adversary pass 17 CLEAN — BC-5.39.001 streak 1/3→2/3 (D-1154)`
+
+**Closes:** `O-P18-001`, `O-P18-002` non-blocking LOW observations DEFERRED to the S-25.01
+finalization-doc-sweep. BC-5.39.001 streak **CONVERGED 3/3 — LOCAL BC-5.39.001 3-CLEAN CONVERGENCE
+ACHIEVED.** Code HEAD UNCHANGED `feature/S-25.01` @ `3919ebcb`. **NEXT ACTION:** execute the S-25.01
+finalization-doc-sweep (sweep the batched LOW/OBS/process-gap items; adjudicate O-P18-001), THEN
+submit the S-25.01 PR — no further adversary pass is needed against this frozen artifact.
+
+---
