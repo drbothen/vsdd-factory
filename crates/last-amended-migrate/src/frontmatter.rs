@@ -20,10 +20,17 @@
 //! tokenize the single 323K-350K-char `last_amended` scalar line as part of a
 //! general-purpose grammar, which is not a bounded-cost operation this crate
 //! controls or can prove linear for. The hand-rolled scan here mirrors
-//! `factory-lock-parse`'s own documented approach for the same reason. A YAML
-//! library (`serde_norway`) IS used, but only in this crate's `dev-dependencies`
-//! for independent black-box verification in the test suite
-//! (`tests/common::strict_yaml_parse`) — never in this production hot path.
+//! `factory-lock-parse`'s own documented approach for the same reason.
+//!
+//! `serde_norway` IS a real `[dependencies]` entry as of S-15.03 SEC-001
+//! (this stale comment previously said "only in dev-dependencies" — no
+//! longer accurate): `src/yaml_guard.rs` now uses it in PRODUCTION code as
+//! an independent, bounded-size, OUTPUT-side pre-write validity gate (see
+//! that module's own doc comment) — but never for THIS module's hot-path
+//! read, which stays the hand-rolled bounded scan described above for the
+//! same D-1149-calibration-scale reason. It is separately used in this
+//! crate's test suite (`tests/common::strict_yaml_parse`) for independent
+//! black-box output verification, unrelated to the production gate.
 
 use crate::error::MigrateError;
 use std::path::{Path, PathBuf};
