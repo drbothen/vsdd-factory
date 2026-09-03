@@ -114,6 +114,38 @@ fn test_BC_10_13_001_SEC003_write_atomic_leaves_target_untouched_on_temp_write_f
     );
 }
 
+/// S-15.03 pr-reviewer N2: `write_atomic` preserves the pre-existing
+/// target's non-default permission bits (`0o600`) across the write —
+/// `File::create`'s own default mode must never silently reset them.
+/// Unix-only: `std::fs::Permissions`'s mode bits are a Unix-specific
+/// concept (`PermissionsExt`); Windows only carries a read-only flag, which
+/// this test does not attempt to exercise precisely.
+#[cfg(unix)]
+#[test]
+fn test_BC_10_13_001_N2_write_atomic_preserves_non_default_file_mode() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let dir = tempfile::tempdir().expect("tempdir");
+    let path = common::write_file(dir.path(), "target.md", "old content\n");
+    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600))
+        .expect("set non-default 0o600 mode on the pre-existing target");
+
+    write_atomic(&path, "new content\n").expect("write_atomic must succeed");
+
+    assert_eq!(common::read_file(&path), "new content\n");
+    let mode_after = std::fs::metadata(&path)
+        .expect("stat target after write_atomic")
+        .permissions()
+        .mode()
+        & 0o777;
+    assert_eq!(
+        mode_after, 0o600,
+        "write_atomic must preserve the pre-existing target's permission \
+         bits across the temp-then-rename, not reset them to the process's \
+         default create mode"
+    );
+}
+
 // ── Call-site integration: migrate_file / rotate_changelog / register ──────
 
 #[test]
