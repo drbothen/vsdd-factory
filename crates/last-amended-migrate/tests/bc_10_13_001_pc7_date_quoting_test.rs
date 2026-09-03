@@ -24,7 +24,7 @@
 
 mod common;
 
-use last_amended_migrate::migrate::MigrationMode;
+use last_amended_migrate::migrate::{MigrationMode, MigrationOptions};
 use last_amended_migrate::migrate_file;
 
 /// End-to-end: a chained entry beginning with a colon-containing,
@@ -53,14 +53,14 @@ fn test_BC_10_13_001_B1_migrate_file_preserves_colon_prefixed_non_date_chain_ent
     );
     let path = common::write_file(dir.path(), "STORY-INDEX.md", &content);
 
-    let report = migrate_file(&path, MigrationMode::Apply).expect(
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default()).expect(
         "migrate_file must SUCCEED and recover the colon-prefixed prior entry, not error out \
          or write corrupt YAML — refusing real-world D-1149:-shaped chains defeats \
          BC-10.13.001's whole purpose",
     );
     assert!(report.mutated);
     assert_eq!(
-        report.entries_recovered, 1,
+        report.entries_relocated, 1,
         "the colon-prefixed prior entry must be recovered, not dropped or refused"
     );
 

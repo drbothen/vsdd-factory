@@ -226,12 +226,33 @@ POL-3/TD-FACTORY-HOOK-BYPASS-001 exception request:
 cargo run -p last-amended-migrate -- migrate --path <file>
 ```
 
-This splits the chain in place (current entry stays in `last_amended`;
-every chained entry relocates into `changelog:`, newest-first, verbatim,
+For `STORY-INDEX.md`, `BC-INDEX.md`, `ARCH-INDEX.md`, and `VP-INDEX.md`,
+this splits the chain in place (current entry stays in `last_amended`;
+every chained entry RELOCATES into `changelog:`, newest-first, verbatim,
 D-1144-escaped) via a bounded/streaming linear scan safe at any input
 scale, including the D-1149 323K-350K-char calibration ceiling
 (BC-10.13.001 PC7, S-15.03 AC-010). Do not ask for a POL-3 exception for
 this failure class — the tool is the sanctioned path.
+
+**`STATE.md` REFUSES by default (S-15.03 pr-reviewer B2-R) — it does
+NOT silently relocate a chain like the other 4 files.** `STATE.md` has
+no `changelog:` field to relocate into (ADR-049 Decision 4), and PC6
+forbids ever writing the chained entries into the frozen
+`STATE-amendment-history.md` sidecar — there is no real destination for
+them. Running `migrate --path <file>` against a `STATE.md` chain returns
+`Err(MigrateError::StateChainDiscardNotAuthorized)` and mutates nothing,
+in both `--check` and apply mode, unless `--discard-state-chain` is
+explicitly passed:
+
+```bash
+cargo run -p last-amended-migrate -- migrate --path .factory/STATE.md --discard-state-chain
+```
+
+Before passing this flag, verify the chained entries' substantive content
+is already recorded in STATE.md's own `## Decisions Log`/
+`## Phase Progress` sections — a surviving chain is itself evidence this
+may not hold for those specific entries, so confirm rather than assume;
+copy the content into the body first if it is missing, THEN discard.
 
 Full write-path contract: BC-5.45.001 (`.factory/specs/behavioral-contracts/ss-05/BC-5.45.001.md`).
 Tool contract: BC-10.13.001 (`.factory/specs/behavioral-contracts/ss-10/BC-10.13.001.md`).

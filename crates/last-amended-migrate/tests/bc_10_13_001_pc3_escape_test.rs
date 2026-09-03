@@ -14,7 +14,7 @@
 mod common;
 
 use last_amended_migrate::escape::{escape_value, needs_escaping};
-use last_amended_migrate::migrate::MigrationMode;
+use last_amended_migrate::migrate::{MigrationMode, MigrationOptions};
 use last_amended_migrate::migrate_file;
 
 const BACKSLASH: char = '\u{5c}';
@@ -247,7 +247,8 @@ fn test_BC_10_13_001_SEC001_migrate_file_prevents_silent_cr_corruption() {
         pre_fix_parsed.last_amended
     );
 
-    let report = migrate_file(&path, MigrationMode::Apply).expect("migrate_file must succeed");
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("migrate_file must succeed");
     assert!(report.mutated);
     assert!(report.escape_fixed, "report must record the escape fix");
 
@@ -287,7 +288,8 @@ fn test_BC_10_13_001_SEC001_migrate_file_escapes_other_control_char_hard_parse_e
          line-folding escape hatch)"
     );
 
-    let report = migrate_file(&path, MigrationMode::Apply).expect("migrate_file must succeed");
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("migrate_file must succeed");
     assert!(report.mutated);
     assert!(report.escape_fixed, "report must record the escape fix");
 
@@ -329,7 +331,8 @@ fn test_BC_10_13_001_PC3_migrate_file_fixes_bc_index_quote_defect() {
          parsing before the fix is applied"
     );
 
-    let report = migrate_file(&path, MigrationMode::Apply).expect("migrate_file must succeed");
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("migrate_file must succeed");
 
     assert!(report.mutated, "escaping a defective entry is a mutation");
     assert!(report.escape_fixed, "report must record the escape fix");
@@ -377,11 +380,13 @@ fn test_BC_10_13_001_PC4_migrate_file_escape_fix_is_idempotent_across_runs() {
     );
     let path = common::write_file(dir.path(), "ARCH-INDEX.md", &content);
 
-    let first = migrate_file(&path, MigrationMode::Apply).expect("first migrate_file call");
+    let first = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("first migrate_file call");
     assert!(first.mutated && first.escape_fixed);
     let after_first = common::read_file(&path);
 
-    let second = migrate_file(&path, MigrationMode::Apply).expect("second migrate_file call");
+    let second = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("second migrate_file call");
     assert!(
         !second.mutated,
         "PC4: a second run against an already-migrated file must report zero mutations"
@@ -411,7 +416,8 @@ fn test_BC_10_13_001_PC3_migrate_file_clean_entry_never_flags_escape_fixed() {
     );
     let path = common::write_file(dir.path(), "VP-INDEX.md", &content);
 
-    let report = migrate_file(&path, MigrationMode::Apply).expect("migrate_file must succeed");
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("migrate_file must succeed");
 
     assert!(!report.escape_fixed);
     assert!(!report.mutated, "fully compliant file is a verified no-op");

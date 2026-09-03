@@ -63,7 +63,9 @@
 mod common;
 
 use last_amended_migrate::frontmatter::parse_frontmatter;
-use last_amended_migrate::migrate::{MigrationMode, TARGET_FILES, migrate_all, migrate_file};
+use last_amended_migrate::migrate::{
+    MigrationMode, MigrationOptions, TARGET_FILES, migrate_all, migrate_file,
+};
 
 /// A generous ceiling for a single dated `last_amended` entry — real corpus
 /// entries in `.factory/` run from a few dozen to a few hundred bytes; 2,000
@@ -162,8 +164,12 @@ fn test_BC_4_18_001_PC1_last_amended_byte_length_bounded_across_all_five_files()
     let dir = tempfile::tempdir().expect("tempdir");
     let factory_root = build_five_target_fixtures(dir.path());
 
-    let report =
-        migrate_all(&factory_root, MigrationMode::Apply).expect("migrate_all must succeed");
+    let report = migrate_all(
+        &factory_root,
+        MigrationMode::Apply,
+        MigrationOptions::default(),
+    )
+    .expect("migrate_all must succeed");
     assert_eq!(report.files.len(), TARGET_FILES.len());
 
     for rel in TARGET_FILES {
@@ -192,7 +198,12 @@ fn test_BC_4_18_001_PC1_last_amended_byte_length_bounded_across_all_five_files()
 fn test_BC_4_18_001_EC003_quote_defect_entry_still_bounded_after_escape_fix() {
     let dir = tempfile::tempdir().expect("tempdir");
     let factory_root = build_five_target_fixtures(dir.path());
-    migrate_all(&factory_root, MigrationMode::Apply).expect("migrate_all must succeed");
+    migrate_all(
+        &factory_root,
+        MigrationMode::Apply,
+        MigrationOptions::default(),
+    )
+    .expect("migrate_all must succeed");
 
     let bc_index_path = factory_root.join("specs/behavioral-contracts/BC-INDEX.md");
     let doc = parse_frontmatter(&bc_index_path).expect("parse post-migration BC-INDEX.md");
@@ -218,7 +229,12 @@ fn test_BC_4_18_001_EC003_quote_defect_entry_still_bounded_after_escape_fix() {
 fn test_BC_10_13_001_EC006_migrate_all_state_md_never_gains_changelog() {
     let dir = tempfile::tempdir().expect("tempdir");
     let factory_root = build_five_target_fixtures(dir.path());
-    migrate_all(&factory_root, MigrationMode::Apply).expect("migrate_all must succeed");
+    migrate_all(
+        &factory_root,
+        MigrationMode::Apply,
+        MigrationOptions::default(),
+    )
+    .expect("migrate_all must succeed");
 
     let state_content = common::read_file(&factory_root.join("STATE.md"));
     assert!(
@@ -265,11 +281,11 @@ fn test_BC_4_18_001_B3_realistic_multi_entry_chain_relief_is_per_line_bounded() 
     );
     let path = common::write_file(&factory_root, "stories/STORY-INDEX.md", &content);
 
-    let report = migrate_file(&path, MigrationMode::Apply)
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
         .expect("migrate_file must split a realistic multi-entry chain");
     assert!(report.mutated, "a PC7 split is a mutation");
     assert_eq!(
-        report.entries_recovered, 100,
+        report.entries_relocated, 100,
         "all 100 chained entries must be recovered"
     );
 

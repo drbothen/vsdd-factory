@@ -15,7 +15,7 @@
 mod common;
 
 use last_amended_migrate::atomic_write::write_atomic;
-use last_amended_migrate::migrate::MigrationMode;
+use last_amended_migrate::migrate::{MigrationMode, MigrationOptions};
 use last_amended_migrate::registry::register_artifact_paths;
 use last_amended_migrate::rotate::rotate_changelog;
 use last_amended_migrate::{migrate_file, parse_frontmatter};
@@ -129,7 +129,8 @@ fn test_BC_10_13_001_SEC003_migrate_file_write_leaves_no_tmp_sibling() {
     );
     let path = common::write_file(dir.path(), "STORY-INDEX.md", &content);
 
-    let report = migrate_file(&path, MigrationMode::Apply).expect("migrate_file must succeed");
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("migrate_file must succeed");
     assert!(report.mutated);
 
     let leftover_tmp: Vec<_> = std::fs::read_dir(dir.path())

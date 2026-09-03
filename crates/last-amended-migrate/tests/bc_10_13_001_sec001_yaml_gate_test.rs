@@ -19,7 +19,7 @@
 
 mod common;
 
-use last_amended_migrate::migrate::MigrationMode;
+use last_amended_migrate::migrate::{MigrationMode, MigrationOptions};
 use last_amended_migrate::migrate_file;
 use last_amended_migrate::yaml_guard::{
     validate_changelog_sequence_yaml, validate_frontmatter_yaml,
@@ -124,13 +124,13 @@ fn test_BC_10_13_001_SEC001_migrate_file_escapes_previously_unescaped_version_fi
     );
     let path = common::write_file(dir.path(), "BC-INDEX.md", &content);
 
-    let report = migrate_file(&path, MigrationMode::Apply).expect(
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default()).expect(
         "migrate_file must succeed: the version-field escaping fix + pre-write \
          gate together must produce a valid, written file rather than erroring \
          out or writing corrupt YAML",
     );
     assert!(report.mutated);
-    assert_eq!(report.entries_recovered, 1);
+    assert_eq!(report.entries_relocated, 1);
 
     let after = common::read_file(&path);
     let parsed = common::strict_yaml_parse(&after)

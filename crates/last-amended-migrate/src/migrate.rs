@@ -28,6 +28,29 @@ pub enum MigrationMode {
     Apply,
 }
 
+/// Caller-supplied opt-ins for `migrate_file`/`migrate_all` (S-15.03
+/// pr-reviewer B2-R).
+///
+/// `Default` (`discard_state_chain: false`) is the safe, refuse-by-default
+/// behavior: a PC7 full-recovery split on `STATE.md` returns
+/// `Err(MigrateError::StateChainDiscardNotAuthorized)` instead of silently
+/// dropping the chained historical entries. This gate applies in BOTH
+/// `MigrationMode::Check` and `MigrationMode::Apply` — a `--check` run
+/// that would need the opt-in reports the same refusal (a nonzero exit is
+/// the correct signal that operator action is required), rather than
+/// pretending the drift is clean.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct MigrationOptions {
+    /// Explicit acknowledgment that PC7's full-recovery split on
+    /// `STATE.md` will PERMANENTLY DISCARD every chained historical entry
+    /// (STATE.md has no `changelog:` destination — PC1/ADR-049 Decision 4 —
+    /// and PC6 forbids writing them into the frozen
+    /// `STATE-amendment-history.md` sidecar). Has no effect on the other 4
+    /// governed files, whose chained entries are always relocated into
+    /// `changelog:` regardless of this flag.
+    pub discard_state_chain: bool,
+}
+
 /// Per-file migration outcome.
 #[derive(Debug, Clone)]
 pub struct FileMigrationReport {
@@ -39,8 +62,22 @@ pub struct FileMigrationReport {
     /// an inline `[Prior: ...]` chain into `changelog:`, newest-first.
     /// `0` when `eligibility` is `Eligibility::CurrentEntryOnly` (no split
     /// occurred — including the PC4/PC7-step-8 no-op re-run case after a
-    /// prior split has already resolved the chain).
-    pub entries_recovered: usize,
+    /// prior split has already resolved the chain), and always `0` for
+    /// `STATE.md` (whose recovered entries, if any, are counted in
+    /// `entries_discarded` instead — `STATE.md` has no `changelog:`
+    /// destination to relocate them into; see PC1/ADR-049 Decision 4).
+    pub entries_relocated: usize,
+    /// Count of historical entries PC7's full-recovery split found on
+    /// `STATE.md` and PERMANENTLY DISCARDED (not relocated anywhere) after
+    /// the caller explicitly authorized this via
+    /// `MigrationOptions::discard_state_chain` (S-15.03 pr-reviewer B2-R).
+    /// Always `0` for the other 4 governed files, and always `0` on
+    /// `STATE.md` too unless the opt-in was given — without it,
+    /// `migrate_file` returns
+    /// `Err(MigrateError::StateChainDiscardNotAuthorized)` instead of
+    /// producing a report at all, so this field is never a silent way to
+    /// observe data loss after the fact.
+    pub entries_discarded: usize,
     /// `true` iff any of the above resulted in an actual file write —
     /// always `false` in `MigrationMode::Check`, by definition.
     pub mutated: bool,
@@ -164,7 +201,19 @@ fn parse_dated_entry(entry_text: &str) -> (String, Option<String>, String) {
 /// frontmatter (a corrupted/unparseable frontmatter delimiter surfaces as
 /// `Err(MigrateError::FrontmatterParse)` from the `parse_frontmatter` step
 /// instead).
-pub fn migrate_file(path: &Path, mode: MigrationMode) -> Result<FileMigrationReport, MigrateError> {
+///
+/// Returns `Err(MigrateError::StateChainDiscardNotAuthorized)` — before any
+/// read result is mutated or written — when `path` is `STATE.md`, a PC7
+/// full-recovery split would be required, and `options.discard_state_chain`
+/// is `false` (S-15.03 pr-reviewer B2-R). This check runs identically in
+/// both `MigrationMode::Check` and `MigrationMode::Apply` — a `--check` run
+/// against such a file is itself the drift signal an operator needs to see,
+/// not a case to silently report clean.
+pub fn migrate_file(
+    path: &Path,
+    mode: MigrationMode,
+    options: MigrationOptions,
+) -> Result<FileMigrationReport, MigrateError> {
     use crate::changelog::{ChangelogItem, ensure_changelog_field, prepend_changelog_item};
     use crate::eligibility::{CHAIN_MARKER, check_eligibility};
     use crate::escape::{escape_value, needs_escaping};
@@ -181,7 +230,8 @@ pub fn migrate_file(path: &Path, mode: MigrationMode) -> Result<FileMigrationRep
     let eligibility = check_eligibility(&raw_last_amended);
     let is_state = is_state_file(path);
     let mut escape_fixed = false;
-    let mut entries_recovered = 0usize;
+    let mut entries_relocated = 0usize;
+    let mut entries_discarded = 0usize;
 
     let changelog_mutation = match eligibility {
         Eligibility::CurrentEntryOnly => {
@@ -204,6 +254,27 @@ pub fn migrate_file(path: &Path, mode: MigrationMode) -> Result<FileMigrationRep
             let current_text_raw = &raw_last_amended[..marker_pos];
             let tail = &raw_last_amended[marker_pos..];
 
+            // PC7 step 3/4: parse every historical entry out of the tail —
+            // done BEFORE any mutation of `doc` so the S-15.03 pr-reviewer
+            // B2-R gate below can refuse cleanly, leaving `path` completely
+            // untouched, when STATE.md's chain isn't explicitly authorized
+            // for discard.
+            let entries = split_tail_entries(tail);
+
+            // S-15.03 pr-reviewer B2-R: STATE.md has no changelog:
+            // destination for these entries (PC1/ADR-049 Decision 4) and
+            // PC6 forbids writing them into the frozen
+            // STATE-amendment-history.md sidecar — so, unlike the other 4
+            // files, performing the split here means PERMANENTLY
+            // DISCARDING the chained text. Refuse by default; require
+            // explicit opt-in before this destructive drop proceeds.
+            if is_state && !options.discard_state_chain {
+                return Err(MigrateError::StateChainDiscardNotAuthorized {
+                    path: path.to_path_buf(),
+                    entries: entries.len(),
+                });
+            }
+
             // PC7 step 2: current entry stays in last_amended, PC3-escaped.
             let mut new_current = current_text_raw.to_string();
             if needs_escaping(&new_current) {
@@ -212,19 +283,22 @@ pub fn migrate_file(path: &Path, mode: MigrationMode) -> Result<FileMigrationRep
             }
             set_last_amended(&mut doc, &new_current)?;
 
-            // PC7 step 3/4: parse every historical entry out of the tail.
-            let entries = split_tail_entries(tail);
-            entries_recovered = entries.len();
-
             // PC7 step 6: bootstrap changelog: first if absent (no-op for
             // STATE.md, which never gains one — EC-006).
             let mutation = ensure_changelog_field(&mut doc, is_state);
 
             // PC7 step 5: prepend newest-of-priors-first. EC-006: STATE.md
-            // has no changelog: sequence to relocate into — the recovered
-            // count is still reported, but the entries themselves are
-            // superseded by STATE.md's own body-level Decisions Log rather
-            // than written anywhere by this tool.
+            // has no changelog: sequence to relocate into — by this point
+            // the caller has explicitly authorized the drop (the gate
+            // above already returned early otherwise), so the entries are
+            // counted as DISCARDED (not relocated) and are superseded by
+            // STATE.md's own body-level Decisions Log rather than written
+            // anywhere by this tool.
+            if is_state {
+                entries_discarded = entries.len();
+            } else {
+                entries_relocated = entries.len();
+            }
             if !is_state {
                 for entry_text in entries.iter().rev() {
                     let (mut date, version, mut summary) = parse_dated_entry(entry_text);
@@ -292,20 +366,30 @@ pub fn migrate_file(path: &Path, mode: MigrationMode) -> Result<FileMigrationRep
         eligibility,
         changelog_mutation,
         escape_fixed,
-        entries_recovered,
+        entries_relocated,
+        entries_discarded,
         mutated,
     })
 }
 
 /// Run the migration subcommand against all 5 `TARGET_FILES`, resolved
 /// relative to `factory_root` (BC-10.13.001 §Description, Precondition 1).
+///
+/// `options.discard_state_chain` applies uniformly to whichever of the 5
+/// files turns out to be `STATE.md` — if `STATE.md` carries an
+/// unauthorized-to-discard PC7 chain, this whole aggregate call returns
+/// `Err(MigrateError::StateChainDiscardNotAuthorized)` (via `?`) after
+/// already having applied any mutations the earlier files in `TARGET_FILES`
+/// needed; `STATE.md` itself is always processed last and is therefore
+/// never partially written when this happens.
 pub fn migrate_all(
     factory_root: &Path,
     mode: MigrationMode,
+    options: MigrationOptions,
 ) -> Result<MigrationReport, MigrateError> {
     let mut files = Vec::with_capacity(TARGET_FILES.len());
     for rel in TARGET_FILES {
-        files.push(migrate_file(&factory_root.join(rel), mode)?);
+        files.push(migrate_file(&factory_root.join(rel), mode, options)?);
     }
     Ok(MigrationReport { files })
 }

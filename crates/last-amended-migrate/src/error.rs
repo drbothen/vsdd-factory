@@ -56,4 +56,29 @@ pub enum MigrateError {
     /// I/O against its content occurs.
     #[error("{path} is not an allowed target for this operation: {reason}")]
     PathNotAllowed { path: PathBuf, reason: String },
+
+    /// PC7's full-recovery split found an inline `[Prior: ...]` chain on
+    /// `STATE.md`, but the caller did not pass the explicit opt-in
+    /// (`--discard-state-chain` at the CLI boundary /
+    /// `MigrationOptions::discard_state_chain` in the library API) required
+    /// to authorize dropping the chained entries (S-15.03 pr-reviewer B2-R;
+    /// BC-10.13.001 EC-006). Unlike the other 4 governed files, `STATE.md`
+    /// has no `changelog:` field to relocate the entries into (PC1/ADR-049
+    /// Decision 4), and PC6 forbids writing them into the frozen
+    /// `STATE-amendment-history.md` sidecar — so proceeding would
+    /// permanently discard the chained text with no real destination. The
+    /// tool refuses by default rather than silently dropping it; no file is
+    /// mutated when this variant is returned.
+    #[error(
+        "{path} has {entries} chained historical entry/entries in last_amended \
+        that would be PERMANENTLY DISCARDED by a PC7 full-recovery split — \
+        STATE.md has no changelog: field to relocate them into (ADR-049 \
+        Decision 4), and this tool never writes to the frozen \
+        STATE-amendment-history.md sidecar (BC-10.13.001 PC6). Re-run with \
+        --discard-state-chain (CLI) or MigrationOptions::discard_state_chain \
+        = true (library) to explicitly acknowledge the loss and proceed, or \
+        first manually copy the chained entries' substantive text into \
+        STATE.md's own '## Decisions Log' section before splitting."
+    )]
+    StateChainDiscardNotAuthorized { path: PathBuf, entries: usize },
 }

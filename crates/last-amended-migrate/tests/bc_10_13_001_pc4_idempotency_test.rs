@@ -19,7 +19,7 @@
 mod common;
 
 use last_amended_migrate::eligibility::Eligibility;
-use last_amended_migrate::migrate::MigrationMode;
+use last_amended_migrate::migrate::{MigrationMode, MigrationOptions};
 use last_amended_migrate::migrate_file;
 
 /// PC4 / EC-001: a fixture that is ALREADY fully compliant (has
@@ -40,7 +40,8 @@ fn test_BC_10_13_001_EC001_already_compliant_file_is_noop_on_first_run() {
     let path = common::write_file(dir.path(), "ARCH-INDEX.md", &content);
     let before = common::read_file(&path);
 
-    let report = migrate_file(&path, MigrationMode::Apply).expect("migrate_file must succeed");
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("migrate_file must succeed");
 
     assert!(!report.mutated, "EC-001: already-compliant file is a no-op");
     assert!(!report.escape_fixed);
@@ -65,11 +66,13 @@ fn test_BC_10_13_001_PC4_second_run_after_changelog_bootstrap_is_noop() {
     );
     let path = common::write_file(dir.path(), "STORY-INDEX.md", &content);
 
-    let first = migrate_file(&path, MigrationMode::Apply).expect("first migrate_file call");
+    let first = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("first migrate_file call");
     assert!(first.mutated, "first run adds changelog: — a real mutation");
     let after_first = common::read_file(&path);
 
-    let second = migrate_file(&path, MigrationMode::Apply).expect("second migrate_file call");
+    let second = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("second migrate_file call");
     assert!(
         !second.mutated,
         "PC4: second run must be a verified-clean no-op (0 mutations)"
@@ -99,11 +102,13 @@ fn test_BC_10_13_001_invariant2_check_mode_after_apply_reports_zero_mutations() 
     );
     let path = common::write_file(dir.path(), "STORY-INDEX.md", &content);
 
-    let apply = migrate_file(&path, MigrationMode::Apply).expect("apply call");
+    let apply =
+        migrate_file(&path, MigrationMode::Apply, MigrationOptions::default()).expect("apply call");
     assert!(apply.mutated);
     let after_apply = common::read_file(&path);
 
-    let check = migrate_file(&path, MigrationMode::Check).expect("check call");
+    let check =
+        migrate_file(&path, MigrationMode::Check, MigrationOptions::default()).expect("check call");
     assert!(
         !check.mutated,
         "Check mode after a real Apply must report zero mutations (already compliant)"
@@ -141,21 +146,22 @@ fn test_BC_10_13_001_PC7_rerun_after_split_is_idempotent_noop() {
     );
     let path = common::write_file(dir.path(), "STORY-INDEX.md", &content);
 
-    let first = migrate_file(&path, MigrationMode::Apply).expect("first migrate_file call (split)");
+    let first = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("first migrate_file call (split)");
     assert!(
         first.mutated,
         "the first run performs the PC7 split — a real mutation"
     );
     assert_eq!(first.eligibility, Eligibility::PriorChainSplit);
-    assert_eq!(first.entries_recovered, 2);
+    assert_eq!(first.entries_relocated, 2);
     let after_first = common::read_file(&path);
     assert!(
         !after_first.contains(" [Prior:"),
         "fixture sanity: split resolved the chain"
     );
 
-    let second =
-        migrate_file(&path, MigrationMode::Apply).expect("second migrate_file call (post-split)");
+    let second = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("second migrate_file call (post-split)");
     assert!(
         !second.mutated,
         "PC7 step 8 / PC4: re-running migration against the now-slim, \
@@ -168,7 +174,7 @@ fn test_BC_10_13_001_PC7_rerun_after_split_is_idempotent_noop() {
          no chain left to re-detect"
     );
     assert_eq!(
-        second.entries_recovered, 0,
+        second.entries_relocated, 0,
         "the second run must not report any entries recovered — it does not \
          re-split"
     );

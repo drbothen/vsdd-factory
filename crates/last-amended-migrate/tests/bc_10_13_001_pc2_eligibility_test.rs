@@ -25,7 +25,7 @@ mod common;
 use std::time::Instant;
 
 use last_amended_migrate::eligibility::{Eligibility, check_eligibility};
-use last_amended_migrate::migrate::MigrationMode;
+use last_amended_migrate::migrate::{MigrationMode, MigrationOptions};
 use last_amended_migrate::{MigrateError, migrate_file};
 
 const QUOTE: char = '\u{22}';
@@ -124,7 +124,8 @@ fn test_BC_10_13_001_PC7_migrate_file_splits_chain_and_bootstraps_changelog() {
     let path = common::write_file(dir.path(), "STORY-INDEX.md", &content);
     assert!(!content.contains("changelog:"), "fixture sanity");
 
-    let report = migrate_file(&path, MigrationMode::Apply).expect("migrate_file must succeed");
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("migrate_file must succeed");
 
     assert!(report.mutated, "a PC7 split is a mutation");
     assert_eq!(
@@ -133,7 +134,7 @@ fn test_BC_10_13_001_PC7_migrate_file_splits_chain_and_bootstraps_changelog() {
         "report must record that a split occurred"
     );
     assert_eq!(
-        report.entries_recovered, 2,
+        report.entries_relocated, 2,
         "both chained entries must be recovered"
     );
 
@@ -203,11 +204,12 @@ fn test_BC_10_13_001_PC7_migrate_file_splits_chain_with_d1144_escape_combo() {
          entry must break strict YAML parsing before the split+escape fix"
     );
 
-    let report = migrate_file(&path, MigrationMode::Apply).expect("migrate_file must succeed");
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("migrate_file must succeed");
 
     assert!(report.mutated);
     assert_eq!(report.eligibility, Eligibility::PriorChainSplit);
-    assert_eq!(report.entries_recovered, 1);
+    assert_eq!(report.entries_relocated, 1);
     assert!(
         report.escape_fixed,
         "the split-relocated entry's embedded quote must be escaped per PC3"
@@ -263,7 +265,7 @@ fn test_BC_10_13_001_EC009_mega_line_file_migrate_file_splits_within_bounded_tim
     assert!(before.len() > 323_499, "fixture sanity");
 
     let start = Instant::now();
-    let result = migrate_file(&path, MigrationMode::Apply);
+    let result = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default());
     let elapsed = start.elapsed();
 
     let report = result.expect("mega-line chain must SPLIT successfully, not error");
@@ -273,7 +275,7 @@ fn test_BC_10_13_001_EC009_mega_line_file_migrate_file_splits_within_bounded_tim
     );
     assert_eq!(report.eligibility, Eligibility::PriorChainSplit);
     assert_eq!(
-        report.entries_recovered, 1,
+        report.entries_relocated, 1,
         "the mega-line fixture carries exactly 1 historical entry"
     );
     assert!(
@@ -312,7 +314,7 @@ changelog:\n  - date: 2026-08-01\n    change: \"an older entry\"\n\
     let path = common::write_file(dir.path(), "BC-INDEX.md", &content);
     let before = common::read_file(&path);
 
-    let result = migrate_file(&path, MigrationMode::Apply);
+    let result = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default());
 
     match result {
         Err(MigrateError::NotEligible { path: err_path }) => {
@@ -352,7 +354,7 @@ last_amended: \"2026-09-02 (v4.430) — some entry text\"\n\
     let path = common::write_file(dir.path(), "STORY-INDEX.md", &content);
     let before = common::read_file(&path);
 
-    let result = migrate_file(&path, MigrationMode::Apply);
+    let result = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default());
 
     assert!(
         matches!(result, Err(MigrateError::FrontmatterParse { .. })),
@@ -390,7 +392,8 @@ fn test_BC_10_13_001_PC7_pointer_note_fixture_is_pc4_noop_not_split() {
     let path = common::write_file(dir.path(), "BC-INDEX.md", &content);
     let before = common::read_file(&path);
 
-    let report = migrate_file(&path, MigrationMode::Apply).expect("migrate_file must succeed");
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("migrate_file must succeed");
 
     assert!(
         !report.mutated,
@@ -398,7 +401,7 @@ fn test_BC_10_13_001_PC7_pointer_note_fixture_is_pc4_noop_not_split() {
          PC7 split"
     );
     assert_eq!(
-        report.entries_recovered, 0,
+        report.entries_relocated, 0,
         "no entries may be 'recovered' from a pointer note"
     );
     assert_eq!(report.eligibility, Eligibility::CurrentEntryOnly);

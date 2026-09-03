@@ -43,5 +43,8 @@ pub mod yaml_guard;
 pub use cli::{Cli, Command, run};
 pub use error::MigrateError;
 pub use frontmatter::{FrontmatterDoc, parse_frontmatter};
-pub use migrate::{FileMigrationReport, MigrationMode, MigrationReport, migrate_all, migrate_file};
+pub use migrate::{
+    FileMigrationReport, MigrationMode, MigrationOptions, MigrationReport, migrate_all,
+    migrate_file,
+};
 pub use rotate::{RotationReport, rotate_changelog};

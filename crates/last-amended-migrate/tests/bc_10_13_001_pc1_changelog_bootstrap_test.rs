@@ -24,7 +24,7 @@ use std::path::PathBuf;
 
 use last_amended_migrate::changelog::{ChangelogMutation, ensure_changelog_field};
 use last_amended_migrate::frontmatter::FrontmatterDoc;
-use last_amended_migrate::migrate::MigrationMode;
+use last_amended_migrate::migrate::{MigrationMode, MigrationOptions};
 use last_amended_migrate::migrate_file;
 
 fn doc_without_changelog(raw: &str) -> FrontmatterDoc {
@@ -144,7 +144,8 @@ fn test_BC_10_13_001_EC002_migrate_file_bootstraps_story_index_changelog() {
     let path = common::write_file(dir.path(), "STORY-INDEX.md", &content);
     assert!(!content.contains("changelog:"), "fixture sanity");
 
-    let report = migrate_file(&path, MigrationMode::Apply).expect("migrate_file must succeed");
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("migrate_file must succeed");
 
     assert!(report.mutated, "adding changelog: is a mutation");
     assert!(!report.escape_fixed, "no D-1144 defect in this fixture");
@@ -179,7 +180,8 @@ fn test_BC_10_13_001_PC1_migrate_file_reuses_existing_changelog_no_duplicate() {
     );
     let path = common::write_file(dir.path(), "VP-INDEX.md", &content);
 
-    let report = migrate_file(&path, MigrationMode::Apply).expect("migrate_file must succeed");
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("migrate_file must succeed");
 
     assert!(
         !report.mutated,

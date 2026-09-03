@@ -182,14 +182,45 @@ POL-3/TD-FACTORY-HOOK-BYPASS-001 exception request. Run:
 cargo run -p last-amended-migrate -- migrate --path <file>
 ```
 
-The tool splits the chain in place — the current entry stays in
-`last_amended`; every chained historical entry is relocated into
+For `STORY-INDEX.md`, `BC-INDEX.md`, `ARCH-INDEX.md`, and `VP-INDEX.md`,
+the tool splits the chain in place — the current entry stays in
+`last_amended`; every chained historical entry is RELOCATED into
 `changelog:` as a new item, newest-first, verbatim (D-1144-escaped) — via
 a bounded/streaming linear scan safe on arbitrarily long input, up to and
 beyond the D-1149 323K-350K-char calibration scale. Invoking the tool is
 the sanctioned path for this failure class going forward; no human
 POL-3 exception is needed or should be requested (BC-10.13.001 PC7,
 S-15.03 AC-010).
+
+**`STATE.md` is different (S-15.03 pr-reviewer B2-R) — the tool REFUSES
+by default, it does not silently relocate.** `STATE.md` has no
+`changelog:` field to relocate the chained entries into (ADR-049
+Decision 4), and PC6 forbids this tool from ever writing them into the
+frozen `STATE-amendment-history.md` sidecar — so, unlike the other 4
+files, there is no real destination for the recovered text. Running
+`migrate --path <file>` (or a bare `migrate`) against a `STATE.md` chain
+therefore returns `Err(MigrateError::StateChainDiscardNotAuthorized)` and
+mutates nothing (in both `--check` and apply mode) UNLESS you explicitly
+pass `--discard-state-chain`:
+
+```bash
+# Refuses (default) — leaves STATE.md untouched, prints the entry count
+# that would be lost and where to look instead:
+cargo run -p last-amended-migrate -- migrate --path .factory/STATE.md
+
+# Explicit, human-directed acknowledgment that the chained entries will be
+# PERMANENTLY DISCARDED (only after confirming their substantive content
+# already lives in STATE.md's own body-level ## Decisions Log — see the
+# Write-Path Discipline above):
+cargo run -p last-amended-migrate -- migrate --path .factory/STATE.md --discard-state-chain
+```
+
+Before passing `--discard-state-chain`, manually verify the chained
+entries' substantive text is already recorded in `## Decisions Log`/
+`## Phase Progress` — a surviving inline chain is itself evidence this
+discipline may not have been followed for those specific entries, so do
+not assume it without checking. If it is NOT already recorded, copy the
+substantive content into the body first, THEN run the discard.
 
 ## Apply changes — mandatory renew step
 

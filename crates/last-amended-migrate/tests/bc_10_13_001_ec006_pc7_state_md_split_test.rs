@@ -1,6 +1,6 @@
 // Test files use .expect()/.unwrap()/.panic!() for failure reporting.
 #![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
-//! S-15.03 pr-reviewer B2 — PC7 full-recovery split on `STATE.md`.
+//! S-15.03 pr-reviewer B2 / B2-R — PC7 full-recovery split on `STATE.md`.
 //!
 //! # Why this file exists
 //!
@@ -12,59 +12,126 @@
 //! directly — it never constructs a chained `last_amended` and never calls
 //! `migrate_file`. This file closes that gap.
 //!
-//! # Is dropping the recovered entries a bug?
+//! # B2 -> B2-R: from "spec-conformant, no bug" to "refuse-by-default"
 //!
-//! A pr-reviewer flagged `migrate_file`'s STATE.md branch (`src/migrate.rs`,
-//! the `if !is_state { ... }` guard around `prepend_changelog_item`) as
-//! "silent data loss": `entries_recovered` is reported nonzero while the
-//! actual chained-entry text is never written anywhere.
+//! Cycle-1's B2 fix (this file's original form) investigated a pr-reviewer
+//! finding that `migrate_file`'s STATE.md branch silently discarded
+//! `entries_recovered` chained-entry text and concluded this was
+//! spec-conformant per BC-10.13.001 EC-006 ("superseded by its body-level
+//! Decisions Log"), not a defect.
 //!
-//! This is investigated and found to be **spec-conformant, not a defect**.
-//! BC-10.13.001 v1.1's own EC-006 row is unambiguous and was human-ratified
-//! specifically for this case:
+//! Cycle-2's fresh-eyes pr-reviewer (B2-R) narrowed that call: the
+//! `state-burst` skill and `state-manager` agent prompt carve STATE.md out
+//! of their *write-path* discipline, but their *Recovery* sections did not
+//! — both claimed unconditionally that `migrate --path <file>` "relocates
+//! every chained historical entry into `changelog:`", which is false for
+//! STATE.md (the entries are dropped, not relocated), and (b) the very
+//! presence of a surviving inline chain is itself evidence the "write the
+//! substantive content into the body Decisions Log first" discipline was
+//! NOT followed for those entries, so "the content already lives
+//! elsewhere" cannot be assumed.
 //!
-//! > "Migration invoked against `STATE.md`" -> "`changelog:` field is never
-//! > added (PC1); only `last_amended` current-entry-only confirmation or
-//! > full-recovery split (PC2/PC7) and, if applicable, D-1144 escape
-//! > remediation (PC3) apply. `STATE.md` has no `changelog:` field, so a
-//! > chain found on `STATE.md` is split with the recovered entries
-//! > SUPERSEDED BY ITS BODY-LEVEL DECISIONS LOG rather than relocated to a
-//! > frontmatter sequence, per ADR-049 Decision 4 / BC-5.45.001 PC3."
+//! The fix implemented here (not just a docs patch) is BC-10.13.001 v1.2's
+//! `MigrationOptions::discard_state_chain` opt-in gate: `migrate_file`
+//! (and `migrate_all`) now REFUSE — via
+//! `Err(MigrateError::StateChainDiscardNotAuthorized)`, no file mutated —
+//! to perform a PC7 split on STATE.md unless the caller explicitly
+//! authorizes the resulting data loss. Writing the recovered entries into
+//! the registered `STATE-amendment-history.md` sidecar instead (the other
+//! candidate design) was rejected: BC-10.13.001 PC6 unconditionally forbids
+//! this tool from ever writing to any of the 5 frozen sidecars, "including
+//! [via] the PC7 full-recovery split path" — implementing that would
+//! require amending PC6 itself, out of scope for this fix.
 //!
-//! The `state-burst` skill's own `last_amended` Write-Path Discipline
-//! (`plugins/vsdd-factory/skills/state-burst/SKILL.md` §3) independently
-//! documents the same design: every burst that touches one of the 5
-//! D-1149 files is required to write STATE.md's substantive history into
-//! its body-level `## Decisions Log`/`## Phase Progress` sections AS PART
-//! OF THE SAME BURST, separately from `last_amended` — so by the time a
-//! chain ever accumulates on STATE.md's `last_amended` (a discipline
-//! violation `migrate --path` exists to recover from, not a source of
-//! otherwise-unrecorded information), the substantive content of every
-//! chained entry already lives in the body. `entries_recovered` on
-//! STATE.md therefore means "N redundant chained summaries were stripped
-//! from the frontmatter scalar," not "N entries were preserved into a new
-//! location" — a materially different, but still accurate and
-//! non-misleading, semantics from the other 4 files' `entries_recovered`.
-//!
-//! This test suite pins that exact spec-mandated behavior end-to-end via
-//! `migrate_file`, so any future change to this behavior shows up as a
-//! test failure requiring a deliberate, reviewed decision — not a silent
-//! regression.
+//! This test suite pins BOTH halves of the new behavior end-to-end via
+//! `migrate_file`: the refuse-by-default path (no flag) and the
+//! explicit-opt-in path (`discard_state_chain: true`), so any future
+//! change to either shows up as a test failure requiring a deliberate,
+//! reviewed decision — not a silent regression in either direction.
 
 mod common;
 
+use last_amended_migrate::MigrateError;
 use last_amended_migrate::eligibility::Eligibility;
-use last_amended_migrate::migrate::MigrationMode;
+use last_amended_migrate::migrate::{MigrationMode, MigrationOptions};
 use last_amended_migrate::migrate_file;
 
-/// BC-10.13.001 EC-006 + PC7: a `STATE.md`-shaped fixture whose
-/// `last_amended` carries a 2-entry inline `[Prior: ...]` chain is SPLIT
-/// (not refused, not errored) — `last_amended` becomes current-entry-only,
-/// `entries_recovered` accurately reports 2, `changelog:` is NEVER added,
-/// and the file remains valid, parseable, and structurally sound
-/// (its `# STATE` body content is untouched).
+/// S-15.03 pr-reviewer B2-R: by DEFAULT (no opt-in), `migrate_file` REFUSES
+/// a PC7 split on a `STATE.md` fixture carrying a 2-entry inline
+/// `[Prior: ...]` chain — it returns
+/// `Err(MigrateError::StateChainDiscardNotAuthorized)`, names the file and
+/// the correct entry count in the error, and leaves the file byte-for-byte
+/// untouched (no silent drop, no partial write).
 #[test]
-fn test_BC_10_13_001_EC006_migrate_file_splits_state_md_chain_without_adding_changelog() {
+fn test_BC_10_13_001_EC006_B2R_migrate_file_refuses_state_md_split_without_opt_in() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let last_amended = common::chain_last_amended(
+        ("2026-09-02", "v9.65", "current burst summary text"),
+        &[
+            ("2026-09-01", "v9.64", "previous burst summary text"),
+            ("2026-08-31", "v9.63", "earlier burst summary text"),
+        ],
+    );
+    let content = common::frontmatter_file(
+        "pipeline-state",
+        "9.65",
+        &last_amended,
+        None,
+        "# Pipeline State: vsdd-factory\n\n## Decisions Log\n\n\
+         (this fixture deliberately does NOT pre-populate the Decisions Log \
+         with the chained entries' text, to prove the refusal does not \
+         depend on that assumption)\n",
+    );
+    let path = common::write_file(dir.path(), "STATE.md", &content);
+    let before = common::read_file(&path);
+
+    let result = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default());
+
+    match result {
+        Err(MigrateError::StateChainDiscardNotAuthorized {
+            path: err_path,
+            entries,
+        }) => {
+            assert_eq!(err_path, path, "error must name the refused file");
+            assert_eq!(
+                entries, 2,
+                "error must accurately report how many entries would be discarded"
+            );
+        }
+        other => panic!(
+            "expected Err(MigrateError::StateChainDiscardNotAuthorized {{ .. }}), got {other:?}"
+        ),
+    }
+
+    let after = common::read_file(&path);
+    assert_eq!(
+        before, after,
+        "refusal must leave STATE.md completely untouched — no partial write"
+    );
+
+    // `--check` mode must refuse identically — a check run against this
+    // file IS the drift signal an operator needs to see, not a case to
+    // silently report clean.
+    let check_result = migrate_file(&path, MigrationMode::Check, MigrationOptions::default());
+    assert!(
+        matches!(
+            check_result,
+            Err(MigrateError::StateChainDiscardNotAuthorized { .. })
+        ),
+        "MigrationMode::Check must refuse identically to Apply, not report a \
+         false-clean result: {check_result:?}"
+    );
+}
+
+/// S-15.03 pr-reviewer B2-R: WITH explicit opt-in
+/// (`MigrationOptions::discard_state_chain = true`), `migrate_file` SPLITS
+/// a `STATE.md` chain exactly as B2's original investigation described —
+/// `last_amended` becomes current-entry-only, `changelog:` is NEVER added,
+/// and the file remains valid — but now reports the dropped count via
+/// `entries_discarded` (truthful naming — B2-R's `entries_recovered`
+/// rename), not the misleading `entries_recovered` name B2 used.
+#[test]
+fn test_BC_10_13_001_EC006_B2R_migrate_file_splits_state_md_chain_with_explicit_opt_in() {
     let dir = tempfile::tempdir().expect("tempdir");
     let last_amended = common::chain_last_amended(
         ("2026-09-02", "v9.65", "current burst summary text"),
@@ -85,18 +152,26 @@ fn test_BC_10_13_001_EC006_migrate_file_splits_state_md_chain_without_adding_cha
     let path = common::write_file(dir.path(), "STATE.md", &content);
     assert!(!content.contains("changelog:"), "fixture sanity");
 
-    let report = migrate_file(&path, MigrationMode::Apply)
-        .expect("migrate_file must SPLIT a STATE.md chain, not error");
+    let options = MigrationOptions {
+        discard_state_chain: true,
+    };
+    let report = migrate_file(&path, MigrationMode::Apply, options)
+        .expect("migrate_file must SPLIT a STATE.md chain when explicitly authorized");
 
     assert!(report.mutated, "a PC7 split is a mutation");
     assert_eq!(report.eligibility, Eligibility::PriorChainSplit);
     assert_eq!(
-        report.entries_recovered, 2,
-        "both chained entries must be counted as recovered — this reports \
-         how many redundant chained summaries were stripped from \
-         last_amended, per EC-006 (the substantive content is understood \
-         to already live in STATE.md's own body, not relocated by this \
-         tool)"
+        report.entries_discarded, 2,
+        "both chained entries must be counted as DISCARDED (not relocated) \
+         — this reports how many redundant chained summaries were dropped \
+         from last_amended after explicit operator opt-in, per EC-006 (the \
+         substantive content is understood to already live in STATE.md's \
+         own body, not relocated by this tool)"
+    );
+    assert_eq!(
+        report.entries_relocated, 0,
+        "STATE.md must never report entries_relocated nonzero — it has no \
+         changelog: destination to relocate into"
     );
 
     let after = common::read_file(&path);
@@ -145,11 +220,11 @@ fn test_BC_10_13_001_EC006_migrate_file_splits_state_md_chain_without_adding_cha
 }
 
 /// BC-10.13.001 EC-006 / Invariant 3 at STATE.md's own D-1149 calibration
-/// scale: a mega-line STATE.md chain still splits successfully (not merely
-/// refuses), staying consistent with the EC-009 mega-line vector already
-/// proven for the other 4 files.
+/// scale, WITH explicit opt-in: a mega-line STATE.md chain still splits
+/// successfully (not merely refuses), staying consistent with the EC-009
+/// mega-line vector already proven for the other 4 files.
 #[test]
-fn test_BC_10_13_001_EC006_migrate_file_splits_mega_line_state_md_chain() {
+fn test_BC_10_13_001_EC006_B2R_migrate_file_splits_mega_line_state_md_chain_with_opt_in() {
     let dir = tempfile::tempdir().expect("tempdir");
     let last_amended = common::mega_line_prior_chain(350_000);
     let content = common::frontmatter_file(
@@ -163,12 +238,16 @@ fn test_BC_10_13_001_EC006_migrate_file_splits_mega_line_state_md_chain() {
     let before = common::read_file(&path);
     assert!(before.len() > 323_499, "fixture sanity");
 
-    let report = migrate_file(&path, MigrationMode::Apply)
-        .expect("mega-line STATE.md chain must SPLIT successfully, not error");
+    let options = MigrationOptions {
+        discard_state_chain: true,
+    };
+    let report = migrate_file(&path, MigrationMode::Apply, options)
+        .expect("mega-line STATE.md chain must SPLIT successfully when authorized");
 
     assert!(report.mutated);
     assert_eq!(report.eligibility, Eligibility::PriorChainSplit);
-    assert_eq!(report.entries_recovered, 1);
+    assert_eq!(report.entries_discarded, 1);
+    assert_eq!(report.entries_relocated, 0);
 
     let after = common::read_file(&path);
     assert_ne!(before, after, "the mega-line STATE.md file must be mutated");
@@ -176,5 +255,39 @@ fn test_BC_10_13_001_EC006_migrate_file_splits_mega_line_state_md_chain() {
     assert!(
         !after.contains("changelog:"),
         "STATE.md must never gain changelog: even at mega-line scale: {after:?}"
+    );
+}
+
+/// BC-10.13.001 EC-006 / Invariant 3 at STATE.md's own D-1149 calibration
+/// scale, WITHOUT opt-in: refusal must also hold — and must be cheap — at
+/// mega-line scale, not just for small chains (the gate check runs before
+/// any escaping/writing work, so refusing is itself bounded-cost).
+#[test]
+fn test_BC_10_13_001_EC006_B2R_migrate_file_refuses_mega_line_state_md_chain_without_opt_in() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let last_amended = common::mega_line_prior_chain(350_000);
+    let content = common::frontmatter_file(
+        "pipeline-state",
+        "9.65",
+        &last_amended,
+        None,
+        "# Pipeline State: vsdd-factory\n\n## Decisions Log\n",
+    );
+    let path = common::write_file(dir.path(), "STATE.md", &content);
+    let before = common::read_file(&path);
+
+    let result = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default());
+    match result {
+        Err(MigrateError::StateChainDiscardNotAuthorized { entries, .. }) => {
+            assert_eq!(entries, 1);
+        }
+        other => panic!(
+            "expected Err(MigrateError::StateChainDiscardNotAuthorized {{ .. }}), got {other:?}"
+        ),
+    }
+    let after = common::read_file(&path);
+    assert_eq!(
+        before, after,
+        "refusal must leave the mega-line file untouched"
     );
 }

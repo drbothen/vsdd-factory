@@ -46,6 +46,20 @@ pub enum Command {
         /// `--check`).
         #[arg(long)]
         check: bool,
+        /// Explicit opt-in required before a PC7 full-recovery split is
+        /// allowed to PERMANENTLY DISCARD `STATE.md`'s chained historical
+        /// `last_amended` entries (S-15.03 pr-reviewer B2-R; BC-10.13.001
+        /// EC-006). `STATE.md` has no `changelog:` field to relocate them
+        /// into, and this tool never writes to the frozen
+        /// `STATE-amendment-history.md` sidecar (PC6) — so, unlike the
+        /// other 4 governed files, this operation has no real destination
+        /// for the recovered text. Without this flag, encountering such a
+        /// chain on `STATE.md` refuses with a clear error instead of
+        /// silently dropping the entries. Has no effect on the other 4
+        /// files, which always relocate their chained entries into
+        /// `changelog:` regardless of this flag.
+        #[arg(long)]
+        discard_state_chain: bool,
     },
     /// Rotate an over-long `changelog:` sequence into a per-cycle archive
     /// (PC5, PC6).
@@ -99,6 +113,7 @@ pub fn run(cli: Cli) -> ExitCode {
             path,
             factory_root,
             check,
+            discard_state_chain,
         } => {
             // S-15.03 SEC-002 (CWE-73): allowlist the user-supplied
             // single-file `--path` BEFORE any read/write of its content.
@@ -116,22 +131,26 @@ pub fn run(cli: Cli) -> ExitCode {
             } else {
                 MigrationMode::Apply
             };
+            let options = crate::migrate::MigrationOptions {
+                discard_state_chain,
+            };
             let result = match path {
-                Some(p) => migrate_file(&p, mode).map(|report| MigrationReport {
+                Some(p) => migrate_file(&p, mode, options).map(|report| MigrationReport {
                     files: vec![report],
                 }),
-                None => migrate_all(&factory_root, mode),
+                None => migrate_all(&factory_root, mode, options),
             };
             match result {
                 Ok(report) => {
                     for file in &report.files {
                         println!(
-                            "{}: eligibility={:?} changelog={:?} escape_fixed={} entries_recovered={} mutated={}",
+                            "{}: eligibility={:?} changelog={:?} escape_fixed={} entries_relocated={} entries_discarded={} mutated={}",
                             file.path.display(),
                             file.eligibility,
                             file.changelog_mutation,
                             file.escape_fixed,
-                            file.entries_recovered,
+                            file.entries_relocated,
+                            file.entries_discarded,
                             file.mutated
                         );
                     }
