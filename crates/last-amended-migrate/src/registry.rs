@@ -47,8 +47,13 @@ pub fn register_artifact_paths(registry_path: &Path) -> Result<(), MigrateError>
         content.push_str(&entry);
     }
 
-    std::fs::write(registry_path, content).map_err(|source| MigrateError::RegistryWrite {
-        reason: format!("writing {}: {source}", registry_path.display()),
+    // S-15.03 SEC-003: write-then-rename, not a direct in-place write —
+    // avoids a TOCTOU window where a concurrent reader/writer of the
+    // registry could observe a partially-written file.
+    crate::atomic_write::write_atomic(registry_path, &content).map_err(|e| {
+        MigrateError::RegistryWrite {
+            reason: format!("writing {}: {e}", registry_path.display()),
+        }
     })?;
     Ok(())
 }

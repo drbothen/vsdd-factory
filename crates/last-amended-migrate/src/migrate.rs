@@ -281,10 +281,10 @@ pub fn migrate_file(path: &Path, mode: MigrationMode) -> Result<FileMigrationRep
         // this tool is about to write parses under strict YAML `safe_load`
         // BEFORE writing it — never let a corrupt file reach disk.
         crate::yaml_guard::validate_frontmatter_yaml(path, &doc.raw)?;
-        std::fs::write(path, &doc.raw).map_err(|source| MigrateError::Io {
-            path: path.to_path_buf(),
-            source,
-        })?;
+        // S-15.03 SEC-003: write-then-rename, not a direct in-place write —
+        // avoids a TOCTOU window where a concurrent reader could observe a
+        // partially-written file.
+        crate::atomic_write::write_atomic(path, &doc.raw)?;
     }
 
     Ok(FileMigrationReport {

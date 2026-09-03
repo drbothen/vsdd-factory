@@ -27,6 +27,7 @@
 //! `wasm32-wasip1` target (contrast with every crate under
 //! `crates/hook-plugins/`).
 
+pub mod atomic_write;
 pub mod changelog;
 pub mod cli;
 pub mod eligibility;
