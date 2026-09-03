@@ -13,7 +13,7 @@
 
 mod common;
 
-use last_amended_migrate::escape::{escape_value, needs_escaping};
+use last_amended_migrate::escape::{escape_raw_value, escape_value, needs_escaping};
 use last_amended_migrate::migrate::{MigrationMode, MigrationOptions};
 use last_amended_migrate::migrate_file;
 
@@ -488,6 +488,55 @@ fn test_BC_10_13_001_S1_escape_value_backslash_round_trips_strict_yaml() {
         parsed.last_amended, raw,
         "the YAML-decoded value must round-trip to the exact original text \
          (semantics preserved, only the raw encoding changed)"
+    );
+}
+
+/// `escape_value`'s lookahead ambiguity (documented as a "known limitation"
+/// on prose text, where it is harmless in practice) becomes a genuine
+/// silent-corruption bug when misapplied to a raw filesystem path: a `\`
+/// immediately followed by `r` (as in a literal path component like
+/// `runner`) is indistinguishable from an already-escaped `\r` (carriage
+/// return) token, so `escape_value` would leave it untouched — and strict
+/// YAML `safe_load` would then decode that untouched `\r` as an actual CR
+/// byte, silently corrupting the path rather than raising a parse error.
+/// `rotate.rs` was fixed (S-15.03 windows-x64 CI failure, this fix) to use
+/// `escape_raw_value` instead of `escape_value` for exactly this reason —
+/// this test proves `escape_raw_value` has no such collision: every literal
+/// backslash is unconditionally escaped, with no "already escaped" lookahead
+/// to be ambiguous about.
+#[test]
+fn test_BC_10_13_001_S1_escape_raw_value_no_lookahead_collision_on_windows_style_path() {
+    let raw = r"C:\Users\runner\.factory\cycles\test-cycle\BC-INDEX-changelog-archive.md";
+
+    // Fixture sanity: this exact input is the case `escape_value` gets
+    // wrong, because `\r` in `\runner` matches its recognized-escape-token
+    // lookahead and is left as a literal (unescaped) `\r` — which is itself
+    // syntactically valid inside a YAML double-quoted scalar (it's just the
+    // WRONG two bytes: a real CR byte instead of backslash+`r`), so
+    // `yaml_guard`'s strict-parse gate cannot catch this class of defect.
+    let wrongly_escaped = escape_value(raw);
+    let wrapped_wrong = format!("last_amended: \"{wrongly_escaped}\"\n");
+    let decoded_wrong: common::MinimalFrontmatter = serde_norway::from_str(&wrapped_wrong)
+        .expect("fixture sanity: escape_value's output must still parse as valid YAML");
+    let decoded_wrong_value = decoded_wrong.last_amended.clone();
+    assert_ne!(
+        decoded_wrong_value, raw,
+        "fixture sanity: escape_value must NOT round-trip this path correctly \
+         (that is the exact defect escape_raw_value fixes) — decoded: {decoded_wrong_value:?}"
+    );
+
+    let escaped = escape_raw_value(raw);
+    let wrapped = format!("changelog_archive: \"{escaped}\"\n");
+    let value: serde_norway::Value = serde_norway::from_str(&wrapped)
+        .expect("escape_raw_value's output must parse as valid strict YAML");
+    let decoded = value
+        .get("changelog_archive")
+        .and_then(serde_norway::Value::as_str)
+        .expect("changelog_archive key must be present and a string");
+    assert_eq!(
+        decoded, raw,
+        "escape_raw_value must round-trip the exact original path, every \
+         backslash included, with no lookahead-collision corruption"
     );
 }
 

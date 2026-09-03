@@ -75,36 +75,51 @@ fn test_BC_10_13_001_SEC003_write_atomic_target_is_never_truncated_or_mixed() {
 }
 
 /// `write_atomic` never touches the real target at all when the temp-file
-/// write itself fails (e.g. target's parent directory is unwritable) — the
-/// original content survives untouched, proving the temp-then-rename
-/// ordering (never "truncate target, then write") is what actually runs.
+/// write itself fails — the original content survives untouched, proving the
+/// temp-then-rename ordering (never "truncate target, then write") is what
+/// actually runs.
+///
+/// # S-15.03 Windows-CI portability fix
+///
+/// This test previously forced the temp-file write to fail by marking the
+/// target's parent DIRECTORY read-only via `Permissions::set_readonly(true)`.
+/// That construction is Unix-only in practice: Windows' `FILE_ATTRIBUTE_READONLY`
+/// bit on a *directory* does not block creating files inside it (it is a
+/// legacy Explorer "customized folder" flag, not an access-control
+/// restriction — only the read-only bit on a *file* is enforced by Windows
+/// I/O) — so on Windows this write would silently SUCCEED, `result.is_err()`
+/// would fail, and the whole test would fail there, unrelated to any bug in
+/// `write_atomic` itself.
+///
+/// Replaced with a construction that is deterministic and enforced
+/// identically by every OS's filesystem API: pre-create a DIRECTORY at
+/// exactly the path `write_atomic` will itself compute for its sibling temp
+/// file (`.{basename}.tmp-{pid}`, in the same parent directory as `path`).
+/// The test and `write_atomic` run in the same process, so `std::process::id()`
+/// is identical between them, making this path fully deterministic to
+/// reproduce here without reaching into `write_atomic`'s internals. Opening a
+/// path that already exists as a directory for writing as a plain file
+/// deterministically fails everywhere (Unix: `EISDIR`; Windows:
+/// `ERROR_ACCESS_DENIED`), so `File::create(&tmp_path)` inside
+/// `write_atomic` is guaranteed to fail on every platform, exercising the
+/// exact "temp-file write itself fails" branch this test targets.
 #[test]
 fn test_BC_10_13_001_SEC003_write_atomic_leaves_target_untouched_on_temp_write_failure() {
     let dir = tempfile::tempdir().expect("tempdir");
-    let subdir = dir.path().join("readonly");
-    std::fs::create_dir(&subdir).expect("create subdir");
-    let path = subdir.join("target.md");
-    std::fs::write(&path, "original\n").expect("seed target");
+    let path = common::write_file(dir.path(), "target.md", "original\n");
 
-    let mut perms = std::fs::metadata(&subdir).expect("metadata").permissions();
-    perms.set_readonly(true);
-    std::fs::set_permissions(&subdir, perms.clone())
-        .expect("make directory read-only for this test");
+    let blocking_tmp_dir = dir
+        .path()
+        .join(format!(".target.md.tmp-{}", std::process::id()));
+    std::fs::create_dir(&blocking_tmp_dir)
+        .expect("pre-create a directory at write_atomic's own deterministic temp-file path");
 
     let result = write_atomic(&path, "attempted overwrite\n");
 
-    // Restore permissions before any assertion can panic and skip cleanup.
-    // World-writable is fine here: `subdir` is a throwaway tempdir that
-    // `dir`'s `Drop` removes immediately after this test function returns,
-    // not a real target this tool would ever operate on.
-    let mut restored = perms;
-    #[allow(clippy::permissions_set_readonly_false)]
-    restored.set_readonly(false);
-    std::fs::set_permissions(&subdir, restored).expect("restore permissions");
-
     assert!(
         result.is_err(),
-        "writing into a read-only directory must fail, not silently succeed"
+        "write_atomic must fail when its own sibling temp-file path is \
+         already occupied by a directory, not silently succeed: {result:?}"
     );
     assert_eq!(
         common::read_file(&path),

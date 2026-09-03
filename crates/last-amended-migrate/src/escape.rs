@@ -136,6 +136,54 @@ fn recognized_escape_len(chars: &[char], pos: usize) -> Option<usize> {
     }
 }
 
+/// Unconditionally escape every literal `"`, every raw C0 control character,
+/// and every literal backslash in `value` for embedding in a YAML
+/// double-quoted scalar — with NO "is this already an escape token"
+/// lookahead/detection (unlike [`escape_value`]).
+///
+/// # Why this exists separately from `escape_value`
+///
+/// `escape_value`'s lookahead treats a `\` immediately followed by `n`, `r`,
+/// `t`, `x` + 2 hex digits, `\`, or `"` as an ALREADY-ESCAPED token and
+/// copies it verbatim — this is required for [`escape_value`]'s idempotency
+/// contract (PC4): re-running migration against a file this tool already
+/// wrote must not double-escape already-escaped prose it round-trips through
+/// `last_amended`/`changelog:` text fields.
+///
+/// A raw filesystem path is a fundamentally different kind of input: it is
+/// ALWAYS freshly computed (via `Path::join`, never read back out of a
+/// previously-escaped YAML value), so there is no idempotency concern and
+/// therefore no legitimate reason to treat any backslash in it as
+/// "already escaped." Reusing `escape_value`'s ambiguous heuristic on a raw
+/// path is actively wrong: on Windows (and on any path whose `\`-separated
+/// component happens to start with `n`/`r`/`t`/`x`+hex/`\`/`"` — e.g. a
+/// cycle name like `test-cycle`, or a username like `runner`), the
+/// separator's `\` would collide with one of those lookahead tokens and be
+/// left unescaped, so `serde_norway`'s strict `safe_load` would silently
+/// decode it back as an actual tab/newline/CR byte instead of the original
+/// `\`+letter two-character sequence — a silent path-corruption defect, not
+/// a parse failure (since `\t`/`\n`/`\r` are all syntactically legal
+/// escapes, `yaml_guard`'s pre-write gate would never catch this).
+///
+/// `rotate.rs` is this function's only real caller, embedding
+/// `archive_path.display()` — a raw, always-fresh path — into the
+/// `changelog_archive:` pointer line.
+pub fn escape_raw_value(value: &str) -> String {
+    let mut result = String::with_capacity(value.len() + 8);
+    for c in value.chars() {
+        match c {
+            '\\' => result.push_str("\\\\"),
+            '"' => result.push_str("\\\""),
+            '\n' => result.push_str("\\n"),
+            '\r' => result.push_str("\\r"),
+            '\t' => result.push_str("\\t"),
+            c if is_raw_control(c) => result.push_str(&format!("\\x{:02X}", c as u32)),
+            c => result.push(c),
+        }
+    }
+    result
+}
+
 /// Escape every unescaped literal `"` in `value` to `\"`, every raw C0
 /// control character to its standard YAML double-quoted-scalar escape
 /// sequence (`\n`, `\r`, `\t` for those three; `\xHH` for any other control

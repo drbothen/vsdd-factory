@@ -94,12 +94,24 @@ fn rewrite_source_after_rotation(
     // `\`-separated components, which are illegal unescaped inside a YAML
     // double-quoted scalar (YAML permits `\` only immediately before `\`,
     // `"`, `n`, `r`, `t`, or `xHH`) — route it through this crate's own
-    // `escape::escape_value` (the same S1 backslash-escaping fix) before
-    // embedding it, exactly as every other value this tool writes into a
-    // quoted scalar already is.
+    // `escape::escape_raw_value` before embedding it.
+    //
+    // Deliberately NOT `escape::escape_value`: that function's "is this
+    // already an escaped token" lookahead is designed for idempotently
+    // re-processing prose text this tool may have escaped on a PRIOR run
+    // (PC4) — a raw, always-freshly-computed filesystem path has no such
+    // concern, and reusing that heuristic here is actively wrong. A `\`
+    // path separator immediately followed by a component that starts with
+    // `n`/`r`/`t`/`x`+hex/`\`/`"` (e.g. a cycle name like `test-cycle`, or a
+    // username like `runner` — thoroughly ordinary on Windows) would
+    // collide with `escape_value`'s recognized-escape-token lookahead and be
+    // left unescaped, so strict YAML `safe_load` would silently decode it
+    // back as an actual tab/newline/CR byte instead of the literal
+    // backslash — silent path corruption, not a parse failure (see
+    // `escape_raw_value`'s doc comment for the full analysis).
     let pointer_line = format!(
         "changelog_archive: \"{}\"\n",
-        crate::escape::escape_value(&archive_path.display().to_string())
+        crate::escape::escape_raw_value(&archive_path.display().to_string())
     );
 
     let mut result = String::with_capacity(raw.len() + pointer_line.len());
