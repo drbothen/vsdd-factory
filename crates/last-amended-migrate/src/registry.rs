@@ -14,24 +14,41 @@ use std::path::Path;
 /// Read-only with respect to the 5 sidecar files themselves (BC-10.13.001
 /// PC6) — this function only appends entries to the registry config; it
 /// never opens a sidecar file for writing. Idempotent: re-running against an
-/// already-registered set of paths must not add duplicate entries.
-///
-/// # BC-5.38.001 compliance
-///
-/// NON-TRIVIAL: performs I/O and must de-duplicate against existing
-/// registry entries. Body is `todo!()`.
-///
-/// # Self-Check (BC-5.38.005 invariant 1)
-///
-/// "If I include this real implementation, will the test for this function
-/// pass trivially without any implementer work?" — No; the
-/// de-duplication/idempotency requirement is exactly what a re-run test
-/// will probe. Therefore: `todo!()`.
+/// already-registered set of paths must not add duplicate entries (each
+/// sidecar's basename is checked against the current content before its
+/// entry is appended).
 pub fn register_artifact_paths(registry_path: &Path) -> Result<(), MigrateError> {
-    todo!(
-        "append this tool's own output paths + the 5 \
-        *-amendment-history.md sidecar paths to {registry_path:?}, \
-        de-duplicating against existing entries (S-15.03 AC-006; \
-        BC-10.13.001 §Architecture Anchors, PC6)"
-    )
+    let mut content =
+        std::fs::read_to_string(registry_path).map_err(|source| MigrateError::Io {
+            path: registry_path.to_path_buf(),
+            source,
+        })?;
+
+    for rel in crate::migrate::TARGET_FILES {
+        let rel_path = Path::new(rel);
+        let stem = rel_path.file_stem().and_then(|s| s.to_str()).unwrap_or(rel);
+        let basename = format!("{stem}-amendment-history.md");
+        if content.contains(&basename) {
+            // Idempotent: already registered from a prior run.
+            continue;
+        }
+        let sidecar_dir = rel_path
+            .parent()
+            .map(|p| p.to_string_lossy().replace('\\', "/"))
+            .filter(|p| !p.is_empty());
+        let canonical_path_pattern = match sidecar_dir {
+            Some(dir) => format!(".factory/{dir}/{basename}"),
+            None => format!(".factory/{basename}"),
+        };
+        let artifact_type = format!("{}-amendment-history", stem.to_lowercase());
+        let entry = format!(
+            "\n  - artifact_type: {artifact_type}\n    canonical_path_pattern: \"{canonical_path_pattern}\"\n    description: Frozen pre-migration D-1149 amendment-history sidecar for {rel} (BC-10.13.001 PC6 — read-only; last-amended-migrate never mutates it)\n    enforcement_level: block\n"
+        );
+        content.push_str(&entry);
+    }
+
+    std::fs::write(registry_path, content).map_err(|source| MigrateError::RegistryWrite {
+        reason: format!("writing {}: {source}", registry_path.display()),
+    })?;
+    Ok(())
 }

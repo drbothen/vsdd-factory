@@ -35,50 +35,80 @@ pub enum ChangelogMutation {
 
 /// Ensure `doc` carries a `changelog:` top-level sequence, adding an empty
 /// one only when absent and the file is not `STATE.md` (BC-10.13.001 PC1).
-///
-/// # BC-5.38.001 compliance
-///
-/// NON-TRIVIAL: branches on `is_state_file` and on whether `changelog:`
-/// already exists, and must produce a byte-precise frontmatter mutation.
-/// Body is `todo!()`.
-///
-/// # Self-Check (BC-5.38.005 invariant 1)
-///
-/// "If I include this real implementation, will the test for this function
-/// pass trivially without any implementer work?" — No; the 3-way outcome
-/// (Added / AlreadyPresent / SkippedStateFile) requires real branching that
-/// this story's canonical test vectors specifically target. Therefore:
-/// `todo!()`.
 pub fn ensure_changelog_field(doc: &mut FrontmatterDoc, is_state_file: bool) -> ChangelogMutation {
-    todo!(
-        "add an empty changelog: sequence to {:?} if absent and not \
-        STATE.md; return SkippedStateFile when is_state_file={is_state_file}; \
-        return AlreadyPresent when doc.changelog_present is already true \
-        (BC-10.13.001 PC1, EC-002, EC-006)",
-        doc.path
-    )
+    if is_state_file {
+        return ChangelogMutation::SkippedStateFile;
+    }
+    if doc.changelog_present {
+        return ChangelogMutation::AlreadyPresent;
+    }
+    match crate::frontmatter::frontmatter_bounds(&doc.raw) {
+        Ok((_, fm_end)) => {
+            // `fm_end` is the byte offset of the `\n` that both terminates the
+            // last existing frontmatter field's line AND immediately precedes
+            // the closing `---` fence — insert the new key right after that
+            // newline (i.e. before `---`), so it lands as the final
+            // frontmatter field, on its own line.
+            doc.raw.insert_str(fm_end + 1, "changelog:\n");
+        }
+        Err(_) => {
+            // Defensive fallback for an already-malformed `raw` (should not
+            // occur on a `FrontmatterDoc` that parsed successfully or was
+            // hand-constructed with a valid fence, per this crate's own
+            // invariant) — never silently drop the mutation.
+            doc.raw.push_str("\nchangelog:\n");
+        }
+    }
+    doc.changelog_present = true;
+    ChangelogMutation::Added
 }
 
 /// Prepend exactly one newly displaced entry to `doc`'s `changelog:`
 /// sequence, newest-first, leaving every existing item byte-for-byte
 /// untouched (BC-5.45.001 PC2 discipline that this tool's own migration
 /// output must satisfy per BC-10.13.001 Invariant 4).
-///
-/// # BC-5.38.001 compliance
-///
-/// NON-TRIVIAL: performs a frontmatter mutation and must guarantee
-/// byte-for-byte preservation of unrelated content. Body is `todo!()`.
-///
-/// # Self-Check (BC-5.38.005 invariant 1)
-///
-/// "If I include this real implementation, will the test for this function
-/// pass trivially without any implementer work?" — No; the
-/// byte-preservation guarantee is exactly what a fixture-based test will
-/// probe. Therefore: `todo!()`.
 pub fn prepend_changelog_item(doc: &mut FrontmatterDoc, item: ChangelogItem) {
-    todo!(
-        "prepend {item:?} as the new first changelog: item in {:?}, leaving \
-        all existing items untouched (BC-5.45.001 PC2)",
-        doc.path
-    )
+    let block = render_item_block(&item);
+    const KEY_MARKER: &str = "changelog:\n";
+    match doc.raw.find(KEY_MARKER) {
+        Some(pos) => {
+            doc.raw.insert_str(pos + KEY_MARKER.len(), &block);
+        }
+        None => {
+            // Defensive fallback: `changelog:` key not yet present at all.
+            // `ensure_changelog_field` should always have run first in this
+            // crate's own orchestration, but an external caller of this
+            // public primitive may not have — bootstrap the key in the same
+            // write rather than silently dropping the item.
+            match crate::frontmatter::frontmatter_bounds(&doc.raw) {
+                Ok((_, fm_end)) => {
+                    let mut combined = String::with_capacity(KEY_MARKER.len() + block.len());
+                    combined.push_str(KEY_MARKER);
+                    combined.push_str(&block);
+                    doc.raw.insert_str(fm_end + 1, &combined);
+                }
+                Err(_) => {
+                    doc.raw.push_str("\nchangelog:\n");
+                    doc.raw.push_str(&block);
+                }
+            }
+        }
+    }
+    doc.changelog_items_raw.insert(0, block);
+    doc.changelog_present = true;
+}
+
+/// Render one `ChangelogItem` as its raw YAML sequence-item block text —
+/// `"  - date: ...\n    version: \"...\"\n    change: \"...\"\n"` (the
+/// `version:` line omitted when `item.version` is `None`). `item.summary` is
+/// written verbatim: callers are responsible for having already passed it
+/// through `crate::escape::escape_value` (see `ChangelogItem::summary`'s own
+/// doc comment).
+fn render_item_block(item: &ChangelogItem) -> String {
+    let mut block = format!("  - date: {}\n", item.date);
+    if let Some(version) = &item.version {
+        block.push_str(&format!("    version: \"{version}\"\n"));
+    }
+    block.push_str(&format!("    change: \"{}\"\n", item.summary));
+    block
 }

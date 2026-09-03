@@ -6,8 +6,7 @@
 //! Precondition 1).
 //!
 //! All real dispatch/orchestration logic lives in
-//! `last_amended_migrate::cli::run` (a `todo!()` stub at this stage — see
-//! BC-5.38.001 Red Gate discipline); this file is intentionally a
+//! `last_amended_migrate::cli::run`; this file is intentionally a
 //! single-line delegate.
 //!
 //! # WIRING-EXEMPT (BC-5.38.003)

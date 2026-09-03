@@ -27,6 +27,15 @@ pub enum Eligibility {
     PriorChainSplit,
 }
 
+/// The literal marker this crate splits on: a space followed by `[Prior:`
+/// (colon immediately after `Prior`). Deliberately distinct from the
+/// non-growing `[Prior history → ...]` pointer note, whose text after
+/// `[Prior` is ` history`, not `:` — so a plain substring search for this
+/// exact marker naturally never matches the pointer note. Shared with
+/// `crate::migrate`'s PC7 split orchestration so both modules agree on
+/// exactly one definition of "the marker".
+pub(crate) const CHAIN_MARKER: &str = " [Prior:";
+
 /// Classify `last_amended_raw` per BC-10.13.001 v1.1 Precondition 2 / EC-003
 /// / PC7.
 ///
@@ -36,26 +45,16 @@ pub enum Eligibility {
 /// this classifier and then dispatches to the split path when the result is
 /// `Eligibility::PriorChainSplit`.
 ///
-/// # BC-5.38.001 compliance
-///
-/// NON-TRIVIAL: requires scanning for a `[Prior: ` marker while tolerating
-/// arbitrarily long input (Invariant 3) without misclassifying a literal `[`
-/// that is not the prior-chain marker, and without confusing it with the
-/// unrelated, non-growing `[Prior history → ...]` pointer note. Body is
-/// `todo!()`.
-///
-/// # Self-Check (BC-5.38.005 invariant 1)
-///
-/// "If I include this real implementation, will the test for this function
-/// pass trivially without any implementer work?" — No; correctly
-/// distinguishing the two states, including on the 323,499-char calibration
-/// fixture, requires real scanning logic. Therefore: `todo!()`.
+/// A single `str::contains` call — Rust's standard library substring search
+/// (Two-Way algorithm) runs in linear time in both the haystack and needle
+/// length with no quadratic-backtracking worst case, and this is a SINGLE
+/// call (not looped/re-scanned), so this stays bounded even against the
+/// D-1149 323,499-char (and up to ~350K-char) calibration ceiling (Invariant
+/// 3).
 pub fn check_eligibility(last_amended_raw: &str) -> Eligibility {
-    todo!(
-        "classify {} bytes of last_amended as CurrentEntryOnly vs \
-        PriorChainSplit by scanning for a `[Prior: ` marker without \
-        backtracking, distinguishing it from a `[Prior history \u{2192} ...]` \
-        pointer note (BC-10.13.001 v1.1 PC2 / PC7 / EC-003)",
-        last_amended_raw.len()
-    )
+    if last_amended_raw.contains(CHAIN_MARKER) {
+        Eligibility::PriorChainSplit
+    } else {
+        Eligibility::CurrentEntryOnly
+    }
 }

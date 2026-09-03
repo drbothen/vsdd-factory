@@ -69,27 +69,91 @@ pub enum Command {
 /// `Err` to a non-zero `ExitCode`.
 ///
 /// `MigrationMode::Check`/`MigrationMode::Apply` are derived here from each
-/// subcommand's `check: bool` flag.
+/// subcommand's `check: bool` flag. This is the ONLY branching point in the
+/// CLI surface — `main()` itself is a single-line delegate to
+/// `run(Cli::parse())`.
 ///
-/// # BC-5.38.001 compliance
-///
-/// NON-TRIVIAL: branches on `cli.command` and on `Result` success/failure,
-/// and performs I/O (stdout/stderr printing) — every dispatch/print/exit-
-/// code decision this function makes is real behavior a test can observe.
-/// Body is `todo!()`. This is the ONLY branching point in the CLI surface —
-/// `main()` itself is a single-line delegate to `run(Cli::parse())`, which
-/// is WIRING-EXEMPT (see the stub commit report's WIRING-EXEMPT table).
-///
-/// # Self-Check (BC-5.38.005 invariant 1)
-///
-/// "If I include this real implementation, will the test for this function
-/// pass trivially without any implementer work?" — No; correct subcommand
-/// routing, report formatting, and exit-code mapping are exactly what a CLI
-/// integration test would probe. Therefore: `todo!()`.
+/// `--check` never exits nonzero on success and never writes; it exits
+/// nonzero exactly when the underlying report would have recorded a
+/// mutation (drift found), mirroring `compute-input-hash`'s own `--check`
+/// convention.
 pub fn run(cli: Cli) -> ExitCode {
-    todo!(
-        "dispatch {cli:?} to migrate_file/migrate_all or rotate_changelog, \
-        print the resulting report, and map Err to ExitCode::FAILURE \
-        (BC-10.13.001 subcommand routing)"
-    )
+    use crate::migrate::{MigrationMode, MigrationReport, migrate_all, migrate_file};
+    use crate::rotate::rotate_changelog;
+
+    match cli.command {
+        Command::Migrate {
+            path,
+            factory_root,
+            check,
+        } => {
+            let mode = if check {
+                MigrationMode::Check
+            } else {
+                MigrationMode::Apply
+            };
+            let result = match path {
+                Some(p) => migrate_file(&p, mode).map(|report| MigrationReport {
+                    files: vec![report],
+                }),
+                None => migrate_all(&factory_root, mode),
+            };
+            match result {
+                Ok(report) => {
+                    for file in &report.files {
+                        println!(
+                            "{}: eligibility={:?} changelog={:?} escape_fixed={} entries_recovered={} mutated={}",
+                            file.path.display(),
+                            file.eligibility,
+                            file.changelog_mutation,
+                            file.escape_fixed,
+                            file.entries_recovered,
+                            file.mutated
+                        );
+                    }
+                    if mode == MigrationMode::Check && report.total_mutated() > 0 {
+                        ExitCode::FAILURE
+                    } else {
+                        ExitCode::SUCCESS
+                    }
+                }
+                Err(e) => {
+                    eprintln!("last-amended-migrate: error: {e}");
+                    ExitCode::FAILURE
+                }
+            }
+        }
+        Command::Rotate {
+            path,
+            cycle_name,
+            keep_recent,
+            check,
+        } => {
+            let mode = if check {
+                MigrationMode::Check
+            } else {
+                MigrationMode::Apply
+            };
+            match rotate_changelog(&path, &cycle_name, keep_recent, mode) {
+                Ok(report) => {
+                    println!(
+                        "{}: items_moved={} archive={} mutated={}",
+                        report.path.display(),
+                        report.items_moved,
+                        report.archive_path.display(),
+                        report.mutated
+                    );
+                    if mode == MigrationMode::Check && report.items_moved > 0 {
+                        ExitCode::FAILURE
+                    } else {
+                        ExitCode::SUCCESS
+                    }
+                }
+                Err(e) => {
+                    eprintln!("last-amended-migrate: error: {e}");
+                    ExitCode::FAILURE
+                }
+            }
+        }
+    }
 }
