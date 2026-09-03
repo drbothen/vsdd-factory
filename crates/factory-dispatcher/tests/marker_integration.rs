@@ -256,6 +256,20 @@ async fn test_BC_1_18_003_named_plugin_pass_clears_marker_via_execute_tiers() {
         "F-P10-002 / BC-3.08.001 Event 9: emit_marker_cleared(REVALIDATED) must emit a \
          non-empty distinct 'timestamp' field; field is absent or empty"
     );
+
+    // O-P18-002 / VP-108 PC1: `marker.cleared(REVALIDATED)` MUST carry the marker's OWN
+    // `trace_id` (set via `write_test_marker` above as "trace-integ-test"), not the
+    // current dispatch's `dispatcher_trace_id`. `emit_marker_cleared` deliberately links
+    // back to the original `plugin.indeterminate` event via `marker_fields.trace_id` —
+    // this assertion directly exercises that provenance link at the execute_tiers
+    // REVALIDATED callsite.
+    assert_eq!(
+        cleared_events[0]["trace_id"], "trace-integ-test",
+        "VP-108 PC1: marker.cleared(REVALIDATED) trace_id must equal the marker's own \
+         trace_id ('trace-integ-test'), linking the clear event back to the marker it \
+         cleared — got {:?}",
+        cleared_events[0]["trace_id"]
+    );
 }
 
 /// MEDIUM-1 (PreToolUse-does-not-clear complement): PASS from the NAMED plugin on a
