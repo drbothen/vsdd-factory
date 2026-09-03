@@ -422,3 +422,128 @@ fn test_BC_10_13_001_PC3_migrate_file_clean_entry_never_flags_escape_fixed() {
     assert!(!report.escape_fixed);
     assert!(!report.mutated, "fully compliant file is a verified no-op");
 }
+
+// ── S-15.03 pr-reviewer S1: literal-backslash escaping ──────────────────────
+//
+// Before this fix, `needs_escaping`/`escape_value` never inspected a literal
+// backslash at all — a value containing one (e.g. a Windows-style path, or a
+// bare trailing `\`) would fail `yaml_guard`'s strict `safe_load` pre-write
+// gate with no way for this tool to remediate it. This is a genuine
+// functional gap (the tool refuses to touch such a file, fail-closed, rather
+// than corrupting it), not merely a cosmetic omission.
+
+#[test]
+fn test_BC_10_13_001_S1_needs_escaping_true_on_windows_style_path_backslash() {
+    let raw = r"fixed the C:\Users\config\config.yaml path bug";
+    assert!(
+        needs_escaping(raw),
+        "a literal backslash not part of a recognized escape token must be flagged: {raw:?}"
+    );
+}
+
+#[test]
+fn test_BC_10_13_001_S1_needs_escaping_true_on_bare_trailing_backslash() {
+    let raw = "value ending in a trailing backslash: \\";
+    assert!(
+        needs_escaping(raw),
+        "a bare backslash with nothing recognized after it (including at \
+         the very end of the value) must be flagged: {raw:?}"
+    );
+}
+
+#[test]
+fn test_BC_10_13_001_S1_escape_value_doubles_windows_style_path_backslashes() {
+    let raw = r"C:\Users\config";
+    let escaped = escape_value(raw);
+    assert!(
+        !needs_escaping(&escaped),
+        "escaped output must contain no un-recognized backslashes left: {escaped:?}"
+    );
+    assert_eq!(escaped, r"C:\\Users\\config");
+}
+
+#[test]
+fn test_BC_10_13_001_S1_escape_value_backslash_is_idempotent() {
+    let raw = r"C:\Users\config and a trailing \";
+    let once = escape_value(raw);
+    let twice = escape_value(&once);
+    assert_eq!(
+        once, twice,
+        "escaping an already-escaped literal-backslash value must be a no-op (PC4)"
+    );
+}
+
+/// S1's own acceptance bar: a real backslash (Windows-style path AND a
+/// literal trailing `\`) must now round-trip through STRICT YAML instead of
+/// being rejected by `yaml_guard` — proving the fix closes the functional
+/// gap, not just that the two pure functions agree with each other.
+#[test]
+fn test_BC_10_13_001_S1_escape_value_backslash_round_trips_strict_yaml() {
+    let raw = r"backed up to C:\Users\config\ before the fix";
+    let escaped = escape_value(raw);
+    let wrapped = format!("last_amended: \"{escaped}\"\n");
+    let parsed: common::MinimalFrontmatter = serde_norway::from_str(&wrapped)
+        .expect("escaped literal backslashes must parse as valid strict YAML");
+    assert_eq!(
+        parsed.last_amended, raw,
+        "the YAML-decoded value must round-trip to the exact original text \
+         (semantics preserved, only the raw encoding changed)"
+    );
+}
+
+/// End-to-end: a `last_amended` value carrying a literal Windows-style path
+/// backslash is escaped by `migrate_file`, and the resulting file parses
+/// cleanly under strict YAML with the original text preserved exactly.
+///
+/// PRE-fix sanity: such a fixture would previously have made `migrate_file`
+/// (in `Apply` mode) fail `yaml_guard`'s pre-write gate with
+/// `Err(MigrateError::InvalidYamlProduced)` — this fixture's raw value
+/// contains a `\U` sequence, an invalid YAML escape lead, and the tool's
+/// pre-S1 `escape_value` never touched the backslash, so the invalid
+/// sequence would have been written verbatim into `doc.raw` and caught (not
+/// silently corrupted, but also never fixed) by the gate. This test proves
+/// the gap is closed: `migrate_file` now succeeds and produces valid,
+/// round-trippable output.
+#[test]
+fn test_BC_10_13_001_S1_migrate_file_fixes_windows_style_path_backslash_defect() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let last_amended =
+        r"2026-09-02 (v5.43) — recovered state from C:\Users\config\backup".to_string();
+    let content = common::frontmatter_file(
+        "behavioral-contract-index",
+        "5.43",
+        &last_amended,
+        Some(&[common::changelog_item_block("2026-08-01", "an older entry")]),
+        "# Fixture BC-INDEX\n",
+    );
+    let path = common::write_file(dir.path(), "BC-INDEX.md", &content);
+
+    // Fixture sanity: PRE-fix, the raw content as written is NOT valid
+    // strict YAML — `\U` is not a value-following-backslash this tool ever
+    // emits, and Rust's `\u{5c}U` here is a literal backslash-then-U, which
+    // strict `safe_load` rejects outright (an 8-hex-digit `\U` escape is
+    // expected but "sers\\config..." isn't hex).
+    assert!(
+        common::strict_yaml_parse(&content).is_err(),
+        "fixture sanity: the raw pre-fix content must NOT already be valid \
+         strict YAML — that is the exact defect this fix closes"
+    );
+
+    let report = migrate_file(&path, MigrationMode::Apply, MigrationOptions::default())
+        .expect("migrate_file must succeed — S1's whole point is that this no longer fails");
+
+    assert!(
+        report.escape_fixed,
+        "the backslash defect must be flagged as fixed"
+    );
+    assert!(report.mutated);
+
+    let after = common::read_file(&path);
+    let parsed = common::strict_yaml_parse(&after)
+        .expect("post-fix content must parse cleanly under strict YAML safe_load");
+    assert_eq!(
+        parsed.last_amended, last_amended,
+        "the decoded value must round-trip to the exact original text: {:?}",
+        parsed.last_amended
+    );
+}
