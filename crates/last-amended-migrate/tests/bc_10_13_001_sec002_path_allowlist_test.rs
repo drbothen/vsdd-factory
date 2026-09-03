@@ -226,9 +226,12 @@ fn test_BC_10_13_001_SEC002_rotate_path_outside_factory_ancestor_is_rejected() {
 #[test]
 fn test_BC_10_13_001_SEC002_register_registry_expected_basename_is_accepted() {
     let dir = tempfile::tempdir().expect("tempdir");
+    // S-15.03 pr-reviewer S4: the allowlist now checks the full
+    // plugins/vsdd-factory/config/ relative shape, not just the basename —
+    // this fixture recreates that trailing shape under the tempdir root.
     let registry_path = common::write_file(
         dir.path(),
-        "artifact-path-registry.yaml",
+        "plugins/vsdd-factory/config/artifact-path-registry.yaml",
         "version: 1\nartifacts:\n",
     );
 
@@ -240,8 +243,8 @@ fn test_BC_10_13_001_SEC002_register_registry_expected_basename_is_accepted() {
 
     assert_eq!(
         exit_code, 0,
-        "the expected artifact-path-registry.yaml basename must be accepted; \
-         stdout={stdout:?} stderr={stderr:?}"
+        "a registry path with the expected plugins/vsdd-factory/config/ \
+         shape must be accepted; stdout={stdout:?} stderr={stderr:?}"
     );
     assert!(!stderr.contains("not an allowed target"));
 }
@@ -251,7 +254,11 @@ fn test_BC_10_13_001_SEC002_register_registry_wrong_basename_is_rejected() {
     let dir = tempfile::tempdir().expect("tempdir");
     // An arbitrary file that is NOT the registry — e.g. an attacker pointing
     // `--registry` at some unrelated file to have arbitrary text appended.
-    let target_path = common::write_file(dir.path(), "not-the-registry.yaml", "version: 1\n");
+    let target_path = common::write_file(
+        dir.path(),
+        "plugins/vsdd-factory/config/not-the-registry.yaml",
+        "version: 1\n",
+    );
     let before = common::read_file(&target_path);
 
     let (exit_code, stdout, stderr) = run_cli(&[
@@ -270,5 +277,43 @@ fn test_BC_10_13_001_SEC002_register_registry_wrong_basename_is_rejected() {
     assert_eq!(
         before, after,
         "a rejected --registry path must never be read/appended/written to"
+    );
+}
+
+/// S-15.03 pr-reviewer S4: the pre-fix basename-only check would have
+/// accepted THIS fixture — a file that shares the exact
+/// `artifact-path-registry.yaml` basename but lives in a completely wrong
+/// directory (no `plugins/vsdd-factory/config/` ancestor shape at all).
+/// The tightened shape check must reject it.
+#[test]
+fn test_BC_10_13_001_SEC002_register_registry_same_basename_wrong_directory_is_rejected() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let target_path = common::write_file(
+        dir.path(),
+        "some/other/unrelated/dir/artifact-path-registry.yaml",
+        "version: 1\nartifacts:\n",
+    );
+    let before = common::read_file(&target_path);
+
+    let (exit_code, stdout, stderr) = run_cli(&[
+        "register",
+        "--registry",
+        target_path.to_str().expect("utf8 path"),
+    ]);
+
+    assert_ne!(
+        exit_code, 0,
+        "a same-basename registry file in the wrong directory must be \
+         rejected; stdout={stdout:?} stderr={stderr:?}"
+    );
+    assert!(
+        stderr.contains("not an allowed target"),
+        "rejection must come from the path allowlist: stderr={stderr:?}"
+    );
+    let after = common::read_file(&target_path);
+    assert_eq!(
+        before, after,
+        "a rejected same-basename-wrong-directory --registry path must \
+         never be read/appended/written to"
     );
 }

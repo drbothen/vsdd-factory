@@ -76,20 +76,44 @@ pub fn validate_rotate_path(path: &Path) -> Result<(), MigrateError> {
     }
 }
 
-/// `register --registry` allowlist: the canonicalized path's basename must
-/// match the expected `artifact-path-registry.yaml` shape (S-15.03 AC-006 /
-/// `plugins/vsdd-factory/config/artifact-path-registry.yaml`).
+/// `register --registry` allowlist: the canonicalized path's trailing
+/// component SHAPE — not merely its basename — must match
+/// `plugins/vsdd-factory/config/artifact-path-registry.yaml` (S-15.03
+/// AC-006). A basename-only check (this function's pre-S-15.03-pr-review
+/// form) would accept ANY file named `artifact-path-registry.yaml`
+/// anywhere on the filesystem, with none of `validate_migrate_path`'s
+/// rigor about WHERE it lives; this checks the full 4-component relative
+/// suffix instead, matching that same rigor. As with `validate_migrate_path`,
+/// this only requires the trailing shape to match — it does not require an
+/// absolute root — so this function stays testable against an arbitrary
+/// tempdir fixture that recreates just that trailing directory structure
+/// (see this module's own doc comment on why the CLI boundary, not the
+/// library function, is where allowlisting belongs).
 pub fn validate_registry_path(path: &Path) -> Result<(), MigrateError> {
     let canonical = canonicalize(path)?;
-    let basename_ok = canonical
-        .file_name()
-        .is_some_and(|n| n == "artifact-path-registry.yaml");
-    if basename_ok {
+    const EXPECTED_SUFFIX: [&str; 4] = [
+        "plugins",
+        "vsdd-factory",
+        "config",
+        "artifact-path-registry.yaml",
+    ];
+    let components: Vec<&std::ffi::OsStr> = canonical.iter().collect();
+    let shape_ok = components.len() >= EXPECTED_SUFFIX.len()
+        && components[components.len() - EXPECTED_SUFFIX.len()..]
+            .iter()
+            .zip(EXPECTED_SUFFIX.iter())
+            .all(|(actual, expected)| *actual == std::ffi::OsStr::new(expected));
+    if shape_ok {
         Ok(())
     } else {
         Err(MigrateError::PathNotAllowed {
             path: path.to_path_buf(),
-            reason: "--registry must point to an artifact-path-registry.yaml file".to_string(),
+            reason: "--registry must resolve to a \
+                plugins/vsdd-factory/config/artifact-path-registry.yaml-shaped \
+                path (matching the real repository location) — a file that \
+                merely shares that basename in a different directory is not \
+                accepted"
+                .to_string(),
         })
     }
 }

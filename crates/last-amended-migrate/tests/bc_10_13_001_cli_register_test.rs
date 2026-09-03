@@ -43,8 +43,15 @@ fn run_cli(args: &[&str]) -> (i32, String, String) {
 #[test]
 fn test_BC_10_13_001_cli_register_subcommand_adds_all_five_sidecars() {
     let dir = tempfile::tempdir().expect("tempdir");
-    let registry_path =
-        common::write_file(dir.path(), "artifact-path-registry.yaml", REGISTRY_HEADER);
+    // S-15.03 pr-reviewer S4: the CLI's --registry allowlist now checks the
+    // full plugins/vsdd-factory/config/ relative shape, not just the
+    // basename — this fixture recreates that trailing shape under the
+    // tempdir root.
+    let registry_path = common::write_file(
+        dir.path(),
+        "plugins/vsdd-factory/config/artifact-path-registry.yaml",
+        REGISTRY_HEADER,
+    );
     for basename in common::expected_sidecar_basenames() {
         assert!(
             !common::read_file(&registry_path).contains(&basename),
@@ -83,8 +90,11 @@ fn test_BC_10_13_001_cli_register_subcommand_adds_all_five_sidecars() {
 #[test]
 fn test_BC_10_13_001_cli_register_subcommand_is_idempotent() {
     let dir = tempfile::tempdir().expect("tempdir");
-    let registry_path =
-        common::write_file(dir.path(), "artifact-path-registry.yaml", REGISTRY_HEADER);
+    let registry_path = common::write_file(
+        dir.path(),
+        "plugins/vsdd-factory/config/artifact-path-registry.yaml",
+        REGISTRY_HEADER,
+    );
     let registry_arg = registry_path.to_str().expect("utf8 path");
 
     let (exit_code_1, stdout_1, stderr_1) = run_cli(&["register", "--registry", registry_arg]);
