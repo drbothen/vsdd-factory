@@ -82,6 +82,19 @@ submitting the S-17.05 PR. Routing: story-writer dispatched by orchestrator.
 
 # S-25.01 Finalization Doc-Sweep Backlog
 
+> **SWEEP COMPLETE 2026-09-03 (D-1156, state-manager, S25.01-FINALIZATION-DOC-SWEEP-COMPLETE burst).** Every
+> item below is now RESOLVED / ACCEPTED (won't-fix) / VERIFIED CONFORMANT / DEFERRED-with-concrete-anchor. No
+> item remains OPEN without a disposition. `feature/S-25.01` is **READY-FOR-PR @ `3e463cdc`**
+> (`3919ebcb` LOCAL-3-CLEAN-certified base → `f1400e35` O-P18-002 test-tightening GREEN → `b46f48f6` LOW-1 fix +
+> TD-VSDD-060 sibling sweep → `3e463cdc` demo evidence under `docs/demo-evidence/S-25.01/`). Two items
+> (`[process-gap]` registry-comment-lint and O-P16-1) are tracked as `.factory/STATE.md` Drift Items per the
+> Cycle-Closing Checklist S-7.02 minimum (justified deferral with concrete anchor, in lieu of a full follow-up
+> story) rather than swept in-scope, consistent with their PROCESS-GAP (not S-25.01-code) nature. O-P17-001 and
+> O-P18-001 are DEFERRED to dedicated follow-up stories (anchors also recorded in `.factory/STATE.md` Drift
+> Items, D-1156) — O-P18-001's full architect analysis is persisted at
+> `cycles/v1.0-brownfield-backfill/O-P18-001-timestamp-utc-vs-offset-analysis.md`. See the Status table below
+> for the per-item disposition and the commit/anchor that closes each.
+
 **Anchor:** This section is the "concrete future step" anchor required by VSDD Canonical Principle Rule 3 for all
 batched non-blocking items deferred under D-1127 governance ruling (applied to S-25.01 BC-5.39.001 3-CLEAN run).
 Items here MUST be swept AFTER 3-CLEAN is achieved and BEFORE the S-25.01 PR is created.
@@ -173,18 +186,18 @@ submitting the S-25.01 PR. Owner: implementer (LOW-1/OBS-3), story-writer/orches
 
 | Item | Status | Resolved by |
 |------|--------|-------------|
-| LOW-1 (RegistryError::AsyncBlockConflict msg) | **OPEN — sweep after 3-CLEAN** | implementer (post-3-CLEAN doc-sweep) |
-| OBS-3 (write_indeterminate_marker .tmp orphan) | **OPEN — sweep after 3-CLEAN** | implementer (post-3-CLEAN doc-sweep) |
-| [process-gap] registry-comment-lint | **TRACKED — follow-up story or justified deferral at cycle-close** | orchestrator at cycle-close |
+| LOW-1 (RegistryError::AsyncBlockConflict msg) | **RESOLVED 2026-09-03** — reworded to name the non-blocking remedies (`on_error=continue`/`advisory`) instead of a still-rejected blocking policy; test-writer RED + implementer GREEN, commit `b46f48f6` (`fix(dispatcher): E-REG-002 message names actual on_error value, not hardcoded "block"`); TD-VSDD-060 sibling sweep swept `registry.rs` def+construction, `main.rs` match arm, `async_partition_integration.rs` destructure; 291 lib+integration tests GREEN, fmt+clippy clean | test-writer + implementer, `feature/S-25.01` `b46f48f6` |
+| OBS-3 (write_indeterminate_marker .tmp orphan) | **RESOLVED (already fixed by F-P3-004)** — best-effort `.tmp` cleanup before propagating the rename error was already present, verified at `3919ebcb` in `indeterminate_marker.rs`; no further action needed | verified-fixed, `feature/S-25.01` @ `3919ebcb` (F-P3-004) |
+| [process-gap] registry-comment-lint | **DEFERRED — tracked in `.factory/STATE.md` Drift Items (D-1156), anchored E-12 follow-up story (no ID allocated yet)** | orchestrator/E-12 follow-up |
 | OBS-1 (crash posture) | **VERIFIED CONFORMANT — no action** | adversary pass 1 |
 | OBS-2 (quoting) | **VERIFIED CONFORMANT — no action** | adversary pass 1 |
-| O-P16-1 (`[process-gap]` adversary dispatch template stale WASM plugin path) | **OPEN — sweep after 3-CLEAN** | story-writer/orchestrator (post-3-CLEAN doc-sweep) |
-| O-P16-2 (`classify_outcome` `_policy` unused param, already documented in-code) | **OPEN — spec-signature refinement candidate, surface to product-owner** | product-owner (post-3-CLEAN doc-sweep, if actioned) |
+| O-P16-1 (`[process-gap]` adversary dispatch template stale WASM plugin path) | **DEFERRED — tracked in `.factory/STATE.md` Drift Items (D-1156), anchored E-12 follow-up story (no ID allocated yet); process-improvement, does not block PR** | orchestrator/E-12 follow-up |
+| O-P16-2 (`classify_outcome` `_policy` unused param, already documented in-code) | **ACCEPTED (won't-fix)** 2026-09-03 — intentional: retained for AC-004 signature parity; already documented in-code via orchestrator-ruling NOTE comment and in the story's orchestrator note; adversary pass 16 itself noted "no action required" | adversary pass 16 disposition; state-manager finalization sweep |
 | O-P16-3 (`reconcile_raw_delete` today-only + 256KB-tail bounds) | **VERIFIED CONFORMANT — no action (bounded/best-effort per BC-3.08.001 Inv 3 / ADR-048 §D4)** | adversary pass 16 |
-| O-P17-001 (`[audit-robustness]` REVALIDATED-clear guard/emission read-function asymmetry) | **OPEN — sweep after 3-CLEAN** | implementer, IF actioned (post-3-CLEAN doc-sweep) |
-| O-P17-002 (VP-108 Event 9/10 wire tables omit `session_id`) | **OPEN — doc-completeness candidate, surface to architect** | architect (post-3-CLEAN doc-sweep, if actioned) |
-| O-P18-001 (audit-timestamp LOCAL-offset ISO-8601 vs ADR-048 §D4 "ISO-8601 UTC" wording) | **OPEN — PENDING ARCHITECT/PRODUCT-OWNER ADJUDICATION (project-wide, outside S-25.01 delta)** | architect/product-owner (post-3-CLEAN doc-sweep) |
-| O-P18-002 (VP-108 PC1 REVALIDATED integration test missing `trace_id`-equality assertion) | **OPEN — sweep now (3-CLEAN ACHIEVED)** | test-writer (post-3-CLEAN doc-sweep) |
+| O-P17-001 (`[audit-robustness]` REVALIDATED-clear guard/emission read-function asymmetry — audit gap on malformed markers) | **DEFERRED to follow-up story** 2026-09-03 — unreachable via any current production path (`write_indeterminate_marker` is the sole production writer and always writes all six `MarkerFields` atomically; only an externally-tampered marker or a future schema change could trigger this gap, outside the single-operator threat model). Tracked in `.factory/STATE.md` Drift Items (D-1156), anchored to a new tampered/malformed-marker audit-robustness hardening follow-up story (no ID allocated yet) | implementer, IF actioned (follow-up story) |
+| O-P17-002 (VP-108 Event 9/10 wire tables omit `session_id`) | **ACCEPTED (won't-fix)** 2026-09-03 — presentational, not a contract conflict: VP-108's per-event tables are an intentional content-bearing-field subset view, and the omitted host-injected common fields are documented centrally in BC-3.08.001 §Common Fields; adversary disposition "no action required" | adversary pass 17 disposition; state-manager finalization sweep |
+| O-P18-001 (audit-timestamp LOCAL-offset ISO-8601 vs ADR-048 §D4 "ISO-8601 UTC" wording) | **DEFERRED to dedicated follow-up story; architect recommends Direction A; POLICY 22 ratification pending** 2026-09-03 — full architect analysis persisted at `cycles/v1.0-brownfield-backfill/O-P18-001-timestamp-utc-vs-offset-analysis.md`; project-wide, outside S-25.01 delta; NOT fixed this cascade. Tracked in `.factory/STATE.md` Drift Items (D-1156) | architect/product-owner (dedicated follow-up story, precondition = human Direction A/B/hybrid selection) |
+| O-P18-002 (VP-108 PC1 REVALIDATED integration test missing `trace_id`-equality assertion) | **RESOLVED 2026-09-03** — one-line `assert_eq!(cleared_events[0]["trace_id"], "trace-integ-test")` added; test-writer commit `f1400e35` (`test(dispatcher): tighten VP-108 PC1 REVALIDATED clear to assert trace_id provenance`), GREEN | test-writer, `feature/S-25.01` `f1400e35` |
 
 *S-25.01 section added: 2026-08-31 (S2501-LOCAL-ADV-PASS1-CLEAN-STREAK-1of3-2026-08-31 — state-manager; BC-5.39.001 streak 1/3; artifact FROZEN @ 92990371)*
 
@@ -307,3 +320,5 @@ submitting the S-25.01 PR. Owner: implementer (LOW-1/OBS-3), story-writer/orches
 ---
 
 *Pass 18 items added: 2026-09-03 (S2501-PASS18-3CLEAN-CONVERGED-BURST — state-manager; BC-5.39.001 streak 2/3→3/3 CONVERGED; artifact FROZEN @ 3919ebcb; D-1155)*
+
+*S-25.01 finalization sweep COMPLETE: 2026-09-03 (D-1156, state-manager, S25.01-FINALIZATION-DOC-SWEEP-COMPLETE burst) — all items above disposed (RESOLVED/ACCEPTED/VERIFIED-CONFORMANT/DEFERRED-with-anchor); `feature/S-25.01` READY-FOR-PR @ `3e463cdc`.*
