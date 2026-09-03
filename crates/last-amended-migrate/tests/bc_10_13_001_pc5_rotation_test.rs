@@ -78,11 +78,23 @@ fn test_BC_10_13_001_PC5_rotate_changelog_moves_oldest_items_verbatim() {
         report.items_moved, 5,
         "8 items - keep_recent 3 = 5 items moved"
     );
+    // Platform-agnostic path-segment check: walk `archive_path`'s components
+    // looking for a `cycles` component immediately followed by a
+    // `test-cycle` component, rather than substring-matching a
+    // separator-dependent stringified form. `to_string_lossy()` renders
+    // `\`-separated components on Windows, so a hardcoded `"cycles/test-
+    // cycle"` substring check would never match there even though the
+    // archive genuinely landed in the right place — this construction is
+    // correct by construction on every platform, not just by coincidence
+    // on Unix.
+    let has_cycles_test_cycle_segment = report
+        .archive_path
+        .components()
+        .collect::<Vec<_>>()
+        .windows(2)
+        .any(|pair| pair[0].as_os_str() == "cycles" && pair[1].as_os_str() == "test-cycle");
     assert!(
-        report
-            .archive_path
-            .to_string_lossy()
-            .contains("cycles/test-cycle"),
+        has_cycles_test_cycle_segment,
         "archive must land under a cycles/<cycle_name> path segment: {:?}",
         report.archive_path
     );
