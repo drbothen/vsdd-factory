@@ -227,25 +227,25 @@ pub fn migrate_file(path: &Path, mode: MigrationMode) -> Result<FileMigrationRep
             // than written anywhere by this tool.
             if !is_state {
                 for entry_text in entries.iter().rev() {
-                    let (date, version, mut summary) = parse_dated_entry(entry_text);
-                    // S-15.03 SEC-001: `version` is written into its own
-                    // YAML double-quoted scalar by `render_item_block`
-                    // (`version: "{version}"`) — just like `summary`, it can
-                    // in principle carry a control character or an
-                    // unescaped quote (a pathologically-shaped legacy
-                    // `[Prior: ...]` entry is not guaranteed to match the
-                    // `"{date} ({version}) — {text}"` convention exactly),
-                    // so it must go through the same escape gate `summary`
-                    // already does — this was the one field previously
-                    // written unescaped. `date` is deliberately NOT escaped
-                    // here: `render_item_block` writes it as a bare, UNQUOTED
-                    // plain YAML scalar (`date: {date}`, no surrounding
-                    // quotes), so backslash-escape sequences would be
-                    // interpreted as literal characters there, not as
-                    // escapes — quoting/escaping `date` would require
-                    // changing that output shape, which is out of SEC-001's
-                    // scope (an output-escaping defect, not an output-shape
-                    // change).
+                    let (mut date, version, mut summary) = parse_dated_entry(entry_text);
+                    // S-15.03 SEC-001 + B1: `date`, `version`, and `summary`
+                    // are all written into their own YAML double-quoted
+                    // scalar by `render_item_block` (`date: "{date}"`,
+                    // `version: "{version}"`, `change: "{summary}"`) — every
+                    // one of them can in principle carry a control character
+                    // or an unescaped quote, since a pathologically-shaped
+                    // legacy `[Prior: ...]` entry is not guaranteed to match
+                    // the `"{date} ({version}) — {text}"` convention exactly
+                    // (`parse_dated_entry`'s fallback path treats the entire
+                    // leading whitespace-delimited token as `date`, with no
+                    // date-shape validation — a chained entry that begins
+                    // with a decision-reference prefix like `D-1149:` yields
+                    // a `date` field containing a literal colon). All three
+                    // therefore go through the same escape gate.
+                    if needs_escaping(&date) {
+                        date = escape_value(&date);
+                        escape_fixed = true;
+                    }
                     let version = version.map(|v| {
                         if needs_escaping(&v) {
                             escape_fixed = true;

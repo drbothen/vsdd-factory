@@ -10,10 +10,18 @@ use crate::frontmatter::FrontmatterDoc;
 /// pre-existing items' raw text verbatim for lossless rotation (PC5).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ChangelogItem {
-    /// `date:` field, `YYYY-MM-DD`.
+    /// `date:` field. Nominally `YYYY-MM-DD`, but NOT guaranteed to be
+    /// date-shaped: a PC7-recovered legacy entry that doesn't match the
+    /// `"{date} ({version}) — {text}"` convention can carry an arbitrary
+    /// leading token here (e.g. a decision-reference prefix like
+    /// `D-1149:`) — MUST be passed through `crate::escape::escape_value`
+    /// when `crate::escape::needs_escaping` reports it needs it, same as
+    /// `summary`/`version` (S-15.03 B1).
     pub date: String,
     /// `version:` field, when the target file's own convention includes
-    /// one.
+    /// one. MUST be passed through `crate::escape::escape_value` when
+    /// `crate::escape::needs_escaping` reports it needs it (S-15.03
+    /// SEC-001).
     pub version: Option<String>,
     /// `summary:`/`change:` field text — MUST be passed through
     /// `crate::escape::escape_value` before being written (PC3).
@@ -99,13 +107,23 @@ pub fn prepend_changelog_item(doc: &mut FrontmatterDoc, item: ChangelogItem) {
 }
 
 /// Render one `ChangelogItem` as its raw YAML sequence-item block text —
-/// `"  - date: ...\n    version: \"...\"\n    change: \"...\"\n"` (the
-/// `version:` line omitted when `item.version` is `None`). `item.summary` is
-/// written verbatim: callers are responsible for having already passed it
-/// through `crate::escape::escape_value` (see `ChangelogItem::summary`'s own
-/// doc comment).
+/// `"  - date: \"...\"\n    version: \"...\"\n    change: \"...\"\n"` (the
+/// `version:` line omitted when `item.version` is `None`). `item.date`,
+/// `item.version`, and `item.summary` are all written verbatim into their own
+/// double-quoted YAML scalar: callers are responsible for having already
+/// passed each through `crate::escape::escape_value` when
+/// `crate::escape::needs_escaping` reports it needs it (see
+/// `ChangelogItem::summary`'s own doc comment, and S-15.03 B1: `item.date` is
+/// NOT guaranteed to be an actual `YYYY-MM-DD` token — a PC7-recovered
+/// historical entry that predates the `"{date} ({version}) — {text}"`
+/// convention can carry an arbitrary leading token, such as a decision-
+/// reference prefix like `D-1149:`, as its "date" — so this field is quoted
+/// unconditionally, exactly like `version`/`summary`, rather than emitted as
+/// a bare unquoted plain scalar. An unquoted `date: D-1149:` is invalid YAML
+/// (an unescaped colon inside a plain scalar reads as a nested mapping
+/// indicator); a quoted `date: "D-1149:"` is not.
 fn render_item_block(item: &ChangelogItem) -> String {
-    let mut block = format!("  - date: {}\n", item.date);
+    let mut block = format!("  - date: \"{}\"\n", item.date);
     if let Some(version) = &item.version {
         block.push_str(&format!("    version: \"{version}\"\n"));
     }
