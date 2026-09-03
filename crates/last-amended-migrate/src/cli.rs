@@ -1,10 +1,13 @@
 //! Command-line surface for `last-amended-migrate` (BC-10.13.001
 //! §Description).
 //!
-//! Two subcommands: `migrate` (PC1-PC4, PC6) and `rotate` (PC5, PC6). Both
-//! support `--check` (report violations without writing, mirroring
+//! Three subcommands: `migrate` (PC1-PC4, PC6), `rotate` (PC5, PC6), and
+//! `register` (PC6 / §Architecture Anchors / S-15.03 AC-006). `migrate` and
+//! `rotate` support `--check` (report violations without writing, mirroring
 //! `compute-input-hash`'s `--check` convention) and default to apply mode
-//! when `--check` is absent.
+//! when `--check` is absent; `register` has no check mode — appending
+//! registry entries is itself idempotent (re-running is always safe), so
+//! there is no drift state to report.
 
 use crate::rotate::DEFAULT_KEEP_RECENT;
 use clap::{Parser, Subcommand};
@@ -60,6 +63,15 @@ pub enum Command {
         #[arg(long)]
         check: bool,
     },
+    /// Register this tool's own output paths and the 5 pre-existing D-1149
+    /// `*-amendment-history.md` sidecar paths in the artifact path registry
+    /// (PC6, §Architecture Anchors, S-15.03 AC-006).
+    Register {
+        /// Path to `plugins/vsdd-factory/config/artifact-path-registry.yaml`
+        /// (or an equivalent registry file in tests).
+        #[arg(long)]
+        registry: PathBuf,
+    },
 }
 
 /// Dispatch a parsed CLI invocation to the corresponding subcommand handler
@@ -79,6 +91,7 @@ pub enum Command {
 /// convention.
 pub fn run(cli: Cli) -> ExitCode {
     use crate::migrate::{MigrationMode, MigrationReport, migrate_all, migrate_file};
+    use crate::registry::register_artifact_paths;
     use crate::rotate::rotate_changelog;
 
     match cli.command {
@@ -155,5 +168,15 @@ pub fn run(cli: Cli) -> ExitCode {
                 }
             }
         }
+        Command::Register { registry } => match register_artifact_paths(&registry) {
+            Ok(()) => {
+                println!("{}: registration complete", registry.display());
+                ExitCode::SUCCESS
+            }
+            Err(e) => {
+                eprintln!("last-amended-migrate: error: {e}");
+                ExitCode::FAILURE
+            }
+        },
     }
 }
