@@ -723,7 +723,7 @@ on_error = "block"
     assert!(
         matches!(
             result,
-            Err(factory_dispatcher::registry::RegistryError::AsyncBlockConflict { ref name })
+            Err(factory_dispatcher::registry::RegistryError::AsyncBlockConflict { ref name, .. })
             if name == "bad-async-block"
         ),
         "on_error=block + async=true must be rejected with E-REG-002 AsyncBlockConflict; got: {result:?}"

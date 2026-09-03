@@ -191,13 +191,15 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                         );
                         2
                     }
-                    RegistryError::AsyncBlockConflict { name } => {
+                    RegistryError::AsyncBlockConflict { name, on_error } => {
                         // BC-1.14.001 EC-008 + BC-3.08.001 Event 3.
                         // Emit dispatcher.registry_invalid with offending_plugin/violation/error_code.
                         // E-REG-002 is intra-entry; offending_event/tool absence is enforced by type system.
                         emit_registry_invalid_e_reg002(&err_ctx, name, "async_block_conflict");
+                        // LOW-1: name the actual offending on_error value ("block" or
+                        // "block_if_marker"), not a hardcoded "block" literal.
                         eprintln!(
-                            "factory-dispatcher: E-REG-002 on_error=block AND async=true for '{name}'; exiting 2 (fail-closed per ADR-019 §Decision 2)"
+                            "factory-dispatcher: E-REG-002 on_error={on_error} AND async=true for '{name}'; exiting 2 (fail-closed per ADR-019 §Decision 2)"
                         );
                         2
                     }

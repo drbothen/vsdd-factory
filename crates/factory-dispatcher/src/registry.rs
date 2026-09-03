@@ -51,15 +51,20 @@ pub enum RegistryError {
         #[source]
         source: regex::Error,
     },
-    /// E-REG-002: entry has `on_error = "block"` AND `async = true`.
+    /// E-REG-002: entry has an `on_error` value that can block (`"block"` or
+    /// `"block_if_marker"`) AND `async = true`.
     /// Enforced at registry-load time; dispatcher refuses to start.
-    /// (BC-1.14.001 Invariant 4, BC-7.06.001 Invariant 1)
+    /// (BC-1.14.001 Invariant 4, BC-7.06.001 Invariant 1, ADR-048 §Decision 1)
+    ///
+    /// `on_error` carries the ACTUAL offending value (e.g. `"block"` or
+    /// `"block_if_marker"`) so the Display message never misreports which
+    /// variant triggered the invariant (LOW-1).
     #[error(
-        "registry entry '{name}': on_error = \"block\" combined with async = true is forbidden \
-         (BC-7.06.001 Invariant 1). Classify this plugin async = false or remove on_error = \"block\". \
+        "registry entry '{name}': on_error = \"{on_error}\" combined with async = true is forbidden \
+         (BC-7.06.001 Invariant 1). Classify this plugin async = false or remove on_error = \"{on_error}\". \
          [E-REG-002]"
     )]
-    AsyncBlockConflict { name: String },
+    AsyncBlockConflict { name: String, on_error: String },
     /// E-REG-003: duplicate (name, event, tool) tuple across [[hooks]] entries.
     /// Enforced at registry-load time; dispatcher refuses to start.
     /// (BC-7.06.001 Invariant 7, F-P8-001)
@@ -504,13 +509,21 @@ impl Registry {
         for entry in &self.hooks {
             // Both `Block` and `BlockIfMarker` can conditionally gate a dispatch; neither
             // is compatible with async-advisory semantics (E-REG-002, ADR-048 §Decision 1).
-            let on_error_can_block = matches!(
-                entry.on_error,
-                Some(OnError::Block) | Some(OnError::BlockIfMarker)
-            );
-            if on_error_can_block && entry.async_flag {
+            // Matching directly to `Option<&str>` (rather than a separate bool guard)
+            // threads the ACTUAL offending wire-format value through to the error
+            // constructor, so `RegistryError::AsyncBlockConflict`'s Display never
+            // misreports which variant triggered the invariant (LOW-1).
+            let blocking_on_error: Option<&str> = match entry.on_error {
+                Some(OnError::Block) => Some("block"),
+                Some(OnError::BlockIfMarker) => Some("block_if_marker"),
+                Some(OnError::Continue) | None => None,
+            };
+            if let Some(on_error) = blocking_on_error
+                && entry.async_flag
+            {
                 return Err(RegistryError::AsyncBlockConflict {
                     name: entry.name.clone(),
+                    on_error: on_error.to_string(),
                 });
             }
         }
@@ -1990,6 +2003,47 @@ event = "PreToolUse"
                 || err_str.contains("async")
                 || err_str.contains("E-REG-002"),
             "E-REG-002 error MUST name the violating fields or error code: {err_str}"
+        );
+    }
+
+    /// LOW-1 (RED): `on_error = "block_if_marker"` + `async = true` E-REG-002 error message
+    /// MUST name the ACTUAL offending `on_error` value ("block_if_marker"), not a hardcoded
+    /// "block" literal.
+    ///
+    /// `validate_async_block_invariant`'s guard `on_error_can_block = matches!(...)` matches
+    /// BOTH `Block` and `BlockIfMarker`, so this invariant fires for either value — but
+    /// `RegistryError::AsyncBlockConflict`'s `#[error(...)]` Display text hardcodes the
+    /// literal string `on_error = "block"` regardless of which variant actually triggered
+    /// it. For a `block_if_marker` + async entry, the emitted message inaccurately claims
+    /// the entry used `on_error = "block"`, which is misleading for operator diagnosis.
+    ///
+    /// This test MUST FAIL against the current hardcoded message: the string
+    /// `"block_if_marker"` does not appear anywhere in
+    /// `on_error = "block" combined with async = true is forbidden ... [E-REG-002]"`.
+    #[test]
+    fn test_BC_1_18_002_E_REG_002_block_if_marker_error_message_names_actual_value() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "bad-crash-gate"
+plugin = "hook-plugins/validate-unvalidated-mutation-marker.wasm"
+on_error = "block_if_marker"
+async = true
+event = "PreToolUse"
+
+[hooks.config]
+"#;
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_err(),
+            "LOW-1: block_if_marker + async=true MUST be rejected (E-REG-002)"
+        );
+        let err_str = result.unwrap_err().to_string();
+        assert!(
+            err_str.contains("block_if_marker"),
+            "LOW-1: E-REG-002 error message MUST name the actual offending on_error value \
+             (\"block_if_marker\"), not a hardcoded \"block\" literal — got: {err_str}"
         );
     }
 
