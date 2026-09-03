@@ -181,6 +181,8 @@ submitting the S-25.01 PR. Owner: implementer (LOW-1/OBS-3), story-writer/orches
 | O-P16-1 (`[process-gap]` adversary dispatch template stale WASM plugin path) | **OPEN — sweep after 3-CLEAN** | story-writer/orchestrator (post-3-CLEAN doc-sweep) |
 | O-P16-2 (`classify_outcome` `_policy` unused param, already documented in-code) | **OPEN — spec-signature refinement candidate, surface to product-owner** | product-owner (post-3-CLEAN doc-sweep, if actioned) |
 | O-P16-3 (`reconcile_raw_delete` today-only + 256KB-tail bounds) | **VERIFIED CONFORMANT — no action (bounded/best-effort per BC-3.08.001 Inv 3 / ADR-048 §D4)** | adversary pass 16 |
+| O-P17-001 (`[audit-robustness]` REVALIDATED-clear guard/emission read-function asymmetry) | **OPEN — sweep after 3-CLEAN** | implementer, IF actioned (post-3-CLEAN doc-sweep) |
+| O-P17-002 (VP-108 Event 9/10 wire tables omit `session_id`) | **OPEN — doc-completeness candidate, surface to architect** | architect (post-3-CLEAN doc-sweep, if actioned) |
 
 *S-25.01 section added: 2026-08-31 (S2501-LOCAL-ADV-PASS1-CLEAN-STREAK-1of3-2026-08-31 — state-manager; BC-5.39.001 streak 1/3; artifact FROZEN @ 92990371)*
 
@@ -230,3 +232,39 @@ submitting the S-25.01 PR. Owner: implementer (LOW-1/OBS-3), story-writer/orches
 ---
 
 *Pass 16 items added: 2026-09-03 (S2501-PASS16-CLEAN-STREAK-ADVANCE-BOOKKEEPING — state-manager; BC-5.39.001 streak 0/3→1/3; artifact FROZEN @ 3919ebcb; D-1153)*
+
+---
+
+### O-P17-001 — REVALIDATED-clear guard reads `read_marker_plugin_name` but emission reads `read_all_marker_fields` (audit-robustness gap on malformed markers)
+
+| Field | Value |
+|-------|-------|
+| **Finding ID** | O-P17-001 |
+| **Severity** | LOW / `[audit-robustness]` |
+| **Source pass** | Pass 17 (LOCAL adversary pass 17 CLEAN 2026-09-03, D-1154) |
+| **File** | `crates/factory-dispatcher/src/executor.rs` — `execute_tier` (~lines 547/553) and `spawn_async_plugin` (~lines 860/865) in the frozen `feature/S-25.01` worktree |
+| **Observation** | Both callsites guard the REVALIDATED-clear branch on `read_marker_plugin_name(&marker_path)` but read the emission fields separately via `read_all_marker_fields(&marker_path).ok().flatten()`. A marker that parses `plugin_name`+`artifact_path` (satisfying the guard) but is missing one of `timestamp`/`cause`/`trace_id` (failing the stricter `read_all_marker_fields` parse) would still be deleted by `delete_marker_if_pass` (`Ok(true)`), but with `all_fields = None` — so NO `marker.cleared(REVALIDATED)` audit event is emitted. A BLOCKING→ALLOWING state transition would occur with no audit record, a NIST AU-3 gap of exactly the class ADR-048 §D4's audited-clear-event design exists to close. |
+| **Reachability** | NOT reachable via any current production path — confirmed via literal shell (burst-log D-1154 Block 5): `write_indeterminate_marker` is the sole production writer and always writes all six `MarkerFields` atomically via temp+rename; cross-pair overwrites also always write complete markers. Only an externally-tampered marker file or a future schema change with a lenient guard/strict-emission asymmetry could trigger this gap — outside the single-operator threat model this story's spec (BC-1.18.001/002/003) is scoped to. |
+| **Fix (if ever actioned)** | Emit `marker.cleared(REVALIDATED)` from the guard's own `read_marker_plugin_name` result plus a synthesized minimal `MarkerFields` (using the guard-read `plugin_name`, the known `artifact_path`, and placeholder/best-effort values for the remaining fields) when `all_fields` is `None` but `delete_marker_if_pass` returned `Ok(true)` — so the audit record is never silently dropped even for a malformed-but-guard-passing marker. |
+| **Routing** | implementer (candidate fix, if actioned) |
+| **Blocking?** | No — unreachable via any current production write path; audit-completeness hardening only |
+
+---
+
+### O-P17-002 — VP-108 Event 9/Event 10 wire-format tables omit `session_id` (doc-completeness, not a contract conflict)
+
+| Field | Value |
+|-------|-------|
+| **Finding ID** | O-P17-002 |
+| **Severity** | LOW / `[doc-completeness]` |
+| **Source pass** | Pass 17 (LOCAL adversary pass 17 CLEAN 2026-09-03, D-1154) |
+| **File** | `.factory/specs/verification-properties/VP-108.md` — Event 9 (lines 393-404) and Event 10 (lines 406-416) wire-format tables |
+| **Observation** | Both tables omit `session_id` (and `ts_epoch`/`schema_version`), which `BC-3.08.001` §Common Fields declares present on all ten event types (host-injected via `HostContext::emit_internal`'s common-field enrichment, RESERVED_FIELDS — never plugin-supplied) and which the code does in fact emit on Events 9 and 10 like every other event. Confirmed via literal `grep`: VP-108's tables have zero `session_id` hits; BC-3.08.001's §Common Fields row explicitly states "Present on all ten event types." |
+| **Disposition** | Not a contract conflict — VP-108's per-event wire-format tables are a content-bearing-field subset view (the fields that event's own emitting call constructs/supplies), not a full-wire-envelope view; the common host-injected fields (`trace_id`, `session_id`, `ts`, `ts_epoch`) are documented once, centrally, in BC-3.08.001 §Common Fields rather than repeated on every per-event table. Presentational completeness gap only. |
+| **Fix (if ever actioned)** | Add a one-line cross-reference note to VP-108's two wire-format tables pointing to BC-3.08.001 §Common Fields for the host-injected common fields, so a reader of VP-108 alone does not infer `session_id` is absent from the actual wire event. |
+| **Routing** | architect (VP-108 owner, if actioned) |
+| **Blocking?** | No — presentational documentation completeness only; no behavioral or contract gap |
+
+---
+
+*Pass 17 items added: 2026-09-03 (S2501-PASS17-CLEAN-STREAK-ADVANCE-BOOKKEEPING — state-manager; BC-5.39.001 streak 1/3→2/3; artifact FROZEN @ 3919ebcb; D-1154)*

@@ -11710,3 +11710,283 @@ frozen `feature/S-25.01` @ `3919ebcb`; needs 2 more consecutive clean passes for
 3-CLEAN convergence.
 
 ---
+
+## D-1154-S2501-PASS17-CLEAN-STREAK-ADVANCE-BOOKKEEPING
+
+**Block 1: Parent-commit**
+
+**Parent-commit:** `e6250e45` — `state(s25.01): LOCAL adversary pass 16 CLEAN — BC-5.39.001 streak
+0/3→1/3 (D-1153)` (factory-artifacts HEAD at burst start, confirmed via literal shell):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+e6250e45 state(s25.01): LOCAL adversary pass 16 CLEAN — BC-5.39.001 streak 0/3→1/3 (D-1153)
+```
+
+**Block 2: Adversary verdict**
+
+S-25.01 LOCAL adversary pass 17 (fresh context, frozen `feature/S-25.01` @ `3919ebcb`) = **CLEAN
+(0 BLOCKER / 0 MEDIUM+).** BC-5.39.001 streak **ADVANCES 1/3 → 2/3** (passes 16 and 17 now
+consecutive CLEAN; one more consecutive CLEAN pass reaches LOCAL BC-5.39.001 3-CLEAN convergence).
+
+This is a **STREAK-ADVANCE BOOKKEEPING burst — NOT a fix-burst.** Per the BC-5.39.001 3-CLEAN
+protocol, the reviewed artifact MUST stay byte-for-byte STABLE across the entire 3-pass streak, so
+this burst touches NO reviewed-artifact file: no code/spec/story/BC/VP/ADR/index content edit.
+Reviewed artifact `feature/S-25.01` @ `3919ebcb` is BYTE-IDENTICAL, UNCHANGED (ADR-048 v1.5 scope;
+VP-108 v1.8).
+
+Verification performed this pass (fresh-context adversary, summarized for the bookkeeping record):
+
+- Write-tied emission is confined to the `Ok()` arm only at both callsites (`execute_tier` /
+  `spawn_async_plugin`) via the single-source `emit_write_tied_audit_events` helper
+  (`indeterminate_marker.rs`) — no duplicated emission-decision logic (TD-VSDD-060 sibling-
+  duplication risk stays closed, per the D-1145 helper extraction).
+- Foreign-identity preservation confirmed: `host/mod.rs`'s `emit_internal` performs no
+  re-enrichment of a foreign `trace_id`/`plugin_name` sourced from marker fields — the RESERVED_FIELDS
+  host-injection wall stays intact.
+- Four-emitter TD-VSDD-060 wire-field sweep across Events 7/8/9/10: Event 8 correctly omits
+  `plugin_version` (per the D-1147/pass-14 fix); Event 9's four `clear_mode`/`actor_type` pairs
+  correct; Event 10 carries `ts` (not a distinct `timestamp` field, per VP-108's own wire-format
+  note); all four correctly carry host-injected `session_id` (BC-3.08.001 §Common Fields).
+- `reconcile_raw_delete`'s bounded-scan premise (today-only + 256KiB tail) re-confirmed sound and
+  correctly bounded per ADR-048 §D4 / BC-3.08.001 Invariant 3.
+- Crash-classification `Trap → Crashed → Fail` mapping re-confirmed non-exhaustive-match-safe.
+- Per-invocation state reset in `invoke.rs` re-confirmed (no cross-invocation leakage).
+- All 8 VP-108 Proof Harness Skeleton PC test anchors re-confirmed to resolve to real crate
+  functions — no phantom test names (per the D-1145 v1.6/v1.7 anchor-correction lineage holding).
+- BC-1.18.002 PC5 block message re-confirmed complete against the T1/T2/T3 four-tier recovery
+  model (ADR-048 §D2/§D4).
+- ADR-048 §Decision 4's v1.2 prose is superseded by the v1.3/v1.4/v1.5 append-correction chain —
+  re-confirmed as sequential amendment, not an internal contradiction (the append-only `[Prior: ...]`
+  changelog form preserves each superseded version's text verbatim beneath the current entry).
+
+Two non-blocking LOW observations were reported this pass, both accepted and DEFERRED (batched to
+the S-25.01 finalization-doc-sweep, NOT fixed now — fixing would edit the frozen artifact and reset
+the streak):
+
+- **O-P17-001 (LOW, `[audit-robustness]`):** In `execute_tier`/`spawn_async_plugin`, the REVALIDATED
+  clear guard on both callsites reads `read_marker_plugin_name` for the guard condition but reads
+  the emission fields via `read_all_marker_fields` (confirmed via literal `grep`, Block 5, at
+  `executor.rs` lines 547/553 and 860/865). A marker that parses `plugin_name`+`artifact_path` but is
+  missing `timestamp`/`cause`/`trace_id` would be deleted (`delete_marker_if_pass` returns `Ok(true)`)
+  with `all_fields = None`, so NO `marker.cleared(REVALIDATED)` audit record is emitted —
+  BLOCKING→ALLOWING transitions silently with no audit trail (NIST AU-3 gap that ADR-048 §D4
+  targets). NOT reachable via any current production path — `write_indeterminate_marker` always
+  writes all six `MarkerFields` atomically via temp+rename (confirmed via literal shell, Block 5),
+  and cross-pair overwrites also always write complete markers — only an externally-tampered or
+  future-schema marker could trigger this gap, which is outside the single-operator threat model.
+  Flagged for audit-completeness only, not a blocker. Candidate routing if ever fixed: implementer
+  (emit `REVALIDATED` from the guard's own `read_marker_plugin_name` result plus a synthesized
+  minimal `MarkerFields` when `all_fields` is `None` but the delete returned `Ok(true)`).
+- **O-P17-002 (LOW, `[doc-completeness]`):** VP-108's Event 9/Event 10 wire-format tables (lines
+  393-416) omit `session_id` (and `ts_epoch`/`schema_version`), which BC-3.08.001 §Common Fields
+  declares present on all ten event types (host-injected, RESERVED_FIELDS) and which the code
+  emits via `HostContext::emit_internal`'s common-field enrichment (confirmed via literal `grep`,
+  Block 5). VP-108's per-event tables are a content-bearing-field subset view (fields the emitting
+  call itself supplies), not a full-wire-envelope view — presentational, not a contract conflict
+  with BC-3.08.001. No action required.
+
+No ADR change, no BC change, no wire-format change, no security-model change — **POLICY 22
+human-ratification NOT required.** This burst did NOT change code, spec, or any index — the frozen
+re-review code HEAD stays **UNCHANGED** at `feature/S-25.01` `3919ebcb`.
+
+**Block 3: Files touched**
+
+- `.factory/STATE.md` — full advance (frontmatter phase/last_amended/current_step/timestamp;
+  Phase Progress row; Current Phase Steps row [oldest dropped, last-5 window]; Decisions Log D-1154
+  row; Session Resume Checkpoint replaced; trajectory-tail advance; version v9.68→v9.69)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1154 appended (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/finalization-doc-sweep.md` — O-P17-001/O-P17-002
+  recorded in the S-25.01 batched-items backlog + Status table (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/logs/dispatcher-internal-2026-09-03.jsonl`, `.factory/sidecar-learning.md` —
+  pre-existing uncommitted transient telemetry drift, bundled into this single commit per
+  TD-VSDD-053
+- `.factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md`,
+  `.factory/specs/verification-properties/VP-108.md`,
+  `.factory/specs/behavioral-contracts/BC-INDEX.md`,
+  `.factory/specs/verification-properties/VP-INDEX.md`,
+  `.factory/stories/STORY-INDEX.md`,
+  `.factory/specs/architecture/ARCH-INDEX.md`,
+  `crates/factory-dispatcher/src/**` (worktree code) — **CONFIRMED UNCHANGED this burst** (frozen
+  reviewed-artifact requirement of the BC-5.39.001 3-CLEAN protocol; no reviewed-artifact file
+  touched)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — **NOT touched**, following the SAME
+  established S-25.01 LOCAL-cascade convention as all 16 prior passes (INDEX.md tracks a different
+  set of adversarial cascades; this cascade records exclusively in burst-log.md + decision-log.md +
+  STATE.md, per the D-1153 precedent).
+
+**Block 4: Codifications**
+
+No new lesson codified this burst (a CLEAN no-finding pass has nothing structural to codify beyond
+the streak-advance itself, recorded in decision-log D-1154 and this burst-log entry). 2 observations
+(O-P17-001/O-P17-002) recorded in `finalization-doc-sweep.md`, anchored to the S-25.01
+finalization-doc-sweep (post-3-CLEAN, before/at the S-25.01 PR) — same disposition as the pass-16
+O-P16-1/2/3 precedent.
+
+No trajectory-tail drift correction needed this burst — D-1153 already corrected the transcription
+drift; this burst continues from D-1153's own corrected value.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+Parent-commit gate (literal shell, D-449(a)):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+e6250e45 state(s25.01): LOCAL adversary pass 16 CLEAN — BC-5.39.001 streak 0/3→1/3 (D-1153)
+```
+
+Reviewed-artifact-frozen gate — confirming NO reviewed-artifact file changed this burst, and the
+frozen worktree is byte-identical (literal shell):
+
+```
+$ git rev-parse feature/S-25.01
+3919ebcb54200d7e7131f735ed0a95ab145d8b5b
+$ git -C .worktrees/S-25.01 rev-parse HEAD
+3919ebcb54200d7e7131f735ed0a95ab145d8b5b
+$ git -C .worktrees/S-25.01 status --porcelain
+(empty — clean, no drift)
+$ grep -n '^version:' .factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md .factory/specs/verification-properties/VP-INDEX.md .factory/specs/behavioral-contracts/BC-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:4:version: "3.00"
+.factory/stories/S-25.01-dispatcher-indeterminate-outcome-layer1.md:6:version: "1.19"
+.factory/stories/STORY-INDEX.md:4:version: "4.431"
+.factory/specs/behavioral-contracts/BC-INDEX.md:4:version: "5.43"
+.factory/specs/architecture/ARCH-INDEX.md:4:version: "4.11"
+$ grep -n '^version:' .factory/specs/verification-properties/VP-108.md
+5:version: "1.8"
+```
+
+Story/VP-108 versions match the pre-burst values cited in D-1153/pass-16's closing state exactly —
+CONFIRMED no reviewed-artifact drift this burst; all 4 indices remain UNCHANGED.
+
+O-P17-001 dual-read gate (literal shell — confirms the guard/emission read-function asymmetry):
+
+```
+$ grep -n "read_marker_plugin_name\|read_all_marker_fields" .worktrees/S-25.01/crates/factory-dispatcher/src/executor.rs
+...
+547:                if let Ok(Some(marker_plugin)) = read_marker_plugin_name(&marker_path)
+553:                    let all_fields = read_all_marker_fields(&marker_path).ok().flatten();
+...
+860:            if let Ok(Some(marker_plugin)) = read_marker_plugin_name(&marker_path)
+865:                let all_fields = read_all_marker_fields(&marker_path).ok().flatten();
+```
+
+Confirms O-P17-001 accurately described: both callsites guard on `read_marker_plugin_name` and
+separately read emission fields via `read_all_marker_fields`.
+
+O-P17-001 unreachability gate (literal shell — confirms `write_indeterminate_marker` is the sole,
+atomic, all-six-field writer):
+
+```
+$ grep -n "pub fn write_indeterminate_marker" -A2 .worktrees/S-25.01/crates/factory-dispatcher/src/indeterminate_marker.rs
+93:pub fn write_indeterminate_marker(fields: &MarkerFields, marker_path: &Path) -> io::Result<()> {
+94-    // Compute the temp path in the same directory (atomic rename invariant).
+95-    // L-1 fix (S-25.01 adversary): use a unique suffix so concurrent writers from
+```
+
+Confirms the sole production write-path takes a complete `MarkerFields` struct and writes atomically
+temp+rename — O-P17-001's unreachability claim is accurate.
+
+O-P17-002 wire-format-omission gate (literal shell — confirms VP-108's Event 9/10 tables omit
+`session_id`, and BC-3.08.001 declares it present on all ten events):
+
+```
+$ sed -n '393,416p' .factory/specs/verification-properties/VP-108.md | grep -c session_id
+0
+$ grep -n "session_id" .factory/specs/behavioral-contracts/ss-03/BC-3.08.001.md | head -1
+98:| `session_id` | UUID v4 string | Claude Code session identifier from the hook envelope context (`ctx.session_id`). Present on all ten event types (O-P15-001). |
+```
+
+Confirms O-P17-002 accurately described: `session_id` is absent from VP-108's Event 9/10 field
+tables but BC-3.08.001 declares it present on all ten events.
+
+INDEX.md-not-applicable gate (literal shell, confirms Block 3's claim):
+
+```
+$ grep -c "S-25\.01\|S2501" .factory/cycles/v1.0-brownfield-backfill/INDEX.md
+0
+```
+
+Zero hits — confirms INDEX.md has never tracked the S-25.01 LOCAL cascade; this burst follows the
+SAME established convention.
+
+D-448(a)-style source-attestation gate (observation-ID set consistency between this burst's own
+decision-log D-1154 row and this burst-log entry's own Block 2):
+
+```
+$ grep -oE "O-P17-[0-9]+" <(grep "^| D-1154" cycles/v1.0-brownfield-backfill/decision-log.md) | sort -u
+O-P17-001
+O-P17-002
+```
+
+Observation-ID set matches Block 2 exactly (`O-P17-001`, `O-P17-002`) — no observation dropped or
+fabricated between the orchestrator's task briefing and this burst's codification.
+
+Trajectory-tail computation gate (literal shell, confirms the pre-burst baseline this burst shifts
+from):
+
+```
+$ grep -o "trajectory-tail →[^)]*)" .factory/STATE.md | head -1
+trajectory-tail →1→0→0→1 LENGTH=4 (CLEAN pass advance). v9.67→v9.68.
+```
+
+Pre-burst baseline confirmed `→1→0→0→1` (D-1153's own corrected value — no drift present this time).
+This burst shifts left (drops the oldest digit `1`) and appends the new event's digit — `1` for a
+CLEAN pass advance, the SAME transformation D-1153 applied to compute `→1→0→0→1` from the prior
+`→0→1→0→0` baseline — yielding `→0→0→1→1` LENGTH=4.
+
+**Block 6 (Dim-5): Closes**
+
+- **`O-P17-001`**, **`O-P17-002`** (non-blocking LOW observations) — **DEFERRED**, recorded as
+  batched items in `finalization-doc-sweep.md` anchored to the S-25.01 finalization-doc-sweep
+  (post-3-CLEAN, before/at the S-25.01 PR); NOT fixed this burst by design, to preserve reviewed-
+  artifact stability.
+- **`BC-5.39.001 3-CLEAN streak`** — **ADVANCES 1/3 → 2/3** (passes 16+17 consecutive CLEAN; one
+  more consecutive CLEAN pass — pass 18 — reaches LOCAL 3-CLEAN convergence).
+- **No human decision required this burst** — no ADR/BC/wire-format/security-model change, POLICY 22
+  NOT triggered.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1154-S2501-PASS17-CLEAN-STREAK-ADVANCE-BOOKKEEPING` present.
+D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation
+gate: literal-shell diff captured in Block 5 — observation-ID sets match exactly between decision-log
+D-1154 and this entry's own Block 2. D-449(a) literal-shell-execution SELF-APPLICATION: parent-commit
+grep, reviewed-artifact-frozen version grep (5-index + VP-108 gate), the O-P17-001 dual-read grep,
+the O-P17-001 unreachability grep, the O-P17-002 wire-format-omission grep+grep, the INDEX.md-not-
+applicable grep, the D-448(a) observation-ID consistency check, and the trajectory-tail baseline grep
+all use actual shell with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts, no
+trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered adversary pass (S-25.01 LOCAL pass 17) — content-bearing, 0 blocking
+  findings, 2 non-blocking LOW observations deferred by design.
+- Streak: **ADVANCES 1/3 → 2/3.** Fresh pass 18 is NEXT (needs 1 more consecutive CLEAN pass for
+  LOCAL 3-CLEAN convergence).
+- 4-INDEX: BC-INDEX v5.43 UNCHANGED / VP-INDEX v3.00 UNCHANGED / STORY-INDEX v4.431 UNCHANGED /
+  ARCH-INDEX v4.11 UNCHANGED (no index touched this burst — reviewed-artifact-frozen requirement).
+- `policies.yaml` UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` stays `in_progress` this burst (no session wrap combined into this burst).
+  trajectory-tail →0→0→1→1 LENGTH=4 (CLEAN pass advance from the D-1153-corrected `→1→0→0→1`
+  lineage — see Block 5).
+- 0 new STATE.md Drift Items table rows this burst — the 2 O-P17 observations are DEFERRED-by-design
+  batched items recorded in `finalization-doc-sweep.md` per the orchestrator's task briefing (same
+  target file the pass-16 CLEAN precedent used for its O-P16-1/2/3 items).
+- **Code HEAD UNCHANGED** — this burst's CLEAN verdict required no fix, so the frozen re-review
+  artifact for pass 18 stays `3919ebcb`, identical to pass 17's reviewed artifact.
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit, all files listed in Block 3 staged together then committed ONCE.
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `e6250e45` — `state
+  (s25.01): LOCAL adversary pass 16 CLEAN — BC-5.39.001 streak 0/3→1/3 (D-1153)`
+
+**Closes:** `O-P17-001`, `O-P17-002` non-blocking LOW observations DEFERRED to the S-25.01
+finalization-doc-sweep. BC-5.39.001 streak ADVANCES 1/3 → 2/3. Code HEAD UNCHANGED `feature/S-25.01`
+@ `3919ebcb`. **NEXT ACTION:** dispatch fresh-context LOCAL adversary pass 18 against the SAME
+frozen `feature/S-25.01` @ `3919ebcb`; needs 1 more consecutive clean pass for LOCAL BC-5.39.001
+3-CLEAN convergence.
+
+---
