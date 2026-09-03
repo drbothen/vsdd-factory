@@ -931,11 +931,25 @@ jobs:
     #   grep -qE '^  bats-darwin-leg-macos:$' .github/workflows/ci.yml
     #
     # SCOPE: runs pr-manager-hardening.bats on macOS under /bin/bash 3.2.x.
-    #   T-001 skips if factory-dispatcher not pre-built (set-up step copies from
-    #   the bundled darwin binary to target/release/ to enable T-001).
+    #   T-001 skips if factory-dispatcher not pre-built (set-up step downloads
+    #   the build-dispatcher matrix job's fresh source-built darwin artifact to
+    #   target/release/ to enable T-001).
     #   T-009 skips on Darwin (EC-003: Linux-runner test).
+    #
+    # ADR-050 (CI Darwin-Leg Source-Build Discipline for Registry-Schema Forward
+    # Compatibility): T-001's dispatcher binary MUST come from this PR's own
+    # `build-dispatcher` source build, NOT from the committed
+    # plugins/vsdd-factory/hooks/dispatcher/bin/darwin-*/ bundle. The bundle is
+    # rebuilt only by release.yml at release time (CLAUDE.md "Dispatcher binary
+    # discipline"), so it is always one release behind whatever registry schema
+    # a feature PR introduces (e.g. S-25.01's `on_error = "block_if_marker"`
+    # variant) and testing against it produces false CI failures unrelated to
+    # the PR's own code. DO NOT revert to copying the committed bundle here to
+    # "save CI time" — see ADR-050 for the full rationale. The committed bundle
+    # still gets a narrow integrity smoke-test below (ADR-050 §Decision 2).
     name: bats-darwin-leg (macos, /bin/bash 3.2)
     runs-on: macos-latest
+    needs: build-dispatcher
     steps:
       - uses: actions/checkout@v6
 
@@ -951,22 +965,64 @@ jobs:
           }
           echo "Interpreter OK: $(/bin/bash --version | head -1)"
 
+      - name: Determine darwin artifact platform
+        # macos-latest is currently arm64 (macos-15 alias; see build-dispatcher
+        # job's runner-label notes) but this runner's arch is detected directly
+        # rather than assumed, so the job stays correct if GitHub's alias target
+        # ever changes. Selects the matching build-dispatcher matrix artifact
+        # name (factory-dispatcher-darwin-arm64 / factory-dispatcher-darwin-x64).
+        id: darwin-arch
+        run: |
+          ARCH="$(uname -m)"
+          if [[ "${ARCH}" == "arm64" ]]; then
+            echo "platform=darwin-arm64" >> "$GITHUB_OUTPUT"
+          else
+            echo "platform=darwin-x64" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download source-built dispatcher artifact (ADR-050 §Decision 1)
+        # Downloads the build-dispatcher matrix job's fresh, THIS-PR's-own-source
+        # darwin binary (already built + tested on every PR; previously unused
+        # downstream) instead of the stale, always-one-release-behind committed
+        # bundle. This is what lets T-001 correctly parse registry entries using
+        # a schema value (e.g. `block_if_marker`) newly introduced in this PR.
+        uses: actions/download-artifact@v4
+        with:
+          name: factory-dispatcher-${{ steps.darwin-arch.outputs.platform }}
+          path: artifact-download
+
       - name: Set up dispatcher binary for T-001
-        # T-001 looks for target/release/factory-dispatcher. Copy the pre-built
-        # darwin binary from the repository bundle to avoid a full cargo build
-        # (~15 min) on each macOS CI run. Architecture detection selects
-        # darwin-arm64 (M1/M2/M3 runner) or darwin-x64 (Intel runner).
+        # T-001 looks for target/release/factory-dispatcher. Stage the
+        # source-built artifact downloaded above (ADR-050) rather than the
+        # committed bundle.
         run: |
           mkdir -p target/release
+          cp artifact-download/factory-dispatcher target/release/factory-dispatcher
+          chmod +x target/release/factory-dispatcher
+          echo "Dispatcher: $(target/release/factory-dispatcher --version 2>/dev/null || echo 'binary staged')"
+
+      - name: Committed-bundle smoke test (ADR-050 §Decision 2)
+        # Narrow artifact-integrity signal on the binary operators actually
+        # receive (plugins/vsdd-factory/hooks/dispatcher/bin/darwin-*/), kept
+        # deliberately separate from T-001's registry-parsing gate above. This
+        # step MUST NOT parse hooks-registry.toml against the committed
+        # binary — that coupling to registry-schema forward-compatibility is
+        # exactly what ADR-050 removes. It only asserts the checked-in bundle
+        # is a non-corrupt, executable, version-reporting binary for this arch.
+        run: |
           ARCH="$(uname -m)"
           if [[ "${ARCH}" == "arm64" ]]; then
             DARWIN_BIN="plugins/vsdd-factory/hooks/dispatcher/bin/darwin-arm64/factory-dispatcher"
           else
             DARWIN_BIN="plugins/vsdd-factory/hooks/dispatcher/bin/darwin-x64/factory-dispatcher"
           fi
-          cp "${DARWIN_BIN}" target/release/factory-dispatcher
-          chmod +x target/release/factory-dispatcher
-          echo "Dispatcher: $(target/release/factory-dispatcher --version 2>/dev/null || echo 'binary staged')"
+          chmod +x "${DARWIN_BIN}"
+          VERSION_OUTPUT="$("${DARWIN_BIN}" --version)"
+          if [[ -z "${VERSION_OUTPUT}" ]]; then
+            echo "DARWIN_BUNDLE_SMOKE_TEST_FAILED: ${DARWIN_BIN} --version produced empty output" >&2
+            exit 1
+          fi
+          echo "Committed bundle OK: ${VERSION_OUTPUT}"
 
       - name: Install Rust wasm32-wasip1 target
         # pr-manager-hardening.bats setup_file() builds pr-manager-completion-guard.wasm
