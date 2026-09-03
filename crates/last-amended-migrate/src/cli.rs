@@ -100,6 +100,17 @@ pub fn run(cli: Cli) -> ExitCode {
             factory_root,
             check,
         } => {
+            // S-15.03 SEC-002 (CWE-73): allowlist the user-supplied
+            // single-file `--path` BEFORE any read/write of its content.
+            // `migrate_all`'s own `--path`-omitted form already only ever
+            // touches the hardcoded `TARGET_FILES` set, so it needs no
+            // separate check here.
+            if let Some(p) = &path
+                && let Err(e) = crate::path_guard::validate_migrate_path(p, &factory_root)
+            {
+                eprintln!("last-amended-migrate: error: {e}");
+                return ExitCode::FAILURE;
+            }
             let mode = if check {
                 MigrationMode::Check
             } else {
@@ -142,6 +153,11 @@ pub fn run(cli: Cli) -> ExitCode {
             keep_recent,
             check,
         } => {
+            // S-15.03 SEC-002 (CWE-73): allowlist `--path` before any I/O.
+            if let Err(e) = crate::path_guard::validate_rotate_path(&path) {
+                eprintln!("last-amended-migrate: error: {e}");
+                return ExitCode::FAILURE;
+            }
             let mode = if check {
                 MigrationMode::Check
             } else {
@@ -168,15 +184,23 @@ pub fn run(cli: Cli) -> ExitCode {
                 }
             }
         }
-        Command::Register { registry } => match register_artifact_paths(&registry) {
-            Ok(()) => {
-                println!("{}: registration complete", registry.display());
-                ExitCode::SUCCESS
-            }
-            Err(e) => {
+        Command::Register { registry } => {
+            // S-15.03 SEC-002 (CWE-73): allowlist `--registry` before any
+            // read/append/write of its content.
+            if let Err(e) = crate::path_guard::validate_registry_path(&registry) {
                 eprintln!("last-amended-migrate: error: {e}");
-                ExitCode::FAILURE
+                return ExitCode::FAILURE;
             }
-        },
+            match register_artifact_paths(&registry) {
+                Ok(()) => {
+                    println!("{}: registration complete", registry.display());
+                    ExitCode::SUCCESS
+                }
+                Err(e) => {
+                    eprintln!("last-amended-migrate: error: {e}");
+                    ExitCode::FAILURE
+                }
+            }
+        }
     }
 }

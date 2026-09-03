@@ -50,4 +50,10 @@ pub enum MigrateError {
     /// failed (S-15.03 AC-006).
     #[error("artifact-path-registry.yaml write error: {reason}")]
     RegistryWrite { reason: String },
+
+    /// A CLI-supplied `--path`/`--registry` argument failed the path
+    /// allowlist check (S-15.03 SEC-002, CWE-73) — rejected before any file
+    /// I/O against its content occurs.
+    #[error("{path} is not an allowed target for this operation: {reason}")]
+    PathNotAllowed { path: PathBuf, reason: String },
 }

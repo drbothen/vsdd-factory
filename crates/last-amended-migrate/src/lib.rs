@@ -34,6 +34,7 @@ pub mod error;
 pub mod escape;
 pub mod frontmatter;
 pub mod migrate;
+pub mod path_guard;
 pub mod registry;
 pub mod rotate;
 pub mod yaml_guard;

@@ -41,6 +41,14 @@ fn run_cli(args: &[&str]) -> (i32, String, String) {
 
 /// `--check` against a fixture carrying the D-1144 escape defect must exit
 /// NONZERO (drift found) and must NOT mutate the file.
+///
+/// S-15.03 SEC-002: `--path` now goes through an allowlist that requires it
+/// to resolve, under `--factory-root`, to one of the 5 real BC-10.13.001
+/// `TARGET_FILES` relative paths — so the fixture lives at
+/// `<tmp>/specs/behavioral-contracts/BC-INDEX.md` and the CLI invocation
+/// passes `--factory-root <tmp>`, matching real usage exactly (rather than a
+/// flat basename-only tempdir layout, which the allowlist now correctly
+/// rejects as out-of-scope).
 #[test]
 fn test_BC_10_13_001_cli_check_mode_nonzero_exit_on_defect_without_mutation() {
     let dir = tempfile::tempdir().expect("tempdir");
@@ -52,13 +60,19 @@ fn test_BC_10_13_001_cli_check_mode_nonzero_exit_on_defect_without_mutation() {
         Some(&[common::changelog_item_block("2026-08-01", "an older entry")]),
         "# Fixture BC-INDEX\n",
     );
-    let path = common::write_file(dir.path(), "BC-INDEX.md", &content);
+    let path = common::write_file(
+        dir.path(),
+        "specs/behavioral-contracts/BC-INDEX.md",
+        &content,
+    );
     let before = common::read_file(&path);
 
     let (exit_code, stdout, stderr) = run_cli(&[
         "migrate",
         "--path",
         path.to_str().expect("utf8 path"),
+        "--factory-root",
+        dir.path().to_str().expect("utf8 tempdir path"),
         "--check",
     ]);
 
@@ -86,7 +100,8 @@ fn test_BC_10_13_001_cli_check_mode_nonzero_exit_on_defect_without_mutation() {
 }
 
 /// `--check` against an already-fully-compliant fixture must exit 0 and
-/// must not mutate the file.
+/// must not mutate the file. S-15.03 SEC-002: same `--factory-root`-relative
+/// fixture layout as the sibling test above.
 #[test]
 fn test_BC_10_13_001_cli_check_mode_zero_exit_on_compliant_fixture() {
     let dir = tempfile::tempdir().expect("tempdir");
@@ -98,13 +113,15 @@ fn test_BC_10_13_001_cli_check_mode_zero_exit_on_compliant_fixture() {
         Some(&[common::changelog_item_block("2026-08-01", "an older entry")]),
         "# Fixture ARCH-INDEX\n",
     );
-    let path = common::write_file(dir.path(), "ARCH-INDEX.md", &content);
+    let path = common::write_file(dir.path(), "specs/architecture/ARCH-INDEX.md", &content);
     let before = common::read_file(&path);
 
     let (exit_code, stdout, stderr) = run_cli(&[
         "migrate",
         "--path",
         path.to_str().expect("utf8 path"),
+        "--factory-root",
+        dir.path().to_str().expect("utf8 tempdir path"),
         "--check",
     ]);
 
@@ -119,7 +136,8 @@ fn test_BC_10_13_001_cli_check_mode_zero_exit_on_compliant_fixture() {
 }
 
 /// Without `--check` (apply mode, the default), the CLI must actually
-/// perform the migration write and exit 0.
+/// perform the migration write and exit 0. S-15.03 SEC-002: same
+/// `--factory-root`-relative fixture layout as the sibling tests above.
 #[test]
 fn test_BC_10_13_001_cli_apply_mode_mutates_and_exits_zero() {
     let dir = tempfile::tempdir().expect("tempdir");
@@ -131,10 +149,15 @@ fn test_BC_10_13_001_cli_apply_mode_mutates_and_exits_zero() {
         None,
         "# Fixture STORY-INDEX\n",
     );
-    let path = common::write_file(dir.path(), "STORY-INDEX.md", &content);
+    let path = common::write_file(dir.path(), "stories/STORY-INDEX.md", &content);
 
-    let (exit_code, stdout, stderr) =
-        run_cli(&["migrate", "--path", path.to_str().expect("utf8 path")]);
+    let (exit_code, stdout, stderr) = run_cli(&[
+        "migrate",
+        "--path",
+        path.to_str().expect("utf8 path"),
+        "--factory-root",
+        dir.path().to_str().expect("utf8 tempdir path"),
+    ]);
 
     assert_eq!(
         exit_code, 0,
