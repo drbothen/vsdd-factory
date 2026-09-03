@@ -178,5 +178,55 @@ submitting the S-25.01 PR. Owner: implementer (LOW-1/OBS-3), story-writer/orches
 | [process-gap] registry-comment-lint | **TRACKED — follow-up story or justified deferral at cycle-close** | orchestrator at cycle-close |
 | OBS-1 (crash posture) | **VERIFIED CONFORMANT — no action** | adversary pass 1 |
 | OBS-2 (quoting) | **VERIFIED CONFORMANT — no action** | adversary pass 1 |
+| O-P16-1 (`[process-gap]` adversary dispatch template stale WASM plugin path) | **OPEN — sweep after 3-CLEAN** | story-writer/orchestrator (post-3-CLEAN doc-sweep) |
+| O-P16-2 (`classify_outcome` `_policy` unused param, already documented in-code) | **OPEN — spec-signature refinement candidate, surface to product-owner** | product-owner (post-3-CLEAN doc-sweep, if actioned) |
+| O-P16-3 (`reconcile_raw_delete` today-only + 256KB-tail bounds) | **VERIFIED CONFORMANT — no action (bounded/best-effort per BC-3.08.001 Inv 3 / ADR-048 §D4)** | adversary pass 16 |
 
 *S-25.01 section added: 2026-08-31 (S2501-LOCAL-ADV-PASS1-CLEAN-STREAK-1of3-2026-08-31 — state-manager; BC-5.39.001 streak 1/3; artifact FROZEN @ 92990371)*
+
+---
+
+### O-P16-1 — Adversary dispatch template cites stale/nonexistent WASM plugin path
+
+| Field | Value |
+|-------|-------|
+| **Finding ID** | O-P16-1 |
+| **Severity** | LOW / `[process-gap]` |
+| **Source pass** | Pass 16 (LOCAL adversary pass 16 CLEAN 2026-09-03, D-1153) |
+| **File** | S-25.01 adversary dispatch template (code-perimeter list) |
+| **Observation** | The template names the gate WASM plugin at `plugins/vsdd-factory/hooks/validate-unvalidated-mutation-marker/src/lib.rs`, which does not exist (confirmed via literal `ls` — ENOENT). The real path is `crates/hook-plugins/validate-unvalidated-mutation-marker/src/lib.rs` (confirmed present). |
+| **Impact** | No review gap resulted this pass — the adversary found and reviewed the correct file despite the stale template path. Purely a template-hygiene issue that wastes a glob on future passes. |
+| **Fix** | Correct the S-25.01 adversary dispatch template's code-perimeter path to `crates/hook-plugins/validate-unvalidated-mutation-marker/src/lib.rs`. |
+| **Routing** | story-writer/orchestrator (dispatch-template owner) |
+| **Blocking?** | No — cosmetic template correction only |
+
+---
+
+### O-P16-2 — `classify_outcome`'s `_policy` parameter unused (already documented, candidate signature refinement)
+
+| Field | Value |
+|-------|-------|
+| **Finding ID** | O-P16-2 |
+| **Severity** | LOW |
+| **Source pass** | Pass 16 (LOCAL adversary pass 16 CLEAN 2026-09-03, D-1153) |
+| **File** | `crates/factory-dispatcher/src/executor.rs` — `classify_outcome` (~lines 132-140 in the frozen `feature/S-25.01` worktree) |
+| **Observation** | `classify_outcome`'s `_policy: FailurePolicy` parameter is genuinely unused inside the function body — classification is policy-independent; `policy` is consumed downstream by `should_write_marker` instead. Already documented in-code via an orchestrator-ruling NOTE comment (confirmed via literal `sed` excerpt) and in the story's orchestrator note. |
+| **Disposition** | Retained as-is for AC-004 signature parity (spec-mandated signature; spec-wins). Candidate spec-signature refinement — surface to product-owner as a possible follow-up; not a defect. |
+| **Routing** | product-owner (spec-signature adjudication, if actioned) |
+| **Blocking?** | No — documented, spec-conformant, no behavior gap |
+
+---
+
+### O-P16-3 — `reconcile_raw_delete` today-only + 256KB-tail scan bounds (verified conformant, no action)
+
+| Field | Value |
+|-------|-------|
+| **Finding ID** | O-P16-3 |
+| **Severity** | OBSERVATION — VERIFIED CONFORMANT |
+| **Source pass** | Pass 16 (LOCAL adversary pass 16 CLEAN 2026-09-03, D-1153) |
+| **Observation** | A T3 raw-delete whose `marker.written` audit event fell outside `reconcile_raw_delete`'s today-only + 256KB-tail scan window will not reconcile to `OPERATOR_OVERRIDE`. |
+| **Disposition** | VERIFIED CONFORMANT — explicitly spec'd bounded/best-effort behavior per BC-3.08.001 Invariant 3 and ADR-048 §D4. Correct-by-spec; noted for completeness only. No action required. |
+
+---
+
+*Pass 16 items added: 2026-09-03 (S2501-PASS16-CLEAN-STREAK-ADVANCE-BOOKKEEPING — state-manager; BC-5.39.001 streak 0/3→1/3; artifact FROZEN @ 3919ebcb; D-1153)*
