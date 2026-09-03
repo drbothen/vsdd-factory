@@ -98,6 +98,210 @@ fn test_BC_10_13_001_PC3_escape_value_preserves_escaped_backslash() {
     );
 }
 
+// ── S-15.03 SEC-001: control-character escaping (CWE-116) ──────────────────
+//
+// `needs_escaping`/`escape_value` previously only detected/escaped a literal
+// `"`. A raw newline, carriage return, or tab passed through unescaped and
+// got spliced verbatim into a double-quoted YAML scalar, breaking strict
+// `safe_load` parsing exactly like an unescaped quote does.
+
+#[test]
+fn test_BC_10_13_001_SEC001_needs_escaping_true_on_raw_newline() {
+    let raw = "line one\nline two";
+    assert!(
+        needs_escaping(raw),
+        "a raw embedded newline must be flagged"
+    );
+}
+
+#[test]
+fn test_BC_10_13_001_SEC001_needs_escaping_true_on_raw_carriage_return() {
+    let raw = "line one\rline two";
+    assert!(
+        needs_escaping(raw),
+        "a raw embedded carriage return must be flagged"
+    );
+}
+
+#[test]
+fn test_BC_10_13_001_SEC001_needs_escaping_true_on_raw_tab() {
+    let raw = "column1\tcolumn2";
+    assert!(needs_escaping(raw), "a raw embedded tab must be flagged");
+}
+
+#[test]
+fn test_BC_10_13_001_SEC001_needs_escaping_true_on_other_control_char() {
+    // U+0007 BEL — an arbitrary C0 control character with no dedicated named
+    // escape (`\n`/`\r`/`\t`), exercising the `\xHH` fallback branch.
+    let raw = "abc\u{7}def";
+    assert!(
+        needs_escaping(raw),
+        "any C0 control character below U+0020 must be flagged, not just \\n/\\r/\\t"
+    );
+}
+
+#[test]
+fn test_BC_10_13_001_SEC001_escape_value_escapes_newline_tab_cr() {
+    let raw = "line one\nline\ttwo\rdone";
+    let escaped = escape_value(raw);
+    assert!(
+        !needs_escaping(&escaped),
+        "escaped output must contain no raw control characters left: {escaped:?}"
+    );
+    assert_eq!(escaped, "line one\\nline\\ttwo\\rdone");
+}
+
+#[test]
+fn test_BC_10_13_001_SEC001_escape_value_control_chars_round_trip_strict_yaml() {
+    // The exact defect class the security review named: an embedded raw
+    // newline/tab/CR in a value this tool is about to splice into a
+    // double-quoted YAML scalar.
+    let raw = "fixed the bug\nadded a\ttab\rand a CR";
+    let escaped = escape_value(raw);
+    let wrapped = format!("last_amended: \"{escaped}\"\n");
+    let parsed: common::MinimalFrontmatter =
+        serde_norway::from_str(&wrapped).expect("escaped control chars must parse as valid YAML");
+    assert_eq!(
+        parsed.last_amended, raw,
+        "the YAML-decoded value must round-trip to the exact original text \
+         (semantics preserved, only the raw encoding changed)"
+    );
+}
+
+#[test]
+fn test_BC_10_13_001_SEC001_escape_value_control_chars_idempotent() {
+    let raw = "one\ntwo\tthree\rfour";
+    let once = escape_value(raw);
+    let twice = escape_value(&once);
+    assert_eq!(
+        once, twice,
+        "escaping an already-escaped control-character value must be a no-op (PC4)"
+    );
+}
+
+/// End-to-end: a `last_amended` value carrying a raw embedded carriage
+/// return is escaped by `migrate_file`, and the resulting file parses
+/// cleanly under strict YAML with the original text preserved EXACTLY
+/// (including the control character itself).
+///
+/// # Why carriage return, not a raw newline, for this end-to-end fixture
+///
+/// `src/frontmatter.rs`'s hand-rolled reader (`extract_last_amended`)
+/// deliberately bounds its scan for `last_amended:`'s value to a single
+/// physical line via `.find('\n')` (see that module's own doc comment: every
+/// field this tool reads is assumed single-line, which is what keeps the
+/// scan `O(n)`-bounded against the D-1149 mega-line calibration ceiling). A
+/// raw embedded `\n` therefore can never successfully round-trip THROUGH
+/// `migrate_file`'s read step at all — extraction itself fails before
+/// eligibility/escaping ever runs (proven separately: such a fixture yields
+/// `Err(NotEligible)`, not a corrupt write), so it cannot reach this
+/// end-to-end path. A raw `\r`, by contrast, does NOT terminate that
+/// `\n`-bounded scan — it is read successfully as ordinary line content, so
+/// it genuinely reaches `escape_value` through the real production code
+/// path, making it the right control character to exercise here. (The `\n`
+/// case's own escaping correctness is proven directly at the pure-function
+/// level by `test_BC_10_13_001_SEC001_escape_value_control_chars_round_trip_strict_yaml`
+/// above, which does not depend on the hand-rolled reader's single-line
+/// assumption.)
+///
+/// A raw (unescaped) carriage return inside a YAML double-quoted scalar is
+/// NOT a strict-parse error either — the YAML spec's flow-scalar line
+/// folding rule silently collapses it to a single space instead. That is
+/// arguably a WORSE defect than an outright parse failure (CWE-116): the
+/// unfixed file "looks fine" (parses without error) while quietly losing
+/// information, which a `--check`-style validity gate alone would never
+/// catch. This test proves both halves: (1) the PRE-fix content already
+/// silently loses the carriage return under strict parsing (the corruption
+/// `escape_value` exists to prevent), and (2) `migrate_file` closes that gap
+/// — the POST-fix content round-trips to the exact original text, carriage
+/// return included.
+#[test]
+fn test_BC_10_13_001_SEC001_migrate_file_prevents_silent_cr_corruption() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let last_amended = "2026-09-02 (v5.42) — fixed the bug\rsecond note".to_string();
+    let content = common::frontmatter_file(
+        "behavioral-contract-index",
+        "5.42",
+        &last_amended,
+        Some(&[common::changelog_item_block("2026-08-01", "an older entry")]),
+        "# Fixture BC-INDEX\n",
+    );
+    let path = common::write_file(dir.path(), "BC-INDEX.md", &content);
+
+    // Fixture sanity: PRE-fix, strict YAML parsing SUCCEEDS (no error) but
+    // silently folds the raw carriage return into a space — proving the
+    // defect is real corruption, not merely a hypothetical parse failure.
+    let pre_fix_parsed = common::strict_yaml_parse(&content)
+        .expect("a raw embedded carriage return does not itself cause a YAML parse error");
+    assert_ne!(
+        pre_fix_parsed.last_amended, last_amended,
+        "fixture sanity: pre-fix, the raw carriage return must already be \
+         silently folded away by strict YAML parsing (the CWE-116 defect \
+         this fix closes): {:?}",
+        pre_fix_parsed.last_amended
+    );
+    assert!(
+        !pre_fix_parsed.last_amended.contains('\r'),
+        "fixture sanity: pre-fix decoded value must have lost the carriage \
+         return: {:?}",
+        pre_fix_parsed.last_amended
+    );
+
+    let report = migrate_file(&path, MigrationMode::Apply).expect("migrate_file must succeed");
+    assert!(report.mutated);
+    assert!(report.escape_fixed, "report must record the escape fix");
+
+    let after = common::read_file(&path);
+    let parsed = common::strict_yaml_parse(&after)
+        .expect("post-fix frontmatter must parse under strict YAML safe_load");
+    assert_eq!(
+        parsed.last_amended, last_amended,
+        "post-fix, the original text INCLUDING its carriage return must \
+         round-trip exactly — no silent corruption: {:?}",
+        parsed.last_amended
+    );
+}
+
+/// End-to-end: a `last_amended` value carrying an arbitrary C0 control
+/// character with no dedicated named YAML escape (here, `U+0007` BEL) is a
+/// genuine strict-parse ERROR before the fix (unlike `\n`/`\r`, which fold
+/// silently instead — see the sibling test above) — `migrate_file` must
+/// escape it via the `\xHH` fallback and produce a file that parses cleanly.
+#[test]
+fn test_BC_10_13_001_SEC001_migrate_file_escapes_other_control_char_hard_parse_error() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let last_amended = "2026-09-02 (v5.43) — fixed the bug\u{7}beeped".to_string();
+    let content = common::frontmatter_file(
+        "architecture-index",
+        "5.43",
+        &last_amended,
+        Some(&[common::changelog_item_block("2026-08-01", "an older entry")]),
+        "# Fixture ARCH-INDEX\n",
+    );
+    let path = common::write_file(dir.path(), "ARCH-INDEX.md", &content);
+
+    assert!(
+        common::strict_yaml_parse(&content).is_err(),
+        "fixture sanity: a raw BEL control character must break strict YAML \
+         parsing before the fix is applied (unlike \\n/\\r, this one has no \
+         line-folding escape hatch)"
+    );
+
+    let report = migrate_file(&path, MigrationMode::Apply).expect("migrate_file must succeed");
+    assert!(report.mutated);
+    assert!(report.escape_fixed, "report must record the escape fix");
+
+    let after = common::read_file(&path);
+    let parsed = common::strict_yaml_parse(&after)
+        .expect("post-fix frontmatter must parse under strict YAML safe_load");
+    assert_eq!(
+        parsed.last_amended, last_amended,
+        "the original text, including the control character, must survive \
+         the fix semantically unchanged: {:?}",
+        parsed.last_amended
+    );
+}
+
 // ── `migrate_file` end-to-end integration + strict YAML round trip ─────────
 
 /// BC-10.13.001 PC3 canonical edge-case test vector: `BC-INDEX.md`-shaped

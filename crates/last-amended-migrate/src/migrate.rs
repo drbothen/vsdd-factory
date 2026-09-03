@@ -228,6 +228,32 @@ pub fn migrate_file(path: &Path, mode: MigrationMode) -> Result<FileMigrationRep
             if !is_state {
                 for entry_text in entries.iter().rev() {
                     let (date, version, mut summary) = parse_dated_entry(entry_text);
+                    // S-15.03 SEC-001: `version` is written into its own
+                    // YAML double-quoted scalar by `render_item_block`
+                    // (`version: "{version}"`) — just like `summary`, it can
+                    // in principle carry a control character or an
+                    // unescaped quote (a pathologically-shaped legacy
+                    // `[Prior: ...]` entry is not guaranteed to match the
+                    // `"{date} ({version}) — {text}"` convention exactly),
+                    // so it must go through the same escape gate `summary`
+                    // already does — this was the one field previously
+                    // written unescaped. `date` is deliberately NOT escaped
+                    // here: `render_item_block` writes it as a bare, UNQUOTED
+                    // plain YAML scalar (`date: {date}`, no surrounding
+                    // quotes), so backslash-escape sequences would be
+                    // interpreted as literal characters there, not as
+                    // escapes — quoting/escaping `date` would require
+                    // changing that output shape, which is out of SEC-001's
+                    // scope (an output-escaping defect, not an output-shape
+                    // change).
+                    let version = version.map(|v| {
+                        if needs_escaping(&v) {
+                            escape_fixed = true;
+                            escape_value(&v)
+                        } else {
+                            v
+                        }
+                    });
                     if needs_escaping(&summary) {
                         summary = escape_value(&summary);
                         escape_fixed = true;
@@ -251,6 +277,10 @@ pub fn migrate_file(path: &Path, mode: MigrationMode) -> Result<FileMigrationRep
         || escape_fixed;
 
     if mutated && mode == MigrationMode::Apply {
+        // S-15.03 SEC-001 (BC-10.13.001 Invariant 4): validate the content
+        // this tool is about to write parses under strict YAML `safe_load`
+        // BEFORE writing it — never let a corrupt file reach disk.
+        crate::yaml_guard::validate_frontmatter_yaml(path, &doc.raw)?;
         std::fs::write(path, &doc.raw).map_err(|source| MigrateError::Io {
             path: path.to_path_buf(),
             source,

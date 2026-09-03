@@ -36,6 +36,7 @@ pub mod frontmatter;
 pub mod migrate;
 pub mod registry;
 pub mod rotate;
+pub mod yaml_guard;
 
 pub use cli::{Cli, Command, run};
 pub use error::MigrateError;

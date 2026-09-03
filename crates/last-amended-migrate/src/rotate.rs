@@ -163,12 +163,18 @@ pub fn rotate_changelog(
     for item in move_items {
         archive_content.push_str(item);
     }
+    // S-15.03 SEC-001 (BC-10.13.001 Invariant 4): validate the archive's
+    // relocated `changelog:` sequence content parses cleanly before writing.
+    crate::yaml_guard::validate_changelog_sequence_yaml(&archive_path, &archive_content)?;
     std::fs::write(&archive_path, &archive_content).map_err(|source| MigrateError::Io {
         path: archive_path.clone(),
         source,
     })?;
 
     let new_raw = rewrite_source_after_rotation(path, &doc.raw, keep_items, &archive_path)?;
+    // S-15.03 SEC-001: validate the rewritten source file's frontmatter
+    // before writing it back.
+    crate::yaml_guard::validate_frontmatter_yaml(path, &new_raw)?;
     std::fs::write(path, &new_raw).map_err(|source| MigrateError::Io {
         path: path.to_path_buf(),
         source,

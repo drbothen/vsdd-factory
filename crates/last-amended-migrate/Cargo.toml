@@ -26,17 +26,19 @@ path = "src/main.rs"
 [dependencies]
 clap = { workspace = true }
 thiserror = { workspace = true }
+# Strict-YAML `safe_load` pre-write validity gate (S-15.03 SEC-001;
+# BC-10.13.001 Invariant 4 / PC3) — `src/yaml_guard.rs` parses every produced
+# frontmatter/changelog write under this independent, general-purpose YAML
+# parser before allowing the write to proceed. Deliberately NOT a dependency
+# of the production D-1144/SEC-001 escape logic itself, which remains a
+# hand-rolled bounded scan per `src/escape.rs`'s own doc comment (bounded-cost
+# hot-path read/write); this is an OUTPUT-side, bounded-size validity check
+# only, mirroring every other workspace crate's `serde_norway` usage.
+serde = { workspace = true }
+serde_norway = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }
-# Strict-YAML `safe_load` round-trip verification for BC-10.13.001 PC3 /
-# BC-5.45.001 Invariant 3 test fixtures (independent black-box parse check —
-# NOT a dependency of the production D-1144 escape logic itself, which
-# remains a hand-rolled bounded scan per `src/escape.rs`'s own doc comment;
-# using serde_norway here only to VERIFY the tool's output parses cleanly,
-# mirroring every other workspace crate's `serde_norway` dev/prod usage).
-serde = { workspace = true }
-serde_norway = { workspace = true }
 
 [lints]
 workspace = true
