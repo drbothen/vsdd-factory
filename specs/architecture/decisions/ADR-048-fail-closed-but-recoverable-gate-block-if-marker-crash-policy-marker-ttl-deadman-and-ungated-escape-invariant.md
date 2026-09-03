@@ -1,7 +1,7 @@
 ---
 document_type: adr
 adr_id: ADR-048
-version: "1.5"
+version: "1.6"
 title: "ADR-048: Fail-Closed-But-Recoverable Gate — block_if_marker Crash Policy, Marker TTL Deadman, and Ungated-Escape Invariant"
 status: accepted
 date: 2026-08-31
@@ -15,7 +15,25 @@ supersedes: ADR-047
 superseded_by: null
 extends: ADR-047
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
-last_amended: "2026-09-01 (v1.5) — Architect adjudication (S-25.01 adversary pass 9 F-P9-001 MEDIUM
+last_amended: "2026-09-03 (v1.6) — TD-VSDD-060 sibling-sweep factual correction (per
+  determination-S2501-trigger-path.md; consistent with the already-landed ADR-047 v1.4 and
+  BC-1.18.004 v1.2 corrections; human-directed; architect-executed; NOT a POLICY 22
+  design/security-model change — pure factual correction, no decision content altered): five loci
+  (frontmatter historical Prior text; the §Decision-4-v1.4-origin body paragraph; the §Decision 4
+  v1.4 section itself; the Consequences section; the Adjudication History v1.4-origin entry)
+  mislabeled `validate-factory-path-staging`'s PreToolUse `^Bash$` `failure_policy=\"fail-closed\"`
+  assignment as `EFFECTIVE-NOW` / `reachable NOW`, overclaiming live production enforcement.
+  Corrected to `ASSIGNED-NOW` / `CODE-reachable/unit-tested`: the fail-closed bit is safely SET in
+  the registry but produces ZERO current production enforcement effect (`on_error = \"continue\"`;
+  absent from the ADR-039 §Decision 2 six-validator roadmap; ADR-047 §Decision 8a v1.4). This does
+  NOT change §Decision 4's soundness: INDETERMINATE classification and `plugin.indeterminate`
+  (Event 8) emission are independent of `on_error` (ADR-039 §Decision 1 axes-independence), so the
+  reconciliation-premise defect §Decision 4 v1.4/v1.5 close remains CODE-reachable/unit-tested
+  through this validator regardless of its production-enforcement status — only the reachability
+  CHARACTERIZATION (production-live vs. code-reachable-only) is corrected, the argument's validity
+  is unaffected. ZERO-enforcement gap anchored to recommended follow-up story \"Close
+  validate-factory-path-staging zero-enforcement gap\" (ID S-25.04, Epic E-25) per CLAUDE.md
+  Canonical Principle Rule 3. [Prior: 2026-09-01 (v1.5) — Architect adjudication (S-25.01 adversary pass 9 F-P9-001 MEDIUM
   resolution): §Decision 4 SUPERSEDED emission-POINT correction — symmetric to the v1.4
   marker.written fix. `emit_superseded_if_cross_pair` was emitting `marker.cleared(SUPERSEDED,
   system, reason=non-null)` for the OLD `(plugin_name, artifact_path)` pair UNCONDITIONALLY, BEFORE
@@ -38,8 +56,11 @@ last_amended: "2026-09-01 (v1.5) — Architect adjudication (S-25.01 adversary p
   resolution): §Decision 4 reconciliation-PREMISE correction. `reconcile_raw_delete`'s inference
   'unmatched fail-closed plugin.indeterminate ⟹ a marker was durably written and later raw-deleted'
   is FALSE in two cases: (1) a PreToolUse fail-closed INDETERMINATE (BC-1.18.001 INV4 — marker
-  write is PostToolUse-only; confirmed EFFECTIVE-NOW for `validate-factory-path-staging`,
-  hooks-registry.toml PreToolUse `^Bash$` fail-closed, Cohort A-immediate) never attempts a marker
+  write is PostToolUse-only; `validate-factory-path-staging` is registered PreToolUse `^Bash$`
+  fail-closed, Cohort A-immediate/ASSIGNED-NOW (`hooks-registry.toml`) — corrected v1.6: the
+  fail-closed bit is safely SET but produces ZERO current production enforcement effect
+  (`on_error = \"continue\"`; absent from the ADR-039 §Decision 2 roadmap; ADR-047 §Decision 8a
+  v1.4) — never attempts a marker
   write at all; (2) a PostToolUse marker-write I/O failure (EC-007, swallowed best-effort) leaves
   the same no-marker-ever-existed footprint. Both fabricate `marker.cleared(OPERATOR_OVERRIDE,
   actor_type=operator)` — a false audit record attributing a human out-of-band action that never
@@ -56,8 +77,9 @@ last_amended: "2026-09-01 (v1.5) — Architect adjudication (S-25.01 adversary p
   reconciliation premise TRUE BY CONSTRUCTION rather than inferred from a proxy signal.
   HUMAN-RATIFIED 2026-09-01 (POLICY 22; D-1141) — a further revision to the v1.3-ratified ADR per
   D-1140; does not reopen v1.0–v1.3's ratified decisions. [Prior: 2026-09-01 (v1.3) — Architect adjudication
-  (S-25.01 LOCAL adversary pass 3 F-P3-001 MEDIUM + F-P3-002 LOW resolution): §Decision 4 emission-MECHANISM precision correction — Events 8/9 emission (`emit_indeterminate`, `emit_marker_cleared`, `check_and_clear_expired_marker`, `reconcile_raw_delete`) MUST route through `HostContext::emit_internal` (the same dual-sink helper Events 1/2/3/5/6 already use — writes InternalLog when wired AND pushes the stub `ctx.events` queue that VSDD_SINK_FILE/the future S-4.x Router→FileSink drain), not a raw `InternalLog::write` call that silently bypasses the queue. `reconcile_raw_delete`'s bounded scan target is corrected to `dispatcher-internal-{date}.jsonl` (the only sink unconditionally durable in every production dispatcher run, independent of `observability-config.toml`) — NOT a literal `events-{date}.jsonl`, which is not durably written absent an opt-in `VSDD_SINK_FILE` or the not-yet-main.rs-wired S-4.07 Router/FileSink. New `clear_mode = \"SUPERSEDED\" / actor_type = \"system\"` added to Event 9 to close the F-P3-002 cross-pair-overwrite false-attribution gap: when `write_indeterminate_marker` overwrites a live marker belonging to a DIFFERENT `(plugin_name, artifact_path)` pair (last-writer-wins, BC-1.18.001 INV3), the superseded pair's fields are read before overwrite and `marker.cleared(SUPERSEDED, system)` is emitted immediately — preventing `reconcile_raw_delete` from later mis-attributing the superseded pair's clearance to a human `OPERATOR_OVERRIDE` that never happened. HUMAN-RATIFIED 2026-09-01 (POLICY 22; D-1140) — further revision to an already-ratified ADR; does not reopen v1.0–v1.2's ratified decisions. [Prior: 2026-08-31 (v1.2) — Architect-directed (S-25.01 LOCAL adversary pass 2 F-P2-002 HIGH + F-P2-003 MED resolution): §Decision 4 emission-point architecture corrected. Root cause: `marker.cleared` emitted via the WASM `emit_event` host ABI is subject to RESERVED_FIELDS enrichment (`crates/factory-dispatcher/src/host/emit_event.rs`) — the host unconditionally overwrites plugin-supplied `trace_id`/`plugin_name` with the CURRENT gate-plugin's own dispatch identity, so a WASM plugin can never emit an event carrying a FOREIGN (marker-owned) trace_id/plugin_name. TTL_EXPIRED detection+auto-delete+emission is MOVED from the WASM gate plugin's `evaluate_gate` to a new dispatcher-native pre-check (`indeterminate_marker.rs`) that runs before every Arm 1/Arm 2 plugin invocation on the normal (non-crash) path, mirroring the already-correct REVALIDATED emission architecture. OPERATOR_OVERRIDE/RAW_DELETE_DETECTED reconciliation (previously entirely unimplemented) is likewise implemented dispatcher-native, in the same pre-check's marker-absent branch, with a bounded/best-effort FileSink scan. `evaluate_gate` is simplified to a pure presence check (no `expires_at` math, no delete, no emission). PROPOSED — awaiting human ratification (unchanged from v1.0/v1.1; this is a further pre-ratification revision, not a reopening of an already-ratified decision). [Prior: 2026-08-31 (v1.1) — Human-directed (HIGH-1 resolution): §Decision 3 amended — recovery model reframed (re-validation = primary agent recovery; human out-of-band rm = break-glass; agent-tool rm de-sanctioned; shared-crate fix rejected as unnecessary + unsound per Rice's theorem); §Decision 4 added — marker.cleared audited event (clear_mode ∈ {REVALIDATED,TTL_EXPIRED,OPERATOR_OVERRIDE}; trace_id linkage; RAW_DELETE_DETECTED reconciliation mode) + TTL-loudness. [v1.0 — Initial authoring. Human-directed gate redesign reversing D-1135 fail-open-on-crash ratification.]]]]]"
+  (S-25.01 LOCAL adversary pass 3 F-P3-001 MEDIUM + F-P3-002 LOW resolution): §Decision 4 emission-MECHANISM precision correction — Events 8/9 emission (`emit_indeterminate`, `emit_marker_cleared`, `check_and_clear_expired_marker`, `reconcile_raw_delete`) MUST route through `HostContext::emit_internal` (the same dual-sink helper Events 1/2/3/5/6 already use — writes InternalLog when wired AND pushes the stub `ctx.events` queue that VSDD_SINK_FILE/the future S-4.x Router→FileSink drain), not a raw `InternalLog::write` call that silently bypasses the queue. `reconcile_raw_delete`'s bounded scan target is corrected to `dispatcher-internal-{date}.jsonl` (the only sink unconditionally durable in every production dispatcher run, independent of `observability-config.toml`) — NOT a literal `events-{date}.jsonl`, which is not durably written absent an opt-in `VSDD_SINK_FILE` or the not-yet-main.rs-wired S-4.07 Router/FileSink. New `clear_mode = \"SUPERSEDED\" / actor_type = \"system\"` added to Event 9 to close the F-P3-002 cross-pair-overwrite false-attribution gap: when `write_indeterminate_marker` overwrites a live marker belonging to a DIFFERENT `(plugin_name, artifact_path)` pair (last-writer-wins, BC-1.18.001 INV3), the superseded pair's fields are read before overwrite and `marker.cleared(SUPERSEDED, system)` is emitted immediately — preventing `reconcile_raw_delete` from later mis-attributing the superseded pair's clearance to a human `OPERATOR_OVERRIDE` that never happened. HUMAN-RATIFIED 2026-09-01 (POLICY 22; D-1140) — further revision to an already-ratified ADR; does not reopen v1.0–v1.2's ratified decisions. [Prior: 2026-08-31 (v1.2) — Architect-directed (S-25.01 LOCAL adversary pass 2 F-P2-002 HIGH + F-P2-003 MED resolution): §Decision 4 emission-point architecture corrected. Root cause: `marker.cleared` emitted via the WASM `emit_event` host ABI is subject to RESERVED_FIELDS enrichment (`crates/factory-dispatcher/src/host/emit_event.rs`) — the host unconditionally overwrites plugin-supplied `trace_id`/`plugin_name` with the CURRENT gate-plugin's own dispatch identity, so a WASM plugin can never emit an event carrying a FOREIGN (marker-owned) trace_id/plugin_name. TTL_EXPIRED detection+auto-delete+emission is MOVED from the WASM gate plugin's `evaluate_gate` to a new dispatcher-native pre-check (`indeterminate_marker.rs`) that runs before every Arm 1/Arm 2 plugin invocation on the normal (non-crash) path, mirroring the already-correct REVALIDATED emission architecture. OPERATOR_OVERRIDE/RAW_DELETE_DETECTED reconciliation (previously entirely unimplemented) is likewise implemented dispatcher-native, in the same pre-check's marker-absent branch, with a bounded/best-effort FileSink scan. `evaluate_gate` is simplified to a pure presence check (no `expires_at` math, no delete, no emission). PROPOSED — awaiting human ratification (unchanged from v1.0/v1.1; this is a further pre-ratification revision, not a reopening of an already-ratified decision). [Prior: 2026-08-31 (v1.1) — Human-directed (HIGH-1 resolution): §Decision 3 amended — recovery model reframed (re-validation = primary agent recovery; human out-of-band rm = break-glass; agent-tool rm de-sanctioned; shared-crate fix rejected as unnecessary + unsound per Rice's theorem); §Decision 4 added — marker.cleared audited event (clear_mode ∈ {REVALIDATED,TTL_EXPIRED,OPERATOR_OVERRIDE}; trace_id linkage; RAW_DELETE_DETECTED reconciliation mode) + TTL-loudness. [v1.0 — Initial authoring. Human-directed gate redesign reversing D-1135 fail-open-on-crash ratification.]]]]]]"
 modified:
+  - "2026-09-03 (v1.6) — TD-VSDD-060 sibling-sweep factual correction: five EFFECTIVE-NOW/reachable-NOW overclaim loci for validate-factory-path-staging corrected to ASSIGNED-NOW/CODE-reachable (consistent with ADR-047 v1.4 + BC-1.18.004 v1.2); NOT a POLICY 22 change — argument soundness unaffected (INDETERMINATE emission is on_error-independent); ZERO-enforcement gap anchored to recommended follow-up story S-25.04 (Epic E-25)"
   - "2026-09-01 (v1.5 ratified) — Human-Ratified (POLICY 22; D-1142; state-manager; no content change, status flip only)"
   - "2026-09-01 (v1.5) — §D4 SUPERSEDED emission-point correction (S-25.01 adversary pass 9 F-P9-001 MEDIUM): emit_superseded_if_cross_pair call moved from before write_indeterminate_marker to inside its Ok(()) arm (symmetric with the v1.4 marker.written fix); on Err neither event emits; Human-Ratified 2026-09-01 (POLICY 22; D-1142)"
   - "2026-09-01 (v1.4 ratified) — Human-Ratified (POLICY 22; D-1141; state-manager; no content change, status flip only)"
@@ -131,8 +153,12 @@ later raw-deleted out-of-band" — is FALSE in two cases neither the v1.0–v1.3
 S-25.01 implementation accounted for: (1) a PreToolUse fail-closed INDETERMINATE never attempts a
 marker write at all (BC-1.18.001 INV4/PC4 — marker write is PostToolUse-only), and this is not a
 theoretical case — `validate-factory-path-staging` is registered PreToolUse `^Bash$`,
-`failure_policy = "fail-closed"`, Cohort A-immediate/EFFECTIVE-NOW (`hooks-registry.toml`); its
-fuel exhaustion or epoch timeout produces exactly the `plugin.indeterminate{fail-closed}` shape
+`failure_policy = "fail-closed"`, Cohort A-immediate/ASSIGNED-NOW (`hooks-registry.toml`) —
+corrected v1.6: the fail-closed bit is safely SET but produces ZERO current production
+enforcement effect (`on_error = "continue"`; absent from the ADR-039 §Decision 2 roadmap;
+ADR-047 §Decision 8a v1.4); INDETERMINATE classification and `plugin.indeterminate` emission
+are independent of `on_error` (ADR-039 §Decision 1 axes-independence), so its
+fuel exhaustion or epoch timeout still produces exactly the `plugin.indeterminate{fail-closed}` shape
 `reconcile_raw_delete` matches on, with `artifact_path=""` and no marker ever written; (2) a
 PostToolUse marker-write I/O failure (EC-007, logged via `tracing::warn` and swallowed
 best-effort — `write_indeterminate_marker`'s `Err` arm at both `executor.rs` callsites) leaves the
@@ -937,9 +963,13 @@ written for that `(plugin_name, artifact_path)` pair." That premise is FALSE in 
    `failure_policy` (BC-3.08.001 Event 8 trigger: "This event is emitted for BOTH
    `failure_policy = "fail-closed"` ... AND `failure_policy = "fail-open"`"). This is not
    theoretical: `validate-factory-path-staging` is registered PreToolUse `^Bash$`,
-   `failure_policy = "fail-closed"`, Cohort A-immediate/EFFECTIVE-NOW
-   (`hooks-registry.toml` `[[hooks]]` entry, priority 140) — its fuel exhaustion or epoch timeout
-   produces `plugin.indeterminate{failure_policy="fail-closed"}` with NO marker ever written.
+   `failure_policy = "fail-closed"`, Cohort A-immediate/ASSIGNED-NOW
+   (`hooks-registry.toml` `[[hooks]]` entry, priority 140) — corrected v1.6: the fail-closed bit
+   is safely SET but produces ZERO current production enforcement effect (`on_error =
+   "continue"`; absent from the ADR-039 §Decision 2 roadmap; ADR-047 §Decision 8a v1.4);
+   INDETERMINATE classification and `plugin.indeterminate` emission are independent of
+   `on_error` (ADR-039 §Decision 1 axes-independence) — its fuel exhaustion or epoch timeout
+   still produces `plugin.indeterminate{failure_policy="fail-closed"}` with NO marker ever written.
 2. **A PostToolUse marker-write I/O failure** (EC-007 — disk full, permissions; the `Err` arm at
    both `write_indeterminate_marker` call sites in `executor.rs`, logged via `tracing::warn` and
    swallowed best-effort per HIGH-2) leaves the identical footprint: `plugin.indeterminate` was
@@ -1234,8 +1264,11 @@ provide tamper-evidence at the VCS layer.
   `reconcile_raw_delete`'s RAW_DELETE_DETECTED inference sound by construction instead of an
   inference from a proxy signal (`plugin.indeterminate`) that does not entail a filesystem write —
   closing a false-attribution audit-integrity defect (NIST AU-3/AU-10) that was silently, reliably
-  reachable via any PreToolUse fail-closed gate (e.g. `validate-factory-path-staging`, already
-  EFFECTIVE-NOW) or any PostToolUse marker-write I/O failure.
+  reachable via any PreToolUse fail-closed gate (e.g. `validate-factory-path-staging`, Cohort
+  A-immediate/ASSIGNED-NOW — corrected v1.6: the fail-closed bit is safely SET, currently ZERO
+  production enforcement effect per ADR-047 §Decision 8a v1.4, but `plugin.indeterminate`
+  emission is independent of `on_error`, so this fabrication route was CODE-reachable/unit-tested
+  through it regardless) or any PostToolUse marker-write I/O failure.
 - (v1.5) `marker.cleared(SUPERSEDED)` and `marker.written` are now governed by one uniform
   emit-only-after-write-success rule, closing the last remaining fabrication route in
   §Decision 4: a `write_indeterminate_marker` I/O failure (EC-007) can no longer produce a
@@ -1452,8 +1485,10 @@ files themselves).
 - **S-25.01 adversary pass 6 (v1.4 origin):** F-P6-001 (MEDIUM) — `reconcile_raw_delete` treats ANY
   unmatched fail-closed `plugin.indeterminate` as proof a marker was durably written and later
   raw-deleted, but the premise is false for PreToolUse fail-closed INDETERMINATE (marker write is
-  PostToolUse-only, BC-1.18.001 INV4 — verified reachable NOW via `validate-factory-path-staging`,
-  PreToolUse `^Bash$` fail-closed, Cohort A-immediate) and for PostToolUse marker-write I/O
+  PostToolUse-only, BC-1.18.001 INV4 — verified CODE-reachable/unit-tested via
+  `validate-factory-path-staging`, PreToolUse `^Bash$` fail-closed, Cohort
+  A-immediate/ASSIGNED-NOW (corrected v1.6: not currently production-live via this validator —
+  ZERO enforcement effect per ADR-047 §Decision 8a v1.4) and for PostToolUse marker-write I/O
   failures (EC-007, swallowed best-effort) — both fabricate `marker.cleared(OPERATOR_OVERRIDE)`
   audit records of a human action that never happened; identified as the un-swept sibling of the
   F-P3-002 SUPERSEDED fix (which closed only the cross-pair-overwrite route, not the
@@ -1477,6 +1512,21 @@ files themselves).
   inside its `Ok(())` arm, alongside the existing `emit_marker_written` call — see §Decision 4 v1.5
   above. HUMAN-RATIFIED 2026-09-01 per POLICY 22 (D-1142) — a further revision to the v1.4-ratified
   ADR-048 (D-1141), not a reopening of that ratified decision.
+- **TD-VSDD-060 sibling-sweep (v1.6 origin):** per determination-S2501-trigger-path.md, routed from
+  pr-reviewer's fresh-eyes MAJOR finding on PR #807 (human-directed); five loci across this ADR
+  mislabeled `validate-factory-path-staging`'s PreToolUse `^Bash$` fail-closed assignment as
+  `EFFECTIVE-NOW` / `reachable NOW`, overclaiming live production enforcement, when the assignment
+  is safely SET but produces ZERO current production enforcement effect (`on_error = "continue"`;
+  absent from the ADR-039 §Decision 2 roadmap). Corrected to `ASSIGNED-NOW` /
+  `CODE-reachable/unit-tested`, consistent with the already-landed ADR-047 v1.4 and BC-1.18.004
+  v1.2 corrections of the identical fact pattern. Architect determination: NOT a POLICY 22
+  design/security-model change — INDETERMINATE classification and `plugin.indeterminate` (Event 8)
+  emission are independent of `on_error` (ADR-039 §Decision 1 axes-independence), so every §Decision
+  4 argument that cited this validator as evidence of a real (non-theoretical), code-reachable
+  scenario remains sound; only the production-enforcement characterization was wrong. No ADR-048
+  decision content, wire format, or security model is altered by this correction. ZERO-enforcement
+  gap anchored to recommended follow-up story "Close validate-factory-path-staging zero-enforcement
+  gap" (ID S-25.04, Epic E-25) per CLAUDE.md Canonical Principle Rule 3.
 - **Rice's theorem (v1.1 — shared-crate rejection):** Rice, H.G. (1953). "Classes of recursively
   enumerable sets and their decision problems." Trans. AMS 89(1):25–59. Applied: any command-
   filter classifying "this Bash dispatch deletes the marker file" is undecidable in the general
