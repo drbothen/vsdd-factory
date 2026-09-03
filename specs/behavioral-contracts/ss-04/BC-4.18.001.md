@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-09-02T00:00:00Z
@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/architecture/decisions/ADR-049-last-amended-write-path-durable-fix-current-entry-plus-changelog-sequence.md
   - .factory/stories/S-15.03-index-cite-refresh-hook.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "894dbff"
+input-hash: "2eeae3a"
 traces_to: .factory/specs/architecture/decisions/ADR-049-last-amended-write-path-durable-fix-current-entry-plus-changelog-sequence.md
 origin: greenfield
 extracted_from: null
@@ -19,7 +19,8 @@ subsystem: "SS-04"
 capability: "CAP-042"
 lifecycle_status: draft
 introduced: v1.0-feature-engine-discipline-pass-1
-modified: []
+modified:
+  - "2026-09-02 (v1.1)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -28,7 +29,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.18.001
 section: "4.18"
-last_amended: "2026-09-02 (v1.0) — Initial authoring (product-owner; ADR-049 Phase B; S-15.03 last_amended Write-Path Durable Fix)."
+last_amended: "2026-09-02 (v1.1) — VP registration (architect; S-15.03 pre-PR spec-package completion): 3 flagged VP-NNN rows consolidated into VP-115 (PC1 structural byte-length bound proven via real crate unit tests; PC2/PC3 dispatcher-level fuel-budget regression legs registered feasible-pending-harness); Verification Properties + VP Anchors sections updated TBD->VP-115; POLICY 9 propagated same-burst to verification-architecture.md + verification-coverage-matrix.md; no PC/Invariant/EC substance change."
 ---
 
 # BC-4.18.001: legacy-bash-adapter Fuel-Budget Relief on `last_amended`/`changelog:` Edits to the 5 ADR-049-Governed Files — No Fuel Exhaustion After the Write-Path Fix
@@ -129,9 +130,9 @@ sequence), which MUST NOT exhaust the fuel budget. The differential outcome (fai
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — route to architect) | N synthetic bursts under BC-5.45.001's write-path never grow `last_amended` byte length beyond a fixed ceiling (PC1) | proptest: assert `last_amended` byte length is O(1) in N across the synthetic-burst simulation |
-| (TBD — route to architect) | Post-migration fixture completes N synthetic bursts' validator invocations within the configured fuel budget (PC2) | integration: bats/Rust-workspace test invoking the real `legacy-bash-adapter`-hosted validator(s) against the fixture, asserting `plugin.indeterminate`(cause=fuel) count == 0 |
-| (TBD — route to architect) | Differential pre-fix/post-fix fixture comparison reproduces the symptom on pre-fix and not on post-fix (PC3) | integration: differential test with fixed/pinned fuel-cap value per EC-002 |
+| [VP-115](../../verification-properties/VP-115.md) | N synthetic bursts under BC-5.45.001's write-path never grow `last_amended` byte length beyond a fixed ceiling (PC1) | unit-test: `crates/last-amended-migrate/tests/bc_4_18_001_fuel_relief_proxy_test.rs` — asserts O(1)-in-N `last_amended` byte length across a 5-file synthetic-burst simulation, including a D-1144 quote-defect entry (already passing) |
+| [VP-115](../../verification-properties/VP-115.md) | Post-migration fixture completes N synthetic bursts' validator invocations within the configured fuel budget (PC2) | integration: bats/Rust-workspace test invoking the real `legacy-bash-adapter`-hosted validator(s) against the fixture, asserting `plugin.indeterminate`(cause=fuel) count == 0 — harness not yet instantiated (`feasible-pending-harness`; outside `last-amended-migrate`'s own crate scope, requires a dispatcher-level regression fixture) |
+| [VP-115](../../verification-properties/VP-115.md) | Differential pre-fix/post-fix fixture comparison reproduces the symptom on pre-fix and not on post-fix (PC3) | integration: differential test with fixed/pinned fuel-cap value per EC-002 — harness not yet instantiated (`feasible-pending-harness`; same dispatcher-level regression fixture as PC2) |
 
 ## Traceability
 
@@ -176,10 +177,17 @@ S-15.03 (E-12 Engine Governance — `last_amended` Write-Path Durable Fix, Scope
 
 ## VP Anchors
 
-TBD — VP needs flagged above (3 candidate VP rows); route to architect for VP-NNN assignment and registration in VP-INDEX.md per `vp_index_is_vp_catalog_source_of_truth`.
+VP-115 — registered in VP-INDEX.md per `vp_index_is_vp_catalog_source_of_truth`
+(architect; S-15.03 spec-package pre-PR VP registration burst). PC1's structural-bound
+leg cites real, already-passing
+`crates/last-amended-migrate/tests/bc_4_18_001_fuel_relief_proxy_test.rs` unit tests;
+PC2/PC3's dispatcher-level fuel-budget regression legs are `feasible-pending-harness` —
+VP-115.md fully specifies their Property Statement and Proof Method; harness
+instantiation is test-writer/formal-verifier follow-up work, not a spec gap.
 
 ## Changelog
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.1 | 2026-09-02 | **VP registration (architect; S-15.03 pre-PR spec-package completion).** All 3 flagged VP-NNN rows consolidated into one registered property, VP-115 (PC1 structural byte-length bound — proven via real `crates/last-amended-migrate/tests/bc_4_18_001_fuel_relief_proxy_test.rs` unit tests; PC2 synthetic-burst fuel-budget regression and PC3 differential pre-fix/post-fix reproduction — both `feasible-pending-harness`, fully specified but requiring a dispatcher-level regression fixture outside `last-amended-migrate`'s own crate scope). Verification Properties table and VP Anchors section updated TBD -> VP-115. No PC/Invariant/EC/test-vector substance change. POLICY 9: verification-architecture.md + verification-coverage-matrix.md propagated same-burst. |
 | 1.0 | 2026-09-02 | Initial authoring (product-owner; ADR-049 Phase B; S-15.03 AC-009). PC1 bounded `last_amended` byte length; PC2 synthetic-burst regression within fuel budget; PC3 differential pre-fix/post-fix symptom-non-recurrence proof. 3 invariants (linear-not-superlinear fuel growth, zero validator/fuel-cap code change, fixture reproducibility). 4 edge cases EC-001..EC-004. 3 test vectors. 3 VP candidates flagged for architect. lifecycle_status: draft. |

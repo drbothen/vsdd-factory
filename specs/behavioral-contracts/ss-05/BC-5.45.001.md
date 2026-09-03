@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-09-02T00:00:00Z
@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/architecture/decisions/ADR-049-last-amended-write-path-durable-fix-current-entry-plus-changelog-sequence.md
   - .factory/stories/S-15.03-index-cite-refresh-hook.md
   - .factory/cycles/v1.0-brownfield-backfill/decision-log.md
-input-hash: "067b5b9"
+input-hash: "28e9e63"
 traces_to: .factory/specs/architecture/decisions/ADR-049-last-amended-write-path-durable-fix-current-entry-plus-changelog-sequence.md
 origin: greenfield
 extracted_from: null
@@ -19,7 +19,8 @@ subsystem: "SS-05"
 capability: "CAP-042"
 lifecycle_status: draft
 introduced: v1.0-feature-engine-discipline-pass-1
-modified: []
+modified:
+  - "2026-09-02 (v1.2)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -28,7 +29,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.45.001
 section: "5.45"
-last_amended: "2026-09-02 (v1.1) — Scope clarification (product-owner; consistency-audit F-8): PC1-PC4's write-path discipline is scoped to exactly the 5 D-1149 files per ADR-049 Decision 1-7; explicit out-of-scope note added for other .factory/ artifacts' last_amended fields (governed instead by pre-existing arm_e Invariant 1, unaffected)."
+last_amended: "2026-09-02 (v1.2) — VP registration (architect; S-15.03 pre-PR spec-package completion): 3 originally-flagged candidate VP rows consolidated into VP-114 (PC1/PC2/Invariant 4 as one conforming-writer property, registered in VP-INDEX.md); strict-YAML-validity leg cross-referenced to VP-113 (BC-10.13.001 PC3) rather than duplicated; Verification Properties + VP Anchors sections updated TBD->VP-114; POLICY 9 propagated same-burst to verification-architecture.md + verification-coverage-matrix.md; no PC/Invariant/EC substance change."
 ---
 
 # BC-5.45.001: `last_amended` Write-Path Invariant — Current-Entry-Only Overwrite Plus `changelog:` Prepend (Never Inline-Chain)
@@ -163,9 +164,7 @@ history bracket, it never grows, and it carries no dated entry of its own.)
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — route to architect) | For every governed write to `last_amended`, the post-write value contains no nested `[Prior: <date> (vX.Y) — ...]` bracket referencing a different dated entry | proptest/integration: generate N synthetic writes against a fixture and assert bracket-absence |
-| (TBD — route to architect) | Every `changelog:` item present before a write remains byte-identical after the write (append-only) | proptest: diff pre/post `changelog:` sequences excluding the newly-prepended item |
-| (TBD — route to architect) | Every emitted `last_amended`/`changelog:` value parses under strict YAML `safe_load` | integration: round-trip parse of fixture files after N synthetic writes |
+| [VP-114](../../verification-properties/VP-114.md) | The displaced entry is prepended as EXACTLY ONE new `changelog:` item, every pre-existing item is left byte-for-byte untouched, and `last_amended` is overwritten (never bracket-wrapped) — PC1/PC2/Invariant 4 as one conforming-writer property | unit-test: `crates/last-amended-migrate/tests/bc_5_45_001_pc2_prepend_test.rs` (exactly-one-growth, new-item-first-with-displaced-text, existing-items-byte-for-byte-untouched) against `changelog::prepend_changelog_item`/`frontmatter::set_last_amended`, the tool's own conforming-writer implementation of this discipline; the strict-YAML-validity leg (Invariant 3) is verified jointly with VP-113 (BC-10.13.001 PC3) since both rely on the same `escape::escape_value` pre-write pass |
 
 ## Traceability
 
@@ -198,11 +197,16 @@ S-15.03 (E-12 Engine Governance — `last_amended` Write-Path Durable Fix, Scope
 
 ## VP Anchors
 
-TBD — VP needs flagged above (3 candidate VP rows); route to architect for VP-NNN assignment and registration in VP-INDEX.md per `vp_index_is_vp_catalog_source_of_truth`.
+VP-114 — registered in VP-INDEX.md per `vp_index_is_vp_catalog_source_of_truth`
+(architect; S-15.03 spec-package pre-PR VP registration burst; the 3 originally-flagged
+candidate rows consolidated into one property per the crate's single conforming-writer
+implementation). Cites real, already-passing
+`crates/last-amended-migrate/tests/bc_5_45_001_pc2_prepend_test.rs` unit tests.
 
 ## Changelog
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.2 | 2026-09-02 | **VP registration (architect; S-15.03 pre-PR spec-package completion).** The 3 originally-flagged candidate VP rows consolidated into one registered property, VP-114 (PC1 never-wrap / PC2 exactly-one-prepend / Invariant 4 byte-for-byte-untouched, as one conforming-writer property verified against the tool's own `prepend_changelog_item`/`set_last_amended` implementation); the strict-YAML-validity leg is cross-referenced to VP-113 (BC-10.13.001 PC3) rather than duplicated. Verification Properties table and VP Anchors section updated TBD -> VP-114. No PC/Invariant/EC/test-vector substance change. POLICY 9: verification-architecture.md + verification-coverage-matrix.md propagated same-burst. |
 | 1.1 | 2026-09-02 | Scope clarification (product-owner; consistency-audit F-8). Added explicit §Description Scope/Out-of-scope note: PC1-PC4's write-path discipline (current-entry-only overwrite + `changelog:` prepend) is ratified by ADR-049 §Decision 1-7 for exactly the 5 D-1149 files and does NOT extend to other `.factory/` artifacts' own `last_amended` fields (those remain governed, where arm_e admits them, by the pre-existing Invariant 1 position-0 single-token check, unaffected by this BC). Precondition 1 and PC4 narrowed to name only the 5 D-1149 files. No change to PC1/PC2/PC3 substance or to Invariants/Edge Cases/Test Vectors. |
 | 1.0 | 2026-09-02 | Initial authoring (product-owner; ADR-049 Phase B; S-15.03 `last_amended` Write-Path Durable Fix). PC1 current-entry-only overwrite; PC2 `changelog:` prepend for the 3 (soon 4) files that carry it; PC3 STATE.md body-level-record exception; PC4 no-inline-bracket-chaining invariant. 4 invariants (arm_e E1 self-consistency, E2 unaffected, strict-YAML validity, changelog append-only). 6 edge cases EC-001..EC-006. 3 test vectors. 3 VP candidates flagged for architect. lifecycle_status: draft. |
