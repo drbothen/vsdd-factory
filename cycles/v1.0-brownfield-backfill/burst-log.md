@@ -12333,3 +12333,7 @@ finalization-doc-sweep (sweep the batched LOW/OBS/process-gap items; adjudicate 
 submit the S-25.01 PR — no further adversary pass is needed against this frozen artifact.
 
 ---
+
+SESSION-WRAP-PAUSE-2026-09-03 (state-manager; single-commit bookkeeping-only wrap burst, TD-VSDD-053; D-chain cite D-1152, no new D-NNN): Human `/wrap`; pipeline PAUSED. Workstream A (S-15.03) DELIVERED/MERGED PR #805 `b4ff2383` (D-1152, prior burst); merged_count 116; RELEASE HELD. Workstream B (S-25.01) PAUSED mid LOCAL adversarial convergence; frozen `feature/S-25.01` @ `3919ebcb` UNCHANGED; BC-5.39.001 streak 0/3; NEXT fresh LOCAL adversary pass 16. Session Resume Checkpoint replaced (prior archived to `session-checkpoints.md`). Housekeeping: `logs/dispatcher-internal-2026-09-03.jsonl` + `sidecar-learning.md` telemetry folded into this SAME single commit per TD-VSDD-053. trajectory-tail →1→0→0→0 (UNCHANGED). v9.66→v9.67. [Archived from STATE.md Current Phase Steps — table keeps last 5 rows only.]
+
+---
