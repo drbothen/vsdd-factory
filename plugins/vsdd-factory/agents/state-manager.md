@@ -174,6 +174,68 @@ historical changelog entry), explicitly note this in the commit message with jus
 This discipline closes F-027 from s6.01-pass-1.md: state-manager declared "count
 change complete" after updating only 2 of 4 index files.
 
+### `last_amended` Write-Path Discipline (BC-5.45.001 / ADR-049 / S-15.03 AC-005)
+
+This standing rule applies on EVERY burst that writes a new history entry
+to `last_amended:` on exactly 5 files: `STORY-INDEX.md`, `BC-INDEX.md`,
+`ARCH-INDEX.md`, `VP-INDEX.md`, and `STATE.md`. It does NOT extend to any
+other `.factory/` artifact's own `last_amended` field (BC-5.45.001
+§Out of scope).
+
+`last_amended` is **never** assembled via string-concatenation/prepend of
+the prior value. Concretely, on every governed burst:
+
+- **Overwrite `last_amended`** with a single-line, double-quoted YAML
+  scalar (`"YYYY-MM-DD (vX.Y) — <summary>"`, D-1144-escaped) holding ONLY
+  the new current entry. Do NOT read the existing value and wrap it in a
+  `[Prior: ...]` bracket, and do NOT write the concatenation back as one
+  larger scalar — that is the exact defect that produced the
+  323,499-char `STORY-INDEX.md` mega-line (D-1149) and the
+  743-fuel-timeouts/day symptom it caused.
+- **Prepend the displaced entry to `changelog:`** for `STORY-INDEX.md`,
+  `BC-INDEX.md`, `ARCH-INDEX.md`, and `VP-INDEX.md` — exactly ONE new
+  list item, verbatim, at the top of the sequence. Every pre-existing
+  `changelog:` item stays byte-for-byte untouched.
+- **`STATE.md` has no `changelog:` field.** Its body-level `## Decisions
+  Log`/`## Phase Progress` sections are the durable record instead; do
+  not add one.
+- **Never re-introduce an inline chain.** No write ever produces a
+  `last_amended` value nesting a `[Prior: <date> (vX.Y) — ...]`
+  bracket for a different dated entry (the static
+  `[Prior history → <file>-amendment-history.md]` pointer note is not
+  this pattern and may be kept verbatim).
+
+**Pre-push guard (mandatory).** Before pushing any burst that edits one
+or more of the 5 governed files, run:
+
+```bash
+cargo run -p last-amended-migrate -- migrate --check
+```
+
+A non-zero exit means one of the 5 files is out of shape (drift or a
+D-1144 escape defect) — fix it via the tool (see Recovery), never by
+hand-patching the YAML.
+
+**Recovery mode — NOT a POL-3 exception.** If a mega-line / inline
+`[Prior: ...]` chain is ever found on one of the 5 files (a regression or
+an inherited file), the sanctioned remedy is BC-10.13.001's
+full-recovery-split (PC7), invoked directly with no human
+POL-3/TD-FACTORY-HOOK-BYPASS-001 exception request:
+
+```bash
+cargo run -p last-amended-migrate -- migrate --path <file>
+```
+
+This splits the chain in place (current entry stays in `last_amended`;
+every chained entry relocates into `changelog:`, newest-first, verbatim,
+D-1144-escaped) via a bounded/streaming linear scan safe at any input
+scale, including the D-1149 323K-350K-char calibration ceiling
+(BC-10.13.001 PC7, S-15.03 AC-010). Do not ask for a POL-3 exception for
+this failure class — the tool is the sanctioned path.
+
+Full write-path contract: BC-5.45.001 (`.factory/specs/behavioral-contracts/ss-05/BC-5.45.001.md`).
+Tool contract: BC-10.13.001 (`.factory/specs/behavioral-contracts/ss-10/BC-10.13.001.md`).
+
 ### Anti-Patterns (NEVER do these)
 
 - **NEVER** append full burst narratives to STATE.md
