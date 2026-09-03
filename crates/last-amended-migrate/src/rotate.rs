@@ -89,7 +89,18 @@ fn rewrite_source_after_rotation(
     }
 
     let tail = remove_lines_with_prefix(&raw[seq_end..], "changelog_archive:");
-    let pointer_line = format!("changelog_archive: \"{}\"\n", archive_path.display());
+    // S-15.03 Windows-CI fix: `archive_path.display()` is a raw filesystem
+    // path, not a pre-escaped YAML scalar body. On Windows it renders with
+    // `\`-separated components, which are illegal unescaped inside a YAML
+    // double-quoted scalar (YAML permits `\` only immediately before `\`,
+    // `"`, `n`, `r`, `t`, or `xHH`) — route it through this crate's own
+    // `escape::escape_value` (the same S1 backslash-escaping fix) before
+    // embedding it, exactly as every other value this tool writes into a
+    // quoted scalar already is.
+    let pointer_line = format!(
+        "changelog_archive: \"{}\"\n",
+        crate::escape::escape_value(&archive_path.display().to_string())
+    );
 
     let mut result = String::with_capacity(raw.len() + pointer_line.len());
     result.push_str(&raw[..seq_start]);

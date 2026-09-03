@@ -210,6 +210,69 @@ fn test_BC_10_13_001_invariant2_rotate_changelog_reruns_are_noop() {
     );
 }
 
+/// Windows CI (`build-dispatcher (windows-x64)`, `cargo test --workspace
+/// --all-targets`) caught a genuine cross-platform bug:
+/// `rewrite_source_after_rotation`'s `changelog_archive:` pointer line
+/// embedded `archive_path.display()` directly into a double-quoted YAML
+/// scalar without routing it through `crate::escape::escape_value` first.
+/// On Windows, `archive_path.display()` renders with `\`-separated path
+/// components, which are illegal unescaped inside a YAML double-quoted
+/// scalar (YAML permits a `\` only immediately before `\`, `"`, `n`, `r`,
+/// `t`, or `xHH`) — `yaml_guard::validate_frontmatter_yaml`'s pre-write gate
+/// correctly refused to let the corrupt line reach disk (failing loudly,
+/// not corrupting), but the practical effect was that `rotate_changelog`
+/// could never succeed on Windows at all.
+///
+/// This reproduces the identical defect class cross-platform, without
+/// needing a Windows runner: a literal backslash is a perfectly legal
+/// filename/path-component character on Linux/macOS, so a `cycle_name`
+/// containing one literal backslash reproduces the exact same "a raw
+/// backslash lands inside a YAML double-quoted scalar" shape that a
+/// Windows path separator produces. Asserts rotation SUCCEEDS (previously:
+/// `InvalidYamlProduced`) and that the written `changelog_archive:` pointer
+/// value, re-parsed under strict YAML `safe_load`, decodes back to the
+/// exact original archive path string — genuine round-trip fidelity, not
+/// just "does not crash."
+#[test]
+fn test_BC_10_13_001_PC5_rotate_changelog_survives_backslash_in_archive_path() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let path = build_rotation_fixture(dir.path());
+
+    // A literal backslash inside the cycle name reproduces the same "raw
+    // backslash inside archive_path.display()'s rendering" shape a Windows
+    // path separator produces — `resolve_archive_path` joins this in
+    // verbatim as a path component, and backslash is not a path separator
+    // on Unix, so it survives as one literal byte inside that component.
+    let cycle_name = "back\\slash-cycle";
+
+    let report = rotate_changelog(&path, cycle_name, KEEP_RECENT, MigrationMode::Apply).expect(
+        "rotate_changelog must succeed even when the archive path contains a literal backslash",
+    );
+
+    assert!(report.mutated);
+    assert!(
+        report.archive_path.to_string_lossy().contains('\\'),
+        "fixture sanity: archive_path must actually contain the literal backslash: {:?}",
+        report.archive_path
+    );
+
+    // Re-parse the rewritten source file's frontmatter under strict YAML
+    // `safe_load` and confirm `changelog_archive:` decodes back to the
+    // exact original archive path string.
+    let after = common::read_file(&path);
+    let value: serde_norway::Value = serde_norway::from_str(common::frontmatter_block(&after))
+        .expect("rewritten source frontmatter must parse under strict YAML safe_load");
+    let decoded = value
+        .get("changelog_archive")
+        .and_then(serde_norway::Value::as_str)
+        .expect("changelog_archive key must be present and a string");
+    assert_eq!(
+        decoded,
+        report.archive_path.display().to_string(),
+        "changelog_archive must round-trip to the exact original archive path, backslash included"
+    );
+}
+
 /// `MigrationMode::Check` for rotation: reports what WOULD move without
 /// writing to either the source or the archive.
 #[test]
