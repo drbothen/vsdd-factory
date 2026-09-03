@@ -33,11 +33,37 @@
 //! entry, independent of N" — verified against this tool's REAL
 //! `migrate_all`/`migrate_file` output on realistic ADR-049-shaped
 //! fixtures, including the 3 escape-defect files PC3 rewrites in place.
+//!
+//! # S-15.03 B3 — what the ORIGINAL two tests below do and do NOT prove
+//!
+//! `test_BC_4_18_001_PC1_last_amended_byte_length_bounded_across_all_five_files`
+//! and `test_BC_4_18_001_EC003_quote_defect_entry_still_bounded_after_escape_fix`
+//! start every fixture from an ALREADY-SHORT `last_amended` (a single
+//! current-entry-only value, with or without a D-1144 quote defect — never
+//! an inline `[Prior: ...]` chain). An assertion that the OUTPUT stays
+//! under 2,000 bytes when the INPUT was already under 2,000 bytes is true
+//! even for a no-op `migrate_all` — it is a valid EC-001/EC-003 no-op/
+//! escape-fix control, but it is NOT, on its own, a fuel-RELIEF regression
+//! guard (relief is a property of shrinking a LARGE input, which these two
+//! fixtures never construct). They are retained below for their genuine
+//! EC-001/EC-003 coverage; the actual fuel-relief regression guard is
+//! `test_BC_4_18_001_B3_realistic_multi_entry_chain_relief_is_per_line_bounded`,
+//! which starts from a REALISTIC ~300K-char chain of 100 modest-sized
+//! entries (real D-1149 incident scale — NOT `bc_10_13_001_pc2_eligibility_
+//! test.rs`'s `EC009_mega_line` fixture, which is a single monolithic
+//! ~350K-char entry proving a DIFFERENT, still-valid claim — PC7's
+//! bounded-scan linearity, Invariant 3 — since splitting one atomic
+//! un-splittable entry cannot itself demonstrate per-line relief) and
+//! asserts both halves of the real claim: (i) `last_amended` shrinks, AND
+//! (ii) no single physical line in the rewritten file is anywhere near
+//! mega-line scale (the assertion that would actually catch a "moved the
+//! problem, didn't fix it" regression, e.g. concatenating all N entries
+//! onto one `changelog:` item instead of relocating each into its own).
 
 mod common;
 
 use last_amended_migrate::frontmatter::parse_frontmatter;
-use last_amended_migrate::migrate::{MigrationMode, TARGET_FILES, migrate_all};
+use last_amended_migrate::migrate::{MigrationMode, TARGET_FILES, migrate_all, migrate_file};
 
 /// A generous ceiling for a single dated `last_amended` entry — real corpus
 /// entries in `.factory/` run from a few dozen to a few hundred bytes; 2,000
@@ -199,5 +225,98 @@ fn test_BC_10_13_001_EC006_migrate_all_state_md_never_gains_changelog() {
         !state_content.contains("changelog:"),
         "STATE.md must NEVER gain a changelog: field, even via migrate_all \
          (ADR-049 Decision 4 / EC-006): {state_content:?}"
+    );
+}
+
+/// S-15.03 B3 — the ACTUAL fuel-relief regression guard.
+///
+/// Starts from a REALISTIC `last_amended` chain of 100 modest-sized
+/// historical entries (~3,000 chars of prose each, summing to ~300K total
+/// chain chars — real D-1149 incident aggregate scale: dozens-to-hundreds
+/// of entries accumulated over many bursts, NOT one giant blob) and proves
+/// BOTH halves of BC-4.18.001 PC1's fuel-relief claim after the PC7 split:
+///
+/// 1. The resulting `last_amended` is short (< 2,000 bytes).
+/// 2. No single physical line in the rewritten file is anywhere near
+///    mega-line scale — each of the 100 recovered entries lands on its own
+///    bounded `changelog:` item line, rather than all 100 being
+///    concatenated onto one line (which would "move the problem" into
+///    `changelog:` rather than actually relieving it, and would NOT be
+///    caught by asserting `last_amended`'s length alone).
+#[test]
+fn test_BC_4_18_001_B3_realistic_multi_entry_chain_relief_is_per_line_bounded() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let factory_root = dir.path().join(".factory");
+
+    let last_amended = common::realistic_multi_entry_prior_chain(100, 3_000);
+    assert!(
+        last_amended.len() > 300_000,
+        "fixture sanity: must reach real D-1149 aggregate incident scale \
+         (100 modest entries, not one monolithic blob): {} bytes",
+        last_amended.len()
+    );
+
+    let content = common::frontmatter_file(
+        "story-index",
+        "4.430",
+        &last_amended,
+        None,
+        "# Fixture STORY-INDEX\n",
+    );
+    let path = common::write_file(&factory_root, "stories/STORY-INDEX.md", &content);
+
+    let report = migrate_file(&path, MigrationMode::Apply)
+        .expect("migrate_file must split a realistic multi-entry chain");
+    assert!(report.mutated, "a PC7 split is a mutation");
+    assert_eq!(
+        report.entries_recovered, 100,
+        "all 100 chained entries must be recovered"
+    );
+
+    let doc = parse_frontmatter(&path).expect("parse post-split STORY-INDEX.md");
+    let new_last_amended = doc
+        .last_amended_raw
+        .expect("STORY-INDEX.md must have last_amended after the split");
+    assert!(
+        new_last_amended.len() < LAST_AMENDED_BYTE_CEILING,
+        "BC-4.18.001 PC1 half (i): last_amended must be short after a \
+         realistic multi-entry split — {} bytes",
+        new_last_amended.len()
+    );
+
+    let after = common::read_file(&path);
+
+    // A generous per-line ceiling: each entry's rendered prose is ~3,000
+    // chars; its own `    change: "..."` line (plus quoting/date/version
+    // overhead) stays comfortably under 4,000 chars. A line anywhere near
+    // the ~300K aggregate scale here would mean the split concatenated
+    // entries onto a single line instead of relocating each into its own
+    // changelog: item — exactly the "moved the problem, didn't fix it"
+    // regression this test exists to catch, which the byte-length-of-
+    // last_amended assertion alone cannot detect.
+    const PER_LINE_CEILING: usize = 4_000;
+    let longest_line = after.lines().map(str::len).max().unwrap_or(0);
+    assert!(
+        longest_line < PER_LINE_CEILING,
+        "BC-4.18.001 PC1 half (ii): the longest single physical line in \
+         the rewritten file is {longest_line} bytes — must stay far below \
+         the {PER_LINE_CEILING}-byte per-entry ceiling; a line anywhere \
+         near the original ~300K aggregate scale would mean entries were \
+         concatenated rather than split into separate changelog: items"
+    );
+
+    assert_eq!(
+        after.matches("  - date:").count(),
+        100,
+        "all 100 entries must be relocated as 100 SEPARATE changelog: \
+         items, not concatenated into fewer/one item(s)"
+    );
+
+    let parsed = common::strict_yaml_parse(&after)
+        .expect("post-split frontmatter must parse under strict YAML safe_load");
+    assert_eq!(
+        parsed.changelog.expect("changelog: must be present").len(),
+        100,
+        "strict-YAML view must also confirm exactly 100 separate items"
     );
 }

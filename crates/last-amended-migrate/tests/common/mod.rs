@@ -155,9 +155,58 @@ pub fn chain_last_amended(current: (&str, &str, &str), priors: &[(&str, &str, &s
 /// cannot safely handle content at this scale (BC-10.13.001 v1.1 Invariant 3
 /// doc note), which is why the v1.1 amendment makes the tool actively SPLIT
 /// this shape rather than merely refusing/tolerating it.
+///
+/// # Scope note (S-15.03 B3)
+///
+/// This fixture is a SINGLE monolithic un-splittable entry — it proves the
+/// PC7 bounded/streaming SCAN stays linear-time even at this scale
+/// (Invariant 3), which is a genuinely distinct claim from BC-4.18.001's
+/// fuel-RELIEF property. Splitting one atomic entry necessarily still
+/// leaves a ~350K-char value living somewhere (now inside a single
+/// `changelog:` item's `date`/`summary` field instead of `last_amended`) —
+/// that is an inherent limit of splitting an un-splittable entry, not a
+/// fuel-relief regression. Use `realistic_multi_entry_prior_chain` (below)
+/// to exercise the actual fuel-relief claim: a REALISTIC chain of many
+/// modest-sized entries, at real D-1149 aggregate scale, where relief means
+/// every individual rendered line stays small even though the file's total
+/// `changelog:` content is large.
 pub fn mega_line_prior_chain(filler_len: usize) -> String {
     let filler = "x".repeat(filler_len);
     format!("2026-09-02 (v1.0) — current entry text [Prior: {filler} (v0.9) — old]")
+}
+
+/// A REALISTIC `last_amended` inline `[Prior: ...]` chain built from `n`
+/// modest-sized historical entries (each a few hundred to a few thousand
+/// characters, matching real ADR-049-governed burst-summary prose — see
+/// `.factory/STATE.md`'s own historical `last_amended` chain for the shape
+/// this mirrors), summing to real D-1149 incident scale when `n` and
+/// `entry_text_chars` are chosen accordingly (e.g. `n=100`,
+/// `entry_text_chars=3_000` sums to ~300K total chain chars across ~100
+/// entries — the actual shape of the incident this tool exists to recover
+/// from, as opposed to `mega_line_prior_chain`'s single atomic monolithic
+/// entry).
+///
+/// This is the fixture BC-4.18.001's fuel-relief property must be proven
+/// against: PC7 relocates each of the `n` entries into its own
+/// `changelog:` item, so the fuel-relief claim is "every individual
+/// rendered line stays close to `entry_text_chars` in size" — NOT "the
+/// file's total size shrinks" (`changelog:`'s aggregate size is expected to
+/// stay large; only `last_amended` and each individual line within it must
+/// shrink).
+pub fn realistic_multi_entry_prior_chain(n: usize, entry_text_chars: usize) -> String {
+    let mut s = "2026-09-02 (v9.65) — current burst summary text".to_string();
+    for i in 0..n {
+        let filler = "prose ".repeat(entry_text_chars / 6 + 1);
+        let filler: String = filler.chars().take(entry_text_chars).collect();
+        s.push_str(&format!(
+            " [Prior: 2026-{:02}-{:02} (v9.{}) — {filler}",
+            (i % 12) + 1,
+            (i % 28) + 1,
+            n - i,
+        ));
+    }
+    s.push_str(&"]".repeat(n));
+    s
 }
 
 /// The 5 D-1149 sidecar basenames this tool must register (BC-10.13.001
