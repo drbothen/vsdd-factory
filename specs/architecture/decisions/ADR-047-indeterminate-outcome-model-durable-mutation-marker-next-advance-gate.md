@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-047
-version: "1.3"
+version: "1.4"
 title: "ADR-047: INDETERMINATE Outcome Model — First-Class Cannot-Complete Outcome, Durable Mutation Marker, and Next-Advance Gate (Three-Layer Validation Integrity Architecture)"
 status: accepted
 date: 2026-08-30
@@ -15,12 +15,13 @@ supersedes: null
 superseded_by: ADR-048
 extends: ADR-039
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
-last_amended: "2026-08-30 (v1.3) — Cohort A split into A-immediate (validate-factory-path-staging: EFFECTIVE-NOW, set in S-25.01 without S-21.24 dependency) and A-deferred (validate-pr-merge-prerequisites, validate-wave-gate-prerequisite: SET-BUT-LATENT, set in S-25.01 registry with latent comment, enforcement activates at S-21.24). Integration Ordering corrected: S-25.01 PREPARES the two ^Agent^ validators in the registry (inert per S-21.10 schema-only); 'ONLY after S-21.24' overstatement removed. Layer-1 effective fail-closed count stated as 1. Factual fix: validate-factory-path-staging tool pattern corrected from ^(Edit|Write|MultiEdit)$ to ^Bash$ to match hooks-registry.toml."
+last_amended: "2026-09-03 (v1.4) — Factual correction (per determination-S2501-trigger-path.md, routed from pr-reviewer's fresh-eyes MAJOR finding on PR #807; human-directed; NOT a POLICY 22 design/security-model change — no decision content is altered, only two false factual claims are corrected): (1) 'Layer-1 effective fail-closed count at S-25.01 merge' corrected from ONE to ZERO — validate-factory-path-staging's PreToolUse ^Bash$ registration means the PostToolUse-only marker-write path (BC-1.18.001 invariant 4) structurally never fires for it, so its failure_policy=fail-closed assignment currently produces the identical runtime effect as fail-open (zero observable enforcement) — the same as the two S-21.24-gated Cohort A-deferred validators, just for a different structural reason. (2) 'EFFECTIVE-NOW' Cohort A-immediate label softened (was overclaiming live enforcement; the assignment is safely SET, not effectively ENFORCED). (3) Completes the v1.3 'factual fix' changelog documentation: the v1.3 registry-row correction changed BOTH the event type (PostToolUse to PreToolUse) and the tool pattern (^(Edit|Write|MultiEdit)$ to ^Bash$); the v1.3 changelog entry documented only the tool-pattern half. No further body-text correction was required for the event type — the §8a table row already read 'PreToolUse ^Bash$' correctly at v1.3. (4) The ZERO-enforcement gap for validate-factory-path-staging is anchored to a new follow-up story (recommended ID S-25.04, next available slot under Epic E-25; story-writer owns allocation and authoring) rather than left as a silent gap, per CLAUDE.md Canonical Principle Rule 3."
 modified:
   - "2026-08-30 (v1.0) — Initial authoring"
   - "2026-08-30 (v1.1) — Human ratification: D9 extended gate to git commit/push Bash arm; D8a confirmed as-authored"
   - "2026-08-30 (v1.2) — Status section correction: ADR acceptance does not open F4 gate; Cohort A reduced to three human-confirmed validators; validate-cross-site-correspondence moved to Cohort B"
   - "2026-08-30 (v1.3) — Cohort A A-immediate/A-deferred partition; Integration Ordering corrected; tool pattern factual fix for validate-factory-path-staging; consistent with S-25.01 AC-016 v1.1"
+  - "2026-09-03 (v1.4) — Factual correction: Layer-1 effective fail-closed count corrected from ONE to ZERO for validate-factory-path-staging (structural PreToolUse/PostToolUse marker-write mismatch, BC-1.18.001 INV4); EFFECTIVE-NOW label softened to avoid overclaiming enforcement; v1.3 tool-pattern-fix changelog entry completed (event-type half was already correct in the body, only the changelog description was incomplete); ZERO-enforcement gap anchored to recommended follow-up story S-25.04. Not a POLICY 22 change — pure factual correction, no design content altered."
 ---
 
 # ADR-047: INDETERMINATE Outcome Model — First-Class Cannot-Complete Outcome, Durable Mutation Marker, and Next-Advance Gate
@@ -371,12 +372,19 @@ No other validator is in Cohort A unless explicitly confirmed by the human at th
 Cohort A is further partitioned into two operational sub-groups (v1.3 correction; consistent with
 S-25.01 AC-016):
 
-**Cohort A-immediate** — EFFECTIVE-NOW in S-25.01 (fail-closed set unconditionally; no S-21.24
-dependency for the assignment):
+**Cohort A-immediate** — ASSIGNED-NOW in S-25.01 (fail-closed config bit set unconditionally; no
+S-21.24 dependency for the assignment — corrected v1.4; previously labeled "EFFECTIVE-NOW",
+which overclaimed live enforcement. The assignment is safely SET; it is NOT currently ENFORCED.
+See "Enforcement note" below the table and "Why the partition?" for why):
 
 | Plugin | Event/Tool | Input Size Class | ADR-039 §D3 Calibration Status | Layer-1 Safe to SET? |
 |--------|-----------|------------------|-------------------------------|---------------------|
 | `validate-factory-path-staging` | PreToolUse `^Bash$` | **Bounded** — reads file path from Bash tool params | Calibration confirmed; `on_error = continue` (no self-lock risk even after S-21.24 enforcement) | YES — unconditional |
+
+**Enforcement note (v1.4 correction):** "Safe to SET" is not the same claim as "effective." This
+assignment currently produces ZERO observable enforcement effect — see "Why the partition?" and
+"Layer-1 effective fail-closed count" immediately below, and the "Known Gap" note at the end of
+this subsection.
 
 **Cohort A-deferred** — SET-BUT-LATENT in S-25.01 (fail-closed SET in registry with a comment;
 enforcement conditional on S-21.24 confirming calibration + S-21.23 break-glass before wiring
@@ -396,9 +404,39 @@ not bounded. S-21.24's own dependency chain (S-21.19 → S-21.21 calibration →
 ensures this risk is resolved before enforcement is wired — but that only happens at S-21.24 merge,
 not at S-25.01 merge.
 
-**Layer-1 effective fail-closed count at S-25.01 merge: ONE** (`validate-factory-path-staging`).
-The two `^Agent$` validators are present in the registry with `failure_policy = "fail-closed"` and
-a latent comment but produce no enforcement effect until S-21.24 activates it.
+**Layer-1 effective fail-closed count at S-25.01 merge: ZERO** (corrected v1.4; misstated as ONE
+in v1.0–v1.3). `validate-factory-path-staging` sets `failure_policy = "fail-closed"`
+unconditionally and is safe to set (no self-lock risk, per "Why the partition?" above), but the
+assignment is inert: the durable-marker write path (Decision 3; BC-1.18.001 invariant 4) fires
+ONLY on a PostToolUse dispatch, and `validate-factory-path-staging` is registered PreToolUse
+`^Bash$` — it structurally can never reach `write_indeterminate_marker`. Combined with
+`on_error = "continue"` (which, as established above, means it can never block the current
+dispatch either, present or future) and its absence from the ADR-039 §Decision 2 six-validator
+exhaustion-leg current-dispatch-blocking roadmap (§8b's S-21.19→S-21.24 chain does not name this
+validator), the assignment produces NO observable enforcement effect different from
+`failure_policy = "fail-open"` — an INDETERMINATE outcome on this validator degrades to the same
+advisory-only `plugin.indeterminate` event either way. The two `^Agent$` validators are present
+in the registry with `failure_policy = "fail-closed"` and a latent comment but likewise produce
+no enforcement effect until S-21.24 activates it — so, at S-25.01 merge, all three Cohort A
+validators currently deliver ZERO effective enforcement. The distinction between Cohort A-immediate
+and Cohort A-deferred is WHEN (or, for `validate-factory-path-staging`, WHETHER AT ALL) that
+changes — not whether either enforces today.
+
+**Known Gap — `validate-factory-path-staging` has no live or currently-scoped enforcement path:**
+This is a genuine coverage gap in Layer 1's "make cannot-complete fail-LOUD" guarantee, for the
+one Cohort A validator originally advertised as immediately effective. The human has directed
+that this gap be closed via a dedicated follow-up story rather than silently accepted (CLAUDE.md
+Canonical Principle Rule 3 — a tech-debt-register entry requires an explicit future-story anchor,
+not a bare deferral). Closure is tracked to follow-up story **"Close validate-factory-path-staging
+zero-enforcement gap — real Layer-1 production trigger"** (recommended ID S-25.04, the next
+available slot under Epic E-25 as of this amendment; story-writer owns final ID allocation and
+authoring). Closure options for that story to evaluate include: (a) a new PostToolUse companion
+validator that actually reaches `write_indeterminate_marker` for `.factory/` path-staging
+mutations; (b) changing this validator's `on_error` from `continue` to a blocking variant (with a
+self-lock-risk re-analysis, since the "no self-lock risk" finding above depends on `continue`);
+and/or (c) extending the ADR-039 §Decision 2 six-validator exhaustion-leg roadmap to add this
+validator as a seventh member. This ADR does not select among these options; that is the
+follow-up story's F1/F2 scope.
 
 **COHORT B — Layer 2 S-25.02 candidates (large-artifact or boundedness-unconfirmed; flip ONLY after sharding bounds inputs OR explicit human Cohort A confirmation at F3 gate):**
 
@@ -680,8 +718,13 @@ three Cohort A validators in `hooks-registry.toml`. However the assignments are 
   resolves the self-lock risk before enforcement activates. Do NOT treat these two validators as
   actively fail-closed until S-21.24 merges.
 
-**Layer-1 effective fail-closed count at S-25.01 merge: ONE** (`validate-factory-path-staging`).
-The "3 Cohort A validators" is the correct Cohort A membership; the immediate enforcement is 1.
+**Layer-1 effective fail-closed count at S-25.01 merge: ZERO** (corrected v1.4 — see §8a "Why the
+partition?" for the full rationale: `validate-factory-path-staging`'s PreToolUse registration
+means the PostToolUse-only marker-write path can never fire for it, and `on_error = "continue"`
+means it can never block the current dispatch either; the two `^Agent$` validators remain inert
+pending S-21.24). The "3 Cohort A validators" is the correct Cohort A membership; the immediate
+enforcement is 0, not 1. Closure of the `validate-factory-path-staging` gap is tracked to a
+dedicated follow-up story — see §8a "Known Gap" above (recommended ID S-25.04).
 
 ---
 
