@@ -115,7 +115,11 @@ pub const FACTORY_PATH_STAGED_ON_PRODUCT_BRANCH: &str = "FactoryPathStagedOnProd
 /// # BC-5.38.001
 /// Non-trivial (case-folding + path-component matching). Uses `todo!()`.
 pub fn is_factory_path(path: &str) -> bool {
-    todo!()
+    // Reused verbatim from `validate_factory_path_staging::contains_factory_path_arg`'s
+    // fast-path semantics: case-insensitive `.factory/` literal anywhere in the path.
+    // Matches both a leading `.factory/` prefix and an interior `/.factory/` path
+    // component in a single check (BC-4.16.001 Invariant 4).
+    path.to_ascii_lowercase().contains(".factory/")
 }
 
 /// Returns `true` if `branch` is a product branch (not `factory-artifacts`).
@@ -156,7 +160,16 @@ pub fn is_product_branch(branch: &str) -> bool {
 /// trivially without implementer work if this had a real body). Uses
 /// `todo!()`.
 pub fn find_staged_factory_path(git_diff_cached_name_only_stdout: &str) -> Option<String> {
-    todo!()
+    for line in git_diff_cached_name_only_stdout.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        if is_factory_path(trimmed) {
+            return Some(trimmed.to_string());
+        }
+    }
+    None
 }
 
 // ---------------------------------------------------------------------------
@@ -235,13 +248,136 @@ where
 /// # BC-5.38.001
 /// Non-trivial (branching + calls to non-trivial helpers + I/O via
 /// injected callbacks). Uses `todo!()`.
-pub fn hook_logic<B, E, L>(payload: HookPayload, mut callbacks: HookCallbacks<B, E, L>) -> HookResult
+pub fn hook_logic<B, E, L>(
+    _payload: HookPayload,
+    mut callbacks: HookCallbacks<B, E, L>,
+) -> HookResult
 where
     B: FnMut(&str, &[&str]) -> Result<(i32, String, String), String>,
     E: FnMut(&str, &[(&str, &str)]),
     L: FnMut(u8, &str),
 {
-    todo!()
+    // Step 1 (BROAD, unconditional — Precondition 2 / Invariant 7): list staged
+    // paths. No inspection of `_payload`'s command text — the check runs against
+    // actual git index state, not payload text, on every completed dispatch.
+    let diff_result = (callbacks.exec_subprocess)("git", &["diff", "--cached", "--name-only"]);
+
+    let staged_factory_path: Option<String> = match diff_result {
+        Ok((exit_code, stdout, stderr)) => {
+            if exit_code != 0 {
+                (callbacks.log)(
+                    log_level::WARN,
+                    &format!(
+                        "validate-factory-path-staged: git diff --cached --name-only \
+                         returned exit {exit_code} (stderr: {stderr})"
+                    ),
+                );
+                None
+            } else {
+                find_staged_factory_path(&stdout)
+            }
+        }
+        Err(e) => {
+            (callbacks.log)(
+                log_level::WARN,
+                &format!(
+                    "validate-factory-path-staged: git diff --cached --name-only failed \
+                     ({e})"
+                ),
+            );
+            None
+        }
+    };
+
+    // Step 2 (BROAD, unconditional — Precondition 3): detect the current branch.
+    // Always issued, regardless of the Step 1 outcome (Invariant 7).
+    let branch_result = (callbacks.exec_subprocess)("git", &["branch", "--show-current"]);
+
+    // Step 3: fail-open on branch-detection failure (PC4 / Invariant 3).
+    let branch = match branch_result {
+        Ok((exit_code, stdout, stderr)) => {
+            if exit_code != 0 {
+                (callbacks.log)(
+                    log_level::WARN,
+                    &format!(
+                        "validate-factory-path-staged: branch detection returned exit \
+                         {exit_code} (stderr: {stderr}), failing open per PC4/Invariant 3"
+                    ),
+                );
+                return HookResult::Continue;
+            }
+            let b = stdout.trim().to_string();
+            if b.is_empty() {
+                // Empty stdout = detached HEAD state — fail-open per Invariant 3.
+                (callbacks.log)(
+                    log_level::WARN,
+                    "validate-factory-path-staged: empty branch output (detached HEAD?), \
+                     failing open per PC4/Invariant 3",
+                );
+                return HookResult::Continue;
+            }
+            b
+        }
+        Err(e) => {
+            // git unavailable or exec failure — fail-open per Invariant 3.
+            (callbacks.log)(
+                log_level::WARN,
+                &format!(
+                    "validate-factory-path-staged: branch detection failed ({e}), failing \
+                     open per PC4/Invariant 3"
+                ),
+            );
+            return HookResult::Continue;
+        }
+    };
+
+    // Step 4: PC2 — nothing relevant staged.
+    let staged_path = match staged_factory_path {
+        Some(p) => p,
+        None => return HookResult::Continue,
+    };
+
+    // Step 4b: PC2 — factory-artifacts branch passes unconditionally (EC-006).
+    if !is_product_branch(&branch) {
+        return HookResult::Continue;
+    }
+
+    // Step 5: PC1 — a `.factory/` path is staged AND the branch is a product
+    // branch. Block. The already-staged path is NOT automatically unstaged
+    // (PC1 item 3 — detective, not preventive; Invariant 6).
+    let safe_branch: String = branch
+        .chars()
+        .filter(|c| c.is_ascii_graphic() || *c == ' ')
+        .collect();
+    let safe_path: String = staged_path
+        .chars()
+        .filter(|c| c.is_ascii_graphic() || *c == ' ')
+        .collect();
+
+    (callbacks.emit_event)(
+        "hook.block",
+        &[
+            ("hook", "validate-factory-path-staged"),
+            ("code", FACTORY_PATH_STAGED_ON_PRODUCT_BRANCH),
+            ("branch", &branch),
+            ("path", &staged_path),
+        ],
+    );
+
+    HookResult::block_with_fix(
+        "validate-factory-path-staged",
+        format!(
+            "DETECTED: .factory/ path staged on product branch '{safe_branch}' (post-hoc \
+             check). .factory/ paths are exclusively owned by the factory-artifacts \
+             worktree. A staging operation reached the git index without being \
+             intercepted by validate-factory-path-staging's PreToolUse guard (git \
+             plumbing, alias, wrapper script, or under-matched invocation text). Staged \
+             path: '{safe_path}'"
+        ),
+        "Unstage immediately: git restore --staged <path> (or equivalent), or switch to \
+         the .factory/ worktree and commit from there on the factory-artifacts branch",
+        FACTORY_PATH_STAGED_ON_PRODUCT_BRANCH,
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -257,7 +393,29 @@ where
 /// `on_pre_tool_use` does, adjusted for the two-call (staged-paths +
 /// branch) `exec_subprocess` usage this plugin requires.
 pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
-    todo!()
+    hook_logic(
+        payload,
+        HookCallbacks {
+            exec_subprocess: |cmd, args| match vsdd_hook_sdk::host::exec_subprocess(
+                cmd, args, &[], 5000, 512,
+            ) {
+                Ok(result) => {
+                    let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
+                    let stderr = String::from_utf8_lossy(&result.stderr).into_owned();
+                    Ok((result.exit_code, stdout, stderr))
+                }
+                Err(e) => Err(format!("{e:?}")),
+            },
+            emit_event: |event_type, fields| {
+                vsdd_hook_sdk::host::emit_event(event_type, fields);
+            },
+            log: |level, msg| match level {
+                0..=log_level::INFO => vsdd_hook_sdk::host::log_info(msg),
+                log_level::WARN => vsdd_hook_sdk::host::log_warn(msg),
+                _ => vsdd_hook_sdk::host::log_error(msg),
+            },
+        },
+    )
 }
 
 // ---------------------------------------------------------------------------
