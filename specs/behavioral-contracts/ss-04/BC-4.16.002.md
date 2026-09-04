@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-09-04T00:00:00Z
@@ -15,7 +15,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.004.md
   - .factory/specs/domain-spec/capabilities.md
   - .factory/stories/S-25.04-close-validate-factory-path-staging-zero-enforcement-gap.md
-input-hash: "5c7f5ea"
+input-hash: "3123436"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null
@@ -23,7 +23,8 @@ subsystem: "SS-04"
 capability: "CAP-034"
 lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
-modified: []
+modified:
+  - "2026-09-04 (v1.1) — Formal spec closure for the staged-path-listing fail-open behavior (product-owner; S-25.04 post-3-CLEAN finalization sweep; D-1127 precedent — doc-only spec completion after LOCAL convergence, certified CODE FROZEN at feature/S-25.04 HEAD `ff54428a`, UNCHANGED): Postcondition 6 added (fail-open on `git diff --cached --name-only` staged-path-listing failure — non-zero exit or host `Err` — mirroring PC4's branch-detection fail-open and BC-4.16.001 Invariant 3, made explicitly distinct from PC3's fuel-exhaustion/epoch-timeout/`OutputTooLarge` fail-loud INDETERMINATE path); Invariant 9 added (same fail-open obligation, stated as an invariant); EC-009 added (staged-path-listing subprocess failure → fail-open + WARN); T-10 added (mirrors T-5 fail-open style, applied to the staged-path-listing call). Documents AS-IMPLEMENTED behavior only — no semantic change; the intentional inline comment above the `diff_result` match arm in `hook_logic` (`crates/hook-plugins/validate-factory-path-staged/src/lib.rs`) already marked this path as deliberate pending this formal codification. Coverage parity with PC4's fail-open tests applies. BC-INDEX sync (v1.0→v1.1) is a state-manager follow-up, not part of this burst."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -186,6 +187,35 @@ value here (this plugin's own crash cannot retroactively undo the already-comple
 dispatch it was checking); this registration deliberately matches BC-4.16.001 Invariant 2 and
 every other PostToolUse validator in this registry's `on_error = "continue"` steady state.
 
+### PC6 — Fail-open: staged-path-listing failure
+
+When `git diff --cached --name-only` fails (non-zero exit, or the `host::exec_subprocess` call
+itself returns a host `Err`) — a clean, completed `PluginResult::Ok` with an inconclusive answer
+as to what is staged, distinct from PC3's resource-exhaustion INDETERMINATE case (fuel exhaustion,
+epoch timeout, or host `OutputTooLarge`) — the plugin fails open: the staged-factory-path lookup
+resolves to "nothing detected," exit code 0 (`block_intent = false`), with an advisory `WARN` log
+recording the failure (exit code + stderr, or the error string). This mirrors PC4's
+branch-detection fail-open and BC-4.16.001 Invariant 3 exactly, extended to this validator's OTHER
+`host::exec_subprocess` call: an inconclusive staged-path answer is not, on its own, evidence of a
+`.factory/`-on-product-branch violation, and is not a blocking condition. The dispatch falls
+through to PC2 (Passed).
+
+**Fail-open vs. fail-loud, made explicit.** A transient/clean git failure on the staged-path-
+listing call (this PC) is fail-open. The plugin's OWN inability to complete the call at all — fuel
+exhaustion, epoch timeout, or host `OutputTooLarge` — remains PC3's fail-closed INDETERMINATE
+path, unaffected by this postcondition. The two are structurally distinct: PC6 is a git-command-
+level failure the plugin observes and handles gracefully; PC3 is a plugin-execution-level failure
+the dispatcher observes because the plugin never returned control at all.
+
+**As-implemented note.** This documents the behavior already shipped at `feature/S-25.04` HEAD
+`ff54428a` in `hook_logic` (`crates/hook-plugins/validate-factory-path-staged/src/lib.rs`), where
+the intentional inline comment directly above the `diff_result` match arm marks this fail-open
+path as deliberate — mirroring "the branch-detection fail-open below (PC4) and BC-4.16.001
+Invariant 3's philosophy" — not an oversight, pending this formal BC codification. Coverage parity
+with PC4's fail-open tests applies (same exit-code/`Err` matrix, applied to this call).
+
+**Error variant:** none — this is a passed (non-error) outcome; no error variant is raised.
+
 ## Invariants
 
 1. **INV-E21-001 — second enforcement instantiation (detective, post-hoc).** This plugin is the
@@ -241,6 +271,16 @@ every other PostToolUse validator in this registry's `on_error = "continue"` ste
    (mirrors the reasoning that qualified `validate-factory-path-staging` itself for Cohort
    A-immediate treatment; ADR-047 §Decision 8a).
 
+9. **Fail-open on staged-path-listing failure.** Mirrors Invariant 3 above, extended to this
+   validator's OTHER `host::exec_subprocess` call: if `git diff --cached --name-only` fails
+   (non-zero exit, or the `exec_subprocess` call itself returns a host `Err`), the plugin MUST
+   fail open (PC6). This is a distinct failure mode from the plugin's own cannot-complete case
+   (PC3's fuel exhaustion / epoch timeout / `OutputTooLarge`), which remains fail-closed
+   INDETERMINATE. Fail-open (a transient, clean git-command error) vs. fail-loud (the plugin's own
+   execution cannot complete) is a structural distinction between two different failure classes,
+   not a severity judgment applied per-invocation — the same axes-independence framing as
+   Invariant 2, applied to this validator's own second `exec_subprocess` callsite.
+
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
@@ -253,6 +293,7 @@ every other PostToolUse validator in this registry's `on_error = "continue"` ste
 | EC-006 | `.factory/` path appears in `git diff --cached --name-only` and current branch is `factory-artifacts` (legitimate state-manager commit) | PC2 passes unconditionally; mirrors BC-4.16.001 PC3/EC-002 |
 | EC-007 | Bash command was not git-related at all (e.g. `npm test`) and nothing is staged | The check still executes unconditionally per BROAD scope (Precondition 2) — this is NOT a text-based fast-pass skip; it resolves via PC2 because `git diff --cached --name-only` returns nothing relevant. Contrast: if an EARLIER git-plumbing/script/alias action had already staged a `.factory/` path before this non-git command ran, THIS check would still catch it — exactly the residual-risk class the BROAD design exists to close (BC-4.16.001 Invariant 6 Accepted Residuals) |
 | EC-008 | Plugin crashes for a non-resource-exhaustion reason (`Trap::UnreachableCodeReached`, host-ABI mismatch) | `on_error = "continue"` → advisory only; no block; no marker (PC5) |
+| EC-009 | Staged-path-listing (`git diff --cached --name-only`) subprocess fails: non-zero exit, or the `host::exec_subprocess` call itself returns a host `Err` | Fail-open (PC6); staged-factory-path lookup resolves to "nothing detected"; advisory WARN log; falls through to PC2 passed — no block, no marker. Distinct from a host `OutputTooLarge`/fuel-exhaustion/epoch-timeout cannot-complete condition, which remains PC3's fail-closed INDETERMINATE path |
 
 ## Canonical Test Vectors
 
@@ -267,6 +308,7 @@ every other PostToolUse validator in this registry's `on_error = "continue"` ste
 | T-7 | Plugin crashes (non-resource-exhaustion trap) | `git add src/lib.rs` | `develop` | Advisory only per PC5; no block |
 | T-8 | Nothing staged; unrelated command | `npm test` | `develop` | PASSED: PC2 (unconditional check ran, found nothing relevant — not a skipped fast-pass) |
 | T-9 | `.factory/stories/S-25.04.md` now in staged-path list | `git add .factory/stories/S-25.04.md` | `release/v1.0.0-rc.25` | DETECTED: PC1 (release branch is a product branch; mirrors BC-4.16.001 T-5) |
+| T-10 | Staged-path-listing (`git diff --cached --name-only`) subprocess fails (non-zero exit, or `exec_subprocess` returns a host `Err`) | (any command) | `develop` | PASSED: fail-open per PC6 (mirrors T-5's fail-open style, applied to the staged-path-listing call instead of branch detection) |
 
 ## SDK Grounding Evidence
 
@@ -350,4 +392,5 @@ pass for this specific validator.
 
 | Version | Date | Description |
 |---------|------|--------------|
+| 1.1 | 2026-09-04 | Formal spec closure for the staged-path-listing fail-open behavior (product-owner; S-25.04 post-3-CLEAN finalization sweep; D-1127 precedent — doc-only spec completion after LOCAL convergence, certified CODE FROZEN at feature/S-25.04 HEAD `ff54428a`, UNCHANGED). Postcondition 6 added (fail-open on `git diff --cached --name-only` staged-path-listing failure — non-zero exit or host `Err` — mirroring PC4's branch-detection fail-open and BC-4.16.001 Invariant 3, made explicitly distinct from PC3's fuel-exhaustion/epoch-timeout/`OutputTooLarge` fail-loud INDETERMINATE path). Invariant 9 added (same fail-open obligation, stated as an invariant). EC-009 added (staged-path-listing subprocess failure → fail-open + WARN). T-10 added (mirrors T-5's fail-open style, applied to the staged-path-listing call). Documents AS-IMPLEMENTED behavior only — no semantic change; the intentional inline comment above the `diff_result` match arm in `hook_logic` (`crates/hook-plugins/validate-factory-path-staged/src/lib.rs`) already marked this path as deliberate pending this formal codification. Coverage parity with PC4's fail-open tests applies. BC-INDEX sync (v1.0→v1.1) is a state-manager follow-up. |
 | 1.0 | 2026-09-04 | Initial authoring (product-owner; S-25.04 F2 BC authorship burst, following the human's BROAD trigger-scope ratification unblocking the architect's F2 last provisional item). New sibling of BC-4.16.001 under CAP-034/SS-04: `validate-factory-path-staged` WASM PostToolUse `^Bash$` detective mirror of BC-4.16.001's git-staging exclusivity guard, priority 161, `failure_policy = "fail-closed"`, `on_error = "continue"`, native-WASM fuel-axis-only calibration. 4 preconditions (incl. PC2 BROAD unconditional trigger condition, FINAL not provisional), 5 postconditions (PC1 detect/block, PC2 pass, PC3 INDETERMINATE-trigger/AC-001 closure criterion, PC4 branch-detection fail-open, PC5 crash-advisory), 8 invariants (incl. reuse-not-reimplementation of S-25.01 marker/gate machinery, branch-detection fail-open mirroring BC-4.16.001 Invariant 3, BROAD scope finality), 8 edge cases (EC-001..EC-004 per F1/F2 sketch plus EC-005..EC-008), 9 canonical test vectors mirroring BC-4.16.001's T-1..T-9 style. VP authorship deferred to Phase-6 formal-verifier per POLICY 9 (VP-TBD). Traces to ADR-047 §D8a, ADR-039 §D2 (seventh-member roadmap extension), BC-4.16.001, S-25.04. |
