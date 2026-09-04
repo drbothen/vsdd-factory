@@ -90,6 +90,44 @@ pub mod log_level {
 pub const FACTORY_PATH_STAGED_ON_PRODUCT_BRANCH: &str = "FactoryPathStagedOnProductBranch";
 
 // ---------------------------------------------------------------------------
+// exec_subprocess max_output_bytes constants (BC-4.16.002 resource model)
+// ---------------------------------------------------------------------------
+
+/// Maximum output size, **in BYTES** (`host::exec_subprocess`'s
+/// `max_output_bytes` parameter is byte-denominated — see
+/// `crates/hook-sdk/src/host.rs::exec_subprocess`'s 5th positional arg),
+/// accepted from the `git diff --cached --name-only` staged-path-listing
+/// call.
+///
+/// BC-4.16.002's own resource model (Verification Properties section, VP
+/// calibration-corpus note) states this validator's resource driver is git
+/// **index cardinality**, not `.factory/` artifact byte size, and calibrates
+/// against a synthetic worst case of **>= 500 simultaneously staged paths in
+/// one dispatch**. Sized generously above that worst case: 500 paths x ~256
+/// bytes/path (a conservative average staged-path length, comfortably
+/// covering deeply nested `.factory/cycles/<cycle-name>/<file>.md`-style
+/// paths plus the trailing newline) = 128,000 bytes; rounded up to 131_072
+/// (128 KiB) for headroom.
+///
+/// A genuinely pathological index beyond this generous cap correctly still
+/// falls through to PC3's cannot-complete -> INDETERMINATE fail-closed path
+/// (BC-4.16.002 PC3) — that is intended, not a bug. The defect this constant
+/// fixes is routine operation (a handful of staged paths from an ordinary
+/// `git add -A && git commit`) tripping a byte budget that was copy-pasted
+/// from the sibling `validate-factory-path-staging` crate's much shorter
+/// `git branch --show-current` call, where 512 bytes is correct because that
+/// call's output is a single short branch-name line.
+pub const STAGED_PATH_LISTING_MAX_OUTPUT_BYTES: u32 = 131_072;
+
+/// Maximum output size, **in BYTES**, accepted from the `git branch
+/// --show-current` call. Output here is always a single branch-name line, so
+/// a small cap is correct and intentional. NOT the undersized constant that
+/// caused the NEW-1 defect — that was the staged-path-listing call above
+/// (see `STAGED_PATH_LISTING_MAX_OUTPUT_BYTES`) incorrectly reusing this
+/// same small value by copy-paste error.
+pub const BRANCH_DETECTION_MAX_OUTPUT_BYTES: u32 = 512;
+
+// ---------------------------------------------------------------------------
 // Pure-core predicates and helpers (injectable-testable, no host I/O)
 // ---------------------------------------------------------------------------
 
@@ -408,30 +446,43 @@ where
 ///
 /// Wires the real `vsdd_hook_sdk` host functions to the injectable-callback
 /// surface of `hook_logic`: `exec_subprocess` is wired to
-/// `vsdd_hook_sdk::host::exec_subprocess` (5000ms timeout, 512KB output cap),
-/// invoked twice per dispatch — once for the staged-path listing, once for
-/// branch detection; `emit_event` is wired to `host::emit_event`; `log` is
-/// wired to the `host::log_info` / `host::log_warn` / `host::log_error` trio,
-/// selected by the `log_level` value — mirroring the sibling crate's
-/// `on_pre_tool_use` wiring pattern, adjusted for this plugin's two-call
-/// `exec_subprocess` usage.
+/// `vsdd_hook_sdk::host::exec_subprocess` (5000ms timeout for both calls),
+/// invoked twice per dispatch — once for the staged-path listing (`git diff
+/// --cached --name-only`, capped at `STAGED_PATH_LISTING_MAX_OUTPUT_BYTES` =
+/// 131_072 BYTES = 128 KiB, sized to BC-4.16.002's >= 500-staged-path
+/// resource model), once for branch detection (`git branch --show-current`,
+/// capped at `BRANCH_DETECTION_MAX_OUTPUT_BYTES` = 512 BYTES, a single
+/// short branch-name line); `emit_event` is wired to `host::emit_event`;
+/// `log` is wired to the `host::log_info` / `host::log_warn` /
+/// `host::log_error` trio, selected by the `log_level` value — mirroring
+/// the sibling crate's `on_pre_tool_use` wiring pattern, adjusted for this
+/// plugin's two-call `exec_subprocess` usage. The single shared closure
+/// below selects the per-call cap by inspecting `args[0]` (`"diff"` vs.
+/// `"branch"`), since both calls share one `HookCallbacks::exec_subprocess`
+/// closure (BC-4.16.002 Precondition 3).
 pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     hook_logic(
         payload,
         HookCallbacks {
-            exec_subprocess: |cmd, args| match vsdd_hook_sdk::host::exec_subprocess(
-                cmd,
-                args,
-                &[],
-                5000,
-                512,
-            ) {
-                Ok(result) => {
-                    let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
-                    let stderr = String::from_utf8_lossy(&result.stderr).into_owned();
-                    Ok((result.exit_code, stdout, stderr))
+            exec_subprocess: |cmd, args| {
+                // The staged-path listing (`git diff --cached --name-only`)
+                // and branch detection (`git branch --show-current`) share
+                // this one closure; select the max_output_bytes cap per-call
+                // by inspecting the first arg. See the two constants' own
+                // doc comments for the BC-4.16.002-grounded rationale.
+                let max_output_bytes = if args.first() == Some(&"diff") {
+                    STAGED_PATH_LISTING_MAX_OUTPUT_BYTES
+                } else {
+                    BRANCH_DETECTION_MAX_OUTPUT_BYTES
+                };
+                match vsdd_hook_sdk::host::exec_subprocess(cmd, args, &[], 5000, max_output_bytes) {
+                    Ok(result) => {
+                        let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
+                        let stderr = String::from_utf8_lossy(&result.stderr).into_owned();
+                        Ok((result.exit_code, stdout, stderr))
+                    }
+                    Err(e) => Err(format!("{e:?}")),
                 }
-                Err(e) => Err(format!("{e:?}")),
             },
             emit_event: |event_type, fields| {
                 vsdd_hook_sdk::host::emit_event(event_type, fields);

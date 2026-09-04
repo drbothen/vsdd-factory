@@ -44,8 +44,8 @@ use serde_json::json;
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
 use crate::{
-    FACTORY_PATH_STAGED_ON_PRODUCT_BRANCH, HookCallbacks, find_staged_factory_path, hook_logic,
-    is_factory_path,
+    FACTORY_PATH_STAGED_ON_PRODUCT_BRANCH, HookCallbacks, STAGED_PATH_LISTING_MAX_OUTPUT_BYTES,
+    find_staged_factory_path, hook_logic, is_factory_path,
 };
 
 // ---------------------------------------------------------------------------
@@ -814,6 +814,50 @@ fn test_bc4_16_002_ec005_branch_detection_failure_is_advisory_not_blocking() {
              blocking outcome (exit 2)."
         );
     }
+}
+
+// ---------------------------------------------------------------------------
+// NEW-1 regression guard: STAGED_PATH_LISTING_MAX_OUTPUT_BYTES must cover
+// BC-4.16.002's own >= 500-staged-path resource model (git index
+// cardinality driver, per the Verification Properties calibration-corpus
+// note) — a revert to the original undersized 512-BYTE copy-paste value
+// (correct only for the sibling branch-detection call's single short line)
+// must fail this test.
+// ---------------------------------------------------------------------------
+
+#[test]
+// Both operands are `const`, so clippy statically proves this assertion's
+// truth value at lint time (`clippy::assertions_on_constants`). That is
+// deliberate, not an oversight: the guard is *intentionally*
+// compile-time-derivable, but is kept as a `#[test]` (rather than a
+// top-level `const _: () = assert!(...)`) specifically so a revert to the
+// undersized 512-byte cap surfaces as a named, reportable failure in
+// `cargo test -p validate-factory-path-staged` output — the CI-visible
+// regression signal this NEW-1 fix requires — rather than only a build
+// failure elsewhere.
+#[allow(clippy::assertions_on_constants)]
+fn test_bc4_16_002_staged_path_listing_max_output_bytes_covers_bc_worst_case() {
+    // BC-4.16.002's own resource model specifies a >= 500-simultaneously-
+    // staged-path worst case for THIS validator specifically (its resource
+    // driver is git index cardinality, not `.factory/` artifact byte size —
+    // see BC-4.16.002 Verification Properties section). A conservative
+    // per-path-length lower bound of 256 bytes/path (comfortably covering
+    // deeply nested `.factory/cycles/<cycle-name>/<file>.md`-style paths
+    // plus the trailing newline) over 500 paths yields 128,000 bytes as the
+    // minimum acceptable cap. The production constant (131_072 = 128 KiB)
+    // clears this bound with headroom; the original defect value (512 bytes)
+    // could not hold even ~8 typical staged paths and would fail this
+    // assertion outright.
+    const BC_DERIVED_WORST_CASE_LOWER_BOUND_BYTES: u32 = 500 * 256; // 128_000 bytes
+    assert!(
+        STAGED_PATH_LISTING_MAX_OUTPUT_BYTES >= BC_DERIVED_WORST_CASE_LOWER_BOUND_BYTES,
+        "NEW-1 regression guard: STAGED_PATH_LISTING_MAX_OUTPUT_BYTES ({}) must be >= the \
+         BC-4.16.002-derived >= 500-staged-path worst-case lower bound ({} bytes = 500 \
+         paths * 256 bytes/path average). A revert to the original undersized 512-byte cap \
+         (or any cap below this bound) must fail this test.",
+        STAGED_PATH_LISTING_MAX_OUTPUT_BYTES,
+        BC_DERIVED_WORST_CASE_LOWER_BOUND_BYTES
+    );
 }
 
 // ---------------------------------------------------------------------------
