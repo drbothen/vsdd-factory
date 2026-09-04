@@ -1641,6 +1641,15 @@ failure_policy = "fail-closed"
     ///   - `validate-pr-merge-prerequisites`  (Cohort A-deferred; SET-BUT-LATENT)
     ///   - `validate-wave-gate-prerequisite`  (Cohort A-deferred; SET-BUT-LATENT)
     ///
+    /// Post-S-25.04 (BC-4.16.002; ADR-039 §Decision 2 seventh-member roadmap entry;
+    /// BC-1.18.004 v1.4 postcondition 4 companion statement — human-ratified BROAD
+    /// trigger scope 2026-09-04): a FOURTH validator joins the sanctioned set:
+    ///   - `validate-factory-path-staged`     (PostToolUse detective mirror of
+    ///     `validate-factory-path-staging`; native-WASM, fuel-axis-only calibration;
+    ///     this is the first Layer-1 validator whose fail-closed assignment reaches
+    ///     `write_indeterminate_marker` via a structurally-reachable PostToolUse
+    ///     trigger — S-25.04 AC-001)
+    ///
     /// ALL other entries (including the two gate plugin entries for
     /// `validate-unvalidated-mutation-marker` / `validate-unvalidated-mutation-marker-git`
     /// which MUST be fail-open per BC-1.18.002 invariant 2) MUST remain FailOpen.
@@ -1672,13 +1681,17 @@ failure_policy = "fail-closed"
             "production registry must have at least one hook entry"
         );
 
-        // S-25.01 AC-016 / BC-1.18.004 PC4: EXACTLY these three Cohort A validators
-        // are sanctioned to have failure_policy = "fail-closed". No others.
-        // ADR-047 §D8a v1.3 human-ratified Cohort A membership.
+        // S-25.01 AC-016 / BC-1.18.004 PC4: these four Cohort A validators are
+        // sanctioned to have failure_policy = "fail-closed". No others.
+        // ADR-047 §D8a v1.3 human-ratified Cohort A membership (three), extended by
+        // S-25.04 (BC-4.16.002; ADR-039 §Decision 2 seventh-member roadmap entry;
+        // BC-1.18.004 v1.4 PC4 companion statement — human-ratified 2026-09-04) with
+        // `validate-factory-path-staged`, the fourth sanctioned member.
         let cohort_a: std::collections::HashSet<&str> = [
             "validate-factory-path-staging",
             "validate-pr-merge-prerequisites",
             "validate-wave-gate-prerequisite",
+            "validate-factory-path-staged",
         ]
         .into_iter()
         .collect();
@@ -1698,9 +1711,10 @@ failure_policy = "fail-closed"
                 "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
                  entry '{}' has failure_policy=FailClosed but is NOT in the human-ratified \
                  Cohort A set (validate-factory-path-staging, validate-pr-merge-prerequisites, \
-                 validate-wave-gate-prerequisite). Only ADR-047-sanctioned entries may be \
-                 fail-closed. This is a regression guard — do NOT silently add fail-closed \
-                 entries without ADR amendment (BC-1.18.004 PC5; ADR-047 §D8a). DO NOT DELETE.",
+                 validate-wave-gate-prerequisite, validate-factory-path-staged). Only \
+                 ADR-047/ADR-039-sanctioned entries may be fail-closed. This is a regression \
+                 guard — do NOT silently add fail-closed entries without ADR amendment \
+                 (BC-1.18.004 PC5; ADR-047 §D8a). DO NOT DELETE.",
                 name
             );
         }
