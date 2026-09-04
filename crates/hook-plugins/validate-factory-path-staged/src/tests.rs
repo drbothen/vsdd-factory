@@ -44,8 +44,9 @@ use serde_json::json;
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
 use crate::{
-    FACTORY_PATH_STAGED_ON_PRODUCT_BRANCH, HookCallbacks, STAGED_PATH_LISTING_MAX_OUTPUT_BYTES,
-    find_staged_factory_path, hook_logic, is_factory_path,
+    BRANCH_DETECTION_MAX_OUTPUT_BYTES, FACTORY_PATH_STAGED_ON_PRODUCT_BRANCH, HookCallbacks,
+    STAGED_PATH_LISTING_MAX_OUTPUT_BYTES, find_staged_factory_path, hook_logic, is_factory_path,
+    max_output_bytes_for,
 };
 
 // ---------------------------------------------------------------------------
@@ -857,6 +858,40 @@ fn test_bc4_16_002_staged_path_listing_max_output_bytes_covers_bc_worst_case() {
          (or any cap below this bound) must fail this test.",
         STAGED_PATH_LISTING_MAX_OUTPUT_BYTES,
         BC_DERIVED_WORST_CASE_LOWER_BOUND_BYTES
+    );
+}
+
+// ---------------------------------------------------------------------------
+// NEW-3 regression guard (pass-3 LOCAL adversary): the cap-SELECTION branch
+// (not just the two constants' own values) must be independently covered.
+// Prior to this test, only `STAGED_PATH_LISTING_MAX_OUTPUT_BYTES`'s value
+// was pinned (see the NEW-1 guard above); the ternary routing `"diff"` vs.
+// everything-else to the correct constant had zero coverage. A regression
+// that hardcoded 512 for both calls, or swapped the two arms, would
+// reintroduce the HIGH NEW-1 self-wedge defect while every prior test
+// stayed green. This test asserts BOTH arms of `max_output_bytes_for`,
+// giving `BRANCH_DETECTION_MAX_OUTPUT_BYTES` its first assertion anywhere
+// in this suite.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_bc4_16_002_max_output_bytes_for_selects_staged_path_listing_cap_for_diff() {
+    assert_eq!(
+        max_output_bytes_for(&["diff", "--cached", "--name-only"]),
+        STAGED_PATH_LISTING_MAX_OUTPUT_BYTES,
+        "NEW-3 regression guard: max_output_bytes_for(&[\"diff\", ...]) must select \
+         STAGED_PATH_LISTING_MAX_OUTPUT_BYTES (the staged-path-listing cap), not the \
+         undersized branch-detection cap."
+    );
+}
+
+#[test]
+fn test_bc4_16_002_max_output_bytes_for_selects_branch_detection_cap_for_branch() {
+    assert_eq!(
+        max_output_bytes_for(&["branch", "--show-current"]),
+        BRANCH_DETECTION_MAX_OUTPUT_BYTES,
+        "NEW-3 regression guard: max_output_bytes_for(&[\"branch\", ...]) must select \
+         BRANCH_DETECTION_MAX_OUTPUT_BYTES, not the oversized staged-path-listing cap."
     );
 }
 

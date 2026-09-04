@@ -127,6 +127,41 @@ pub const STAGED_PATH_LISTING_MAX_OUTPUT_BYTES: u32 = 131_072;
 /// same small value by copy-paste error.
 pub const BRANCH_DETECTION_MAX_OUTPUT_BYTES: u32 = 512;
 
+/// Selects the `max_output_bytes` cap for a given `git` invocation's
+/// argument list, per the shared `exec_subprocess` closure's two call
+/// sites in [`on_post_tool_use`].
+///
+/// Returns [`STAGED_PATH_LISTING_MAX_OUTPUT_BYTES`] when `args`' first
+/// element is the staged-path-listing subcommand (`"diff"`, i.e. `git diff
+/// --cached --name-only`) — sized to BC-4.16.002's own resource model,
+/// which scales with **git index cardinality** (a >= 500-simultaneously-
+/// staged-path worst case; see that constant's doc comment for the full
+/// derivation). Returns [`BRANCH_DETECTION_MAX_OUTPUT_BYTES`] for every
+/// other `args[0]` (in practice, only `"branch"`, i.e. `git branch
+/// --show-current`) — that call's output is always a single short
+/// branch-name line, so a small cap is correct and intentional.
+///
+/// Extracted as a standalone pure function (NEW-3 fix, pass-3 LOCAL
+/// adversary) so the cap-**selection** branch — not just the constants'
+/// values — is independently unit-testable. Prior to this extraction, only
+/// `STAGED_PATH_LISTING_MAX_OUTPUT_BYTES`'s own value was guarded by a
+/// regression test; the ternary that routed `"diff"` vs. everything-else to
+/// the correct constant lived inline in the `on_post_tool_use` closure with
+/// zero coverage, so a regression that hardcoded 512 for both calls, or
+/// swapped the two arms, would silently reintroduce the HIGH NEW-1
+/// self-wedge defect (routine multi-path `.factory/` staging tripping
+/// `OutputTooLarge` -> PC3 INDETERMINATE -> spurious gate block) while
+/// every existing test stayed green. [`on_post_tool_use`] calls this exact
+/// helper (not a re-implementation) so the tested code path and the
+/// production-wired code path are identical.
+pub(crate) fn max_output_bytes_for(args: &[&str]) -> u32 {
+    if args.first() == Some(&"diff") {
+        STAGED_PATH_LISTING_MAX_OUTPUT_BYTES
+    } else {
+        BRANCH_DETECTION_MAX_OUTPUT_BYTES
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Pure-core predicates and helpers (injectable-testable, no host I/O)
 // ---------------------------------------------------------------------------
@@ -457,9 +492,9 @@ where
 /// `host::log_error` trio, selected by the `log_level` value — mirroring
 /// the sibling crate's `on_pre_tool_use` wiring pattern, adjusted for this
 /// plugin's two-call `exec_subprocess` usage. The single shared closure
-/// below selects the per-call cap by inspecting `args[0]` (`"diff"` vs.
-/// `"branch"`), since both calls share one `HookCallbacks::exec_subprocess`
-/// closure (BC-4.16.002 Precondition 3).
+/// below selects the per-call cap via [`max_output_bytes_for`], which
+/// inspects `args[0]` (`"diff"` vs. `"branch"`), since both calls share one
+/// `HookCallbacks::exec_subprocess` closure (BC-4.16.002 Precondition 3).
 pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     hook_logic(
         payload,
@@ -467,14 +502,14 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
             exec_subprocess: |cmd, args| {
                 // The staged-path listing (`git diff --cached --name-only`)
                 // and branch detection (`git branch --show-current`) share
-                // this one closure; select the max_output_bytes cap per-call
-                // by inspecting the first arg. See the two constants' own
-                // doc comments for the BC-4.16.002-grounded rationale.
-                let max_output_bytes = if args.first() == Some(&"diff") {
-                    STAGED_PATH_LISTING_MAX_OUTPUT_BYTES
-                } else {
-                    BRANCH_DETECTION_MAX_OUTPUT_BYTES
-                };
+                // this one closure; `max_output_bytes_for` selects the
+                // per-call cap by inspecting the first arg — same helper the
+                // unit tests exercise directly, so the tested selection
+                // logic and the production-wired selection logic are one
+                // code path (NEW-3 fix, pass-3 LOCAL adversary). See the two
+                // constants' own doc comments for the BC-4.16.002-grounded
+                // rationale.
+                let max_output_bytes = max_output_bytes_for(args);
                 match vsdd_hook_sdk::host::exec_subprocess(cmd, args, &[], 5000, max_output_bytes) {
                     Ok(result) => {
                         let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
