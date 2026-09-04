@@ -700,3 +700,10 @@ story_updates:
     merge_sha: b4ff2383
     merged_at: 2026-09-03
     note: "ARCH-INDEX Cite-Refresh Hook + last_amended Write-Path Durable Fix (E-12). Delivered crates/last-amended-migrate (PC7 full-recovery split, bounded O(n) scan, escape_raw_value, SEC-003 portable atomic write, register CLI); write-path discipline codified in plugins/vsdd-factory/skills/state-burst/SKILL.md + plugins/vsdd-factory/agents/state-manager.md; 5 sidecar paths registered in plugins/vsdd-factory/config/artifact-path-registry.yaml. CI fully green (16 checks incl. windows-x64) after 3 Windows-only root-cause fixes (path-separator, SEC-003 Unix-only failure injection, escape-lookahead collision) + portability fixes. PR #805 squash-merged b4ff2383 2026-09-03T10:43:17Z (branch base 8b4b60e6); feature branch + .worktrees/S-15.03 deleted. merged_count 115→116. BC-5.45.001 v1.2→v1.3 / BC-10.13.001 v1.2→v1.3 / BC-4.18.001 v1.1→v1.2 — all draft→active (POL-14). D-1152."
+
+  S-25.01:
+    status: merged
+    pr: 807
+    merge_sha: f3f9b3a1
+    merged_at: 2026-09-03
+    note: "Dispatcher INDETERMINATE Outcome Layer 1 — fail-loud on cannot-complete: durable unvalidated-mutation marker + next-advance gate (Agent arm + git commit/push arm), block_if_marker crash policy, 86400s TTL deadman, ungated three-path recovery (E-25 W1). Full delivery arc: LOCAL BC-5.39.001 3-CLEAN convergence (passes 16/17/18, D-1153/D-1154/D-1155); finalization-doc-sweep COMPLETE (D-1156); validate-factory-path-staging zero-enforcement overclaim correction cascade (D-1157, new follow-up story S-25.04 opened); ADR-050 ratification unblocking bats-darwin-leg-macos CI (D-1158); transient rustc-SIGSEGV CI flake cleared via rerun. PR #807 squash-merged f3f9b3a1 2026-09-03 (branch base b4ff2383); feature branch + .worktrees/S-25.01 deleted. merged_count 116→117. BC-1.18.001 v1.5→v1.6 / BC-1.18.002 v1.7→v1.8 / BC-1.18.003 v1.7→v1.8 / BC-1.18.004 v1.2→v1.3 — all draft→active (POL-14); BC-3.08.001 v1.34 already active, unchanged. D-1159."

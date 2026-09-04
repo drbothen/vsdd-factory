@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.7"
-status: draft
+version: "1.8"
+status: active
 producer: product-owner
 timestamp: 2026-08-31T00:00:00Z
 phase: F2
@@ -11,15 +11,15 @@ inputs:
   - .factory/specs/architecture/decisions/ADR-048-fail-closed-but-recoverable-gate-block-if-marker-crash-policy-marker-ttl-deadman-and-ungated-escape-invariant.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.001.md
   - .factory/feature-delta/validation-integrity-layer1/F1-delta-analysis.md
-input-hash: "28e238b"
+input-hash: "e42dc68"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
 subsystem: "SS-01"
 capability: "CAP-041"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-feature-validation-integrity-layer1
-modified: ["v1.1-2026-08-31-exact-subcommand-clarification", "v1.2-2026-08-31-command-detection-comprehensive-expansion", "v1.3-2026-08-31-fail-open-reconciliation-threat-model-quoting-scope", "v1.4-2026-08-31-read-error-vs-malformed-marker-distinction", "v1.5-2026-08-31-block_if_marker-crash-policy-TTL-ungated-escape", "v1.6-2026-08-31-recovery-model-reframe-HIGH-1-resolution", "v1.7-2026-08-31-adr-048-d4-v1.2-ttl-locus-narration-correction"]
+modified: ["v1.1-2026-08-31-exact-subcommand-clarification", "v1.2-2026-08-31-command-detection-comprehensive-expansion", "v1.3-2026-08-31-fail-open-reconciliation-threat-model-quoting-scope", "v1.4-2026-08-31-read-error-vs-malformed-marker-distinction", "v1.5-2026-08-31-block_if_marker-crash-policy-TTL-ungated-escape", "v1.6-2026-08-31-recovery-model-reframe-HIGH-1-resolution", "v1.7-2026-08-31-adr-048-d4-v1.2-ttl-locus-narration-correction", "v1.8-2026-09-03-POL-14-auto-promotion-draft-to-active-S-25.01-merged-PR807-f3f9b3a1"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -546,6 +546,7 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.8 | 2026-09-03 | state-manager | POL-14 auto-promotion (S-25.01 MERGED PR #807 squash `f3f9b3a1` into `develop` 2026-09-03; D-1159): `status`/`lifecycle_status` draft→active. No content/postcondition/wire-format change — mechanical POLICY-14 consequence of the anchoring story's merge. |
 | 1.7 | 2026-08-31 | product-owner | Spot-check correction (ADR-048 §Decision 4 v1.2 Emission-Point Correction; human-ratified; sibling of BC-1.18.003 v1.4/BC-1.18.001 v1.2/BC-3.08.001 v1.31). Gate Block/Allow behavior is UNCHANGED — this is a narration-locus fix only: three sites attributed normal-path TTL auto-delete to "the gate plugin"; corrected to the new dispatcher-native `check_and_clear_expired_marker` pre-check (`indeterminate_marker.rs`, called from `executor.rs`'s tier-execution loop before `evaluate_gate` runs). (1) §INV6 T2 (Passive recovery) bullet corrected. (2) §Fail-Closed-But-Recoverable Design table T2 row corrected. (3) §Traceability ADR row's ADR-048 §Decision 2 citation corrected + ADR-048 §Decision 4 v1.2 parenthetical added. Crash-path (`block_if_marker_check`, Decision 1) narration is UNCHANGED per ADR-048 §D4 v1.2 (that code path was not touched by the architect's fix). VP-105 citations checked — VP-105's `evaluate_gate`/`block_if_marker` rows in this BC's §Verification Properties table describe marker presence/readability and the crash path only, neither of which cite normal-path TTL internals, so no VP-105 flag is needed. |
 | 1.6 | 2026-08-31 | product-owner | ADR-048 §Decision 3 amended v1.1 — recovery model reframe (HIGH-1 resolution). (1) INV6 restructured to four-tier model: T1 (Edit/Write re-validation — primary agent recovery, inherently ungated); T2 (TTL deadman); T3 (human OOB rm — break-glass); T4 (agent-tool Bash rm — de-sanctioned; crash-path block ACCEPTABLE, NOT INV6 violation). (2) INV6(i) v1.5 claim that "block_if_marker on crash does not affect rm because rm does not match Arm 1's ^Agent$ pattern" CORRECTED: Arm 2 (^Bash$) also has block_if_marker; crash handler runs for ALL ^Bash$ dispatches with no is_git_commit_or_push filter; rm CAN be blocked on crash path. (3) PC5 block message reframed: T1 (re-validate via Edit/Write) listed first; rm moved to T3 (human OOB only) and NOT recommended to agent. (4) INV2 last clause updated to T1/T2/T3/T4 framing. (5) Fail-Closed-But-Recoverable table restructured: four rows T1–T4. (6) VP-107 scope amended: verifies T1 only (Edit/Write not matched by either arm); NOT "rm is never gated". (7) Traceability ADR: ADR-048 §D3 citation updated to amended v1.1 form. |
 | 1.5 | 2026-08-31 | product-owner | ADR-048 §Decision 1/2/3 — fail-closed-but-recoverable gate redesign. (1) Both Arm 1 and Arm 2 `on_error` changed from `"continue"` to `"block_if_marker"` in PC1. (2) Two-axis model note in PC1 rewritten: axis (i) now describes the native block_if_marker crash-path (block iff non-expired marker; allow otherwise) superseding D-1135 fail-open-on-crash. (3) Added PC5: gate crash + non-expired marker → dispatcher BLOCKS. (4) Added PC6: gate crash + absent/expired marker → dispatcher ALLOWS. (5) INV2 rewritten: fail-closed-but-recoverable on crash replacing unconditional fail-open; IO-read-error fail-open (EC-030) unchanged. (6) Added INV6: Ungated-Escape invariant — `rm` + Edit/Write + TTL auto-expiry are never gated; VP-107 verification anchor. (7) Threat Model: added Fail-Closed-But-Recoverable subsection with three recoverability guarantees. (8) EC-009 updated for block_if_marker (crash+no-marker → allow); added EC-031 (crash+non-expired-marker → block) and EC-032 (crash+expired-marker → allow). (9) Canonical test vectors: added PC5/PC6 scenarios. (10) VP-105 updated to cover block_if_marker. (11) Traceability ADR: ADR-048 §D1/D2/D3 citations added. ADR-048 added to inputs. |
