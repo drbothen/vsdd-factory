@@ -39,8 +39,8 @@ use serde_json::json;
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
 use crate::{
-    find_staged_factory_path, hook_logic, is_factory_path, HookCallbacks,
-    FACTORY_PATH_STAGED_ON_PRODUCT_BRANCH,
+    FACTORY_PATH_STAGED_ON_PRODUCT_BRANCH, HookCallbacks, find_staged_factory_path, hook_logic,
+    is_factory_path,
 };
 
 // ---------------------------------------------------------------------------

@@ -26,7 +26,7 @@ use std::panic;
 
 use proptest::prelude::*;
 use serde_json::json;
-use validate_factory_path_staged::{hook_logic, HookCallbacks};
+use validate_factory_path_staged::{HookCallbacks, hook_logic};
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
 // ---------------------------------------------------------------------------

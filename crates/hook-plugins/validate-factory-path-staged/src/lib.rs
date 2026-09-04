@@ -397,7 +397,11 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
         payload,
         HookCallbacks {
             exec_subprocess: |cmd, args| match vsdd_hook_sdk::host::exec_subprocess(
-                cmd, args, &[], 5000, 512,
+                cmd,
+                args,
+                &[],
+                5000,
+                512,
             ) {
                 Ok(result) => {
                     let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
