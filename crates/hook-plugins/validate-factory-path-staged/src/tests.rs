@@ -1,5 +1,10 @@
 // Test files use .expect()/.unwrap()/.panic!() for failure reporting.
 #![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
+// Test-local recording helper uses Rc<RefCell<Vec<(String, Vec<String>)>>> for the
+// injected exec_subprocess call-recorder; matches the established codebase convention
+// for test files (see e.g. validate-artifact-path/src/tests.rs, validate-stable-anchors/
+// src/tests.rs) rather than a production-code type alias for a test-only helper type.
+#![allow(clippy::type_complexity)]
 //! Unit tests for validate-factory-path-staged (RED GATE — BC-5.38.001).
 //!
 //! Exercises the production functions declared in `lib.rs` via injectable
