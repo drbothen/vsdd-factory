@@ -149,12 +149,9 @@ confirm the actual command output — not just the typed command — is visible 
   diff caused or touches this failure, and the story's own specified regression targets
   (`cargo test -p validate-factory-path-staged`, the BC-1.18.004 PC5 guard, and this story's own
   registry/count sentinels) are all green.
-- `plugins/vsdd-factory/tests/run-all.sh` (bats integration suite): started and observed passing
-  through several hundred cases (postcompact-reanchor, pr-lifecycle-hooks, pr-manager-hardening,
-  ...) with zero failures seen as of last check; the full suite is large (spans the entire hook
-  ecosystem, most of it unrelated to this story's own two-crate/one-registry-entry diff) and was
-  still completing at the time of this report. No failure attributable to this story's changes was
-  observed in the portion completed.
+- `plugins/vsdd-factory/tests/run-all.sh` (bats integration suite): **completed, all green** —
+  `Coverage: 2233 executed, 29 skipped (2262 total across 256 suites). All tests passed.` (exit
+  code 0). Zero `not ok` lines across the full run.
 
 ### CORE behavior — block path and clean-pass path
 
