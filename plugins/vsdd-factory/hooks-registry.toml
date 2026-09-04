@@ -1426,6 +1426,44 @@ on_error = "block"
 [hooks.capabilities.read_file]
 path_allow = ["plugins/vsdd-factory/hooks-registry.toml"]
 
+# ---------- validate-factory-path-staged (PostToolUse, Bash) ----------
+# S-25.04: post-hoc detective mirror of validate-factory-path-staging (BC-4.16.001).
+# Fires on every completed PostToolUse Bash dispatch and, unconditionally — with no
+# command-text pre-filter (BROAD trigger scope, human-ratified 2026-09-04, FINAL) —
+# inspects the actual git index/branch state via two exec_subprocess calls: `git diff
+# --cached --name-only` then `git branch --show-current`. Detects .factory/ paths that
+# reached the index without being intercepted by validate-factory-path-staging's own
+# PreToolUse guard (git plumbing, alias, wrapper script, under-matched invocation text).
+# failure_policy = "fail-closed": this is the first Layer-1 validator whose fail-closed
+# assignment has a structurally-reachable PostToolUse trigger for write_indeterminate_marker
+# (S-25.01's marker/gate machinery, reused verbatim — no new marker file or gate mechanism;
+# BC-4.16.002 Invariant 5). on_error = "continue": a non-resource-exhaustion crash is
+# advisory-only (PC5) — a detective PostToolUse check's own failure cannot wedge the
+# session (BC-4.16.002 Invariant 8). Priority 161 — lowest free slot above the occupied
+# 150-160 band (BC-4.16.002 SDK Grounding Evidence Grep 2). Does NOT modify or replace
+# validate-factory-path-staging's own entry (AC-003) — additive companion only.
+# BC-4.16.002; ADR-039 §Decision 2 seventh-member roadmap entry (native-WASM,
+# fuel-axis-only calibration); ADR-047 §Decision 8a Known Gap closure.
+
+[[hooks]]
+name = "validate-factory-path-staged"
+event = "PostToolUse"
+tool = "^Bash$"
+plugin = "hook-plugins/validate-factory-path-staged.wasm"
+priority = 161
+timeout_ms = 5000
+on_error = "continue"
+async = false
+failure_policy = "fail-closed"
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["git"]
+# PATH omitted: mirrors validate-factory-path-staging's own capability shape — the
+# dispatcher process inherits PATH from its parent Claude session; the child git
+# subprocess resolves the binary via that inherited PATH without needing PATH
+# re-injected into the plugin sandbox.
+env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
+
 # ---------- verify-factory-lock (PreToolUse, Edit|Write|MultiEdit|Agent) ----------
 # S-17.02: factory-artifacts orphan-branch single-writer guard (BC-4.13.001).
 # Reads factory_lock block from STATE.md; blocks mutating tools when a foreign
