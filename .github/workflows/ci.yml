@@ -1008,21 +1008,48 @@ jobs:
         # step MUST NOT parse hooks-registry.toml against the committed
         # binary — that coupling to registry-schema forward-compatibility is
         # exactly what ADR-050 removes. It only asserts the checked-in bundle
-        # is a non-corrupt, executable, version-reporting binary for this arch.
+        # is a non-empty, executable Mach-O binary for the expected arch —
+        # NOT that it can be invoked (factory-dispatcher has no --version
+        # flag; it's a hook dispatcher, not a CLI with flags).
         run: |
           ARCH="$(uname -m)"
           if [[ "${ARCH}" == "arm64" ]]; then
             DARWIN_BIN="plugins/vsdd-factory/hooks/dispatcher/bin/darwin-arm64/factory-dispatcher"
+            EXPECTED_ARCH="arm64"
           else
             DARWIN_BIN="plugins/vsdd-factory/hooks/dispatcher/bin/darwin-x64/factory-dispatcher"
+            EXPECTED_ARCH="x86_64"
           fi
-          chmod +x "${DARWIN_BIN}"
-          VERSION_OUTPUT="$("${DARWIN_BIN}" --version)"
-          if [[ -z "${VERSION_OUTPUT}" ]]; then
-            echo "DARWIN_BUNDLE_SMOKE_TEST_FAILED: ${DARWIN_BIN} --version produced empty output" >&2
+
+          if [[ ! -s "${DARWIN_BIN}" ]]; then
+            echo "DARWIN_BUNDLE_SMOKE_TEST_FAILED: ${DARWIN_BIN} is missing or empty" >&2
             exit 1
           fi
-          echo "Committed bundle OK: ${VERSION_OUTPUT}"
+
+          chmod +x "${DARWIN_BIN}"
+          if [[ ! -x "${DARWIN_BIN}" ]]; then
+            echo "DARWIN_BUNDLE_SMOKE_TEST_FAILED: ${DARWIN_BIN} is not executable after chmod +x" >&2
+            exit 1
+          fi
+
+          # factory-dispatcher has no --version flag (it's a hook dispatcher
+          # that reads a JSON payload from stdin, not a CLI with flags), so
+          # this step does NOT invoke the binary. It asserts file integrity
+          # instead: a non-empty, executable, correctly-architected Mach-O
+          # binary. Invoking the dispatcher here would also re-trip
+          # hooks-registry.toml parsing against the stale committed bundle —
+          # exactly the coupling ADR-050 removes.
+          FILE_OUTPUT="$(file "${DARWIN_BIN}")"
+          if ! grep -q "Mach-O" <<<"${FILE_OUTPUT}"; then
+            echo "DARWIN_BUNDLE_SMOKE_TEST_FAILED: ${DARWIN_BIN} is not a Mach-O binary: ${FILE_OUTPUT}" >&2
+            exit 1
+          fi
+          if ! grep -q "${EXPECTED_ARCH}" <<<"${FILE_OUTPUT}"; then
+            echo "DARWIN_BUNDLE_SMOKE_TEST_FAILED: ${DARWIN_BIN} is not ${EXPECTED_ARCH}: ${FILE_OUTPUT}" >&2
+            exit 1
+          fi
+
+          echo "Committed bundle OK: ${FILE_OUTPUT}"
 
       - name: Install Rust wasm32-wasip1 target
         # pr-manager-hardening.bats setup_file() builds pr-manager-completion-guard.wasm
