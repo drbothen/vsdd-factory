@@ -41,12 +41,14 @@
 //! - Pure `fn hook_logic(...)` takes all host I/O as injectable closures.
 //!   Unit tests exercise every branch without a WASM runtime.
 //!
-//! # BC-5.38.001 Red Gate discipline
+//! # Implementation status
 //!
-//! All non-trivial function bodies use `todo!()`. Implementer fills in real
-//! logic. See the stub commit report for the GREEN-BY-DESIGN exception
-//! (`is_product_branch`) and confirmation that no WIRING-EXEMPT bodies were
-//! introduced.
+//! All function bodies are fully implemented. (BC-5.38.001 Red Gate stub
+//! discipline governed only the pre-implementation stub commit — see that
+//! commit's report for the original `todo!()` skeleton and the
+//! GREEN-BY-DESIGN exception granted to `is_product_branch`, a one-line
+//! trivial predicate that shipped with a real body from the stub commit
+//! itself; no WIRING-EXEMPT bodies were introduced.)
 
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
@@ -112,8 +114,10 @@ pub const FACTORY_PATH_STAGED_ON_PRODUCT_BRANCH: &str = "FactoryPathStagedOnProd
 /// BC-4.16.002 PC1 / Invariant 4: case-insensitive `.factory/` path-matching
 /// predicate, reused verbatim from BC-4.16.001.
 ///
-/// # BC-5.38.001
-/// Non-trivial (case-folding + path-component matching). Uses `todo!()`.
+/// # Implementation
+/// Fully implemented: lowercases the path and checks for a literal
+/// `.factory/` substring. (Non-trivial per the BC-5.38.001 self-check —
+/// case-folding + path-component matching.)
 pub fn is_factory_path(path: &str) -> bool {
     // Reused verbatim from `validate_factory_path_staging::contains_factory_path_arg`'s
     // fast-path semantics: case-insensitive `.factory/` literal anywhere in the path.
@@ -154,11 +158,11 @@ pub fn is_product_branch(branch: &str) -> bool {
 /// BC-4.16.002 PC1: detect at least one `.factory/`-matching staged path.
 /// BC-4.16.002 PC2 / EC-002 / EC-007: `None` when no staged path matches.
 ///
-/// # BC-5.38.001
-/// Non-trivial (line-splitting + delegates to the non-trivial
-/// `is_factory_path` helper — BC-5.38.005 self-check: a test would pass
-/// trivially without implementer work if this had a real body). Uses
-/// `todo!()`.
+/// # Implementation
+/// Fully implemented: iterates the newline-delimited stdout lines, skips
+/// blank lines, and returns the first line matching `is_factory_path`.
+/// (Non-trivial per the BC-5.38.005 self-check — line-splitting + delegation
+/// to the non-trivial `is_factory_path` helper.)
 pub fn find_staged_factory_path(git_diff_cached_name_only_stdout: &str) -> Option<String> {
     for line in git_diff_cached_name_only_stdout.lines() {
         let trimmed = line.trim();
@@ -245,9 +249,10 @@ where
 /// - BC-4.16.002 Invariant 7: BROAD unconditional trigger scope, no
 ///   command-text pre-filter
 ///
-/// # BC-5.38.001
-/// Non-trivial (branching + calls to non-trivial helpers + I/O via
-/// injected callbacks). Uses `todo!()`.
+/// # Implementation
+/// Fully implemented per the 5-step algorithm documented above. (Non-trivial
+/// per BC-5.38.001's self-check — branching + calls to non-trivial helpers +
+/// I/O via injected callbacks.)
 pub fn hook_logic<B, E, L>(
     _payload: HookPayload,
     mut callbacks: HookCallbacks<B, E, L>,
@@ -262,6 +267,18 @@ where
     // actual git index state, not payload text, on every completed dispatch.
     let diff_result = (callbacks.exec_subprocess)("git", &["diff", "--cached", "--name-only"]);
 
+    // INTENTIONAL fail-open on a staged-path *listing* failure: if
+    // `git diff --cached --name-only` returns a non-zero exit or the
+    // `exec_subprocess` call itself errors, `staged_factory_path` is set to
+    // `None`, which falls through to the PC2 pass below. This mirrors the
+    // branch-detection fail-open below (PC4) and BC-4.16.001 Invariant 3's
+    // philosophy: when this plugin cannot determine ground truth (here,
+    // "was anything staged"), it does not block on an assumption — it lets
+    // the dispatch through and relies on the next successful invocation (or
+    // the preventive PreToolUse guard) to catch a genuine violation. This is
+    // a deliberate design choice, not an oversight; the formal BC
+    // invariant/edge-case entry for this specific path is being added by
+    // product-owner at the finalization sweep.
     let staged_factory_path: Option<String> = match diff_result {
         Ok((exit_code, stdout, stderr)) => {
             if exit_code != 0 {
@@ -354,13 +371,16 @@ where
         .filter(|c| c.is_ascii_graphic() || *c == ' ')
         .collect();
 
+    // Emit the control-char-filtered (sanitized) branch/path values, not the
+    // raw `branch`/`staged_path` — consistency with the block message below,
+    // and avoids unsanitized values reaching the event sink.
     (callbacks.emit_event)(
         "hook.block",
         &[
             ("hook", "validate-factory-path-staged"),
             ("code", FACTORY_PATH_STAGED_ON_PRODUCT_BRANCH),
-            ("branch", &branch),
-            ("path", &staged_path),
+            ("branch", &safe_branch),
+            ("path", &safe_path),
         ],
     );
 
@@ -386,12 +406,15 @@ where
 
 /// Called from the WASI entry point in `main.rs`.
 ///
-/// Wires the real vsdd_hook_sdk host functions to the injectable-callback
-/// surface of `hook_logic`. Left as `todo!()` per BC-5.38.001 Red Gate
-/// discipline — implementer wires `vsdd_hook_sdk::host::exec_subprocess`,
-/// `host::emit_event`, and `host::log_*` exactly as the sibling crate's
-/// `on_pre_tool_use` does, adjusted for the two-call (staged-paths +
-/// branch) `exec_subprocess` usage this plugin requires.
+/// Wires the real `vsdd_hook_sdk` host functions to the injectable-callback
+/// surface of `hook_logic`: `exec_subprocess` is wired to
+/// `vsdd_hook_sdk::host::exec_subprocess` (5000ms timeout, 512KB output cap),
+/// invoked twice per dispatch — once for the staged-path listing, once for
+/// branch detection; `emit_event` is wired to `host::emit_event`; `log` is
+/// wired to the `host::log_info` / `host::log_warn` / `host::log_error` trio,
+/// selected by the `log_level` value — mirroring the sibling crate's
+/// `on_pre_tool_use` wiring pattern, adjusted for this plugin's two-call
+/// `exec_subprocess` usage.
 pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     hook_logic(
         payload,
