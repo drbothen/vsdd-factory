@@ -6,6 +6,46 @@
      ### Fixed. Drained into the next `## <version>` section at release time
      (RELEASING.md Step 2). Keep this heading in place and empty after a drain. -->
 
+## 1.0.0-rc.25 — dispatcher INDETERMINATE outcome layer-1 + wasmtime 46.0.3 sandbox-escape fix (2026-09-04)
+
+**SECURITY (HIGH):** wasmtime + wasmtime-wasi bumped 46.0.2 → 46.0.3, clearing RUSTSEC-2026-0269 (HIGH — a sandbox-escape in the WASM hook-plugin runtime) and RUSTSEC-2026-0268 (MEDIUM). This is the primary reason to upgrade promptly. Alongside the security fix, this release ships Layer 1 of the dispatcher's new INDETERMINATE outcome class (ADR-047/ADR-048) — a durable, fail-loud marker that blocks the next Agent dispatch and `git commit`/`git push` when a fail-closed hook plugin cannot complete (fuel/epoch/output-too-large), the `last-amended-migrate` CLI for the durable `last_amended` write-path fix (S-15.03), the `factory-lock` identity-aware renewal chain (S-17.05/06/07, ADR-046), the `vsdd-factory:wrap` session-pause skill, and a CPU-runaway fix in the count-propagation validation hook.
+
+### Added
+
+- **S-25.01 — Dispatcher INDETERMINATE outcome class + durable mutation marker + next-advance gate** (BC-1.18.001–004, BC-3.08.001 Event 8, ADR-047 Layer 1, ADR-048): Dispatcher: INDETERMINATE outcome class for fail-closed plugins — fuel/epoch/OutputTooLarge cannot-complete events now write a durable `.factory/unvalidated-mutation.marker` (atomic write + 24h TTL deadman expiry); `validate-unvalidated-mutation-marker` gate blocks next Agent dispatch and `git commit`/`git push` while a non-expired marker exists (quote-aware, compound-command-aware `git commit`/`push` detection covering `-C`/`-c`/`--namespace`/`--git-dir`/`--work-tree`/`--config-env` global options and `&&`/`;`/`|`/`&` chaining); successful re-validation clears the marker (artifact-scoped: only clears for the same `artifact_path` the marker recorded, or unconditionally when the marker is non-artifact-scoped); existing ~76 fail-open plugins unchanged (advisory `plugin.indeterminate` event only, all 8 BC-3.08.001 Event-8 mandatory fields including `artifact_path`); Cohort A validators assigned fail-closed (1 effective today: `validate-factory-path-staging`; 2 latent: `validate-pr-merge-prerequisites` + `validate-wave-gate-prerequisite`, pending S-21.24 calibration per ADR-047 §D8a). New `on_error = "block_if_marker"` registry variant (ADR-048) added for the native crash/timeout path — 5 hooks-registry.toml entries now use the new INDETERMINATE-aware error semantics.
+
+- **S-15.03 — `last_amended` write-path durable fix** (BC-10.13.001): New `last-amended-migrate` CLI crate (`crates/last-amended-migrate`) providing check-mode and register-mode migration of the legacy inlined `last_amended`-string frontmatter field toward the structured `changelog:` array, with YAML-injection gating (SEC-001), a path allowlist restricted to governed spec directories (SEC-002), atomic-write-with-rotation semantics (SEC-003), eligibility classification, and idempotency guarantees. Full bats + integration test coverage (14 dedicated test files) validates changelog bootstrap, escape hardening, rotation, registry parity, and STATE.md-split recovery paths.
+
+- **S-24.01 — `vsdd-factory:wrap` skill** (BC-6.28.001): 7-step procedure for safe factory session pause, checkpoint, and lock release; resume guidance cites `/vsdd-factory:rehydrate-wave` before `/vsdd-factory:next-step`.
+
+- **S-17.05 — `stamp-state-timestamp` PostToolUse WASM hook** (BC-4.17.001, ADR-046): New `stamp-state-timestamp` WASM hook plugin crate that stamps STATE.md's freshness timestamp on qualifying PostToolUse writes, sharing `TTL_SECONDS`/`STATE_MD_MAX_BYTES` constants promoted into `factory-lock-parse`.
+
+- **S-17.06 — factory-lock shared identity-renewal functions** (BC-4.17.001): `renew_lock_if_holder` (6-outcome decision tree: Renewed / AlreadyExpired / NotHolder / NoOp / IdentityResolutionFailed / Malformed), `IdentityResolution`/`SkipReason` types, `classify_identity_resolution`, and `trim_git_email` added to `crates/factory-lock` as shared functions consumed by S-17.05/S-17.07, plus doc-comment corrections.
+
+### Changed
+
+- **S-17.07 — precompact-flush Step-4 identity gate** (BC-7.07.001 v1.40, S-17.07 v1.2, ADR-046 Decision 3/4): precompact-flush Step-4 lock renewal upgraded from the identity-blind `renew_lock` to `renew_lock_if_holder` — renewal is now skipped when the lock is expired (`AlreadyExpired`), when the current committer is not the lock holder (`NotHolder`), or when git identity resolution fails; `factory.lock.renewal_indeterminate` event emitted with 5-field payload (`plugin`, `holder`, `locked_at`, `expires_at`, `resolution_error`) on identity-resolution failure; `Malformed` lock blocks are advisory-logged and flush proceeds unblocked. `step4_renewal_gate<RI,WS,LW,EE,NF>` wired into `run_plugin_with_mock_and_cwd` with injectable `log_warn_fn`/`emit_event_fn` closures; production path delegates to `host::log_warn`/`host::emit_event`.
+
+### Fixed
+
+- **CPU-runaway CI/hook hang — count-propagation ID-strip + awk length guard** (#803): `validate-count-propagation`'s `_extract_counts` used an extglob substitution (`${line//+([A-Za-z])-+([0-9.])/}`) exhibiting O(n·k) backtracking behavior against the ~195KB single-line `last_amended:` blob in BC-INDEX.md (n = line length, k ≈ 8000 ID matches), pegging a full CPU core for 12+ seconds as a PostToolUse process before orphaning to PPID 1 and running indefinitely. Replaced with two O(n) whole-file pre-processing passes fed via process substitution: `awk 'length <= 8192'` drops the mega-line in one linear pass, then `sed -E 's/[A-Za-z]+-[0-9.]+//g'` strips ID tokens via a linear NFA with no backtracking possible.
+
+- **precompact-flush TTL single-source** (F-WG5-P2-001, #801): Removed an independent TTL literal from precompact-flush; TTL is now single-sourced from `factory_lock_parse::TTL_SECONDS`, eliminating a drift vector between the lock crate and the flush plugin.
+
+- **Mis-bundled `policy15-attestation-gate.wasm` orphan removed** (#786): `policy15-attestation-gate` is a native CLI binary invoked directly in CI (`cargo build --release -p policy15-attestation-gate`, executed as a host process) with no legitimate WASM target. It was accidentally swept into the rc.24 release bundle because the crate was missing from the `--exclude` list in `release.yml`'s workspace-wide `wasm32-wasip1` build step. The orphan `.wasm` (zero registry entries in either `hooks-registry.toml` or `resolvers-registry.toml`) is removed, and `release.yml` gains recurrence prevention so future workspace-wide wasm builds correctly exclude native-only crates.
+
+### Security
+
+- **wasmtime / wasmtime-wasi 46.0.2 → 46.0.3** (RUSTSEC-2026-0269 HIGH sandbox-escape; RUSTSEC-2026-0268 MEDIUM): Bumps the WASM sandbox runtime used by every hook plugin invocation. RUSTSEC-2026-0269 is a HIGH-severity sandbox-escape advisory in wasmtime's guest isolation; RUSTSEC-2026-0268 is a MEDIUM-severity companion advisory in the same dependency line. Both are cleared by this bump. Caught by the `cargo deny check advisories` CI gate introduced in rc.24.
+
+### Operational
+
+- **Bundled dispatcher binaries + registry re-synced for `block_if_marker`**: This release rebuilds the operator-level bundled dispatcher binaries (all 5 platforms) to support the new `on_error = "block_if_marker"` registry variant, now present in 5 `hooks-registry.toml` entries. Operators running the pre-rc.25 cached dispatcher binary against a post-rc.25 registry (or vice versa) would fail registry-load validation — this release re-syncs the shipped binary and registry atomically, as required whenever the registry schema grows a new `on_error` variant.
+
+### Migration
+
+No breaking changes. Existing fail-open hook plugins are unaffected by the INDETERMINATE marker gate (advisory-only). Operators should update via `/plugin update vsdd-factory@claude-mp` once the marketplace bump PR merges to pick up the wasmtime security fix.
+
 ## 1.0.0-rc.24 — wasmtime 46.0.2 + RUSTSEC clearances + POLICY 15 gate (2026-08-25)
 
 Ships the E-21 wave-5 security and governance hardening set: the wasmtime sandbox runtime is bumped to 46.0.2 clearing five outstanding RUSTSEC advisories (including a `FilePerms` capability-bypass CVE), a new `cargo deny check advisories` CI gate closes the detection gap that let those advisories sit undetected across multiple release candidates, and the new POLICY 15 attestation-location gate (crate + required CI job) lands with an in-cycle false-FAIL fix. Also ships the `validate-cross-site-correspondence` cross-document consistency guard, the `validate-factory-path-staging` WASM artifact restore, the `failure_policy` dispatcher registry schema extension (ADR-039 Phase 1), and CI reliability hardening that restores full-workspace test execution in the release pipeline.

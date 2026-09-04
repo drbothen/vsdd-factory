@@ -51,15 +51,20 @@ pub enum RegistryError {
         #[source]
         source: regex::Error,
     },
-    /// E-REG-002: entry has `on_error = "block"` AND `async = true`.
+    /// E-REG-002: entry has an `on_error` value that can block (`"block"` or
+    /// `"block_if_marker"`) AND `async = true`.
     /// Enforced at registry-load time; dispatcher refuses to start.
-    /// (BC-1.14.001 Invariant 4, BC-7.06.001 Invariant 1)
+    /// (BC-1.14.001 Invariant 4, BC-7.06.001 Invariant 1, ADR-048 §Decision 1)
+    ///
+    /// `on_error` carries the ACTUAL offending value (e.g. `"block"` or
+    /// `"block_if_marker"`) so the Display message never misreports which
+    /// variant triggered the invariant (LOW-1).
     #[error(
-        "registry entry '{name}': on_error = \"block\" combined with async = true is forbidden \
-         (BC-7.06.001 Invariant 1). Classify this plugin async = false or remove on_error = \"block\". \
+        "registry entry '{name}': on_error = \"{on_error}\" combined with async = true is forbidden \
+         (BC-7.06.001 Invariant 1). Classify this plugin async = false or remove on_error = \"{on_error}\". \
          [E-REG-002]"
     )]
-    AsyncBlockConflict { name: String },
+    AsyncBlockConflict { name: String, on_error: String },
     /// E-REG-003: duplicate (name, event, tool) tuple across [[hooks]] entries.
     /// Enforced at registry-load time; dispatcher refuses to start.
     /// (BC-7.06.001 Invariant 7, F-P8-001)
@@ -77,12 +82,29 @@ pub enum RegistryError {
 
 /// Outcome for a plugin that returns `Error` or crashes. `Continue` is
 /// the default; operators opt into hard-stop behavior per plugin.
+///
+/// # ADR-048 §Decision 1 — block_if_marker
+///
+/// `BlockIfMarker` is the third value, added by S-25.01. When a plugin registered
+/// with `on_error = "block_if_marker"` crashes, fuel-exhausts, or times out, the
+/// dispatcher executes a NATIVE (non-WASM) filesystem check:
+/// - Non-expired `.factory/unvalidated-mutation.marker` exists → Block (exit 2).
+/// - Marker absent, expired, or unreadable → Allow (exit 0).
+///
+/// This closes the CWE-636 gap where crash + valid-quarantine-signal → silent allow
+/// under the old `"continue"` policy (D-1135 reversed).
+///
+/// `BlockIfMarker` MUST NOT be combined with `async = true` (same invariant as
+/// `Block` — async hooks never affect gate decisions, E-REG-002).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum OnError {
     #[default]
     Continue,
     Block,
+    /// Conditionally fail-closed on crash: block iff a non-expired
+    /// `.factory/unvalidated-mutation.marker` exists (ADR-048 §Decision 1).
+    BlockIfMarker,
 }
 
 /// Resource-exhaustion failure policy for a plugin entry.
@@ -485,10 +507,23 @@ impl Registry {
     /// ASYNC_DRAIN_WINDOW_MS is defined in DI-019 — cite by reference only.
     fn validate_async_block_invariant(&self) -> Result<(), RegistryError> {
         for entry in &self.hooks {
-            let on_error_is_block = entry.on_error == Some(OnError::Block);
-            if on_error_is_block && entry.async_flag {
+            // Both `Block` and `BlockIfMarker` can conditionally gate a dispatch; neither
+            // is compatible with async-advisory semantics (E-REG-002, ADR-048 §Decision 1).
+            // Matching directly to `Option<&str>` (rather than a separate bool guard)
+            // threads the ACTUAL offending wire-format value through to the error
+            // constructor, so `RegistryError::AsyncBlockConflict`'s Display never
+            // misreports which variant triggered the invariant (LOW-1).
+            let blocking_on_error: Option<&str> = match entry.on_error {
+                Some(OnError::Block) => Some("block"),
+                Some(OnError::BlockIfMarker) => Some("block_if_marker"),
+                Some(OnError::Continue) | None => None,
+            };
+            if let Some(on_error) = blocking_on_error
+                && entry.async_flag
+            {
                 return Err(RegistryError::AsyncBlockConflict {
                     name: entry.name.clone(),
+                    on_error: on_error.to_string(),
                 });
             }
         }
@@ -1594,9 +1629,28 @@ failure_policy = "fail-closed"
     // GREEN-BY-DESIGN: `#[serde(default)]` + `#[default] FailOpen` ensures absent-
     // field backward-compat holds for every existing entry.
     // -----------------------------------------------------------------------
-    /// BC-1.01.016 PC6: the full production `plugins/vsdd-factory/hooks-registry.toml`
-    /// parses successfully; every entry resolves to `FailurePolicy::FailOpen`; no
-    /// entry changes its enforcement decision.
+    /// BC-1.01.016 PC6 (S-25.01 updated invariant):
+    ///
+    /// The full production `plugins/vsdd-factory/hooks-registry.toml` parses successfully.
+    ///
+    /// Pre-S-25.01: ALL entries defaulted to fail-open (absent field → FailOpen).
+    ///
+    /// Post-S-25.01 (BC-1.18.004 PC4 + AC-016 + AC-017 — DO NOT DELETE):
+    /// EXACTLY THREE Cohort A validators are assigned `failure_policy = "fail-closed"`:
+    ///   - `validate-factory-path-staging`    (Cohort A-immediate; EFFECTIVE-NOW)
+    ///   - `validate-pr-merge-prerequisites`  (Cohort A-deferred; SET-BUT-LATENT)
+    ///   - `validate-wave-gate-prerequisite`  (Cohort A-deferred; SET-BUT-LATENT)
+    ///
+    /// ALL other entries (including the two gate plugin entries for
+    /// `validate-unvalidated-mutation-marker` / `validate-unvalidated-mutation-marker-git`
+    /// which MUST be fail-open per BC-1.18.002 invariant 2) MUST remain FailOpen.
+    ///
+    /// This test is the canonical backward-compat guard for the ~76 fail-open plugins
+    /// and MUST NOT be deleted (BC-1.18.004 PC5; ADR-047 §Decision 7).
+    ///
+    /// If a new entry ever shows up with `failure_policy = "fail-closed"` outside the
+    /// explicitly-sanctioned Cohort A set, this test will fail — that is the intended
+    /// sentinel behaviour. Only a human-ratified ADR amendment may expand Cohort A.
     #[test]
     fn test_BC_1_01_016_production_registry_all_entries_default_to_fail_open() {
         // CARGO_MANIFEST_DIR is crates/factory-dispatcher; registry is at
@@ -1617,27 +1671,68 @@ failure_policy = "fail-closed"
             !reg.hooks.is_empty(),
             "production registry must have at least one hook entry"
         );
-        let fail_closed_count = reg
+
+        // S-25.01 AC-016 / BC-1.18.004 PC4: EXACTLY these three Cohort A validators
+        // are sanctioned to have failure_policy = "fail-closed". No others.
+        // ADR-047 §D8a v1.3 human-ratified Cohort A membership.
+        let cohort_a: std::collections::HashSet<&str> = [
+            "validate-factory-path-staging",
+            "validate-pr-merge-prerequisites",
+            "validate-wave-gate-prerequisite",
+        ]
+        .into_iter()
+        .collect();
+
+        // Collect actual fail-closed entries for clear failure messages.
+        let fail_closed_names: Vec<String> = reg
             .hooks
             .iter()
             .filter(|e| e.failure_policy == FailurePolicy::FailClosed)
-            .count();
-        assert_eq!(
-            fail_closed_count, 0,
-            "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
-             zero production entries must have FailClosed — all absent fields default to \
-             FailOpen (BC-1.01.016 PC6; ADR-039 §Decision 1 backward-compat clause). \
-             Found {} FailClosed entries.",
-            fail_closed_count
-        );
-        for entry in &reg.hooks {
-            assert_eq!(
-                entry.failure_policy,
-                FailurePolicy::FailOpen,
+            .map(|e| e.name.clone())
+            .collect();
+
+        // Sanity: every fail-closed entry must be in the sanctioned Cohort A set.
+        for name in &fail_closed_names {
+            assert!(
+                cohort_a.contains(name.as_str()),
                 "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
-                 entry '{}' must have failure_policy=FailOpen (BC-1.01.016 PC6)",
-                entry.name
+                 entry '{}' has failure_policy=FailClosed but is NOT in the human-ratified \
+                 Cohort A set (validate-factory-path-staging, validate-pr-merge-prerequisites, \
+                 validate-wave-gate-prerequisite). Only ADR-047-sanctioned entries may be \
+                 fail-closed. This is a regression guard — do NOT silently add fail-closed \
+                 entries without ADR amendment (BC-1.18.004 PC5; ADR-047 §D8a). DO NOT DELETE.",
+                name
             );
+        }
+
+        // Sanity: EXACTLY the three Cohort A entries must be fail-closed (no more, no less).
+        // If any Cohort A entry is missing its fail-closed assignment, that's also a defect.
+        assert_eq!(
+            fail_closed_names.len(),
+            cohort_a.len(),
+            "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
+             expected exactly {} fail-closed entries (Cohort A: {:?}), found {} ({:?}). \
+             ADR-047 §D8a requires all three Cohort A entries to be fail-closed. \
+             DO NOT DELETE — this is the canonical fail-closed count sentinel (BC-1.18.004 PC4).",
+            cohort_a.len(),
+            cohort_a,
+            fail_closed_names.len(),
+            fail_closed_names,
+        );
+
+        // Confirm: every entry NOT in Cohort A must be fail-open.
+        for entry in &reg.hooks {
+            if !cohort_a.contains(entry.name.as_str()) {
+                assert_eq!(
+                    entry.failure_policy,
+                    FailurePolicy::FailOpen,
+                    "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
+                     non-Cohort-A entry '{}' must have failure_policy=FailOpen \
+                     (BC-1.01.016 PC6; ~76 fail-open plugins backward-compat). \
+                     DO NOT DELETE.",
+                    entry.name
+                );
+            }
         }
     }
 
@@ -1837,5 +1932,143 @@ plugin = "hook-plugins/x.wasm"
                 other
             ),
         }
+    }
+}
+
+// ── ADR-048 §Decision 1: E-REG-002 block_if_marker registry schema (BC-1.18.002) ─────────────
+
+#[cfg(test)]
+mod s25_01_on_error_block_if_marker {
+    use super::*;
+
+    // -----------------------------------------------------------------------
+    // E-REG-002: `on_error = "block_if_marker"` registry schema invariants.
+    // BC-1.18.002 v1.5 postconditions + invariants.
+    // -----------------------------------------------------------------------
+
+    /// BC-1.18.002 E-REG-002: `on_error = "block_if_marker"` MUST parse to OnError::BlockIfMarker.
+    ///
+    /// Verifies serde deserialization of the new "block_if_marker" string to the
+    /// BlockIfMarker variant (ADR-048 §Decision 1 — third OnError value).
+    #[test]
+    fn test_BC_1_18_002_E_REG_002_block_if_marker_parses_to_variant() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "crash-gate"
+plugin = "hook-plugins/validate-unvalidated-mutation-marker.wasm"
+on_error = "block_if_marker"
+event = "PreToolUse"
+
+[hooks.config]
+"#;
+        let registry =
+            Registry::parse_str(toml).expect("block_if_marker entry MUST parse successfully");
+        let entry = &registry.hooks[0];
+        assert_eq!(
+            entry.on_error,
+            Some(OnError::BlockIfMarker),
+            "BC-1.18.002 E-REG-002: 'block_if_marker' MUST parse to OnError::BlockIfMarker"
+        );
+    }
+
+    /// BC-1.18.002 E-REG-002: `on_error = "block_if_marker"` + `async = true` MUST be rejected.
+    ///
+    /// Same invariant as on_error=block + async=true: both can conditionally gate a dispatch
+    /// and MUST NOT be combined with async=true (BC-7.06.001 Invariant 1 extended for BlockIfMarker).
+    #[test]
+    fn test_BC_1_18_002_E_REG_002_block_if_marker_plus_async_rejected() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "bad-crash-gate"
+plugin = "hook-plugins/validate-unvalidated-mutation-marker.wasm"
+on_error = "block_if_marker"
+async = true
+event = "PreToolUse"
+
+[hooks.config]
+"#;
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_err(),
+            "BC-1.18.002 E-REG-002: block_if_marker + async=true MUST be rejected \
+             (same invariant as on_error=block + async=true)"
+        );
+        let err_str = result.unwrap_err().to_string();
+        assert!(
+            err_str.contains("on_error")
+                || err_str.contains("async")
+                || err_str.contains("E-REG-002"),
+            "E-REG-002 error MUST name the violating fields or error code: {err_str}"
+        );
+    }
+
+    /// LOW-1 (RED): `on_error = "block_if_marker"` + `async = true` E-REG-002 error message
+    /// MUST name the ACTUAL offending `on_error` value ("block_if_marker"), not a hardcoded
+    /// "block" literal.
+    ///
+    /// `validate_async_block_invariant`'s guard `on_error_can_block = matches!(...)` matches
+    /// BOTH `Block` and `BlockIfMarker`, so this invariant fires for either value — but
+    /// `RegistryError::AsyncBlockConflict`'s `#[error(...)]` Display text hardcodes the
+    /// literal string `on_error = "block"` regardless of which variant actually triggered
+    /// it. For a `block_if_marker` + async entry, the emitted message inaccurately claims
+    /// the entry used `on_error = "block"`, which is misleading for operator diagnosis.
+    ///
+    /// This test MUST FAIL against the current hardcoded message: the string
+    /// `"block_if_marker"` does not appear anywhere in
+    /// `on_error = "block" combined with async = true is forbidden ... [E-REG-002]"`.
+    #[test]
+    fn test_BC_1_18_002_E_REG_002_block_if_marker_error_message_names_actual_value() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "bad-crash-gate"
+plugin = "hook-plugins/validate-unvalidated-mutation-marker.wasm"
+on_error = "block_if_marker"
+async = true
+event = "PreToolUse"
+
+[hooks.config]
+"#;
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_err(),
+            "LOW-1: block_if_marker + async=true MUST be rejected (E-REG-002)"
+        );
+        let err_str = result.unwrap_err().to_string();
+        assert!(
+            err_str.contains("block_if_marker"),
+            "LOW-1: E-REG-002 error message MUST name the actual offending on_error value \
+             (\"block_if_marker\"), not a hardcoded \"block\" literal — got: {err_str}"
+        );
+    }
+
+    /// BC-1.18.002 E-REG-002: `on_error = "block_if_marker"` without `async` → accepted.
+    ///
+    /// async absent → defaults to false → invariant satisfied → Ok parse.
+    #[test]
+    fn test_BC_1_18_002_E_REG_002_block_if_marker_without_async_accepted() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "crash-gate"
+plugin = "hook-plugins/validate-unvalidated-mutation-marker.wasm"
+on_error = "block_if_marker"
+event = "PreToolUse"
+
+[hooks.config]
+"#;
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_ok(),
+            "BC-1.18.002 E-REG-002: block_if_marker without async (default false) \
+             MUST be accepted: {:?}",
+            result
+        );
     }
 }

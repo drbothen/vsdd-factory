@@ -137,6 +137,16 @@ jobs:
       - name: cargo check (workspace, all targets)
         run: cargo check --workspace --all-targets
 
+      - name: cargo check validate-unvalidated-mutation-marker (wasm32-wasip1)
+        # MEDIUM-2 / TD #74 (S-25.01): Explicit wasm-compat gate for the shell-words
+        # dependency added to validate-unvalidated-mutation-marker. shell-words 1.1.x is
+        # pure-Rust/zero-dep but this step enforces that any future dependency change that
+        # breaks wasm32-wasip1 compilation is caught on every PR, not just at release time.
+        # The workspace "cargo build (all native WASM plugins, wasm32-wasip1)" step below
+        # also covers this crate; this explicit check adds a fast-fail signal earlier in
+        # the job and makes the TD #74 compliance intent visible (docs/dispatch-package-authoring.md).
+        run: cargo check --target wasm32-wasip1 -p validate-unvalidated-mutation-marker
+
       - name: Mount factory artifacts
         # .factory/ is needed by two consumers in this job:
         #   1. Corpus tests in validate-cross-site-correspondence (cargo test step below) —
@@ -275,7 +285,7 @@ jobs:
           ls plugins/vsdd-factory/hook-plugins/
 
       - name: Build factory-dispatcher (release, for e2e bats)
-        # The verify-state-timestamp-refresh e2e bats tests invoke the dispatcher binary
+        # The stamp-state-timestamp e2e bats tests invoke the dispatcher binary
         # at target/release/factory-dispatcher (set in bats setup() as $DISPATCHER).
         # The preceding WASM build steps use --target wasm32-wasip1 only and never
         # produce a native binary — cargo-host had no release dispatcher build at all.
@@ -286,15 +296,15 @@ jobs:
         # the final factory-dispatcher link step runs here (fast, ~10s).
         run: cargo build --release -p factory-dispatcher
 
-      - name: Run verify-state-timestamp-refresh e2e tests (P5-M1)
-        # P5-M1 (S-17.04): verify-state-timestamp-refresh.bats has 6 dispatcher+WASM
-        # e2e tests (T-1..T-6) that call _require_artifacts() and hard-fail under
+      - name: Run stamp-state-timestamp e2e tests (S-17.05)
+        # S-17.05: stamp-state-timestamp.bats exercises the stamp-state-timestamp guard
+        # (dispatcher+WASM e2e tests) that call _require_artifacts() and hard-fail under
         # CI_REQUIRE_ARTIFACTS=1 if either artifact is absent (no silent skip-pass).
         #
         # Artifact paths _require_artifacts() checks:
         #   $DISPATCHER  = <repo-root>/target/release/factory-dispatcher
         #                  (built by the preceding step)
-        #   $GUARD_WASM  = plugins/vsdd-factory/hook-plugins/verify-state-timestamp-refresh.wasm
+        #   $GUARD_WASM  = plugins/vsdd-factory/hook-plugins/stamp-state-timestamp.wasm
         #                  (staged by "Stage WASM plugins to hook-plugins directory" above)
         # Both are now guaranteed present before this step runs.
         shell: bash
@@ -302,7 +312,7 @@ jobs:
           CI_REQUIRE_ARTIFACTS: "1"
         run: |
           sudo apt-get install -y jq bats 2>/dev/null || brew install jq bats 2>/dev/null || true
-          bats plugins/vsdd-factory/tests/verify-state-timestamp-refresh.bats
+          bats plugins/vsdd-factory/tests/stamp-state-timestamp.bats
 
       - name: Run S-9.00 perf-baseline tests
         # Requires: Rust toolchain (for setup_file cargo build), jq, and .factory/
@@ -921,11 +931,25 @@ jobs:
     #   grep -qE '^  bats-darwin-leg-macos:$' .github/workflows/ci.yml
     #
     # SCOPE: runs pr-manager-hardening.bats on macOS under /bin/bash 3.2.x.
-    #   T-001 skips if factory-dispatcher not pre-built (set-up step copies from
-    #   the bundled darwin binary to target/release/ to enable T-001).
+    #   T-001 skips if factory-dispatcher not pre-built (set-up step downloads
+    #   the build-dispatcher matrix job's fresh source-built darwin artifact to
+    #   target/release/ to enable T-001).
     #   T-009 skips on Darwin (EC-003: Linux-runner test).
+    #
+    # ADR-050 (CI Darwin-Leg Source-Build Discipline for Registry-Schema Forward
+    # Compatibility): T-001's dispatcher binary MUST come from this PR's own
+    # `build-dispatcher` source build, NOT from the committed
+    # plugins/vsdd-factory/hooks/dispatcher/bin/darwin-*/ bundle. The bundle is
+    # rebuilt only by release.yml at release time (CLAUDE.md "Dispatcher binary
+    # discipline"), so it is always one release behind whatever registry schema
+    # a feature PR introduces (e.g. S-25.01's `on_error = "block_if_marker"`
+    # variant) and testing against it produces false CI failures unrelated to
+    # the PR's own code. DO NOT revert to copying the committed bundle here to
+    # "save CI time" — see ADR-050 for the full rationale. The committed bundle
+    # still gets a narrow integrity smoke-test below (ADR-050 §Decision 2).
     name: bats-darwin-leg (macos, /bin/bash 3.2)
     runs-on: macos-latest
+    needs: build-dispatcher
     steps:
       - uses: actions/checkout@v6
 
@@ -941,22 +965,91 @@ jobs:
           }
           echo "Interpreter OK: $(/bin/bash --version | head -1)"
 
+      - name: Determine darwin artifact platform
+        # macos-latest is currently arm64 (macos-15 alias; see build-dispatcher
+        # job's runner-label notes) but this runner's arch is detected directly
+        # rather than assumed, so the job stays correct if GitHub's alias target
+        # ever changes. Selects the matching build-dispatcher matrix artifact
+        # name (factory-dispatcher-darwin-arm64 / factory-dispatcher-darwin-x64).
+        id: darwin-arch
+        run: |
+          ARCH="$(uname -m)"
+          if [[ "${ARCH}" == "arm64" ]]; then
+            echo "platform=darwin-arm64" >> "$GITHUB_OUTPUT"
+          else
+            echo "platform=darwin-x64" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download source-built dispatcher artifact (ADR-050 §Decision 1)
+        # Downloads the build-dispatcher matrix job's fresh, THIS-PR's-own-source
+        # darwin binary (already built + tested on every PR; previously unused
+        # downstream) instead of the stale, always-one-release-behind committed
+        # bundle. This is what lets T-001 correctly parse registry entries using
+        # a schema value (e.g. `block_if_marker`) newly introduced in this PR.
+        uses: actions/download-artifact@v4
+        with:
+          name: factory-dispatcher-${{ steps.darwin-arch.outputs.platform }}
+          path: artifact-download
+
       - name: Set up dispatcher binary for T-001
-        # T-001 looks for target/release/factory-dispatcher. Copy the pre-built
-        # darwin binary from the repository bundle to avoid a full cargo build
-        # (~15 min) on each macOS CI run. Architecture detection selects
-        # darwin-arm64 (M1/M2/M3 runner) or darwin-x64 (Intel runner).
+        # T-001 looks for target/release/factory-dispatcher. Stage the
+        # source-built artifact downloaded above (ADR-050) rather than the
+        # committed bundle.
         run: |
           mkdir -p target/release
+          cp artifact-download/factory-dispatcher target/release/factory-dispatcher
+          chmod +x target/release/factory-dispatcher
+          echo "Dispatcher: $(target/release/factory-dispatcher --version 2>/dev/null || echo 'binary staged')"
+
+      - name: Committed-bundle smoke test (ADR-050 §Decision 2)
+        # Narrow artifact-integrity signal on the binary operators actually
+        # receive (plugins/vsdd-factory/hooks/dispatcher/bin/darwin-*/), kept
+        # deliberately separate from T-001's registry-parsing gate above. This
+        # step MUST NOT parse hooks-registry.toml against the committed
+        # binary — that coupling to registry-schema forward-compatibility is
+        # exactly what ADR-050 removes. It only asserts the checked-in bundle
+        # is a non-empty, executable Mach-O binary for the expected arch —
+        # NOT that it can be invoked (factory-dispatcher has no --version
+        # flag; it's a hook dispatcher, not a CLI with flags).
+        run: |
           ARCH="$(uname -m)"
           if [[ "${ARCH}" == "arm64" ]]; then
             DARWIN_BIN="plugins/vsdd-factory/hooks/dispatcher/bin/darwin-arm64/factory-dispatcher"
+            EXPECTED_ARCH="arm64"
           else
             DARWIN_BIN="plugins/vsdd-factory/hooks/dispatcher/bin/darwin-x64/factory-dispatcher"
+            EXPECTED_ARCH="x86_64"
           fi
-          cp "${DARWIN_BIN}" target/release/factory-dispatcher
-          chmod +x target/release/factory-dispatcher
-          echo "Dispatcher: $(target/release/factory-dispatcher --version 2>/dev/null || echo 'binary staged')"
+
+          if [[ ! -s "${DARWIN_BIN}" ]]; then
+            echo "DARWIN_BUNDLE_SMOKE_TEST_FAILED: ${DARWIN_BIN} is missing or empty" >&2
+            exit 1
+          fi
+
+          chmod +x "${DARWIN_BIN}"
+          if [[ ! -x "${DARWIN_BIN}" ]]; then
+            echo "DARWIN_BUNDLE_SMOKE_TEST_FAILED: ${DARWIN_BIN} is not executable after chmod +x" >&2
+            exit 1
+          fi
+
+          # factory-dispatcher has no --version flag (it's a hook dispatcher
+          # that reads a JSON payload from stdin, not a CLI with flags), so
+          # this step does NOT invoke the binary. It asserts file integrity
+          # instead: a non-empty, executable, correctly-architected Mach-O
+          # binary. Invoking the dispatcher here would also re-trip
+          # hooks-registry.toml parsing against the stale committed bundle —
+          # exactly the coupling ADR-050 removes.
+          FILE_OUTPUT="$(file "${DARWIN_BIN}")"
+          if ! grep -q "Mach-O" <<<"${FILE_OUTPUT}"; then
+            echo "DARWIN_BUNDLE_SMOKE_TEST_FAILED: ${DARWIN_BIN} is not a Mach-O binary: ${FILE_OUTPUT}" >&2
+            exit 1
+          fi
+          if ! grep -q "${EXPECTED_ARCH}" <<<"${FILE_OUTPUT}"; then
+            echo "DARWIN_BUNDLE_SMOKE_TEST_FAILED: ${DARWIN_BIN} is not ${EXPECTED_ARCH}: ${FILE_OUTPUT}" >&2
+            exit 1
+          fi
+
+          echo "Committed bundle OK: ${FILE_OUTPUT}"
 
       - name: Install Rust wasm32-wasip1 target
         # pr-manager-hardening.bats setup_file() builds pr-manager-completion-guard.wasm
