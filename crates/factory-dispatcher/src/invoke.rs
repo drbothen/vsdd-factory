@@ -314,13 +314,22 @@ pub enum InvokeError {
 /// [`HostContext`]. The `payload_json` is written to the plugin's
 /// stdin; the plugin is expected to write a `HookResult` JSON line to
 /// stdout, which the caller is responsible for parsing.
+/// Invoke a plugin and return the raw result plus the per-invocation
+/// `host_output_too_large_seen` flag (S-25.01 AC-003).
+///
+/// The `bool` is `true` iff any host function returned `OUTPUT_TOO_LARGE(-3)`
+/// during this invocation. Callers pass it to `classify_outcome` to detect
+/// the Indeterminate(OutputTooLarge) case (BC-1.18.001 invariant 5).
+///
+/// The flag is only meaningful when `PluginResult::Ok { exit_code: 0, .. }`;
+/// for Timeout and Crashed results it is always `false`.
 pub fn invoke_plugin(
     engine: &Engine,
     module: &Module,
     host_ctx: HostContext,
     payload_json: &[u8],
     limits: InvokeLimits,
-) -> Result<PluginResult, InvokeError> {
+) -> Result<(PluginResult, bool), InvokeError> {
     // Set up wasmtime store with both host context and WASI context.
     // We use a wrapper type so both live in the store's data slot.
     let stdout = MemoryOutputPipe::new(64 * 1024);
@@ -366,6 +375,9 @@ pub fn invoke_plugin(
     let store_data = StoreData {
         host: host_ctx,
         wasi: wasi_ctx,
+        // S-25.01 AC-003: per-invocation reset happens before func.call() (not only here).
+        // This initialization sets the starting state; the implementer adds the pre-call reset.
+        host_output_too_large_seen: false,
     };
     let mut store = Store::new(engine, store_data);
 
@@ -394,10 +406,20 @@ pub fn invoke_plugin(
         .get_typed_func::<(), ()>(&mut store, "_start")
         .map_err(|_| InvokeError::MissingStart)?;
 
+    // S-25.01 AC-003: per-invocation reset immediately before func.call().
+    // A new Store is constructed per invocation so the field is already false,
+    // but we reset explicitly here to make the invariant unambiguous and to
+    // guard against any future Store-reuse refactors.
+    store.data_mut().host_output_too_large_seen = false;
+
     let started = Instant::now();
     let call_result = start_export.call(&mut store, ());
     let elapsed_ms = started.elapsed().as_millis() as u64;
     let fuel_consumed = fuel_consumed_from_store(&store, limits.fuel_cap);
+
+    // S-25.01 AC-003: capture the flag AFTER func.call() (before next reset).
+    // This is the authoritative read for the per-invocation OutputTooLarge state.
+    let output_too_large = store.data().host_output_too_large_seen;
 
     // WASI command convention: `_start` returns () on exit(0); any
     // other exit code arrives as a trap whose downcast yields an
@@ -406,13 +428,16 @@ pub fn invoke_plugin(
         Ok(()) => {
             let out = stdout_to_string(&stdout);
             let err_text = stderr_to_string(&stderr);
-            Ok(PluginResult::Ok {
-                exit_code: 0,
-                stdout: out,
-                stderr: err_text,
-                elapsed_ms,
-                fuel_consumed,
-            })
+            Ok((
+                PluginResult::Ok {
+                    exit_code: 0,
+                    stdout: out,
+                    stderr: err_text,
+                    elapsed_ms,
+                    fuel_consumed,
+                },
+                output_too_large,
+            ))
         }
         Err(err) => classify_trap(
             anyhow::Error::from(err),
@@ -421,7 +446,10 @@ pub fn invoke_plugin(
             elapsed_ms,
             fuel_consumed,
             limits.fuel_cap,
-        ),
+        )
+        // For Timeout/Crashed results, output_too_large is irrelevant:
+        // classify_outcome ignores the flag for non-Ok results (BC-1.18.001).
+        .map(|r| (r, false)),
     }
 }
 
@@ -722,7 +750,14 @@ fn setup_host_on_store_data(
                     let ctx = caller.data().host.clone();
                     match crate::host::read_file::prepare(&ctx, &path, max_bytes) {
                         Ok((bytes, _)) => bytes,
-                        Err(code) => return code,
+                        Err(code) => {
+                            // S-25.01 AC-003: flag OutputTooLarge for the
+                            // post-call classify_outcome path.
+                            if code == codes::OUTPUT_TOO_LARGE {
+                                caller.data_mut().host_output_too_large_seen = true;
+                            }
+                            return code;
+                        }
                     }
                 };
 
@@ -885,7 +920,14 @@ fn setup_host_on_store_data(
                 let host = caller.data().host.clone();
                 match crate::host::write_file::prepare(&host, &path, &contents, max_bytes) {
                     Ok(()) => codes::OK,
-                    Err(code) => code,
+                    Err(code) => {
+                        // S-25.01 AC-003: flag OutputTooLarge for the
+                        // post-call classify_outcome path.
+                        if code == codes::OUTPUT_TOO_LARGE {
+                            caller.data_mut().host_output_too_large_seen = true;
+                        }
+                        code
+                    }
                 }
             },
         )
@@ -948,6 +990,9 @@ fn setup_host_on_store_data(
                 // Returns bytes written (positive) on success or a
                 // negative error code. Mirrors host/exec_subprocess.rs.
                 if envelope.len() as u32 > result_buf_cap {
+                    // S-25.01 AC-003: flag OutputTooLarge for the
+                    // post-call classify_outcome path.
+                    caller.data_mut().host_output_too_large_seen = true;
                     return codes::OUTPUT_TOO_LARGE;
                 }
                 match write_wasm_bytes_sd(&mut caller, result_buf_ptr, result_buf_cap, &envelope) {
@@ -1065,9 +1110,30 @@ fn write_wasm_u32_sd(
 /// Per-invocation store data: the HostContext S-1.4 populates plus the
 /// wasmtime-wasi preview-1 context the SDK needs to talk to stdin /
 /// stdout.
+///
+/// # S-25.01: host_output_too_large_seen (BC-1.18.001 invariant 5)
+///
+/// `host_output_too_large_seen` is DISPATCHER-INTERNAL state — it MUST reside here
+/// and MUST NOT be exposed in `crates/hook-sdk/` or any public hook-sdk ABI type.
+/// Plugin WASM binaries observe the `OutputTooLarge(-3)` return code from host
+/// functions but cannot read or write this flag directly.
+///
+/// Per-invocation reset invariant (BC-1.18.001 invariant 1; AC-003): the flag
+/// MUST be reset to `false` immediately BEFORE each `func.call()` invocation —
+/// NOT only at Store creation. The reset ensures that a prior invocation's OTL
+/// event does not bleed into the next invocation's classification.
+///
+/// No HOST_ABI_VERSION bump is required for this field (dispatcher-internal only).
 pub struct StoreData {
     pub host: HostContext,
     pub wasi: WasiP1Ctx,
+    /// Set to `true` by any host function that returns `OutputTooLarge(-3)` to
+    /// the WASM guest during the current invocation. Reset to `false` before
+    /// each `func.call()`. Read after `func.call()` to supply the `output_too_large`
+    /// parameter to `classify_outcome`.
+    ///
+    /// S-25.01 AC-003/AC-018 — BC-1.18.001 invariant 1 + invariant 5.
+    pub host_output_too_large_seen: bool,
 }
 
 #[cfg(test)]
@@ -1121,7 +1187,7 @@ mod tests {
         );
 
         // At the former 10M cap: fuel exhaustion.
-        let res_10m = invoke_plugin(
+        let (res_10m, _) = invoke_plugin(
             &engine,
             &module,
             bare_ctx(),
@@ -1144,7 +1210,7 @@ mod tests {
         );
 
         // At the new 20M cap: completes successfully.
-        let res_20m = invoke_plugin(
+        let (res_20m, _) = invoke_plugin(
             &engine,
             &module,
             bare_ctx(),
@@ -1190,7 +1256,7 @@ mod tests {
               (func (export "_start")))
             "#,
         );
-        let res =
+        let (res, _) =
             invoke_plugin(&engine, &module, bare_ctx(), b"", InvokeLimits::default()).unwrap();
         match res {
             PluginResult::Ok { exit_code, .. } => assert_eq!(exit_code, 0),
@@ -1215,7 +1281,7 @@ mod tests {
                 (loop (br 0))))
             "#,
         );
-        let res = invoke_plugin(
+        let (res, _) = invoke_plugin(
             &engine,
             &module,
             bare_ctx(),
@@ -1253,7 +1319,7 @@ mod tests {
                   (br $l))))
             "#,
         );
-        let res = invoke_plugin(
+        let (res, _) = invoke_plugin(
             &engine,
             &module,
             bare_ctx(),
@@ -1285,7 +1351,7 @@ mod tests {
                 unreachable))
             "#,
         );
-        let res =
+        let (res, _) =
             invoke_plugin(&engine, &module, bare_ctx(), b"", InvokeLimits::default()).unwrap();
         match res {
             PluginResult::Crashed { .. } => {}
@@ -1304,7 +1370,7 @@ mod tests {
               (func (export "_start")))
             "#,
         );
-        let res = invoke_plugin(
+        let (res, _) = invoke_plugin(
             &engine,
             &module,
             bare_ctx(),
@@ -1365,6 +1431,7 @@ mod tests {
         let store_data = StoreData {
             host: bare_ctx(),
             wasi: wasi_ctx,
+            host_output_too_large_seen: false,
         };
         let mut store = Store::new(&engine, store_data);
         store
@@ -1457,6 +1524,7 @@ mod tests {
         let store_data = StoreData {
             host: ctx,
             wasi: wasi_ctx,
+            host_output_too_large_seen: false,
         };
         let mut store = Store::new(&engine, store_data);
         store
@@ -1599,6 +1667,7 @@ mod tests {
         let store_data = StoreData {
             host: ctx,
             wasi: wasi_ctx,
+            host_output_too_large_seen: false,
         };
         let mut store = Store::new(&engine, store_data);
         store
@@ -1717,6 +1786,7 @@ mod tests {
         let store_data = StoreData {
             host: ctx,
             wasi: wasi_ctx,
+            host_output_too_large_seen: false,
         };
         let mut store = Store::new(&engine, store_data);
         store
@@ -1828,6 +1898,7 @@ mod tests {
         let store_data = StoreData {
             host: ctx,
             wasi: wasi_ctx,
+            host_output_too_large_seen: false,
         };
         let mut store = Store::new(&engine, store_data);
         store

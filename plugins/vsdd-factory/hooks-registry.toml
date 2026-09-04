@@ -949,6 +949,8 @@ plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 120
 timeout_ms = 10000
 on_error = "block"
+# ACTIVATION CONDITIONAL on S-21.24 calibration per ADR-047 §D8a Cohort A-deferred
+failure_policy = "fail-closed"
 
 [hooks.config]
 script_path = "hooks/validate-pr-merge-prerequisites.sh"
@@ -969,6 +971,8 @@ plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 130
 timeout_ms = 10000
 on_error = "block"
+# ACTIVATION CONDITIONAL on S-21.24 calibration per ADR-047 §D8a Cohort A-deferred
+failure_policy = "fail-closed"
 
 [hooks.config]
 script_path = "hooks/validate-wave-gate-prerequisite.sh"
@@ -1024,6 +1028,12 @@ priority = 140
 timeout_ms = 5000
 on_error = "continue"
 async = false
+# S-25.01 Cohort A-immediate (EFFECTIVE-NOW): validate-factory-path-staging is assigned
+# failure_policy = "fail-closed" unconditionally. PreToolUse ^Bash$; on_error = "continue";
+# bounded input (file path from tool params); calibration confirmed; no S-21.24 dependency.
+# No activation comment required — this validator is fully, unconditionally fail-closed at
+# S-25.01 merge (ADR-047 §D8a Cohort A-immediate; BC-1.18.004 PC4; AC-016).
+failure_policy = "fail-closed"
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["git"]
@@ -1589,6 +1599,60 @@ patterns = [
 # No capabilities block: exec-free, no read_file, no exec_subprocess (BC-5.41.003 PC1).
 # Priority 159 = lowest free slot above 154 (validate-dispatch-advance).
 # (traces to ADR-032 AC-021 / BC-5.41.003 / BC-5.40.001 PC6)
+
+# ---------- validate-unvalidated-mutation-marker — S-25.01 Layer-1 Next-Advance Gate ----------
+# BC-1.18.002: TWO registry entries for the SAME WASM binary (BC-1.18.002 invariant 1; AC-019).
+# Both entries reference hook-plugins/validate-unvalidated-mutation-marker.wasm.
+#
+# Arm 1 (^Agent$): blocks Agent dispatches while .factory/unvalidated-mutation.marker exists.
+# Arm 2 (^Bash$):  blocks git commit/push Bash dispatches while the marker exists.
+#   The \bgit\b.*\b(commit|push)\b regex is ILLUSTRATIVE ONLY — authoritative Arm-2 filter is
+#   the Phase 1-4 tokenized algorithm is_git_commit_or_push (BC-1.18.002 §PC2). It is
+#   PLUGIN-INTERNAL logic (reads `command` parameter); it is NOT a registry field.
+#   Non-advancing Bash commands (git status, cargo test) pass through.
+#
+# BOTH entries MUST have failure_policy = "fail-open" (BC-1.18.002 invariant 2; AC-011).
+# failure_policy = "fail-open" governs marker-WRITING only: if the gate plugin itself
+# fuel-exhausts or crashes it does NOT write a NEW marker — preventing self-lock via new
+# quarantine. However, on gate crash/fuel/timeout the dispatcher's native
+# on_error = "block_if_marker" check applies: if a non-expired marker ALREADY EXISTS the
+# dispatch is BLOCKED (BC-1.18.002 PC5 / EC-031 ADR-048 §D1); if the marker is absent or
+# TTL-expired the dispatch is ALLOWED (BC-1.18.002 PC6 / EC-009 / EC-032 ADR-048 §D1).
+# Recovery: remove .factory/unvalidated-mutation.marker or wait for the 24-hour TTL.
+#
+# No priority assigned: gate runs in default priority tier. The marker-check is fast (single
+# file-presence check) and does not conflict with existing priority assignments.
+
+[[hooks]]
+name = "validate-unvalidated-mutation-marker"
+event = "PreToolUse"
+tool = "^Agent$"
+plugin = "hook-plugins/validate-unvalidated-mutation-marker.wasm"
+# ADR-048 §Decision 1: on_error="block_if_marker" — WASM crash/timeout triggers a NATIVE
+# filesystem check. If a non-expired .factory/unvalidated-mutation.marker exists the dispatch
+# is blocked (crash + quarantine-signal → Block). If the marker is absent or expired the
+# dispatch is allowed (crash + no quarantine → Allow). This closes the CWE-636 gap where
+# WASM crash + valid-quarantine-signal silently allowed the dispatch under "continue".
+# failure_policy = "fail-open" UNCHANGED (BC-1.18.002 INV2 self-lock prevention).
+on_error = "block_if_marker"
+async = false
+failure_policy = "fail-open"
+
+[[hooks]]
+# Arm 2: same WASM binary as Arm 1 (BC-1.18.002 invariant 1; AC-019).
+# The git commit/push filter (is_git_commit_or_push, BC-1.18.002 v1.3 tokenized subcommand match)
+# is implemented inside the WASM plugin by reading the `command` parameter from the Bash tool
+# event payload — NOT a registry field.
+name = "validate-unvalidated-mutation-marker-git"
+event = "PreToolUse"
+tool = "^Bash$"
+plugin = "hook-plugins/validate-unvalidated-mutation-marker.wasm"
+# ADR-048 §Decision 1: on_error="block_if_marker" — same crash-policy as Arm 1. Both arms
+# must have identical on_error semantics (BC-1.18.002 invariant 1: same binary, same gate
+# invariants). See Arm 1 comment above for rationale.
+on_error = "block_if_marker"
+async = false
+failure_policy = "fail-open"
 
 [[hooks]]
 name = "verify-state-timestamp-advisory"

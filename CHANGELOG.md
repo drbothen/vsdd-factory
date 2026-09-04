@@ -8,6 +8,8 @@
 
 ### Added
 
+- **S-25.01 — Dispatcher INDETERMINATE outcome class + durable mutation marker + next-advance gate** (BC-1.18.001–004, BC-3.08.001 Event 8, ADR-047 Layer 1): Dispatcher: INDETERMINATE outcome class for fail-closed plugins — fuel/epoch/OutputTooLarge cannot-complete events now write a durable `.factory/unvalidated-mutation.marker`; `validate-unvalidated-mutation-marker` gate blocks next Agent dispatch and `git commit`/`git push` while marker exists; successful re-validation clears marker; existing ~76 fail-open plugins unchanged (advisory `plugin.indeterminate` event only); Cohort A validators assigned fail-closed (1 effective: `validate-factory-path-staging` EFFECTIVE-NOW; 2 latent: `validate-pr-merge-prerequisites` + `validate-wave-gate-prerequisite` SET-BUT-LATENT pending S-21.24 calibration per ADR-047 §D8a).
+
 - `vsdd-factory:wrap` skill — 7-step procedure for safe factory session pause,
   checkpoint, and lock release; resume guidance cites `/vsdd-factory:rehydrate-wave`
   before `/vsdd-factory:next-step` (BC-6.28.001; E-24 S-24.01).

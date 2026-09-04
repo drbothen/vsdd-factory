@@ -52,6 +52,7 @@ members = [
     "crates/hook-plugins/precompact-flush",
     "crates/hook-plugins/read-prefix-fixture",
     "crates/hook-plugins/validate-cross-site-correspondence",
+    "crates/hook-plugins/validate-unvalidated-mutation-marker",
     "crates/policy15-attestation-gate",
     "crates/last-amended-migrate",
 ]
