@@ -1028,11 +1028,16 @@ priority = 140
 timeout_ms = 5000
 on_error = "continue"
 async = false
-# S-25.01 Cohort A-immediate (EFFECTIVE-NOW): validate-factory-path-staging is assigned
-# failure_policy = "fail-closed" unconditionally. PreToolUse ^Bash$; on_error = "continue";
-# bounded input (file path from tool params); calibration confirmed; no S-21.24 dependency.
-# No activation comment required — this validator is fully, unconditionally fail-closed at
-# S-25.01 merge (ADR-047 §D8a Cohort A-immediate; BC-1.18.004 PC4; AC-016).
+# S-25.01 Cohort A-immediate (ASSIGNED-NOW — corrected from the overclaiming EFFECTIVE-NOW
+# label per BC-1.18.004 v1.2): validate-factory-path-staging is assigned failure_policy =
+# "fail-closed" unconditionally. PreToolUse ^Bash$; on_error = "continue"; bounded input
+# (file path from tool params); calibration confirmed; no S-21.24 dependency. Its
+# PreToolUse-only registration structurally cannot reach the PostToolUse-only marker-write
+# path, so the assignment produces ZERO observable enforcement effect at S-25.01 merge
+# (ADR-047 §D8a Cohort A-immediate; BC-1.18.004 v1.4 PC4; AC-016). S-25.04 adds a companion
+# PostToolUse detective mirror, validate-factory-path-staged (priority 161), which IS
+# structurally reachable (BC-4.16.002; BC-1.18.004 v1.4 PC4 companion statement) — see that
+# entry below for the non-Cohort-A fail-closed sanction (ADR-039 §Decision 2).
 failure_policy = "fail-closed"
 
 [hooks.capabilities.exec_subprocess]
