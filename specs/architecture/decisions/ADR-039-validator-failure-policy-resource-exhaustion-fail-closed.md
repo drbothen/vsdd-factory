@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.16"
+version: "1.17"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: ratified
 date: 2026-08-06
@@ -17,7 +17,43 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-22 (v1.16-decision3-audit-fail-closed+decision4-target-statistic-and-ceiling) —
+  2026-09-04 (v1.17-decision2-seventh-validator-registration) — Additive roadmap-registration
+  amendment (architect, dispatched via orchestrator per S-25.04 F2 architecture elaboration;
+  erratum-class/additive — no separate POLICY 22 re-ratification required: no existing §Decision 2
+  member's classification, calibration formula, or normative prescription is altered by this
+  change; it adds exactly ONE new named plugin to the native-WASM sub-list, under the calibration
+  classification already established for `validate-cross-site-correspondence`, per the same
+  non-re-ratification category already applied to this ADR's own E-001..E-007 erratum entries and
+  to ADR-047's v1.5 clarification note): `validate-factory-path-staged` (S-25.04) is added to
+  §Decision 2 as the seventh validator-class plugin named under this Decision's fail-closed
+  roadmap (six named at v1.16; seven as of this amendment), placed in the native-WASM sub-list
+  alongside `validate-cross-site-correspondence` — it calls `host::exec_subprocess` directly from
+  its own WASM code rather than through `hook-plugins/legacy-bash-adapter.wasm`, so its `fuel_cap`
+  bounds its own execution (two `exec_subprocess` calls — `git diff --cached --name-only` and
+  `git branch --show-current` — plus a bounded staged-path-list scan) end-to-end, the same
+  structural basis its sibling `validate-factory-path-staging` already received for Cohort
+  A-immediate treatment (ADR-047 §D8a). Corrected the now-stale "the only one of the six hosted by
+  its own dedicated WASM binary" phrasing on the pre-existing `validate-cross-site-correspondence`
+  bullet — a direct adjacent self-contradiction this same addition would otherwise introduce within
+  one paragraph, not a rewrite of unrelated historical narrative. Added a calibration-corpus note
+  scoped to `validate-factory-path-staged` only: its resource driver is the size of the git index's
+  staged-path list plus one `git branch --show-current` call, not `.factory/` cycle-artifact byte
+  size, so the six pre-existing members' mandatory large-artifact calibration corpus (§Decision 4:
+  `lessons.md` ≥4000 lines, `STATE.md`/`decision-log.md` at current live size, the ≥574 KB fixture)
+  does not apply to it; the eventual formal-verifier/test-writer calibration pass for this
+  validator MUST instead use a synthetic worst-case index state (e.g., ≥500 simultaneously staged
+  paths in one dispatch) as its corpus — §Decision 4's `max(observed_max × 1.5, 50_000_000)`
+  target-statistic formula still governs; only the input corpus that produces `observed_max`
+  differs. Confirmed explicitly that this registration act is independent of S-21.24: S-21.24
+  delivers the §Decision 3 Phase-4 CURRENT-DISPATCH-blocking executor wiring for the full
+  seven-validator set (governing WHEN a fuel/epoch-exhausted validator additionally blocks the
+  CURRENT dispatch), not WHETHER `write_indeterminate_marker` fires for a genuinely INDETERMINATE
+  outcome on this validator, which is Layer 1/ADR-047's separate, already-delivered (S-25.01)
+  generic mechanism — mirroring how `validate-factory-path-staging` itself already carries
+  `failure_policy = "fail-closed"` today without S-21.24 having merged. This closes option (c) of
+  the three closure options ADR-047 §D8a's "Known Gap" note enumerated for S-25.04 to evaluate.
+  ADR-039 v1.17.
+  [Prior: 2026-08-22 (v1.16-decision3-audit-fail-closed+decision4-target-statistic-and-ceiling) —
   Two scoped bursts applied same session by architect, dispatched via orchestrator relay of a
   human-decided three-question architectural adjudication memo (cycle `v1.0-brownfield-backfill`,
   Wave-7 pre-TDD adversary pass-1 findings across S-21.20/21/22/23, the split of CONVERGED
@@ -346,7 +382,7 @@ last_amended: |-
   (5) near-term mitigations — headroom warning + ≥574 KB fixture; (6) verification requirement
   — behavioral test must exercise observed outcome, not documented intent.
   fail_closed_timeout_with_on_error_continue_is_open test encodes current policy and MUST be
-  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]]]]]]]]
+  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]]]]]]]]]]
 modified:
   - "2026-08-06 (v1.0)"
   - "2026-08-06 (v1.1)"
@@ -366,6 +402,7 @@ modified:
   - "2026-08-20 (v1.14-subsystems-affected-sweep)"
   - "2026-08-20 (v1.15-headroom-warning-threshold-wording-correction)"
   - "2026-08-22 (v1.16-decision3-audit-fail-closed+decision4-target-statistic-and-ceiling)"
+  - "2026-09-04 (v1.17-decision2-seventh-validator-registration)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -519,9 +556,49 @@ Examples of validator-class plugins that MUST receive `failure_policy = "fail-cl
 calibration (§Decision 3/4; amended v1.8 — see §AMD-001 for the adapter-class bifurcation):
 
 - **Native-WASM (fuel-axis calibration applies and is sufficient):**
-  `validate-cross-site-correspondence` — the only one of the six hosted by its own dedicated
-  WASM binary (`hook-plugins/validate-cross-site-correspondence.wasm`); its `fuel_cap`
-  genuinely bounds its execution end-to-end.
+  `validate-cross-site-correspondence` — one of two native-WASM `hook-plugins` crates (as of
+  S-25.04; formerly described as "the only one of the six" prior to this amendment) hosted by
+  its own dedicated WASM binary (`hook-plugins/validate-cross-site-correspondence.wasm`); its
+  `fuel_cap` genuinely bounds its execution end-to-end.
+  **`validate-factory-path-staged`** (S-25.04) — the second native-WASM `hook-plugins` crate to
+  call `host::exec_subprocess` directly rather than through `legacy-bash-adapter.wasm`. Its
+  `fuel_cap` bounds its own execution (two `exec_subprocess` calls — `git diff --cached
+  --name-only` and `git branch --show-current` — plus a bounded staged-path-list scan) end-to-end,
+  the same structural basis its sibling `validate-factory-path-staging` already received for
+  Cohort A-immediate treatment (ADR-047 §D8a). Registered `event = "PostToolUse"`,
+  `tool = "^Bash$"`, `priority = 161`, `on_error = "continue"`, `timeout_ms = 5000` — see
+  ADR-047 §D8a for the companion-validator design and BC-4.16.002 (SS-04, CAP-034) for its formal
+  contract. Its internal git-index/branch check runs unconditionally on every completed Bash
+  PostToolUse dispatch (human-ratified BROAD trigger scope — no command-text pre-filter): a
+  narrower, text-gated internal check was considered and rejected because it would reintroduce,
+  inside the check itself, the same staging-mechanism under-match risk class (BC-4.16.001's own
+  Accepted Residuals) this detective mirror exists to close.
+
+  **Calibration-corpus note, scoped to `validate-factory-path-staged` only:** the six
+  pre-existing §Decision 2 members' mandatory calibration corpus (§Decision 4: `lessons.md`
+  ≥4000 lines, `STATE.md`/`decision-log.md` at current live size, the ≥574 KB fixture) is built
+  around validators that read whole `.factory/` cycle artifacts. `validate-factory-path-staged`
+  reads none of them — its resource driver is the size of the git index's staged-path list plus
+  the trivial `git branch --show-current` call, not `.factory/` artifact byte size. The eventual
+  formal-verifier/test-writer calibration pass for this validator MUST use a distinct,
+  validator-specific corpus — a synthetic worst-case index state with a large number of
+  simultaneously staged paths (e.g., ≥500 staged files in one dispatch) — rather than the
+  six-member large-artifact corpus. §Decision 4's target-statistic formula
+  (`max(observed_max × 1.5, 50_000_000)`) still governs; only the input corpus that produces
+  `observed_max` differs, because this validator's resource driver is staged-path cardinality,
+  not `.factory/` cycle-artifact size.
+
+  **S-21.24 independence, confirmed:** naming `validate-factory-path-staged` as the seventh
+  §Decision 2 member with a tracked calibration entry is a registration act independent of
+  S-21.24. S-21.24 delivers the §Decision 3 Phase-4 CURRENT-DISPATCH-blocking executor wiring for
+  the full seven-validator set — it governs WHEN a fuel/epoch-exhausted validator additionally
+  blocks the CURRENT dispatch (Phase 4), not WHETHER `write_indeterminate_marker` fires for a
+  genuinely INDETERMINATE outcome on this validator, which is Layer 1/ADR-047's separate,
+  already-delivered (S-25.01) generic mechanism this registration activates for a real trigger
+  path. This mirrors exactly how `validate-factory-path-staging` itself already carries
+  `failure_policy = "fail-closed"` today without S-21.24 having merged. Only the eventual
+  Phase-4 CURRENT-DISPATCH-blocking activation depends on S-21.24 — the roadmap-registration act
+  performed here does not.
 - **`legacy-bash-adapter.wasm`-hosted (fuel-axis calibration is necessary but NOT sufficient;
   host-wall-clock-timeout-axis (`timeout_ms`) calibration is additionally required):** `validate-factory-path-root`,
   `validate-input-hash`, `validate-template-compliance`, `validate-wave-gate-prerequisite`,

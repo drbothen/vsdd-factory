@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
-last_amended: "2026-09-03 (v1.3) — POL-14 auto-promotion (state-manager; S-25.01 MERGED PR #807 squash `f3f9b3a1` into `develop` 2026-09-03; D-1159): `status`/`lifecycle_status` draft→active. No content/postcondition/wire-format change — mechanical POLICY-14 consequence of the anchoring story's merge. [Prior: 2026-09-03 (v1.2) — factual correction sibling-sweep of ADR-047 v1.4 (per determination-S2501-trigger-path.md, routed from pr-reviewer's fresh-eyes MAJOR finding on PR #807; human-directed; NOT a POLICY 22 design/security-model change — pure factual correction, no decision content altered): PC4's `validate-factory-path-staging` event/tool description corrected from the false 'PostToolUse hooks on Edit/Write/MultiEdit/Bash' to the registry ground truth 'PreToolUse, `^Bash$`-only'; EFFECTIVE-NOW label softened to ASSIGNED-NOW (was overclaiming live enforcement); new explicit 'Layer-1 effective fail-closed count at S-25.01 merge: ZERO' statement added (previously implied ONE via the EFFECTIVE-NOW framing) consistent with ADR-047 §Decision 8a v1.4; ZERO-enforcement gap anchored to recommended follow-up story S-25.04 (Epic E-25).]"
+version: "1.4"
+last_amended: "2026-09-04 (v1.4) — S-25.04 F2 amendment (product-owner): PC4 gains a new, separately-dated companion statement — 'Layer-1 effective fail-closed count at S-25.04 merge: N ≥ 1' — attributable to the new validate-factory-path-staged (BC-4.16.002) PostToolUse fail-closed validator; the existing 'ZERO at S-25.01 merge' statement is UNCHANGED and NOT overwritten (both are accurate, dated, event-scoped historical anchors). No other postcondition, invariant, edge case, or test vector content changed. [Prior: 2026-09-03 (v1.3) — POL-14 auto-promotion (state-manager; S-25.01 MERGED PR #807 squash `f3f9b3a1` into `develop` 2026-09-03; D-1159): `status`/`lifecycle_status` draft→active. No content/postcondition/wire-format change — mechanical POLICY-14 consequence of the anchoring story's merge. [Prior: 2026-09-03 (v1.2) — factual correction sibling-sweep of ADR-047 v1.4 (per determination-S2501-trigger-path.md, routed from pr-reviewer's fresh-eyes MAJOR finding on PR #807; human-directed; NOT a POLICY 22 design/security-model change — pure factual correction, no decision content altered): PC4's `validate-factory-path-staging` event/tool description corrected from the false 'PostToolUse hooks on Edit/Write/MultiEdit/Bash' to the registry ground truth 'PreToolUse, `^Bash$`-only'; EFFECTIVE-NOW label softened to ASSIGNED-NOW (was overclaiming live enforcement); new explicit 'Layer-1 effective fail-closed count at S-25.01 merge: ZERO' statement added (previously implied ONE via the EFFECTIVE-NOW framing) consistent with ADR-047 §Decision 8a v1.4; ZERO-enforcement gap anchored to recommended follow-up story S-25.04 (Epic E-25).]]"
 status: active
 producer: product-owner
 timestamp: 2026-08-30T00:00:00Z
@@ -11,7 +11,10 @@ inputs:
   - .factory/specs/architecture/decisions/ADR-047-indeterminate-outcome-model-durable-mutation-marker-next-advance-gate.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.001.md
   - .factory/feature-delta/validation-integrity-layer1/F1-delta-analysis.md
-input-hash: "3edc772"
+  - .factory/cycles/v1.0-brownfield-backfill/S-25.04-f1-delta-analysis.md
+  - .factory/cycles/v1.0-brownfield-backfill/S-25.04-f2-architecture-decisions.md
+  - .factory/specs/behavioral-contracts/ss-04/BC-4.16.002.md
+input-hash: "d30d223"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -23,6 +26,7 @@ modified:
   - "2026-08-30 (v1.1)"
   - "2026-09-03 (v1.2)"
   - "2026-09-03 (v1.3) — POL-14 auto-promotion draft->active, S-25.01 merged PR #807 f3f9b3a1"
+  - "2026-09-04 (v1.4) — S-25.04 F2 PC4 companion count statement (N>=1 at S-25.04 merge), additive to ZERO-at-S-25.01-merge anchor"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -99,6 +103,24 @@ fail-open plugins.
    three Cohort A validators currently deliver zero enforcement effect distinct from fail-open,
    consistent with ADR-047 §Decision 8a v1.4). (Source: S-25.01 AC-016; ADR-047 §Decision 8a
    v1.4.)
+
+   **Companion statement (v1.4, S-25.04 F2 — product-owner; dated, event-scoped, does NOT
+   overwrite the S-25.01-merge statement above): Layer-1 effective fail-closed count at S-25.04
+   merge: N ≥ 1.** S-25.04 delivers `validate-factory-path-staged` (BC-4.16.002, new SS-04/CAP-034
+   sibling of `validate-factory-path-staging`) — a PostToolUse `^Bash$` fail-closed validator
+   (`priority = 161`) that IS structurally reachable by the durable-marker write path (BC-1.18.001
+   invariant 4), because it is registered PostToolUse rather than PreToolUse. At S-25.04 merge,
+   the Layer-1 effective fail-closed count becomes non-zero for the first time, attributable
+   entirely to `validate-factory-path-staged`'s live enforcement — `validate-factory-path-staging`
+   itself remains at ZERO observable enforcement effect per its own unchanged PreToolUse-only
+   registration (S-25.04 AC-003; this BC's own three-validator enumeration above is UNCHANGED —
+   the new validator is not a fourth Cohort A member; Cohort A remains closed at exactly three per
+   ADR-047 §Decision 8a's human-confirmed gate). The exact value of N is determined at S-25.04
+   delivery time against whatever else Cohort A/roadmap state exists then (minimum 1, for
+   `validate-factory-path-staged` itself). This statement is additive to, and does not supersede,
+   the "ZERO at S-25.01 merge" statement above — both are accurate, dated, event-scoped historical
+   anchors describing two different points in time (S-25.01-merge vs. S-25.04-merge). (Source:
+   S-25.04 AC-005; BC-4.16.002.)
 
 5. **Backward-compat guard test preserved.** The implementation MUST include the test
    `test_BC_1_18_004_fail_open_default_preserves_advisory_behavior` (alternatively named
@@ -186,14 +208,15 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 | L2 Domain Invariants | none (dispatcher runtime backward-compat invariant, not L2 domain spec) |
 | Architecture Module | SS-01 (Hook Dispatcher Core — executor.rs `should_write_marker` predicate; `FailurePolicy::default()` implementation) |
 | ADR | ADR-047 §Decision 2 (failure_policy reuse — fail-open default, no new field); ADR-047 §Decision 7 (Backward-Compatibility Contract — canonical test `test_BC_1_18_004_fail_open_default_preserves_advisory_behavior` MUST NOT be deleted); ADR-047 §Decision 8a (Cohort A = exactly three human-confirmed validators; all others remain fail-open in Layer 1); ADR-039 §Decision 1 (failure_policy semantics + FailOpen default; axes-independence invariant) |
-| Stories | S-25.01 |
-| Cycle | v1.0-feature-validation-integrity-layer1 (F2 — product-owner spec burst) |
+| Stories | S-25.01; S-25.04 (PC4 companion count statement) |
+| Cycle | v1.0-feature-validation-integrity-layer1 (F2 — product-owner spec burst); v1.0-brownfield-backfill (v1.4 companion-statement burst) |
 | Feature | E-25 — Validation Integrity and Large-Artifact Resilience |
 
 ## Changelog
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.4 | 2026-09-04 | product-owner | S-25.04 F2 amendment (human-ratified BROAD trigger scope for the new companion validator unblocked BC authorship). PC4 gains a new, separately-dated companion statement: "Layer-1 effective fail-closed count at S-25.04 merge: N ≥ 1" — attributable to `validate-factory-path-staged` (BC-4.16.002), the new SS-04/CAP-034 PostToolUse fail-closed validator that IS structurally reachable by the durable-marker write path (unlike `validate-factory-path-staging`, which remains at ZERO per its own unchanged PreToolUse-only registration, S-25.04 AC-003). The existing "ZERO at S-25.01 merge" statement is UNCHANGED and NOT overwritten — both are accurate, dated, event-scoped historical anchors for two different points in time, per anti-volatile-pin discipline. The three-validator Cohort A enumeration in this same postcondition is UNCHANGED (the new validator is not a fourth Cohort A member). PC1-PC3, PC5, Invariants, Edge Cases, and Canonical Test Vectors unchanged. Traceability Stories/Cycle rows gain S-25.04/v1.0-brownfield-backfill citations. |
 | 1.3 | 2026-09-03 | state-manager | POL-14 auto-promotion (S-25.01 MERGED PR #807 squash `f3f9b3a1` into `develop` 2026-09-03; D-1159): `status`/`lifecycle_status` draft→active. No content/postcondition/wire-format change — mechanical POLICY-14 consequence of the anchoring story's merge. |
 | 1.2 | 2026-09-03 | product-owner | Factual correction (sibling-sweep of ADR-047 v1.4; per determination-S2501-trigger-path.md, routed from pr-reviewer's fresh-eyes MAJOR finding on PR #807; human-directed; NOT a POLICY 22 change — pure factual correction, no design/security-model decision content altered). PC4's `validate-factory-path-staging` event/tool description corrected: was falsely stated as "PostToolUse hooks on Edit/Write/MultiEdit/Bash artifacts"; corrected to registry ground truth "PreToolUse, `^Bash$`-only" (per hooks-registry.toml). `EFFECTIVE-NOW` label softened to `ASSIGNED-NOW` (was overclaiming live enforcement — the fail-closed bit is safely SET, not effectively ENFORCED). New explicit statement added: "Layer-1 effective fail-closed count at S-25.01 merge: ZERO" (the prior EFFECTIVE-NOW framing implied a count of ONE for `validate-factory-path-staging`; corrected because its PreToolUse-only registration can never reach the PostToolUse-only durable-marker write path, and `on_error = "continue"` never blocks the current dispatch — net effect identical to fail-open, consistent with ADR-047 §Decision 8a v1.4). ZERO-enforcement gap anchored to recommended follow-up story "Close validate-factory-path-staging zero-enforcement gap" (ID S-25.04, Epic E-25) per CLAUDE.md Canonical Principle Rule 3, rather than left silently accepted. PC1-PC3, PC5, Invariants, Edge Cases, and Canonical Test Vectors unchanged. |
 | 1.1 | 2026-08-30 | product-owner | Consistency-audit finding 9 (MINOR): PC4 reworded to state Cohort A-IMMEDIATE / Cohort A-DEFERRED partition explicitly per ADR-047 §Decision 8a v1.3 and S-25.01 AC-016. `validate-factory-path-staging` = EFFECTIVE-NOW (no calibration gating); `validate-pr-merge-prerequisites` + `validate-wave-gate-prerequisite` = SET-BUT-LATENT (ADR-039 §Decision 3, activate at S-21.24). PC5 (DO-NOT-DELETE guard-test clause) and fail-open backward-compat anchor unchanged. |

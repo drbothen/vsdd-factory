@@ -5814,3 +5814,92 @@ BC-4.17.001 v1.29 active. BC-6.28.001 v1.3 active. BC-5.45.001 v1.3 active. BC-1
 
 ---
 Archived 2026-09-04 (SESSION-WRAP-PAUSE-2026-09-04, D-1160/pause, state-manager): the checkpoint above is superseded by the current STATE.md Session Resume Checkpoint, which records a SESSION-WRAP-PAUSE — `pipeline:` set to PAUSED, resting at the RC25-RELEASED resting point (no new pipeline work this burst besides the pause itself). See STATE.md for the live checkpoint and resume command.
+
+## Session Resume Checkpoint (2026-09-04 — SESSION-WRAP-PAUSE-2026-09-04; develop 5824979d; main 51023185; merged_count 117; v1.0.0-rc.25 SHIPPED; BC-5.39.001 streak 3/3 CONVERGED; PIPELINE PAUSED)
+
+> **SELF-SUFFICIENT RESUME CONTEXT.** **Human `/vsdd-factory:wrap`; pipeline PAUSED 2026-09-04.** Resting at the RC25-RELEASED-2026-09-04 (D-1160) position — v1.0.0-rc.25 CUT + SHIPPED, both workstreams DELIVERED/MERGED/RELEASED, no active adversarial loop. This session additionally committed 4 orphaned S-25.01 provenance artifacts as `015e823b`, healing dangling cites in ADR-047/ADR-048/ADR-050 + BC-1.18.004 + VP-108. See §1/§2 for full detail.
+> Prior checkpoint (RC25-RELEASED-2026-09-04, D-1160) archived verbatim above.
+
+### §1. Position (a)
+
+Pipeline **PAUSED** (`pipeline:` in_progress→PAUSED, this burst). Brownfield cycle `v1.0-brownfield-backfill`, resting at the **RC25-RELEASED resting point**: v1.0.0-rc.25 CUT + SHIPPED, both workstreams DELIVERED/MERGED/RELEASED — S-15.03 (`last_amended` write-path fix, D-1152) and S-25.01 (dispatcher INDETERMINATE outcome Layer-1, D-1159) are both **LIVE AT OPERATOR LEVEL** as of rc.25; marketplace PR `drbothen/claude-mp#21` MERGED. **NEXT on resume = dispatch product-owner F1 delta analysis + BC authorship to activate follow-up story S-25.04** (closes the `validate-factory-path-staging` zero-enforcement gap; no urgency set).
+
+### §2. Convergence (b)
+
+BC-5.39.001 streak **3/3 CONVERGED** (S-25.01 track, closed out at D-1155/D-1159; unaffected by this pause). **No active adversarial loop** — this burst is bookkeeping-only (session wrap), not an adversary pass. No trajectory-tail drift — unchanged `→0→1→1→1` LENGTH=4. No BC/VP/STORY/ARCH content changed this burst — BC-INDEX v5.45 / VP-INDEX v3.01 / STORY-INDEX v4.435 / ARCH-INDEX v4.13 all UNCHANGED.
+
+### §3. In-flight (c)
+
+i. **THIS session committed 4 orphaned S-25.01 artifacts as `015e823b`** (`pr-review.md`, `pr-description.md`, `determination-S2501-trigger-path.md`, `determination-S2501-block-if-marker-bundle-sequencing.md`) — pushed, healing dangling cites in ADR-047/ADR-048/ADR-050 + BC-1.18.004 + VP-108 that pre-dated this session.
+ii. **`ci-on-main` darwin-x64 DNS-flake re-run** (run `33891813306`) was `in_progress` at wrap time — non-blocking; check `gh run view 33891813306` on resume. If still RED after completion, triage as a genuine (vs. flake) darwin-x64 CI defect.
+iii. **No stories mid-TDD; no PRs awaiting review from this session.** S-25.01 and S-15.03 are both fully closed (merged + released); no other story is in an active TDD/adversary/PR cycle.
+iv. A stale background orchestrator session `[d89380]` was sent a graceful wrap/exit request this session — the operator may still need to close it from their side (Remote Control / `/tasks`) if it lingers.
+
+### §4. Pending human decisions / blockers (d)
+
+1. **S-25.04 activation timing** — when to dispatch product-owner F1 delta analysis + BC authorship for the follow-up story that closes the `validate-factory-path-staging` zero-enforcement gap (no urgency signal set; PENDING-BC per its own frontmatter gate).
+2. **O-P18-001 adjudication** (audit-timestamp LOCAL-offset ISO-8601 vs ADR-048 §D4 "ISO-8601 UTC" wording; Direction A/B/hybrid) — project-wide architect/product-owner decision; architect's analysis persisted at `cycles/v1.0-brownfield-backfill/O-P18-001-timestamp-utc-vs-offset-analysis.md`.
+3. **cargo-deny advisory disposition** — a `cargo-deny` advisory (wasmtime/RUSTSEC-class, per `e7ca2bd5`'s own commit message) was surfaced locally during the sprint-state pre-flight fix; CI's `deny-advisories` gate is GREEN (not a release blocker) — human to decide whether/when to open a dedicated dependency-bump follow-up.
+
+**Full §5 long-tail OWED list (carried forward verbatim from the archived RC25-RELEASED-2026-09-04 checkpoint — nothing dropped):**
+
+4. **VP-079/VP-028 POLICY-9 "ten events" propagation** — unchanged; anchored to Phase-6 formal-verification / next wave-gate touch.
+5. PG-CI-1/2/3 + F-WG5-001 + PR-MANAGER-MERGE-OVER-RED — OWED before E-17/cycle convergence gate (D-1129, D-1130; human deferred).
+6. ADR-045 v1.3 ratification burst — blocks Wave-7 (S-21.19/20/21/23 HELD).
+7. E-23 re-scope to frozen-provenance model (STALE).
+8. LOW-7 DEFERRED — AC-006 events-sink wording; PO follow-up (out of S-25.01 scope).
+9. **[process-gap] registry-comment-lint** — DEFERRED, anchored E-12 follow-up story, no ID allocated yet (D-1156). STILL OPEN.
+10. Spec-hygiene sweep OWED: E-10 missing body sections; E-9/19/21/22 non-monotonic `modified[]`.
+11. Layer 2/3 BACKLOG: S-25.02 sharding (P1; 15 pts) + S-25.03 bounded-window (P2; 12 pts).
+12. VP-INDEX total_vps 108 vs STATE.md narrative 107 mismatch (D-1138 Drift Item) — still OPEN.
+13. S-4.07 anchor (D-1140) — when S-4.07 wires the real observable Router/FileSink into main.rs, re-point `reconcile_raw_delete`'s scan target and re-amend ADR-048 §D4.
+14. S-25.01 frontmatter `last_amended` unescaped-quote STRICT-YAML-parse failure (D-1144 Drift Item) — anchored future spec-steward frontmatter-hygiene sweep.
+15. **ADR-049/CAP-042 scope-overstatement** (D-1151 Drift Item) — anchored architect+business-analyst.
+16. **E-12 epic `subsystems_affected` omits SS-06/SS-10** (D-1151 Drift Item) — anchored story-writer/architect.
+17. **ARCH-INDEX SS-01/SS-06 count-methodology question** (D-1151 Drift Item) — anchored architect adjudication.
+18. **pr-manager CI-watcher sprawl + shared-worktree clobber** (D-1152, `L-BB-D1152`) — anchored E-12 follow-up story, no ID allocated yet.
+19. **`validate-factory-path-staging` cwd-fallback false-positive** (D-1152, `L-BB-D1152`) — anchored `crates/hook-plugins/validate-factory-path-staging` (devops-engineer/architect).
+20. **`stories/STORY-INDEX.md` S-19.01 row pipe-count defect** (D-1152, incidental pre-existing) — anchored next maintenance-sweep/spec-steward pass.
+21. macOS TCC EPERM read-block on some `.factory/` files (environmental) — mitigation: grant the terminal/Claude Code Full Disk Access.
+22. **S-15.03 Phase D** (running `last-amended-migrate migrate` on the 5 real `.factory/` index/state files for D-1144 escape remediation) — OPTIONAL/OWED, anchored post-release (unblocked; files already slim from the D-1149 surgery, not urgent).
+23. **`validate-factory-path-staging` branch-detection cwd-fallback fix** (`find_factory_class_target`) — anchored `crates/hook-plugins/validate-factory-path-staging` (devops-engineer/architect). (Same underlying defect as item 19.)
+24. **O-P16-1 [process-gap]** — DEFERRED, anchored E-12 follow-up story, no ID allocated yet (D-1156). STILL OPEN. O-P16-2 ACCEPTED won't-fix. O-P16-3 VERIFIED CONFORMANT.
+25. **`phase:` frontmatter field mega-line growth** — anchored S-15.03 PRIORITY-A structured `changelog:` write-path.
+26. **O-P17-001 [audit-robustness]** — DEFERRED to a NEW tampered/malformed-marker audit-robustness hardening follow-up story, no ID allocated yet (D-1156). STILL OPEN. O-P17-002 ACCEPTED won't-fix.
+27. **O-P18-001 [spec-vs-code-convention]** — DEFERRED, precondition = human Direction A/B/hybrid selection (item 2 above).
+28. **[D-1156] E-12 follow-up story (no ID allocated)** — batches registry-comment-lint (item 9) + O-P16-1 (item 24) + D-1152 pr-manager/validate-factory-path-staging items (18/19/23).
+29. **[D-1156] Tampered/malformed-marker audit-robustness hardening follow-up story (no ID allocated)** — O-P17-001, unreachable via any production path, optional hardening.
+30. **[D-1156] "Audit-event timestamp format reconciliation" follow-up story (no ID allocated)** — O-P18-001, precondition = item 2 above.
+31. **[D-1157] validate-factory-path-staging zero-enforcement gap** — RESOLVED-VIA-CORRECTION + anchored to **S-25.04** (real gap-closure). Activation is item 1 above.
+32. **[D-1159/D-1160] S-25.01 Layer-1** — DELIVERED/MERGED/**RELEASED/LIVE**. No further action.
+33. **[D-1160] cargo-deny advisory** (item 3 above) — candidate future dependency-bump follow-up, no story ID allocated; not urgent, CI green.
+34. **[D-1160] `ci-on-main` darwin-x64 DNS-flake re-run** (§3.ii) — check outcome on resume.
+35. **[NEW, this burst] stale background orchestrator session `[d89380]`** (§3.iv) — sent a graceful wrap/exit request; operator may need to close from their side (Remote Control / `/tasks`) if it lingers.
+
+### §5. WIP branches (e)
+
+**NONE.** `main` and `develop` are both clean (no uncommitted work). Two story worktrees are clean+inert and require no action: `fix/d999-sentinel-code-migration` @ `bf642fd9` (ADR-041 sentinel), `feature/S-21.04` @ `323f440f` (pass-31 pending, no PR). The `.factory/` worktree was dirty ONLY with live telemetry (`logs/dispatcher-internal-2026-09-04.jsonl`, `sidecar-learning.md`) prior to this pause burst — both committed into this SAME single commit so the factory worktree ends CLEAN too.
+
+### §6. Resume command (f)
+
+`/vsdd-factory:rehydrate-wave` **first** (per BC-6.24.001, if a wave-state manifest applies), then `/vsdd-factory:next-step` (reads STATE.md and continues from this checkpoint — both S-15.03 and S-25.01 are fully DELIVERED/MERGED/RELEASED, no further TDD/adversary/PR/release work of their own; resume by checking whether to dispatch product-owner F1 delta analysis + BC authorship to activate follow-up story S-25.04 [§1/§4.1]; check the `ci-on-main` darwin-x64 re-run outcome [§3.ii]; the `[process-gap]`/`[audit-robustness]` deferrals in §4 remain open with their E-12/hardening-story anchors and can be picked up independently at any time).
+
+BC-4.17.001 v1.29 active. BC-6.28.001 v1.3 active. BC-5.45.001 v1.3 active. BC-10.13.001 v1.3 active. BC-4.18.001 v1.2 active. BC-1.18.001 v1.6 active. BC-1.18.002 v1.8 active. BC-1.18.003 v1.8 active. BC-1.18.004 v1.3 active. BC-3.08.001 v1.34 active. BC-INDEX v5.45 (1,996 BCs). VP-INDEX v3.01 (115 VPs per frontmatter total_vps). STORY-INDEX v4.435 (176 stories; 25 epics; S-25.01 v1.22 merged; S-25.04 v1.0 draft PENDING-BC; S-15.03 v1.8 merged). ARCH-INDEX v4.13 (48 ADRs; ADR-050 ACCEPTED; ADR-047 v1.4, ADR-048 v1.6). merged_count **117**. main `51023185`. develop `5824979d`. **v1.0.0-rc.25 SHIPPED** — operator-level marketplace resolves to it. BC-5.39.001 streak **3/3 CONVERGED**. PIPELINE **PAUSED**.
+
+### §7. HEADs
+
+- `main`: **`51023185`** (v1.0.0-rc.25 bundle+retag commit 2026-09-04; immediate parent `101ebb64`, the release PR #808 merge commit). Tag `v1.0.0-rc.25` → `101ebb64`.
+- `develop`: **`5824979d`** (`merge: sync main → develop after v1.0.0-rc.25 bundle`, release.yml sync-develop job, 2026-09-04). merged_count **117** (unchanged this burst).
+- `feature/S-25.01`: **MERGED+DELETED** (PR #807 squash `f3f9b3a1` 2026-09-03; final code HEAD at merge `3e463cdc`; BC-5.39.001 streak **3/3 CONVERGED**).
+- `feature/S-15.03`: **MERGED+DELETED** (PR #805 squash `b4ff2383` 2026-09-03T10:43:17Z).
+- `release/v1.0.0-rc.25`: **MERGED** into `main` via `--merge` as `101ebb64` 2026-09-04 (PR #808).
+- `factory-artifacts`: per TD-VSDD-053 SHA-patch anti-pattern retirement, this burst does not self-cite its own resulting commit SHA — run `git -C .factory log -1` for the live HEAD (this burst's own commit, `015e823b` precedes it).
+- `fix/d999-sentinel-code-migration`: clean+inert @ `bf642fd9` (ADR-041 sentinel).
+- `feature/S-21.04`: clean+inert @ `323f440f` (pass-31 pending, no PR).
+
+### §8. BC-5.39.001 streak
+
+**Streak: 3/3 — CONVERGED (unchanged this burst — session pause, not an adversary pass).** (S-25.01 track, closed out at D-1155/D-1159; unaffected by the release or this pause.) LOCAL adversary passes 16/17/18 (D-1153/D-1154/D-1155) were CLEAN, achieving LOCAL 3-CLEAN convergence prior to the PR even opening. The finalization-doc-sweep, overclaim-correction cascade, ADR-050 ratification, post-merge bookkeeping, the rc.25 release, and now this pause are all post-convergence — streak stayed at 3/3 throughout, never re-opened. On resume: no further adversary pass against S-25.01 is needed — it is closed and released.
+
+---
+Archived 2026-09-04 (S25.04-ACTIVATION-BURST-2026-09-04, D-1161, state-manager): the checkpoint above is superseded by the current STATE.md Session Resume Checkpoint, which records S-25.04's activation — `pipeline:` set to in_progress, F1/F2 + BC authorship + ADR erratum amendments + story promotion draft→ready. See STATE.md for the live checkpoint and resume command.

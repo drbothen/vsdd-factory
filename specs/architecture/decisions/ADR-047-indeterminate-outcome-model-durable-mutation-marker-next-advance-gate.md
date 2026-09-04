@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-047
-version: "1.4"
+version: "1.5"
 title: "ADR-047: INDETERMINATE Outcome Model — First-Class Cannot-Complete Outcome, Durable Mutation Marker, and Next-Advance Gate (Three-Layer Validation Integrity Architecture)"
 status: accepted
 date: 2026-08-30
@@ -15,13 +15,14 @@ supersedes: null
 superseded_by: ADR-048
 extends: ADR-039
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
-last_amended: "2026-09-03 (v1.4) — Factual correction (per determination-S2501-trigger-path.md, routed from pr-reviewer's fresh-eyes MAJOR finding on PR #807; human-directed; NOT a POLICY 22 design/security-model change — no decision content is altered, only two false factual claims are corrected): (1) 'Layer-1 effective fail-closed count at S-25.01 merge' corrected from ONE to ZERO — validate-factory-path-staging's PreToolUse ^Bash$ registration means the PostToolUse-only marker-write path (BC-1.18.001 invariant 4) structurally never fires for it, so its failure_policy=fail-closed assignment currently produces the identical runtime effect as fail-open (zero observable enforcement) — the same as the two S-21.24-gated Cohort A-deferred validators, just for a different structural reason. (2) 'EFFECTIVE-NOW' Cohort A-immediate label softened (was overclaiming live enforcement; the assignment is safely SET, not effectively ENFORCED). (3) Completes the v1.3 'factual fix' changelog documentation: the v1.3 registry-row correction changed BOTH the event type (PostToolUse to PreToolUse) and the tool pattern (^(Edit|Write|MultiEdit)$ to ^Bash$); the v1.3 changelog entry documented only the tool-pattern half. No further body-text correction was required for the event type — the §8a table row already read 'PreToolUse ^Bash$' correctly at v1.3. (4) The ZERO-enforcement gap for validate-factory-path-staging is anchored to a new follow-up story (recommended ID S-25.04, next available slot under Epic E-25; story-writer owns allocation and authoring) rather than left as a silent gap, per CLAUDE.md Canonical Principle Rule 3."
+last_amended: "2026-09-04 (v1.5) — Erratum-class clarification note appended to §Decision 8a's 'Known Gap' paragraph (S-25.04 F2 architecture elaboration, architect-authored per orchestrator dispatch; NOT a POLICY 22 design/security-model change — no decision content, threshold, or normative prescription is altered, consistent with ADR-047's own v1.4 self-characterization and ADR-039's E-series erratum precedent): the 'artifact-write side' phrasing describing option (a)'s companion validator is corrected to point to BC-4.16.001 as validate-factory-path-staging's authoritative behavior (a narrow git-staging exclusivity guard, NOT a content validator), and the Known Gap's closure is identified as the new PostToolUse detective-mirror companion validate-factory-path-staged (BC-4.16.002, SS-04/CAP-034), registered under the human-ratified BROAD trigger scope (unconditional git-index/branch check on every completed Bash PostToolUse dispatch, no command-text pre-filter)."
 modified:
   - "2026-08-30 (v1.0) — Initial authoring"
   - "2026-08-30 (v1.1) — Human ratification: D9 extended gate to git commit/push Bash arm; D8a confirmed as-authored"
   - "2026-08-30 (v1.2) — Status section correction: ADR acceptance does not open F4 gate; Cohort A reduced to three human-confirmed validators; validate-cross-site-correspondence moved to Cohort B"
   - "2026-08-30 (v1.3) — Cohort A A-immediate/A-deferred partition; Integration Ordering corrected; tool pattern factual fix for validate-factory-path-staging; consistent with S-25.01 AC-016 v1.1"
   - "2026-09-03 (v1.4) — Factual correction: Layer-1 effective fail-closed count corrected from ONE to ZERO for validate-factory-path-staging (structural PreToolUse/PostToolUse marker-write mismatch, BC-1.18.001 INV4); EFFECTIVE-NOW label softened to avoid overclaiming enforcement; v1.3 tool-pattern-fix changelog entry completed (event-type half was already correct in the body, only the changelog description was incomplete); ZERO-enforcement gap anchored to recommended follow-up story S-25.04. Not a POLICY 22 change — pure factual correction, no design content altered."
+  - "2026-09-04 (v1.5) — Erratum-class clarification note appended to §Decision 8a's 'Known Gap' paragraph: corrects the loose 'artifact-write side' phrasing to cite BC-4.16.001 as validate-factory-path-staging's authoritative narrow git-staging-exclusivity behavior (not a content validator), and identifies the Known Gap's closure as new companion validate-factory-path-staged (BC-4.16.002, SS-04/CAP-034) under the human-ratified BROAD (unconditional, no command-text pre-filter) trigger scope. Not a POLICY 22 change — no decision content altered, wording/citation correction only."
 ---
 
 # ADR-047: INDETERMINATE Outcome Model — First-Class Cannot-Complete Outcome, Durable Mutation Marker, and Next-Advance Gate
@@ -437,6 +438,26 @@ self-lock-risk re-analysis, since the "no self-lock risk" finding above depends 
 and/or (c) extending the ADR-039 §Decision 2 six-validator exhaustion-leg roadmap to add this
 validator as a seventh member. This ADR does not select among these options; that is the
 follow-up story's F1/F2 scope.
+
+**Clarification (added at S-25.04 F2 architecture elaboration — erratum-class, no decision
+content altered):** The phrase "artifact-write side" used above to describe option (a)'s
+companion validator is informal shorthand and should not be read as implying
+`validate-factory-path-staging` validates the *content* of a `.factory/` artifact write.
+`validate-factory-path-staging`'s authoritative behavior is defined by **BC-4.16.001**: a narrow
+git-staging exclusivity guard (INV-E21-001, CAP-034) that blocks `git add`/`git stage` of
+`.factory/` paths on product branches at PreToolUse time. It has no artifact-write-content
+validation role. Option (a)'s companion validator is correspondingly a **post-hoc git-staging
+detective mirror**: it inspects the actual git index and current-branch state after a Bash
+command completes (`git diff --cached --name-only` + `git branch --show-current`, the same
+`host::exec_subprocess` pattern `validate-factory-path-staging` itself already uses) — not
+artifact-write content. This closure is delivered by the new companion plugin
+`validate-factory-path-staged` (BC-4.16.002, SS-04, CAP-034), registered `event = "PostToolUse"`,
+`tool = "^Bash$"`, running its internal `git diff --cached`/`git branch --show-current` check
+unconditionally on every completed Bash dispatch — the human-ratified BROAD trigger scope (no
+command-text pre-filter), selected over a narrower text-gated alternative precisely because a
+text pre-filter would reintroduce the same under-match residual-risk class (BC-4.16.001's own
+Accepted Residuals) this detective mirror exists to close. See BC-4.16.002 (SS-04, CAP-034) for
+the companion's formal contract and S-25.04's F1 Delta Analysis §0 for the full correction record.
 
 **COHORT B — Layer 2 S-25.02 candidates (large-artifact or boundedness-unconfirmed; flip ONLY after sharding bounds inputs OR explicit human Cohort A confirmation at F3 gate):**
 

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
+version: "1.7"
 status: active
 producer: product-owner
 timestamp: 2026-08-31T00:00:00Z
@@ -11,7 +11,10 @@ inputs:
   - .factory/specs/architecture/decisions/ADR-048-fail-closed-but-recoverable-gate-block-if-marker-crash-policy-marker-ttl-deadman-and-ungated-escape-invariant.md
   - .factory/feature-delta/validation-integrity-layer1/F1-delta-analysis.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.17.001.md
-input-hash: "10a2112"
+  - .factory/cycles/v1.0-brownfield-backfill/S-25.04-f1-delta-analysis.md
+  - .factory/cycles/v1.0-brownfield-backfill/S-25.04-f2-architecture-decisions.md
+  - .factory/specs/behavioral-contracts/ss-04/BC-4.16.002.md
+input-hash: "b6ad12a"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -19,7 +22,7 @@ subsystem: "SS-01"
 capability: "CAP-041"
 lifecycle_status: active
 introduced: v1.0-feature-validation-integrity-layer1
-modified: ["2026-08-31", "2026-08-31-v1.2-adr-048-d4-v1.2-ttl-locus-narration-correction", "2026-09-01-v1.3-adr-048-d4-v1.3-superseded-corollary", "2026-09-01-v1.4-adr-048-d4-v1.4-marker-written-event", "2026-09-01-v1.5-adr-048-d4-v1.5-superseded-emission-point-correction", "2026-09-03-v1.6-POL-14-auto-promotion-draft-to-active-S-25.01-merged-PR807-f3f9b3a1"]
+modified: ["2026-08-31", "2026-08-31-v1.2-adr-048-d4-v1.2-ttl-locus-narration-correction", "2026-09-01-v1.3-adr-048-d4-v1.3-superseded-corollary", "2026-09-01-v1.4-adr-048-d4-v1.4-marker-written-event", "2026-09-01-v1.5-adr-048-d4-v1.5-superseded-emission-point-correction", "2026-09-03-v1.6-POL-14-auto-promotion-draft-to-active-S-25.01-merged-PR807-f3f9b3a1", "2026-09-04-v1.7-S-25.04-invariant-4-clarification-second-PostToolUse-instantiation"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -200,6 +203,19 @@ PASS or FAIL semantics.
    is registered `failure_policy = "fail-open"` to prevent unconditional self-lock (ADR-047
    §Decision 4 rationale).
 
+   **Clarification (v1.7, S-25.04 F2 — product-owner):** "PostToolUse-only" is a property of the
+   *event type* a `failure_policy = "fail-closed"` plugin is registered on, NOT an enumerated,
+   closed set of specific plugins. Any fail-closed plugin registered `PostToolUse` reaches this
+   marker-write path on a genuine cannot-complete outcome; any fail-closed plugin registered
+   `PreToolUse` structurally cannot, regardless of which plugin it is. `validate-factory-path-staged`
+   (BC-4.16.002, S-25.04) is the SECOND concrete PostToolUse fail-closed instantiation of this
+   invariant — `validate-unvalidated-mutation-marker` (the Arm 1/Arm 2 gate plugin referenced
+   above) is explicitly NOT such an instantiation: it is `failure_policy = "fail-open"` per
+   ADR-047 §Decision 4, so it never reaches this path at all. This note prevents a future reader
+   from conflating "the gate plugin" with "a marker-writing plugin" — they are disjoint by design.
+   This is a clarification of the existing rule's scope; it introduces no postcondition,
+   wire-format, or mechanism change.
+
 5. **OutputTooLarge flag is dispatcher-internal.** `host_output_too_large_seen` lives in the
    dispatcher's `StoreData` struct. It is NOT part of the hook-sdk ABI (`crates/hook-sdk/`). Plugin
    WASM binaries do not read or write this flag directly. No HOST_ABI_VERSION bump required.
@@ -281,14 +297,15 @@ S-25.01 — Dispatcher INDETERMINATE Outcome Layer 1: Fail-Loud on Cannot-Comple
 | L2 Domain Invariants | none (dispatcher runtime invariant, not L2 domain spec) |
 | Architecture Module | SS-01 (Hook Dispatcher Core — executor.rs classification + invoke.rs Store flag + indeterminate_marker.rs new module) |
 | ADR | ADR-047 §Decision 1 (outcome trichotomy); ADR-047 §Decision 2 (failure_policy reuse, no new field); ADR-047 §Decision 3 (durable marker path, TOML fields, atomic write, single-marker policy); ADR-047 §Decision 6 (OutputTooLarge Store-flag mechanism, per-invocation reset); ADR-047 §Decision 7 (backward-compatibility contract); ADR-039 §Decision 1 (failure_policy field semantics + axes-independence invariant); ADR-048 §Decision 2 (expires_at sixth required TOML field; UNVALIDATED_MUTATION_MARKER_TTL_SECONDS = 86_400 24h deadman constant; expires_at stamped by write_indeterminate_marker at creation; TTL checked by the dispatcher-native `check_and_clear_expired_marker` pre-check on the normal path + by dispatcher native `block_if_marker_check` on crash path — both dispatcher-native per ADR-048 §Decision 4 v1.2 Emission-Point Correction; the gate plugin's `evaluate_gate` has no `expires_at` awareness of its own); **ADR-048 §Decision 4 v1.3 Emission-Mechanism Precision Correction + SUPERSEDED Clear Mode** (S-25.01 LOCAL adversary pass 3 F-P3-002 LOW; human-ratified) — Invariant 3 SUPERSEDED corollary: cross-pair marker overwrite (last-writer-wins) MUST emit `marker.cleared(clear_mode=SUPERSEDED, actor_type=system, reason=non-null)` for the superseded pair's own fields via `ctx.emit_internal` ONLY AFTER the new marker write returns `Ok(())` (**corrected v1.5, ADR-048 §D4 v1.5, F-P9-001** — previously described as before the new write completes); same-pair re-INDETERMINATE emits nothing; closes the false-`OPERATOR_OVERRIDE`-attribution audit-integrity gap in `reconcile_raw_delete` (BC-1.18.003 PC3); **ADR-048 §Decision 4 v1.4 Reconciliation-Premise Correction** (S-25.01 adversary pass 6 F-P6-001 MEDIUM; architect adjudication) — PC4 gains the `marker.written` (BC-3.08.001 Event 10) audited creation event: emitted via `ctx.emit_internal` ONLY after `write_indeterminate_marker` returns `Ok(())`, never before, never on `Err(_)`; this positive creation record replaces the false pre-v1.4 premise that an unmatched fail-closed `plugin.indeterminate` proves a marker was durably written — closing the false-`OPERATOR_OVERRIDE`-attribution gap reachable via a PreToolUse fail-closed INDETERMINATE (INV4 — marker never attempted) or a PostToolUse marker-write I/O failure (EC-007); **ADR-048 §Decision 4 v1.5 Emission-Point Correction** (S-25.01 adversary pass 9 F-P9-001 MEDIUM; architect adjudication; HUMAN-RATIFIED 2026-09-01, POLICY 22, D-1142) — the SUPERSEDED corollary above is relocated from the unconditional pre-overwrite read to inside `write_indeterminate_marker`'s `Ok(())` arm, alongside the (unchanged) PC4 `marker.written` emission (SUPERSEDED fires first, then `marker.written`); on `Err(_)`, NEITHER event is emitted — closing the identical fabricated-audit-record class (NIST AU-3/AU-10) for SUPERSEDED that v1.4 closed for `marker.written`/OPERATOR_OVERRIDE reconciliation; the un-swept sibling gap the v1.4 amendment left open |
-| Stories | S-25.01 |
-| Cycle | v1.0-feature-validation-integrity-layer1 (F2 — product-owner spec burst) |
+| Stories | S-25.01; S-25.04 (invariant 4 clarification — second PostToolUse fail-closed instantiation) |
+| Cycle | v1.0-feature-validation-integrity-layer1 (F2 — product-owner spec burst); v1.0-brownfield-backfill (v1.7 clarification burst) |
 | Feature | E-25 — Validation Integrity and Large-Artifact Resilience |
 
 ## Changelog
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.7 | 2026-09-04 | product-owner | S-25.04 clarification amendment (F1/F2 delta analysis; human-ratified BROAD trigger scope for the new companion validator). Invariant 4 gains a forward-citing clarification paragraph: "PostToolUse-only" is a property of the event type a fail-closed plugin is registered on, not an enumerated closed set of plugins; `validate-factory-path-staged` (BC-4.16.002, new SS-04/CAP-034 sibling of BC-4.16.001) is cited as the SECOND concrete PostToolUse fail-closed instantiation of this rule; the Arm 1/Arm 2 gate plugin (`validate-unvalidated-mutation-marker`) is explicitly noted as NOT such an instantiation (it is `failure_policy = "fail-open"` per ADR-047 §Decision 4). No rewrite of the existing invariant-4 sentence; no postcondition, wire-format, or mechanism content change — clarification only. Traceability Stories/Cycle rows gain S-25.04/v1.0-brownfield-backfill citations. |
 | 1.6 | 2026-09-03 | state-manager | POL-14 auto-promotion (S-25.01 MERGED PR #807 squash `f3f9b3a1` into `develop` 2026-09-03; D-1159): `status`/`lifecycle_status` draft→active. No content/postcondition/wire-format change — mechanical POLICY-14 consequence of the anchoring story's merge. |
 | 1.5 | 2026-09-01 | product-owner | ADR-048 §Decision 4 v1.5 Emission-Point Correction (S-25.01 adversary pass 9 F-P9-001 MEDIUM; architect adjudication; HUMAN-RATIFIED 2026-09-01, POLICY 22, D-1142). Invariant 3's SUPERSEDED-clear corollary and PC4's `marker.written`-adjacent write-success-arm description are corrected so that BOTH write-tied audited events — `marker.cleared(clear_mode=SUPERSEDED, actor_type=system)` for a superseded cross-pair old marker, and `marker.written` for the new marker — are emitted together, ONLY inside `write_indeterminate_marker`'s `Ok(())` arm (SUPERSEDED first, then `marker.written`); on `Err(_)`, NEITHER is emitted. This closes F-P9-001: the pre-v1.5 text described SUPERSEDED as emitted unconditionally at the pre-overwrite field-read, BEFORE `write_indeterminate_marker` was even called, so a subsequent write failure (EC-007) left the OLD marker still durably present and enforcing while a SUPERSEDED record had already been emitted falsely claiming it was overwritten — a fabricated audit record (NIST AU-3/AU-10), the un-swept sibling of this BC's own v1.4 `marker.written` "emit only after `Ok(())`" fix. (1) PC4's `marker.written` paragraph gains a new "Write-success arm now emits BOTH write-tied events together" clause. (2) Invariant 3's SUPERSEDED-clear corollary rewritten: read-before-overwrite stated as unavoidable and unchanged; emission gated on `Ok(())`; new write-failure non-fabrication clause added. (3) EC-007 gains a clause: SUPERSEDED is likewise withheld when the failed write was also a cross-pair overwrite. (4) EC-009 corrected to AFTER-`Ok(())` ordering; new EC-010 added — the direct F-P9-001 regression test (cross-pair overwrite + write failure ⟹ neither event emitted). (5) Canonical Test Vectors: cross-pair-overwrite row corrected; new write-failure negative-control row added. (6) Architecture Anchors: `indeterminate_marker.rs` bullet gains the v1.5 correction note (SUPERSEDED call relocated into the `Ok(())` arm, immediately before `emit_marker_written`). (7) VP Anchors: VP-108 bullet's SUPERSEDED clause corrected to AFTER-`Ok(())` ordering; gains a new v1.5/PC8 citation. (8) Verification Properties: SUPERSEDED row corrected; new VP-108 PC8 row added. (9) Traceability ADR row: ADR-048 §Decision 4 v1.5 citation added; v1.3 SUPERSEDED-corollary citation's ordering language corrected in place. This BC's write-side postcondition is the counterpart to BC-1.18.003 v1.7's PC5 emission-point correction and BC-3.08.001 v1.34's Event 9/Event 10 wire-format-authority ordering correction — all three amendments jointly implement ADR-048 §D4 v1.5 / F-P9-001's fix, ground-truthed against the architect's ratified ADR-048 v1.5 and VP-108 v1.4. |
 | 1.4 | 2026-09-01 | product-owner | ADR-048 §Decision 4 v1.4 Reconciliation-Premise Correction (S-25.01 adversary pass 6 F-P6-001 MEDIUM; architect adjudication; HUMAN-RATIFIED 2026-09-01, POLICY 22, D-1141). Adds `marker.written` (BC-3.08.001 Event 10) as a new audited creation event: emitted via `ctx.emit_internal` by `write_indeterminate_marker`'s caller (`executor.rs`) IMMEDIATELY after the atomic write returns `Ok(())`, carrying the marker's own trace_id/plugin_name/artifact_path/cause/expires_at — NEVER emitted before the write, NEVER on `Err(_)` (write failure). This closes F-P6-001: the pre-v1.4 `reconcile_raw_delete` OPERATOR_OVERRIDE inference ("an unmatched fail-closed `plugin.indeterminate` proves a marker was durably written and later raw-deleted") is false whenever a PreToolUse fail-closed INDETERMINATE never attempts a marker write (INV4) or a PostToolUse marker-write I/O failure (EC-007) leaves the same no-marker-ever-existed footprint — both fabricate `marker.cleared(OPERATOR_OVERRIDE)`, a false NIST AU-3/AU-10 audit record. (1) PC4 gains the `marker.written` emission paragraph (trigger, fields, ONLY-after-Ok(()) constraint). (2) EC-007 gains a clause: no `marker.written` on write failure. (3) Architecture Anchors: `indeterminate_marker.rs` bullet gains the v1.4 `emit_marker_written` note. (4) VP Anchors: VP-108 bullet renamed to cover both `marker.cleared`/`marker.written`; gains PC6 (write-path emission) + PC7 (negative control) citations. (5) Verification Properties: two new VP-108 rows (PC6, PC7). (6) Traceability ADR row: ADR-048 §Decision 4 v1.4 citation added. This BC's write-side postcondition is the counterpart to BC-1.18.003 v1.6's reconciliation-side retarget (scan now matches unmatched `marker.written`, not unmatched `plugin.indeterminate`) and BC-3.08.001's new Event 10 wire-format catalog entry. |
