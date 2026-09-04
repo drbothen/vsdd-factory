@@ -261,12 +261,8 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 }
 
 // ---------------------------------------------------------------------------
-// Unit tests (Red Gate — authored by test-writer in a subsequent step)
+// Unit tests (Red Gate — all must fail until implementation is complete)
 // ---------------------------------------------------------------------------
-//
-// Intentionally NOT wired here (`#[cfg(test)] mod tests;`). Test-tree
-// authorship belongs to the test-writer stage, which runs AFTER stub
-// acceptance (BC-5.38.001 / stub-architect No-Test-Authorship constraint).
-// The test-writer adds both the `mod tests;` declaration and `src/tests.rs`
-// (plus `tests/proptest_*.rs`) in the same step, so `cargo test` never sees
-// a `mod tests;` declaration pointing at a missing file.
+
+#[cfg(test)]
+mod tests;
