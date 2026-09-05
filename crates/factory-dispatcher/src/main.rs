@@ -44,11 +44,12 @@ use factory_dispatcher::host::emit_event::{
     emit_plugin_completed_async, emit_plugin_timeout_async, emit_registry_invalid_e_reg002,
     emit_registry_invalid_e_reg003,
 };
+use factory_dispatcher::indeterminate_marker::MarkerFields;
 use factory_dispatcher::internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_STARTED, INTERNAL_DISPATCHER_ERROR, InternalEvent,
     InternalLog,
 };
-use factory_dispatcher::invoke::PluginResult;
+use factory_dispatcher::invoke::{PluginResult, TimeoutCause};
 use factory_dispatcher::partition::partition_plugins;
 use factory_dispatcher::payload::HookPayload;
 use factory_dispatcher::plugin_loader::PluginCache;
@@ -190,13 +191,15 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                         );
                         2
                     }
-                    RegistryError::AsyncBlockConflict { name } => {
+                    RegistryError::AsyncBlockConflict { name, on_error } => {
                         // BC-1.14.001 EC-008 + BC-3.08.001 Event 3.
                         // Emit dispatcher.registry_invalid with offending_plugin/violation/error_code.
                         // E-REG-002 is intra-entry; offending_event/tool absence is enforced by type system.
                         emit_registry_invalid_e_reg002(&err_ctx, name, "async_block_conflict");
+                        // LOW-1: name the actual offending on_error value ("block" or
+                        // "block_if_marker"), not a hardcoded "block" literal.
                         eprintln!(
-                            "factory-dispatcher: E-REG-002 on_error=block AND async=true for '{name}'; exiting 2 (fail-closed per ADR-019 §Decision 2)"
+                            "factory-dispatcher: E-REG-002 on_error={on_error} AND async=true for '{name}'; exiting 2 (fail-closed per ADR-019 §Decision 2)"
                         );
                         2
                     }
@@ -761,10 +764,14 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
 /// a slice of per-plugin outcomes. Used by the TD #71 stderr surfacing path.
 ///
 /// **blocking_names**: comma-joined names of plugins that contributed to
-/// the block decision. Three trigger categories:
+/// the block decision. Four trigger categories:
 ///   1. Advisory block: `stdout.contains(r#""outcome":"block""#)` (any `on_error`).
 ///   2. WASI-exit-code block: `exit_code == 2 && on_error == OnError::Block`.
 ///   3. Fail-closed: `Crashed | Timeout && on_error == OnError::Block`.
+///   4. BlockIfMarker: `Crashed | Timeout && on_error == OnError::BlockIfMarker
+///      && block_if_marker_fired == true` (ADR-048 §Decision 1 / BC-1.18.002 PC5).
+///      Only surfaces when the marker was confirmed present/non-expired at dispatch time;
+///      `block_if_marker_fired` is set by `execute_tiers` from `plugin_block_if_marker`.
 ///
 /// **block_reason**: the `reason` field from the first blocking plugin's
 /// `{"outcome":"block","reason":"..."}` stdout JSON, or a generic sentinel
@@ -787,8 +794,11 @@ fn extract_block_info(outcomes: &[PluginOutcome]) -> (String, String) {
                 advisory || wasi_block
             }
             // Fail-closed: crash or timeout with on_error=Block.
+            // BlockIfMarker: crash or timeout with on_error=BlockIfMarker AND the
+            // block_if_marker check confirmed the marker was present/non-expired.
             PluginResult::Crashed { .. } | PluginResult::Timeout { .. } => {
                 outcome.on_error == OnError::Block
+                    || (outcome.on_error == OnError::BlockIfMarker && outcome.block_if_marker_fired)
             }
         };
 
@@ -797,7 +807,19 @@ fn extract_block_info(outcomes: &[PluginOutcome]) -> (String, String) {
 
             // Extract block reason from the first blocking plugin's stdout.
             if first_reason.is_none() {
-                first_reason = extract_reason_from_outcome(&outcome.result);
+                // For BlockIfMarker crash-blocks, emit a recoverable sentinel that
+                // tells operators exactly how to recover — distinct from the generic
+                // "fail-closed: plugin crashed" message (ADR-048 §Decision 1 /
+                // BC-1.18.002 PC5 / TD #71).
+                first_reason = if outcome.on_error == OnError::BlockIfMarker
+                    && outcome.block_if_marker_fired
+                {
+                    Some(format_block_if_marker_crash_reason(
+                        outcome.block_if_marker_fields.as_deref(),
+                    ))
+                } else {
+                    extract_reason_from_outcome(&outcome.result)
+                };
             }
         }
     }
@@ -807,6 +829,54 @@ fn extract_block_info(outcomes: &[PluginOutcome]) -> (String, String) {
     // Escape newlines so the summary remains a single stderr line (TC5).
     let reason_escaped = reason.replace('\n', "\\n").replace('\r', "\\r");
     (names_str, reason_escaped)
+}
+
+/// Build the crash-path BLOCK message for an `on_error = "block_if_marker"`
+/// outcome whose `block_if_marker_fired` flag is `true` (BC-1.18.002 v1.6 PC5;
+/// ADR-048 §Decision 3 amended v1.1 Four-Tier Recovery Model).
+///
+/// F-P2-001 fix: the message previously omitted the marker's fields and
+/// instructed the blocked agent to `rm .factory/unvalidated-mutation.marker`
+/// directly — a CWE-636 self-de-quarantine that ADR-048 §Decision 3 / INV6-T4
+/// FORBIDS (agent-tool `rm` is de-sanctioned; only a human operator acting
+/// out-of-band in their own terminal, T3, may clear the marker that way).
+/// This function instead:
+///
+///   1. names the marker's `plugin_name`, `artifact_path`, `cause`, and
+///      `expires_at` fields (BC-1.18.002 v1.6 PC5 "the block message includes
+///      the marker's ... fields");
+///   2. orders recovery guidance T1 (agent re-validation via Edit/Write —
+///      inherently ungated, the agent's genuine primary recovery) first,
+///      T2 (24h TTL auto-clear) second, T3 (human out-of-band `rm`,
+///      break-glass) third and explicitly framed as a human/operator action;
+///   3. never instructs the agent itself to run `rm`.
+///
+/// `fields` is `None` when the marker could not be re-read at message-build
+/// time (e.g. a racing T1 re-validation cleared it between the crash-path
+/// block decision and this read) — degrades to `"<unknown>"` placeholders
+/// rather than fabricating values; the recovery guidance and tier ordering
+/// are unchanged either way.
+fn format_block_if_marker_crash_reason(fields: Option<&MarkerFields>) -> String {
+    const UNKNOWN: &str = "<unknown>";
+    let plugin_name = fields.map_or(UNKNOWN, |f| f.plugin_name.as_str());
+    let artifact_path = fields.map_or(UNKNOWN, |f| f.artifact_path.as_str());
+    let cause = fields.map_or(UNKNOWN, |f| f.cause.as_str());
+    let expires_at = fields.map_or(UNKNOWN, |f| f.expires_at.as_str());
+
+    format!(
+        "fail-closed-recoverable: non-expired .factory/unvalidated-mutation.marker \
+         present (ADR-048 \u{00a7}D1 block_if_marker on gate crash/timeout) — \
+         plugin_name=\"{plugin_name}\" artifact_path=\"{artifact_path}\" cause=\"{cause}\" \
+         expires_at=\"{expires_at}\". Recovery, in order of sanctioned preference: \
+         (T1 — primary agent recovery, do this) re-run the Edit or Write that produced \
+         artifact_path \"{artifact_path}\"; this dispatch type is permanently ungated by \
+         this gate and re-validates the artifact, clearing the marker on PASS; \
+         (T2 — passive) if immediate re-validation is not possible, the marker auto-clears \
+         once the 24h TTL elapses at \"{expires_at}\"; \
+         (T3 — human operator only, NOT an agent action) the human operator may run \
+         `rm .factory/unvalidated-mutation.marker` out-of-band in their own terminal as a \
+         break-glass escape — this agent MUST NOT perform that action."
+    )
 }
 
 /// Parse the `reason` field from a `{"outcome":"block","reason":"..."}` stdout
@@ -826,9 +896,38 @@ fn extract_reason_from_outcome(result: &PluginResult) -> Option<String> {
                 .ok()
                 .and_then(|v| v.get("reason").and_then(|r| r.as_str()).map(str::to_owned))
         }
-        // Fail-closed crash/timeout: sentinel reason.
+        // Fail-closed crash/timeout: sentinel reasons distinguished by cause so
+        // operators can choose the right remedy without opening the internal log.
+        // Fuel exhaustion is a permanent resource-policy failure (raise cap or
+        // reduce payload); epoch/wall-clock is a transient compute failure
+        // (investigate slow script). Conflating them forces operators to grep
+        // the internal log for the trace UUID to determine cause — TD #71 pattern.
+        //
+        // All three arms use the "fail-closed:" family prefix, consistent with
+        // the rest of the fail-closed taxonomy. The fuel arm additionally embeds
+        // "FUEL_EXHAUSTED:" as a greppable sub-token so a future consumer can
+        // distinguish fuel from epoch without parsing the trailing prose. The
+        // epoch arm string "fail-closed: plugin timed out" is unchanged —
+        // existing operator runbooks match it.
+        //
+        // On Trap::OutOfFuel, wasmtime's remaining-fuel counter reaches zero, so
+        // fuel_consumed_from_store() == fuel_cap (cap.saturating_sub(0) = cap).
+        // The interpolated value therefore represents the configured cap, not a
+        // measured cost. The message is framed accordingly ("fuel cap of N units")
+        // rather than "N units consumed" which would imply a metered demand figure.
         PluginResult::Crashed { .. } => Some("fail-closed: plugin crashed".to_owned()),
-        PluginResult::Timeout { .. } => Some("fail-closed: plugin timed out".to_owned()),
+        PluginResult::Timeout {
+            cause: TimeoutCause::Fuel,
+            fuel_cap,
+            ..
+        } => Some(format!(
+            "fail-closed: FUEL_EXHAUSTED: fuel cap of {fuel_cap} units exhausted; \
+             raise fuel_cap or reduce payload size"
+        )),
+        PluginResult::Timeout {
+            cause: TimeoutCause::Epoch,
+            ..
+        } => Some("fail-closed: plugin timed out".to_owned()),
     }
 }
 
@@ -1123,6 +1222,375 @@ mod red_gate_s18_14_log_dir {
             Path::new(log_dir_value).is_absolute(),
             "log_dir field value must be an absolute path (BC-1.13.001 PC-10 absolutize-on-emit); \
              got: {log_dir_value:?} (relative path means absolutize-on-emit fix is not applied)"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// extract_reason_from_outcome — fuel vs epoch distinction
+//
+// Fuel exhaustion and wall-clock (epoch) timeouts need opposite operator
+// responses: fuel is a permanent resource-policy failure requiring a cap
+// raise or payload reduction; epoch is a transient compute failure requiring
+// script investigation. Both previously returned "fail-closed: plugin timed
+// out", making them indistinguishable from the agent-visible block_reason.
+//
+// TDD: `fuel_timeout_reason_identifies_fuel_exhaustion` is RED before the
+// fix (current returns "plugin timed out" for both causes).  The epoch and
+// crash tests confirm those arms are unaffected by the change.
+// ---------------------------------------------------------------------------
+#[cfg(test)]
+mod tests_extract_reason_cause_distinction {
+    #![allow(clippy::expect_used, clippy::unwrap_used)]
+    use factory_dispatcher::invoke::{PluginResult, TimeoutCause};
+
+    // Fuel timeout must produce a fuel-specific reason, not "plugin timed out".
+    //
+    // The test input uses fuel_consumed == 20_000_000 to reflect the real invariant:
+    // on Trap::OutOfFuel, wasmtime's remaining-fuel counter is zero, so
+    // fuel_consumed_from_store() == fuel_cap (cap.saturating_sub(0) = cap).
+    // A value like 10_500_000 that differs from any plausible cap is unreachable
+    // in production and would make assertions on the interpolated value misleading.
+    #[test]
+    fn fuel_timeout_reason_identifies_fuel_exhaustion() {
+        use factory_dispatcher::invoke::DEFAULT_FUEL_CAP;
+        let result = PluginResult::Timeout {
+            cause: TimeoutCause::Fuel,
+            stderr: String::new(),
+            elapsed_ms: 5,
+            // consumed == cap on fuel trap (see invariant comment above).
+            fuel_consumed: DEFAULT_FUEL_CAP,
+            // fuel_cap is the configured cap; message interpolates this field.
+            fuel_cap: DEFAULT_FUEL_CAP,
+        };
+        let reason = super::extract_reason_from_outcome(&result);
+        let text = reason
+            .as_deref()
+            .expect("fuel timeout must produce Some reason");
+        // Family prefix + greppable sub-token. Both must be present in the
+        // emitted message so operators see the fail-closed taxonomy and can
+        // still grep FUEL_EXHAUSTED: without opening the internal log.
+        assert!(
+            text.starts_with("fail-closed: FUEL_EXHAUSTED:"),
+            "fuel timeout block_reason must start with 'fail-closed: FUEL_EXHAUSTED:', got: {text:?}"
+        );
+        assert!(
+            text.contains("exhausted"),
+            "fuel timeout block_reason must contain 'exhausted', got: {text:?}"
+        );
+        assert!(
+            !text.contains("timed out"),
+            "fuel timeout block_reason must NOT say 'timed out' — \
+             operators need distinct messages to choose the right remedy; got: {text:?}"
+        );
+        // The interpolated value is the cap (consumed == cap on fuel trap).
+        // Assert against the actual cap constant so this tracks deliberate changes.
+        assert!(
+            text.contains(&DEFAULT_FUEL_CAP.to_string()),
+            "fuel timeout block_reason should include the cap value ({DEFAULT_FUEL_CAP}) \
+             so operators know which cap to raise; got: {text:?}"
+        );
+    }
+
+    // Decoupling test: the message is a function of `fuel_cap` alone and must
+    // not read `fuel_consumed`.  With `fuel_consumed=0` and
+    // `fuel_cap=DEFAULT_FUEL_CAP`, the message must still cite the configured
+    // cap so operators know which budget to raise — regardless of whatever
+    // value `fuel_consumed` holds.
+    //
+    // Note: `fuel_consumed_from_store` has a dead `Err(_) => 0` arm (it can
+    // only err when fuel is disabled, but `build_engine` enables fuel
+    // unconditionally and `set_fuel` failing aborts in `InvokeError::Setup`
+    // before execution begins).  The `fuel_consumed: 0` input here is simply
+    // a synthetic boundary value, not a claim about the Err(_) path.
+    #[test]
+    fn fuel_timeout_with_zero_consumed_still_reports_cap() {
+        use factory_dispatcher::invoke::DEFAULT_FUEL_CAP;
+        // Synthetic: consumed=0 to verify the message ignores fuel_consumed.
+        let result = PluginResult::Timeout {
+            cause: TimeoutCause::Fuel,
+            stderr: String::new(),
+            elapsed_ms: 0,
+            fuel_consumed: 0,
+            fuel_cap: DEFAULT_FUEL_CAP,
+        };
+        let reason = super::extract_reason_from_outcome(&result);
+        let text = reason
+            .as_deref()
+            .expect("fuel timeout must produce Some reason");
+        assert!(
+            text.starts_with("fail-closed: FUEL_EXHAUSTED:"),
+            "message must carry fail-closed: FUEL_EXHAUSTED: prefix even when fuel_consumed=0; got: {text:?}"
+        );
+        assert!(
+            text.contains(&DEFAULT_FUEL_CAP.to_string()),
+            "message must report the configured cap ({DEFAULT_FUEL_CAP}), \
+             not fuel_consumed (0); got: {text:?}"
+        );
+        // Fails against the pre-fix form "fuel cap of 0 units exhausted":
+        //   pre-fix:  "…fail-closed: FUEL_EXHAUSTED: fuel cap of 0 units exhausted…"  → contains → assertion FAILS  ✓
+        //   post-fix: "…fail-closed: FUEL_EXHAUSTED: fuel cap of 20000000 units …"    → absent   → assertion PASSES ✓
+        assert!(
+            !text.contains("of 0 units"),
+            "message must NOT interpolate fuel_consumed=0 as the cap; \
+             pre-fix form contained 'of 0 units'; got: {text:?}"
+        );
+    }
+
+    // Epoch timeout must still produce the original "plugin timed out" sentinel —
+    // changing this arm would break existing operator runbooks for slow scripts.
+    #[test]
+    fn epoch_timeout_reason_is_unaffected() {
+        use factory_dispatcher::invoke::DEFAULT_FUEL_CAP;
+        let result = PluginResult::Timeout {
+            cause: TimeoutCause::Epoch,
+            stderr: String::new(),
+            elapsed_ms: 5_001,
+            fuel_consumed: 2_000_000,
+            fuel_cap: DEFAULT_FUEL_CAP,
+        };
+        let reason = super::extract_reason_from_outcome(&result);
+        assert_eq!(
+            reason.as_deref(),
+            Some("fail-closed: plugin timed out"),
+            "epoch timeout block_reason must remain 'fail-closed: plugin timed out'"
+        );
+    }
+
+    // Crash arm must be untouched — regression guard.
+    #[test]
+    fn crash_reason_is_unaffected() {
+        let result = PluginResult::Crashed {
+            trap_string: "unreachable".to_owned(),
+            stderr: String::new(),
+            elapsed_ms: 1,
+            fuel_consumed: 50_000,
+        };
+        let reason = super::extract_reason_from_outcome(&result);
+        assert_eq!(
+            reason.as_deref(),
+            Some("fail-closed: plugin crashed"),
+            "crash block_reason must remain 'fail-closed: plugin crashed'"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// extract_block_info — BlockIfMarker crash-block surfacing (TD #71 / ADR-048)
+//
+// Closes the M-1 coverage gap: extract_block_info was previously blind to
+// on_error=BlockIfMarker outcomes (only checked on_error==Block in the
+// Crashed|Timeout arm). These tests assert that the recoverable sentinel reason
+// is surfaced when block_if_marker_fired=true, and NOT surfaced when the marker
+// was absent (block_if_marker_fired=false).
+// ---------------------------------------------------------------------------
+#[cfg(test)]
+mod tests_extract_block_info_block_if_marker {
+    #![allow(clippy::expect_used, clippy::unwrap_used)]
+    use factory_dispatcher::executor::PluginOutcome;
+    use factory_dispatcher::indeterminate_marker::MarkerFields;
+    use factory_dispatcher::invoke::PluginResult;
+    use factory_dispatcher::registry::OnError;
+
+    /// BC-1.18.002 PC5 / TD #71 (M-1):
+    /// Crash + on_error=BlockIfMarker + block_if_marker_fired=true →
+    /// extract_block_info MUST return non-empty blocking_plugins AND a
+    /// block_reason containing the recoverable sentinel prefix.
+    #[test]
+    fn block_if_marker_crash_with_fired_flag_surfaces_reason() {
+        let outcomes = vec![PluginOutcome {
+            plugin_name: "validate-unvalidated-mutation-marker".to_string(),
+            plugin_version: "1.0.0".to_string(),
+            on_error: OnError::BlockIfMarker,
+            result: PluginResult::Crashed {
+                trap_string: "unreachable".to_string(),
+                stderr: String::new(),
+                elapsed_ms: 1,
+                fuel_consumed: 0,
+            },
+            block_if_marker_fired: true,
+            block_if_marker_fields: None,
+        }];
+
+        let (blocking_plugins, block_reason) = super::extract_block_info(&outcomes);
+
+        assert_eq!(
+            blocking_plugins, "validate-unvalidated-mutation-marker",
+            "TD #71 / BC-1.18.002 PC5: blocking_plugins MUST be non-empty for \
+             BlockIfMarker crash with block_if_marker_fired=true"
+        );
+        assert!(
+            block_reason.starts_with("fail-closed-recoverable:"),
+            "TD #71 / BC-1.18.002 PC5: block_reason MUST start with \
+             'fail-closed-recoverable:' for BlockIfMarker crash-block; got: {block_reason:?}"
+        );
+        assert!(
+            block_reason.contains("unvalidated-mutation.marker"),
+            "block_reason MUST name the marker file so the human operator (T3) knows \
+             which file break-glass rm targets; got: {block_reason:?}"
+        );
+        assert!(
+            block_reason.contains("ADR-048"),
+            "block_reason MUST cite ADR-048 for traceability; got: {block_reason:?}"
+        );
+    }
+
+    /// F-P2-001 (HIGH / BLOCKER) regression test — BC-1.18.002 v1.6 PC5 +
+    /// INV6/T4 (ADR-048 §Decision 3 amended v1.1 Four-Tier Recovery Model).
+    ///
+    /// The crash-path BLOCK message MUST:
+    ///   1. contain all four marker fields (plugin_name, artifact_path, cause,
+    ///      expires_at) with their actual values from the marker;
+    ///   2. present recovery options ordered T1 (agent re-validation via
+    ///      Edit/Write) before T2 (TTL auto-clear) before T3 (human
+    ///      out-of-band `rm`);
+    ///   3. NOT instruct the agent itself to run `rm` — a T3 human-action
+    ///      mention is allowed, but it must be framed as an operator action,
+    ///      never as a command the agent should execute to self-de-quarantine
+    ///      (CWE-636 per ADR-048 §Decision 3 / INV6/T4).
+    #[test]
+    fn block_if_marker_crash_message_has_fields_t1_first_and_no_agent_rm_instruction() {
+        let fields = MarkerFields {
+            timestamp: "2026-08-30T12:00:00Z".to_string(),
+            plugin_name: "validate-factory-path-staging".to_string(),
+            artifact_path: "/repo/.factory/STATE.md".to_string(),
+            cause: "fuel".to_string(),
+            trace_id: "trace-abc123".to_string(),
+            expires_at: "2026-08-31T12:00:00Z".to_string(),
+        };
+        let outcomes = vec![PluginOutcome {
+            plugin_name: "validate-unvalidated-mutation-marker".to_string(),
+            plugin_version: "1.0.0".to_string(),
+            on_error: OnError::BlockIfMarker,
+            result: PluginResult::Crashed {
+                trap_string: "unreachable".to_string(),
+                stderr: String::new(),
+                elapsed_ms: 1,
+                fuel_consumed: 0,
+            },
+            block_if_marker_fired: true,
+            block_if_marker_fields: Some(Box::new(fields)),
+        }];
+
+        let (_, block_reason) = super::extract_block_info(&outcomes);
+
+        // (1) All four mandatory marker fields, with actual values, present.
+        assert!(
+            block_reason.contains("validate-factory-path-staging"),
+            "F-P2-001: block message MUST include the marker's plugin_name; \
+             got: {block_reason:?}"
+        );
+        assert!(
+            block_reason.contains("/repo/.factory/STATE.md"),
+            "F-P2-001: block message MUST include the marker's artifact_path; \
+             got: {block_reason:?}"
+        );
+        assert!(
+            block_reason.contains("\"fuel\""),
+            "F-P2-001: block message MUST include the marker's cause; \
+             got: {block_reason:?}"
+        );
+        assert!(
+            block_reason.contains("2026-08-31T12:00:00Z"),
+            "F-P2-001: block message MUST include the marker's expires_at; \
+             got: {block_reason:?}"
+        );
+
+        // (2) T1 (re-run Edit/Write) ordered before T2 (TTL) ordered before
+        // T3 (human out-of-band rm).
+        let t1_pos = block_reason
+            .find("T1")
+            .expect("F-P2-001: block message MUST mention T1 (primary agent recovery)");
+        let t2_pos = block_reason
+            .find("T2")
+            .expect("F-P2-001: block message MUST mention T2 (TTL auto-clear)");
+        let t3_pos = block_reason
+            .find("T3")
+            .expect("F-P2-001: block message MUST mention T3 (human out-of-band rm)");
+        assert!(
+            t1_pos < t2_pos && t2_pos < t3_pos,
+            "F-P2-001 / BC-1.18.002 v1.6 PC5: recovery options MUST be ordered \
+             T1 first, T2 second, T3 third; got positions T1={t1_pos} T2={t2_pos} T3={t3_pos} \
+             in: {block_reason:?}"
+        );
+
+        // (3) The agent is never instructed to run rm itself — only the human
+        // operator (T3) is described as able to. The forbidden CWE-636 pattern
+        // is an unqualified imperative directed at the caller (e.g. the old
+        // "recover via `rm ...`" phrasing this test guards against).
+        assert!(
+            !block_reason.contains("recover via `rm"),
+            "F-P2-001 / ADR-048 INV6/T4: block message MUST NOT instruct the agent \
+             to run rm (CWE-636 self-de-quarantine forbidden); got: {block_reason:?}"
+        );
+        assert!(
+            block_reason.contains("this agent MUST NOT perform that action")
+                || block_reason.contains("NOT an agent action"),
+            "F-P2-001 / ADR-048 INV6/T4: the T3 rm mention MUST be explicitly framed \
+             as a human/operator action, not an agent instruction; got: {block_reason:?}"
+        );
+    }
+
+    /// BC-1.18.002 (absent-marker path):
+    /// Crash + on_error=BlockIfMarker + block_if_marker_fired=false →
+    /// extract_block_info MUST NOT surface this outcome as blocking (marker was absent).
+    #[test]
+    fn block_if_marker_crash_without_fired_flag_not_surfaced() {
+        let outcomes = vec![PluginOutcome {
+            plugin_name: "validate-unvalidated-mutation-marker".to_string(),
+            plugin_version: "1.0.0".to_string(),
+            on_error: OnError::BlockIfMarker,
+            result: PluginResult::Crashed {
+                trap_string: "unreachable".to_string(),
+                stderr: String::new(),
+                elapsed_ms: 1,
+                fuel_consumed: 0,
+            },
+            block_if_marker_fired: false,
+            block_if_marker_fields: None,
+        }];
+
+        let (blocking_plugins, block_reason) = super::extract_block_info(&outcomes);
+
+        assert!(
+            blocking_plugins.is_empty(),
+            "BC-1.18.002 absent-marker path: blocking_plugins MUST be empty when \
+             block_if_marker_fired=false (no marker present); got: {blocking_plugins:?}"
+        );
+        assert!(
+            block_reason.is_empty(),
+            "BC-1.18.002 absent-marker path: block_reason MUST be empty when \
+             block_if_marker_fired=false; got: {block_reason:?}"
+        );
+    }
+
+    /// Regression guard: existing on_error=Block crash still surfaces with the
+    /// generic fail-closed sentinel, unchanged by the BlockIfMarker addition.
+    #[test]
+    fn on_error_block_crash_still_surfaces_generic_sentinel() {
+        let outcomes = vec![PluginOutcome {
+            plugin_name: "some-gate".to_string(),
+            plugin_version: "1.0.0".to_string(),
+            on_error: OnError::Block,
+            result: PluginResult::Crashed {
+                trap_string: "unreachable".to_string(),
+                stderr: String::new(),
+                elapsed_ms: 1,
+                fuel_consumed: 0,
+            },
+            block_if_marker_fired: false,
+            block_if_marker_fields: None,
+        }];
+
+        let (blocking_plugins, block_reason) = super::extract_block_info(&outcomes);
+
+        assert_eq!(
+            blocking_plugins, "some-gate",
+            "on_error=Block crash MUST still surface as a blocker (regression guard)"
+        );
+        assert_eq!(
+            block_reason, "fail-closed: plugin crashed",
+            "on_error=Block crash reason MUST remain 'fail-closed: plugin crashed' (regression)"
         );
     }
 }
