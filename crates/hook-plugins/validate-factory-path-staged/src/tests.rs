@@ -5,19 +5,18 @@
 // for test files (see e.g. validate-artifact-path/src/tests.rs, validate-stable-anchors/
 // src/tests.rs) rather than a production-code type alias for a test-only helper type.
 #![allow(clippy::type_complexity)]
-//! Unit tests for validate-factory-path-staged (RED GATE — BC-5.38.001).
+//! Unit tests for validate-factory-path-staged (BC-4.16.002 / BC-5.38.001).
 //!
 //! Exercises the production functions declared in `lib.rs` via injectable
-//! callbacks (`HookCallbacks`) and direct pure-function calls. All tests are
-//! RED at stub time because `is_factory_path`, `find_staged_factory_path`,
-//! and `hook_logic` bodies are `todo!()`. `is_product_branch` is
-//! GREEN-BY-DESIGN (real 1-line implementation, per stub commit report) —
-//! deliberately NOT given a standalone unit test here (a direct test of an
-//! already-correct function would trivially pass, violating the "every new
-//! test fails" Red Gate discipline); its behavior is exercised implicitly
-//! through the `hook_logic` integration tests below, which fail via the
-//! `todo!()` panic in `hook_logic` itself regardless of `is_product_branch`'s
-//! own correctness.
+//! callbacks (`HookCallbacks`) and direct pure-function calls.
+//! `is_factory_path`, `find_staged_factory_path`, and `hook_logic` are fully
+//! implemented (shipped in S-25.04). `is_product_branch` is a real 1-line
+//! implementation and is deliberately NOT given a standalone unit test here
+//! (a direct test of an already-trivial 1-line function would add no
+//! meaningful coverage); its behavior is instead exercised through the
+//! `hook_logic` integration tests below, which cover every branch outcome
+//! (block on a product branch / pass on `factory-artifacts`) that depends on
+//! `is_product_branch`'s result.
 //!
 //! # BC traces (BC-4.16.002)
 //! - PC1: detect `.factory/` path staged on a product branch (block,
@@ -319,8 +318,7 @@ fn test_bc4_16_002_t1_blocks_factory_path_staged_on_develop() {
     assert!(
         result.is_ok(),
         "T-1 / BC-4.16.002 PC1: hook_logic panicked for '.factory/STATE.md' staged on \
-         develop. Must return HookResult::Block with FactoryPathStagedOnProductBranch. \
-         Production function is unimplemented (todo!())."
+         develop. Must return HookResult::Block with FactoryPathStagedOnProductBranch."
     );
     if let Ok(hook_result) = result {
         assert_eq!(
