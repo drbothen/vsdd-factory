@@ -580,24 +580,36 @@ fn scan_max_d_nnn(s: &str) -> u64 {
 /// contains no matching rows (fail-open, matching invariant 7's existing
 /// fail-open design philosophy).
 ///
-/// BC-5.39.006 v1.8 invariant 7, Side B (`max_in_file`) — replaces the old
+/// BC-5.39.006 v1.9 invariant 7, Side B (`max_in_file`) — replaces the old
 /// whole-body `scan_max_d_nnn(content)` call for `max_in_file` only.
 /// `scan_max_d_nnn` (Side A) remains unchanged and is still used for
 /// `max_cited` extraction from `current_step:`.
 ///
-/// # Structural scan algorithm (per BC-5.39.006 v1.8 invariant 7 Side B)
+/// # Structural scan algorithm (per BC-5.39.006 v1.9 invariant 7 Side B)
 ///
 /// 1. Scan lines for h2 headings (`^## `, after trimming). Enter the
 ///    `## Decisions Log` section on the exact heading text; exit back to
 ///    "outside" on ANY subsequent h2 heading (or end-of-file).
 /// 2. Inside the section, a line is a candidate row only if its trimmed
 ///    content both starts and ends with `|`.
-/// 3. Separator rows (trimmed content containing `---`) are excluded.
+/// 3. **(v1.9, EC-026)** A row is classified as a GFM separator row — and
+///    skipped — iff, after splitting the row on `|`, EVERY resulting cell's
+///    trimmed content is composed solely of `-`, `:`, and whitespace
+///    characters, AND the row contains at least one `-` (whole-row
+///    composition test). A row is NOT classified as a separator merely
+///    because some cell's content *contains* the substring `---` — a
+///    genuine data row whose non-ID cell contains `---` (an em-dash
+///    rendering, a `D-441---D-449` range citation, etc.) is retained.
 /// 4. For each remaining candidate row, split on `|` and take the first
 ///    non-empty-position pipe-delimited cell (i.e., the first cell after
-///    the row's leading `|`), trim it, and test it for a **whole-string**
-///    match to `D-\d+` (the ENTIRE trimmed cell — not a substring match).
-///    A matching cell's integer is added to the candidate set.
+///    the row's leading `|`), trim it. **(v1.9, EC-025)** Before the
+///    whole-cell match, strip SYMMETRIC leading/trailing runs of `*`, `_`,
+///    and backtick `` ` `` from the trimmed cell (so `**D-1164**`,
+///    `` `D-1164` ``, and `_D-1164_` all normalize to `D-1164`); interior
+///    or malformed decoration (e.g. `D-**1164**`) is NOT repaired. Test the
+///    normalized cell for a **whole-string** match to `D-\d+` (the ENTIRE
+///    normalized cell — not a substring match). A matching cell's integer
+///    is added to the candidate set.
 /// 5. `max_in_file` is the maximum of the candidate set, or 0 if empty.
 ///
 /// This is immune to the narrative-literal false-positive class **by
@@ -610,7 +622,7 @@ fn scan_max_d_nnn(s: &str) -> u64 {
 /// decision-codification time (D-448(b)).
 ///
 /// # BC trace
-/// BC-5.39.006 v1.8 invariant 7 (Side B); EC-024; D-443(a).
+/// BC-5.39.006 v1.9 invariant 7 (Side B); EC-024; EC-025; EC-026; D-443(a).
 fn scan_max_decision_log_id(content: &str) -> u64 {
     /// State machine for h2-section tracking (mirrors `validate_index_md`'s
     /// `## Adversarial Reviews` scan technique, narrowed to `## Decisions Log`).
@@ -647,19 +659,50 @@ fn scan_max_decision_log_id(content: &str) -> u64 {
             continue;
         }
 
-        // Separator rows are always skipped.
-        if trimmed.contains("---") {
+        // GFM separator rows are skipped based on whole-row composition
+        // (v1.9, EC-026): a row is a separator iff, after splitting on `|`,
+        // EVERY resulting cell's trimmed content is composed solely of `-`,
+        // `:`, and whitespace characters (an empty cell — e.g. the
+        // leading/trailing boundary cells produced by splitting a row that
+        // starts and ends with `|` — vacuously satisfies this), AND the row
+        // contains at least one `-` character (the "genuine separator, not
+        // an all-blank row" guard). A row where any cell contains other
+        // characters (letters, digits, prose) is a DATA row and is retained
+        // even if some cell contains the substring `---`.
+        let is_separator_row = trimmed.contains('-')
+            && trimmed.split('|').all(|raw_cell| {
+                let cell = raw_cell.trim();
+                cell.bytes()
+                    .all(|b| matches!(b, b'-' | b':') || b.is_ascii_whitespace())
+            });
+        if is_separator_row {
             continue;
         }
 
         // Take the first pipe-delimited cell (the content between the
-        // leading `|` and the next `|`), trim it, and test for a
-        // whole-string `D-\d+` match.
+        // leading `|` and the next `|`), trim it, normalize surrounding
+        // markdown emphasis decoration, and test for a whole-string
+        // `D-\d+` match.
         let after_leading_pipe = &trimmed[1..];
         let Some(first_cell) = after_leading_pipe.split('|').next() else {
             continue;
         };
         let cell = first_cell.trim();
+
+        // ID-cell emphasis normalization (v1.9, EC-025): strip SYMMETRIC
+        // leading/trailing runs of `*`, `_`, and backtick `` ` `` from the
+        // trimmed cell before the whole-cell match, so `**D-1164**`,
+        // `` `D-1164` ``, and `_D-1164_` all normalize to `D-1164`.
+        // Interior/malformed decoration (e.g. `D-**1164**`) is NOT
+        // repaired — only symmetric outer runs are stripped.
+        let is_emphasis = |b: u8| matches!(b, b'*' | b'_' | b'`');
+        let leading_trim = cell.bytes().take_while(|&b| is_emphasis(b)).count();
+        let trailing_trim = cell.bytes().rev().take_while(|&b| is_emphasis(b)).count();
+        let cell = if leading_trim + trailing_trim < cell.len() {
+            &cell[leading_trim..cell.len() - trailing_trim]
+        } else {
+            ""
+        };
 
         let Some(digits) = cell.strip_prefix("D-") else {
             continue;
