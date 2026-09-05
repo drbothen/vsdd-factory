@@ -12555,3 +12555,7 @@ D-444(c) burst-log h2 heading `## D-1163-S2504-POST-MERGE-BURST-PLUS-CI-HARDENIN
 Committed as a single atomic commit per TD-VSDD-053 (see commit SHA in the resulting `git -C .factory log -1` after this burst is pushed). No Stage 2 backfill, no SHA placeholder, no multi-commit chain.
 
 ---
+
+S2504-POST-MERGE-BURST-2026-09-04 (state-manager; COMPLETE): D-1163. PR #814 (`feature/S-25.04`) SQUASH-MERGED into `develop` as `e9e7d219` (code HEAD `79252d38`); feature branch deleted. Delivers `validate-factory-path-staged` PostToolUse companion validator (BC-4.16.002), closing the Layer-1 zero-enforcement gap. Prerequisite maintenance PR #813 squash-merged as `5e009dc0` immediately prior (orphan-wasm removal + `scan_max_d_nnn` word-boundary fix). merged_count 117→118. POL-14: BC-4.16.002 v1.1→v1.2 draft→active (BC-INDEX v5.47→v5.48); BC-1.18.001/BC-1.18.004 CONFIRMED already active. STORY-INDEX v4.436→v4.437 (S-25.04 status ready→merged, v2.0 unchanged). VP-INDEX/ARCH-INDEX UNCHANGED. `pipeline:` stays in_progress. Branch protection on `develop` DEFERRED (admin-blocked). BC-5.39.001 cycle-level streak + trajectory-tail UNCHANGED →0→1→1→1 LENGTH=4 — NOT an adversary pass. NEXT: OWED long-tail / next story, pending human direction. v9.79→v9.80. [Archived from STATE.md Current Phase Steps — table keeps last 5 rows only; archived this burst (D-1166), S2502-F2-ACTIVATION-RESUME-OQ1-WIDEST-RESOLVED.]
+
+---
