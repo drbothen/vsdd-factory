@@ -509,10 +509,29 @@ fn check_d_chain_currency(content: &str, current_step_value: &str) -> Option<Vio
 /// Uses the same hand-rolled scanning strategy as the sibling functions to
 /// avoid the regex crate (WASM fuel budget constraint).
 ///
-/// The scan does NOT skip any D-NNN patterns — the caller (check_d_chain_currency)
-/// feeds current_step_value and full content separately, so self-reference
-/// exclusion is unnecessary: taking the max of current_step's own D-NNNs as
-/// `max_cited` is correct by construction.
+/// The scan does NOT skip any D-NNN patterns based on self-reference — the
+/// caller (check_d_chain_currency) feeds current_step_value and full content
+/// separately, so self-reference exclusion is unnecessary: taking the max of
+/// current_step's own D-NNNs as `max_cited` is correct by construction.
+///
+/// # Word-boundary rule (F-P1-006-B / RC25-RELEASED-2026 false-positive class)
+/// A `D-` match only counts as a decision reference when the `D` sits at a
+/// word boundary — i.e. `pos == 0` or the byte immediately before `pos` is
+/// NOT ASCII-alphanumeric. This prevents two confirmed false-positive
+/// classes from being miscounted as `D-NNN` decision cites:
+///
+/// 1. **Date-embedded digits** — banner text like
+///    `RC25-RELEASED-2026-09-04` contains the substring `D-2026` (the
+///    trailing "D" of "RELEASED" immediately followed by "-2026"); without
+///    the boundary check this is misread as decision D-2026, inflating
+///    `max_in_file` far past the real max and flagging a legitimate
+///    `current_step:` cite as stale.
+/// 2. **Word-internal identifiers** — `TD-VSDD-053` contains the substring
+///    `D-053` (the "D" of "TD" is itself preceded by the alphanumeric "T");
+///    without the boundary check this is misread as decision D-053.
+///
+/// A non-boundary match is skipped (not counted) but the search cursor still
+/// advances past it, so scanning continues safely without an infinite loop.
 ///
 /// # Slice safety (BC-5.39.006 invariant 10)
 /// Advances by `pos + 2 + digit_len` bytes, which always lands on an ASCII
@@ -524,14 +543,24 @@ fn check_d_chain_currency(content: &str, current_step_value: &str) -> Option<Vio
 fn scan_max_d_nnn(s: &str) -> u64 {
     let mut max = 0u64;
     let mut search = s;
+    let mut absolute_offset = 0usize;
+    let bytes = s.as_bytes();
 
     while let Some(pos) = search.find("D-") {
         let after = &search[pos + 2..];
         // Extract digits after `D-`.
         let digit_str: String = after.chars().take_while(|c| c.is_ascii_digit()).collect();
-        if let Ok(n) = digit_str.parse::<u64>() {
+
+        // Word-boundary check: the byte immediately before this "D" (in the
+        // original string) must be absent (start of string) or non-
+        // alphanumeric for this match to count as a real D-NNN reference.
+        let d_absolute_pos = absolute_offset + pos;
+        let is_boundary = d_absolute_pos == 0 || !bytes[d_absolute_pos - 1].is_ascii_alphanumeric();
+
+        if is_boundary && let Ok(n) = digit_str.parse::<u64>() {
             max = max.max(n);
         }
+
         // Advance past pos + "D-" + digit_len.
         // `pos + 2 + digit_len` lands on an ASCII digit boundary or the byte
         // after the last digit — always a valid UTF-8 char boundary.
@@ -539,6 +568,7 @@ fn scan_max_d_nnn(s: &str) -> u64 {
         if advance >= search.len() {
             break;
         }
+        absolute_offset += advance;
         search = &search[advance..];
     }
     max
@@ -1355,6 +1385,65 @@ mod tests {
         assert!(
             v.is_none(),
             "max_cited=477 >= max_in_file=477 — should not violate"
+        );
+    }
+
+    // -- scan_max_d_nnn word-boundary false-positive fixes (RC25-RELEASED-2026 /
+    // TD-VSDD-053 classes) --
+
+    #[test]
+    fn test_scan_max_d_nnn_ignores_d_yyyy_embedded_in_dates() {
+        // "RC25-RELEASED-2026-09-04" contains the substring "D-2026" (the
+        // trailing "D" of "RELEASED" immediately followed by "-2026") — this
+        // is NOT a decision-log reference and must not be counted. A real
+        // standalone reference `D-1162` elsewhere in the same string must
+        // still be picked up as the max.
+        let s = "banner RC25-RELEASED-2026-09-04 tail ... D-1162 ...";
+        assert_eq!(
+            scan_max_d_nnn(s),
+            1162,
+            "word-internal 'D-2026' (from RELEASED-2026) must not be counted; \
+             the real standalone D-1162 must be the max"
+        );
+    }
+
+    #[test]
+    fn test_scan_max_d_nnn_ignores_word_internal_td_vsdd_053() {
+        // "TD-VSDD-053" contains the substring "D-053" (the "D" of "TD" is
+        // itself preceded by "T", an alphanumeric byte) — word-internal, so
+        // it must not be counted. With no other D-NNN reference present, the
+        // result must be 0.
+        assert_eq!(
+            scan_max_d_nnn("TD-VSDD-053"),
+            0,
+            "word-internal 'D-053' inside 'TD-VSDD-053' must not be counted"
+        );
+    }
+
+    #[test]
+    fn test_scan_max_d_nnn_boundary_preceded_refs_still_count() {
+        // Legitimate standalone references — "D" preceded by whitespace or
+        // punctuation (word boundary) — must still be extracted and maxed.
+        assert_eq!(
+            scan_max_d_nnn("cite D-1162 and (D-1200)"),
+            1200,
+            "boundary-preceded D-NNN refs must still be counted and maxed"
+        );
+    }
+
+    #[test]
+    fn test_check_d_chain_currency_still_flags_genuinely_stale_cite() {
+        // Positive control: a genuinely stale cite (current_step citing
+        // D-1000 while the body legitimately contains a higher, boundary-
+        // preceded D-1162) must still produce a violation. This confirms the
+        // word-boundary fix does not disable the real staleness check.
+        let current_step = "D-chain cite D-1000 latest brownfield";
+        let content = "---\ncurrent_step: 'x'\n---\nbody cites D-1162 as latest\n";
+        let v = check_d_chain_currency(content, current_step);
+        assert!(
+            v.is_some(),
+            "max_cited=1000 < max_in_file=1162 (legitimate boundary-preceded \
+             ref) — must still violate"
         );
     }
 
