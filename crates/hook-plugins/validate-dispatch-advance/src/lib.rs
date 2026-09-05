@@ -1481,7 +1481,30 @@ mod tests {
         // Multiple D-NNN in current_step; max is correctly extracted.
         let current_step = "BC-INDEX v1.14 VP-INDEX v1.8 STORY-INDEX v1.12 ARCH-INDEX v1.9 \
              D-382 D-440 D-477 →9→9→9→9";
-        let content = "---\ncurrent_step: 'x'\n---\n| D-477 |\n";
+        // Side A: scan_max_d_nnn (this test's namesake) must extract 477 as
+        // the max of the three embedded references D-382, D-440, D-477.
+        assert_eq!(
+            scan_max_d_nnn(current_step),
+            477,
+            "scan_max_d_nnn must extract 477 as the max of D-382, D-440, D-477"
+        );
+        // Side B integration check: wrap the D-477 row in a real '## Decisions
+        // Log' section so max_in_file is genuinely computed as 477 from the
+        // structural scan (not the section-absent fail-open 0) — the
+        // "should not violate" assertion below then exercises the real
+        // max_cited >= max_in_file equality per BC-5.39.006 v1.8 invariant 7
+        // Side B, rather than passing vacuously via fail-open.
+        let content = "---\ncurrent_step: 'x'\n---\n\
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             |----|----------|---------|-------|------|\n\
+             | D-477 | some-decision | summary text | phase | 2026-09-05 |\n";
+        assert_eq!(
+            scan_max_decision_log_id(content),
+            477,
+            "structural scan of '## Decisions Log' must resolve max_in_file to 477"
+        );
         let v = check_d_chain_currency(content, current_step);
         assert!(
             v.is_none(),
@@ -2062,9 +2085,22 @@ mod tests {
 
     #[test]
     fn test_d_chain_current_range_form() {
-        // current_step cites D-382..D-477 and body max is also D-477 — current.
+        // current_step cites D-382..D-477 and body max is also D-477 — current,
+        // per BC-5.39.006 v1.8 invariant 7 Side B structural-scan contract.
+        // The D-477 row is wrapped in a real '## Decisions Log' section (mirrors
+        // test_d_chain_stale_range_form) so max_in_file is genuinely computed
+        // from the section, not the section-absent fail-open 0.
         let content = "---\ncurrent_step: 'BC-INDEX v1.14 →9→9→9→9 D-382..D-477'\n---\n\
-             | D-477 | some row |\n";
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             |----|----------|---------|-------|------|\n\
+             | D-477 | some-decision | summary text | phase | 2026-09-05 |\n";
+        assert_eq!(
+            scan_max_decision_log_id(content),
+            477,
+            "structural scan of '## Decisions Log' must resolve max_in_file to 477"
+        );
         let current_step = "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
              →9→9→9→9 D-382..D-477";
         let v = check_d_chain_currency(content, current_step);
@@ -2074,9 +2110,21 @@ mod tests {
     #[test]
     fn test_d_chain_current_prose_form() {
         // Production prose form "D-chain cite D-476"; body max is also 476 — current.
-        // This matches the real production STATE.md current_step format.
+        // This matches the real production STATE.md current_step format. The
+        // D-476 row is wrapped in a real '## Decisions Log' section (mirrors
+        // test_d_chain_stale_prose_form) so max_in_file is genuinely computed
+        // from the section, not the section-absent fail-open 0.
         let content = "---\ncurrent_step: 'BC-INDEX v1.14 →9→9→9→9 D-chain cite D-476'\n---\n\
-             | D-476 | some row |\n";
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             |----|----------|---------|-------|------|\n\
+             | D-476 | some-decision | summary text | phase | 2026-09-05 |\n";
+        assert_eq!(
+            scan_max_decision_log_id(content),
+            476,
+            "structural scan of '## Decisions Log' must resolve max_in_file to 476"
+        );
         let current_step = "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
              →9→9→9→9 D-chain cite D-476 latest brownfield";
         let v = check_d_chain_currency(content, current_step);
