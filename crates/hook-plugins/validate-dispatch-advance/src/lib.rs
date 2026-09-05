@@ -486,7 +486,7 @@ fn check_d_chain_currency(content: &str, current_step_value: &str) -> Option<Vio
     }
 
     // Step 2: extract max D-NNN from full STATE.md content.
-    let max_in_file = scan_max_d_nnn(content);
+    let max_in_file = scan_max_decision_log_id(content);
 
     if max_cited < max_in_file {
         Some(Violation {
@@ -571,6 +571,107 @@ fn scan_max_d_nnn(s: &str) -> u64 {
         absolute_offset += advance;
         search = &search[advance..];
     }
+    max
+}
+
+/// Scan `content` for the maximum `D-\d+` integer that appears as a
+/// **whole-cell, first-pipe-column** match on a table row under the exact
+/// `## Decisions Log` h2 heading. Returns 0 if the section is absent or
+/// contains no matching rows (fail-open, matching invariant 7's existing
+/// fail-open design philosophy).
+///
+/// BC-5.39.006 v1.8 invariant 7, Side B (`max_in_file`) — replaces the old
+/// whole-body `scan_max_d_nnn(content)` call for `max_in_file` only.
+/// `scan_max_d_nnn` (Side A) remains unchanged and is still used for
+/// `max_cited` extraction from `current_step:`.
+///
+/// # Structural scan algorithm (per BC-5.39.006 v1.8 invariant 7 Side B)
+///
+/// 1. Scan lines for h2 headings (`^## `, after trimming). Enter the
+///    `## Decisions Log` section on the exact heading text; exit back to
+///    "outside" on ANY subsequent h2 heading (or end-of-file).
+/// 2. Inside the section, a line is a candidate row only if its trimmed
+///    content both starts and ends with `|`.
+/// 3. Separator rows (trimmed content containing `---`) are excluded.
+/// 4. For each remaining candidate row, split on `|` and take the first
+///    non-empty-position pipe-delimited cell (i.e., the first cell after
+///    the row's leading `|`), trim it, and test it for a **whole-string**
+///    match to `D-\d+` (the ENTIRE trimmed cell — not a substring match).
+///    A matching cell's integer is added to the candidate set.
+/// 5. `max_in_file` is the maximum of the candidate set, or 0 if empty.
+///
+/// This is immune to the narrative-literal false-positive class **by
+/// construction**: a quoted (`"D-2026"`), backtick-quoted, or bare-prose
+/// (`decision D-2026`) mention of a `D-NNN` token can occur anywhere in
+/// free text outside `## Decisions Log`, or even inside a non-first cell
+/// of a `## Decisions Log` row (e.g., in the Summary column's prose), but
+/// it can never satisfy "is the entire first pipe-cell of a `## Decisions
+/// Log` row" — that column is populated exclusively by state-manager at
+/// decision-codification time (D-448(b)).
+///
+/// # BC trace
+/// BC-5.39.006 v1.8 invariant 7 (Side B); EC-024; D-443(a).
+fn scan_max_decision_log_id(content: &str) -> u64 {
+    /// State machine for h2-section tracking (mirrors `validate_index_md`'s
+    /// `## Adversarial Reviews` scan technique, narrowed to `## Decisions Log`).
+    #[derive(PartialEq)]
+    enum State {
+        /// Not inside `## Decisions Log` section.
+        Outside,
+        /// Inside `## Decisions Log`.
+        Inside,
+    }
+
+    let mut max = 0u64;
+    let mut state = State::Outside;
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+
+        // Detect h2 headings — update section state.
+        if trimmed.starts_with("## ") {
+            state = if trimmed == "## Decisions Log" {
+                State::Inside
+            } else {
+                State::Outside
+            };
+            continue;
+        }
+
+        if state == State::Outside {
+            continue;
+        }
+
+        // Must be a table row: trimmed starts and ends with `|`.
+        if !trimmed.starts_with('|') || !trimmed.ends_with('|') {
+            continue;
+        }
+
+        // Separator rows are always skipped.
+        if trimmed.contains("---") {
+            continue;
+        }
+
+        // Take the first pipe-delimited cell (the content between the
+        // leading `|` and the next `|`), trim it, and test for a
+        // whole-string `D-\d+` match.
+        let after_leading_pipe = &trimmed[1..];
+        let Some(first_cell) = after_leading_pipe.split('|').next() else {
+            continue;
+        };
+        let cell = first_cell.trim();
+
+        let Some(digits) = cell.strip_prefix("D-") else {
+            continue;
+        };
+        if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+            continue;
+        }
+        if let Ok(n) = digits.parse::<u64>() {
+            max = max.max(n);
+        }
+    }
+
     max
 }
 
@@ -1444,6 +1545,220 @@ mod tests {
             v.is_some(),
             "max_cited=1000 < max_in_file=1162 (legitimate boundary-preceded \
              ref) — must still violate"
+        );
+    }
+
+    // -- scan_max_decision_log_id / D-chain narrative-literal hardening
+    // (BC-5.39.006 v1.8 invariant 7 Side B; EC-024; D-443(a); architect design
+    // `.factory/cycles/v1.0-brownfield-backfill/
+    //  scan-max-d-nnn-narrative-literal-hardening-analysis.md`) --
+
+    /// Builds a synthetic STATE.md-shaped string: a `## Decisions Log`
+    /// section (header + separator + a single data row whose ID column is
+    /// `decisions_log_max_id`) followed by a `## Skip Log` section (models
+    /// "next h2 heading ends the section") containing narrative prose that
+    /// reproduces the exact task-verified word-boundary-passing `D-2026`
+    /// tokens: 3 quoted-literal occurrences and 1 bare-prose occurrence, none
+    /// of which occupy the whole first pipe-cell of a Decisions Log row.
+    fn narrative_literal_fixture(decisions_log_max_id: u64) -> String {
+        format!(
+            "---\n\
+             current_step: 'placeholder'\n\
+             ---\n\
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             |----|----------|---------|-------|------|\n\
+             | D-{decisions_log_max_id} | some-decision | summary text | phase | 2026-09-05 |\n\
+             \n\
+             ## Skip Log\n\
+             \n\
+             1. word-boundary fix to `scan_max_d_nnn` (was misreading \"D-2026\" \
+             inside \"RC25-RELEASED-2026-09-04\" as a stale decision cite).\n\
+             2. word-boundary fix (was misreading \"D-2026\" inside \
+             \"RC25-RELEASED-2026-09-04\" as a stale decision cite, falsely \
+             flagging `current_step`'s cite).\n\
+             3. it was matching the \"D\" inside \"RC25-RELEASED-2026-09-04\" as \
+             decision D-2026 and falsely flagging `current_step`'s cite as stale.\n\
+             4. the \"D-2026\" false-positive (this session hit it live) is fixed \
+             on `develop`.\n"
+        )
+    }
+
+    #[test]
+    fn test_scan_max_decision_log_id_ignores_narrative_and_quoted_mentions() {
+        // The `## Decisions Log` section's max ID-column row is D-1163; the
+        // `## Skip Log` narrative outside that section contains 3 quoted
+        // `"D-2026"` tokens + 1 bare-prose `decision D-2026` token — all
+        // word-boundary-passing per scan_max_d_nnn's existing rule, but NONE
+        // occupy the whole first pipe-cell of a `## Decisions Log` row.
+        let content = narrative_literal_fixture(1163);
+        assert_eq!(
+            scan_max_decision_log_id(&content),
+            1163,
+            "structural scan must return the Decisions Log ID-column max \
+             (1163), not the narrative-literal D-2026 mentions outside the \
+             section"
+        );
+    }
+
+    #[test]
+    fn test_scan_max_decision_log_id_fail_open_on_missing_section() {
+        // No `## Decisions Log` heading anywhere in content — fail-open per
+        // invariant 7's existing fail-open design philosophy.
+        let content = "---\ncurrent_step: 'x'\n---\n\
+             # No Decisions Log section here\n\
+             some narrative mentioning D-9999 and \"D-2026\" in prose.\n";
+        assert_eq!(
+            scan_max_decision_log_id(content),
+            0,
+            "missing '## Decisions Log' section must fail-open to 0"
+        );
+    }
+
+    #[test]
+    fn test_check_d_chain_currency_no_false_positive_on_narrative_literal() {
+        // Full reproduction of the live-bug shape (D-2026 self-referential
+        // false positive, PR #813/5e009dc0-adjacent, narrative-literal class):
+        // current_step: cites D-1163; the '## Decisions Log' section's max
+        // ID-column row is D-1163; narrative elsewhere in the body contains
+        // the 4 word-boundary-passing D-2026 mentions (3 quoted + 1 prose).
+        // Once scan_max_decision_log_id is implemented AND wired into
+        // check_d_chain_currency's max_in_file computation, this must return
+        // None (max_cited=1163 >= max_in_file=1163).
+        let current_step = "D-chain cite D-1163 latest brownfield";
+        let content = narrative_literal_fixture(1163);
+        let v = check_d_chain_currency(&content, current_step);
+        assert!(
+            v.is_none(),
+            "max_cited=1163 >= max_in_file=1163 (Side B structural scan must \
+             ignore the narrative D-2026 mentions) — must NOT violate; got: \
+             {v:?}"
+        );
+    }
+
+    #[test]
+    fn test_check_d_chain_currency_still_flags_stale_via_decisions_log() {
+        // Positive control: current_step cites D-1163, but the '## Decisions
+        // Log' section's max ID-column row is D-1164 (genuinely newer than
+        // current_step's cite) — the same narrative D-2026 noise is present
+        // as in the false-positive-reproduction test above, to confirm the
+        // structural narrowing to the Decisions Log ID column does not
+        // accidentally suppress a real staleness violation just because
+        // narrative noise is also present in the body. Once implemented, the
+        // violation must cite max_in_file=1164 (from the Decisions Log row),
+        // NOT 2026 (which the old whole-body scan_max_d_nnn(content) would
+        // have picked up from the narrative).
+        let current_step = "D-chain cite D-1163 latest brownfield";
+        let content = narrative_literal_fixture(1164);
+        let v = check_d_chain_currency(&content, current_step);
+        assert!(
+            v.is_some(),
+            "max_cited=1163 < max_in_file=1164 (genuine Decisions Log \
+             staleness) — must still violate even with narrative D-2026 \
+             noise present"
+        );
+        let violation = v.expect("checked is_some above");
+        assert!(
+            violation.description.contains("D-1164"),
+            "violation must cite the genuine Decisions Log max (D-1164), not \
+             the narrative-inflated D-2026; got: {}",
+            violation.description
+        );
+        assert!(
+            !violation.description.contains("D-2026"),
+            "violation must NOT cite the narrative-literal D-2026 token as \
+             max_in_file; got: {}",
+            violation.description
+        );
+    }
+
+    #[test]
+    fn test_check_d_chain_currency_verbatim_state_md_d2026_fixture() {
+        // Load-bearing fixture: the actual offending sentences copied
+        // VERBATIM (exact contiguous substrings, not paraphrased) from the
+        // live `.factory/STATE.md` as it stood on 2026-09-05 (per
+        // scan-max-d-nnn-narrative-literal-hardening-analysis.md §1.2/§8.6),
+        // reproducing the exact production defect this BC-5.39.006 v1.8
+        // amendment closes, independent of the live production-file
+        // integration test (which will stop exercising this exact text once
+        // STATE.md is next compacted). Exactly 4 word-boundary-passing
+        // `D-2026` tokens are reproduced below — 3 quoted-literal (from
+        // STATE.md's Active Branches row, Concurrent Cycles narrative, and
+        // Drift Items row) and 1 bare-prose (from STATE.md's own Decisions
+        // Log row Summary-cell narrative, itself a non-first-column
+        // occurrence) — matching the exact 3-quoted+1-bare split confirmed
+        // by the architect's literal-shell reproduction in the analysis doc.
+        let verbatim_active_branches_prose = "\
+            maintenance/fix-orphan-wasm-bundle | MERGED+DELETED | PR #813 squash-merged \
+            `5e009dc0` 2026-09-04 into develop (branch base `5824979d`); branch deleted. \
+            Prerequisite CI-hardening for S-25.04: removed 2 orphaned tracked wasms \
+            (`last-amended-migrate`, `verify-state-timestamp-refresh`) fixing \
+            `bundle_orphan_check` T-009; word-boundary fix to `scan_max_d_nnn` in \
+            `validate-dispatch-advance` (was misreading \"D-2026\" inside \
+            \"RC25-RELEASED-2026-09-04\" as a stale decision cite). Maintenance PR — \
+            does NOT increment merged_count.";
+        let verbatim_concurrent_cycles_prose = "\
+            (ii) word-boundary fix to `scan_max_d_nnn` in `validate-dispatch-advance` \
+            (was misreading \"D-2026\" inside \"RC25-RELEASED-2026-09-04\" as a stale \
+            decision cite, falsely flagging `current_step`'s D-1162 cite).";
+        let verbatim_decisions_log_row_prose = "\
+            (b) Prerequisite maintenance PR #813 (`maintenance/fix-orphan-wasm-bundle`) \
+            SQUASH-MERGED as `5e009dc0` immediately prior: (i) removed 2 orphaned tracked \
+            wasms fixing `bundle_orphan_check` T-009; (ii) word-boundary fix to \
+            `scan_max_d_nnn` in `validate-dispatch-advance` — it was matching the \"D\" \
+            inside \"RC25-RELEASED-2026-09-04\" as decision D-2026 and falsely flagging \
+            `current_step`'s D-1162 cite as stale, failing \
+            `validate_production_state_md_no_false_positive` across `cargo-host` + \
+            `build-dispatcher` CI (3 new Red Gate tests added; also stops mis-reading \
+            TD-VSDD-053 as D-053).";
+        let verbatim_drift_item_prose = "\
+            4. **Operator-level `scan_max_d_nnn` fix** — the \"D-2026\" false-positive \
+            (this session hit it live, at Edit-time, on this very STATE.md pause burst — \
+            PostToolUse advisory, writes landed) is fixed on `develop` (`5e009dc0`, \
+            D-1163) but NOT yet at operator/rc.25 level; it takes effect only at the \
+            next release (rc.26). Hook noise persists locally until then.";
+
+        let content = format!(
+            "---\n\
+             current_step: 'D-chain cite D-1163 latest brownfield'\n\
+             ---\n\
+             ## Active Branches\n\
+             \n\
+             {verbatim_active_branches_prose}\n\
+             \n\
+             ## Concurrent Cycles\n\
+             \n\
+             {verbatim_concurrent_cycles_prose}\n\
+             \n\
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             |----|----------|---------|-------|------|\n\
+             | D-1163 | D-1163-VERBATIM-FIXTURE | {verbatim_decisions_log_row_prose} | \
+             brownfield | 2026-09-04 |\n\
+             \n\
+             ## Drift Items / Tech Debt\n\
+             \n\
+             {verbatim_drift_item_prose}\n"
+        );
+
+        assert_eq!(
+            scan_max_decision_log_id(&content),
+            1163,
+            "verbatim STATE.md fixture: structural scan must return the \
+             Decisions Log ID-column max (1163), ignoring the verbatim \
+             quoted/bare 'D-2026' narrative-literal tokens copied from the \
+             live production defect"
+        );
+
+        let current_step = "D-chain cite D-1163 latest brownfield";
+        let v = check_d_chain_currency(&content, current_step);
+        assert!(
+            v.is_none(),
+            "verbatim STATE.md fixture: max_cited=1163 >= max_in_file=1163 \
+             — must NOT false-positive-block on the verbatim quoted/bare \
+             'D-2026' narrative mentions; got: {v:?}"
         );
     }
 
