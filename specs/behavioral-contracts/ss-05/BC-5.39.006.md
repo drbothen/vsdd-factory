@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.7"
+version: "1.8"
 status: active
 producer: product-owner
-timestamp: 2026-05-20T00:00:00Z
+timestamp: 2026-09-05T00:00:00Z
 phase: section-12-step-3M3a-r-pass-4
 cycle: brownfield-backfill
 inputs:
@@ -13,7 +13,8 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.005.md
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.004.md
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.003.md
-input-hash: "8933d71"
+  - .factory/cycles/v1.0-brownfield-backfill/scan-max-d-nnn-narrative-literal-hardening-analysis.md
+input-hash: "2a72fc8"
 traces_to: .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-m2-dispatch.md
 extracted_from: .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-m2-dispatch.md
 origin: brownfield
@@ -29,6 +30,7 @@ modified:
   - 2026-05-19
   - 2026-05-19
   - 2026-05-20
+  - 2026-09-05
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -37,7 +39,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.006
 section: "5.39"
-last_amended: "2026-05-20 (v1.7) — Pass-5 fix-burst closing F-BC006P5-002 + F-BC006P5-003 + F-BC006P5-004 (5-leg KK-N quintuple parity per D-490 / INV-020; INV-019 cure (b) on side-narrative; timestamp refresh). [Prior: 2026-05-19 (v1.4) — Sibling-sweep closing F-BC007P2-001: 16 HookResult::block_with_fix(...) occurrences replaced with HookResult::block_with_fix(...) canonical form. INV-017 applied. [Prior: 2026-05-18 (v1.3) — Spec amendment closing S-15.14 LOCAL adversary pass-11 finding F-P11-001: invariant 6(b) under-specifies the scoping boundary for the trajectory-tail LENGTH count. v1.2 prose said 'substring AFTER the trajectory-tail marker (not the whole current_step: value)' — but the production implementation in `check_trajectory_tail_length` (validate-dispatch-advance) further narrows to substring from marker-end TO the first semicolon segment-separator (or end-of-value if no semicolon follows). Full-substring-after-marker count yields 14 matches on production current_step (false-positive block); first-semicolon-segment count yields 4 (correct pass). v1.3 codifies the actual production behavior: invariant 6(b) now specifies 'from marker-end to first ; segment-separator (or end-of-value)'. EC-022 sweep: EC-022 row already describes the narrow scope correctly via 'LENGTH count scoped to substring after marker per invariant 6(b)' — row reworded to explicitly cite first-semicolon-segment scoping for clarity. This is a doc-clarification (spec aligns to code), not a behavior change. [Prior: 2026-05-17 (v1.2) — Spec amendment closing S-15.14 LOCAL adversary pass-3 finding F-P3-006: trajectory-tail prefix-absent now a HARD violation. New PC 6: current_step MUST contain literal canonical marker 'trajectory-tail ' (with trailing space); absence is BlockWithFix citing D-451(c)/F-P3-006. Invariant 6 updated: LENGTH count scoped to substring AFTER 'trajectory-tail ' prefix; if prefix absent, LENGTH check does not run — prefix-absent BlockWithFix fires instead. New EC-023 added. Precondition renumbering fixed (was 1,5,2,3,4 → now 1,2,3,4,5,6; F-P3-009/F-P2-009 in-scope fix). Verbatim grep stdout for 'trajectory-tail ' in STATE.md confirmed canonical marker present in production current_step. [Prior: 2026-05-17 (v1.1) — Spec amendments closing F-P1-001 (invariant 7 D-chain pattern relaxed to D-(\\d+) max-extraction; literal D-382..D- prefix requirement dropped; production current_step uses prose cite D-476 not range prefix), F-P1-002 (invariant 8 scoped to rows under ## Adversarial Reviews h2 heading only; canonical schema corrected from 6-column to 5-column per D-442(b); historical pre-D-441(b) rows grandfathered; precondition added), F-P1-003 (pipe arithmetic corrected: 5-column row = 6 pipes total; erroneous '8 pipes / 7 internal' formula replaced), F-P1-008 (implementer paper-fix via test-comment overriding spec now has authoritative spec text to match). EC-013 and EC-014 pipe counts realigned. [Prior: 2026-05-17 (v1.0) — Initial authoring (product-owner; brownfield-backfill S-15.03 M2 wave-4 story authoring). Anchors D-440(a)+D-441(a)+D-442(a)+D-443(a)+D-439(b)+D-441(b)+D-451(c). BC-5.39.006 allocated as next monotonic ID after BC-5.39.005 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.14 merge).]]"
+last_amended: "2026-09-05 (v1.8) — Architect-design-driven spec-first amendment (product-owner; per `.factory/cycles/v1.0-brownfield-backfill/scan-max-d-nnn-narrative-literal-hardening-analysis.md`). Replaces invariant 7 with a two-sided D-chain currency comparison: Side A max_cited (word-boundary scan of current_step: only, retroactively documenting the PR #813 / 5e009dc0 word-boundary guard that BC v1.7 predates) and Side B max_in_file (new structured-context scan restricted to whole-cell D-\\d+ matches in the first pipe-column of ## Decisions Log rows), closing the narrative-literal false-positive class (STATE.md's own prose describing a prior D-2026 self-reference bug was inflating max_in_file). Adds EC-024 (narrative/quoted D-NNN mention excluded from max_in_file) and a Canonical Test Vector row embedding the 4 confirmed word-boundary-passing D-2026 tokens (3 quoted + 1 prose) as a regression fixture. Companion backfill: adds precondition 7 documenting that check_index_version_cites and check_trajectory_tail_length are gated to the F5 cycle v1.0-feature-engine-discipline-pass-1 only, while check_forbidden_meta_commentary and check_d_chain_currency run unconditionally for every cycle by design (not omitted by oversight); propagated matching gate notes into postconditions 1/3/4 and invariants 4/5/6. Added a pending VP row (D-Chain Narrative-Literal Exclusion Invariant) and an Architecture Anchors bullet naming scan_max_d_nnn/scan_max_decision_log_id. No code, STATE.md, or story bodies touched by this amendment — Red Gate tests and implementation are a follow-up burst per the standard Agent Routing Table fix-burst path. [Prior: 2026-05-20 (v1.7) — Pass-5 fix-burst closing F-BC006P5-002 + F-BC006P5-003 + F-BC006P5-004 (5-leg KK-N quintuple parity per D-490 / INV-020; INV-019 cure (b) on side-narrative; timestamp refresh). [Prior: 2026-05-19 (v1.4) — Sibling-sweep closing F-BC007P2-001: 16 HookResult::block_with_fix(...) occurrences replaced with HookResult::block_with_fix(...) canonical form. INV-017 applied. [Prior: 2026-05-18 (v1.3) — Spec amendment closing S-15.14 LOCAL adversary pass-11 finding F-P11-001: invariant 6(b) under-specifies the scoping boundary for the trajectory-tail LENGTH count. v1.2 prose said 'substring AFTER the trajectory-tail marker (not the whole current_step: value)' — but the production implementation in `check_trajectory_tail_length` (validate-dispatch-advance) further narrows to substring from marker-end TO the first semicolon segment-separator (or end-of-value if no semicolon follows). Full-substring-after-marker count yields 14 matches on production current_step (false-positive block); first-semicolon-segment count yields 4 (correct pass). v1.3 codifies the actual production behavior: invariant 6(b) now specifies 'from marker-end to first ; segment-separator (or end-of-value)'. EC-022 sweep: EC-022 row already describes the narrow scope correctly via 'LENGTH count scoped to substring after marker per invariant 6(b)' — row reworded to explicitly cite first-semicolon-segment scoping for clarity. This is a doc-clarification (spec aligns to code), not a behavior change. [Prior: 2026-05-17 (v1.2) — Spec amendment closing S-15.14 LOCAL adversary pass-3 finding F-P3-006: trajectory-tail prefix-absent now a HARD violation. New PC 6: current_step MUST contain literal canonical marker 'trajectory-tail ' (with trailing space); absence is BlockWithFix citing D-451(c)/F-P3-006. Invariant 6 updated: LENGTH count scoped to substring AFTER 'trajectory-tail ' prefix; if prefix absent, LENGTH check does not run — prefix-absent BlockWithFix fires instead. New EC-023 added. Precondition renumbering fixed (was 1,5,2,3,4 → now 1,2,3,4,5,6; F-P3-009/F-P2-009 in-scope fix). Verbatim grep stdout for 'trajectory-tail ' in STATE.md confirmed canonical marker present in production current_step. [Prior: 2026-05-17 (v1.1) — Spec amendments closing F-P1-001 (invariant 7 D-chain pattern relaxed to D-(\\d+) max-extraction; literal D-382..D- prefix requirement dropped; production current_step uses prose cite D-476 not range prefix), F-P1-002 (invariant 8 scoped to rows under ## Adversarial Reviews h2 heading only; canonical schema corrected from 6-column to 5-column per D-442(b); historical pre-D-441(b) rows grandfathered; precondition added), F-P1-003 (pipe arithmetic corrected: 5-column row = 6 pipes total; erroneous '8 pipes / 7 internal' formula replaced), F-P1-008 (implementer paper-fix via test-comment overriding spec now has authoritative spec text to match). EC-013 and EC-014 pipe counts realigned. [Prior: 2026-05-17 (v1.0) — Initial authoring (product-owner; brownfield-backfill S-15.03 M2 wave-4 story authoring). Anchors D-440(a)+D-441(a)+D-442(a)+D-443(a)+D-439(b)+D-441(b)+D-451(c). BC-5.39.006 allocated as next monotonic ID after BC-5.39.005 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.14 merge).]]]"
 ---
 
 # BC-5.39.006: validate-dispatch-advance WASM hook MUST block on forbidden meta-commentary in current_step, missing 4-index version citations, trajectory-tail cardinality violations, stale D-chain cites in STATE.md, and non-5-column adversary-pass rows in the INDEX.md ## Adversarial Reviews section
@@ -92,6 +94,22 @@ rather than at write time.
    `"current_step missing 'trajectory-tail ' canonical marker; D-451(c)/F-P3-006"` without
    proceeding to the LENGTH count check. The LENGTH count check (invariant 6, postcondition 4) runs
    ONLY when this marker is present.
+7. **(v1.8, companion backfill; see
+   `.factory/cycles/v1.0-brownfield-backfill/scan-max-d-nnn-narrative-literal-hardening-analysis.md`
+   §6.1)** The `check_index_version_cites` gate (postcondition 3 / invariant 5, 4-index-version-cite
+   check) and the `check_trajectory_tail_length` gate (postcondition 4 / invariant 6, trajectory-tail
+   LENGTH=4 check) run ONLY when the STATE.md `current_cycle:` frontmatter value equals the literal
+   F5 engine-discipline cycle ID `v1.0-feature-engine-discipline-pass-1`, as determined by
+   `extract_current_cycle` + `is_f5_cycle`. For any other `current_cycle:` value — including
+   `v1.0-brownfield-backfill` and any future cycle ID — these two checks do NOT run, and their
+   corresponding violations (postconditions 3 and 4) MUST NOT fire. By contrast,
+   `check_forbidden_meta_commentary` (postcondition 2 / invariant 4) and `check_d_chain_currency`
+   (postcondition 5 / invariant 7) run UNCONDITIONALLY for every cycle, with no `current_cycle:`
+   gate. This asymmetry is intentional design, not an oversight: the 4-index-cite and
+   trajectory-tail conventions are F5-engine-discipline-specific dispatch-protocol artifacts that
+   non-F5 cycles' `current_step:` values never contain by design, whereas forbidden-meta-commentary
+   and D-chain-cite currency are cross-cutting governance properties applicable to every cycle's
+   `current_step:` value regardless of cycle-specific dispatch-protocol conventions.
 
 ## Postconditions
 
@@ -100,21 +118,28 @@ rather than at write time.
 1. If ALL of the following hold, the hook emits `HookResult::Continue` (pass):
    - The `current_step:` frontmatter value does NOT match the forbidden meta-commentary regex
      `META-LEVEL-\d+ WATCH|self-app TEST|expected verdict`.
-   - All 4 index version patterns are present in the `current_step:` value:
-     BC-INDEX vX, VP-INDEX vX, STORY-INDEX vX, ARCH-INDEX vX (where X is a version string).
-   - The `current_step:` value contains the literal canonical marker `trajectory-tail ` (with
-     trailing space), and the substring after that marker contains exactly 4 `→(\d+)` matches
-     (LENGTH=4 per D-451(c); canonical form `trajectory-tail →N→N→N→N`).
-   - The D-chain cite in `current_step:` is not stale — it includes a reference to the latest
-     D-NNN recorded in the cycle decision-log (validated by checking that the cited D-NNN range
-     upper bound matches the most recently codified decision visible in the file or, if
-     inaccessible, that the cite pattern `D-382..D-\d+` is present and the terminal integer is
-     >= the previously-observed maximum).
+   - **(F5-cycle-scope gate; precondition 7)** All 4 index version patterns are present in the
+     `current_step:` value: BC-INDEX vX, VP-INDEX vX, STORY-INDEX vX, ARCH-INDEX vX (where X is a
+     version string). This bullet is evaluated only when `current_cycle:` is
+     `v1.0-feature-engine-discipline-pass-1`; for any other cycle it is not evaluated (vacuously
+     satisfied).
+   - **(F5-cycle-scope gate; precondition 7)** The `current_step:` value contains the literal
+     canonical marker `trajectory-tail ` (with trailing space), and the substring after that
+     marker contains exactly 4 `→(\d+)` matches (LENGTH=4 per D-451(c); canonical form
+     `trajectory-tail →N→N→N→N`). This bullet is evaluated only when `current_cycle:` is
+     `v1.0-feature-engine-discipline-pass-1`; for any other cycle it is not evaluated (vacuously
+     satisfied).
+   - The D-chain cite in `current_step:` is not stale, per the two-sided Side A/Side B comparison
+     defined in invariant 7 (this bullet is evaluated unconditionally, for every cycle).
 2. If the `current_step:` value matches the forbidden meta-commentary regex, the hook emits
    `HookResult::block_with_fix(...)` naming the offending pattern and citing D-440(a)+D-441(a)+D-442(a).
-3. If any of the 4 index version patterns is absent from `current_step:`, the hook emits
+3. **(F5-cycle-scope gate; precondition 7 — applies only when `current_cycle:` is
+   `v1.0-feature-engine-discipline-pass-1`; does not run for any other cycle)** If any of the 4
+   index version patterns is absent from `current_step:`, the hook emits
    `HookResult::block_with_fix(...)` naming each missing index cite and citing D-439(b).
-4. If the `current_step:` value contains the canonical marker `trajectory-tail ` but the substring
+4. **(F5-cycle-scope gate; precondition 7 — applies only when `current_cycle:` is
+   `v1.0-feature-engine-discipline-pass-1`; does not run for any other cycle)** If the
+   `current_step:` value contains the canonical marker `trajectory-tail ` but the substring
    after it does not contain exactly 4 `→(\d+)` matches, the hook emits
    `HookResult::block_with_fix(...)` naming the actual match count, the required count (4), and citing
    D-451(c).
@@ -156,11 +181,17 @@ rather than at write time.
 4. The forbidden meta-commentary regex is anchored to the `current_step:` frontmatter field
    only — NOT applied to the full STATE.md body content. The regex pattern is:
    `META-LEVEL-\d+ WATCH|self-app TEST|expected verdict`. These exact tokens are verbatim
-   per D-440(a); the hook MUST NOT expand or narrow this set without a spec amendment.
-5. The 4 index version patterns required in `current_step:` are: the literal strings
-   `BC-INDEX v`, `VP-INDEX v`, `STORY-INDEX v`, `ARCH-INDEX v` (each followed by a version
-   token). All 4 must be present. Missing any one is a violation per D-439(b).
-6. **(v1.3, F-P11-001)** Trajectory-tail detection within `current_step:` is a two-step operation:
+   per D-440(a); the hook MUST NOT expand or narrow this set without a spec amendment. **(v1.8)**
+   This check runs UNCONDITIONALLY for every `current_cycle:` value — no F5-cycle-scope gate
+   applies (see precondition 7).
+5. **(v1.8: F5-cycle-scope gate applies — see precondition 7; this check runs ONLY when
+   `current_cycle:` is `v1.0-feature-engine-discipline-pass-1`)** The 4 index version patterns
+   required in `current_step:` are: the literal strings `BC-INDEX v`, `VP-INDEX v`,
+   `STORY-INDEX v`, `ARCH-INDEX v` (each followed by a version token). All 4 must be present.
+   Missing any one is a violation per D-439(b).
+6. **(v1.3, F-P11-001; v1.8: F5-cycle-scope gate applies — see precondition 7; this check runs
+   ONLY when `current_cycle:` is `v1.0-feature-engine-discipline-pass-1`)** Trajectory-tail
+   detection within `current_step:` is a two-step operation:
    (a) **Prefix check (mandatory first step):** the hook searches for the literal substring
    `trajectory-tail ` (with trailing space) in the `current_step:` value. If this marker is
    absent, the hook emits `HookResult::block_with_fix(...)` with description
@@ -191,32 +222,44 @@ rather than at write time.
    Post-amendment: line 165 replaced with first-semicolon-segment scoping per production
    `check_trajectory_tail_length` behavior. Zero false positives on production state confirmed.
 
-7. D-chain currency validation: the `current_step:` value MUST contain at least one `D-\d+`
-   reference. The hook extracts ALL `D-(\d+)` integers from the `current_step:` value using
-   regex `D-(\d+)` applied globally, takes the maximum integer found (call it `max_cited`), and
-   compares it against the highest `D-(\d+)` integer observable anywhere in STATE.md (call it
-   `max_in_file`). If no `D-\d+` reference appears in `current_step:` at all, the cite is absent
-   and is a violation. If `max_cited` is present but `max_cited < max_in_file`, the cite is
-   stale and is a violation. If `max_cited >= max_in_file`, the cite is current. The literal
-   prefix `D-382..` is NOT required — production `current_step:` fields use prose forms such as
-   `D-chain cite D-476 latest brownfield` which are valid under this rule as long as the extracted
-   maximum integer is >= the maximum D-NNN visible in STATE.md. This design is fail-open for
-   staleness when no D-NNN appears in STATE.md body at a higher integer than `current_step:` cites,
-   to avoid false-positive blocks on legitimate in-progress writes; the adversary cycle catches
-   genuine staleness at pass time.
+7. **(v1.8, narrative-literal hardening; see
+   `.factory/cycles/v1.0-brownfield-backfill/scan-max-d-nnn-narrative-literal-hardening-analysis.md`
+   §5, and PR #813 / `5e009dc0` for the Side A word-boundary guard retroactively documented here)**
+   D-chain currency validation is a two-sided comparison with **different scanning rules on each
+   side**, and runs unconditionally for every cycle (not gated to the F5 engine-discipline cycle;
+   see precondition 7 for the F5-cycle-scope-gate documentation added in this v1.8 amendment).
 
-   **Pre-fix verification (LL-3 verbatim stdout):**
-   ```
-   $ grep -n "current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE 'D-[0-9]+'
-   D-419
-   D-420
-   D-421
-   D-476
-   D-417
-   D-394
-   ```
-   Maximum D-NNN in current_step: D-476. Amended invariant 7 matches this production form — `D-476`
-   is a bare cite (no `D-382..` prefix), correctly extracted by `D-(\d+)` regex. Zero false positives.
+   **Side A — `max_cited` (from `current_step:` only):** the hook extracts all `D-(\d+)` integers
+   from the `current_step:` value where the character immediately preceding `D` is either absent
+   (start of value) or not an ASCII-alphanumeric byte (word-boundary rule; closes the
+   `RC25-RELEASED-2026` / `TD-VSDD-053` word-internal-embedding class — F-P1-006-B, PR #813).
+   Takes the maximum such integer.
+
+   **Side B — `max_in_file` (from the STATE.md body):** the hook scans **only** rows under the
+   exact `## Decisions Log` h2 heading (up to the next `## ` heading or end-of-file), and within
+   that section considers only lines that are pipe-delimited table rows (trimmed content starts
+   and ends with `|`) that are not separator rows (containing `---`). For each such row, the hook
+   takes the **first** pipe-delimited cell, trims it, and — **only if the trimmed cell is a
+   whole-string match to `D-\d+` (the entire cell, not a substring)** — includes that integer in
+   the candidate set. `max_in_file` is the maximum of that set (0 if the section is absent or
+   contains no matching rows).
+
+   **Rationale for the asymmetry:** `max_cited` must tolerate free prose (`current_step:`
+   legitimately uses forms like "D-chain cite D-1163 latest brownfield"), so a lexical
+   word-boundary heuristic is the right tool there. `max_in_file` must instead answer "what is
+   the highest decision this file has actually *codified*" — which is a structural fact, not a
+   lexical one, and is answered precisely and permanently by the Decisions Log ID column: no
+   prose, quoted literal, backtick-quoted token, banner-history mention, or self-referential
+   narrative about a `D-NNN` string (however that string is delimited or preceded) can ever
+   satisfy "is the entire first cell of a `## Decisions Log` row," because that column is
+   populated exclusively by state-manager at decision-codification time (D-448(b)) and by no
+   other authoring path. Closes the narrative-literal class (task-verified: STATE.md's own prose
+   describing a prior instance of this exact bug — `"D-2026"` quoted 3x, `decision D-2026` once,
+   all outside `## Decisions Log` — no longer inflates `max_in_file`).
+
+   If `max_cited` is absent (no `D-\d+` in `current_step:` at all): violation (absent cite). If
+   `max_cited < max_in_file`: violation (stale cite). If `max_cited >= max_in_file`: current (or
+   fail-open if `max_in_file = 0`).
 
 8. Adversary-pass row column detection in INDEX.md: validation applies ONLY to rows that appear
    under the `## Adversarial Reviews` h2 heading (exact heading text per production INDEX.md files).
@@ -289,6 +332,7 @@ rather than at write time.
 | EC-021 | STATE.md `current_step:` contains valid 4-arrow tail in prose body but `current_step:` itself has only 3-arrow tail | `HookResult::block_with_fix(...)` on trajectory-tail (hook extracts tail from `current_step:` value only, not full body) |
 | EC-022 | `current_step:` contains additional `→N→N→N→N` arrow sequences beyond the canonical tail (e.g., cascade narratives or TD-NNN renumber references after the first `;` segment) | Continue; LENGTH count is scoped to the substring between `trajectory-tail ` marker and first `;` segment-separator per invariant 6(b); arrow patterns in subsequent semicolon-segments are excluded from the count |
 | EC-023 | `current_step:` value does not contain the literal substring `trajectory-tail ` (with trailing space) — e.g., state-manager wrote `tail →9→9→9→9` omitting the canonical marker | `HookResult::block_with_fix(...)`: "current_step missing 'trajectory-tail ' canonical marker; D-451(c)/F-P3-006"; LENGTH count does NOT run |
+| EC-024 | STATE.md narrative body (outside `## Decisions Log`) contains a quoted or prose mention of a `D-NNN` token numerically larger than any real Decisions Log row (e.g. `"D-2026"`, `decision D-2026`) while `current_step:` correctly cites the true latest ID (e.g. `D-1163`) | Continue — narrative mentions outside the Decisions Log ID column are excluded from `max_in_file` by construction; only whole-cell `D-\d+` matches in the first column of `## Decisions Log` rows count |
 
 ## Canonical Test Vectors
 
@@ -310,6 +354,7 @@ rather than at write time.
 | xSTATE.md path | file_name is "xSTATE.md" | `HookResult::Continue` (is_state_md_target false) | PASS (not target) |
 | xINDEX.md path | file_name is "xINDEX.md" | `HookResult::Continue` (is_index_md_target false) | PASS (not target) |
 | Arrow pattern false-positive scoped out | `current_step:` has `trajectory-tail →9→9→9→9; TD-VSDD-064/065→095/096 ...` (marker present; first-semicolon segment has 4 counts; subsequent segment has 2 extra `→\d+` matches) | `HookResult::Continue`; first-semicolon-segment count is 4 (correct); subsequent-segment arrows excluded | PASS |
+| D-chain narrative-literal exclusion (D-2026 self-reference) | STATE.md body contains, outside `## Decisions Log`: quoted `"D-2026"` (x3 equivalent occurrences, e.g. `misreading "D-2026" inside the current_step value`) and bare prose `decision D-2026` (e.g. `flagged as decision D-2026 and falsely blocked`); `## Decisions Log` section's max ID-column row is `\| D-1163 \| ... \|`; `current_step:` cites `D-1163` | `HookResult::Continue` — Side B structural scan of the `## Decisions Log` ID column yields `max_in_file=1163`; the 4 narrative `D-2026` tokens are excluded because none occupies the whole first pipe-cell of a `## Decisions Log` row; `max_cited=1163 >= max_in_file=1163` | PASS (cites `.factory/cycles/v1.0-brownfield-backfill/scan-max-d-nnn-narrative-literal-hardening-analysis.md` §1.2/§5 and PR #813 `5e009dc0` as prior art) |
 
 ## D-NNN Anchor Coverage
 
@@ -339,6 +384,7 @@ rather than at write time.
 | (pending) | Fail-open Invariant STATE.md — hook emits Continue when file is unreadable | bats integration test (fail-open-state-unreadable fixture) |
 | (pending) | Fail-open Invariant INDEX.md — hook emits Continue when file is unreadable | bats integration test (fail-open-index-unreadable fixture) |
 | (pending) | Arrow-Pattern Scope Invariant — hook does NOT false-positive when non-tail arrow patterns appear in `current_step:` in segments after the first `;` separator | bats integration test (pass-arrow-pattern-scoped-out fixture) |
+| (pending) | D-Chain Narrative-Literal Exclusion Invariant — `max_in_file` (Side B) computation ignores `D-NNN` mentions outside the whole-cell first column of `## Decisions Log` rows, regardless of quoting/delimiter (quoted literal, backtick-quoted, or bare prose) | bats integration test (pass-d-chain-narrative-literal-excluded fixture; see `test_scan_max_decision_log_id_ignores_narrative_and_quoted_mentions` / `test_check_d_chain_currency_no_false_positive_on_narrative_literal` in `crates/hook-plugins/validate-dispatch-advance/src/lib.rs`) |
 
 VP IDs are pending VP-INDEX allocation by state-manager at post-merge burst.
 
@@ -349,7 +395,7 @@ VP IDs are pending VP-INDEX allocation by state-manager at post-merge burst.
 | L2 Capability | E-12 (Engine Governance — dispatch-advance structural validation automation sub-capability) |
 | Capability Anchor Justification | E-12 governs factory engine discipline automation. This BC formalizes the PostToolUse gate that mechanically prevents the `current_step:` meta-commentary, missing 4-index-cite, trajectory-tail cardinality, stale D-chain, and INDEX.md column-count violation classes codified in D-440(a), D-441(a), D-442(a), D-443(a), D-439(b), D-441(b), and D-451(c). The hook targets STATE.md frontmatter writes and INDEX.md adversary-pass table writes — both governance artifacts, not runtime subsystem artifacts. |
 | Architecture Module | `crates/hook-plugins/validate-dispatch-advance/` (Rust WASM plugin); `plugins/vsdd-factory/hooks-registry.toml` (registry entry); `plugins/vsdd-factory/hook-plugins/validate-dispatch-advance.wasm` (compiled binary) |
-| D-NNN Sub-Clauses Closed | D-440(a) (forbidden meta-commentary gate); D-441(a) (verbatim-strict `current_step:` — meta-commentary arm); D-442(a) (prescribed clause order — meta-commentary arm); D-443(a) (D-chain cite currency gate — relaxed to D-(\d+) max-extraction per F-P1-001); D-439(b) (4-index version cite presence); D-441(b) (5-column INDEX.md adversary-pass row schema within `## Adversarial Reviews` h2 section); D-442(b) (INDEX.md `## Adversarial Reviews` canonical 5-column schema; historical 4-col grandfathered); D-451(c) (trajectory-tail LENGTH=4 after `trajectory-tail ` canonical marker in `current_step:`; absent marker = `HookResult::block_with_fix(...)` per F-P3-006) |
+| D-NNN Sub-Clauses Closed | D-440(a) (forbidden meta-commentary gate); D-441(a) (verbatim-strict `current_step:` — meta-commentary arm); D-442(a) (prescribed clause order — meta-commentary arm); D-443(a) (D-chain cite currency gate — relaxed to D-(\d+) max-extraction per F-P1-001; refined at v1.8 to a two-sided Side A (word-boundary `current_step:` scan, PR #813) / Side B (structured `## Decisions Log` ID-column scan) comparison per invariant 7, closing the narrative-literal false-positive class); D-439(b) (4-index version cite presence; F5-cycle-scope gated per v1.8 precondition 7); D-441(b) (5-column INDEX.md adversary-pass row schema within `## Adversarial Reviews` h2 section); D-442(b) (INDEX.md `## Adversarial Reviews` canonical 5-column schema; historical 4-col grandfathered); D-451(c) (trajectory-tail LENGTH=4 after `trajectory-tail ` canonical marker in `current_step:`; absent marker = `HookResult::block_with_fix(...)` per F-P3-006; F5-cycle-scope gated per v1.8 precondition 7) |
 | Stories | S-15.14 |
 
 ## Related BCs
@@ -372,6 +418,7 @@ VP IDs are pending VP-INDEX allocation by state-manager at post-merge burst.
 ## Architecture Anchors
 
 - `crates/hook-plugins/validate-dispatch-advance/` — hook implementation (pure logic functions + effectful orchestration); trajectory-tail scoping in `check_trajectory_tail_length`
+- `crates/hook-plugins/validate-dispatch-advance/src/lib.rs` — D-chain currency two-sided scan implemented via `scan_max_d_nnn` (Side A, word-boundary guard, `current_step:` only, PR #813) and `scan_max_decision_log_id` (Side B, structured `## Decisions Log` ID-column scan, v1.8) inside `check_d_chain_currency`; F5-cycle-scope gate implemented via `extract_current_cycle` + `is_f5_cycle`
 - `crates/hook-sdk/src/host.rs` — `host::read_file(path, max_bytes, timeout_ms)` API consumed by this hook
 - `plugins/vsdd-factory/hooks-registry.toml` — PostToolUse registration with `tool = "Edit|Write"` and dual file targets `STATE.md` + `INDEX.md` (canonical Q5 form)
 
@@ -383,6 +430,7 @@ S-15.14 — v1.0-brownfield-backfill (S-15.03 PRIORITY-A M2 Wave-4)
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.8 | 2026-09-05 | Spec-first amendment (product-owner; per architect design doc `.factory/cycles/v1.0-brownfield-backfill/scan-max-d-nnn-narrative-literal-hardening-analysis.md`). (a) Invariant 7 replaced with a two-sided D-chain currency comparison: Side A `max_cited` (word-boundary scan of `current_step:` only — retroactively documenting the PR #813 / `5e009dc0` word-boundary guard, which BC v1.7 predates and did not reflect) and Side B `max_in_file` (new structured-context scan restricted to whole-cell `D-\d+` matches in the first pipe-column of `## Decisions Log` rows only), closing the narrative-literal false-positive class where STATE.md's own prose describing a prior `D-2026` self-reference bug (3 quoted + 1 bare-prose occurrence, all outside `## Decisions Log`) was inflating `max_in_file` under the old whole-body word-boundary scan. Empirically verified against the live, unmodified STATE.md: OLD scan `max_in_file=2026` (bug) vs NEW scan `max_in_file=1163` (fixed, matches `max_cited=1163`) — no STATE.md content edit required. (b) Added EC-024 (narrative/quoted `D-NNN` mention outside `## Decisions Log` excluded from `max_in_file`) and a Canonical Test Vector row embedding the 4 confirmed word-boundary-passing `D-2026` tokens (3 quoted + 1 prose) as a regression fixture, citing the analysis doc and PR #813 as prior art. (c) Companion backfill (§6.1 of the analysis doc): added precondition 7 documenting that `check_index_version_cites` and `check_trajectory_tail_length` are gated to the F5 cycle `v1.0-feature-engine-discipline-pass-1` only (via `extract_current_cycle`/`is_f5_cycle`), while `check_forbidden_meta_commentary` and `check_d_chain_currency` run unconditionally for every cycle by design — not omitted by oversight. Propagated matching F5-cycle-scope-gate notes into postconditions 1/3/4 and invariants 4/5/6 for internal consistency. Added a pending VP row (D-Chain Narrative-Literal Exclusion Invariant), a Traceability D-443(a) refinement note, and an Architecture Anchors bullet naming `scan_max_d_nnn`/`scan_max_decision_log_id`. No ADR and no POLICY 22 ratification required (precision correction to an existing invariant's scanning implementation, consistent with 7 prior precedent amendments to this BC and with PR #813 itself; see analysis doc §7). This amendment is spec-only — no code, STATE.md, or story-frontmatter `bcs:` arrays were modified; Red Gate tests (test-writer) and the `scan_max_decision_log_id` implementation (implementer) are a follow-up fix-burst. |
 | 1.7 | 2026-05-20 | Pass-5 fix-burst (product-owner; brownfield-backfill M3 3M3a-r). Closes F-BC006P5-002 (HIGH: frontmatter `last_amended:` text-prefix stale at prior v1.6; now updated to `"2026-05-20 (v1.7)"` per POLICY 14 KK-N leg-4 quintuple parity as extended at D-490 / INV-020). Closes F-BC006P5-003 (LOW: INV-019 RECURRENCE in v1.6 side-narrative enumeration of remaining tokens). INV-019 cure (b) inline-acknowledge applied: the v1.6 row's side-narrative claimed "5 remaining tokens in POLICY-1-exempt historical content" — that count was post-commit-wrong because the v1.6 row itself added ~4 quoting tokens to the historical section. Load-bearing line-range-exclude grep (lines 41-381) remains sound: `sed -n '41,381p' .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md \| grep -cE 'BlockWithFix'` → `0` (spec body still clean; v1.5 fix confirmed). INV-019 cure (b) inline-acknowledge of side-narrative token count: the actual post-v1.6-commit count across POLICY-1-exempt historical content (frontmatter `last_amended` historical narrative + rows v1.2..v1.6) is ~16 raw occurrences of `BlockWithFix`, not 5 — the v1.6 side-narrative did not account for the row's own evidence prose contributing +4 tokens. This v1.7 row does not re-enumerate the exact count (INV-019 cure (b): acknowledge drift rather than re-count that will itself be stale). Cure (b) inline-acknowledge applied per D-490 INV-019 forward-application. Closes F-BC006P5-004 (LOW: frontmatter `timestamp:` refreshed to 2026-05-20T00:00:00Z). INV-019 cure type: cure (b) inline-acknowledge on side-narrative, cure (a) line-range-exclude on load-bearing grep. |
 | 1.6 | 2026-05-19 | Pass-4 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst pass-4). Closes F-BC006P4-001 (LOW: v1.5 changelog row INV-018 residual-class evidence non-reproducible — INV-019 class: self-reference accounting drift). The v1.5 row claimed `grep -cE 'BlockWithFix' ... → 4`; post-commit re-execution returns 5 because the v1.5 row's own evidence prose contains `BlockWithFix` (the grep pattern string), contributing +1 to any subsequent execution. No spec content changes required — the v1.5 fix (replacing 24 non-historical bare BlockWithFix tokens with canonical `HookResult::block_with_fix(...)`) remains correct. This v1.6 row is documentary: it records the self-reference accounting drift, applies the INV-019 cure, and re-executes the production-read grep with the cure. INV-019 cure: cure (a) line-range-exclude — grep bounded to lines 41-381 (spec body only, post-frontmatter pre-Changelog) to exclude the YAML frontmatter `last_amended` field (which contains historical v1.2 narrative with `BlockWithFix`) and all Changelog rows. INV-018 post-v1.5 narrow-pattern (spec body lines 41-381): `sed -n '41,381p' .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md \| grep -cE 'HookResult::BlockWithFix'` → `0` (prefixed CamelCase form absent from spec body; v1.5 fix confirmed). INV-018 post-v1.5 residual-class sweep (spec body lines 41-381): `sed -n '41,381p' .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md \| grep -cE 'BlockWithFix'` → `0` (bare form also absent from spec body; all 24 non-historical tokens replaced at v1.5). Corrected per-location enumeration: 0 bare `BlockWithFix` tokens in spec body (lines 41-381). The 5 remaining tokens are in POLICY-1-exempt historical content: frontmatter `last_amended` v1.2 narrative (1 — line 39), changelog row v1.2 (1), changelog row v1.3 (2), and changelog row v1.5 evidence prose (1) — total 5 historical, all exempt. |
 | 1.5 | 2026-05-19 | Pass-3 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst pass-3; INV-018 dual-grep applied). Closes F-BC006P3-001 (CRITICAL: 28-bare-`BlockWithFix`-residual sibling-sweep — bare `BlockWithFix` CamelCase tokens in EC table rows (EC-001..EC-023 Expected Behavior column, 14 rows), VP table rows (6 rows), D-NNN Anchor Coverage row (1 row), postcondition 6 body text (1 row), invariant 6(a) body text (1 row), Traceability D-NNN Sub-Clauses Closed (1 row) = 24 non-historical tokens replaced with canonical `HookResult::block_with_fix(...)` associated-function form. 4 remaining `BlockWithFix` tokens reside in append-only historical content: frontmatter `last_amended` v1.2 narrative (1 occurrence) and changelog rows v1.2 (1) and v1.3 (2) — exempt from modification per POLICY 1 append-only changelog history. INV-018 pre-fix narrow-pattern evidence: `grep -cE 'HookResult::BlockWithFix' .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` → `0` (INV-017 satisfied — prefixed form already zero). INV-018 pre-fix residual-class sweep: `grep -cE 'BlockWithFix' .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` → `28` (bare-form residual confirmed). INV-018 post-fix narrow-pattern: `grep -cE 'HookResult::block_with_fix\(' .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` → `30` (18 original + 12 newly-converted from bare form in EC/VP/D-NNN/Traceability sections; postfix count includes backtick-quoted forms). INV-018 post-fix residual-class sweep: `grep -cE 'BlockWithFix' .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` → `4` (only in append-only historical content: last_amended v1.2 narrative + changelog rows v1.2/v1.3; all 4 are POLICY-1-exempt). Closes F-BC006P3-002 (MEDIUM: v1.4 changelog row self-referential typo corrigendum): v1.4 changelog row said "`HookResult::block_with_fix(...)` variant non-existence — 16 occurrences replaced with canonical `HookResult::block_with_fix(...)`"; the replace-target description was textually identical to the replacement. The intended wording was `HookResult::BlockWithFix` (CamelCase variant form) as the replace-target. v1.4 changelog row is not modified (POLICY 1 append-only); this corrigendum is appended here in v1.5: the v1.4 sweep replaced `HookResult::BlockWithFix` (16 prefixed occurrences) → `HookResult::block_with_fix(...)`. v1.5 sweep additionally closes F-BC006P3-001 by replacing the 24 non-historical bare `BlockWithFix` tokens. |
