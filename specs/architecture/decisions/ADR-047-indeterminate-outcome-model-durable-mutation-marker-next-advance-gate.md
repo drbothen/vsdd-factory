@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-047
-version: "1.5"
+version: "1.6"
 title: "ADR-047: INDETERMINATE Outcome Model — First-Class Cannot-Complete Outcome, Durable Mutation Marker, and Next-Advance Gate (Three-Layer Validation Integrity Architecture)"
 status: accepted
 date: 2026-08-30
@@ -15,7 +15,7 @@ supersedes: null
 superseded_by: ADR-048
 extends: ADR-039
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
-last_amended: "2026-09-04 (v1.5) — Erratum-class clarification note appended to §Decision 8a's 'Known Gap' paragraph (S-25.04 F2 architecture elaboration, architect-authored per orchestrator dispatch; NOT a POLICY 22 design/security-model change — no decision content, threshold, or normative prescription is altered, consistent with ADR-047's own v1.4 self-characterization and ADR-039's E-series erratum precedent): the 'artifact-write side' phrasing describing option (a)'s companion validator is corrected to point to BC-4.16.001 as validate-factory-path-staging's authoritative behavior (a narrow git-staging exclusivity guard, NOT a content validator), and the Known Gap's closure is identified as the new PostToolUse detective-mirror companion validate-factory-path-staged (BC-4.16.002, SS-04/CAP-034), registered under the human-ratified BROAD trigger scope (unconditional git-index/branch check on every completed Bash PostToolUse dispatch, no command-text pre-filter)."
+last_amended: "2026-09-05 (v1.6) — Erratum-class plugin-name correction to §Decision 8a's Cohort B table (S-25.02 F2 architecture elaboration, architect-authored per orchestrator dispatch, co-amended in the same burst as ADR-051; NOT a POLICY 22 design/security-model change — no decision content, threshold, or normative prescription is altered, using the same erratum-class amendment process ADR-047 v1.5 itself set as precedent): the non-existent plugin name `validate-burst-log-structure` is corrected to the actual registered plugin `validate-burst-log` (specifically its `event=\"PostToolUse\" tool=\"^(Edit|Write|MultiEdit)$\"` arm, which scans burst-log.md content; the plugin's separate `tool=\"^Bash$\"` arm is an unrelated, exec-free git-commit chain-detection gate and is explicitly out of Cohort B scope). S-25.02's own AC-006 carries the same citation drift and is flagged as a product-owner BC-authorship input in ADR-051 and the companion S-25.02 F2 architecture-delta doc; this ADR does not modify the story body."
 modified:
   - "2026-08-30 (v1.0) — Initial authoring"
   - "2026-08-30 (v1.1) — Human ratification: D9 extended gate to git commit/push Bash arm; D8a confirmed as-authored"
@@ -23,6 +23,7 @@ modified:
   - "2026-08-30 (v1.3) — Cohort A A-immediate/A-deferred partition; Integration Ordering corrected; tool pattern factual fix for validate-factory-path-staging; consistent with S-25.01 AC-016 v1.1"
   - "2026-09-03 (v1.4) — Factual correction: Layer-1 effective fail-closed count corrected from ONE to ZERO for validate-factory-path-staging (structural PreToolUse/PostToolUse marker-write mismatch, BC-1.18.001 INV4); EFFECTIVE-NOW label softened to avoid overclaiming enforcement; v1.3 tool-pattern-fix changelog entry completed (event-type half was already correct in the body, only the changelog description was incomplete); ZERO-enforcement gap anchored to recommended follow-up story S-25.04. Not a POLICY 22 change — pure factual correction, no design content altered."
   - "2026-09-04 (v1.5) — Erratum-class clarification note appended to §Decision 8a's 'Known Gap' paragraph: corrects the loose 'artifact-write side' phrasing to cite BC-4.16.001 as validate-factory-path-staging's authoritative narrow git-staging-exclusivity behavior (not a content validator), and identifies the Known Gap's closure as new companion validate-factory-path-staged (BC-4.16.002, SS-04/CAP-034) under the human-ratified BROAD (unconditional, no command-text pre-filter) trigger scope. Not a POLICY 22 change — no decision content altered, wording/citation correction only."
+  - "2026-09-05 (v1.6) — Erratum-class plugin-name correction to §Decision 8a's Cohort B table: `validate-burst-log-structure` (non-existent) corrected to `validate-burst-log` (Edit/Write arm only). Discovered during S-25.02 F1 delta analysis; co-amended alongside new ADR-051 (Layer-2 two-mechanism shard-rotation architecture). Not a POLICY 22 change — no decision content, threshold, or normative prescription altered, citation correction only."
 ---
 
 # ADR-047: INDETERMINATE Outcome Model — First-Class Cannot-Complete Outcome, Durable Mutation Marker, and Next-Advance Gate
@@ -468,7 +469,7 @@ risks an INDETERMINATE+marker feedback loop on normal pipeline writes:
 
 | Plugin | Event/Tool | Reason for Layer-2 Deferral |
 |--------|-----------|---------------------------|
-| `validate-burst-log-structure` | PostToolUse `^(Edit\|Write\|MultiEdit)$` | Scans burst-log.md — fuel-exhausts at current sizes; Layer 2 shard cap eliminates this |
+| `validate-burst-log` (Edit/Write/MultiEdit arm only — corrected v1.6, erratum: was misnamed `validate-burst-log-structure`, which does not exist in `hooks-registry.toml`; the plugin's separate `^Bash$` arm is an unrelated git-commit chain-detection gate, NOT part of Cohort B) | PostToolUse `^(Edit\|Write\|MultiEdit)$` | Scans burst-log.md — fuel-exhausts at current sizes; Layer 2 shard cap eliminates this |
 | `regression-gate` | PostToolUse `^(Edit\|Write)$` | Scans STATE.md body + large cycle artifacts; failed 22× writing its own state file; Layer 2 bounds both the input and the state-file write |
 | `convergence-tracker` | PostToolUse `^(Edit\|Write)$` | Scans convergence history across multiple large cycle files; Layer 2 shard cap required first |
 | `validate-cross-site-correspondence` | PostToolUse `^(Edit\|Write\|MultiEdit)$` | **Demoted from Cohort A in v1.2:** Human-confirmed Cohort A set is exactly three validators; this validator was NOT in the human-confirmed set. Boundedness relative to large cycle artifacts (decision-log.md/burst-log.md/lessons.md) is not verified in F2 scope — the validator scans `modified[]` arrays and cross-site parity across spec files and fired on E-9/19/21/22 this cycle, but whether those scan paths reach the large growing cycle artifacts is unconfirmed. Demoted per default-safer rule (when in doubt, Cohort B). Re-evaluate at F3 spec gate: if human confirms inputs are bounded to spec-file frontmatter only and exclude large cycle artifacts, promote to Cohort A. |
