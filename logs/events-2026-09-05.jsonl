@@ -1,0 +1,5 @@
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-09-05T00:06:26-0500","ts_epoch":1788584786,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-09-05T00:06:39-0500","ts_epoch":1788584799,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-09-05T00:07:54-0500","ts_epoch":1788584874,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-09-05T00:08:30-0500","ts_epoch":1788584910,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-09-05T00:08:58-0500","ts_epoch":1788584938,"schema_version":1}

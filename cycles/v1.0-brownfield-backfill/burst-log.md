@@ -12357,3 +12357,201 @@ S25.01-DOC-RECONCILIATION-COMPLETE-2026-09-03 (state-manager; COMPLETE): D-chain
 ADR050-RATIFICATION-DARWIN-LEG-UNBLOCK-2026-09-03 (state-manager; COMPLETE): D-1158. Human RATIFIED ADR-050 (POLICY 22) — CI Darwin-Leg Source-Build Discipline for Registry-Schema Forward Compatibility. Diagnoses PR #807's `bats-darwin-leg-macos` failure as a REAL S-25.01-caused release-sequencing defect (stale committed darwin bundle predates the new `block_if_marker` registry variant) — NOT the unrelated flake first reported. `bats-darwin-leg-macos` will instead build from the PR's own source via `build-dispatcher`'s already-uploaded artifact. ADR-050 `status: proposed`→`accepted` (status-flip only, ADR-049 precedent, no content change). ARCH-INDEX row PROPOSED→ACCEPTED — Human-Ratified 2026-09-03; ARCH-INDEX v4.12→v4.13 (ONLY index bumped — BC-INDEX/VP-INDEX/STORY-INDEX UNCHANGED, no BC/VP/story content changed). Implementation (`ci.yml` diff) routed to devops-engineer, landing concurrently on `feature/S-25.01`; code HEAD advances with that commit (this burst does not touch the code worktree). No trajectory-tail drift. NEXT: confirm fresh CI green on PR #807 (`bats-darwin-leg-macos` specifically) then pr-manager squash-merges + post-merge burst. v9.73→v9.74. [Archived from STATE.md Current Phase Steps — table keeps last 5 rows only; archived this burst, S2504-LOCAL-3CLEAN-CONVERGENCE-FINALIZATION-2026-09-04 (D-1162).]
 
 ---
+
+S25.01-POST-MERGE-BURST-2026-09-03 (state-manager; COMPLETE): D-1159. PR #807 (`feature/S-25.01`) SQUASH-MERGED into `develop` as `f3f9b3a1` (base `b4ff2383`); feature branch + `.worktrees/S-25.01` deleted. Delivers dispatcher INDETERMINATE-outcome Layer-1 (durable marker + next-advance gate + `block_if_marker` crash policy + TTL deadman + ungated recovery + audited `marker.written`/`marker.cleared` events). Full arc: LOCAL BC-5.39.001 3-CLEAN (passes 16/17/18, D-1153/D-1154/D-1155) + finalization-doc-sweep (D-1156) + validate-factory-path-staging overclaim correction cascade (D-1157, S-25.04 opened) + ADR-050 ratification (D-1158, CI unblock) + a transient rustc-SIGSEGV flake cleared via rerun. POL-14 auto-promotion: BC-1.18.001 v1.5→v1.6/BC-1.18.002 v1.7→v1.8/BC-1.18.003 v1.7→v1.8/BC-1.18.004 v1.2→v1.3 all draft→active. BC-INDEX v5.44→v5.45; STORY-INDEX v4.434→v4.435 (S-25.01 status draft→merged, v1.22, input-hash d14039d→ed6eb84). merged_count 116→117. develop b4ff2383→f3f9b3a1. BC-5.39.001 streak stays 3/3 CONVERGED. No trajectory-tail drift. NEXT: rc.25 release still HELD (now carries S-25.01 too); dispatch product-owner F1/BC for S-25.04. v9.74→v9.75. [Archived from STATE.md Current Phase Steps — table keeps last 5 rows only; archived this burst, D-1163, S2504-POST-MERGE-BURST-2026-09-04.]
+
+---
+
+## D-1163-S2504-POST-MERGE-BURST-PLUS-CI-HARDENING
+
+**Block 1: Parent-commit**
+
+**Parent-commit:** `c44da059` — `state(S-25.04): LOCAL 3-CLEAN convergence + finalization sweep (D-1162)` (factory-artifacts HEAD at burst start, confirmed via literal shell):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+c44da059 state(S-25.04): LOCAL 3-CLEAN convergence + finalization sweep (D-1162)
+```
+
+**Block 2: Adversary verdict**
+
+**This burst is NOT an adversary pass.** It is a POST-MERGE bookkeeping burst recording (a) the squash-merge of PR #814 (`feature/S-25.04`) into `develop`, (b) the prerequisite CI-hardening maintenance PR #813, and (c) a branch-protection deferral. Cycle-level BC-5.39.001 streak stays **3/3 CONVERGED** (unaffected); trajectory-tail stays UNCHANGED `→0→1→1→1` LENGTH=4.
+
+**(a) PR #814 — S-25.04 delivery, verified via literal shell:**
+
+```
+$ git log -1 --format='%H %s' e9e7d219
+e9e7d219624decb14a2e23e8262da4a46c74f86a feat(S-25.04): validate-factory-path-staged PostToolUse companion validator (closes Layer-1 zero-enforcement gap)
+$ git log -1 --format='%H %s' 79252d38
+79252d38a9d96ff3e9e5e3c3c5d77f6af4523177 build(S-25.04): rebuild validate-factory-path-staged.wasm from current source (was 3 commits stale)
+$ git log -1 --format='%P' e9e7d219
+5e009dc0009d6ae2c24215f7293459389c393597
+```
+
+`e9e7d219` is a single-parent commit (squash-merge, no merge-commit) whose sole parent is `5e009dc0` (PR #813) — confirming the sequencing `5824979d`→`5e009dc0`→`e9e7d219`. `79252d38` is the final feature-branch code HEAD before squash (the wasm-rebuild commit), folded into the squash.
+
+Delivers `validate-factory-path-staged` (BC-4.16.002): a PostToolUse `^Bash$` detective-mirror WASM validator, registry priority 161, `failure_policy = "fail-closed"`, closing the Layer-1 zero-enforcement gap opened at D-1157/D-1161. LOCAL BC-5.39.001 3-CLEAN convergence was achieved across 6 adversary passes on `feature/S-25.04` (1-3 FINDINGS-then-fixed: CHANGELOG rc.25-heading corruption, EFFECTIVE-NOW overclaim, Cohort-A mislabel, a 512-byte self-wedge cap bug, untested cap-selection wiring; 4-6 CLEAN — D-1162). Security review: **APPROVE**, zero CWE findings. pr-reviewer: **APPROVE_WITH_NITS** after a pr-manager review loop added PC6 fail-open test coverage, strengthened T-10, and rebuilt the stale wasm (`79252d38`):
+
+```
+$ git show origin/develop:crates/hook-plugins/validate-factory-path-staged/src/tests.rs | grep -n "fn test_bc4_16_002_t10_fail_open_on_staged_path_listing_non_zero_exit\|fn test_bc4_16_002_pc6_fail_open_on_staged_path_listing_exec_subprocess_err"
+825:fn test_bc4_16_002_t10_fail_open_on_staged_path_listing_non_zero_exit() {
+868:fn test_bc4_16_002_pc6_fail_open_on_staged_path_listing_exec_subprocess_err() {
+$ git log --oneline origin/develop -- plugins/vsdd-factory/hook-plugins/validate-factory-path-staged.wasm
+e9e7d219 feat(S-25.04): validate-factory-path-staged PostToolUse companion validator (closes Layer-1 zero-enforcement gap)
+```
+
+Both PC6 fail-open tests confirmed present on `develop`; the wasm's last-touching commit is the squash itself (fresh, not stale).
+
+**(b) PR #813 — prerequisite CI-hardening, verified via literal shell:**
+
+```
+$ git show 5e009dc0 --stat
+commit 5e009dc0009d6ae2c24215f7293459389c393597
+fix(ci): drop orphaned wasms + word-boundary scan_max_d_nnn — develop CI green (#813)
+ .github/workflows/release.yml                      |  10 ++-
+ .../validate-dispatch-advance/src/lib.rs           |  99 +++++++++++++++++++--
+ .../hook-plugins/last-amended-migrate.wasm         | Bin 631111 -> 0 bytes
+ .../verify-state-timestamp-refresh.wasm            | Bin 200948 -> 0 bytes
+ 4 files changed, 103 insertions(+), 6 deletions(-)
+```
+
+Removed 2 orphaned tracked wasms (`last-amended-migrate` — S-15.03's standalone CLI, no wasm target by design; `verify-state-timestamp-refresh` — deregistered per ADR-046 Decision 3, crate retained) fixing `bundle_orphan_check` T-009; word-boundary fix to `scan_max_d_nnn` in `validate-dispatch-advance` (was matching "D" inside "RC25-RELEASED-2026-09-04" as `D-2026`, falsely flagging `current_step`'s D-1162 cite as stale). Maintenance PR — does NOT increment `merged_count`.
+
+**(c) Branch protection DEFERRED:** this session's token lacks repo-admin on `drbothen/vsdd-factory`; the `gh api PUT /repos/.../branches/develop/protection` call cannot be executed here. A ready-to-apply config was prepared and saved to `/tmp/branch-protection-develop.json` — OWED to a repo admin/owner.
+
+**Block 3: Files touched**
+
+- `.factory/STATE.md` — full advance (frontmatter version/timestamp/phase/last_amended/current_step; Phase Progress row; Current Phase Steps row [oldest S25.01-POST-MERGE-BURST-2026-09-03 dropped, archived above]; Decisions Log D-1163 row; Blocking Issues row [branch-protection]; Drift Items 2 rows [pr-reviewer NITs, dependabot]; Active Branches [`develop`→`e9e7d219`, `feature/S-25.04`→MERGED+DELETED, new `maintenance/fix-orphan-wasm-bundle`→MERGED+DELETED row]; Concurrent Cycles row; Identifier Conventions/Story Status narrative; Session Resume Checkpoint replaced [prior archived verbatim to session-checkpoints.md]; SIZE BUDGET banner refreshed; version v9.79→v9.80)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1163 canonical row appended (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 3 lessons appended (`L-BB-D1163-scan-max-d-nnn-word-boundary-false-positive`, `L-BB-D1163-stale-committed-wasm-must-be-rebuilt-from-source`, `L-BB-D1163-pr-manager-nested-subagent-sprawl-and-hang`)
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — prior S2504-LOCAL-3CLEAN-CONVERGENCE-FINALIZATION-2026-09-04 checkpoint archived verbatim (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry + the archived S25.01-POST-MERGE-BURST-2026-09-03 paragraph (above)
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.16.002.md` — v1.1→v1.2 (POL-14: `status`/`lifecycle_status` draft→active; `modified[]` entry + Changelog row appended)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v5.47→v5.48 (BC-4.16.002 row status draft→active + version-chain cell v1.1→v1.2; `last_amended` overwritten, prior entry prepended to `changelog:`)
+- `.factory/stories/STORY-INDEX.md` — v4.436→v4.437 (S-25.04 catalog row status ready→merged, version cell stays v2.0; `last_amended` overwritten, prior entry prepended to `changelog:`)
+- `.factory/stories/S-25.04-close-validate-factory-path-staging-zero-enforcement-gap.md` — `status: ready`→`merged` (frontmatter field only; version stays v2.0, no content change — input-hash drift against BC-4.16.002's version bump is EXPECTED collateral, not fixed this burst)
+- `.factory/code-delivery/pr-review.md`, `.factory/code-delivery/S-25.04/pr-review.md`, `.factory/logs/dispatcher-internal-2026-09-05.jsonl`, `.factory/logs/events-2026-09-04.jsonl`, `.factory/regression-state.json`, `.factory/sidecar-learning.md` — pre-existing uncommitted PR/CI/telemetry artifacts from the concurrent S-25.04 delivery session, bundled into this SAME single commit per TD-VSDD-053 (confirmed via `git -C .factory status --porcelain` before staging — no unrelated/unexpected files present)
+- `.factory/specs/architecture/ARCH-INDEX.md`, `.factory/specs/verification-properties/VP-INDEX.md` — **CONFIRMED UNCHANGED** this burst (no VP/ADR content changed; ADR-047/ADR-039 edits already landed at D-1161)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — **NOT touched** (this cycle-level file tracks the F5 engine-discipline cascade only, unrelated to S-25.04 bookkeeping)
+
+**Block 4: Codifications**
+
+D-1163 codified (decision-log.md + STATE.md Decisions Log). 3 lessons codified in `lessons.md` (see Block 3). No new Drift-Item-worthy structural finding beyond the 2 pr-reviewer NITs + Dependabot advisory already recorded as STATE.md Drift Items and Blocking Issues (branch-protection). No trajectory-tail drift correction needed — cycle-level trajectory-tail stays `→0→1→1→1` LENGTH=4, unaffected by this post-merge bookkeeping burst.
+
+**BC-5.39.001 cycle-level streak stays 3/3 CONVERGED.** NEXT ACTION changes from "S-25.04 demo evidence + PR" to "the OWED long-tail (branch-protection grant / 2 NITs / dependabot follow-up / decision-log.md backfill / O-P18-001 adjudication) or the next E-25/backlog story (S-25.02/S-25.03)", pending human direction.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+Parent-commit gate (literal shell, D-449(a)):
+
+```
+$ git -C .factory log -1 --format='%h %s'
+c44da059 state(S-25.04): LOCAL 3-CLEAN convergence + finalization sweep (D-1162)
+```
+
+Squash-merge parentage gate (literal shell — confirms single-parent squash commits, no merge commits, and the exact sequencing):
+
+```
+$ git log --oneline --graph -5 origin/develop
+* e9e7d219 feat(S-25.04): validate-factory-path-staged PostToolUse companion validator (closes Layer-1 zero-enforcement gap)
+* 5e009dc0 fix(ci): drop orphaned wasms + word-boundary scan_max_d_nnn — develop CI green (#813)
+*   5824979d merge: sync main → develop after v1.0.0-rc.25 bundle
+$ git log -1 --format='%P' e9e7d219
+5e009dc0009d6ae2c24215f7293459389c393597
+$ git log -1 --format='%P' 5e009dc0
+5824979daecc0539ae6d9da79abb95652884919d
+```
+
+Registry entry gate (literal shell — confirms `validate-factory-path-staged` registration on `develop`):
+
+```
+$ git show origin/develop:plugins/vsdd-factory/hooks-registry.toml | grep -n -A9 'name = "validate-factory-path-staged"'
+1453:[[hooks]]
+1454:name = "validate-factory-path-staged"
+1455:event = "PostToolUse"
+1456:tool = "^Bash$"
+1457:plugin = "hook-plugins/validate-factory-path-staged.wasm"
+1458:priority = 161
+1459:timeout_ms = 5000
+1460:on_error = "continue"
+1461:async = false
+1462:failure_policy = "fail-closed"
+```
+
+Confirms the registry entry matches BC-4.16.002's Architecture Anchors exactly.
+
+Branch-deletion gate (literal shell — confirms both feature branches were deleted remotely):
+
+```
+$ git ls-remote --heads origin feature/S-25.04
+$ git ls-remote --heads origin maintenance/fix-orphan-wasm-bundle
+```
+
+Both empty — confirms both branches deleted remotely, matching the "feature branch deleted" claim in Block 2.
+
+PC6 test-coverage gate (literal shell — confirms the pr-manager review loop's claimed new tests exist on `develop`):
+
+```
+$ git show origin/develop:crates/hook-plugins/validate-factory-path-staged/src/tests.rs | grep -n "fn test_bc4_16_002_t10_fail_open_on_staged_path_listing_non_zero_exit\|fn test_bc4_16_002_pc6_fail_open_on_staged_path_listing_exec_subprocess_err"
+825:fn test_bc4_16_002_t10_fail_open_on_staged_path_listing_non_zero_exit() {
+868:fn test_bc4_16_002_pc6_fail_open_on_staged_path_listing_exec_subprocess_err() {
+```
+
+PR #813 diff-stat gate (literal shell — confirms the orphan-wasm removal + `scan_max_d_nnn` fix claims):
+
+```
+$ git show 5e009dc0 --stat
+ .github/workflows/release.yml                      |  10 ++-
+ .../validate-dispatch-advance/src/lib.rs           |  99 +++++++++++++++++++--
+ .../hook-plugins/last-amended-migrate.wasm         | Bin 631111 -> 0 bytes
+ .../verify-state-timestamp-refresh.wasm            | Bin 200948 -> 0 bytes
+```
+
+D-448(a)-style source-attestation gate (BC-INDEX/STORY-INDEX version-cite consistency between this burst's own edits and this burst-log entry's own Block 2/3):
+
+```
+$ grep -n '^version:' .factory/specs/behavioral-contracts/BC-INDEX.md .factory/stories/STORY-INDEX.md
+.factory/specs/behavioral-contracts/BC-INDEX.md:4:version: "5.48"
+.factory/stories/STORY-INDEX.md:4:version: "4.437"
+```
+
+Matches Block 2/3's claimed BC-INDEX v5.48 / STORY-INDEX v4.437 exactly.
+
+Trajectory-tail computation gate (literal shell, confirms the pre-burst baseline is unchanged by this burst):
+
+```
+$ grep -o "trajectory-tail →[^)]*)" .factory/STATE.md | head -1
+trajectory-tail →0→1→1→1 LENGTH=4 (UNCHANGED this burst — not an adversary pass; release bookkeeping only)
+```
+
+Confirms `→0→1→1→1` LENGTH=4 UNCHANGED — this burst is post-merge bookkeeping, not an adversary pass, so no shift-left/append transformation applies.
+
+**Block 6 (Dim-5): Closes**
+
+- **PR #814** (`feature/S-25.04`) — **MERGED** `e9e7d219`, code HEAD `79252d38`. Closes the S-25.04 story and the underlying Layer-1 zero-enforcement gap (D-1157/D-1161).
+- **PR #813** (`maintenance/fix-orphan-wasm-bundle`) — **MERGED** `5e009dc0`. Closes `bundle_orphan_check` T-009 and the `scan_max_d_nnn` D-2026 false-positive.
+- **Branch protection on `develop`** — **OPEN, DEFERRED** (admin-blocked; config prepared at `/tmp/branch-protection-develop.json`).
+- **2 pr-reviewer NITs** — **OPEN**, anchored for a trivial follow-up cleanup sweep.
+- **Dependabot 20 vulnerabilities** — **OPEN**, anchored for a dependency-bump maintenance follow-up.
+- **No human decision required this burst** to close the bookkeeping itself — no ADR/BC-semantic/wire-format/security-model change beyond the mechanical POL-14 promotion; POLICY 22 NOT triggered.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1163-S2504-POST-MERGE-BURST-PLUS-CI-HARDENING` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: literal-shell BC-INDEX/STORY-INDEX version grep in Block 5 matches Block 2/3's claims exactly. D-449(a) literal-shell-execution SELF-APPLICATION: parent-commit grep, squash-merge parentage grep, registry-entry grep, branch-deletion `git ls-remote` (2 calls), PC6 test-coverage grep, PR #813 diff-stat, the D-448(a) version-cite grep, and the trajectory-tail baseline grep all use actual shell with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts, no trusted-but-unverified claims.
+
+**Dim-7 Attestation:**
+
+- This burst is **NOT a numbered adversary pass** — it is POST-MERGE bookkeeping (PR #814 + PR #813) plus a branch-protection deferral record.
+- Cycle-level BC-5.39.001 streak: **3/3 CONVERGED, unaffected.** S-25.04's own LOCAL streak CLOSED at 3/3 (D-1162) — story now merged, no further LOCAL cascade applicable.
+- 4-INDEX: BC-INDEX v5.47→v5.48 (BC-4.16.002 draft→active) / STORY-INDEX v4.436→v4.437 (S-25.04 ready→merged) / VP-INDEX v3.01 UNCHANGED / ARCH-INDEX v4.14 UNCHANGED.
+- `policies.yaml` UNCHANGED — no `policies.yaml` text change this burst.
+- `pipeline:` stays `in_progress` this burst.
+  trajectory-tail →0→1→1→1 LENGTH=4 UNCHANGED (not an adversary pass; release/merge bookkeeping only).
+- 3 new STATE.md Drift Items/Blocking Issues rows this burst: branch-protection deferral (Blocking Issue), 2 pr-reviewer NITs (Drift Item), Dependabot 20 vulnerabilities (Drift Item).
+- **`develop` HEAD advanced** `5824979d`→`5e009dc0`→`e9e7d219` this burst (via the two squash-merges, not by this state-manager burst itself — state-manager records the resulting state, does not perform the merges).
+
+### Block 8: factory-artifacts commit
+
+Committed as a single atomic commit per TD-VSDD-053 (see commit SHA in the resulting `git -C .factory log -1` after this burst is pushed). No Stage 2 backfill, no SHA placeholder, no multi-commit chain.
+
+---

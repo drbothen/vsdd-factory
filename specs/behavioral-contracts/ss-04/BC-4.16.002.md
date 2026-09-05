@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
-status: draft
+version: "1.2"
+status: active
 producer: product-owner
 timestamp: 2026-09-04T00:00:00Z
 phase: F2
@@ -21,9 +21,10 @@ origin: brownfield
 extracted_from: null
 subsystem: "SS-04"
 capability: "CAP-034"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-brownfield-backfill
 modified:
+  - "2026-09-04 (v1.2) — POL-14 auto-promotion (state-manager; S-25.04 POST-MERGE burst; single-commit TD-VSDD-053; D-1163): `status`/`lifecycle_status` draft→active. PR #814 squash-merged into `develop` as `e9e7d219` 2026-09-04 (final feature-branch code HEAD `79252d38`). No content/postcondition/wire-format change — mechanical POLICY-14 consequence of the anchoring story's merge."
   - "2026-09-04 (v1.1) — Formal spec closure for the staged-path-listing fail-open behavior (product-owner; S-25.04 post-3-CLEAN finalization sweep; D-1127 precedent — doc-only spec completion after LOCAL convergence, certified CODE FROZEN at feature/S-25.04 HEAD `ff54428a`, UNCHANGED): Postcondition 6 added (fail-open on `git diff --cached --name-only` staged-path-listing failure — non-zero exit or host `Err` — mirroring PC4's branch-detection fail-open and BC-4.16.001 Invariant 3, made explicitly distinct from PC3's fuel-exhaustion/epoch-timeout/`OutputTooLarge` fail-loud INDETERMINATE path); Invariant 9 added (same fail-open obligation, stated as an invariant); EC-009 added (staged-path-listing subprocess failure → fail-open + WARN); T-10 added (mirrors T-5 fail-open style, applied to the staged-path-listing call). Documents AS-IMPLEMENTED behavior only — no semantic change; the intentional inline comment above the `diff_result` match arm in `hook_logic` (`crates/hook-plugins/validate-factory-path-staged/src/lib.rs`) already marked this path as deliberate pending this formal codification. Coverage parity with PC4's fail-open tests applies. BC-INDEX sync (v1.0→v1.1) is a state-manager follow-up, not part of this burst."
 deprecated: null
 deprecated_by: null
@@ -392,5 +393,6 @@ pass for this specific validator.
 
 | Version | Date | Description |
 |---------|------|--------------|
+| 1.2 | 2026-09-04 | POL-14 auto-promotion (state-manager; S-25.04 POST-MERGE burst; single-commit TD-VSDD-053; D-1163): `status`/`lifecycle_status` draft→active. PR #814 squash-merged into `develop` as `e9e7d219` 2026-09-04 (final feature-branch code HEAD `79252d38`). No content/postcondition/wire-format change — mechanical POLICY-14 consequence of the anchoring story's merge. |
 | 1.1 | 2026-09-04 | Formal spec closure for the staged-path-listing fail-open behavior (product-owner; S-25.04 post-3-CLEAN finalization sweep; D-1127 precedent — doc-only spec completion after LOCAL convergence, certified CODE FROZEN at feature/S-25.04 HEAD `ff54428a`, UNCHANGED). Postcondition 6 added (fail-open on `git diff --cached --name-only` staged-path-listing failure — non-zero exit or host `Err` — mirroring PC4's branch-detection fail-open and BC-4.16.001 Invariant 3, made explicitly distinct from PC3's fuel-exhaustion/epoch-timeout/`OutputTooLarge` fail-loud INDETERMINATE path). Invariant 9 added (same fail-open obligation, stated as an invariant). EC-009 added (staged-path-listing subprocess failure → fail-open + WARN). T-10 added (mirrors T-5's fail-open style, applied to the staged-path-listing call). Documents AS-IMPLEMENTED behavior only — no semantic change; the intentional inline comment above the `diff_result` match arm in `hook_logic` (`crates/hook-plugins/validate-factory-path-staged/src/lib.rs`) already marked this path as deliberate pending this formal codification. Coverage parity with PC4's fail-open tests applies. BC-INDEX sync (v1.0→v1.1) is a state-manager follow-up. |
 | 1.0 | 2026-09-04 | Initial authoring (product-owner; S-25.04 F2 BC authorship burst, following the human's BROAD trigger-scope ratification unblocking the architect's F2 last provisional item). New sibling of BC-4.16.001 under CAP-034/SS-04: `validate-factory-path-staged` WASM PostToolUse `^Bash$` detective mirror of BC-4.16.001's git-staging exclusivity guard, priority 161, `failure_policy = "fail-closed"`, `on_error = "continue"`, native-WASM fuel-axis-only calibration. 4 preconditions (incl. PC2 BROAD unconditional trigger condition, FINAL not provisional), 5 postconditions (PC1 detect/block, PC2 pass, PC3 INDETERMINATE-trigger/AC-001 closure criterion, PC4 branch-detection fail-open, PC5 crash-advisory), 8 invariants (incl. reuse-not-reimplementation of S-25.01 marker/gate machinery, branch-detection fail-open mirroring BC-4.16.001 Invariant 3, BROAD scope finality), 8 edge cases (EC-001..EC-004 per F1/F2 sketch plus EC-005..EC-008), 9 canonical test vectors mirroring BC-4.16.001's T-1..T-9 style. VP authorship deferred to Phase-6 formal-verifier per POLICY 9 (VP-TBD). Traces to ADR-047 §D8a, ADR-039 §D2 (seventh-member roadmap extension), BC-4.16.001, S-25.04. |
