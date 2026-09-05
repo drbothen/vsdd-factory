@@ -53,6 +53,7 @@ members = [
     "crates/hook-plugins/read-prefix-fixture",
     "crates/hook-plugins/validate-cross-site-correspondence",
     "crates/hook-plugins/validate-unvalidated-mutation-marker",
+    "crates/hook-plugins/validate-factory-path-staged",
     "crates/policy15-attestation-gate",
     "crates/last-amended-migrate",
 ]

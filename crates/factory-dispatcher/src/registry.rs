@@ -1636,10 +1636,32 @@ failure_policy = "fail-closed"
     /// Pre-S-25.01: ALL entries defaulted to fail-open (absent field → FailOpen).
     ///
     /// Post-S-25.01 (BC-1.18.004 PC4 + AC-016 + AC-017 — DO NOT DELETE):
-    /// EXACTLY THREE Cohort A validators are assigned `failure_policy = "fail-closed"`:
-    ///   - `validate-factory-path-staging`    (Cohort A-immediate; EFFECTIVE-NOW)
+    /// EXACTLY THREE Cohort A validators (ADR-047 §Decision 8a, human-confirmed gate) are
+    /// assigned `failure_policy = "fail-closed"`:
+    ///   - `validate-factory-path-staging`    (Cohort A-immediate; ASSIGNED-NOW — corrected
+    ///     from the overclaiming EFFECTIVE-NOW label per BC-1.18.004 v1.2; its PreToolUse-only
+    ///     registration structurally cannot reach the PostToolUse-only marker write path, so
+    ///     the assignment currently produces ZERO observable enforcement effect)
     ///   - `validate-pr-merge-prerequisites`  (Cohort A-deferred; SET-BUT-LATENT)
     ///   - `validate-wave-gate-prerequisite`  (Cohort A-deferred; SET-BUT-LATENT)
+    ///
+    /// Post-S-25.04 (BC-4.16.002; BC-1.18.004 v1.4 PC4 companion statement — human-ratified
+    /// BROAD trigger scope 2026-09-04): a fourth validator is sanctioned fail-closed, but it
+    /// is NOT a fourth Cohort A member — BC-1.18.004 v1.4 PC4 is explicit that "the new
+    /// validator is not a fourth Cohort A member; Cohort A remains closed at exactly three per
+    /// ADR-047 §Decision 8a's human-confirmed gate." Its fail-closed sanction derives from a
+    /// separate authority: ADR-039 §Decision 2 (the seventh validator-class plugin named under
+    /// that Decision's fail-closed roadmap), not ADR-047 §Decision 8a Cohort A membership:
+    ///   - `validate-factory-path-staged`     (PostToolUse detective mirror of
+    ///     `validate-factory-path-staging`; native-WASM, fuel-axis-only calibration
+    ///     (ADR-039 §Decision 2 seventh member); sanctioned fail-closed independently of
+    ///     Cohort A; this is the first Layer-1 validator whose fail-closed assignment reaches
+    ///     `write_indeterminate_marker` via a structurally-reachable PostToolUse
+    ///     trigger — S-25.04 AC-001)
+    ///
+    /// So the full sanctioned fail-closed allowlist checked by this test = Cohort A (3,
+    /// ADR-047 §D8a) PLUS `validate-factory-path-staged` (1, ADR-039 §D2 / BC-4.16.002
+    /// seventh member) = 4 entries total, from two distinct authorities.
     ///
     /// ALL other entries (including the two gate plugin entries for
     /// `validate-unvalidated-mutation-marker` / `validate-unvalidated-mutation-marker-git`
@@ -1649,8 +1671,9 @@ failure_policy = "fail-closed"
     /// and MUST NOT be deleted (BC-1.18.004 PC5; ADR-047 §Decision 7).
     ///
     /// If a new entry ever shows up with `failure_policy = "fail-closed"` outside the
-    /// explicitly-sanctioned Cohort A set, this test will fail — that is the intended
-    /// sentinel behaviour. Only a human-ratified ADR amendment may expand Cohort A.
+    /// explicitly-sanctioned allowlist below, this test will fail — that is the intended
+    /// sentinel behaviour. Only a human-ratified ADR amendment (ADR-047 §D8a for Cohort A,
+    /// or ADR-039 §D2 for the roadmap list) may expand this set.
     #[test]
     fn test_BC_1_01_016_production_registry_all_entries_default_to_fail_open() {
         // CARGO_MANIFEST_DIR is crates/factory-dispatcher; registry is at
@@ -1672,13 +1695,24 @@ failure_policy = "fail-closed"
             "production registry must have at least one hook entry"
         );
 
-        // S-25.01 AC-016 / BC-1.18.004 PC4: EXACTLY these three Cohort A validators
-        // are sanctioned to have failure_policy = "fail-closed". No others.
-        // ADR-047 §D8a v1.3 human-ratified Cohort A membership.
-        let cohort_a: std::collections::HashSet<&str> = [
+        // S-25.01 AC-016 / BC-1.18.004 PC4: the sanctioned fail-closed allowlist below is
+        // NOT a single "Cohort A of four" — it is Cohort A (ADR-047 §D8a v1.3 human-ratified
+        // membership, exactly three: `validate-factory-path-staging`,
+        // `validate-pr-merge-prerequisites`, `validate-wave-gate-prerequisite`) PLUS one
+        // entry from a distinct authority: `validate-factory-path-staged`, sanctioned by
+        // ADR-039 §Decision 2 (seventh validator-class plugin named under that Decision's
+        // fail-closed roadmap) per S-25.04 / BC-4.16.002 / BC-1.18.004 v1.4 PC4 companion
+        // statement — human-ratified 2026-09-04. BC-1.18.004 v1.4 PC4 is explicit that this
+        // addition does NOT expand Cohort A ("the new validator is not a fourth Cohort A
+        // member; Cohort A remains closed at exactly three per ADR-047 §Decision 8a's
+        // human-confirmed gate"). The set is checked as one flat allowlist here because both
+        // authorities converge on the same functional gate (this test); the two-authority
+        // provenance is documented, not erased, by keeping them in one HashSet.
+        let sanctioned_fail_closed: std::collections::HashSet<&str> = [
             "validate-factory-path-staging",
             "validate-pr-merge-prerequisites",
             "validate-wave-gate-prerequisite",
+            "validate-factory-path-staged",
         ]
         .into_iter()
         .collect();
@@ -1691,43 +1725,52 @@ failure_policy = "fail-closed"
             .map(|e| e.name.clone())
             .collect();
 
-        // Sanity: every fail-closed entry must be in the sanctioned Cohort A set.
+        // Sanity: every fail-closed entry must be in the sanctioned allowlist.
         for name in &fail_closed_names {
             assert!(
-                cohort_a.contains(name.as_str()),
+                sanctioned_fail_closed.contains(name.as_str()),
                 "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
-                 entry '{}' has failure_policy=FailClosed but is NOT in the human-ratified \
-                 Cohort A set (validate-factory-path-staging, validate-pr-merge-prerequisites, \
-                 validate-wave-gate-prerequisite). Only ADR-047-sanctioned entries may be \
-                 fail-closed. This is a regression guard — do NOT silently add fail-closed \
-                 entries without ADR amendment (BC-1.18.004 PC5; ADR-047 §D8a). DO NOT DELETE.",
+                 entry '{}' has failure_policy=FailClosed but is NOT in the sanctioned \
+                 fail-closed allowlist (Cohort A per ADR-047 §D8a: validate-factory-path-staging, \
+                 validate-pr-merge-prerequisites, validate-wave-gate-prerequisite; PLUS \
+                 validate-factory-path-staged per ADR-039 §D2 seventh member / BC-4.16.002 — \
+                 NOT a fourth Cohort A member, BC-1.18.004 v1.4 PC4). Only ADR-047/ADR-039- \
+                 sanctioned entries may be fail-closed. This is a regression guard — do NOT \
+                 silently add fail-closed entries without ADR amendment (BC-1.18.004 PC5; \
+                 ADR-047 §D8a; ADR-039 §D2). DO NOT DELETE.",
                 name
             );
         }
 
-        // Sanity: EXACTLY the three Cohort A entries must be fail-closed (no more, no less).
-        // If any Cohort A entry is missing its fail-closed assignment, that's also a defect.
+        // Sanity: EXACTLY the sanctioned allowlist entries must be fail-closed (no more, no
+        // less). The allowlist size is dynamic across its two authorities (3 Cohort A +
+        // 1 ADR-039 §D2 seventh-member = 4 as of S-25.04) — compared against its own `.len()`
+        // rather than a hardcoded literal, so this assertion tracks future human-ratified
+        // ADR-047/ADR-039 amendments without needing an update here. If any sanctioned entry
+        // is missing its fail-closed assignment, that's also a defect.
         assert_eq!(
             fail_closed_names.len(),
-            cohort_a.len(),
+            sanctioned_fail_closed.len(),
             "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
-             expected exactly {} fail-closed entries (Cohort A: {:?}), found {} ({:?}). \
-             ADR-047 §D8a requires all three Cohort A entries to be fail-closed. \
+             expected exactly {} fail-closed entries (sanctioned allowlist: {:?}), found {} \
+             ({:?}). ADR-047 §D8a requires all three Cohort A entries fail-closed; ADR-039 §D2 \
+             additionally requires validate-factory-path-staged fail-closed as its seventh \
+             member (BC-4.16.002; NOT a fourth Cohort A member per BC-1.18.004 v1.4 PC4). \
              DO NOT DELETE — this is the canonical fail-closed count sentinel (BC-1.18.004 PC4).",
-            cohort_a.len(),
-            cohort_a,
+            sanctioned_fail_closed.len(),
+            sanctioned_fail_closed,
             fail_closed_names.len(),
             fail_closed_names,
         );
 
-        // Confirm: every entry NOT in Cohort A must be fail-open.
+        // Confirm: every entry NOT in the sanctioned allowlist must be fail-open.
         for entry in &reg.hooks {
-            if !cohort_a.contains(entry.name.as_str()) {
+            if !sanctioned_fail_closed.contains(entry.name.as_str()) {
                 assert_eq!(
                     entry.failure_policy,
                     FailurePolicy::FailOpen,
                     "test_BC_1_01_016_production_registry_all_entries_default_to_fail_open: \
-                     non-Cohort-A entry '{}' must have failure_policy=FailOpen \
+                     non-sanctioned entry '{}' must have failure_policy=FailOpen \
                      (BC-1.01.016 PC6; ~76 fail-open plugins backward-compat). \
                      DO NOT DELETE.",
                     entry.name
