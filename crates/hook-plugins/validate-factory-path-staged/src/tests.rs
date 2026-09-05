@@ -832,10 +832,19 @@ fn test_bc4_16_002_t10_fail_open_on_staged_path_listing_non_zero_exit() {
     // staged-path-listing failure arm specifically: if `find_staged_factory_path`
     // were reached with a bogus stdout instead of short-circuiting to `None`,
     // the branch below (a product branch) would incorrectly block.
+    // Note: stdout is a REAL staged `.factory/` path, not empty. This makes
+    // the fixture mutation-resistant: if the exit-code fail-open guard were
+    // buggy or deleted and the code fell through to parsing `stdout`
+    // unconditionally, `find_staged_factory_path` would detect
+    // `.factory/STATE.md` as staged and (branch "develop" being a product
+    // branch) the hook would incorrectly return `HookResult::Block` instead
+    // of `Continue` — causing this test to fail and catch the regression.
+    // A blank stdout could not distinguish "correctly fail-open on non-zero
+    // exit" from "trivially passes because there was nothing to detect".
     let payload = make_post_tool_use_payload("git add .factory/STATE.md");
     let result = run_hook(
         payload,
-        exec_ok(128, "", "fatal: not a git repository"),
+        exec_ok(128, ".factory/STATE.md\n", "fatal: not a git repository"),
         exec_ok(0, "develop", ""),
     );
     assert!(
