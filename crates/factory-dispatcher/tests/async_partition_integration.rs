@@ -65,6 +65,7 @@ fn make_entry(name: &str, async_flag: bool) -> RegistryEntry {
         config: toml::Value::Table(toml::Table::new()),
         async_flag,
         needs_context: vec![],
+        failure_policy: Default::default(),
     }
 }
 
@@ -84,6 +85,7 @@ fn make_entry_with_on_error(name: &str, async_flag: bool, on_error: OnError) -> 
         config: toml::Value::Table(toml::Table::new()),
         async_flag,
         needs_context: vec![],
+        failure_policy: Default::default(),
     }
 }
 
@@ -721,7 +723,7 @@ on_error = "block"
     assert!(
         matches!(
             result,
-            Err(factory_dispatcher::registry::RegistryError::AsyncBlockConflict { ref name })
+            Err(factory_dispatcher::registry::RegistryError::AsyncBlockConflict { ref name, .. })
             if name == "bad-async-block"
         ),
         "on_error=block + async=true must be rejected with E-REG-002 AsyncBlockConflict; got: {result:?}"

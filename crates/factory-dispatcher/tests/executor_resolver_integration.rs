@@ -100,6 +100,7 @@ fn make_entry(path: &std::path::Path, name: &str, needs_context: Vec<String>) ->
         config: toml::Value::Table(toml::Table::new()),
         async_flag: false,
         needs_context,
+        failure_policy: Default::default(),
     }
 }
 
@@ -652,6 +653,7 @@ async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
         async_flag: false,
         // Declare "test_resolver_alpha" in needs_context — matches the registry name below.
         needs_context: vec!["test_resolver_alpha".to_string()],
+        failure_policy: Default::default(),
     };
     let registry = make_registry(vec![entry]);
     let matched: Vec<&factory_dispatcher::registry::RegistryEntry> =

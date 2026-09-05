@@ -129,6 +129,7 @@ fn make_hook_entry(
         config: toml::Value::Table(toml::Table::new()),
         async_flag: false,
         needs_context,
+        failure_policy: Default::default(),
     }
 }
 
