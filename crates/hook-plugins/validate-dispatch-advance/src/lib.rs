@@ -1703,6 +1703,191 @@ mod tests {
         );
     }
 
+    // -- v1.9 hardening: EC-025 (ID-cell emphasis normalization) + EC-026
+    // (separator-row whole-row-composition detection) --
+    // BC-5.39.006 v1.9 invariant 7 Side B; closes adversary pass-1 findings
+    // LOW-2 (EC-025) and LOW-1 (EC-026) against
+    // `.factory/cycles/v1.0-brownfield-backfill/
+    //  scan-max-d-nnn-narrative-literal-hardening-analysis.md`.
+    //
+    // RED GATE: as of v1.8 production code, `scan_max_decision_log_id`
+    // rejects any ID cell that is not a bare whole-cell `D-\d+` match (no
+    // emphasis-stripping) and skips any row whose trimmed content merely
+    // *contains* the substring `---` (not a whole-row-composition test).
+    // Both defects are latent false-NEGATIVE (stale-cite-escape) vectors:
+    // a genuinely-newer Decisions Log row can be silently dropped from the
+    // `max_in_file` candidate set, letting a stale `current_step:` D-chain
+    // cite pass undetected.
+
+    #[test]
+    fn test_scan_max_decision_log_id_normalizes_emphasis_decorated_id() {
+        // Bold-decorated ID cell (`**D-1164**`) plus lower plain rows below
+        // it. EC-025: pre-v1.9 whole-cell match against the raw, undecorated
+        // cell rejects "**D-1164**" outright (it does not start with the
+        // literal prefix "D-"), so the row's ID is silently excluded from
+        // the candidate set and max_in_file falls back to the lower plain
+        // rows (1160), NOT 1164.
+        let content_bold = "---\ncurrent_step: 'x'\n---\n\
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             |----|----------|---------|-------|------|\n\
+             | **D-1164** | bold-decorated | latest | phase | 2026-09-05 |\n\
+             | D-1160 | plain-lower | earlier | phase | 2026-09-04 |\n\
+             | D-1000 | plain-lower-2 | earlier | phase | 2026-09-03 |\n";
+        assert_eq!(
+            scan_max_decision_log_id(content_bold),
+            1164,
+            "bold-decorated ID cell '**D-1164**' must normalize to 'D-1164' \
+             and be counted toward max_in_file (EC-025); a lower plain-row \
+             result (e.g. 1160) proves the decorated row was silently \
+             dropped"
+        );
+
+        // Backtick-decorated ID cell variant.
+        let content_backtick = "---\ncurrent_step: 'x'\n---\n\
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             |----|----------|---------|-------|------|\n\
+             | `D-1164` | backtick-decorated | latest | phase | 2026-09-05 |\n\
+             | D-1160 | plain-lower | earlier | phase | 2026-09-04 |\n";
+        assert_eq!(
+            scan_max_decision_log_id(content_backtick),
+            1164,
+            "backtick-decorated ID cell '`D-1164`' must normalize to \
+             'D-1164' and be counted toward max_in_file (EC-025)"
+        );
+
+        // Underscore-italic-decorated ID cell variant.
+        let content_underscore = "---\ncurrent_step: 'x'\n---\n\
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             |----|----------|---------|-------|------|\n\
+             | _D-1164_ | underscore-decorated | latest | phase | 2026-09-05 |\n\
+             | D-1160 | plain-lower | earlier | phase | 2026-09-04 |\n";
+        assert_eq!(
+            scan_max_decision_log_id(content_underscore),
+            1164,
+            "underscore-decorated ID cell '_D-1164_' must normalize to \
+             'D-1164' and be counted toward max_in_file (EC-025)"
+        );
+    }
+
+    #[test]
+    fn test_scan_max_decision_log_id_retains_data_row_with_triple_dash() {
+        // Genuine data row whose non-ID cell contains the substring "---"
+        // (e.g. an em-dash rendering or a "Closes D-441---D-449 range"
+        // style citation) must be RETAINED and counted — it is NOT a GFM
+        // separator row. The header's own separator row
+        // (`|----|----------|---------|-------|------|`) is a REAL
+        // separator row that must still be skipped correctly alongside it.
+        //
+        // EC-026: pre-v1.9 code skips ANY row whose trimmed content
+        // contains "---" — including this genuine data row — so
+        // max_in_file falls back to the lower row (1100), NOT 1164.
+        let content = "---\ncurrent_step: 'x'\n---\n\
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             |----|----------|---------|-------|------|\n\
+             | D-1164 | some-decision | summary with --- inside | phase | 2026-09-05 |\n\
+             | D-1100 | earlier-decision | earlier summary | phase | 2026-09-01 |\n";
+        assert_eq!(
+            scan_max_decision_log_id(content),
+            1164,
+            "a genuine Decisions Log data row whose Summary cell contains \
+             '---' must be retained and its ID counted (EC-026); the real \
+             GFM header-separator row must still be skipped; a result of \
+             1100 would prove the data row was wrongly dropped as a false \
+             separator"
+        );
+    }
+
+    #[test]
+    fn test_check_d_chain_currency_flags_stale_when_latest_is_emphasis_decorated() {
+        // current_step cites D-1163; the Decisions Log's genuinely-newer max
+        // row is emphasis-decorated ("**D-1164**"). A stale-cite violation
+        // must fire citing max_in_file=1164 — the decoration must not mask
+        // staleness detection (EC-025 wired through check_d_chain_currency).
+        let current_step = "D-chain cite D-1163 latest brownfield";
+        let content = "---\ncurrent_step: 'x'\n---\n\
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             |----|----------|---------|-------|------|\n\
+             | **D-1164** | bold-decorated | latest | phase | 2026-09-05 |\n";
+        let v = check_d_chain_currency(content, current_step);
+        assert!(
+            v.is_some(),
+            "max_cited=1163 < max_in_file=1164 (emphasis-decorated row) — \
+             must still violate; decoration must not mask a stale cite; \
+             got: {v:?}"
+        );
+        let violation = v.expect("checked is_some above");
+        assert!(
+            violation.description.contains("D-1164"),
+            "violation must cite the genuine (decoration-normalized) \
+             Decisions Log max (D-1164); got: {}",
+            violation.description
+        );
+    }
+
+    #[test]
+    fn test_check_d_chain_currency_flags_stale_when_latest_row_has_triple_dash_cell() {
+        // current_step cites D-1163; the Decisions Log's genuinely-newer max
+        // row (D-1164) has a non-ID cell containing "---". A stale-cite
+        // violation must fire citing max_in_file=1164 — the "---" substring
+        // in a non-ID cell must not cause the row to be misclassified as a
+        // separator and dropped (EC-026 wired through check_d_chain_currency).
+        let current_step = "D-chain cite D-1163 latest brownfield";
+        let content = "---\ncurrent_step: 'x'\n---\n\
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             |----|----------|---------|-------|------|\n\
+             | D-1164 | x --- y | detail | phase | 2026-09-05 |\n";
+        let v = check_d_chain_currency(content, current_step);
+        assert!(
+            v.is_some(),
+            "max_cited=1163 < max_in_file=1164 (data row with '---' in a \
+             non-ID cell) — must still violate; the row must not be \
+             mistaken for a separator; got: {v:?}"
+        );
+        let violation = v.expect("checked is_some above");
+        assert!(
+            violation.description.contains("D-1164"),
+            "violation must cite the genuine (correctly-retained) \
+             Decisions Log max (D-1164); got: {}",
+            violation.description
+        );
+    }
+
+    #[test]
+    fn test_scan_max_decision_log_id_still_skips_genuine_gfm_separator_row() {
+        // Negative control: a genuine GFM separator row — every cell's
+        // trimmed content composed SOLELY of '-', ':', and whitespace (the
+        // canonical colon-alignment separator form `:---`, `:---:`, `---:`)
+        // — must still be skipped and must contribute nothing to the
+        // candidate set. This confirms the v1.9 whole-row-composition
+        // tightening does not regress genuine separator-row detection; only
+        // the false-classification of data rows (EC-026) is fixed.
+        let content = "---\ncurrent_step: 'x'\n---\n\
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             | :--- | :---: | ---: | --- | --- |\n\
+             | D-1163 | some-decision | summary | phase | 2026-09-05 |\n";
+        assert_eq!(
+            scan_max_decision_log_id(content),
+            1163,
+            "a genuine colon-alignment GFM separator row must still be \
+             skipped and must not affect max_in_file; only the real data \
+             row's D-1163 should be counted"
+        );
+    }
+
     #[test]
     fn test_check_d_chain_currency_verbatim_state_md_d2026_fixture() {
         // Load-bearing fixture: the actual offending sentences copied
