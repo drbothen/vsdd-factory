@@ -6377,3 +6377,109 @@ BC-4.17.001 v1.29 active. BC-6.28.001 v1.3 active. BC-5.45.001 v1.3 active. BC-1
 
 ---
 Archived 2026-09-05 (DEVELOP-ADVANCE-LIGHT-HOUSEKEEPING-2026-09-05, D-chain cite D-1165): the checkpoint above is superseded by the current STATE.md Session Resume Checkpoint, which records the light housekeeping burst — 4 develop merges after D-1164 (PR #816 `c648ece0`, PR #771 `913351f9`, PR #772 `19d34810`, PR #773 `b5982d44`, develop HEAD now `b5982d44`), closing the "2 pr-reviewer NITs" and "dependabot follow-up" owed items. See STATE.md for the live checkpoint and resume command.
+
+---
+
+## Session Resume Checkpoint (2026-09-05 — DEVELOP-ADVANCE-LIGHT-HOUSEKEEPING-2026-09-05; develop b5982d44; main 51023185; merged_count 118; v1.0.0-rc.25 SHIPPED)
+
+> **SELF-SUFFICIENT RESUME CONTEXT.** Brownfield cycle `v1.0-brownfield-backfill`, `pipeline:` stays **in_progress**. Light housekeeping burst (state-manager; single-commit TD-VSDD-053; NO new story/BC/VP content) records 4 develop merges landed AFTER the D-1164 post-merge burst: PR #816 (`maintenance/s25.04-nit-cleanup`) squash `c648ece0` — closes the "2 pr-reviewer NITs" owed item (RESOLVED-VIA-PR816); PR #771/#772/#773 (dependabot mermaid/postcss/dompurify) squash `913351f9`/`19d34810`/`b5982d44` — close the "dependabot follow-up" owed item (RESOLVED-VIA-PR771/PR772/PR773; the broader 20-vuln backlog is NOT fully cleared and stays a distinct OPEN item). `develop` HEAD `9a1d971b`→`b5982d44`. `merged_count` stays 118 (all 4 are maintenance/dependency-bump PRs). Branch-protection grant, decision-log.md backfill, O-P18-001 adjudication remain STILL OWED. NEXT on resume = S-25.02 activation OR pick from the OWED list below (§4), via `/vsdd-factory:next-step`. See §1/§4 for full detail.
+> Prior checkpoint (S815-POST-MERGE-BURST-2026-09-05) archived verbatim to
+> `cycles/v1.0-brownfield-backfill/session-checkpoints.md`.
+
+### §1. Position (a)
+
+Brownfield cycle `v1.0-brownfield-backfill`, `pipeline:` stays **in_progress** this burst (light housekeeping, no phase transition). Records 4 develop merges landed AFTER the D-1164 post-merge burst (which cited develop `9a1d971b`): PR #816 (`maintenance/s25.04-nit-cleanup`) squash-merged **`c648ece0`** (base `9a1d971b`) — 2 cosmetic S-25.04 pr-reviewer NITs (workspace `Cargo.toml` member sort + stale `todo!()`-era comment accuracy in `validate-factory-path-staged` tests); PR #771 (dependabot mermaid 11.15.0→11.16.1) squash-merged **`913351f9`** (base `c648ece0`); PR #772 (dependabot postcss 8.5.15→8.5.26) squash-merged **`19d34810`** (base `913351f9`); PR #773 (dependabot dompurify 3.4.12→3.4.13) squash-merged **`b5982d44`** (base `19d34810`). `develop` HEAD **`9a1d971b`→`b5982d44`**. All 4 are maintenance/dependency-bump PRs — merged_count stays **118** (PR #813/D-1163 + PR #815/D-1164 precedent). PR #816 CLOSES the "2 pr-reviewer NITs on PR #814" owed item — RESOLVED-VIA-PR816. PR #771/#772/#773 CLOSE the "dependabot follow-up" owed item — RESOLVED-VIA-PR771/PR772/PR773 (3 of the 20 previously-noted default-branch vulnerabilities addressed; the broader 20-vuln dependabot backlog is NOT fully cleared and remains a distinct OPEN owed item — see §4 item 45). Branch-protection grant, decision-log.md backfill, O-P18-001 adjudication remain STILL OWED, unchanged. NEXT on resume = S-25.02 activation (E-25, 15 pts, P1, draft/BACKLOG) OR pick from the OWED list below (§4), via `/vsdd-factory:next-step`.
+
+### §2. Convergence (b)
+
+No active cycle-level adversarial loop; this burst did not run an adversary pass (pure bookkeeping/dependency-bump merges). Cycle-level engine-discipline streak/trajectory-tail UNCHANGED — `→0→1→1→1` LENGTH=4. BC-INDEX v5.50 / STORY-INDEX v4.437 / VP-INDEX v3.01 / ARCH-INDEX v4.14 — all UNCHANGED this burst (last content change: BC-5.39.006 v1.8→v1.9 in the D-1164-prior spec-only burst, `92844b16`).
+
+### §3. In-flight (c)
+
+**NONE.** No stories mid-TDD; no open PRs from this session (#816/#771/#772/#773 all merged). Story worktrees `d999-migration` (`bf642fd9`) + `S-21.04` (`323f440f`) clean+inert (carried forward, not re-verified this burst). A stray detached-HEAD worktree at `scratchpad/pr814` (in `/tmp` scratch) remains prunable (`git worktree prune`) — carried forward, not re-verified this burst.
+
+### §4. Pending human decisions / blockers — OWED (d)
+
+1. **Branch protection on `develop` — BLOCKED on repo-admin. STILL OWED, unchanged.** The current token (Zious11) has push but not admin on `drbothen/vsdd-factory`; GitHub's branch-protection API requires admin. **Full config recorded here** (not relying on `/tmp`, which is ephemeral): `required_status_checks.strict=true`; `contexts=["validate","cargo-host (ubuntu-latest)","cargo-host (macos-latest)","bats-full-suite (linux)","deny-advisories","SAST (Semgrep)","platforms-drift","policy-15-attestation-location"]`; `enforce_admins=false`; `required_pull_request_reviews=null`; `restrictions=null`; `allow_force_pushes=false`; `allow_deletions=false`. Resume action: a repo admin runs `gh api -X PUT repos/drbothen/vsdd-factory/branches/develop/protection --input <config-from-this-checkpoint>`.
+2. **RESOLVED-VIA-PR771/PR772/PR773 — "dependabot follow-up" owed item.** *(Was: "Dependabot: 20 vulnerabilities on the default branch (8 high, 11 moderate, 1 low) → dependency-bump maintenance follow-up".)* PR #771 (mermaid 11.15.0→11.16.1, `913351f9`), PR #772 (postcss 8.5.15→8.5.26, `19d34810`), PR #773 (dompurify 3.4.12→3.4.13, `b5982d44`) all squash-merged 2026-09-05 — the follow-up action itself is done. **This does NOT clear the full 20-vuln count**: only 3 of the 20 originally-surfaced vulnerabilities are addressed by these 3 bumps. The broader backlog is tracked separately as item 45 below.
+3. **RESOLVED-VIA-PR816 — "2 cosmetic NITs on PR #814" owed item.** PR #816 (`maintenance/s25.04-nit-cleanup`) squash-merged `c648ece0` 2026-09-05: stale `todo!()`-era comment strings in `crates/hook-plugins/validate-factory-path-staged/src/tests.rs` corrected; workspace `members` array in root `Cargo.toml` sorted.
+4. **RESOLVED-VIA-PR815 — self-referential narrative-literal scanner false positive, fully closed on `develop`.** *(Historical record, unchanged from the prior checkpoint.)* PR #813/D-1163 fixed the word-INTERNAL-embedding sub-class; PR #815/D-1164's `scan_max_decision_log_id` structured scan fixed the NARRATIVE-LITERAL sub-class. Both fixes (`5e009dc0` and `9a1d971b`) are `develop`-only — NEITHER has reached operator level yet; the rc.25 `validate-dispatch-advance` WASM at operator level still carries the old scanner and will keep emitting both false-positive advisories until the next release cut (rc.26) rebuilds and republishes the binary. No further `develop`-side action needed; tracked here only until the next release ships.
+
+**Full §4 long-tail OWED list (carried forward verbatim from the archived S815-POST-MERGE-BURST-2026-09-05 checkpoint — nothing dropped; renumbered continuing from item 4 above; items 1-4 of the prior checkpoint are consolidated into items 1-4 above and cross-referenced, not repeated):**
+
+5. **O-P18-001 adjudication** (audit-timestamp LOCAL-offset ISO-8601 vs ADR-048 §D4 "ISO-8601 UTC" wording; Direction A/B/hybrid) — project-wide architect/product-owner decision; architect's analysis persisted at `cycles/v1.0-brownfield-backfill/O-P18-001-timestamp-utc-vs-offset-analysis.md`. STILL OWED, unchanged.
+6. **cargo-deny advisory disposition** — a `cargo-deny` advisory (wasmtime/RUSTSEC-class) surfaced locally during the sprint-state pre-flight fix; CI's `deny-advisories` gate is GREEN (not a release blocker) — human to decide whether/when to open a dedicated dependency-bump follow-up.
+7. **decision-log.md backfill** — D-1156..D-1163 (exhaustive) remain summary-only in this STATE.md table, not yet individually appended to `decision-log.md` SoT (pre-existing BACKFILL OWED item; D-1161/D-1162/D-1163 ARE individually backfilled; D-1165 [this burst] ALSO summary-only, extends the same item) — a dedicated backfill burst is the correct future home. STILL OWED, unchanged.
+8. **VP-079/VP-028 POLICY-9 "ten events" propagation** — unchanged; anchored to Phase-6 formal-verification / next wave-gate touch.
+9. PG-CI-1/2/3 + F-WG5-001 + PR-MANAGER-MERGE-OVER-RED — OWED before E-17/cycle convergence gate (D-1129, D-1130; human deferred).
+10. **ADR-045 v1.3 ratification burst** — blocks Wave-7 (S-21.19/20/21/23 HELD).
+11. E-23 re-scope to frozen-provenance model (STALE).
+12. LOW-7 DEFERRED — AC-006 events-sink wording; PO follow-up (out of S-25.01 scope).
+13. **[process-gap] registry-comment-lint** — DEFERRED, anchored E-12 follow-up story, no ID allocated yet (D-1156). STILL OPEN.
+14. Spec-hygiene sweep OWED: E-10 missing body sections; E-9/19/21/22 non-monotonic `modified[]`.
+15. Layer 2/3 BACKLOG: S-25.02 sharding (P1; 15 pts) + S-25.03 bounded-window (P2; 12 pts).
+16. VP-INDEX total_vps 108 vs STATE.md narrative 107 mismatch (D-1138 Drift Item) — still OPEN.
+17. S-4.07 anchor (D-1140) — when S-4.07 wires the real observable Router/FileSink into main.rs, re-point `reconcile_raw_delete`'s scan target and re-amend ADR-048 §D4.
+18. S-25.01 frontmatter `last_amended` unescaped-quote STRICT-YAML-parse failure (D-1144 Drift Item) — anchored future spec-steward frontmatter-hygiene sweep.
+19. **ADR-049/CAP-042 scope-overstatement** (D-1151 Drift Item) — anchored architect+business-analyst.
+20. **E-12 epic `subsystems_affected` omits SS-06/SS-10** (D-1151 Drift Item) — anchored story-writer/architect.
+21. **ARCH-INDEX SS-01/SS-06 count-methodology question** (D-1151 Drift Item) — anchored architect adjudication.
+22. **pr-manager CI-watcher sprawl + shared-worktree clobber** (D-1152, `L-BB-D1152`) — anchored E-12 follow-up story, no ID allocated yet. **Recurred once** (D-1163, `L-BB-D1163-pr-manager-nested-subagent-sprawl-and-hang`) — orchestrator now dispatches security-reviewer/pr-reviewer/CI-watch directly, one level deep, rather than nesting under pr-manager.
+23. **`validate-factory-path-staging` cwd-fallback false-positive** (D-1152, `L-BB-D1152`) — anchored `crates/hook-plugins/validate-factory-path-staging` (devops-engineer/architect).
+24. **`stories/STORY-INDEX.md` S-19.01 row pipe-count defect** (D-1152, incidental pre-existing) — anchored next maintenance-sweep/spec-steward pass.
+25. macOS TCC EPERM read-block on some `.factory/` files (environmental) — mitigation: grant the terminal/Claude Code Full Disk Access.
+26. **S-15.03 Phase D** (running `last-amended-migrate migrate` on the 5 real `.factory/` index/state files for D-1144 escape remediation) — OPTIONAL/OWED, anchored post-release (unblocked; not urgent).
+27. **`validate-factory-path-staging` branch-detection cwd-fallback fix** (`find_factory_class_target`) — anchored `crates/hook-plugins/validate-factory-path-staging` (devops-engineer/architect). (Same underlying defect as item 23.)
+28. **O-P16-1 [process-gap]** — DEFERRED, anchored E-12 follow-up story, no ID allocated yet (D-1156). STILL OPEN. O-P16-2 ACCEPTED won't-fix. O-P16-3 VERIFIED CONFORMANT.
+29. **`phase:` frontmatter field mega-line growth** — anchored S-15.03 PRIORITY-A structured `changelog:` write-path.
+30. **O-P17-001 [audit-robustness]** — DEFERRED to a NEW tampered/malformed-marker audit-robustness hardening follow-up story, no ID allocated yet (D-1156). STILL OPEN. O-P17-002 ACCEPTED won't-fix.
+31. **O-P18-001 [spec-vs-code-convention]** — DEFERRED, precondition = human Direction A/B/hybrid selection (item 5 above).
+32. **[D-1156] E-12 follow-up story (no ID allocated)** — batches registry-comment-lint (item 13) + O-P16-1 (item 28) + D-1152 pr-manager/validate-factory-path-staging items (22/23/27).
+33. **[D-1156] Tampered/malformed-marker audit-robustness hardening follow-up story (no ID allocated)** — O-P17-001, unreachable via any production path, optional hardening.
+34. **[D-1156] "Audit-event timestamp format reconciliation" follow-up story (no ID allocated)** — O-P18-001, precondition = item 5 above.
+35. **[D-1157/D-1161/D-1162/D-1163] validate-factory-path-staging zero-enforcement gap** — RESOLVED-VIA-CORRECTION + CLOSED-VIA-ACTIVATION + LOCAL 3-CLEAN CONVERGED + **MERGED** at **S-25.04**. No further action — gap fully closed.
+36. **[D-1159/D-1160] S-25.01 Layer-1** — DELIVERED/MERGED/**RELEASED/LIVE**. No further action.
+37. **[D-1160] cargo-deny advisory** (item 6 above) — candidate future dependency-bump follow-up, no story ID allocated; not urgent, CI green.
+38. **[D-1160] `ci-on-main` darwin-x64 DNS-flake re-run** (run `33891813306`) — check `gh run view 33891813306` outcome on resume if not already confirmed green (carried forward, not re-verified this burst).
+39. **stale background orchestrator session `[d89380]`** — operator may need to close from their side (Remote Control / `/tasks`) if it lingers (carried forward, not re-verified this burst).
+40. **[D-1163] stale committed wasm going-forward discipline** (`L-BB-D1163-stale-committed-wasm-must-be-rebuilt-from-source`) — rebuild+recommit the wasm as the last implementer step before every PR touching a hook-plugin crate, or add a CI gate asserting committed-wasm == fresh-build.
+41. **[D-1164] BC-5.39.006 v1.9 Invariant 7 "symmetric" emphasis-trim wording overstatement** — anchored next spec/doc sweep or a follow-up PR (product-owner for the BC wording, implementer for the `validate-dispatch-advance` doc-comment). Trivial NIT.
+42. **[D-1164] Session Resume Checkpoint §4 Open-Items sub-table state-manager CONVENTION** — always keep the latest codified decision as an individual bare `| D-NNNN |` row in the MAIN Decisions Log table, never introduce it only via an Open-Items sub-row (currently harmless-by-accident; this is a going-forward discipline, not a defect requiring a fix).
+43. **[D-1164] circular input-hash dependency: BC-5.39.006 ↔ its companion analysis doc** — anchored architect/tool-owner for a `compute-input-hash` convention fix (exclude a file's own `input-hash` field from its own hash input, or correct the citation direction).
+44. **[D-1164] exact-heading (`## Decisions Log`) fail-open** — DOCUMENTED-DESIGN-DEPENDENCY, not a defect; recorded so it is not mistaken for an oversight in a future review.
+45. **[D-1165] Dependabot 20-vuln backlog — DISTINCT OPEN item, NOT fully cleared by PR #771/#772/#773.** The default branch was reported carrying 20 vulnerabilities (8 high, 11 moderate, 1 low; first surfaced D-1163). PR #771/#772/#773 (this burst) bump mermaid, postcss, and dompurify only — 3 dependencies, not necessarily all 20 findings (a single dependency bump can close more than one advisory, or a listed advisory may require a bump not yet made). Anchor: next maintenance sweep — re-run the dependency/vulnerability audit against the post-`b5982d44` tree and open further dependency-bump PRs for any remainder.
+
+### §5. WIP branches (e)
+
+**None.** `maintenance/s25.04-nit-cleanup` MERGED+DELETED (PR #816, `c648ece0`). Dependabot branches for PR #771/#772/#773 MERGED+DELETED (`913351f9`/`19d34810`/`b5982d44`). `fix/scan-max-d-nnn-narrative-literal` MERGED+DELETED (PR #815, `9a1d971b`). `feature/S-25.04` MERGED+DELETED (PR #814, code HEAD `79252d38`). `maintenance/fix-orphan-wasm-bundle` MERGED+DELETED (PR #813). `main` and `develop` are both clean. Two story worktrees remain clean+inert, no action (carried forward, not re-verified this burst): `fix/d999-sentinel-code-migration` @ `bf642fd9` (ADR-041 sentinel), `feature/S-21.04-story-worktree-write-path-discipline` @ `323f440f` (pass-31 pending, no PR). A stray detached-HEAD scratch worktree at `scratchpad/pr814` @ `79252d38` remains prunable (`git worktree prune`) — not a WIP branch, session-scoped review artifact only (carried forward, not re-verified this burst).
+
+### §6. Resume command (f)
+
+`/vsdd-factory:rehydrate-wave` **first** (per BC-6.24.001, if a wave-state manifest applies), then `/vsdd-factory:next-step` (reads STATE.md and continues from this checkpoint — 4 housekeeping merges landed, "2 pr-reviewer NITs" + "dependabot follow-up" owed items RESOLVED, awaiting human direction on S-25.02 activation OR the remaining OWED long-tail [§4]; the dependabot 20-vuln backlog [§4.45] is a new distinct open item; check the `ci-on-main` darwin-x64 re-run outcome [§4.38]; the `[process-gap]`/`[audit-robustness]` deferrals and the 4 D-1164 documentary follow-ups [§4.41-44] remain open with concrete anchors and can be picked up independently at any time).
+
+BC-4.17.001 v1.29 active. BC-6.28.001 v1.3 active. BC-5.45.001 v1.3 active. BC-10.13.001 v1.3 active. BC-4.18.001 v1.2 active. BC-1.18.001 v1.7 active. BC-1.18.002 v1.8 active. BC-1.18.003 v1.8 active. BC-1.18.004 v1.4 active. BC-3.08.001 v1.34 active. BC-4.16.002 v1.2 active. BC-5.39.006 v1.9 active. BC-INDEX v5.50 (1,997 BCs). VP-INDEX v3.01 (115 VPs per frontmatter total_vps). STORY-INDEX v4.437 (176 stories; 25 epics; S-25.01 v1.22 merged; S-25.04 v2.0 merged; S-15.03 v1.8 merged). ARCH-INDEX v4.14 (48 ADRs; ADR-050 ACCEPTED; ADR-047 v1.5, ADR-039 v1.17, ADR-048 v1.6). merged_count **118** (UNCHANGED — PR #816/#771/#772/#773 are maintenance/dependency-bump PRs). main `51023185`. develop `b5982d44`. **v1.0.0-rc.25 SHIPPED** — operator-level marketplace resolves to it; S-25.04 + the #813/#814/#815/#816/#771/#772/#773 changes are on `develop` only, not yet released (OWED next release cut). BC-5.39.001 cycle-level streak **3/3 CONVERGED** (unaffected). PIPELINE **in_progress**.
+
+### §7. HEADs
+
+- `develop`: **`b5982d44`** (PR #773 dependabot dompurify 3.4.12→3.4.13 squash-merge 2026-09-05, base `19d34810`). merged_count **118** (UNCHANGED — dependency-bump PR). Prior: `19d34810` (PR #772 dependabot postcss 8.5.15→8.5.26 squash-merge 2026-09-05, base `913351f9`); `913351f9` (PR #771 dependabot mermaid 11.15.0→11.16.1 squash-merge 2026-09-05, base `c648ece0`); `c648ece0` (PR #816 `maintenance/s25.04-nit-cleanup` squash-merge 2026-09-05, base `9a1d971b`); `9a1d971b` (PR #815 `fix/scan-max-d-nnn-narrative-literal` squash-merge 2026-09-05, base `e9e7d219`); `e9e7d219` (PR #814 `feature/S-25.04` squash-merge 2026-09-04, base `5e009dc0`).
+- `main`: **`51023185`** (origin/main; v1.0.0-rc.25 bundle+retag commit 2026-09-04; immediate parent `101ebb64`, the release PR #808 merge commit). Tag `v1.0.0-rc.25` → `101ebb64`. Note: the local `main` worktree checkout at the repo root is at `101ebb64` (one commit behind origin's bundle+retag tip) — a local-checkout lag, not a divergence; carried forward, not this session's scope to fast-forward.
+- `factory-artifacts`: **this burst's commit** — per TD-VSDD-053 SHA-patch anti-pattern retirement, this burst does not self-cite its own resulting commit SHA — run `git -C .factory log -1` for the live HEAD.
+- `maintenance/s25.04-nit-cleanup`: **MERGED+DELETED** (PR #816 squash `c648ece0` 2026-09-05).
+- `dependabot (PR #771 mermaid)`: **MERGED+DELETED** (squash `913351f9` 2026-09-05).
+- `dependabot (PR #772 postcss)`: **MERGED+DELETED** (squash `19d34810` 2026-09-05).
+- `dependabot (PR #773 dompurify)`: **MERGED+DELETED** (squash `b5982d44` 2026-09-05).
+- `fix/scan-max-d-nnn-narrative-literal`: **MERGED+DELETED** (PR #815 squash `9a1d971b` 2026-09-05; BC-5.39.001 LOCAL streak **3/3 CONVERGED**, passes 2/3/4).
+- `feature/S-25.01`: **MERGED+DELETED** (PR #807 squash `f3f9b3a1` 2026-09-03; final code HEAD at merge `3e463cdc`; BC-5.39.001 streak **3/3 CONVERGED**).
+- `feature/S-15.03`: **MERGED+DELETED** (PR #805 squash `b4ff2383` 2026-09-03T10:43:17Z).
+- `feature/S-25.04`: **MERGED+DELETED** (PR #814 squash `e9e7d219` 2026-09-04; final code HEAD at merge `79252d38`; BC-5.39.001 LOCAL streak **3/3 CONVERGED**, D-1162).
+- `maintenance/fix-orphan-wasm-bundle`: **MERGED+DELETED** (PR #813 squash `5e009dc0` 2026-09-04).
+- `release/v1.0.0-rc.25`: **MERGED** into `main` via `--merge` as `101ebb64` 2026-09-04 (PR #808).
+- `fix/d999-sentinel-code-migration`: clean+inert @ `bf642fd9` (ADR-041 sentinel).
+- `feature/S-21.04-story-worktree-write-path-discipline`: clean+inert @ `323f440f` (pass-31 pending, no PR).
+
+### §8. BC-5.39.001 streak
+
+**Cycle-level streak: 3/3 — CONVERGED, UNCHANGED this burst** (light housekeeping, not a cycle-level adversary pass). **PR #815 LOCAL streak: 3/3 CONVERGED + merged** (passes 2/3/4 CLEAN, D-1164 — fix now merged, no further LOCAL cascade applicable). **S-25.04 LOCAL streak stays closed at 3/3** (passes 4/5/6 CLEAN, D-1162). S-25.01 track stays closed at 3/3 (D-1155/D-1159). PR #816/#771/#772/#773 are maintenance/dependency-bump PRs — no LOCAL adversary cascade applicable to any of them. On resume: no adversary pass pending against any merged story or fix; next adversary activity (if any) begins fresh against a new story or cycle-level pass.
+
+---
+Archived 2026-09-05 (SESSION-WRAP-PAUSE-2026-09-05, light housekeeping session-wrap; no new D-NNN allocated for the pause itself): the checkpoint above is superseded by the current STATE.md Session Resume Checkpoint, which records the SESSION-WRAP-PAUSE-2026-09-05 pause at the post-agenda resting point — D-2026 self-referential narrative-literal scanner fix (PR #815 `9a1d971b`, D-1164) + 2 S-25.04 NITs (PR #816 `c648ece0`) + dependabot #771/#772/#773 (develop `b5982d44`, D-1165) all merged; S-25.02 F1 delta-analysis persisted (`S-25.02-f1-delta-analysis.md`), READY-TO-ACTIVATE pending human OQ-1 scope-width decision. See STATE.md for the live checkpoint and resume command.
