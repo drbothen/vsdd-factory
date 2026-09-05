@@ -1535,16 +1535,23 @@ mod tests {
     #[test]
     fn test_check_d_chain_currency_still_flags_genuinely_stale_cite() {
         // Positive control: a genuinely stale cite (current_step citing
-        // D-1000 while the body legitimately contains a higher, boundary-
-        // preceded D-1162) must still produce a violation. This confirms the
-        // word-boundary fix does not disable the real staleness check.
+        // D-1000 while the body legitimately contains a higher D-1162 as a
+        // first-column whole-cell row under `## Decisions Log`) must still
+        // produce a violation. This confirms the word-boundary fix does not
+        // disable the real staleness check, under the BC-5.39.006 v1.8
+        // invariant 7 Side B structural-scan contract for `max_in_file`.
         let current_step = "D-chain cite D-1000 latest brownfield";
-        let content = "---\ncurrent_step: 'x'\n---\nbody cites D-1162 as latest\n";
+        let content = "---\ncurrent_step: 'x'\n---\n\
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             |----|----------|---------|-------|------|\n\
+             | D-1162 | some-decision | latest | phase | 2026-09-05 |\n";
         let v = check_d_chain_currency(content, current_step);
         assert!(
             v.is_some(),
-            "max_cited=1000 < max_in_file=1162 (legitimate boundary-preceded \
-             ref) — must still violate"
+            "max_cited=1000 < max_in_file=1162 (legitimate Decisions Log \
+             row) — must still violate"
         );
     }
 
@@ -2004,9 +2011,15 @@ mod tests {
 
     #[test]
     fn test_d_chain_stale_range_form() {
-        // Prose range form D-382..D-476; body shows D-477 → stale.
+        // Prose range form D-382..D-476; body's `## Decisions Log` section
+        // shows D-477 as a first-column whole-cell row → stale, per
+        // BC-5.39.006 v1.8 invariant 7 Side B structural-scan contract.
         let content = "---\ncurrent_step: 'BC-INDEX v1.14 →9→9→9→9 D-382..D-476'\n---\n\
-             | D-477 | some row |\n";
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             |----|----------|---------|-------|------|\n\
+             | D-477 | some-decision | summary text | phase | 2026-09-05 |\n";
         let current_step = "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
              →9→9→9→9 D-382..D-476";
         let v = check_d_chain_currency(content, current_step);
@@ -2023,9 +2036,16 @@ mod tests {
 
     #[test]
     fn test_d_chain_stale_prose_form() {
-        // Production prose form "D-chain cite D-476"; body shows D-477 → stale.
+        // Production prose form "D-chain cite D-476"; body's `## Decisions
+        // Log` section shows D-477 as a first-column whole-cell row →
+        // stale, per BC-5.39.006 v1.8 invariant 7 Side B structural-scan
+        // contract.
         let content = "---\ncurrent_step: 'BC-INDEX v1.14 →9→9→9→9 D-chain cite D-476'\n---\n\
-             | D-477 | some row |\n";
+             ## Decisions Log\n\
+             \n\
+             | ID | Decision | Summary | Phase | Date |\n\
+             |----|----------|---------|-------|------|\n\
+             | D-477 | some-decision | summary text | phase | 2026-09-05 |\n";
         let current_step = "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
              →9→9→9→9 D-chain cite D-476";
         let v = check_d_chain_currency(content, current_step);
