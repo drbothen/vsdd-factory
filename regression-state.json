@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-09-05T03:07:27Z","command":"cd /private/tmp/claude-501/-Users-zious-Documents-GITHUB-vsdd-factory/c2036928-bf33-4b84-a8cf-9291ad4d044d/scratchpad/pr814 && cargo test -p validate-factory-path-staged --all-targets 2>&1 | tail -30"}
+{"status":"pass","timestamp":"2026-09-05T17:16:57Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/s25.04-nit-cleanup && cargo test -p validate-factory-path-staged --lib 2>&1 | tail -60"}
