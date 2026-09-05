@@ -818,6 +818,73 @@ fn test_bc4_16_002_ec005_branch_detection_failure_is_advisory_not_blocking() {
 }
 
 // ---------------------------------------------------------------------------
+// PC6 — fail-open on staged-path-listing failure (T-10, EC-009, Invariant 9)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_bc4_16_002_t10_fail_open_on_staged_path_listing_non_zero_exit() {
+    // BC-4.16.002 T-10: the staged-path-listing call (`git diff --cached
+    // --name-only`) fails with a non-zero exit → PASSED fail-open per PC6,
+    // mirroring T-5's fail-open style but applied to the FIRST
+    // exec_subprocess call instead of the second (branch detection). The
+    // branch-detection call still runs unconditionally (Invariant 7) and
+    // reports an ordinary product branch, so this test isolates the
+    // staged-path-listing failure arm specifically: if `find_staged_factory_path`
+    // were reached with a bogus stdout instead of short-circuiting to `None`,
+    // the branch below (a product branch) would incorrectly block.
+    let payload = make_post_tool_use_payload("git add .factory/STATE.md");
+    let result = run_hook(
+        payload,
+        exec_ok(128, "", "fatal: not a git repository"),
+        exec_ok(0, "develop", ""),
+    );
+    assert!(
+        result.is_ok(),
+        "T-10 / BC-4.16.002 PC6: hook_logic panicked when the staged-path-listing call \
+         failed (non-zero exit). BC-4.16.002 Invariant 9: an inconclusive staged-path \
+         answer is NOT a blocking condition — must fail-open (Continue)."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "T-10 / BC-4.16.002 PC6: staged-path-listing failure (non-zero exit) must \
+             fail-open to Continue, even on a product branch. Got: {:?}",
+            hook_result
+        );
+    }
+}
+
+#[test]
+fn test_bc4_16_002_pc6_fail_open_on_staged_path_listing_exec_subprocess_err() {
+    // BC-4.16.002 EC-009: the `exec_subprocess` call itself returns a host
+    // `Err` (e.g. subprocess spawn failure) for the staged-path-listing call
+    // → fail-open per PC6 / Invariant 9. Distinct from PC3's fuel-exhaustion/
+    // epoch-timeout/OutputTooLarge cannot-complete path — this is a clean,
+    // completed `PluginResult::Ok` with an inconclusive answer.
+    let payload = make_post_tool_use_payload("git add .factory/STATE.md");
+    let result = run_hook(
+        payload,
+        exec_err("git: command not found"),
+        exec_ok(0, "develop", ""),
+    );
+    assert!(
+        result.is_ok(),
+        "BC-4.16.002 PC6 / Invariant 9: hook_logic panicked when exec_subprocess \
+         returned Err for the staged-path-listing call. Must fail-open."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "BC-4.16.002 PC6: exec_subprocess Err on staged-path-listing must fail-open \
+             to Continue. Got: {:?}",
+            hook_result
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
 // NEW-1 regression guard: STAGED_PATH_LISTING_MAX_OUTPUT_BYTES must cover
 // BC-4.16.002's own >= 500-staged-path resource model (git index
 // cardinality driver, per the Verification Properties calibration-corpus

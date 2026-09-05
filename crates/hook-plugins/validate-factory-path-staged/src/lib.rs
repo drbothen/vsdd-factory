@@ -19,14 +19,16 @@
 //!
 //! # Behavioral Contracts
 //!
-//! - BC-4.16.002 v1.0: PC1 detect `.factory/` path staged on a product
+//! - BC-4.16.002 v1.1: PC1 detect `.factory/` path staged on a product
 //!   branch (block); PC2 pass (no `.factory/` path staged, or branch is
 //!   `factory-artifacts`); PC3 INDETERMINATE trigger on this plugin's own
 //!   cannot-complete (fuel/epoch/OutputTooLarge) — reaches
 //!   `write_indeterminate_marker` verbatim (S-25.01 machinery, REUSE-
 //!   UNCHANGED, Invariant 5); PC4 fail-open on branch-detection failure
 //!   (mirrors BC-4.16.001 Invariant 3 exactly); PC5 advisory-only on a
-//!   non-resource-exhaustion crash (`on_error = "continue"`).
+//!   non-resource-exhaustion crash (`on_error = "continue"`); PC6 fail-open
+//!   on staged-path-listing failure (Invariant 9 / EC-009 / T-10 — mirrors
+//!   PC4's fail-open exactly, applied to the OTHER `exec_subprocess` call).
 //!
 //! # Architecture compliance
 //!
@@ -349,9 +351,12 @@ where
     // "was anything staged"), it does not block on an assumption — it lets
     // the dispatch through and relies on the next successful invocation (or
     // the preventive PreToolUse guard) to catch a genuine violation. This is
-    // a deliberate design choice, not an oversight; the formal BC
-    // invariant/edge-case entry for this specific path is being added by
-    // product-owner at the finalization sweep.
+    // a deliberate design choice, not an oversight; formally specified as
+    // BC-4.16.002 v1.1 Postcondition 6 / Invariant 9 / EC-009 / T-10 (see
+    // that file's Changelog for the closure record). Test coverage:
+    // `test_bc4_16_002_t10_fail_open_on_staged_path_listing_non_zero_exit`
+    // and `test_bc4_16_002_pc6_fail_open_on_staged_path_listing_exec_subprocess_err`
+    // in `src/tests.rs`.
     let staged_factory_path: Option<String> = match diff_result {
         Ok((exit_code, stdout, stderr)) => {
             if exit_code != 0 {
