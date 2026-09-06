@@ -7290,3 +7290,101 @@ allocated yet) per Canonical Principle Rule 3 — the in-cycle instance is alrea
 
 | D-1167 | D-1167-S2502-F2-SPEC-EVOLUTION-CONVERGED-HUMAN-RATIFIED | **S-25.02 F2 (spec-evolution) CONVERGED via a 12-pass fresh-context adversarial cascade plus a consistency-validator gate audit plus a CLEAN input-hash drift check — human RATIFIED the current design as-is 2026-09-06 — F2 COMPLETE, F3 NEXT** 2026-09-06 (state-manager; single-commit TD-VSDD-053). 12-pass ledger: P1 FINDINGS(1B/3H/5M/1L)→P2 FINDINGS(0B/3H/4M/1L)→P3 FINDINGS(0B/2H/3M/3L+[process-gap])→P4 FINDINGS(1H-adj/3M/1L)→P5 CLEAN→P6 FINDINGS(1M/1L)→P7 FINDINGS(1L)→P8 CLEAN(delta)→P9 FINDINGS(1H)→**P10/P11/P12 CLEAN — 3-CONSECUTIVE-CLEAN**. Consistency-validator audit closed F1 (BC-count sync 1,997→2,006) + F3 (ADR-051 SS-04 justification). Input-hash drift CLEAN. Delta: **ADR-051 v1.8, status: accepted** (POLICY 22, human-ratified 2026-09-06 — see D-1168: this row originally read "v1.5, status PROPOSED... corrects an incorrect 'v1.7' dispatch citation", which was WRONG — v1.7 was ground truth) + ADR-047 v1.6; ARCH-INDEX v4.22. 9 new BCs (BC-1.18.005..012, BC-7.08.001) + CAP-043; BC-INDEX v5.57 (2,006 BCs). VP-116..140; VP-INDEX v3.06 (140 VPs). All cite-only — NOT re-bumped this burst. STATE.md BC-count citation corrected 1,997→2,006. `[process-gap]` VP-body-same-burst-sweep lesson L-BB-D1167 codified + Drift Item deferral (E-12 follow-up, no ID yet). STORY-INDEX v4.437→v4.438 (S-25.02 → F2-COMPLETE; subsystems SS-05→SS-01/SS-07). `cycles/v1.0-brownfield-backfill/INDEX.md` gains §S-25.02 F2 Adversarial Reviews + Convergence Status. NOT the cycle-level gate — BC-5.39.001 cycle-level streak stays 3/3 CONVERGED, UNCHANGED. No trajectory-tail drift — unchanged →0→1→1→1 LENGTH=4. NEXT: Phase F3 (incremental-stories), story-writer. Refs: D-1167, D-1168 (correction), S-25.02, ADR-051 v1.8, ADR-047 v1.6, BC-1.18.005..012, BC-7.08.001, VP-116..140. STATE.md v9.85→v9.86. | D-1167 | 2026-09-06 |
 | D-1168 | D-1168-ADR051-VERSION-CORRECTION-PLUS-WORKTREE-HYGIENE | **CORRECTS D-1167 — ADR-051 is v1.8, status: accepted (POLICY 22, human-ratified 2026-09-06), NOT v1.5/PROPOSED as D-1167 wrongly recorded; D-1167's dispute of its own dispatch's correct "v1.7" citation is WITHDRAWN; D-1167's ADR-051 status-flip Drift Item RESOLVED/CLOSED; worktree hygiene** 2026-09-06 (state-manager; single-commit TD-VSDD-053; correction + hygiene burst). D-1167 (factory-artifacts commit `1531149e`) read a STALE ARCH-INDEX pointer, not the ADR-051 FILE, which was already at v1.7 at F2-close. Architect commit `2ce09cb9` synced ARCH-INDEX (now v4.22) and flipped ADR-051 to v1.8, status: accepted, per the POLICY-22 human ratification recorded at D-1167, matching sibling precedent ADR-048/049/050/039. Every STATE.md + this file's D-1167 SoT block location carrying the wrong v1.5/PROPOSED/"v1.7-incorrect" text corrected this burst (narrative + canonical row; original wrong text preserved verbatim inline, marked superseded, per archival discipline). D-1167 Drift Item "ADR-051 status-flip OWED" RESOLVED/CLOSED (DONE) in `.factory/STATE.md`. Worktree hygiene: removed 2 untracked pr-manager transient scratch dirs (`code-delivery/PR-817/`, `code-delivery/fix-register-prd-supplement-path/`, each holding only a `pr-review.md` scratch file for the already-merged PR #817) after confirming no durable content; folded dirty telemetry (`logs/dispatcher-internal-2026-09-06.jsonl`, `sidecar-learning.md`) into this SAME commit so the worktree ends CLEAN. No BC/VP/STORY content changed — BC-INDEX v5.57 / VP-INDEX v3.06 / STORY-INDEX v4.438 UNCHANGED. `pipeline:` stays in_progress. BC-5.39.001 streak stays 3/3 CONVERGED, UNCHANGED — not an adversary pass. No trajectory-tail drift — unchanged →0→1→1→1 LENGTH=4. NEXT: unchanged from D-1167 — story-writer for S-25.02 F3. Refs: D-1167, D-1168, ADR-051 v1.8, ARCH-INDEX v4.22, commit `2ce09cb9`. STATE.md v9.86→v9.87. | D-1168 | 2026-09-06 |
+
+---
+
+## D-1169
+
+**D-1169-S2502-F3-COMPLETE-F4-READY**
+
+Allocated as next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was D-1168
+(this cycle's decision-log.md, D-1168 authored directly the same burst per D-1167/D-1168 precedent).
+D-1169 allocated cleanly above the true max.
+
+**Summary:** S-25.02 Phase F3 (incremental-stories) is COMPLETE. story-writer populated the story's
+frontmatter (`behavioral_contracts` [9 BCs: BC-1.18.005..012 ss-01 + BC-7.08.001 ss-07],
+`verification_properties` [VP-116..140, 25 VPs], `subsystems` [SS-01, SS-04, SS-07], `status: ready`,
+`points: 45`) and integrated S-25.02 into the E-25 dependency chain (`depends_on=[S-25.01 MERGED]`,
+`blocks=[S-25.03]`, acyclic) at wave **W2**. A fresh-context consistency-gate audit run ahead of the
+F4 gate found finding F-1 (MAJOR) and it was CLOSED in-scope; the story is re-verified F4-ready.
+
+### F3 Population + Integration
+
+- Story `behavioral_contracts` populated with the 9 F2-authored BCs; `verification_properties`
+  populated with VP-116..140 (25 VPs; VP-141 added at F-1 closure below).
+- `subsystems` set to [SS-01, SS-04, SS-07] — SS-04 included per the CAP-043 disposition routed to
+  product-owner at F2 close (D-1167).
+- `status: draft` → `ready`; `points: 45` — a documented consequence of D-1166's WIDEST-scope
+  directive (Layer-2 shard rotation across the 4 append-logs PLUS BC-INDEX two-mechanism sharding is
+  genuinely one indivisible unit of delivery); the story carries a Routing Note citing S-21.11
+  precedent for a story exceeding the nominal 13-point guideline. Not a defect — CLAUDE.md Canonical
+  Principle Rule 2 (feature ORDER, not completeness, is the speed lever) permits a wide single story
+  when splitting it would fracture an atomic design.
+- Integrated into the dependency graph: `depends_on=[S-25.01]` (MERGED), `blocks=[S-25.03]`; wave
+  schedule assigns **W2**; dependency graph confirmed acyclic.
+
+### Consistency-Gate Audit Finding F-1 (MAJOR) — CLOSED
+
+A fresh-context consistency-gate audit run ahead of the F4 (delta-implementation) human gate found
+**F-1**: story AC-012 cited `BC-1.18.007 postcondition 3` (the general opt-in-required default for
+POLICY-1 archive-scan scope) as its behavioral anchor, but AC-012's actual asserted behavior — the
+archive-INCLUSIVE whole-corpus scan obligation ADR-051 §Decision 6 ratifies for POLICY-1
+(`append_only_numbering`) audits — had no behavioral contract capturing it as a testable
+postcondition. Postcondition 3 governs the *opposite* default (archive excluded unless opted in); it
+does not establish AC-012's obligation. This is a ratified-ADR-decision-with-no-BC-home gap: the kind
+of drift the F2 adversarial cascade could not have caught, because F2 reviewed BC↔ADR↔VP
+consistency, not story-AC↔BC grounding — that grounding check is F3's job specifically.
+
+**Closed in-scope via a 5-commit fix cascade** (single-commit-per-role, `.factory/` artifacts only):
+
+1. `f20c73d5` — product-owner amends **BC-1.18.007 v1.1→v1.2**: new **Postcondition 6** stating the
+   archive-inclusive carve-out for POLICY-1 audits, naming the four audited-and-cleared SS-04 crates
+   (`validate-dispatch-advance`, `validate-state-structure`, `validate-closes-completeness`,
+   `validate-cross-site-correspondence`); adds **EC-006** + 1 new Canonical Test Vector + a pending VP
+   row. **BC-INDEX v5.57→v5.58** (total_bcs UNCHANGED 2,006 — version-cell/changelog update only, no
+   new BC registered) propagated same-burst per POLICY 8.
+2. `96e7e64a` — formal-verifier allocates **VP-141** (archive-inclusive POLICY-1 scan-mode invariant;
+   integration + static-check proof method) closing BC-1.18.007's `VP-NNN (pending)`
+   forward-reference. **VP-INDEX v3.06→v3.07** (total_vps 140→141); `verification-architecture.md`
+   v1.23→v1.24 + `verification-coverage-matrix.md` v1.21→v1.22 propagated same-burst per POLICY 9.
+3. `8abf0205` — story-writer re-points **AC-012** from `BC-1.18.007 postcondition 3` to
+   `BC-1.18.007 Postcondition 6, EC-006` + VP-141; citation-only fix, AC-012's asserted behavior
+   confirmed unchanged and already matching PC6 exactly. **Story v2.0→v2.1**.
+4. `42a4a6d5` — BC-1.18.007 §VP Anchors VP-141 back-reference completion (bidirectional citation
+   hygiene).
+5. `c0beec6a` — BC-1.18.007 §Verification Properties Proof Method cell filled with the authoritative
+   VP-141 method (closes the `(pending)` residual left by commit 2).
+
+**STORY-INDEX v4.438→v4.440**: BC-1.18.007 list cell v1.1→v1.2; VP range narrative
+VP-116..140 (25 VPs)→VP-116..141 (26 VPs); story version cell v2.0→v2.1.
+
+Post-closure, the story is **re-verified F4-ready**: all 9 BC citations current against BC-INDEX
+v5.58, VP range citation current against VP-INDEX v3.07, no other AC/Edge-Case/Task/Architecture-
+Compliance-Rule row affected.
+
+### Input-Hash Recompute (state-manager, this burst)
+
+Story `input-hash:` frontmatter was `"[pending-recompute]"` since F3 population (owed to
+state-manager per story-writer's own v2.0/v2.1 FLAG notes). Recomputed via the sanctioned
+`plugins/vsdd-factory/bin/compute-input-hash --update` (POL-3-compliant tool invocation, not a
+bypass) against the story's 24 resolved inputs → **`34a9439`**; `--check` now CLEAN. No other file in
+the F3 delta required a hash update (`verification-architecture.md` / `verification-coverage-matrix.md`
+/ `BC-INDEX.md` — all already current against their own `inputs:`; confirmed via per-file `--check`,
+all exit 0). A repo-wide `--scan .factory` report surfaced a large PRE-EXISTING backlog (871 STALE
+files) unrelated to this burst — out of scope per CLAUDE.md's "do NOT mass-update unrelated repo
+hashes" discipline; not touched.
+
+### Not Re-Bumped This Burst
+
+BC-INDEX v5.58 / VP-INDEX v3.07 / STORY-INDEX v4.440 / ARCH-INDEX v4.22 — all four already finalized
+by their owning specialists across the F3 population + F-1 fix cascade; cited here, not re-bumped.
+
+### Next Steps
+
+1. Orchestrator dispatches Phase F4 (delta-implementation) — TDD implementation scoped to S-25.02's
+   new stories, full regression suite as safety net — **pending the human F4 gate** (per
+   `vsdd-factory:phase-f4-delta-implementation` entry criteria).
+
+### Canonical 6-column row (STATE.md Decisions Log)
+
+| D-1169 | D-1169-S2502-F3-COMPLETE-F4-READY | **S-25.02 Phase F3 (incremental-stories) COMPLETE — story v2.1 populated (9 BCs, VP-116..141 [26 VPs], SS-04, status ready, 45 pts) + integrated (E-25 chain, depends_on=[S-25.01], blocks=[S-25.03], W2, acyclic); consistency-gate audit finding F-1 (MAJOR) CLOSED via 5-commit fix cascade (BC-1.18.007 v1.1→v1.2 PC6+EC-006, VP-141 allocated, AC-012 re-pointed, story v2.0→v2.1) — re-verified F4-READY** 2026-09-06 (state-manager; single-commit TD-VSDD-053; F3 CLOSE burst — cite-only on the 4 indexes, NO ADR/BC/VP body content authored by state-manager). BC-INDEX v5.57→v5.58 (total_bcs UNCHANGED 2,006). VP-INDEX v3.06→v3.07 (total_vps 140→141); verification-architecture.md v1.23→v1.24; verification-coverage-matrix.md v1.21→v1.22 (POLICY 9). STORY-INDEX v4.438→v4.440. Story `input-hash:` recomputed `[pending-recompute]`→`34a9439` via sanctioned `compute-input-hash --update`; `--check` CLEAN. 45-pt story size is a documented consequence of D-1166's WIDEST-scope directive, not a defect (Routing Note cites S-21.11 precedent). `pipeline:` stays in_progress. BC-5.39.001 cycle-level streak stays 3/3 CONVERGED, UNCHANGED — this is NOT an adversary pass (a fresh-context consistency-gate audit, distinct from the BC-5.39.001 adversarial cascade). No trajectory-tail drift — unchanged →0→1→1→1 LENGTH=4. Session Resume Checkpoint replaced (prior S2502-F2-CONVERGED-RATIFIED-COMPLETE/D-1168-era checkpoint archived verbatim to `cycles/v1.0-brownfield-backfill/session-checkpoints.md`). **NEXT = Phase F4 (delta-implementation), pending the human F4 gate.** Refs: D-1169, F-1, S-25.02, BC-1.18.007 v1.2, VP-141, BC-INDEX v5.58, VP-INDEX v3.07, STORY-INDEX v4.440. STATE.md v9.87→v9.88. | D-1169 | 2026-09-06 |
