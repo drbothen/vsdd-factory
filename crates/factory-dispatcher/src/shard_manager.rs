@@ -269,24 +269,24 @@ impl ShardRegistry {
             // (EC-010) without ever running the fail-loud/advisory check
             // below (that default is, by construction, never poorly
             // amortizing and never invalid).
-            if shape == ShardShape::FrontmatterChangelogArray {
-                if let (Some(n), Some(low_water_mark)) = (entry.n, entry.low_water_mark) {
-                    let fires_advisory =
-                        validate_low_water_mark(&entry.artifact_stem, n, low_water_mark)?;
-                    if fires_advisory {
-                        let default_low_water_mark = n / 2;
-                        tracing::warn!(
-                            artifact_stem = %entry.artifact_stem,
-                            n,
-                            low_water_mark,
-                            amortization_factor = n.saturating_sub(low_water_mark as u64),
-                            default_low_water_mark,
-                            default_amortization_factor = n.saturating_sub(default_low_water_mark),
-                            "BC-1.18.005 EC-012: configured low_water_mark amortizes rotation \
-                             worse than the recommended default floor(N/2); config load still \
-                             succeeds (non-fatal advisory only)"
-                        );
-                    }
+            if shape == ShardShape::FrontmatterChangelogArray
+                && let (Some(n), Some(low_water_mark)) = (entry.n, entry.low_water_mark)
+            {
+                let fires_advisory =
+                    validate_low_water_mark(&entry.artifact_stem, n, low_water_mark)?;
+                if fires_advisory {
+                    let default_low_water_mark = n / 2;
+                    tracing::warn!(
+                        artifact_stem = %entry.artifact_stem,
+                        n,
+                        low_water_mark,
+                        amortization_factor = n.saturating_sub(low_water_mark as u64),
+                        default_low_water_mark,
+                        default_amortization_factor = n.saturating_sub(default_low_water_mark),
+                        "BC-1.18.005 EC-012: configured low_water_mark amortizes rotation \
+                         worse than the recommended default floor(N/2); config load still \
+                         succeeds (non-fatal advisory only)"
+                    );
                 }
             }
         }
@@ -531,11 +531,17 @@ pub fn read_changelog_item_count(target_path: &Path) -> io::Result<u64> {
     let parsed: ChangelogFrontmatter = serde_norway::from_str(block).map_err(|e| {
         io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("{}: frontmatter YAML parse failed: {e}", target_path.display()),
+            format!(
+                "{}: frontmatter YAML parse failed: {e}",
+                target_path.display()
+            ),
         )
     })?;
 
-    Ok(parsed.changelog.map(|items| items.len() as u64).unwrap_or(0))
+    Ok(parsed
+        .changelog
+        .map(|items| items.len() as u64)
+        .unwrap_or(0))
 }
 
 /// `true` iff `current_item_count + 1 > N` — the item-count trigger boundary
