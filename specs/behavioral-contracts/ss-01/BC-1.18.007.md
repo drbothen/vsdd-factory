@@ -1,16 +1,17 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
-timestamp: 2026-09-05T00:00:00Z
+timestamp: 2026-09-06T00:00:00Z
 phase: F2
 inputs:
   - .factory/specs/architecture/decisions/ADR-051-layer-2-two-mechanism-size-triggered-shard-rotation-append-logs-and-bc-index-sharding.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
   - .factory/specs/architecture/decisions/ADR-047-indeterminate-outcome-model-durable-mutation-marker-next-advance-gate.md
-input-hash: "9751e3a"
+  - .factory/specs/domain-spec/capabilities.md
+input-hash: "8721ef8"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -86,6 +87,36 @@ default whole-corpus validators are honestly `O(active shards)`, not `O(1)` and 
    harness's own full-repository line-length sweep, BC-1.18.005 Postcondition 7) working
    unmodified against archived shards when explicitly globbed.
 
+6. **POLICY-1 (`append_only_numbering`) enforcement carve-out: an archive-INCLUSIVE whole-corpus
+   scan is MANDATORY, not opt-in (S-25.02 F3→F4 consistency gate finding F-1, MAJOR; ADR-051
+   §Decision 6, subsection "Whole-corpus history-scanning validator enumeration and POLICY-1
+   reconciliation").** Notwithstanding Postcondition 3's general "opt-in required for `archive/`"
+   default, any D-NNN/BC/VP/story-ID append-only, gap, or uniqueness audit performed against a
+   Layer-2-sharded artifact under `.factory/policies.yaml` POLICY-1 (`append_only_numbering`) MUST
+   use the ARCHIVE-INCLUSIVE glob — `<stem>*.md` UNION `archive/<artifact-stem>/<stem>*.md` — never
+   Postcondition 3's default-exclusion glob. This is an explicit, named carve-out, justified because
+   append-only-numbering integrity is inherently a whole-HISTORY property: an ID whose sole prior
+   occurrence has aged into `archive/<artifact-stem>/` MUST remain visible to reuse/gap/uniqueness
+   detection, unlike the general whole-corpus validators covered by Postconditions 3/4, whose
+   correctness concern is bounded to current/recent state (ADR-051's own distinction between
+   "the current/recent state" validators and "the complete historical ID space" audit).
+   **Audited surface (enumerated, not assumed):** the four SS-04-owned WASM crates
+   (`validate-dispatch-advance`, `validate-state-structure`, `validate-closes-completeness`,
+   `validate-cross-site-correspondence`) were each individually confirmed NOT to require
+   amendment — each is either STATE.md-scoped (never reading the sharded cycle artifact at all) or
+   already correctly current-shard-scoped by design (its correctness concern is the shard being
+   written, not historical enumeration). POLICY-1's own `consistency-validator`/adversary-prompt
+   enforcement path is the ONE genuine archive-caused whole-corpus gap this carve-out closes.
+   **Present-day enforcement mechanism.** Because POLICY-1 has `lint_hook: null` in
+   `.factory/policies.yaml` today (no automated WASM/native validator implements it), this
+   Postcondition is currently satisfied at the agent-instruction level: the `consistency-validator`
+   and adversary-prompt agent definitions, and POLICY-1's own `verification_steps` entry in
+   `.factory/policies.yaml`, MUST instruct "scan MUST include `archive/<artifact-stem>/` for any
+   Layer-2-sharded artifact, not just active shards." If POLICY-1 is ever automated into a
+   WASM/native hook, that hook's design MUST inherit this archive-inclusive default from day one —
+   this Postcondition binds both the present agent-level enforcement and any future automated
+   enforcement identically.
+
 ## Invariants
 
 1. **Archival never deletes data.** The retention/compaction mechanism moves files; it never
@@ -115,6 +146,7 @@ default whole-corpus validators are honestly `O(active shards)`, not `O(1)` and 
 | EC-003 | A whole-corpus validator globs `<stem>*.md` without the archive opt-in, on an artifact with archived history | Only active (non-archived) shards plus the current file are matched — archived shards under `archive/<artifact-stem>/` are silently excluded, per Postcondition 3's explicit-opt-in design (not a defect; this is the intended honest-`O(active)` behavior) |
 | EC-004 | An operator manually moves a shard file out of `archive/` back to the cycle root | Not a supported operation under this BC's contract; the shard-index's recorded path would then diverge from the file's actual location — flagged as a manual-intervention risk, not a mechanism defect (consistent with the project's existing operator-escape-hatch posture, e.g. BC-1.18.003's manual marker deletion, which is explicitly supported and audited; unarchival is NOT similarly audited by this BC and is out of scope) |
 | EC-005 | The shard-index is missing or corrupt at the moment a retention check would run (companion to the story's own EC-005) | Fail-loud: the native gate returns `HookResult::Error`; the triggering write is blocked; dispatch is halted for that artifact until the operator restores the index from git history — retention/compaction MUST NOT silently skip its check and proceed as if no archival were needed |
+| EC-006 | A POLICY-1 (`append_only_numbering`) audit runs against an artifact with archived history, where a D-NNN/BC/VP/story-ID's SOLE prior occurrence has aged into `archive/<artifact-stem>/` | The audit MUST use the archive-inclusive glob (Postcondition 6) and detect the ID's prior occurrence there; a subsequent attempt to reuse that same ID IS flagged as a POLICY-1 violation, never silently missed — contrast with EC-003, where a generic non-POLICY-1 whole-corpus validator correctly stays opt-in-excluded from the same archived shard |
 
 ## Canonical Test Vectors
 
@@ -126,6 +158,7 @@ default whole-corpus validators are honestly `O(active shards)`, not `O(1)` and 
 | Whole-corpus `grep -c "D-" decision-log*.md` on an artifact with 3 archived + 2 active shards | Matches only the 2 active shards + current file (3 files total); archived shards NOT matched | edge-case |
 | Whole-corpus `grep -c "D-" decision-log*.md archive/decision-log/decision-log*.md` (explicit opt-in) | Matches all 5 sealed shards + current file (6 files total) | happy-path |
 | Shard-index file corrupt (malformed TOML) at retention-check time | `HookResult::Error`; write blocked; no archival attempted | error |
+| POLICY-1 uniqueness audit on an artifact where `D-042` exists ONLY inside `archive/decision-log/decision-log.0003.md`; a new write attempts to reuse `D-042` | Archive-inclusive glob (Postcondition 6) finds the existing `D-042` occurrence in the archived shard; the reuse attempt is flagged as a POLICY-1 (`append_only_numbering`) violation | edge-case |
 
 ## Verification Properties
 
@@ -134,6 +167,7 @@ default whole-corpus validators are honestly `O(active shards)`, not `O(1)` and 
 | VP-121 | Bounded-active-count invariant — after any sequence of seals, the number of NON-archived `[[shard]]` entries for a given artifact never exceeds `retention_count` | proptest (arbitrary seal sequences; property: active count `<= retention_count` after every seal) |
 | VP-121 | No-data-loss invariant — every `[[shard]]` entry ever created remains present (active or archived) in the shard-index; none are ever removed | proptest (arbitrary seal + archival sequences; property: `len(shard_index.shards)` is monotonically non-decreasing) |
 | VP-122 | Default-glob exclusion invariant — the default whole-corpus glob pattern never matches a path under `archive/<artifact-stem>/` | unit test (glob-matching assertion against a fixture directory tree with both active and archived shards) |
+| VP-NNN (pending) | Archive-inclusive POLICY-1 scan-mode invariant — a POLICY-1 (`append_only_numbering`) append-only/gap/uniqueness audit's effective glob scope ALWAYS includes `archive/<artifact-stem>/` UNION active shards for a Layer-2-sharded artifact; it never silently excludes an ID whose sole occurrence has been archived (Postcondition 6) | pending formal-verifier VP allocation — proposed: integration test/fixture-based assertion (archived-only ID + attempted reuse → violation detected, per this BC's new Canonical Test Vector) plus an agent-instruction compliance check against the `consistency-validator`/adversary-prompt definitions and POLICY-1's `verification_steps` in `.factory/policies.yaml`, since no WASM/native hook implements POLICY-1 today |
 
 ## Related BCs
 
@@ -145,6 +179,13 @@ default whole-corpus validators are honestly `O(active shards)`, not `O(1)` and 
 
 - `crates/factory-dispatcher/src/shard_manager.rs` — archival-move logic, `retention_count` read from shard-index config
 - `crates/last-amended-migrate/src/atomic_write.rs` / `crates/factory-dispatcher/src/indeterminate_marker.rs` — atomic-write primitives reused for the shard-index update accompanying an archival move
+- `.factory/policies.yaml` (POLICY-1, `append_only_numbering`, `lint_hook: null`) and the
+  `consistency-validator`/adversary-prompt agent definitions — Postcondition 6's present-day
+  enforcement surface (agent-instruction level; no automated WASM/native hook implements POLICY-1
+  today). The four audited-and-cleared SS-04 crates (`crates/hook-plugins/validate-dispatch-advance`,
+  `validate-state-structure`, `validate-closes-completeness`, `validate-cross-site-correspondence`)
+  are NOT Architecture Anchors for this Postcondition — they were confirmed out of scope, not
+  amended.
 
 ## SDK Grounding Evidence
 
@@ -188,7 +229,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 | Capability Anchor Justification | CAP-043 ("Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle Append-Logs and BC-INDEX Structured-Catalog Sharding") per capabilities.md §CAP-043 — this BC specifies the retention/compaction companion policy the capability's own outcome statement presupposes (bounded, honestly-accounted shard growth), consistent with the ADR-047 §8b "honest shard count accounting" mandate CAP-043 cites as source. |
 | L2 Domain Invariants | none (dispatcher runtime architectural invariant, not an L2 domain-spec DI-NNN) |
 | Architecture Module | SS-01 (Hook Dispatcher Core — `shard_manager.rs` retention/archival logic) |
-| ADR | ADR-051 §Decision 6 (retention/compaction companion policy: retention count, archive path, opt-in whole-corpus scope) |
+| ADR | ADR-051 §Decision 6 (retention/compaction companion policy: retention count, archive path, opt-in whole-corpus scope; subsection "Whole-corpus history-scanning validator enumeration and POLICY-1 reconciliation" grounds Postcondition 6's archive-inclusive POLICY-1 carve-out) |
 | Stories | S-25.02 |
 | Cycle | v1.0-brownfield-backfill (F2 — product-owner spec-evolution burst) |
 | Feature | E-25 — Validation Integrity and Large-Artifact Resilience |
@@ -197,5 +238,6 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.2 | 2026-09-06 | product-owner | Fix-burst amendment (S-25.02 F3→F4 consistency gate finding F-1, MAJOR): added Postcondition 6 — POLICY-1 (`append_only_numbering`) enforcement MUST use an archive-INCLUSIVE whole-corpus scan, an explicit carve-out from Postcondition 3's opt-in-required default, naming the four audited-and-cleared SS-04 crates and the genuine `consistency-validator`/adversary-prompt-level gap, per ADR-051 §Decision 6's "Whole-corpus history-scanning validator enumeration and POLICY-1 reconciliation" subsection. Added EC-006 (archive-inclusive POLICY-1 detection) + 1 new Canonical Test Vector + 1 new Verification Properties row (VP-NNN, pending formal-verifier allocation). Architecture Anchors gained the POLICY-1/agent-definition enforcement surface. Traceability ADR row extended to cite the specific ADR-051 §Decision 6 subsection. Closes the S-25.02 story AC-012 mis-citation gap (AC-012 previously cited Postcondition 3, which does NOT establish the archive-inclusive obligation — story-writer re-points AC-012 to Postcondition 6 next). |
 | 1.1 | 2026-09-05 | product-owner | Fix-burst amendment (F-S2502-F2-007, POLICY 5): added `## SDK Grounding Evidence` section with literal stable-anchor grep output for `write_atomic`, `write_indeterminate_marker`, and `HookResult`. No postcondition/invariant/VP content change. |
 | 1.0 | 2026-09-05 | product-owner | Initial creation. F2 spec-evolution burst, S-25.02 activation. Configurable `retention_count`, same-invocation archival move, `path_allow`-preserved-but-default-glob-excluded archive scope, honest O(active-shards) accounting per ADR-047 §8b mandate. CAP-043 capability anchor. ADR-051 §D6 citation. |
