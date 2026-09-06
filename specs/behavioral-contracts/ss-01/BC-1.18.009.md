@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: product-owner
-timestamp: 2026-09-05T00:00:00Z
+timestamp: 2026-09-06T00:00:00Z
 phase: F2
 inputs:
   - .factory/specs/architecture/decisions/ADR-051-layer-2-two-mechanism-size-triggered-shard-rotation-append-logs-and-bc-index-sharding.md
@@ -14,7 +14,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.005.md
   - .factory/cycles/v1.0-brownfield-backfill/S-25.02-f2-architecture-delta.md
-input-hash: "40ecd67"
+input-hash: "f618201"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -68,8 +68,11 @@ write, no exception carved out for B1.
    from `shard_manager.rs` (a new workspace-internal dependency edge:
    `factory-dispatcher` → `last-amended-migrate`, confirmed acyclic per ADR-051 §8's dependency
    check — `last-amended-migrate` has no dependency back on `factory-dispatcher`).
-4. `rotate_changelog`'s own implementation (`rewrite_source_after_rotation` in `rotate.rs`) is
-   verified to be a PURE TRIM — it keeps only `keep_items` (the retained N-1 most-recent items) and
+4. **CORRECTED (fix-burst pass-7, F-P7-001, LOW).** `rotate_changelog`'s own implementation
+   (`rewrite_source_after_rotation` in `rotate.rs`) is verified to be a PURE TRIM — it keeps only
+   `keep_items` (the caller-supplied `keep_recent` most-recent items — for B1, the configured
+   `low_water_mark`, per Postcondition 1/2; **NEVER a hardcoded `N-1`**, superseding the withdrawn
+   pass-2 "retained N-1 most-recent items" framing this Precondition previously carried) and
    writes a `changelog_archive:` discoverability pointer; it never calls `prepend_changelog_item`
    itself and has no parameter for a "new item to insert." This is a structural SDK/library fact,
    not a runtime state — it is what makes the corrected single-actor contract (Postcondition 2)
@@ -404,6 +407,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.5 | 2026-09-06 | product-owner | Surgical residual-sweep fix-burst (adversary pass-7 finding F-P7-001, LOW — the last live N-1 straggler): Precondition 4's parenthetical describing `rotate_changelog`'s pure-trim retention as "the retained N-1 most-recent items" was a STALE descriptor of the WITHDRAWN v1.0/pass-2 trim target, contradicting this BC's own Postcondition 1/2 ("NEVER to N-1"; trims to the configured `low_water_mark`, BC-1.18.005 Postcondition 8's rotation-target config). CORRECTED to "the caller-supplied `keep_recent` most-recent items — for B1, the configured `low_water_mark`" — a generic, correct characterization matching Postcondition 1/2. No postcondition, invariant, or contract-behavior change; wording reconciliation only. Sibling-sweep (POLICY 5) confirmed no other positive (non-negated, non-changelog) `N-1`-as-trim-floor descriptor remains anywhere in this BC's live contract text. |
 | 1.4 | 2026-09-05 | product-owner | Fix-burst amendment (adversary pass-3 findings F-P3-001 HIGH + F-P3-005 MEDIUM + F-P3-006 LOW, ADR-051 v1.3 Decision 14): **(F-P3-001)** CORRECTED Postcondition 6 and EC-003's error-code citation from `E-SHD-001` (BC-1.18.006's DIFFERENT mechanism-A shard-seal-write-failure code) to `E-SHD-004` (this BC's OWN `rotate_changelog`-invocation-failure code, per `error-taxonomy.md`'s Error Catalog and VP-INDEX's authoritative `004→VP-131` mapping — the v1.3 residual-cleanup micro-burst had mistakenly "corrected" this citation to the wrong sibling code). **(F-P3-005)** REWROTE Postcondition 1 (the sequence never exceeds N but is NOT capped at exactly N-1/N — rotation trims to the `low_water_mark` floor, BC-1.18.005 Postcondition 8's new rotation-target config, default `floor(N/2)`, never a hardcoded `N-1`) and Postcondition 2's opening sentence/step 3/step 4 (retry-instruction text and post-retry item count corrected from `N-1`/`N-1+1=N` to `low_water_mark`/`low_water_mark+1`); no change to the single-actor block-and-retry contract itself (Postconditions 3/4, Invariants 2-4 unchanged). Corrected EC-001's rotation-target wording; added EC-007 (the normal, amortized re-trigger boundary is not a defect) and a matching Canonical Test Vector demonstrating the amortized cadence; corrected the existing rotation Canonical Test Vector's numbers to `low_water_mark=25`. **(F-P3-006)** Collapsed the §Verification Properties table's two separate VP-125 rows into one multi-facet row (folding in the new `low_water_mark`-floor assertion); no coverage change beyond the genuinely new facet, presentation-only for the rest. |
 | 1.3 | 2026-09-05 | product-owner | Residual-cleanup micro-burst (S-25.02 F2, formal-verifier-flagged gap ahead of the re-run adversary; no ADR/postcondition/invariant-set change — surgical wording reconciliation only). Invariant 2 and EC-001 still described the B1 rotation destination as "a sealed shard file" / "a new sealed shard" — a withdrawn per-`seq` shape v1.2 had already corrected everywhere else; both now read "the single evergreen archive file (`BC-INDEX-changelog-archive.md`)" to match Postcondition 2/5's v1.2 corrected mechanics. Postcondition 6 and EC-003's cross-reference to BC-1.18.006's EC-003 corrected from the withdrawn "seal-rename-failure" label to the current `E-SHD-001` "shard-seal-write failure" label (BC-1.18.006 v1.2's copy+atomic-truncate mechanism has no rename step). No behavior, postcondition-count, or invariant-count change — pure terminology reconciliation. |
 | 1.2 | 2026-09-05 | product-owner | Fix-burst amendment (adversary pass-2 finding F-P2-001, HIGH, ADR-051 v1.2 Decision 7 CORRECTED): REWROTE Postcondition 2/5/Invariant 1's archive-path citations from the internally-impossible per-`seq` sealed-shard-DIRECTORY layout (`BC-INDEX-changelog-shards/BC-INDEX-changelog.<seq:04>.md` — a layout the shipped `rotate_changelog`/`resolve_archive_path` cannot produce under any call pattern) to the single, evergreen, append-only archive file `.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`, reached via a small, NAMED, bounded extension to `rotate_changelog`'s path-resolution surface (an explicit `archive_path` parameter, not yet implemented — grounded via a current-state SDK grep showing the shipped `resolve_archive_path(path, cycle_name)` signature's absence of this parameter). Refined Invariant 1's "no reimplementation" framing to acknowledge this bounded, additive extension without weakening the no-duplicated-logic guarantee. Updated the retry-instruction text, Canonical Test Vectors, Related BCs (added BC-1.18.012), Architecture Anchors, SDK Grounding Evidence, and VP Anchors accordingly. No change to the single-actor block-and-retry contract itself (Postconditions 1/3/4/6, Invariants 2-4 unchanged from v1.1). |
