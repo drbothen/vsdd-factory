@@ -7388,3 +7388,57 @@ by their owning specialists across the F3 population + F-1 fix cascade; cited he
 ### Canonical 6-column row (STATE.md Decisions Log)
 
 | D-1169 | D-1169-S2502-F3-COMPLETE-F4-READY | **S-25.02 Phase F3 (incremental-stories) COMPLETE — story v2.1 populated (9 BCs, VP-116..141 [26 VPs], SS-04, status ready, 45 pts) + integrated (E-25 chain, depends_on=[S-25.01], blocks=[S-25.03], W2, acyclic); consistency-gate audit finding F-1 (MAJOR) CLOSED via 5-commit fix cascade (BC-1.18.007 v1.1→v1.2 PC6+EC-006, VP-141 allocated, AC-012 re-pointed, story v2.0→v2.1) — re-verified F4-READY** 2026-09-06 (state-manager; single-commit TD-VSDD-053; F3 CLOSE burst — cite-only on the 4 indexes, NO ADR/BC/VP body content authored by state-manager). BC-INDEX v5.57→v5.58 (total_bcs UNCHANGED 2,006). VP-INDEX v3.06→v3.07 (total_vps 140→141); verification-architecture.md v1.23→v1.24; verification-coverage-matrix.md v1.21→v1.22 (POLICY 9). STORY-INDEX v4.438→v4.440. Story `input-hash:` recomputed `[pending-recompute]`→`34a9439` via sanctioned `compute-input-hash --update`; `--check` CLEAN. 45-pt story size is a documented consequence of D-1166's WIDEST-scope directive, not a defect (Routing Note cites S-21.11 precedent). `pipeline:` stays in_progress. BC-5.39.001 cycle-level streak stays 3/3 CONVERGED, UNCHANGED — this is NOT an adversary pass (a fresh-context consistency-gate audit, distinct from the BC-5.39.001 adversarial cascade). No trajectory-tail drift — unchanged →0→1→1→1 LENGTH=4. Session Resume Checkpoint replaced (prior S2502-F2-CONVERGED-RATIFIED-COMPLETE/D-1168-era checkpoint archived verbatim to `cycles/v1.0-brownfield-backfill/session-checkpoints.md`). **NEXT = Phase F4 (delta-implementation), pending the human F4 gate.** Refs: D-1169, F-1, S-25.02, BC-1.18.007 v1.2, VP-141, BC-INDEX v5.58, VP-INDEX v3.07, STORY-INDEX v4.440. STATE.md v9.87→v9.88. | D-1169 | 2026-09-06 |
+
+---
+
+## D-1170
+
+**D-1170-S2502-F4-GATE-RESOLVED-INCREMENTAL-BY-BC-CLUSTER**
+
+Allocated as next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was D-1169
+(this cycle's decision-log.md, D-1169 authored directly the same burst per the D-1166..D-1169
+precedent). D-1170 allocated cleanly above the true max.
+
+**Summary:** Human RESOLVED the PRIMARY open item carried in the Session Resume Checkpoint §4 since
+D-1169 (F3-close): the F4 delivery-sequencing gate for S-25.02's 45-pt Phase F4
+(delta-implementation). Decision: deliver INCREMENTALLY BY BC-CLUSTER, not one-shot. Phase F4 is now
+CLEARED TO BEGIN.
+
+### Human Decision (2026-09-06)
+
+Seven delivery sub-cycles, each its own TDD→PR→merge on a `feature/S-25.02-<cluster>` branch, in
+this order:
+
+1. **cap+trigger** — BC-1.18.005; Red Gate tests T-1, T-2, T-3; AC-001..005.
+2. **roll** — BC-1.18.006; T-4; AC-006..009.
+3. **mechanism-A backfill** — BC-1.18.007, BC-1.18.008; T-5, T-6; AC-010..014.
+4. **B1 rotation** — BC-1.18.009; T-7, T-8; AC-015..016.
+5. **B2 sharding** — BC-1.18.010, BC-1.18.011; T-10, T-11; AC-017..018.
+6. **migrations** — BC-1.18.012; T-9; AC-019.
+7. **Cohort-B flip** — BC-7.08.001; T-12, T-13; AC-020..022 — **CAPSTONE**, hard-gated on cluster-3
+   (mechanism-A backfill-split) MERGED (BC-7.08.001 precondition 3 / VP-130) AND on the F4
+   calibration harness locking the cap constants first.
+
+### Effect
+
+Phase F4 (delta-implementation) is now **CLEARED TO BEGIN**. `pipeline:` frontmatter flips
+**PAUSED→in_progress**. Cluster-1 (cap+trigger, BC-1.18.005) is first in the dispatch queue — the
+orchestrator dispatches the per-story delivery sub-workflow (worktree → stubs → failing tests → TDD
+→ LOCAL adversary 3-CLEAN → demo-recorder per-AC → PR → 9-step pr-manager cycle → squash-merge →
+state-manager post-merge burst) for cluster-1 next.
+
+### Not Changed This Burst
+
+No BC/VP/STORY/ARCH content changed — all 4 indexes UNCHANGED (BC-INDEX v5.58 / VP-INDEX v3.07 /
+STORY-INDEX v4.440 / ARCH-INDEX v4.22). BC-5.39.001 cycle-level streak stays 3/3 CONVERGED,
+UNCHANGED — this is not an adversary pass. No trajectory-tail drift — unchanged →0→1→1→1 LENGTH=4.
+
+### Next Steps
+
+1. Orchestrator dispatches cluster-1 (cap+trigger, BC-1.18.005) per-story delivery: worktree →
+   stubs → failing tests → TDD → LOCAL adversary 3-CLEAN → demo-recorder per-AC → PR → 9-step
+   pr-manager cycle → squash-merge → state-manager post-merge burst.
+
+### Canonical 6-column row (STATE.md Decisions Log)
+
+| D-1170 | D-1170-S2502-F4-GATE-RESOLVED-INCREMENTAL-BY-BC-CLUSTER | **Human RESOLVED the F4 delivery-sequencing gate — S-25.02's 45-pt Phase F4 (delta-implementation) will be delivered INCREMENTALLY BY BC-CLUSTER (7 sub-cycles, cluster-1 = cap+trigger first), NOT one-shot — Phase F4 CLEARED TO BEGIN** 2026-09-06 (state-manager; single-commit TD-VSDD-053; human-gate-resolution burst — cite-only, NO ADR/BC/VP/STORY content authored). Human resolved the PRIMARY open item carried in the Session Resume Checkpoint §4 since D-1169/F3-close: the F4 delivery-sequencing gate. Decision: deliver the 45-pt story via **seven delivery sub-cycles**, each its own TDD→PR→merge on a `feature/S-25.02-<cluster>` branch, in order: **(1) cap+trigger** (BC-1.18.005; T-1/T-2/T-3; AC-001..005); **(2) roll** (BC-1.18.006; T-4; AC-006..009); **(3) mechanism-A backfill** (BC-1.18.007, BC-1.18.008; T-5/T-6; AC-010..014); **(4) B1 rotation** (BC-1.18.009; T-7/T-8; AC-015..016); **(5) B2 sharding** (BC-1.18.010, BC-1.18.011; T-10/T-11; AC-017..018); **(6) migrations** (BC-1.18.012; T-9; AC-019); **(7) Cohort-B flip** (BC-7.08.001; T-12/T-13; AC-020..022) — **CAPSTONE**, hard-gated on cluster-3 (mechanism-A backfill-split) MERGED (BC-7.08.001 precondition 3 / VP-130) AND on the F4 calibration harness locking the cap constants first. Phase F4 (delta-implementation) is now **CLEARED TO BEGIN**; **cluster-1 (cap+trigger, BC-1.18.005) is first**. `pipeline:` **PAUSED→in_progress**. No BC/VP/STORY/ARCH content changed this burst — all 4 indexes UNCHANGED (BC-INDEX v5.58 / VP-INDEX v3.07 / STORY-INDEX v4.440 / ARCH-INDEX v4.22). BC-5.39.001 cycle-level streak stays 3/3 CONVERGED, UNCHANGED — no adversary pass ran. No trajectory-tail drift — unchanged →0→1→1→1 LENGTH=4. Session Resume Checkpoint replaced (prior SESSION-WRAP-PAUSE-2026-09-06 checkpoint archived verbatim to `cycles/v1.0-brownfield-backfill/session-checkpoints.md`). **NEXT: orchestrator dispatches cluster-1 (cap+trigger, BC-1.18.005) per-story delivery** — worktree → stubs → failing tests → TDD → LOCAL adversary 3-CLEAN → demo → PR → merge. Refs: D-1170, D-1169, S-25.02, BC-1.18.005..012, BC-7.08.001, VP-130. STATE.md v9.89→v9.90. | D-1170 | 2026-09-06 |

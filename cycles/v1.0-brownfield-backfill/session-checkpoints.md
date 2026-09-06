@@ -6794,3 +6794,60 @@ BC-4.17.001 v1.29 active. BC-6.28.001 v1.3 active. BC-5.45.001 v1.3 active. BC-1
 
 ---
 Archived 2026-09-06 (SESSION-WRAP-PAUSE-2026-09-06, state-manager; `/vsdd-factory:wrap` Step-4 checkpoint-write burst): the checkpoint above is superseded by the current STATE.md Session Resume Checkpoint. This checkpoint reflects the S2502-F3-COMPLETE-F4-READY/D-1169 resting point (pre-pause). No new pipeline work happened between that checkpoint and this pause — the pause burst adds no new decision, no new BC/VP/STORY/ARCH content, and no code merge. `pipeline:` flips in_progress→PAUSED; `develop` stays `b5982d44`; `main` stays `51023185`; `merged_count` stays 118. NEXT (on resume) = Phase F4 (delta-implementation) human gate, unchanged. See the current STATE.md checkpoint for full detail.
+
+## Session Resume Checkpoint (2026-09-06 — SESSION-WRAP-PAUSE-2026-09-06; develop 54fa985f (PR #817 merged); main 51023185; merged_count 118; v1.0.0-rc.25 SHIPPED; PIPELINE PAUSED)
+
+> **SELF-SUFFICIENT RESUME CONTEXT.** Brownfield cycle `v1.0-brownfield-backfill`. Human `/vsdd-factory:wrap` Step-4 checkpoint-write; `pipeline:` flips **in_progress→PAUSED** this burst, resting at the S-25.02 Phase F3 COMPLETE / F4-READY position (D-1169). Delta-implementation (Phase F4) has **NOT started** — the human paused deliberately at the F3 milestone. No new pipeline work happened this burst besides the pause itself; no BC/VP/STORY/ARCH content changed; no adversary pass ran.
+> Prior checkpoint (S2502-F3-COMPLETE-F4-READY) archived verbatim to
+> `cycles/v1.0-brownfield-backfill/session-checkpoints.md`.
+
+### §1. Position (a)
+
+**PAUSED 2026-09-06** — S-25.02 Feature-Mode Phase F3 COMPLETE / F4-READY (delta-implementation NOT started — human paused at the F3 milestone). Cycle `v1.0-brownfield-backfill`. F2 spec CONVERGED (12-pass adversarial, 3-clean streak P10/11/12) + human-ratified 2026-09-06; ADR-051 v1.8 accepted; 9 BCs (BC-1.18.005–012, BC-7.08.001), VP-116..141, CAP-043; story v2.1 ready (45 pts, wave W2, E-25 chain). BC-INDEX v5.58 / VP-INDEX v3.07 / STORY-INDEX v4.440 / ARCH-INDEX v4.22 / capabilities v1.22 / error-taxonomy v1.2. **NEXT = Phase F4 human gate** (deliver the 45-pt story incrementally-by-BC-cluster vs one-shot — still open).
+
+### §2. Convergence (b)
+
+No active adversarial loop. S-25.02 F2 spec **CONVERGED** (12 fresh-context passes; 3-consecutive-clean streak P10/P11/P12) + human-ratified 2026-09-06. F3's consistency-gate audit found + **CLOSED** finding **F-1** (BC-1.18.007 Postcondition 6 + EC-006, VP-141 allocated, AC-012 re-pointed, story v2.0→v2.1). BC-5.39.001 cycle-level streak **unaffected — stays 3/3 CONVERGED** (this pause is bookkeeping only, not an adversary pass). No trajectory-tail drift — unchanged `→0→1→1→1` LENGTH=4.
+
+### §3. In-flight (c)
+
+**NONE.** No story mid-TDD (Phase F4 not started). No open PRs from this session (PR #817 merged `54fa985f`). No sub-agent steps abandoned — Step 1 halt-new-work observed cleanly. Story worktrees `d999-migration` (`bf642fd9`) + `S-21.04` (`323f440f`) clean+inert, carried forward unchanged, not re-verified this burst.
+
+### §4. Pending human decisions / blockers — OWED (d)
+
+**PRIMARY item: the F4 delivery-sequencing gate** — deliver the 45-pt S-25.02 story incrementally-by-BC-cluster (cap+trigger → roll → mechanism-A backfill → B1 rotation → B2 sharding → migrations → Cohort-B flip) vs one-shot. Decision still **OPEN**, pending human direction; orchestrator dispatches Phase F4 only after the human resolves this and confirms scope/go.
+
+Carried OWED (unchanged from prior checkpoint):
+1. **E-25 epic points-total staleness** — the epic's last-recorded 47-pt placeholder (pre-F2/F3, 4 stories) is superseded by S-25.02's finalized 45-pt estimate alone. Not fixed this burst — OWED to a future architect/story-writer epic-file touch.
+2. **The VP-re-review process-gap** (`L-BB-D1167`, P3/P4 VP-body-same-burst-sweep deferral, mitigated in-cycle via P4's comprehensive sweep) — standing-rule codification remains deferred to the next self-improvement epic / engine-discipline pass (E-12 Engine Governance follow-up story, no ID allocated yet).
+3. **Branch protection on `develop`** — BLOCKED on repo-admin (current token lacks admin on `drbothen/vsdd-factory`); ready-to-apply config prepared; OWED to a repo admin/owner.
+4. **decision-log.md backfill** — D-1156..D-1160 (exhaustive) plus D-1165 remain summary-only in this STATE.md table, not yet individually appended to `decision-log.md` SoT. STILL OWED, unchanged.
+5. **O-P18-001 adjudication** (audit-timestamp LOCAL-offset ISO-8601 vs ADR-048 §D4 "ISO-8601 UTC" wording; Direction A/B/hybrid) — project-wide architect/product-owner decision; analysis persisted at `cycles/v1.0-brownfield-backfill/O-P18-001-timestamp-utc-vs-offset-analysis.md`. STILL OWED, unchanged.
+6. **Dependabot vulnerability backlog — 12 remaining.** STILL OWED — anchor next maintenance sweep to re-audit and open further dependency-bump PRs.
+7. **~871 repo-wide stale input-hashes** — PRE-EXISTING backlog, confirmed pre-dating this cycle's recent bursts. Per CLAUDE.md's explicit "do NOT mass-update unrelated repo hashes" discipline, NOT touched. Anchor: a dedicated future maintenance-sweep story scoped to a `compute-input-hash --scan .factory --update` pass, reviewed for false-positive risk before batch-applying.
+8. **The 4 D-1164 documentary follow-ups (STILL OPEN, unchanged):** (i) BC-5.39.006 v1.9 Invariant 7 "symmetric" emphasis-trim wording overstatement; (ii) exact-heading (`## Decisions Log`) fail-open — DOCUMENTED-DESIGN-DEPENDENCY, not a defect; (iii) Session Resume Checkpoint §4 Open-Items sub-table state-manager CONVENTION; (iv) circular input-hash dependency BC-5.39.006 ↔ its companion analysis doc.
+9. **Redundant `git stash@{0}`** (prd-supplement variant) — drop-when-convenient, non-blocking cleanup.
+
+**Full historical long-tail (carried forward verbatim, nothing dropped — the complete numbered enumeration lives in the archived session-checkpoints.md history):** cargo-deny advisory disposition (wasmtime/RUSTSEC-class; CI green, not a release blocker); VP-079/VP-028 POLICY-9 "ten events" propagation (Phase-6/wave-gate anchor); PG-CI-1/2/3 + F-WG5-001 + PR-MANAGER-MERGE-OVER-RED (OWED before E-17/cycle convergence gate); ADR-045 v1.3 ratification burst (blocks Wave-7, S-21.19/20/21/23 HELD); E-23 re-scope to frozen-provenance model (STALE); LOW-7 DEFERRED AC-006 events-sink wording (PO follow-up); `[process-gap]` registry-comment-lint (E-12 follow-up, no ID allocated); spec-hygiene sweep OWED (E-10 follow-up).
+
+### §5. WIP branches (e)
+
+**None this session.** Inert/carried forward, unchanged, not re-verified this burst: `fix/d999-sentinel-code-migration` @ `bf642fd9` (ADR-041 sentinel); `feature/S-21.04-story-worktree-write-path-discipline` @ `323f440f` (pass-31 pending, no PR).
+
+### §6. Resume command (f)
+
+`/vsdd-factory:rehydrate-wave` then `/vsdd-factory:next-step`.
+
+BC-4.17.001 v1.29 active. BC-6.28.001 v1.3 active. BC-5.45.001 v1.3 active. BC-10.13.001 v1.3 active. BC-4.18.001 v1.2 active. BC-1.18.001 v1.7 active. BC-1.18.002 v1.8 active. BC-1.18.003 v1.8 active. BC-1.18.004 v1.4 active. BC-3.08.001 v1.34 active. BC-4.16.002 v1.2 active. BC-5.39.006 v1.9 active. BC-1.18.005 v1.6/006 v1.3/007 v1.2/008 v1.1/009 v1.5/010 v1.2/011 v1.0/012 v1.1 (draft; SS-01) + BC-7.08.001 v1.1 (draft; SS-07) — 9 BCs, all anchored in S-25.02's frontmatter (F3 population). BC-INDEX v5.58 (2,006 BCs). VP-INDEX v3.07 (141 VPs per frontmatter total_vps; VP-116..141 new this cycle). STORY-INDEX v4.440 (176 stories; 25 epics; S-25.02 v2.1, status ready, F4-READY; S-25.01 v1.22 merged; S-25.04 v2.0 merged; S-15.03 v1.8 merged). ARCH-INDEX v4.22 (48 ADRs; ADR-051 v1.8 NEW this cycle, status accepted — POLICY-22 human-ratified 2026-09-06, D-1167).
+
+### §7. HEADs
+
+- `develop`: **`54fa985f`** (PR #817 merged). merged_count **118** (UNCHANGED this burst — bookkeeping pending a future post-merge burst).
+- `main`: **`51023185`** (origin/main; v1.0.0-rc.25 bundle+retag commit 2026-09-04; immediate parent `101ebb64`, the release PR #808 merge commit). Tag `v1.0.0-rc.25` → `101ebb64`.
+- `factory-artifacts`: **this burst's commit** — per TD-VSDD-053 SHA-patch anti-pattern retirement, this burst does not self-cite its own resulting commit SHA — run `git -C .factory log -1` for the live HEAD. Pre-burst HEAD: `20cc1894` (D-1169 F3-CLOSE commit).
+- `fix/d999-sentinel-code-migration`: clean+inert @ `bf642fd9` (ADR-041 sentinel).
+- `feature/S-21.04-story-worktree-write-path-discipline`: clean+inert @ `323f440f` (pass-31 pending, no PR).
+
+### §8. BC-5.39.001 streak
+
+**Cycle-level streak: 3/3 — CONVERGED, UNCHANGED this burst** (session pause; no adversary pass ran). **S-25.02's OWN F2 cascade CONVERGED at 3-CONSECUTIVE-CLEAN (P10/P11/P12), D-1167 — CLOSED**, a separate local-equivalent track (same convention as S-17.05/S-25.01/S-25.04 LOCAL streaks). On resume: no adversary pass pending against any merged story or fix; next adversary activity begins fresh against S-25.02's F4/F5 delta (scoped adversarial review) once F4 delta-implementation lands, or a cycle-level pass.
