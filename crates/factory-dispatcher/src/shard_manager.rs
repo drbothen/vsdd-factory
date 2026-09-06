@@ -483,11 +483,10 @@ pub fn projected_size_write(content_len_bytes: u64) -> u64 {
 /// against-current-size model was always correct for these two tools).
 ///
 /// `net_delta_bytes` is signed (EC-005: a net-shrinking `MultiEdit` may be
-/// negative overall). The eventual implementation MUST NOT let a large
-/// negative delta underflow an unsigned `current_shard_bytes` — a
-/// saturating (floor-at-zero) computation is the production-grade choice,
-/// left to the implementer per Red Gate discipline (this stub does not
-/// pre-decide the overflow-safety strategy VP-116's kani-proof verifies).
+/// negative overall). A large negative delta MUST NOT underflow an unsigned
+/// `current_shard_bytes` — this function uses a saturating (floor-at-zero)
+/// computation, the production-grade choice VP-116's kani-proof verifies
+/// for overflow/underflow safety.
 pub fn projected_size_edit(current_shard_bytes: u64, net_delta_bytes: i64) -> u64 {
     if net_delta_bytes >= 0 {
         // Safe: net_delta_bytes >= 0, so the cast is lossless for any value
@@ -891,13 +890,12 @@ pub fn shard_cap_gate_check(
 }
 
 // ---------------------------------------------------------------------------
-// Tests — BC-1.18.005 Red Gate (S-25.02 F4 BC-cluster 1 "cap+trigger")
+// Tests — BC-1.18.005 (S-25.02 F4 BC-cluster 1 "cap+trigger")
 // ---------------------------------------------------------------------------
 //
-// Every test below exercises a `todo!()` production function (or the fully
-// wired `shard_cap_gate_check` dispatch entry point, itself `todo!()`) and
-// therefore MUST currently FAIL (panic) — Red Gate per BC-5.38.001. The two
-// GREEN-BY-DESIGN/WIRING-EXEMPT helpers this file already implements
+// Every test below exercises a fully implemented production function (or the
+// fully wired `shard_cap_gate_check` dispatch entry point) and is green. The
+// two GREEN-BY-DESIGN/WIRING-EXEMPT helpers this file already implements
 // (`ShardEntry::cap_formula_inputs`, `From<ShardConfigError> for HookResult`)
 // are intentionally NOT covered here — they are trivial field-copy /
 // delegation code, not part of this BC's tested trigger/formula logic (see

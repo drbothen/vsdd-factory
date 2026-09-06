@@ -1,12 +1,12 @@
 // Test files use .expect()/.unwrap()/.panic!() for failure reporting.
 #![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
-//! BC-1.18.005 (S-25.02 F4 BC-cluster 1 "cap+trigger") Red Gate integration
-//! coverage for the `executor.rs` -> `shard_manager.rs` wiring path.
+//! BC-1.18.005 (S-25.02 F4 BC-cluster 1 "cap+trigger") integration coverage
+//! for the `executor.rs` -> `shard_manager.rs` wiring path.
 //!
 //! `executor.rs::shard_cap_precheck` (private) is the native shard-cap gate
 //! invocation point, called from `execute_tiers` BEFORE the registry-driven
-//! tier loop (Invariant 1). It applies two cheap, REAL (non-stubbed) guards
-//! before ever reaching the `shard_manager` stub:
+//! tier loop (Invariant 1). It applies two cheap, real guards before ever
+//! reaching the live gate logic:
 //!
 //! 1. Tool-name filter — only `Edit`/`Write`/`MultiEdit` PreToolUse calls are
 //!    candidates (Precondition 1).
@@ -16,13 +16,15 @@
 //! This file supplies a REAL `[[shard]]` config fixture at that exact path
 //! (relative to a tempdir `cwd`) to drive a matching Edit/Write/MultiEdit
 //! call PAST both guards and into `ShardRegistry::load` / `shard_cap_gate_check`
-//! — both still `todo!()` (S-25.02 F4 BC-cluster 1 stub). Every "drives the
-//! stub" test below therefore currently FAILS (panics) — Red Gate per
-//! BC-5.38.001. The two negative-control tests (no config present; a
-//! non-mutating tool name) exercise the ALREADY-IMPLEMENTED (non-stub) guard
-//! logic in `executor.rs` and are expected to PASS today — they lock in the
-//! exact wiring conditions the positive Red Gate tests depend on, so a
-//! regression in the guard logic itself is caught independently of the stub.
+//! — both fully implemented. Every "drives the gate" test below asserts the
+//! real post-implementation outcome and is green. The two negative-control
+//! tests (no config present; a non-mutating tool name) exercise the
+//! independent guard logic in `executor.rs` and lock in the exact wiring
+//! conditions the positive tests above depend on, so a regression in either
+//! guard is caught independently of the gate logic itself. The F-001 tests
+//! further down additionally cover `execute_tiers`'s translation of a
+//! `HookResult::Error` gate verdict into a blocking dispatch outcome
+//! (non-zero `exit_code`).
 
 use std::sync::Arc;
 
@@ -103,20 +105,17 @@ fn inputs_for<'a>(
 }
 
 // ---------------------------------------------------------------------------
-// Red Gate: real config present + a candidate tool name drives execution
-// through executor.rs's guards and into the still-todo!() shard_manager
-// stub (ShardRegistry::load is the first function hit).
+// Real config present + a candidate tool name drives execution through
+// executor.rs's guards and into the live shard_manager gate
+// (ShardRegistry::load is the first function hit).
 // ---------------------------------------------------------------------------
 
 // NOTE (BC-5.38.001 Red Gate discipline): these three tests deliberately do
-// NOT use `#[should_panic]`. A `#[should_panic]` test that panics today
-// (because `ShardRegistry::load`/`shard_cap_gate_check` are `todo!()`) would
-// PASS right now — the opposite of Red Gate. Instead, each test asserts the
-// REAL expected post-implementation outcome (a within-cap call MUST
-// Continue: `exit_code == 0`, `block_intent == false`); today the `todo!()`
-// panic makes the test FAIL, which is the correct Red Gate signal. Once the
-// implementer fills in `shard_manager.rs`, these assertions should pass
-// unchanged.
+// NOT use `#[should_panic]`. Each test asserts the real expected outcome (a
+// within-cap call MUST Continue: `exit_code == 0`, `block_intent == false`),
+// which is the correct assertion shape both during Red Gate (where it fails
+// against the former `todo!()` stub) and now that `shard_manager.rs` is
+// fully implemented (where it passes unchanged).
 
 #[tokio::test(flavor = "current_thread")]
 async fn test_BC_1_18_005_INV1_write_with_real_shard_config_reaches_native_gate_stub() {

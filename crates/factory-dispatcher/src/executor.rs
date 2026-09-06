@@ -294,28 +294,23 @@ const SHARD_CONFIG_RELATIVE_PATH: &str = ".factory/shard-config.toml";
 ///
 /// # Guarded call site (BC-5.38.001 Red Gate discipline)
 ///
-/// [`crate::shard_manager::shard_cap_gate_check`] and every function it
-/// dispatches to are `todo!()` stubs (S-25.02 F4 BC-cluster 1). Calling into
-/// them unconditionally on every dispatch would panic every EXISTING
-/// dispatcher invocation (this crate's own extensive pre-existing test
-/// suite included), which would violate stub discipline's "existing tests
-/// keep passing; only the NEW BC-1.18.005 tests go red" bar.
-///
-/// This function therefore applies TWO cheap, real (non-stubbed) guards —
+/// [`crate::shard_manager::shard_cap_gate_check`] and `ShardRegistry::load`
+/// are fully implemented (S-25.02 F4 BC-cluster 1 — no longer stubs). This
+/// function still applies TWO cheap, real guards before reaching them —
 /// themselves a direct extension of Postcondition 1's zero-cost-bypass
-/// spirit, not the BC's tested formula/trigger logic — before ever reaching
-/// the stub:
+/// spirit, not the BC's tested formula/trigger logic — so that every dispatch
+/// that isn't a candidate for BC-1.18.005's check pays zero cost:
 ///
 /// 1. **Tool-name filter.** Only `Edit`/`Write`/`MultiEdit` PreToolUse calls
 ///    are candidates at all (Precondition 1). A cheap string compare, no I/O.
 /// 2. **Config-presence filter.** The native gate is a no-op when no
 ///    `[[shard]]` config file exists at [`SHARD_CONFIG_RELATIVE_PATH`] —
 ///    none of this crate's pre-existing test fixtures ship one, so this
-///    guard is what keeps every pre-existing dispatch panic-free. The
-///    test-writer stage authors BC-1.18.005's Red Gate fixtures by placing a
+///    guard is what keeps every pre-existing dispatch unaffected by the
+///    gate. The test-writer stage's BC-1.18.005 Red Gate fixtures place a
 ///    real `[[shard]]` config file under a test's `cwd`, which is exactly
-///    what drives this call past the guard and into the (intentionally
-///    still-`todo!()`) gate logic.
+///    what drives a matching call past the guard and into the live
+///    `ShardRegistry::load` / `shard_cap_gate_check` gate logic.
 ///
 /// Returns `None` when either guard short-circuits (no gate check
 /// performed); `Some(HookResult)` when the gate was actually invoked.
@@ -335,10 +330,9 @@ fn shard_cap_precheck(inputs: &ExecutorInputs<'_>) -> Option<vsdd_hook_sdk::Hook
     }
 
     // A `[[shard]]` config file is present and this is a candidate tool —
-    // from here on, real BC-1.18.005 gate logic is required. Config load
-    // and the gate check itself remain `todo!()` (shard_manager.rs); the
-    // implementer wires target-path/tool_input extraction from
-    // `inputs.payload_value` alongside the shard_manager Red Gate fill-in.
+    // from here on, real BC-1.18.005 gate logic runs: config load
+    // (EC-009/EC-010/EC-011/EC-012/Postcondition 9 validation) followed by
+    // the trigger-boundary check itself.
     let registry = match crate::shard_manager::ShardRegistry::load(&shard_config_path) {
         Ok(reg) => reg,
         Err(e) => return Some(e.into()),
