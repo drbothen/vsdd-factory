@@ -37,6 +37,7 @@ pub mod resolver_classify_trap;
 pub mod resolver_loader;
 pub use resolver_loader::{ResolverLoadError, ResolverLoader};
 pub mod routing;
+pub mod shard_manager;
 pub mod sinks;
 pub mod vsdd_sink;
 pub use vsdd_sink::flush_sink_file;
@@ -71,6 +72,14 @@ pub use registry::{
     RegistryDefaults, RegistryEntry, RegistryError,
 };
 pub use routing::{PluginResultStub, group_by_priority, match_plugins};
+pub use shard_manager::{
+    CapFormulaInputs, EditDelta, ShardConfigError, ShardEntry, ShardRegistry, ShardShape, ToolKind,
+    compute_shard_cap_bytes, current_shard_bytes_flat, effective_shard_cap_bytes,
+    find_matching_entry, item_count_trigger_fires, net_delta_bytes_for_edit,
+    net_delta_bytes_for_multi_edit, projected_size_edit, projected_size_write,
+    read_changelog_item_count, resolved_low_water_mark, shard_cap_gate_check, size_trigger_fires,
+    validate_low_water_mark,
+};
 
 /// ABI version the dispatcher speaks. Kept in lock-step with
 /// `vsdd_hook_sdk::HOST_ABI_VERSION`; diverging is a breaking change.

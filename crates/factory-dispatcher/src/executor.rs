@@ -279,6 +279,90 @@ pub struct ExecutorInputs<'a> {
     pub resolver_registry: Arc<ResolverRegistry>,
 }
 
+/// Well-known path (relative to the project cwd) of the `[[shard]]` config
+/// file the native shard-cap gate check reads (BC-1.18.005 Precondition 2).
+/// TBD-at-F4 per BC-1.18.005's Architecture Anchors — a sibling
+/// `shard-config.toml` rather than `hooks-registry.toml` itself, so the
+/// gate's config surface can evolve independently of the WASM plugin
+/// registry schema.
+const SHARD_CONFIG_RELATIVE_PATH: &str = ".factory/shard-config.toml";
+
+/// Native (non-WASM) shard-cap gate invocation point (S-25.02 BC-1.18.005
+/// T-2). Called from `execute_tiers` BEFORE the registry-driven tier loop
+/// (Invariant 1's placement requirement — architecturally analogous to the
+/// `block_if_marker_check` native-check precedent in `indeterminate_marker.rs`).
+///
+/// # Guarded call site (BC-5.38.001 Red Gate discipline)
+///
+/// [`crate::shard_manager::shard_cap_gate_check`] and every function it
+/// dispatches to are `todo!()` stubs (S-25.02 F4 BC-cluster 1). Calling into
+/// them unconditionally on every dispatch would panic every EXISTING
+/// dispatcher invocation (this crate's own extensive pre-existing test
+/// suite included), which would violate stub discipline's "existing tests
+/// keep passing; only the NEW BC-1.18.005 tests go red" bar.
+///
+/// This function therefore applies TWO cheap, real (non-stubbed) guards —
+/// themselves a direct extension of Postcondition 1's zero-cost-bypass
+/// spirit, not the BC's tested formula/trigger logic — before ever reaching
+/// the stub:
+///
+/// 1. **Tool-name filter.** Only `Edit`/`Write`/`MultiEdit` PreToolUse calls
+///    are candidates at all (Precondition 1). A cheap string compare, no I/O.
+/// 2. **Config-presence filter.** The native gate is a no-op when no
+///    `[[shard]]` config file exists at [`SHARD_CONFIG_RELATIVE_PATH`] —
+///    none of this crate's pre-existing test fixtures ship one, so this
+///    guard is what keeps every pre-existing dispatch panic-free. The
+///    test-writer stage authors BC-1.18.005's Red Gate fixtures by placing a
+///    real `[[shard]]` config file under a test's `cwd`, which is exactly
+///    what drives this call past the guard and into the (intentionally
+///    still-`todo!()`) gate logic.
+///
+/// Returns `None` when either guard short-circuits (no gate check
+/// performed); `Some(HookResult)` when the gate was actually invoked.
+fn shard_cap_precheck(inputs: &ExecutorInputs<'_>) -> Option<vsdd_hook_sdk::HookResult> {
+    let tool_name = inputs
+        .payload_value
+        .get("tool_name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    if !matches!(tool_name, "Edit" | "Write" | "MultiEdit") {
+        return None;
+    }
+
+    let shard_config_path = inputs.base_host_ctx.cwd.join(SHARD_CONFIG_RELATIVE_PATH);
+    if !shard_config_path.exists() {
+        return None;
+    }
+
+    // A `[[shard]]` config file is present and this is a candidate tool —
+    // from here on, real BC-1.18.005 gate logic is required. Config load
+    // and the gate check itself remain `todo!()` (shard_manager.rs); the
+    // implementer wires target-path/tool_input extraction from
+    // `inputs.payload_value` alongside the shard_manager Red Gate fill-in.
+    let registry = match crate::shard_manager::ShardRegistry::load(&shard_config_path) {
+        Ok(reg) => reg,
+        Err(e) => return Some(e.into()),
+    };
+    let target_path = inputs
+        .payload_value
+        .get("tool_input")
+        .and_then(|v| v.get("file_path"))
+        .and_then(|v| v.as_str())
+        .map(std::path::PathBuf::from)
+        .unwrap_or_default();
+    let tool_input = inputs
+        .payload_value
+        .get("tool_input")
+        .cloned()
+        .unwrap_or(serde_json::Value::Null);
+    Some(crate::shard_manager::shard_cap_gate_check(
+        &registry,
+        tool_name,
+        &target_path,
+        &tool_input,
+    ))
+}
+
 /// Run every tier and return the aggregated summary.
 pub async fn execute_tiers(
     inputs: ExecutorInputs<'_>,
@@ -287,6 +371,24 @@ pub async fn execute_tiers(
     let started = Instant::now();
     let mut all_outcomes: Vec<PluginOutcome> = Vec::new();
     let mut block_intent = false;
+
+    // S-25.02 BC-1.18.005 T-2 — native shard-cap gate, BEFORE the
+    // registry-driven tier loop below (Invariant 1). See
+    // `shard_cap_precheck`'s doc comment for the guard rationale; this call
+    // is a no-op (`None`) for every dispatch that isn't both an
+    // Edit/Write/MultiEdit PreToolUse call AND has a `[[shard]]` config file
+    // present, which covers 100% of this crate's pre-existing test fixtures.
+    if let Some(shard_gate_result) = shard_cap_precheck(&inputs) {
+        // TODO(implementer, BC-1.18.006/BC-1.18.009 clusters): translate a
+        // Block/Error verdict from the native shard-cap gate into this
+        // summary's `block_intent`/`exit_code` the same way
+        // `plugin_requests_block`/`plugin_fail_closed` do below for
+        // WASM-plugin verdicts. Out of scope for this cluster's stub — the
+        // gate function itself is still `todo!()`, so this branch is
+        // unreachable until BC-1.18.005's test-writer fixtures + implementer
+        // fill-in land.
+        let _ = shard_gate_result;
+    }
 
     for tier in tiers {
         let mut tier_outcomes = execute_tier(&inputs, tier).await;
