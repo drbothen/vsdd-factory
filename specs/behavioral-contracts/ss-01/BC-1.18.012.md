@@ -195,18 +195,20 @@ be first after F4 activation — an unplanned, unverified migration path, unlike
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-135 (pending) | Independent-census integrity invariant — `(items retained in live frontmatter) + (items appended to archive) == pre-migration count` exactly, for any starting item count | integration test (fixture-driven census comparison against synthetic `changelog:` sequences of varying sizes, including a corrupted-run negative-control fixture) |
-| VP-135 (pending) | Content-preservation invariant — every migrated item's `date:`/`summary:` text is preserved verbatim in the archive file | proptest / golden-file round-trip against synthetic `changelog:` fixtures |
-| VP-135 (pending) | Idempotency invariant — re-running the migration against an already-steady-state (`<= N`-item) sequence is a safe no-op (zero writes, zero `rotate_changelog` invocations) | integration test (double-invocation fixture) |
-| VP-135 (pending) | Fail-loud rollback invariant — a simulated census-reconciliation failure leaves `BC-INDEX.md`'s frontmatter byte-identical to its pre-migration state | fault-injection / integration test (simulated mismatch at the census-verification step) |
-| VP-135 (pending) | No-new-Cohort-B/no-cross-migration-dependency invariant — this BC's completion is never referenced as a precondition in `hooks-registry.toml`'s `failure_policy` sequencing, nor in BC-1.18.008/BC-1.18.011's own execution gating | static-check (config/PR-template audit) |
+| VP-136 | Independent-census integrity invariant — `(items retained in live frontmatter) + (items appended to archive) == pre-migration count` exactly, for any starting item count | integration test (fixture-driven census comparison against synthetic `changelog:` sequences of varying sizes, including a corrupted-run negative-control fixture) |
+| VP-135 | Content-preservation invariant — every migrated item's `date:`/`summary:` text is preserved verbatim in the archive file | proptest / golden-file round-trip against synthetic `changelog:` fixtures |
+| VP-136 | Idempotency invariant — re-running the migration against an already-steady-state (`<= N`-item) sequence is a safe no-op (zero writes, zero `rotate_changelog` invocations) | integration test (double-invocation fixture) |
+| VP-136 | Fail-loud rollback invariant — a simulated census-reconciliation failure leaves `BC-INDEX.md`'s frontmatter byte-identical to its pre-migration state | fault-injection / integration test (simulated mismatch at the census-verification step) |
+| VP-137 | No-new-Cohort-B/no-cross-migration-dependency invariant — this BC's completion is never referenced as a precondition in `hooks-registry.toml`'s `failure_policy` sequencing, nor in BC-1.18.008/BC-1.18.011's own execution gating | static-check (config/PR-template audit) |
 
-VP IDs are `(pending)` — the next free VP number against `VP-INDEX.md` v3.03 is VP-135 (confirmed
-by direct grep of the live catalog at authoring time; not yet allocated). Formal-verifier allocates
-final VP-NNN(s) analogous to VP-123/VP-124 (BC-1.18.008's content-preservation + atomicity/
-idempotency pair) and VP-132/133/134 (BC-1.18.011's analogous set), but keyed to the `changelog:`
-item-count model instead of decision-log's byte-count model or BC-INDEX's ID-census model — the
-direct B1 analogue of both sibling migration BCs' VP structure.
+VP IDs ALLOCATED by formal-verifier (S-25.02 F2 fix-burst pass-2; VP-INDEX v3.04): **VP-135**
+(proptest; content-preservation), **VP-136** (integration; independent-census + fail-loud rollback
+[reuses `E-SHD-003`] + idempotency — three same-method obligations consolidated per the
+single-method-per-VP convention), **VP-137** (static-check; no-new-Cohort-B / no-cross-migration
+dependency). This trio is the direct B1 analogue of VP-123/VP-124 (BC-1.18.008's content-preservation
++ atomicity/idempotency pair) and VP-132/133/134 (BC-1.18.011's proptest/integration/static-check
+set), keyed to the `changelog:` item-count model instead of decision-log's byte-count model or
+BC-INDEX's ID-census model.
 
 ## Related BCs
 
@@ -256,7 +258,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 ## VP Anchors
 
-- VP-135 (pending) — allocated slot confirmed against `VP-INDEX.md` v3.03 (next free VP number at authoring time). Formal-verifier allocates final VP-NNN(s) analogous to VP-123/VP-124 (content-preservation + record-integrity/atomicity/idempotency) and VP-132/133/134 (BC-1.18.011's B2 analogue), keyed to B1's `changelog:` item-count model. Candidate properties enumerated in `## Verification Properties` above: independent-census integrity, content-preservation, idempotency, fail-loud rollback, no-new-dependency — formal-verifier consolidates per the single-method-per-VP convention (mirroring VP-124/VP-133).
+- VP-135 (proptest), VP-136 (integration), VP-137 (static-check) — ALLOCATED by formal-verifier (S-25.02 F2 fix-burst pass-2; VP-INDEX v3.04), keyed to B1's `changelog:` item-count model, the direct analogue of VP-123/VP-124 (mechanism A) and VP-132/133/134 (mechanism B2). The candidate properties enumerated in `## Verification Properties` above consolidate per the single-method-per-VP convention (mirroring VP-124/VP-133): content-preservation → VP-135; independent-census + fail-loud rollback + idempotency → VP-136; no-new-Cohort-B / no-cross-migration dependency → VP-137.
 
 ## Traceability
 
