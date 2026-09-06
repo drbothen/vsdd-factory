@@ -36,7 +36,7 @@ use crate::internal_log::{
     InternalEvent, InternalLog, PLUGIN_COMPLETED, PLUGIN_CRASHED, PLUGIN_INDETERMINATE,
     PLUGIN_INVOKED, PLUGIN_TIMEOUT,
 };
-use crate::invoke::{InvokeLimits, PluginResult, TimeoutCause, invoke_plugin};
+use crate::invoke::{EventType, InvokeLimits, PluginResult, TimeoutCause, invoke_plugin};
 use crate::plugin_loader::PluginCache;
 use crate::registry::{FailurePolicy, OnError, Registry, RegistryEntry};
 use crate::resolver::{ResolverInput, ResolverRegistry, merge_resolver_outputs};
@@ -312,9 +312,35 @@ const SHARD_CONFIG_RELATIVE_PATH: &str = ".factory/shard-config.toml";
 ///    what drives a matching call past the guard and into the live
 ///    `ShardRegistry::load` / `shard_cap_gate_check` gate logic.
 ///
-/// Returns `None` when either guard short-circuits (no gate check
-/// performed); `Some(HookResult)` when the gate was actually invoked.
+/// Returns `None` when any guard short-circuits (no gate check performed);
+/// `Some(HookResult)` when the gate was actually invoked.
+///
+/// # PreToolUse-scoped (F-C1-P2-004, S-25.02 Phase F4 LOCAL adversary pass-2
+/// cluster-1, LOW; BC-1.18.005 Precondition 1)
+///
+/// The native shard-cap gate is a `PreToolUse`-only check — it exists to stop
+/// a mutation BEFORE it lands, not to audit one after the fact. The
+/// `event_name` guard below reads the harness's `EventType` classification
+/// (mirroring `main.rs`'s `EventType::from_event_str(&payload.event_name)`)
+/// and short-circuits for any event that is explicitly NOT `PreToolUse` —
+/// e.g. a `PostToolUse` Edit/Write/MultiEdit call against the exact same
+/// matched, malformed `[[shard]]` entry that would legitimately block a
+/// PreToolUse call. A dispatch that omits `event_name` entirely (as this
+/// crate's own PreToolUse-only test fixtures above do, since they predate
+/// this guard) is treated as `PreToolUse`-equivalent for backward
+/// compatibility with those fixtures — only an EXPLICIT non-PreToolUse
+/// `event_name` opts a dispatch out.
 fn shard_cap_precheck(inputs: &ExecutorInputs<'_>) -> Option<vsdd_hook_sdk::HookResult> {
+    let event_type = inputs
+        .payload_value
+        .get("event_name")
+        .and_then(|v| v.as_str())
+        .map(EventType::from_event_str)
+        .unwrap_or(EventType::PreToolUse);
+    if event_type != EventType::PreToolUse {
+        return None;
+    }
+
     let tool_name = inputs
         .payload_value
         .get("tool_name")
