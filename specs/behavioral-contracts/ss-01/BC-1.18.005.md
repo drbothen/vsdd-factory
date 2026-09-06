@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-09-05T00:00:00Z
@@ -14,7 +14,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/S-25.02-f2-architecture-delta.md
   - .factory/specs/domain-spec/capabilities.md
   - .factory/specs/verification-properties/VP-INDEX.md
-input-hash: "9050ce6"
+input-hash: "c185ced"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -197,7 +197,7 @@ F-S2502-F2-005).
      BC-1.18.009's gate trims the live `changelog:` sequence down to, NEVER `N` itself and NEVER a
      hardcoded `N-1`. **Default:** `floor(N/2)` when the field is omitted. **Fail-loud validation
      constraint:** `0 <= low_water_mark < N`, enforced at config-load time — a malformed value
-     (`low_water_mark >= N`, including the degenerate `N-1`, or a negative value) is NEVER silently
+     (`low_water_mark >= N` — the `== N` boundary included — or a negative value) is NEVER silently
      clamped or silently defaulted around; the config is treated as malformed and the check returns
      `HookResult::Error` (mirroring EC-009's "no silent default for malformed shape" posture,
      extended to this field). `N` remains the UNCHANGED trigger threshold
@@ -208,6 +208,23 @@ F-S2502-F2-005).
      sequence back at the trigger boundary after the very next prepend, causing a block+retry
      round-trip on essentially every subsequent write; `low_water_mark` amortizes rotation to once
      per `N - low_water_mark` writes (ADR-051 §Decision 14).
+   - **CORRECTED (fix-burst pass-4, F-P4-001, HIGH, ADR-051 v1.4 Decision 14 adjudication Option
+     (b)) — a legal-but-poorly-amortizing `low_water_mark` value NEVER fail-louds; it loads
+     normally and instead emits a non-fatal amortization advisory.** Any value satisfying
+     `0 <= low_water_mark < N` — including every value in `(floor(N/2), N)` up to and including the
+     boundary value `N-1` — is LEGAL and loads normally (`Continue`; config load NEVER returns
+     `HookResult::Error` for such a value). `N-1` is not a special case: `N-1 < N` holds by
+     construction for every `N >= 1`, so it satisfies the fail-loud constraint exactly as any other
+     interior value does. To close the latent amortization-churn concern WITHOUT a false fail-loud
+     claim, config load additionally emits a NEW, NON-FATAL, WARN-level diagnostic (via
+     `tracing::warn!`, never `println!`, never `HookResult::Error`) whenever
+     `low_water_mark > floor(N/2)` — i.e., whenever the configured value amortizes rotation worse
+     than the recommended default. The advisory cites the configured `(N, low_water_mark)` pair and
+     the resulting amortization factor `N - low_water_mark` (writes-per-rotation), compared against
+     the default's `N - floor(N/2)` amortization, so an operator can see quantitatively how much
+     worse their configured value performs. The advisory fires or does not fire; either way, config
+     load ALWAYS succeeds for any value satisfying the numeric constraint — this is the load-time
+     equivalent of a lint warning, not a second validation gate.
 
 ## Invariants
 
@@ -257,7 +274,8 @@ F-S2502-F2-005).
 | EC-008 | A `[[shard]]` config entry for `BC-INDEX.md` declares `shape = "frontmatter-changelog-array"` and the live `changelog:` sequence is at exactly N items | Postcondition 8's item-count trigger fires (`current_item_count + 1 = N+1 > N`); BC-1.18.009's rotate-then-block-and-retry outcome applies, NOT this BC's own byte-size roll path |
 | EC-009 | A `[[shard]]` config entry omits the `shape` field entirely (malformed config) | Fail-loud: this BC's implementation MUST NOT default silently to either shape; the dispatch is treated as a config error (`HookResult::Error`), never a silent `Continue` that would leave an oversized artifact unguarded |
 | EC-010 (fix-burst pass-3, F-P3-005) | A `"frontmatter-changelog-array"`-shaped config entry omits `low_water_mark` | Defaults to `floor(N/2)` (Postcondition 8's rotation-target-config bullet) — computed at config-load time, never a hardcoded fallback constant in `shard_manager.rs` |
-| EC-011 (fix-burst pass-3, F-P3-005) | A `"frontmatter-changelog-array"`-shaped config entry declares `low_water_mark >= N` (including the degenerate `low_water_mark = N-1`) or a negative `low_water_mark` | Fail-loud: `HookResult::Error` — the config is treated as malformed and NEVER silently clamped or defaulted around (mirrors EC-009's posture for the `shape` field, extended to this field) |
+| EC-011 (fix-burst pass-3, F-P3-005; scope CORRECTED fix-burst pass-4, F-P4-001, HIGH) | A `"frontmatter-changelog-array"`-shaped config entry declares `low_water_mark >= N` (the `== N` boundary included) or a negative `low_water_mark` | Fail-loud: `HookResult::Error` — the config is treated as malformed and NEVER silently clamped or defaulted around (mirrors EC-009's posture for the `shape` field, extended to this field). Scope is EXACTLY `>= N` or negative — `low_water_mark = N-1` is NOT in this scope; see EC-012 |
+| EC-012 (fix-burst pass-4, F-P4-001, HIGH, ADR-051 v1.4 Decision 14 adjudication Option (b)) | A `"frontmatter-changelog-array"`-shaped config entry declares a legal-but-poorly-amortizing `low_water_mark` in `(floor(N/2), N)`, up to and including the boundary value `N-1` | Loads normally — `Continue`, config load NEVER returns `HookResult::Error` (the value satisfies `0 <= low_water_mark < N`) — but config-load emits a non-fatal `tracing::warn!` amortization advisory citing the configured `(N, low_water_mark)` pair and the resulting amortization factor `N - low_water_mark`, compared against the default's `N - floor(N/2)` amortization |
 
 ## Canonical Test Vectors
 
@@ -276,6 +294,7 @@ F-S2502-F2-005).
 | `Edit` to `BC-INDEX.md`'s frontmatter, `shape="frontmatter-changelog-array"`, `N=50`, live `changelog:` at 10 items | `current_item_count + 1 = 11 <= 50` → `Continue`, no rotation | happy-path |
 | **NEW (fix-burst pass-3, F-P3-005).** `shape="frontmatter-changelog-array"` config entry declares `N=50`, omits `low_water_mark` | `low_water_mark` defaults to `floor(50/2) = 25` at config-load time (EC-010) | edge-case |
 | **NEW (fix-burst pass-3, F-P3-005).** `shape="frontmatter-changelog-array"` config entry declares `N=50`, `low_water_mark=50` (the degenerate `== N` case) or `low_water_mark=-1` (negative) | Fail-loud: `HookResult::Error` in both cases — both values violate `0 <= low_water_mark < N` and are NEVER silently clamped or defaulted around (EC-011). (`low_water_mark=49`, i.e. `N-1`, is a VALID boundary value — `49 < 50` satisfies the constraint — and does NOT fail-loud.) | error |
+| **NEW (fix-burst pass-4, F-P4-001, ADR-051 v1.4 Decision 14 adjudication Option (b)).** `shape="frontmatter-changelog-array"` config entry declares `N=50`, `low_water_mark=49` (i.e. `N-1`) | Loads normally — `Continue`, no `HookResult::Error` (EC-012; `49 < 50` satisfies `0 <= low_water_mark < N`) — config-load emits a non-fatal `tracing::warn!` amortization advisory: amortization factor `N - low_water_mark = 50 - 49 = 1` (rotation fires roughly every 1 write), versus the recommended default `low_water_mark=25`'s amortization factor `50 - 25 = 25` | edge-case |
 
 ## Verification Properties
 
@@ -400,6 +419,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.4 | 2026-09-06 | product-owner | Fix-burst amendment (adversary pass-4 finding F-P4-001 HIGH, ADR-051 v1.4 Decision 14 ADJUDICATION Option (b), per `.factory/cycles/v1.0-brownfield-backfill/S-25.02-f2-architecture-delta.md` §4d): resolved the live, mutually-unsatisfiable contradiction between Postcondition 8/EC-011 (which folded `low_water_mark = N-1` into the fail-loud `>= N` bucket) and this BC's own Canonical Test Vectors table + VP-140 + VP-125 (which already stated `N-1` is a VALID, non-fail-loud boundary value). Postcondition 8's rotation-target-config bullet: STRUCK the parenthetical `"(including the degenerate N-1)"` from the fail-loud sentence — the fail-loud scope is now stated as EXACTLY `low_water_mark >= N` (the `== N` boundary included) or negative. ADDED a new sentence/bullet: any legal value in `(floor(N/2), N)`, up to and including `N-1`, loads normally (`Continue`, NEVER `HookResult::Error`) but config-load emits a NEW non-fatal `tracing::warn!` amortization advisory citing `(N, low_water_mark)` and the amortization factor `N - low_water_mark`, compared against the default's `N - floor(N/2)`. REWROTE EC-011: struck `"(including the degenerate low_water_mark = N-1)"` from its description (scope narrows to exactly `>= N`/negative; `HookResult::Error` outcome unchanged for that narrowed scope) and added a cross-reference to EC-012. ADDED NEW EC-012 (legal-but-poorly-amortizing `low_water_mark` in `(floor(N/2), N)` incl. `N-1` → loads normally + `tracing::warn!` amortization advisory, never `HookResult::Error`). Canonical Test Vectors: the existing `N=50`/`low_water_mark=49` parenthetical was already correct (no change); ADDED one new row for EC-012 (`N=50`, `low_water_mark=49` → loads, advisory fires with amortization factor 1). The numeric constraint `0 <= low_water_mark < N` itself is UNCHANGED — it was never wrong; only the erroneous "fail-loud on `N-1`" prose is withdrawn. No other BC-1.18.005 wording (Postconditions 1-7, other Edge Cases, VP-140/VP-125 rows, which were already correct) required amendment for this finding. |
 | 1.3 | 2026-09-05 | product-owner | Fix-burst amendment (adversary pass-3 finding F-P3-005 MEDIUM, ADR-051 v1.3 Decision 14): ADDED a `low_water_mark` rotation-target config field to Postcondition 8 (sibling to `N`, `"frontmatter-changelog-array"` shape only) — default `floor(N/2)` when omitted, fail-loud-validated `0 <= low_water_mark < N` (never silently clamped or defaulted around a violation); `N` remains the unchanged trigger threshold, this BC owns declaring/validating both `N` and `low_water_mark`, BC-1.18.009 owns what its rotation step does with `low_water_mark`. Extended Invariant 4 to cover the new field. Added EC-010 (omitted → default) and EC-011 (fail-loud on `>= N` or negative) plus two matching Canonical Test Vectors. Replaced the stale §VP Anchors note (which referenced an unauthored PC8 item-count VP) with a clean forward reference to formal-verifier's follow-on PC8 VP authorship. Collapsed the §Verification Properties table's three separate VP-117 rows into one multi-facet row (F-P3-006; no coverage change, presentation only). |
 | 1.2 | 2026-09-05 | product-owner | Fix-burst amendment (adversary pass-2 findings F-P2-002 HIGH + F-P2-007 MEDIUM, ADR-051 v1.2 Decisions 1/13): REWROTE Postcondition 3's `projected_size` formula from the WITHDRAWN uniform `current_shard_bytes + payload_bytes` (unsound for `Write` — double-counted a `Write`'s own already-complete content on top of the current shard's size) to the CORRECTED tool-discriminated formula: `Write` → `projected_size = len(content)` alone; `Edit`/`MultiEdit` → `projected_size = current_shard_bytes + net_delta_bytes` (unchanged — this leg was never wrong). Updated Canonical Test Vectors: corrected the two `Write` vectors, added a regression vector demonstrating the withdrawn formula's over-trigger bug on a same-size full-file `Write`, and added an explicit `Edit` vector to preserve coverage of the unchanged current+delta formula. Corrected Postcondition 8's read-cost claim into an explicit COLD-STATE (pre-BC-1.18.012 migration: ~1,997-item, non-N-relative-bounded, one-time read) vs. STEADY-STATE (post-migration: genuinely `<= N`-item-bounded) split — the prior text's unqualified "bounded" claim was true only in steady state. Added BC-1.18.012 to Related BCs (the new governed one-time B1 changelog backfill migration BC that makes the steady-state characterization true). |
 | 1.1 | 2026-09-05 | product-owner | Fix-burst amendment (adversary pass-1 findings F-S2502-F2-005 + F-S2502-F2-003 + F-S2502-F2-007, ADR-051 v1.1 Decision 1 amendment): NEW Postcondition 8 + Invariant 5 + EC-008/EC-009 adding the item-count-denominated trigger for the `"frontmatter-changelog-array"` artifact shape (mechanism B1, BC-INDEX's `changelog:` array) — this BC now owns BOTH trigger shapes the native gate dispatches on, distinguished by a `[[shard]]` config `shape` field; does not replace or weaken the existing byte-size postconditions. VP table reconciled to VP-INDEX v3.02 authoritative methods: VP-116 unit-test→kani-proof, VP-117 byte-denomination row proptest→unit-test (no property content change). Added `## SDK Grounding Evidence` section with literal stable-anchor grep output for `HookResult`, `block_if_marker_check`, Cohort B validator registry entries, and CAP-041/042/043 existence. |
