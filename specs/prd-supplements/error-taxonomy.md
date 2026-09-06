@@ -1,7 +1,7 @@
 ---
 document_type: prd-supplement-error-taxonomy
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-09-05T00:00:00Z
@@ -64,7 +64,7 @@ traces_to: .factory/specs/prd.md
 | E-HK-001 | Hook gate blocks | blocked | exit 2 | `secret detected in <path>: <pattern-name>` |
 | E-HK-002 | Hook gate blocks | blocked | exit 2 | `destructive command blocked: <command>` |
 | E-HK-003 | Hook gate blocks | blocked | exit 2 | `branch protection violation: <branch>` |
-| E-SHD-001 | Shard management errors | broken | `HookResult::Error` | `seal-rename failure for <artifact>: <io-error>` (BC-1.18.006 EC-003; disk-full/permission error mid-roll) |
+| E-SHD-001 | Shard management errors | broken | `HookResult::Error` | `shard-seal-write failure for <artifact>: <io-error>` (BC-1.18.006 EC-003, Postcondition 1 steps (a)-(b); disk-full/permission error mid-roll, canonical file left untouched — CORRECTED, S-25.02 F2 fix-burst pass-3, F-P3-003: no rename occurs under the copy-then-atomic-truncate-in-place mechanism, BC-1.18.006 v1.2) |
 | E-SHD-002 | Shard management errors | broken | `HookResult::Error` | `shard-index missing or corrupt for <artifact>: <parse-error>` (BC-1.18.007 EC-005) |
 | E-SHD-003 | Shard management errors | broken | `HookResult::Error` | `backfill-split content-preservation verification failed for <artifact>: <mismatch-detail>` (BC-1.18.008 EC-004, Postcondition 6) |
 | E-SHD-004 | Shard management errors | broken | `HookResult::Error` | `rotate_changelog invocation failed for <artifact>: <io-error>` (BC-1.18.009 EC-003) |
@@ -90,5 +90,6 @@ through BC-1.18.011's own Postcondition/Edge-Case tables.
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.2 | 2026-09-05 | product-owner | Fix-burst amendment (adversary pass-3 finding F-P3-003, MEDIUM): corrected `E-SHD-001`'s Message Format from the stale `seal-rename failure for <artifact>: <io-error>` wording to `shard-seal-write failure for <artifact>: <io-error>` — no rename occurs under BC-1.18.006 v1.2's copy-then-atomic-truncate-in-place seal mechanism; the error code and its `HookResult::Error`/canonical-untouched contract are unchanged, only the message wording is corrected to match the actual mechanism. |
 | 1.1 | 2026-09-05 | product-owner | Fix-burst amendment (adversary pass-2 finding F-P2-004, MEDIUM, ADR-051 v1.2 Decision 11): added `E-SHD-006` (shard-seal published, canonical not yet truncated — self-healing resume-from-truncate) and `E-SHD-007` (canonical truncated, index not yet updated — self-healing index reconciliation), closing the two previously-unspecified crash points in BC-1.18.006's staged per-write roll sequence. Both are self-healing (no operator intervention) rather than fail-loud aborts, distinguishing them from the existing broken/fail-loud E-SHD-001..005 codes. Required re-registering the `prd-supplement` artifact type in `plugins/vsdd-factory/config/artifact-path-registry.yaml` (found absent from the live registry despite the v1.0 changelog's claim that it was added in that burst — re-added here as a mechanical prerequisite). |
 | 1.0 | 2026-09-05 | product-owner | Initial materialization of this supplement file (F-S2502-F2-006, MEDIUM). Mirrors `prd.md` §5.1's existing 7 categories (REG/PAY/CAP/PLG/SNK/ACT/HK) verbatim and adds the 8th category, `E-SHD-NNN` (Shard management errors), previously defined only in the S-25.02 F2 PRD-delta doc §4. Includes `E-SHD-001` (seal-rename failure), `E-SHD-002` (missing/corrupt shard-index), `E-SHD-003` (backfill-split content-preservation failure), `E-SHD-004` (`rotate_changelog` invocation failure), and NEW `E-SHD-005` (B2 BC-INDEX migration verification failure — content-preservation OR independent-census mismatch, BC-1.18.011). Resolves the pre-existing dangling `prd-supplements/error-taxonomy.md` reference `prd.md` §5.1/§5b have carried since before this file existed (not introduced by S-25.02; flagged by the F2 PRD-delta doc §7, closed here). Companion registry entry `prd-supplement` added to `plugins/vsdd-factory/config/artifact-path-registry.yaml` in the same burst (mechanical prerequisite — the write was blocked `ARTIFACT_PATH_UNREGISTERED` with no prior entry for this path pattern). |

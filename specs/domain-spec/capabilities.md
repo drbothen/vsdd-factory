@@ -2,11 +2,11 @@
 document_type: domain-spec-section
 level: L2
 section: capabilities
-version: "1.19"
+version: "1.20"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: "2026-09-05 (v1.19) — S-25.02 F2 fix-burst (product-owner; adversary pass-2 finding F-P2-007 routed): CAP-043 §Source citation list extended with BC-1.18.012 (new governed one-time B1 changelog backfill migration BC, closing B1's cold-start ungoverned-migration gap). No CAP-043 body-text semantic change and no CAP count change (still 43)."
+last_amended: "2026-09-05 (v1.20) — S-25.02 F2 fix-burst (product-owner; adversary pass-3 finding F-P3-002 HIGH routed): CAP-043 body text CORRECTED — the withdrawn rename-away seal wording (\"seal the current shard by rename, create a fresh empty current file\"; \"sealed shards are renamed away with a `<stem>.<seq:04>.md` suffix\") replaced with the current copy-then-atomic-truncate-in-place mechanism (BC-1.18.006 v1.2's own corrected mechanics). CORRECTS the v1.19 changelog row's false \"No CAP-043 body-text semantic change\" claim — that row's actual (citation-list-only) change was accurate, but a real semantic staleness in the body text pre-dated it and went unflagged; this row is the honest body-text-semantic-change entry. No CAP count change (still 43)."
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
@@ -424,9 +424,11 @@ BC-INDEX Structured-Catalog Sharding**
 Extends Layer 1's INDETERMINATE detection (CAP-041) with a root-cause prevention mechanism: a
 native (non-WASM), dispatcher-mediated PreToolUse gate intercepts every `Edit`/`Write`/`MultiEdit`
 against a registered sharded artifact, computes the projected post-write byte size, and — if the
-projected size would exceed a calibrated `shard_cap_bytes` — performs a roll-before-write (seal
-the current shard by rename, create a fresh empty current file, atomically publish the updated
-shard index) and returns `HookResult::Block` with an explicit, actionable retry instruction
+projected size would exceed a calibrated `shard_cap_bytes` — performs a roll-before-write
+(**CORRECTED, S-25.02 F2 fix-burst pass-3, F-P3-002: publish the current shard's content as a
+NEW sealed file via copy, then atomically REPLACE the canonical file's content with empty IN
+PLACE — the canonical filename is NEVER renamed away — then atomically publish the updated shard
+index**) and returns `HookResult::Block` with an explicit, actionable retry instruction
 (transparent write-redirection is not implementable under `HookResult`'s
 `Continue`/`Block`/`Error`-only contract). No shard is ever observed over cap by any downstream
 reader; no LLM-side size awareness is required or permitted. The cap formula —
@@ -438,9 +440,11 @@ fuel-exhausting validators (`validate-burst-log`'s Edit/Write/MultiEdit arm, `re
 CONSTRUCTION rather than merely detecting it after the fact (CAP-041's scope). This capability has
 two mechanisms for two artifact shapes: mechanism A shards four append-only cycle logs
 (`decision-log.md`, `burst-log.md`, `lessons.md`, `session-checkpoints.md`) via a stable-current-
-filename addressing scheme (the canonical filename is always the latest/active shard; sealed
-shards are renamed away with a `<stem>.<seq:04>.md` suffix) requiring zero code change from
-shard-unaware readers; mechanism B shards `BC-INDEX.md` — a structured catalog, not an append-only
+filename addressing scheme (the canonical filename is always the latest/active shard; a roll
+publishes a sealed-shard COPY as a NEW file at a `<stem>.<seq:04>.md` suffix and atomically
+truncates the canonical file's own content to empty IN PLACE — the canonical filename is NEVER
+renamed away, per the copy-then-atomic-truncate mechanism, S-25.02 F2 fix-burst pass-2/pass-3
+corrections) requiring zero code change from shard-unaware readers; mechanism B shards `BC-INDEX.md` — a structured catalog, not an append-only
 log — via two sub-mechanisms: B1 reuses the already-shipped `rotate_changelog` primitive
 (CAP-042) to automatically rotate the frontmatter `changelog:` array (BC-INDEX's dominant size
 driver, 177,305 of 539,713 bytes measured 2026-09-05) once it overflows a configured item count,
@@ -488,7 +492,8 @@ CAP-042 is the prior entry.
 ## CHANGELOG
 
 | Version | Date | Change |
-|---------|------|--------|
+|---|---|---|
+| v1.20 | 2026-09-05 | S-25.02 F2 fix-burst (product-owner; adversary pass-3 finding F-P3-002 HIGH routed): CAP-043 body text CORRECTED — replaced the stale withdrawn rename-away seal description ("seal the current shard by rename, create a fresh empty current file"; "sealed shards are renamed away with a `<stem>.<seq:04>.md` suffix") with the current copy-then-atomic-truncate-in-place mechanism BC-1.18.006 v1.2 already established (a sealed-shard COPY is published as a NEW file; the canonical file's content is atomically replaced with empty IN PLACE; the canonical filename is NEVER renamed away). This corrects the v1.19 row's "No CAP-043 body-text semantic change" claim, which — while accurate as to v1.19's own citation-list-only diff — left a genuine, pre-existing body-text staleness (dating to v1.17's original rename-away authoring) uncorrected and unflagged. No CAP count change (still 43). |
 | v1.19 | 2026-09-05 | S-25.02 F2 fix-burst (product-owner; adversary pass-2 finding F-P2-007 routed): CAP-043 §Source citation list extended with `BC-1.18.012` (the new governed one-time B1 changelog backfill migration BC, authored in the same fix-burst — closes B1's cold-start ~1,997-item ungoverned-migration gap and establishes the precondition for BC-1.18.005 Postcondition 8's steady-state "bounded" read-cost characterization). No CAP-043 body-text semantic change and no CAP count change (still 43). |
 | v1.18 | 2026-09-05 | S-25.02 F2 fix-burst (product-owner; adversary pass-1 findings F-S2502-F2-009 + F-S2502-F2-002 routed): CAP-043 §Source de-loaded of its volatile `ADR-047 v1.6` version pin per TD-VSDD-091/POLICY 19 — the stable `§Decision 8a` section anchor already resolves the citation without the version token, mirroring the CAP-032/`ADR-026` precedent (v1.6 row, same file). Citation list extended to `ADR-051 (Decisions 1-10...)` (was 1-9) and to the new `BC-1.18.011` (governed one-time B2 BC-INDEX migration BC, authored in the same fix-burst). No CAP-043 body-text semantic change and no CAP count change (still 43). |
 | v1.17 | 2026-09-05 | F2 spec-evolution, S-25.02 activation (product-owner, orchestrator-dispatched): authored CAP-043 (P1 — Artifact Sharding Layer 2: size-triggered shard rotation for cycle append-logs [mechanism A] and BC-INDEX structured-catalog sharding [mechanism B: B1 changelog rotation + B2 per-subsystem body sharding]; SS-01/SS-07; ADR-051 §Decisions 1-9; ADR-047 §D8a/§D8b; BC-1.18.005–010; BC-7.08.001; S-25.02). Extends CAP-041's detection-and-quarantine model with a root-cause-prevention mechanism. Distinguishes from CAP-041 (INDETERMINATE detection/quarantine — does not touch input size), CAP-042 (one specific frontmatter-field write-path fix — this capability generalizes the pattern and reuses CAP-042's `rotate_changelog` primitive), CAP-011 (fuel/epoch budget enforcement — this capability prevents the oversized input rather than changing the budget). CAP count advance 42→43. |

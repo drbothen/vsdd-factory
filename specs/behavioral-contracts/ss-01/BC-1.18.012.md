@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-09-05T00:00:00Z
@@ -77,12 +77,21 @@ be first after F4 activation — an unplanned, unverified migration path, unlike
    state, which this BC exists to eliminate.
 
 2. **Uses the SAME `rotate_changelog` primitive as BC-1.18.009's ongoing rotation, via the SAME
-   generalized `archive_path`-parameterized call surface — `keep_recent = N` (the same config value
-   BC-1.18.009 Postcondition 1 introduces) — no new rotation logic, only a governed ONE-TIME
-   CALLER with pre/post verification wrapped around it.** This mirrors BC-1.18.008's exact
-   relationship to BC-1.18.006's primitives: apply an existing, already-shipped mechanism
-   retroactively, once, rather than inventing new migration machinery. The overflow tail (≈1,947
-   items at today's measured count) is appended to the SAME single evergreen archive file
+   generalized `archive_path`-parameterized call surface — `keep_recent = low_water_mark`
+   (**CORRECTED, fix-burst pass-3, F-P3-005, ADR-051 v1.3 Decision 14 — NEVER `keep_recent = N`**;
+   `low_water_mark` is BC-1.18.005 Postcondition 8's rotation-target config, the SAME config value
+   BC-1.18.009 Postcondition 2 uses for its ongoing per-write rotation) — no new rotation logic,
+   only a governed ONE-TIME CALLER with pre/post verification wrapped around it.** This mirrors
+   BC-1.18.008's exact relationship to BC-1.18.006's primitives: apply an existing, already-shipped
+   mechanism retroactively, once, rather than inventing new migration machinery. **Why
+   `low_water_mark`, not `N` (F-P3-005):** migrating to `N` would leave the live sequence AT the
+   trigger boundary immediately after go-live, and the very FIRST ordinary post-migration write
+   would immediately re-trigger rotation — reproducing the exact steady-state-block-on-every-write
+   pathology `low_water_mark` exists to eliminate, from write #1 of the new steady state. Both this
+   one-time migration and BC-1.18.009's ongoing per-write gate MUST target the SAME
+   `low_water_mark` for the corrected steady state to hold from the first post-migration write
+   onward. The overflow tail (≈1,972 items at today's measured count, `N=50`/`low_water_mark=25`
+   illustrative) is appended to the SAME single evergreen archive file
    BC-1.18.009 Postcondition 2 establishes (`.factory/specs/behavioral-contracts/
    BC-INDEX-changelog-archive.md`) — never a separate migration-specific archive location.
 
@@ -174,7 +183,7 @@ be first after F4 activation — an unplanned, unverified migration path, unlike
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | `BC-INDEX.md`'s `changelog:` sequence at ~1,997 items (today's measured cold-start count), `N=50` (illustrative config) | Migration invokes `rotate_changelog` once with `keep_recent=50`; census verifies `50 (retained) + 1947 (archived) == 1997 (pre-migration)` exactly; archive file gains 1,947 items appended in existing content-preservation order |
+| EC-001 | `BC-INDEX.md`'s `changelog:` sequence at ~1,997 items (today's measured cold-start count), `N=50`, `low_water_mark=25` (illustrative config) | Migration invokes `rotate_changelog` once with `keep_recent=25` (**CORRECTED, fix-burst pass-3, F-P3-005 — NEVER `keep_recent=N`**); census verifies `25 (retained) + 1972 (archived) == 1997 (pre-migration)` exactly; archive file gains 1,972 items appended in existing content-preservation order |
 | EC-002 | Census reconciliation fails (e.g., a byte-count or item-count mismatch between pre- and post-migration state) | Migration ABORTS per Postcondition 5; `BC-INDEX.md`'s frontmatter left in its exact pre-migration state; fail-loud error surfaced (`E-SHD-003`, reused per Postcondition 5) |
 | EC-003 | Migration is re-run after already completing successfully (sequence already `<= N` items) | Idempotent no-op (Postcondition 7): the migration detects the already-steady-state sequence and exits without invoking `rotate_changelog` again |
 | EC-004 | Migration is re-run after a PARTIAL prior attempt left `rotate_changelog`'s own `write_atomic` calls incomplete (e.g., archive file written but frontmatter trim not yet applied, or vice versa) | Product-owner's selected staging mechanic (Postcondition 5) determines the exact recovery path at F4 implementation time; in all cases, the invariant that must hold is: the migration NEVER treats a partially-applied state as successfully complete, and re-running either resumes cleanly or restarts cleanly from the last verified-consistent state — never double-archives or drops items |
@@ -185,7 +194,7 @@ be first after F4 activation — an unplanned, unverified migration path, unlike
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `BC-INDEX.md` `changelog:` at 1,997 items, `N=50` | Pre-migration census = 1,997; `rotate_changelog` invoked once with `keep_recent=50`; post-migration live sequence = 50 items; archive file gains 1,947 appended items; census reconciles `50 + 1947 == 1997` | happy-path |
+| `BC-INDEX.md` `changelog:` at 1,997 items, `N=50`, `low_water_mark=25` | Pre-migration census = 1,997; `rotate_changelog` invoked once with `keep_recent=25` (**CORRECTED, fix-burst pass-3, F-P3-005 — NEVER `keep_recent=N`**); post-migration live sequence = 25 items; archive file gains 1,972 appended items; census reconciles `25 + 1972 == 1997` | happy-path |
 | `changelog:` sequence already at 40 items (`<= N=50`), migration invoked | Idempotent no-op: `rotate_changelog` NOT invoked; frontmatter unchanged; zero archive-file writes | edge-case |
 | Census reconciliation finds a mismatch (simulated: 1 item lost during a corrupted `rotate_changelog` run) | Migration ABORTS; original frontmatter left byte-identical to pre-attempt state; fail-loud error surfaced (`E-SHD-003`) naming the reconciliation mismatch | error |
 | Migration re-run after a prior successful completion (sequence already at steady-state `N=50`) | No-op (EC-003): zero writes, frontmatter unchanged | edge-case |
@@ -277,4 +286,5 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.1 | 2026-09-05 | product-owner | Fix-burst amendment (adversary pass-3 finding F-P3-005 MEDIUM, ADR-051 v1.3 Decision 14): CORRECTED Postcondition 2's `rotate_changelog` invocation target from `keep_recent = N` to `keep_recent = low_water_mark` (BC-1.18.005 Postcondition 8's rotation-target config, the SAME value BC-1.18.009's ongoing per-write rotation uses) — migrating to `N` would leave the live sequence at the trigger boundary immediately after go-live, causing the FIRST post-migration write to immediately re-trigger rotation, reproducing the every-write block+retry pathology `low_water_mark` exists to eliminate from write #1 of the new steady state. Updated EC-001 and the matching Canonical Test Vector's illustrative numbers from `keep_recent=50`/`50+1947==1997` to `keep_recent=25`/`25+1972==1997` (`N=50`, `low_water_mark=25` illustrative). All other Postcondition/Invariant/Edge-Case obligations (items 1, 3-8) UNCHANGED. |
 | 1.0 | 2026-09-05 | product-owner | Initial creation (NEW BC, fix-burst pass-2 addition per F-P2-007 MEDIUM, ADR-051 v1.2 Decision 13). Allocated as BC-1.18.012 — confirmed as the next free SS-01 slot against the live `ss-01/` directory (BC-1.18.001–011 all pre-existing) and BC-INDEX.md at authoring time; no collision. Governed one-time migration for mechanism B1's cold-start `changelog:` backfill (~1,997 unrotated items): reuses `rotate_changelog` via BC-1.18.009's generalized `archive_path` call surface, `keep_recent = N`; independent-census integrity (pre-migration count == retained + archived, exactly); content-preservation byte-for-byte; fail-loud rollback on verification failure (reuses `E-SHD-003`); idempotency against an already-steady-state sequence; confirmed NO new Cohort-B dependency and no ordering dependency on BC-1.18.008/BC-1.18.011. Corrects BC-1.18.005 Postcondition 8's "bounded" claim by establishing the steady state that claim now explicitly conditions on. Modeled directly on BC-1.18.008's structure per the F2 architecture-delta doc §4b authorship input. CAP-043 capability anchor. VP citations left `(pending)` for formal-verifier (next free VP-135 against VP-INDEX v3.03). ADR-051 §D13/§D7/§D1 citations. |
