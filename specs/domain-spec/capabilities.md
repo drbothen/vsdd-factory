@@ -2,18 +2,19 @@
 document_type: domain-spec-section
 level: L2
 section: capabilities
-version: "1.16"
+version: "1.17"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: 2026-09-02
+last_amended: "2026-09-05 (v1.17) — F2 spec-evolution, S-25.02 activation (product-owner): authored CAP-043 (Artifact Sharding Layer 2). CAP count advance 42→43."
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "7704e8c"
+  - .factory/specs/architecture/decisions/ADR-051-layer-2-two-mechanism-size-triggered-shard-rotation-append-logs-and-bc-index-sharding.md
+input-hash: "16aff48"
 traces_to: L2-INDEX.md
 ---
 
@@ -418,10 +419,75 @@ block-or-pass decision axis (distinct concern — this capability removes the RO
 payload growth that exhausts that budget on these five files, rather than changing the budget or
 its enforcement). Append-only P1 addition; CAP-041 is the prior entry.
 
+**CAP-043 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle Append-Logs and
+BC-INDEX Structured-Catalog Sharding**
+Extends Layer 1's INDETERMINATE detection (CAP-041) with a root-cause prevention mechanism: a
+native (non-WASM), dispatcher-mediated PreToolUse gate intercepts every `Edit`/`Write`/`MultiEdit`
+against a registered sharded artifact, computes the projected post-write byte size, and — if the
+projected size would exceed a calibrated `shard_cap_bytes` — performs a roll-before-write (seal
+the current shard by rename, create a fresh empty current file, atomically publish the updated
+shard index) and returns `HookResult::Block` with an explicit, actionable retry instruction
+(transparent write-redirection is not implementable under `HookResult`'s
+`Continue`/`Block`/`Error`-only contract). No shard is ever observed over cap by any downstream
+reader; no LLM-side size awareness is required or permitted. The cap formula —
+`shard_cap_bytes <= (PRACTICAL_FUEL_CEILING / WORST_CASE_FUEL_PER_BYTE) - MAX_SINGLE_RECORD_BYTES
+- SAFETY_MARGIN`, evaluated per-artifact as the MINIMUM across every Cohort B validator that reads
+it — bounds every sharded artifact's current shard below the size at which the three Cohort B
+fuel-exhausting validators (`validate-burst-log`'s Edit/Write/MultiEdit arm, `regression-gate`,
+`convergence-tracker`) would fuel-exhaust, eliminating the INDETERMINATE root cause BY
+CONSTRUCTION rather than merely detecting it after the fact (CAP-041's scope). This capability has
+two mechanisms for two artifact shapes: mechanism A shards four append-only cycle logs
+(`decision-log.md`, `burst-log.md`, `lessons.md`, `session-checkpoints.md`) via a stable-current-
+filename addressing scheme (the canonical filename is always the latest/active shard; sealed
+shards are renamed away with a `<stem>.<seq:04>.md` suffix) requiring zero code change from
+shard-unaware readers; mechanism B shards `BC-INDEX.md` — a structured catalog, not an append-only
+log — via two sub-mechanisms: B1 reuses the already-shipped `rotate_changelog` primitive
+(CAP-042) to automatically rotate the frontmatter `changelog:` array (BC-INDEX's dominant size
+driver, 177,305 of 539,713 bytes measured 2026-09-05) once it overflows a configured item count,
+and B2 splits the file's ten already-existing `### SS-NN` per-subsystem body sections into
+individually-addressable shard files, keyed by the already-authoritative BC-S-prefix→SS-NN mapping
+(ARCH-INDEX Subsystem Registry, POLICY 6) for zero-lookup first-level addressing. A mandatory
+one-time backfill-split retroactively shards the four EXISTING append-log files (each already
+5-19× over the calibrated cap as of 2026-09-05) — without it, this capability would only prevent
+future overflow and never shrink the artifacts already producing the majority of observed
+INDETERMINATE events, an incomplete delivery of its own stated purpose.
+Subsystems: SS-01 (native `shard_manager.rs` dispatcher module; cap-check, roll-before-write,
+shard-index and shard-manifest publication), SS-07 (Cohort B `failure_policy` flip on
+`hooks-registry.toml`, sequenced on this capability's postconditions holding AND the one-time
+backfill-split completing). Outcome: the artifacts responsible for the majority of Layer-1
+`plugin.indeterminate` production events (BC-INDEX.md alone: 45.2% of the first 708 events
+observed) are structurally bounded below the Cohort B fuel-exhaustion boundary, making it safe —
+for the first time — to flip `validate-burst-log`/`regression-gate`/`convergence-tracker` to
+`failure_policy = "fail-closed"` without reintroducing the self-inflicted-DoS risk ADR-047 §8a's
+Cohort A/B partition was designed to avoid.
+Source: ADR-051 (Decisions 1-9; Rationale; Alternatives Considered); ADR-047 §Decision 8b
+(ratified future phase this capability elaborates) and §Decision 8a (Cohort B partition, plugin-
+name corrected v1.6); ADR-039 §Decision 3 (calibration-precedes-fail-closed-flip ordering
+constraint Decision 9 depends on); ADR-049 §Decision 6 (`rotate_changelog` primitive B1 reuses);
+D-1166 (human widest-scope decision covering both mechanisms in one story); BC-1.18.005 (cap
+formula + size-trigger); BC-1.18.006 (roll-before-write + atomic index publish); BC-1.18.007
+(retention/compaction policy); BC-1.18.008 (one-time backfill-split); BC-1.18.009 (BC-INDEX
+changelog rotation, B1); BC-1.18.010 (BC-INDEX per-subsystem sharding, B2); BC-7.08.001 (Cohort B
+fail-closed flip); S-25.02. Justification: no existing capability covers artifact-size-triggered
+shard rotation. CAP-041 covers the INDETERMINATE outcome's DETECTION-and-quarantine path (marker
+write, next-advance gate) for whichever validators already went fail-closed — it does not touch
+input size at all, and explicitly anticipates this capability as its own "Ratified Future Phase
+Layer 2" (ADR-047 §Decision 8b). CAP-042 covers ONE specific unbounded-growth vector
+(`last_amended` frontmatter mega-lines) with a write-path discipline fix scoped to five index
+files' `last_amended` field; this capability generalizes the size-triggered-rotation PATTERN to
+whole-artifact byte-size bounding across a different, broader set of artifacts (cycle append-logs
+in full, plus BC-INDEX's body content, not merely one frontmatter field) and reuses CAP-042's
+`rotate_changelog` primitive as a component rather than duplicating it. CAP-011 covers fuel/epoch
+budget enforcement as a per-invocation block-or-pass decision axis (distinct concern — this
+capability prevents the INPUT that would exhaust that budget from ever existing, rather than
+changing the budget or the pass/fail decision once exhaustion occurs). Append-only P1 addition;
+CAP-042 is the prior entry.
+
 ## CHANGELOG
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.17 | 2026-09-05 | F2 spec-evolution, S-25.02 activation (product-owner, orchestrator-dispatched): authored CAP-043 (P1 — Artifact Sharding Layer 2: size-triggered shard rotation for cycle append-logs [mechanism A] and BC-INDEX structured-catalog sharding [mechanism B: B1 changelog rotation + B2 per-subsystem body sharding]; SS-01/SS-07; ADR-051 §Decisions 1-9; ADR-047 §D8a/§D8b; BC-1.18.005–010; BC-7.08.001; S-25.02). Extends CAP-041's detection-and-quarantine model with a root-cause-prevention mechanism. Distinguishes from CAP-041 (INDETERMINATE detection/quarantine — does not touch input size), CAP-042 (one specific frontmatter-field write-path fix — this capability generalizes the pattern and reuses CAP-042's `rotate_changelog` primitive), CAP-011 (fuel/epoch budget enforcement — this capability prevents the oversized input rather than changing the budget). CAP count advance 42→43. |
 | v1.16 | 2026-09-02 | S-15.03 Phase B (product-owner, orchestrator-dispatched): authored CAP-042 (P1 — `last_amended` Write-Path Durable Fix: current-entry-only scalar, `changelog:` prepend discipline, sanctioned migration/rotation tooling, and bash-adapter fuel-budget relief; SS-04/SS-05/SS-06/SS-10; ADR-049 §Decision 1-7; BC-5.45.001/BC-10.13.001/BC-4.18.001; S-15.03). Closes the D-1149 mitigation-not-cure gap (`L-BB-D1149`). Distinguishes from CAP-031 (lock semantics), CAP-032 (wave-boundary/PreCompact continuity), CAP-011 (fuel/epoch budget enforcement — this capability removes the root-cause payload growth rather than changing the budget). CAP count advance 41→42. |
 | v1.15 | 2026-08-30 | F2 validation-integrity-layer1 (product-owner, orchestrator-dispatched): authored CAP-041 (P1 — Validation Integrity: INDETERMINATE Outcome, Durable Mutation Marker, and Next-Advance Gate; SS-01/SS-04/SS-07; ADR-047 §D1–D9; BC-1.18.001–004; BC-3.08.001 Event 8; S-25.01). Closes pre-Layer-1 CWE-754 false-PASS vulnerability. Cohort A = 3 human-confirmed fail-closed validators in S-25.01 Layer 1. Distinguishes from CAP-003 (sink observability), CAP-011 (fuel/epoch budget enforcement), CAP-039 (break-glass gate bypass). CAP count advance 40→41. |
 | v1.14 | 2026-08-29 | F2 feature-mode wrap-skill (product-owner, orchestrator-dispatched): authored CAP-040 (P1 — human-initiated factory session pause and resume checkpoint orchestration; SS-06; BC-6.28.001; BC-6.23.001 Invariant 5; BC-6.24.001; BC-5.39.005). Distinguishes from CAP-031 (raw lock acquire/release protocol) and CAP-032 (wave-boundary checkpoint / PreCompact flush). CAP count advance 39→40. |
