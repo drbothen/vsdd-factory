@@ -220,6 +220,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 ## VP Anchors
 
 - VP-121, VP-122 — allocated by formal-verifier (S-25.02 F2 verification-property extension burst; VP-INDEX v3.02). VP-121 (proptest; bounded active count + no-data-loss / honest O(active)), VP-122 (unit-test; default-glob archive exclusion + fail-loud missing/corrupt index E-SHD-002).
+- VP-141 — allocated by formal-verifier (S-25.02 F3→F4 consistency-gate finding F-1 closure; VP-INDEX v3.07). VP-141 (integration + static-check; Postcondition 6/EC-006 — archive-inclusive POLICY-1 (`append_only_numbering`) scan-mode invariant: a POLICY-1 append-only/gap/uniqueness audit's effective glob scope ALWAYS includes `archive/<artifact-stem>/` UNION active shards for a Layer-2-sharded artifact, never silently excluding an ID whose sole occurrence has been archived, per ADR-051 §Decision 6's "Whole-corpus history-scanning validator enumeration and POLICY-1 reconciliation" subsection). Back-reference added here (formal-verifier's VP-141 body already cited this BC in `source_bc`; this BC's own §Verification Properties table already cited VP-141, but this §VP Anchors list did not yet cite it back — gap closed here, reference-only, no behavior change).
 
 ## Traceability
 
