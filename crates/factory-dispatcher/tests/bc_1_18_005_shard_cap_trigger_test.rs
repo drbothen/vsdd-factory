@@ -297,3 +297,136 @@ async fn test_BC_1_18_005_PC1_non_mutating_tool_name_bypasses_native_gate_no_pan
     );
     assert!(!summary.block_intent);
 }
+
+// ---------------------------------------------------------------------------
+// F-001 (HIGH, S-25.02 Phase F4 LOCAL adversary pass-1 cluster-1) — a
+// malformed [[shard]] config entry MUST fail-loud all the way to the
+// dispatch outcome (non-zero exit_code). Today, `executor.rs`'s
+// `execute_tiers` does `let _ = shard_gate_result;` immediately after
+// `shard_cap_precheck` returns — the `HookResult::Error` produced by
+// `ShardRegistry::load` for a malformed entry (EC-009 missing `shape`;
+// EC-011 `low_water_mark >= N`) is computed and then completely discarded.
+// `block_intent` is only ever set from tier plugin outcomes further down
+// (`plugin_requests_block` / `plugin_fail_closed` / `bim_fired`), never from
+// the native shard-cap gate's own verdict, and the final
+// `exit_code: if block_intent { 2 } else { 0 }` therefore stays 0
+// regardless of what the native gate decided. Both tests below MUST fail
+// today for exactly that reason — not because `ShardRegistry::load` itself
+// is wrong (it already correctly returns `Err` for both malformed shapes;
+// see the shard_manager.rs unit tests `test_BC_1_18_005_EC_009_...` and
+// `test_BC_1_18_005_EC_011_load_rejects_low_water_mark_equal_to_n`).
+// ---------------------------------------------------------------------------
+
+/// Shared driver for the two F-001 malformed-config cases: writes the given
+/// (malformed) `[[shard]]` config body to `dir/.factory/shard-config.toml`,
+/// then drives a single Edit/Write/MultiEdit call for `target` through
+/// `execute_tiers` with an empty tier list — exactly the same "reaches the
+/// native gate, nothing else runs" shape the existing positive/negative
+/// Red Gate tests above use.
+async fn run_shard_gate_for_config(
+    dir: &std::path::Path,
+    shard_config_body: &str,
+    target: &std::path::Path,
+    tool_name: &str,
+    tool_input_extra: serde_json::Value,
+) -> factory_dispatcher::executor::TierExecutionSummary {
+    write_shard_config(dir, shard_config_body);
+
+    let engine = build_engine().unwrap();
+    let cache = PluginCache::new(engine.clone());
+    let registry = empty_registry();
+    let internal_log = Arc::new(InternalLog::new(dir.join("logs")));
+
+    let inputs = inputs_for(
+        &engine,
+        &cache,
+        &registry,
+        &internal_log,
+        dir,
+        tool_name,
+        target,
+        tool_input_extra,
+    );
+
+    execute_tiers(inputs, vec![]).await
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn test_BC_1_18_005_F001_malformed_config_missing_shape_ec009_blocks_dispatch_outcome() {
+    let dir = tempfile::tempdir().unwrap();
+    let target = dir.path().join("decision-log.md");
+    std::fs::write(&target, "x".repeat(100)).unwrap();
+
+    // EC-009: entry omits `shape` entirely — fail-loud MissingShape at
+    // ShardRegistry::load() time.
+    let malformed_missing_shape: &str = "\
+[[shard]]
+artifact_stem = \"decision-log\"
+practical_fuel_ceiling = 8000000
+worst_case_fuel_per_byte = 106.36
+max_single_record_bytes = 16384
+safety_margin = 8192
+shard_cap_bytes = 49152
+";
+
+    let summary = run_shard_gate_for_config(
+        dir.path(),
+        malformed_missing_shape,
+        &target,
+        "Write",
+        serde_json::json!({"content": "x".repeat(100)}),
+    )
+    .await;
+
+    assert_ne!(
+        summary.exit_code, 0,
+        "F-001 (HIGH): a [[shard]] entry omitting `shape` (EC-009) MUST fail-loud all the way to \
+         the dispatch outcome (non-zero exit_code) — today executor.rs's \
+         `let _ = shard_gate_result;` silently discards the HookResult::Error ShardRegistry::load \
+         already correctly returns, leaving exit_code at 0"
+    );
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn test_BC_1_18_005_F001_malformed_config_low_water_mark_ge_n_ec011_blocks_dispatch_outcome()
+{
+    let dir = tempfile::tempdir().unwrap();
+    let target = dir.path().join("BC-INDEX.md");
+    std::fs::write(
+        &target,
+        "---\ntitle: \"BC-INDEX\"\nchangelog:\n  - version: \"1.0\"\n---\n\n# Body\n",
+    )
+    .unwrap();
+
+    // EC-011: low_water_mark (50) >= N (50) — the degenerate `== N` boundary
+    // — fail-loud InvalidLowWaterMark at ShardRegistry::load() time.
+    let malformed_low_water_mark: &str = "\
+[[shard]]
+artifact_stem = \"BC-INDEX\"
+practical_fuel_ceiling = 8000000
+worst_case_fuel_per_byte = 106.36
+max_single_record_bytes = 16384
+safety_margin = 8192
+shard_cap_bytes = 49152
+shape = \"frontmatter-changelog-array\"
+n = 50
+low_water_mark = 50
+";
+
+    let summary = run_shard_gate_for_config(
+        dir.path(),
+        malformed_low_water_mark,
+        &target,
+        "Edit",
+        serde_json::json!({"old_string": "a", "new_string": "ab"}),
+    )
+    .await;
+
+    assert_ne!(
+        summary.exit_code, 0,
+        "F-001 (HIGH): a [[shard]] entry with low_water_mark >= N (EC-011) MUST fail-loud all the \
+         way to the dispatch outcome (non-zero exit_code) — today executor.rs's \
+         `let _ = shard_gate_result;` silently discards the HookResult::Error ShardRegistry::load \
+         already correctly returns, leaving exit_code at 0"
+    );
+}

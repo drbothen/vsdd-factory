@@ -378,16 +378,27 @@ pub async fn execute_tiers(
     // is a no-op (`None`) for every dispatch that isn't both an
     // Edit/Write/MultiEdit PreToolUse call AND has a `[[shard]]` config file
     // present, which covers 100% of this crate's pre-existing test fixtures.
+    // F-001 fix (S-25.02 Phase F4 LOCAL adversary pass-1 cluster-1, HIGH):
+    // a fail-loud `HookResult::Error` from `ShardRegistry::load` (EC-009
+    // missing `shape`; EC-011 `low_water_mark >= N`) is BC-1.18.005's OWN
+    // postcondition and MUST become a BLOCKING dispatch outcome here — the
+    // same way `plugin_fail_closed`/`plugin_requests_block` translate a
+    // WASM plugin's fail-closed verdict into `block_intent` below. A
+    // `HookResult::Block` is likewise translated identically, though
+    // `shard_cap_gate_check` does not construct one today: a fired
+    // size/item-count trigger is BC-1.18.006's/BC-1.18.009's own observable
+    // roll/rotate-and-retry outcome (out of scope for this cluster), so the
+    // gate itself still returns `Continue` + a non-fatal `tracing::warn!`
+    // advisory for a fired trigger (see `shard_manager.rs`) — this match
+    // arm is wired now so that hand-off requires no further executor.rs
+    // change when those later clusters land.
     if let Some(shard_gate_result) = shard_cap_precheck(&inputs) {
-        // TODO(implementer, BC-1.18.006/BC-1.18.009 clusters): translate a
-        // Block/Error verdict from the native shard-cap gate into this
-        // summary's `block_intent`/`exit_code` the same way
-        // `plugin_requests_block`/`plugin_fail_closed` do below for
-        // WASM-plugin verdicts. Out of scope for this cluster's stub — the
-        // gate function itself is still `todo!()`, so this branch is
-        // unreachable until BC-1.18.005's test-writer fixtures + implementer
-        // fill-in land.
-        let _ = shard_gate_result;
+        match shard_gate_result {
+            vsdd_hook_sdk::HookResult::Error { .. } | vsdd_hook_sdk::HookResult::Block { .. } => {
+                block_intent = true;
+            }
+            vsdd_hook_sdk::HookResult::Continue => {}
+        }
     }
 
     for tier in tiers {
