@@ -2104,4 +2104,268 @@ mod tests {
              load successfully (inclusive <=), mirroring EC-002's boundary precedent: {result:?}"
         );
     }
+
+    // ===================================================================
+    // EC-015 (NEW, S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4
+    // finding F-C1-P4-001, MEDIUM/HIGH, BC-1.18.005 v1.10) — "divisor-door"
+    // closure. `compute_shard_cap_bytes` divides `practical_fuel_ceiling` by
+    // `worst_case_fuel_per_byte`; the latter is `f64`-typed and therefore
+    // NOT type-guaranteed finite or positive (TOML's float grammar accepts
+    // `nan`/`inf`/`-inf`/`0.0`/negative literals). `ShardRegistry::load()`
+    // MUST validate `worst_case_fuel_per_byte.is_finite() &&
+    // worst_case_fuel_per_byte > 0.0` for every entry BEFORE computing
+    // `compute_shard_cap_bytes(entry.cap_formula_inputs())`, fail-loud on
+    // violation — otherwise a degenerate divisor lets an arbitrarily-large
+    // `shard_cap_bytes` sail past Postcondition 9's cap-vs-formula
+    // comparison entirely, reintroducing the exact fuel-exhaustion failure
+    // mode that comparison exists to prevent.
+    //
+    // RED (BC-1.18.005 v1.10): the sanctioned implementation has no such
+    // guard yet — `ShardRegistry::load` performs no finiteness/positivity
+    // check on `worst_case_fuel_per_byte` at all today. Both failing tests
+    // below use generic `.is_err()` only: the
+    // `ShardConfigError::InvalidWorstCaseFuelPerByte` variant this
+    // postcondition calls for does not exist yet, and naming it here would
+    // fail to compile.
+    // ===================================================================
+
+    #[test]
+    fn test_BC_1_18_005_EC_015_load_rejects_zero_worst_case_fuel_per_byte_divisor_door() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let cfg_path = dir.path().join("shard-config.toml");
+        std::fs::write(
+            &cfg_path,
+            "[[shard]]\n\
+             artifact_stem = \"zero-divisor-log\"\n\
+             practical_fuel_ceiling = 8000000\n\
+             worst_case_fuel_per_byte = 0.0\n\
+             max_single_record_bytes = 16384\n\
+             safety_margin = 8192\n\
+             shard_cap_bytes = 100000000\n\
+             shape = \"flat\"\n",
+        )
+        .expect("write fixture");
+
+        // TODAY: worst_case_fuel_per_byte = 0.0 makes compute_shard_cap_bytes's
+        // internal division yield +inf, whose saturating `as u64` cast is
+        // u64::MAX — the resulting ceiling comfortably exceeds this
+        // fixture's already-enormous shard_cap_bytes = 100,000,000, so
+        // Postcondition 9's `shard_cap_bytes > computed_ceiling` check never
+        // fires. load() therefore currently returns Ok(_), not Err(_) — RED
+        // until EC-015's load-time finiteness/positivity guard is added.
+        let result = ShardRegistry::load(&cfg_path);
+        assert!(
+            result.is_err(),
+            "EC-015: worst_case_fuel_per_byte = 0.0 (the divisor-door case) MUST fail-loud at \
+             load() time, BEFORE the cap-vs-formula comparison is even attempted — an \
+             arbitrarily-large shard_cap_bytes must never sail through via a degenerate divisor. \
+             Got: {result:?}"
+        );
+    }
+
+    #[test]
+    fn test_BC_1_18_005_EC_015_load_rejects_nan_worst_case_fuel_per_byte() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let cfg_path = dir.path().join("shard-config.toml");
+        std::fs::write(
+            &cfg_path,
+            "[[shard]]\n\
+             artifact_stem = \"nan-divisor-log\"\n\
+             practical_fuel_ceiling = 8000000\n\
+             worst_case_fuel_per_byte = nan\n\
+             max_single_record_bytes = 16384\n\
+             safety_margin = 8192\n\
+             shard_cap_bytes = 0\n\
+             shape = \"flat\"\n",
+        )
+        .expect("write fixture");
+
+        // TODAY: worst_case_fuel_per_byte = NaN makes the internal division
+        // yield NaN, whose saturating `as u64` cast is 0 (Rust maps a NaN
+        // float-to-int cast to 0) — the computed ceiling then also saturates
+        // at 0 (0.saturating_sub(16_384).saturating_sub(8_192) = 0), which
+        // is NOT LESS than this fixture's own shard_cap_bytes = 0, so
+        // Postcondition 9's `shard_cap_bytes > computed_ceiling` check
+        // (0 > 0 = false) never fires either. load() therefore currently
+        // returns Ok(_), not Err(_) — RED until EC-015's guard lands.
+        let result = ShardRegistry::load(&cfg_path);
+        assert!(
+            result.is_err(),
+            "EC-015: worst_case_fuel_per_byte = NaN MUST fail-loud at load() time regardless of \
+             which direction the resulting degenerate arithmetic happens to saturate — the \
+             config is malformed either way and must never be silently accepted. Got: {result:?}"
+        );
+    }
+
+    #[test]
+    fn test_BC_1_18_005_EC_015_load_accepts_valid_positive_worst_case_fuel_per_byte_control() {
+        // Control: a well-formed, finite, strictly-positive
+        // worst_case_fuel_per_byte with shard_cap_bytes AT (not over) its own
+        // formula ceiling MUST continue to load successfully once EC-015's
+        // guard is added — this test stays GREEN both before and after the
+        // fix, pinning that the new finiteness/positivity check does not
+        // regress the happy path.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let cfg_path = dir.path().join("shard-config.toml");
+        std::fs::write(
+            &cfg_path,
+            "[[shard]]\n\
+             artifact_stem = \"decision-log\"\n\
+             practical_fuel_ceiling = 8000000\n\
+             worst_case_fuel_per_byte = 106.36\n\
+             max_single_record_bytes = 16384\n\
+             safety_margin = 8192\n\
+             shard_cap_bytes = 49152\n\
+             shape = \"flat\"\n",
+        )
+        .expect("write fixture");
+
+        let result = ShardRegistry::load(&cfg_path);
+        assert!(
+            result.is_ok(),
+            "control: a valid finite positive worst_case_fuel_per_byte with shard_cap_bytes <= \
+             its own formula ceiling MUST load successfully. Got: {result:?}"
+        );
+    }
+
+    // ===================================================================
+    // EC-016 (NEW, S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4
+    // finding F-C1-P4-002, MEDIUM, BC-1.18.005 v1.10) — a
+    // "frontmatter-changelog-array"-shaped [[shard]] entry that OMITS the
+    // required `n` item-count trigger threshold MUST fail-loud at
+    // ShardRegistry::load() time, not merely deferred to the first
+    // gate-time write (shard_cap_gate_check's existing
+    // HookResult::Error-on-None-`n` check runs too late relative to this
+    // BC's own EC-009/EC-011/EC-013 load-time posture).
+    //
+    // RED (BC-1.18.005 v1.10): load()'s current
+    // `if let (Some(n), Some(low_water_mark)) = (entry.n, entry.low_water_mark)`
+    // destructure silently short-circuits to NO validation at all when `n`
+    // is None, so both failing tests below currently observe Ok(_) where
+    // the BC now requires Err(_). Generic `.is_err()` only — the
+    // `ShardConfigError::MissingN` variant this postcondition calls for
+    // does not exist yet.
+    // ===================================================================
+
+    #[test]
+    fn test_BC_1_18_005_EC_016_load_rejects_frontmatter_shape_missing_n() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let cfg_path = dir.path().join("shard-config.toml");
+        std::fs::write(
+            &cfg_path,
+            "[[shard]]\n\
+             artifact_stem = \"BC-INDEX\"\n\
+             practical_fuel_ceiling = 8000000\n\
+             worst_case_fuel_per_byte = 106.36\n\
+             max_single_record_bytes = 16384\n\
+             safety_margin = 8192\n\
+             shard_cap_bytes = 49152\n\
+             shape = \"frontmatter-changelog-array\"\n",
+        )
+        .expect("write fixture");
+
+        // TODAY: entry.n is None, so load()'s
+        // `if let (Some(n), Some(low_water_mark)) = (entry.n, entry.low_water_mark)`
+        // guard short-circuits and runs NO validation at all for this entry
+        // — the missing-`n` condition is currently only caught later, inside
+        // shard_cap_gate_check, at the first gate-time write against the
+        // artifact. load() therefore currently returns Ok(_), not Err(_) —
+        // RED until EC-016's load-time guard lands.
+        let result = ShardRegistry::load(&cfg_path);
+        assert!(
+            result.is_err(),
+            "EC-016: a \"frontmatter-changelog-array\"-shaped entry that omits the required `n` \
+             item-count trigger threshold MUST fail-loud at ShardRegistry::load() time, mirroring \
+             EC-009/EC-011/EC-013's uniform load-time posture for this same config surface. Got: \
+             {result:?}"
+        );
+    }
+
+    #[test]
+    fn test_BC_1_18_005_EC_016_load_rejects_missing_n_even_with_invalid_low_water_mark() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let cfg_path = dir.path().join("shard-config.toml");
+        std::fs::write(
+            &cfg_path,
+            "[[shard]]\n\
+             artifact_stem = \"BC-INDEX\"\n\
+             practical_fuel_ceiling = 8000000\n\
+             worst_case_fuel_per_byte = 106.36\n\
+             max_single_record_bytes = 16384\n\
+             safety_margin = 8192\n\
+             shard_cap_bytes = 49152\n\
+             shape = \"frontmatter-changelog-array\"\n\
+             low_water_mark = -1\n",
+        )
+        .expect("write fixture");
+
+        // TODAY: entry.n is still None here (this fixture never declares
+        // `n`), so the SAME `if let (Some(n), Some(low_water_mark))`
+        // destructure short-circuits on the missing-`n` half of the tuple —
+        // EC-011's existing negative-low_water_mark check is NEVER reached
+        // for this entry, even though low_water_mark = -1 is independently
+        // invalid against any realistic N. load() therefore currently
+        // returns Ok(_) for an entry carrying BOTH defects undetected — RED
+        // until EC-016's load-time guard (evaluated BEFORE low_water_mark is
+        // examined, per Postcondition 8's restructuring requirement) lands.
+        let result = ShardRegistry::load(&cfg_path);
+        assert!(
+            result.is_err(),
+            "EC-016: an entry missing `n` AND declaring an independently-invalid low_water_mark \
+             (-1) MUST still be rejected at load() time — with EC-016's guard ordered before the \
+             low_water_mark check, the reported error is the missing-`n` condition, but either \
+             way this entry must never silently load. Got: {result:?}"
+        );
+    }
+
+    // ===================================================================
+    // O-C1-P4-001 (LOW, S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4
+    // observation) — benign symmetry gap between the two `shard_cap_gate_check`
+    // shape arms. The `"flat"` arm guards against a non-mutating `tool_name`
+    // via `ToolKind::from_tool_name` BEFORE ever touching the target file
+    // (Postcondition 1's zero-cost-bypass spirit, extended to an
+    // unsupported tool kind). The `FrontmatterChangelogArray` arm has NO
+    // analogous guard: it proceeds straight to reading `entry.n` and
+    // calling `read_changelog_item_count(target_path)` for ANY `tool_name`,
+    // including one that isn't Edit/Write/MultiEdit at all.
+    //
+    // This test drives that asymmetry into an observable difference: the
+    // target file's content is deliberately malformed (no well-formed `---`
+    // frontmatter fence), so `read_changelog_item_count` fails loud with an
+    // `io::Error` if the FrontmatterChangelogArray arm ever reaches it. A
+    // correctly-guarded arm would return `Continue` for the non-mutating
+    // `"Read"` tool_name WITHOUT ever reading the file, so the malformed
+    // content would never be observed.
+    // ===================================================================
+
+    #[test]
+    fn test_BC_1_18_005_P4_frontmatter_arm_non_mutating_tool_continues() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let target = dir.path().join("BC-INDEX.md");
+        std::fs::write(&target, "no frontmatter fence at all\n").expect("write fixture");
+
+        let mut entry = flat_entry("BC-INDEX", 49_152);
+        entry.shape = Some(ShardShape::FrontmatterChangelogArray);
+        entry.n = Some(50);
+        let registry = ShardRegistry {
+            shards: vec![entry],
+        };
+
+        // TODAY: the FrontmatterChangelogArray arm has no tool_name guard,
+        // so it proceeds to read_changelog_item_count(target_path)
+        // regardless of the non-mutating "Read" tool_name, hits the
+        // fixture's deliberately malformed (fence-less) frontmatter, and
+        // surfaces a fail-loud HookResult::Error instead of Continue.
+        let result = shard_cap_gate_check(&registry, "Read", &target, &serde_json::json!({}));
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "O-C1-P4-001: a non-mutating tool_name (\"Read\") reaching the \
+             FrontmatterChangelogArray arm MUST Continue WITHOUT reading the target file, \
+             mirroring the \"flat\" arm's ToolKind::from_tool_name guard — got {result:?} instead \
+             (the ungated arm proceeded to read_changelog_item_count and surfaced the fixture's \
+             deliberately malformed frontmatter as a fail-loud HookResult::Error)"
+        );
+    }
 }
