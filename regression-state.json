@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-09-06T21:33:52Z","command":"cd crates/factory-dispatcher && cargo test -p factory-dispatcher --all-targets --no-fail-fast 2>&1 | grep -E \"^test result|Running (unittests|tests/)\""}
+{"status":"pass","timestamp":"2026-09-06T22:49:38Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-25.02-cap-trigger\nfor i in 1 2 3 4 5; do\n  echo \"=== RUN $i ===\"\n  cargo test -p factory-dispatcher --lib 2>&1 | grep -E \"FAILED|test result:|error\\[|panicked\"\ndone"}
