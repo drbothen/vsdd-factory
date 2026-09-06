@@ -990,14 +990,99 @@ mod tests {
         fn exit(&self, _span: &tracing::span::Id) {}
     }
 
+    /// Serializes every test in this module that can execute the
+    /// `tracing::warn!` callsite inside `ShardRegistry::load` (BC-1.18.005
+    /// EC-012's amortization advisory) — i.e. every test whose fixture has
+    /// `low_water_mark > floor(N/2)`, whether or not that particular test
+    /// cares about counting the resulting warn.
+    ///
+    /// `tracing-core`'s per-callsite `Interest` cache
+    /// (`tracing_core::callsite`) is a single table shared by the whole
+    /// **process**, keyed by source-location callsite — not by which
+    /// `Subscriber` happens to be installed on a given thread. The *first*
+    /// time this specific callsite is ever executed anywhere in this test
+    /// binary, `tracing-core` performs a one-time `Interest` registration
+    /// using whatever `Subscriber` is ambient **on the thread that gets
+    /// there first**, and cheaply caches that verdict forever after
+    /// (`DefaultCallsite`'s registration state machine never revisits a
+    /// callsite once it flips from `UNREGISTERED` to `REGISTERED`). Two
+    /// tests reach this exact callsite:
+    /// `test_BC_1_18_005_EC_012_load_accepts_n_minus_1_low_water_mark_and_succeeds`
+    /// (fixture `low_water_mark=49`, `n=50`) and
+    /// `test_BC_1_18_005_EC_012_load_emits_warn_advisory_when_low_water_mark_exceeds_default`
+    /// below (same fixture, but this one asserts the resulting warn count).
+    /// Confirmed by instrumenting `WarnCapture` and re-running under
+    /// `--test-threads>1`: if the FIRST test does not install a
+    /// `WarnCapture` default before calling `ShardRegistry::load`, the
+    /// ambient subscriber on its thread is the no-op default (never
+    /// interested), so `Interest::never()` gets cached for the callsite
+    /// **permanently** — and a later `tracing::subscriber::with_default`
+    /// call does not, by itself, invalidate that cached decision:
+    /// `with_default`/`set_default` only swap the thread-local dispatch,
+    /// they do not call `tracing::callsite::rebuild_interest_cache()`.
+    /// Whichever of the two tests the `cargo test` thread pool happens to
+    /// schedule first therefore decides, non-deterministically, whether
+    /// the warn is ever observable again in this process — this is
+    /// exactly the intermittent (~2/5) failure this fixes.
+    ///
+    /// The fix requires BOTH tests that reach this callsite to be under
+    /// the SAME discipline (see the two now-locked call sites below); a
+    /// serialized capture-only helper does not, by itself, close the race
+    /// against an unsynchronized non-capturing sibling. The discipline has
+    /// two parts:
+    ///
+    /// 1. This `Mutex` ensures at most one such call is ever "in flight"
+    ///    at once, so no two of these calls can race each other's
+    ///    `Interest` recomputation or the callsite's one-time
+    ///    registration.
+    /// 2. `count_warns` calls `tracing::callsite::rebuild_interest_cache()`
+    ///    *after* installing its `WarnCapture` subscriber as the thread's
+    ///    default and *immediately before* invoking the code under test.
+    ///    This forces `tracing-core` to unconditionally recompute the
+    ///    warn! callsite's `Interest` against the currently-installed
+    ///    (always-`enabled`) `WarnCapture` subscriber, overwriting any
+    ///    `Interest::never()` left behind by an earlier unsynchronized
+    ///    touch — regardless of registration history — and, when this is
+    ///    the callsite's very first-ever touch, guarantees the ambient
+    ///    dispatch at the moment of registration is this call's own
+    ///    `WarnCapture` (same thread, same lock-protected scope), rather
+    ///    than whatever happened to be ambient on some other thread.
+    ///
+    /// Since every reachable call site now goes through `count_warns`
+    /// under the same lock, and every `Subscriber` ever installed here is
+    /// a `WarnCapture` (always `enabled`), the callsite cannot be
+    /// re-poisoned after that: any later recomputation triggered by
+    /// another call's own `Dispatch::new` (see `tracing_core::callsite`'s
+    /// "Rebuilding Cached Interest" docs) can only ever agree that the
+    /// callsite is `Interest::always()`.
+    static CAPTURE_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
     fn count_warns(
         f: impl FnOnce() -> Result<ShardRegistry, ShardConfigError>,
     ) -> (usize, Result<ShardRegistry, ShardConfigError>) {
+        // A prior capture test panicking mid-assertion (lock still held via
+        // its guard's unwind drop) must not cascade into every subsequent
+        // capture test failing on a poisoned-lock panic; the poisoning
+        // carries no information about *this* test's fixture, so recover
+        // and proceed.
+        let _guard = CAPTURE_LOCK
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+
         let warn_count = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0));
         let subscriber = WarnCapture {
             warn_count: warn_count.clone(),
         };
-        let result = tracing::subscriber::with_default(subscriber, f);
+        let result = tracing::subscriber::with_default(subscriber, || {
+            // See CAPTURE_LOCK's doc comment: force tracing-core to
+            // recompute this callsite's cached `Interest` against the
+            // `WarnCapture` subscriber just installed above, closing the
+            // race against any non-capturing test that touched the same
+            // `warn!` callsite first (and thus cached `Interest::never()`
+            // against the ambient no-op default).
+            tracing::callsite::rebuild_interest_cache();
+            f()
+        });
         (warn_count.load(std::sync::atomic::Ordering::SeqCst), result)
     }
 
@@ -1730,7 +1815,18 @@ mod tests {
             shard_toml_frontmatter_entry("BC-INDEX", 50, Some(49)),
         )
         .expect("write fixture");
-        let registry = ShardRegistry::load(&cfg_path).expect(
+
+        // Routed through `count_warns` (its warn count is unused here)
+        // rather than a bare `ShardRegistry::load` call: this fixture's
+        // `low_water_mark=49` (> floor(50/2)) walks through the SAME
+        // `tracing::warn!` callsite the EC-012 *emission* test below
+        // asserts on. See `CAPTURE_LOCK`'s doc comment — this is required,
+        // not cosmetic: an uncoordinated call through that callsite can
+        // win its one-time `Interest` registration using the ambient
+        // no-op subscriber, permanently caching `Interest::never()` and
+        // making the emission test's assertion flaky.
+        let (_warn_count, result) = count_warns(|| ShardRegistry::load(&cfg_path));
+        let registry = result.expect(
             "EC-012: low_water_mark = N-1 = 49 MUST load successfully, never HookResult::Error",
         );
         assert_eq!(registry.shards[0].low_water_mark, Some(49));
