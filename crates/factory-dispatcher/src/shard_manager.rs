@@ -21,8 +21,9 @@
 //!
 //! # Scope note (S-25.02 F4 BC-cluster 1 "cap+trigger")
 //!
-//! This module stubs BC-1.18.005 ONLY (tasks T-1/T-2/T-3; AC-001..AC-005).
-//! BC-1.18.006 (the observable roll/block outcome once the `"flat"` trigger
+//! This module implements BC-1.18.005 ONLY (tasks T-1/T-2/T-3; AC-001..AC-005)
+//! — fully, not as a stub; see the "BC-5.38.001 Red Gate discipline" section
+//! below. BC-1.18.006 (the observable roll/block outcome once the `"flat"` trigger
 //! fires), BC-1.18.009 (the observable rotate/block-and-retry outcome once
 //! the item-count trigger fires), and BC-1.18.012 (the one-time changelog
 //! backfill migration) are LATER clusters and are explicitly OUT OF SCOPE
@@ -675,8 +676,9 @@ pub fn validate_low_water_mark(
 ///   BC-1.18.006 (byte-size roll) and BC-1.18.009 (item-count rotate-then-
 ///   retry) own the observable Block outcome once THIS function's trigger
 ///   fires (Postcondition 3 / Postcondition 8 "Ownership" bullets) — this
-///   cluster stubs the trigger boundary and hand-off point only, never the
-///   roll/rotation implementation itself.
+///   cluster fully implements the trigger boundary and hand-off point (this
+///   function's own logic is not a stub), and deliberately never implements
+///   the roll/rotation behavior itself — that is later clusters' own scope.
 /// - `HookResult::Error { .. }` — fail-loud on a malformed `[[shard]]`
 ///   config entry (EC-009 missing `shape`; EC-011 invalid `low_water_mark`),
 ///   via [`ShardConfigError`]'s `From<ShardConfigError> for HookResult` impl.
