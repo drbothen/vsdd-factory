@@ -959,15 +959,21 @@ frontmatter — the FIRST `Edit`/`Write`/`MultiEdit` against `BC-INDEX.md` after
 would need to (a) parse and count roughly 1,997 items to evaluate the trigger (an unbounded-relative-
 to-N read, though still a finite, single-file read — this is a mischaracterization to correct, not
 a fuel-budget hazard, since the check is native code with no fuel budget), and (b), if the trigger
-fires, invoke a SINGLE `rotate_changelog` call moving approximately 1,947 items (down to a
+fires, invoke a SINGLE `rotate_changelog` call moving approximately 1,972 items (down to a
 `keep_recent = low_water_mark ≈ 25`, **CORRECTED, fix-burst pass-3, F-P3-005 — NEVER
 `keep_recent = N`; see Decision 14 below**) into the archive in one operation.
+**CORRECTED (fix-burst pass-4, F-P4-004, LOW):** the archived-item count is `1,972`, not `1,947` —
+`1,997 (pre-migration count) - 25 (low_water_mark) = 1,972`; the withdrawn `1,947` figure was the
+arithmetic remainder against the WITHDRAWN `keep_recent = 50` (`N`, not `low_water_mark`) target
+(`1,997 - 50 = 1,947`), left uncorrected when Decision 14 (below) retargeted `keep_recent` to
+`low_water_mark ≈ 25`. `1,972` matches BC-1.18.012 v1.1's own EC-001 and Canonical Test Vector
+("25 (retained) + 1972 (archived) == 1997 (pre-migration)").
 
 **This is the B1 analogue of the exact gap BC-1.18.008 (mechanism A) and BC-1.18.011 (mechanism B2)
 were each independently created to close, and B1 must not be the one mechanism left to a
 lazy/ungoverned first-write trigger.** Unlike mechanism A's/B2's monolithic files, B1's cold-start
-excess (≈1,947 items) does not risk data LOSS on its own — `rotate_changelog` already validates via
-`yaml_guard` and writes both files via `write_atomic` — but performing a ~1,947-item one-time
+excess (≈1,972 items) does not risk data LOSS on its own — `rotate_changelog` already validates via
+`yaml_guard` and writes both files via `write_atomic` — but performing a ~1,972-item one-time
 displacement as an incidental SIDE EFFECT of whichever ordinary agent write happens to be first
 after F4 activation has two production-grade deficiencies relative to BC-1.18.008/011's governed
 pattern: (1) it imposes an unpredictable, undocumented latency/behavior surprise on an arbitrary
@@ -1084,13 +1090,150 @@ BC-1.18.009 Invariant 1's "no new rotation/trim/validate/write logic" constraint
   fires, the gate calls `rotate_changelog(..., keep_recent = low_water_mark, ...)` — NEVER `N-1`.
   Constraint, fail-loud (mirroring BC-1.18.005 EC-009's "no silent default for a malformed
   shape-config" posture, extended to this new field): `0 <= low_water_mark < N`, validated at
-  config-load time; a config declaring `low_water_mark >= N` (including the degenerate `N-1`, which
-  would silently reproduce today's withdrawn minimal-eviction behavior) or a negative value is a
-  config error (`HookResult::Error`), never silently clamped or defaulted around.
+  config-load time; a config declaring `low_water_mark >= N` (the degenerate `== N` boundary
+  included) or a negative value is a config error (`HookResult::Error`), never silently clamped or
+  defaulted around. **CORRECTED (fix-burst pass-4, F-P4-001, HIGH) — `low_water_mark = N-1` is NOT
+  part of this fail-loud set.** `N-1` satisfies `0 <= low_water_mark < N` exactly as any other
+  interior value does (`N-1 < N` is true by construction for `N >= 1`); it is a legal, merely
+  poorly-amortizing, configuration — see the dedicated correction below this Decision's semantics
+  list, which withdraws the v1.3 text's erroneous "including the degenerate `N-1`" framing and
+  replaces the closed-off latent-pathology concern with a non-fatal advisory instead of a false
+  fail-loud claim.
 - **Default when `low_water_mark` is omitted from config:** `floor(N / 2)`. This is a config
   DEFAULT, not a hardcoded Rust constant inside `shard_manager.rs` — consistent with BC-1.18.005
   Invariant 4's "formula inputs are configuration, not embedded constants" discipline, extended to
   this new field.
+
+**CORRECTED (fix-burst pass-4, F-P4-001, HIGH) — ADJUDICATION: `low_water_mark = N-1` is
+legal-but-poor, never fail-loud; the "including the degenerate `N-1`" fail-loud framing above (v1.3
+text) and BC-1.18.005 EC-011's identical phrasing are WITHDRAWN as a live, mutually-unsatisfiable
+contradiction with formal-verifier's own VP-140/VP-125 and with BC-1.18.005's own Canonical Test
+Vectors table.**
+
+**The contradiction, as found by fresh-context adversary pass-4.** The declared numeric constraint
+is `0 <= low_water_mark < N`. This constraint mathematically ADMITS `N-1` — `N-1 < N` is true for
+every `N >= 1`, with no special case. Yet the v1.3 prose immediately above (and BC-1.18.005 EC-011
+as originally worded) parenthetically folded `N-1` INTO the fail-loud `>= N` bucket ("including the
+degenerate `N-1`"), asserting it produces `HookResult::Error`. Meanwhile THREE independent
+downstream artifacts — all authored or reviewed AFTER this ADR's own v1.3 text — already state the
+opposite as their own authoritative content: BC-1.18.005's Canonical Test Vectors table's last row
+("`low_water_mark=49`, i.e. `N-1`, is a VALID boundary value — `49 < 50` satisfies the
+constraint — and does NOT fail-loud"); VP-140 §Property Statement point 4's boundary partition
+("`low_water_mark == N - 1`: **VALID** — `N - 1 < N` satisfies the constraint; loads normally, no
+error... it is a legal `low_water_mark` value, merely a poor one for amortization — Decision 14 —
+not a config error"); and VP-125 §Property Statement point 1, whose bound is stated to "hold for any
+valid pair `0 <= low_water_mark < N`" without excluding `N-1`. This is not a stale-vs-current
+version mismatch — both readings were live in the SAME v1.3 fix-burst's own output set, imposing
+mutually-unsatisfiable test obligations on any future implementer (an `EC-011`-literal test asserting
+`Error` at `N-1` cannot pass alongside a `VP-140`-literal test asserting normal load at `N-1`).
+
+**Adjudication: Option (b) — accept the full declared range `0 <= low_water_mark < N`, including
+`N-1`, as legal; strike the erroneous "fail-loud on `N-1`" language rather than tighten the numeric
+constraint.** Two coherent resolutions were weighed:
+
+- *Option (a) — forbid the degenerate range* (e.g. cap `low_water_mark <= floor(N/2)`, or
+  `< ceil(N/2)`) would require picking a SECOND principled, non-arbitrary threshold distinct from
+  `N-1` itself — and no such threshold is non-arbitrary in the way this ADR's other numeric
+  constants (Decision 2's fuel-derived `shard_cap_bytes`) are: `N-2` and `N-3` amortize almost as
+  poorly as `N-1` (amortization factor `N - low_water_mark` is `1`, `2`, `3` respectively — all
+  "essentially every write" by the standard this Decision's own "Problem" paragraph sets), so a hard
+  floor drawn at `floor(N/2)` would be an equally defensible-or-arbitrary line as one drawn at
+  `floor(N/4)` or anywhere else in between. Tightening the constraint would ALSO require rewriting
+  BOTH already-authored, internally-consistent downstream artifacts (BC-1.18.005's CTV + EC-011,
+  and VP-140's four-cell fail-loud boundary table + proof harness, plus a re-review of VP-125's
+  general "any valid pair" property) to newly exclude values they currently — correctly, per their
+  own content — treat as valid.
+- *Option (b) — accept `N-1` (and every other interior value) as legal-but-poor* requires striking
+  ONE incorrect parenthetical from Decision 14 (this document) and ONE structurally identical
+  parenthetical from BC-1.18.005 EC-011 — a strictly smaller, consistency-PRESERVING change, since
+  it aligns this ADR with content THREE other artifacts (BC-1.18.005's own CTV, VP-140, VP-125)
+  already state correctly, rather than requiring those three artifacts to be reopened and rewritten
+  to match this ADR's erroneous framing.
+
+Option (b) is ADOPTED. The numeric constraint `0 <= low_water_mark < N` itself was NEVER wrong and
+is UNCHANGED by this correction — only the prose claiming `N-1` falls inside the fail-loud `>= N`
+bucket is withdrawn, because it does not: `N-1` is, by construction, strictly less than `N`.
+
+**Closing the latent-pathology risk without a false fail-loud claim: a non-fatal amortization
+advisory, not a rejection.** Accepting `N-1` as legal does not leave the latent design hole
+unaddressed — an operator configuring `low_water_mark` close to `N` (up to and including `N-1`)
+reproduces exactly the every-write (or near-every-write) rotation churn this SAME Decision 14 exists
+to eliminate for the DEFAULT case. The corrected resolution is a NEW, NON-FATAL, WARN-level
+diagnostic advisory (via `tracing::warn!`, per CLAUDE.md's structured-logging convention — never a
+`println!`, never `HookResult::Error`), emitted at config-load time AFTER the existing fail-loud
+validation (`0 <= low_water_mark < N`) already passes:
+
+- **Advisory condition:** `low_water_mark > floor(N/2)` — i.e., the configured value amortizes
+  rotation WORSE than this Decision's own recommended default. This threshold is deliberately NOT a
+  new free-standing arbitrary constant: it reuses the ALREADY-JUSTIFIED default `floor(N/2)` this
+  same Decision establishes above as the anchor for "worse than recommended," rather than inventing
+  a second independent numeric line the way Option (a)'s hard floor would have required.
+  `low_water_mark <= floor(N/2)` (including the default itself and every value below it) emits no
+  advisory.
+- **Advisory content:** the configured `(N, low_water_mark)` pair and the resulting amortization
+  factor `N - low_water_mark` (writes-per-rotation), compared against the default's
+  `N - floor(N/2)` amortization, so an operator can see quantitatively how much worse their
+  configured value performs (e.g., at `N=50`, `low_water_mark=49`: "rotation will fire roughly every
+  1 write (amortization factor 1), versus 25 for the recommended default `low_water_mark=25`").
+- **Advisory is NEVER fatal.** Config load succeeds and returns the configured value unchanged
+  (`Continue`/normal load) regardless of whether the advisory fires — this is the load-time
+  equivalent of a lint warning, not a validation gate. This is the mechanism-appropriate way to
+  address an operator-misconfiguration performance concern without contradicting the numeric
+  constraint's own text.
+
+**Exact wording obligations — product-owner (BC-1.18.005), enumerated in full:**
+
+1. **Postcondition 8's rotation-target-config bullet** ("Fail-loud validation constraint"
+   sentence): strike the parenthetical `"(including the degenerate N-1)"` from the fail-loud
+   sentence. Corrected sentence: "a malformed value (`low_water_mark >= N`, or a negative value) is
+   NEVER silently clamped or defaulted around; the config is treated as malformed and the check
+   returns `HookResult::Error`." Immediately follow with a NEW sentence: "A legal-but-poor value in
+   `(floor(N/2), N)` — up to and including the boundary `low_water_mark = N-1` — loads normally (no
+   `HookResult::Error`) but MUST emit a non-fatal `tracing::warn!` advisory citing the configured
+   `(N, low_water_mark)` pair and the resulting amortization factor `N - low_water_mark`, compared
+   against the recommended default's `N - floor(N/2)` amortization."
+2. **EC-011:** strike `"(including the degenerate low_water_mark = N-1)"` from the description
+   column — EC-011's scope becomes exactly `low_water_mark >= N` (the `== N` boundary, or any value
+   strictly greater) or a negative value; its Expected Behavior column (`HookResult::Error`) is
+   UNCHANGED for that (now-corrected) scope.
+3. **NEW EC-012:** Description: "A `\"frontmatter-changelog-array\"`-shaped config entry declares a
+   legal-but-poor `low_water_mark` in `(floor(N/2), N)`, up to and including `low_water_mark = N-1`."
+   Expected Behavior: "Loads normally (`Continue`, no `HookResult::Error`); emits a non-fatal
+   `tracing::warn!` advisory citing the resulting amortization factor `N - low_water_mark` (worse
+   than the recommended default's `N - floor(N/2)`)."
+4. **Canonical Test Vectors:** the existing last-row parenthetical ("`low_water_mark=49`, i.e.
+   `N-1`, is a VALID boundary value... and does NOT fail-loud") is ALREADY CORRECT under this
+   adjudication and requires NO wording change. ADD one new row: `N=50`, `low_water_mark=49`
+   (`== N-1`) → "Loads normally, no `HookResult::Error`; emits `tracing::warn!` advisory
+   (amortization factor `N - low_water_mark = 1` — rotation fires on essentially every write,
+   versus `25` for the recommended default)." (EC-012.)
+5. **Version/changelog:** bump BC-1.18.005 to v1.4; changelog entry cites this ADR-051 v1.4
+   Decision 14 correction (F-P4-001, HIGH) and the exact strike/add above.
+
+**Exact wording obligations — formal-verifier (VP-140, VP-125), enumerated in full:**
+
+1. **VP-140 §Property Statement point 4:** the existing `low_water_mark == N - 1` bullet ("VALID —
+   `N - 1 < N` satisfies the constraint... a legal `low_water_mark` value, merely a poor one for
+   amortization — Decision 14 — not a config error") is ALREADY CORRECT under this adjudication and
+   requires NO wording change to its conclusion.
+2. **VP-140 — ADD a new proof leg** ("`low_water_mark` amortization advisory (non-fatal)"): a
+   unit-test table over `low_water_mark ∈ {floor(N/2), floor(N/2)+1, N-1}` (for representative
+   symbolic `N`) asserting the `tracing::warn!` advisory fires iff `low_water_mark > floor(N/2)`,
+   and that config load succeeds (returns the configured value, never `Err`/`HookResult::Error`) in
+   ALL three cases — the advisory is orthogonal to, and never downgrades, the existing fail-loud
+   legs. Add the corresponding row to the Proof Method table and a new `#[test]` function to the
+   Proof Harness Skeleton (e.g. `test_BC_1_18_005_PC8_low_water_mark_amortization_advisory`).
+   Bump VP-140 to v1.1; update `last_amended` to record the F-P4-001 addition and cite ADR-051
+   Decision 14's corrected text.
+3. **VP-125:** NO wording change required. VP-125 §Property Statement point 1 already states its
+   bound "holds for any valid pair `0 <= low_water_mark < N`" without excluding `N-1`, and its
+   proptest harness (`arb_prepends_and_config()`) already generates arbitrary valid `(N,
+   low_water_mark)` pairs, which includes `low_water_mark = N-1` in its generated space by
+   construction — VP-125's property was never in conflict with this adjudication; only Decision 14's
+   OWN prose and BC-1.18.005 EC-011 needed correction. Formal-verifier MAY, at its discretion, add an
+   explicit `N-1`-boundary regression case to VP-125's proptest suite (belt-and-suspenders, since
+   proptest's random generation already covers it structurally), but this is not a required wording
+   change.
 
 **Amortized cost, stated precisely.** After a rotation trims to `low_water_mark` and the retry
 lands (count becomes `low_water_mark + 1`), every subsequent write is a plain `Continue`
@@ -1514,7 +1657,8 @@ properties still hold structurally; fixtures must assert the post-rotation floor
 
 | Version | Date | Author | Summary |
 |---|---|---|---|
-| 1.0 | 2026-09-05 | architect | Initial authoring. Layer-2 two-mechanism design (append-log rotation + BC-INDEX structured-catalog sharding) per D-1166 widest-scope human decision. Resolves OQ-2 (stable-current-filename addressing + BC-ID-prefix deterministic addressing), OQ-3 (`/compact-state` gets shard-awareness for free via the native dispatcher-mediated gate), OQ-4 (synthetic calibration harness adopted; provisional constants derived from ADR-042's measured fuel/byte model and direct byte measurements of the live artifacts), OQ-5 (co-amended into ADR-047 in the same burst). Identifies and resolves a structural gap the story draft did not address: `HookResult`'s Continue/Block/Error-only contract makes transparent write-redirection impossible, requiring a block-and-retry roll mechanism instead of silent rotation. Status: proposed, pending F2 human gate.|
-| 1.1 | 2026-09-05 | architect | Fix-burst amendment resolving fresh-context adversary pass-1 findings against v1.0. F-S2502-F2-001 (BLOCKER): Decision 7's B1 sub-mechanism corrected from a double-actor "gate rotates+prepends, then Continue" design (unsound — double-prepend/stale-payload-clobber, the exact hazard BC-1.18.006 forbids) to a single-actor block-and-retry contract structurally identical to mechanism A's (gate performs ONLY the `rotate_changelog` trim, then Blocks with a retry instruction; the agent's own call, original or retried, performs the sole prepend), grounded in direct inspection of `rotate_changelog`'s actual pure-trim signature. F-S2502-F2-002 (HIGH): added Decision 10, a governed one-time migration for the B2 BC-INDEX body split (content-preservation, independent-census, crash-atomicity, rollback, idempotency, covering SS-05/SS-06 second-level sub-splits in the same operation), modeled on BC-1.18.008, with enumerated postcondition obligations for product-owner's new migration BC (illustratively BC-1.18.011). F-S2502-F2-005 (MEDIUM): Decision 1 amended with an explicit trigger-shape dispatch — BC-1.18.005 owns BOTH the byte-size trigger (mechanism A) and the item-count trigger (mechanism B1), with the item-count shape's distinct (bounded-parse, not `stat()`-only) read-cost model documented. F-S2502-F2-008 (MEDIUM): Decision 6 amended with a code-grounded enumeration of every candidate whole-corpus history-scanning validator — `check_d_chain_currency`/`scan_max_d_nnn`/`scan_max_decision_log_id`, `check_decisions_log_monotonicity`, `validate-closes-completeness`'s decision-log arm, `validate-cross-site-correspondence`'s `is_volatile_path`, and Cohort B (`validate-burst-log`/`regression-gate`/`convergence-tracker`) are all verified NOT affected by archival (STATE.md-scoped or correctly current-shard-scoped); POLICY-1 (`append_only_numbering`) enforcement (`consistency-validator`/adversary-prompt, `lint_hook: null`) is identified as the one genuine gap and MUST default to an archive-inclusive whole-corpus scan mode, an explicit carve-out from this Decision's general opt-in-required default. Cosmetic: Decision 3's sort-order rationale corrected (the operative comparison is digit-vs-`m` one byte past the shared `decision-log` prefix, not `.` vs. digit; conclusion unchanged). Status remains PROPOSED — none of these are POLICY 22 reversals.|
-| 1.2 | 2026-09-05 | architect | Fix-burst amendment resolving fresh-context adversary pass-2 findings against v1.1 (all ARCHITECTURE-routed). F-P2-001 (HIGH): Decision 7's B1 archive scheme corrected from an impossible per-`seq` sealed-shard-directory layout to a single evergreen append-file (`.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`), reached via a small, named, bounded extension to `rotate_changelog`'s path-resolution surface (explicit `archive_path` parameter, replacing forced `cycle_name` derivation for non-cycle callers) — grounded in direct re-inspection of `resolve_archive_path`'s actual single-fixed-destination/append/cycle_name-required behavior. F-P2-002 (HIGH): Decision 1 step 3's `projected_size` formula corrected to be tool-discriminated (`Write`: `len(content)` alone; `Edit`/`MultiEdit`: `current_size + net_delta_bytes`, unchanged) — the withdrawn v1.1 formula double-counted a `Write`'s complete content on top of current size; Decision 3's retry wording unified into a single "recompute against post-roll state" instruction for both tool classes, closing the stale-full-payload block/retry deadlock the v1.1 "if Write, retry unchanged" text permitted. F-P2-003 (HIGH): Decision 3's seal mechanism corrected from rename-away (which directly contradicted BC-1.18.006's own Invariant 3 and opened an ENOENT transparency window) to copy-then-atomic-truncate-in-place, reusing only the existing `write_atomic` temp-file-then-rename-ONTO-destination primitive. F-P2-004 (MEDIUM): new Decision 11 adds a staged, crash-recoverable per-write roll sequence with two new self-healing partial-failure error codes (`E-SHD-006` seal-published-but-canonical-not-truncated; `E-SHD-007` canonical-truncated-but-index-not-published), closing the gap between the per-write roll's under-specified atomicity and the one-time migrations' (BC-1.18.008/011) already-rigorous staging+verify+rollback treatment. F-P2-005 (MEDIUM): new Decision 12 makes the append-only-tail assumption underlying the roll/retry contract explicit (grounded in POLICY-1) and specifies the sealed-shard direct-edit escape hatch as the correct, gate-transparent recovery path for a caller needing to touch already-relocated historical content. F-P2-007 (MEDIUM): new Decision 13 requires a governed one-time B1 changelog backfill migration (illustratively BC-1.18.012, modeled on BC-1.18.008) to eliminate B1's cold-start ~1,997-item ungoverned lazy-first-write migration and corrects BC-1.18.005 Postcondition 8's "bounded" claim to distinguish cold-state from steady-state. Status remains PROPOSED — none of these are POLICY 22 reversals; all correct v1.1's own stated design intent against the actual shipped `rotate_changelog`/`write_atomic` implementations. Companion `S-25.02-f2-architecture-delta.md` v1.1→v1.2 (§4b added).|
+| 1.4 | 2026-09-06 | architect | Fix-burst amendment resolving fresh-context adversary pass-4 findings against v1.3 (both ARCHITECTURE-routed). F-P4-001 (HIGH, ADJUDICATION): Decision 14's own "fail-loud... including the degenerate `N-1`" framing and BC-1.18.005 EC-011's identical phrasing directly contradicted the numeric constraint they both cite (`0 <= low_water_mark < N` mathematically ADMITS `N-1`) and directly contradicted BC-1.18.005's own Canonical Test Vectors table plus VP-140/VP-125, all of which already treat `N-1` as VALID — a live, mutually-unsatisfiable test-obligation contradiction (an EC-011-literal test expecting `Error` at `N-1` cannot pass alongside a VP-140-literal test expecting normal load at `N-1`). ADJUDICATED as Option (b): the numeric constraint `0 <= low_water_mark < N` is UNCHANGED and remains correct; the erroneous "fail-loud on `N-1`" prose is WITHDRAWN from Decision 14 (this ADR corrects its own text in this burst) with the exact strike/add wording obligations enumerated for product-owner's BC-1.18.005 v1.3→v1.4 follow-on fix-burst (Postcondition 8 sentence rewrite, EC-011 scope narrowed to exactly `>= N`/negative, NEW EC-012, one new Canonical Test Vector row) and formal-verifier's VP-140 v1.0→v1.1 follow-on fix-burst (one new amortization-advisory proof leg; VP-125 confirmed to need NO wording change, its property already generalizes over the full valid domain). The latent every-write-rotation pathology a legal `low_water_mark` close to `N` could reproduce is closed via a NEW non-fatal `tracing::warn!` amortization advisory (fires when `low_water_mark > floor(N/2)`, reusing this Decision's own already-justified default as the non-arbitrary advisory threshold rather than inventing a second free constant) — never a fail-loud rejection of a value the constraint already declares legal. Option (a) (tightening the numeric constraint to forbid high `low_water_mark` values) was considered and rejected: any such hard floor is exactly as arbitrary as `N-1` itself (`N-2`/`N-3` amortize almost as poorly) and would require reopening three already-correct downstream artifacts to newly exclude values they currently, correctly, treat as valid — Option (b) is the smaller, consistency-preserving change. F-P4-004 (LOW): Decision 13's worked-example arithmetic corrected from the stale withdrawn-target remainder `1,947` (`1,997 - 50`, the WITHDRAWN `keep_recent = N` target) to the correct `1,972` (`1,997 - 25`, the CURRENT `keep_recent = low_water_mark` target per Decision 14) — three occurrences corrected, now consistent with BC-1.18.012 v1.1's own EC-001/Canonical-Test-Vector figures (not itself a wording obligation for product-owner, since BC-1.18.012 already carries the correct number; this was an ADR-body-only citation lag). Status remains PROPOSED — neither finding is a POLICY 22 reversal; both correct v1.3's own stated design intent, the first by withdrawing an internally-contradictory claim in favor of content three sibling artifacts already state correctly, the second by fixing stale arithmetic against an already-superseded target. Companion `S-25.02-f2-architecture-delta.md` v1.3→v1.4 (§4d added).|
 | 1.3 | 2026-09-05 | architect | Fix-burst amendment resolving fresh-context adversary pass-3 findings against v1.2 (both ARCHITECTURE-routed). F-P3-005 (MEDIUM): new Decision 14 introduces high-water/low-water hysteresis for B1's item-count rotation target — trimming to exactly `N-1` on every rotation left the live `changelog:` sequence back at the trigger boundary after the very next successful prepend, so EVERY steady-state write to `BC-INDEX.md` re-triggered a block+retry round-trip; corrected by reusing `rotate_changelog`'s already-free `keep_recent: usize` parameter with a NEW sibling config value `low_water_mark` (default `floor(N/2)`, fail-loud-validated `0 <= low_water_mark < N`) instead of `N-1` — zero new rotation/ordering logic, rotation now amortizes to once per `N - low_water_mark` writes. Decision 13 amended for consistency: the one-time cold-start backfill migration now targets `keep_recent = low_water_mark`, never `keep_recent = N`, so the corrected steady state holds from the FIRST post-migration write. Mechanism A confirmed (not merely assumed) to need no analogous change — its copy-then-atomic-truncate seal already resets the live shard to the maximal possible low-water mark (fully empty) on every roll, since a flat-file shape has no partial-retention concept to tune. F-P3-007 (LOW): Decision 10 Postcondition 2's pinned, already-stale illustrative `total_bcs` citation ("e.g. 1,997 per BC-INDEX v5.50") corrected to a structural, count-redacted description per TD-VSDD-091, matching the F-P2-006 re-grounding convention already established for BC-1.18.010. Status remains PROPOSED — neither finding is a POLICY 22 reversal; both correct v1.2's own stated design intent. Companion `S-25.02-f2-architecture-delta.md` v1.2→v1.3 (§4c added).|
+| 1.2 | 2026-09-05 | architect | Fix-burst amendment resolving fresh-context adversary pass-2 findings against v1.1 (all ARCHITECTURE-routed). F-P2-001 (HIGH): Decision 7's B1 archive scheme corrected from an impossible per-`seq` sealed-shard-directory layout to a single evergreen append-file (`.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`), reached via a small, named, bounded extension to `rotate_changelog`'s path-resolution surface (explicit `archive_path` parameter, replacing forced `cycle_name` derivation for non-cycle callers) — grounded in direct re-inspection of `resolve_archive_path`'s actual single-fixed-destination/append/cycle_name-required behavior. F-P2-002 (HIGH): Decision 1 step 3's `projected_size` formula corrected to be tool-discriminated (`Write`: `len(content)` alone; `Edit`/`MultiEdit`: `current_size + net_delta_bytes`, unchanged) — the withdrawn v1.1 formula double-counted a `Write`'s complete content on top of current size; Decision 3's retry wording unified into a single "recompute against post-roll state" instruction for both tool classes, closing the stale-full-payload block/retry deadlock the v1.1 "if Write, retry unchanged" text permitted. F-P2-003 (HIGH): Decision 3's seal mechanism corrected from rename-away (which directly contradicted BC-1.18.006's own Invariant 3 and opened an ENOENT transparency window) to copy-then-atomic-truncate-in-place, reusing only the existing `write_atomic` temp-file-then-rename-ONTO-destination primitive. F-P2-004 (MEDIUM): new Decision 11 adds a staged, crash-recoverable per-write roll sequence with two new self-healing partial-failure error codes (`E-SHD-006` seal-published-but-canonical-not-truncated; `E-SHD-007` canonical-truncated-but-index-not-published), closing the gap between the per-write roll's under-specified atomicity and the one-time migrations' (BC-1.18.008/011) already-rigorous staging+verify+rollback treatment. F-P2-005 (MEDIUM): new Decision 12 makes the append-only-tail assumption underlying the roll/retry contract explicit (grounded in POLICY-1) and specifies the sealed-shard direct-edit escape hatch as the correct, gate-transparent recovery path for a caller needing to touch already-relocated historical content. F-P2-007 (MEDIUM): new Decision 13 requires a governed one-time B1 changelog backfill migration (illustratively BC-1.18.012, modeled on BC-1.18.008) to eliminate B1's cold-start ~1,997-item ungoverned lazy-first-write migration and corrects BC-1.18.005 Postcondition 8's "bounded" claim to distinguish cold-state from steady-state. Status remains PROPOSED — none of these are POLICY 22 reversals; all correct v1.1's own stated design intent against the actual shipped `rotate_changelog`/`write_atomic` implementations. Companion `S-25.02-f2-architecture-delta.md` v1.1→v1.2 (§4b added).|
+| 1.1 | 2026-09-05 | architect | Fix-burst amendment resolving fresh-context adversary pass-1 findings against v1.0. F-S2502-F2-001 (BLOCKER): Decision 7's B1 sub-mechanism corrected from a double-actor "gate rotates+prepends, then Continue" design (unsound — double-prepend/stale-payload-clobber, the exact hazard BC-1.18.006 forbids) to a single-actor block-and-retry contract structurally identical to mechanism A's (gate performs ONLY the `rotate_changelog` trim, then Blocks with a retry instruction; the agent's own call, original or retried, performs the sole prepend), grounded in direct inspection of `rotate_changelog`'s actual pure-trim signature. F-S2502-F2-002 (HIGH): added Decision 10, a governed one-time migration for the B2 BC-INDEX body split (content-preservation, independent-census, crash-atomicity, rollback, idempotency, covering SS-05/SS-06 second-level sub-splits in the same operation), modeled on BC-1.18.008, with enumerated postcondition obligations for product-owner's new migration BC (illustratively BC-1.18.011). F-S2502-F2-005 (MEDIUM): Decision 1 amended with an explicit trigger-shape dispatch — BC-1.18.005 owns BOTH the byte-size trigger (mechanism A) and the item-count trigger (mechanism B1), with the item-count shape's distinct (bounded-parse, not `stat()`-only) read-cost model documented. F-S2502-F2-008 (MEDIUM): Decision 6 amended with a code-grounded enumeration of every candidate whole-corpus history-scanning validator — `check_d_chain_currency`/`scan_max_d_nnn`/`scan_max_decision_log_id`, `check_decisions_log_monotonicity`, `validate-closes-completeness`'s decision-log arm, `validate-cross-site-correspondence`'s `is_volatile_path`, and Cohort B (`validate-burst-log`/`regression-gate`/`convergence-tracker`) are all verified NOT affected by archival (STATE.md-scoped or correctly current-shard-scoped); POLICY-1 (`append_only_numbering`) enforcement (`consistency-validator`/adversary-prompt, `lint_hook: null`) is identified as the one genuine gap and MUST default to an archive-inclusive whole-corpus scan mode, an explicit carve-out from this Decision's general opt-in-required default. Cosmetic: Decision 3's sort-order rationale corrected (the operative comparison is digit-vs-`m` one byte past the shared `decision-log` prefix, not `.` vs. digit; conclusion unchanged). Status remains PROPOSED — none of these are POLICY 22 reversals.|
+| 1.0 | 2026-09-05 | architect | Initial authoring. Layer-2 two-mechanism design (append-log rotation + BC-INDEX structured-catalog sharding) per D-1166 widest-scope human decision. Resolves OQ-2 (stable-current-filename addressing + BC-ID-prefix deterministic addressing), OQ-3 (`/compact-state` gets shard-awareness for free via the native dispatcher-mediated gate), OQ-4 (synthetic calibration harness adopted; provisional constants derived from ADR-042's measured fuel/byte model and direct byte measurements of the live artifacts), OQ-5 (co-amended into ADR-047 in the same burst). Identifies and resolves a structural gap the story draft did not address: `HookResult`'s Continue/Block/Error-only contract makes transparent write-redirection impossible, requiring a block-and-retry roll mechanism instead of silent rotation. Status: proposed, pending F2 human gate.|
