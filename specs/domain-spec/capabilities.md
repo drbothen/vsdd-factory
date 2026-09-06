@@ -2,11 +2,11 @@
 document_type: domain-spec-section
 level: L2
 section: capabilities
-version: "1.18"
+version: "1.19"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: "2026-09-05 (v1.18) — S-25.02 F2 fix-burst (product-owner; F-S2502-F2-009, POLICY 19): CAP-043 §Source de-loaded of its volatile ADR-047 v1.6 version pin (stable §Decision 8a anchor retained); added BC-1.18.011 (new governed one-time B2 migration BC) and ADR-051 Decision 10 to the citation list. No CAP count change (still 43)."
+last_amended: "2026-09-05 (v1.19) — S-25.02 F2 fix-burst (product-owner; adversary pass-2 finding F-P2-007 routed): CAP-043 §Source citation list extended with BC-1.18.012 (new governed one-time B1 changelog backfill migration BC, closing B1's cold-start ungoverned-migration gap). No CAP-043 body-text semantic change and no CAP count change (still 43)."
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
@@ -14,7 +14,7 @@ inputs:
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/architecture/decisions/ADR-051-layer-2-two-mechanism-size-triggered-shard-rotation-append-logs-and-bc-index-sharding.md
-input-hash: "8ea0a46"
+input-hash: "5347ced"
 traces_to: L2-INDEX.md
 ---
 
@@ -468,7 +468,8 @@ D-1166 (human widest-scope decision covering both mechanisms in one story); BC-1
 formula + size-trigger); BC-1.18.006 (roll-before-write + atomic index publish); BC-1.18.007
 (retention/compaction policy); BC-1.18.008 (one-time backfill-split); BC-1.18.009 (BC-INDEX
 changelog rotation, B1); BC-1.18.010 (BC-INDEX per-subsystem sharding, B2); BC-1.18.011 (governed
-one-time B2 migration); BC-7.08.001 (Cohort B fail-closed flip); S-25.02. Justification: no
+one-time B2 migration); BC-1.18.012 (governed one-time B1 changelog backfill migration, closing
+B1's cold-start ungoverned-migration gap); BC-7.08.001 (Cohort B fail-closed flip); S-25.02. Justification: no
 existing capability covers artifact-size-triggered
 shard rotation. CAP-041 covers the INDETERMINATE outcome's DETECTION-and-quarantine path (marker
 write, next-advance gate) for whichever validators already went fail-closed — it does not touch
@@ -488,6 +489,7 @@ CAP-042 is the prior entry.
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.19 | 2026-09-05 | S-25.02 F2 fix-burst (product-owner; adversary pass-2 finding F-P2-007 routed): CAP-043 §Source citation list extended with `BC-1.18.012` (the new governed one-time B1 changelog backfill migration BC, authored in the same fix-burst — closes B1's cold-start ~1,997-item ungoverned-migration gap and establishes the precondition for BC-1.18.005 Postcondition 8's steady-state "bounded" read-cost characterization). No CAP-043 body-text semantic change and no CAP count change (still 43). |
 | v1.18 | 2026-09-05 | S-25.02 F2 fix-burst (product-owner; adversary pass-1 findings F-S2502-F2-009 + F-S2502-F2-002 routed): CAP-043 §Source de-loaded of its volatile `ADR-047 v1.6` version pin per TD-VSDD-091/POLICY 19 — the stable `§Decision 8a` section anchor already resolves the citation without the version token, mirroring the CAP-032/`ADR-026` precedent (v1.6 row, same file). Citation list extended to `ADR-051 (Decisions 1-10...)` (was 1-9) and to the new `BC-1.18.011` (governed one-time B2 BC-INDEX migration BC, authored in the same fix-burst). No CAP-043 body-text semantic change and no CAP count change (still 43). |
 | v1.17 | 2026-09-05 | F2 spec-evolution, S-25.02 activation (product-owner, orchestrator-dispatched): authored CAP-043 (P1 — Artifact Sharding Layer 2: size-triggered shard rotation for cycle append-logs [mechanism A] and BC-INDEX structured-catalog sharding [mechanism B: B1 changelog rotation + B2 per-subsystem body sharding]; SS-01/SS-07; ADR-051 §Decisions 1-9; ADR-047 §D8a/§D8b; BC-1.18.005–010; BC-7.08.001; S-25.02). Extends CAP-041's detection-and-quarantine model with a root-cause-prevention mechanism. Distinguishes from CAP-041 (INDETERMINATE detection/quarantine — does not touch input size), CAP-042 (one specific frontmatter-field write-path fix — this capability generalizes the pattern and reuses CAP-042's `rotate_changelog` primitive), CAP-011 (fuel/epoch budget enforcement — this capability prevents the oversized input rather than changing the budget). CAP count advance 42→43. |
 | v1.16 | 2026-09-02 | S-15.03 Phase B (product-owner, orchestrator-dispatched): authored CAP-042 (P1 — `last_amended` Write-Path Durable Fix: current-entry-only scalar, `changelog:` prepend discipline, sanctioned migration/rotation tooling, and bash-adapter fuel-budget relief; SS-04/SS-05/SS-06/SS-10; ADR-049 §Decision 1-7; BC-5.45.001/BC-10.13.001/BC-4.18.001; S-15.03). Closes the D-1149 mitigation-not-cure gap (`L-BB-D1149`). Distinguishes from CAP-031 (lock semantics), CAP-032 (wave-boundary/PreCompact continuity), CAP-011 (fuel/epoch budget enforcement — this capability removes the root-cause payload growth rather than changing the budget). CAP count advance 41→42. |

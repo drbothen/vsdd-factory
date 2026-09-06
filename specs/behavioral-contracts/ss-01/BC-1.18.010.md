@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-09-05T00:00:00Z
@@ -12,7 +12,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.009.md
   - .factory/specs/verification-properties/VP-INDEX.md
-input-hash: "1ad0839"
+input-hash: "87abdf9"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -208,13 +208,23 @@ Literal stable-anchor greps substantiating this BC's external-artifact claims (P
 no `grep -n` / no file:line citations per TD-VSDD-091):
 
 ```
-$ grep -oE "^\| SS-01 Hook Dispatcher Core \| BC-1 \| [0-9]+ \| ss-01/ \|" .factory/specs/behavioral-contracts/BC-INDEX.md
-| SS-01 Hook Dispatcher Core | BC-1 | 133 | ss-01/ |
+$ grep -oE "^\| SS-01 Hook Dispatcher Core \| BC-1 \| [0-9]+ \| ss-01/ \|" .factory/specs/behavioral-contracts/BC-INDEX.md | sed -E 's/\| [0-9]+ \|/| <N> |/'
+| SS-01 Hook Dispatcher Core | BC-1 | <N> | ss-01/ |
 ```
 
-Confirms the live `### SS-NN`/`BC-INDEX.md` §Summary partition this BC's B2 mechanism shards along
-already exists with the exact `BC-S Prefix`→count→shard-directory shape this BC's Postcondition 1
-assumes.
+**CORRECTED (fix-burst pass-2, F-P2-006, MEDIUM) — structural-form re-grounding, count column
+redacted.** The prior grep (v1.1) pasted the LITERAL count digit (`133`) into this BC's grounding
+evidence — a volatile value that had already drifted to `134` by the time of this fix-burst (and
+drifts to `135` again within this SAME burst, when BC-1.18.012 is added below), silently
+invalidating the citation on every subsequent SS-01 BC addition. Per POLICY 5 v1.3.6's
+HEAD-reproducibility mandate, this BC's grounding now asserts ONLY the STRUCTURAL claim this BC's
+Postcondition 1 actually depends on — that the `BC-S Prefix`→`SS-NN`→count→shard-directory ROW
+SHAPE exists in `BC-INDEX.md`'s §Summary table (the `[0-9]+` match-and-redact above proves the
+count FIELD is present and numeric, without pinning its volatile value). This BC's postconditions
+never depend on the SPECIFIC count — only on the mapping/row structure being present and
+well-formed — so this closes the drift CLASS, not just this instance: **any future reader
+verifying this claim MUST re-execute the grep above at HEAD to obtain the CURRENT count**, rather
+than trusting a pasted literal that decays on the very next SS-01 BC addition.
 
 ```
 $ grep -oE "^pub enum HookResult" crates/hook-sdk/src/result.rs
@@ -249,5 +259,6 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.2 | 2026-09-05 | product-owner | Fix-burst amendment (adversary pass-2 finding F-P2-006, MEDIUM, POLICY 5 v1.3.6 HEAD-reproducibility mandate): re-grounded the `## SDK Grounding Evidence` §Summary-row grep to a STRUCTURAL-FORM assertion (the `BC-S Prefix`→`SS-NN`→count→shard-directory row shape, with the volatile count field redacted to `<N>` via a `sed` pass) instead of pasting a literal count digit that had already drifted from `133` (v1.1's citation) to `134` (live at authoring time) and drifts again to `135` within this SAME burst (BC-1.18.012's addition below) — closes the drift CLASS, not just this instance; future readers re-execute the grep at HEAD for the current count. No postcondition/invariant/VP content change. |
 | 1.1 | 2026-09-05 | product-owner | Fix-burst amendment (F-S2502-F2-002 + F-S2502-F2-003 + F-S2502-F2-007): Description/Postcondition 1/Invariant 3 amended to cross-reference the new BC-1.18.011 (governed one-time B2 migration BC) — this BC now explicitly states it specifies the END-STATE addressing scheme only, deferring transition mechanics (content-preservation, census, atomicity, rollback) to BC-1.18.011. Added a Related BCs row and an ADR Traceability citation for ADR-051 §Decision 10. VP-128's single-authoritative-row row Proof Method normalized from bare "consistency-validator scan" to "integration test (consistency-validator scan...)" per VP-INDEX v3.02's authoritative method assignment — no property content change. Added `## SDK Grounding Evidence` section. |
 | 1.0 | 2026-09-05 | product-owner | Initial creation (NEW BC, not in the original F1 enumeration — mechanism B2, added per D-1166 human widest-scope decision). Per-subsystem body-table sharding with zero-lookup first-level addressing (BC-S-prefix→SS-NN, reusing ARCH-INDEX's authoritative mapping) and manifest-based second-level sub-sharding for SS-05/SS-06 (both already over cap on section size alone). Enumerated the bounded reader/writer migration surface. CAP-043 capability anchor. ADR-051 §D7/§D8 citations. |

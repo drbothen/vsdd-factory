@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-09-05T00:00:00Z
@@ -14,7 +14,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.005.md
   - .factory/cycles/v1.0-brownfield-backfill/S-25.02-f2-architecture-delta.md
-input-hash: "14b0031"
+input-hash: "5db017e"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -83,30 +83,47 @@ write, no exception carved out for B1.
    same shard-config source BC-1.18.005 Postcondition 6 introduces for mechanism A's cap constants
    — this BC's implementation MUST NOT hardcode `N` into `shard_manager.rs`.
 
-2. **CORRECTED (fix-burst, F-S2502-F2-001, BLOCKER) — the gate performs ONLY the rotate/trim step,
+2. **CORRECTED (fix-burst pass-1, F-S2502-F2-001, BLOCKER; archive-path citation further
+   CORRECTED fix-burst pass-2, F-P2-001, HIGH) — the gate performs ONLY the rotate/trim step,
    NEVER the prepend; the prepend is EXCLUSIVELY the responsibility of whichever `Edit`/`Write`/
    `MultiEdit` call ultimately lands.** On overflow (the item-count trigger fires per BC-1.18.005
    Postcondition 8: `current_item_count + 1 > N`), the gate invokes `rotate_changelog` — and ONLY
-   `rotate_changelog` — to trim the live `changelog:` sequence down to N-1 items, moving the
-   overflowing TAIL (the oldest items beyond the retained N-1) into a new sealed changelog shard
-   under `.factory/specs/behavioral-contracts/BC-INDEX-changelog-shards/
-   BC-INDEX-changelog.<seq:04>.md`. The gate NEVER calls `prepend_changelog_item` itself. Sequence
-   when rotation is needed:
+   `rotate_changelog` — to trim the live `changelog:` sequence down to N-1 items, APPENDING the
+   overflowing TAIL (the oldest items beyond the retained N-1) to a SINGLE, EVERGREEN archive file
+   at `.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`. **CORRECTED (F-P2-001):
+   this is NEVER a per-`seq` sealed-shard-DIRECTORY layout** (the withdrawn v1.1 text's
+   `BC-INDEX-changelog-shards/BC-INDEX-changelog.<seq:04>.md` citation) — direct inspection of the
+   SHIPPED `rotate_changelog`/`resolve_archive_path` implementation
+   (`crates/last-amended-migrate/src/rotate.rs`) shows it derives exactly ONE fixed destination
+   path per invocation and APPENDS to that same destination on every call; it has no
+   `<seq:04>`-numbering capability at all. Because `rotate_changelog`'s existing
+   `cycle_name`-derived path convention is correct only for its EXISTING cycle-scoped callers, and
+   `BC-INDEX.md` is a `.factory/specs/behavioral-contracts/` catalog artifact with no natural
+   `cycle_name`, this BC's gate calls a small, NAMED, bounded extension to the primitive's
+   path-resolution surface — a generalized `archive_path: &Path` parameter (or equivalently-named
+   `resolve_archive_path_at`) that a non-cycle caller supplies DIRECTLY, in place of deriving one
+   from `cycle_name` — pre-computed by the dispatcher's B1 handler as the FIXED, non-cycle,
+   BC-INDEX-sibling path above. Every other line of `rotate_changelog`'s logic (frontmatter
+   parsing, `keep_recent` split, archive-content accumulation, `yaml_guard` validation,
+   `write_atomic` for both files) is REUSED VERBATIM, unmodified; existing cycle-scoped callers
+   are unaffected (they continue to use the existing `resolve_archive_path(path, cycle_name)`
+   helper). The gate NEVER calls `prepend_changelog_item` itself. Sequence when rotation is needed:
    1. Agent issues its `Edit`/`Write`/`MultiEdit` call against `BC-INDEX.md`'s frontmatter,
       already containing its own prepend of the new `changelog:` item (standard ADR-049 §Decision 2
       discipline, unchanged).
    2. The gate's item-count trigger evaluates `current_item_count + 1 > N` against the file's
       CURRENT (pre-write) state. If false: `Continue` — no rotation; the agent's own prepend lands
       normally, unmodified (EC-002, unchanged from v1.0).
-   3. If true: the gate invokes `rotate_changelog` to trim the live sequence to N-1 items and
-      publish the sealed shard, THEN returns `HookResult::Block` with an explicit retry
+   3. If true: the gate invokes `rotate_changelog` (via the generalized, explicit-`archive_path`
+      call surface) to trim the live sequence to N-1 items and append the overflow tail to the
+      SINGLE evergreen archive file, THEN returns `HookResult::Block` with an explicit retry
       instruction: "BC-INDEX.md's `changelog:` sequence was rotated to make room (oldest item(s)
-      moved to `BC-INDEX-changelog-shards/BC-INDEX-changelog.<seq:04>.md`); the frontmatter now has
-      N-1 items. Retry your write: if you used `Edit`, reissue as a fresh `Write` or a fresh `Edit`
-      re-read against the current (post-rotation) file, since your original
-      `old_string`/`new_string` pair may no longer match; if you used `Write`, recompute your
-      `content` payload against the current (post-rotation) file before retrying — do not resubmit
-      your original payload unchanged, since it reflects pre-rotation state." This is a
+      appended to `.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`); the
+      frontmatter now has N-1 items. Retry your write: if you used `Edit`, reissue as a fresh
+      `Write` or a fresh `Edit` re-read against the current (post-rotation) file, since your
+      original `old_string`/`new_string` pair may no longer match; if you used `Write`, recompute
+      your `content` payload against the current (post-rotation) file before retrying — do not
+      resubmit your original payload unchanged, since it reflects pre-rotation state." This is a
       shape-appropriate specialization of BC-1.18.006 Postcondition 2's retry-wording contract, not
       a divergent one.
    4. Agent retries, reading/recomputing against the now-rotated file; its retried prepend lands via
@@ -139,11 +156,24 @@ write, no exception carved out for B1.
    ADR-051's Context section identifies ("that tool is operator-invoked, not size-triggered or
    dispatcher-mediated").
 
-5. **Sealed changelog shards are enumerable and never lose history.** Every `rotate_changelog`
-   invocation appends to the `BC-INDEX-changelog-shards/` directory; no prior sealed changelog
-   shard is ever overwritten or deleted by a subsequent rotation. The full changelog history
-   remains reconstructable by reading all sealed shards in `seq` order followed by the current
-   frontmatter `changelog:` sequence.
+5. **CORRECTED (fix-burst pass-2, F-P2-001, HIGH) — the archived changelog history is a SINGLE,
+   evergreen, append-only file, never a set of per-`seq` sealed shards, and never loses history.**
+   Every `rotate_changelog` invocation APPENDS to the SAME single destination file,
+   `.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md` — no prior appended content
+   is ever overwritten, truncated, or deleted by a subsequent rotation (`rotate_changelog` reads
+   any pre-existing archive content at that path before appending, per its shipped
+   implementation). The full changelog history remains reconstructable by reading the archive
+   file (oldest-appended content first, in append order) followed by the current frontmatter
+   `changelog:` sequence. **Accepted trade-off, documented not hidden (ADR-051 §Decision 7):** this
+   archive file is itself append-only and unbounded across BC-INDEX's lifetime — the SAME shape
+   ADR-049's original manual `rotate_changelog` tool already accepted as sufficient. This is sound
+   here because (a) the archive is small per-append (individual `changelog:` items, not whole BC
+   rows), (b) it is read by NEITHER this BC's own item-count trigger (which inspects only the LIVE
+   frontmatter sequence) NOR any Cohort B validator (`regression-gate`/`convergence-tracker` do not
+   read `BC-INDEX.md` at all, per the F2 architecture-delta doc §5 migration-impact map), so it
+   sits entirely outside Layer 2's own bounded-artifact concern; and (c) if it later becomes large
+   enough to be a new forensic contributor in its own right, that is a follow-up
+   Layer-2-on-Layer-2 story, not a defect of this design.
 
 6. **CORRECTED (fix-burst, F-S2502-F2-001, BLOCKER) — the block-and-retry observable outcome
    (BC-1.18.006 Postcondition 2) applies IDENTICALLY to this artifact shape; there is NO
@@ -162,16 +192,23 @@ write, no exception carved out for B1.
 
 ## Invariants
 
-1. **CORRECTED (fix-burst, F-S2502-F2-001, BLOCKER) — the gate's rotation step calls
-   `rotate_changelog` ONLY; `prepend_changelog_item` is NEVER invoked by the gate — only by the
-   agent's own write (original or retried).** No duplicate changelog-rotation logic exists in
-   `shard_manager.rs`; `rotate_changelog` is imported from `crates/last-amended-migrate` as a
-   library call. Post-fix, `prepend_changelog_item` appears in NEITHER `shard_manager.rs` NOR any
-   other dispatcher-native code path this BC introduces — it remains exclusively a function the
-   AGENT's own tool-call composition logic follows (per ADR-049 §Decision 2), never a function the
-   gate calls on the agent's behalf. **This supersedes the v1.0 invariant text ("`rotate_changelog`
-   and `prepend_changelog_item` are called, never reimplemented"), which incorrectly implied the
-   gate itself calls both functions.**
+1. **CORRECTED (fix-burst pass-1, F-S2502-F2-001, BLOCKER; refined fix-burst pass-2, F-P2-001,
+   HIGH) — the gate's rotation step calls `rotate_changelog` ONLY; `prepend_changelog_item` is
+   NEVER invoked by the gate — only by the agent's own write (original or retried).** No duplicate
+   changelog-rotation, trim, validation, or write logic exists in `shard_manager.rs`;
+   `rotate_changelog` is imported from `crates/last-amended-migrate` as a library call. Post-fix,
+   `prepend_changelog_item` appears in NEITHER `shard_manager.rs` NOR any other dispatcher-native
+   code path this BC introduces — it remains exclusively a function the AGENT's own tool-call
+   composition logic follows (per ADR-049 §Decision 2), never a function the gate calls on the
+   agent's behalf. **Refined (F-P2-001): "no reimplementation" is NOT an unqualified claim — it
+   means no new ROTATION/TRIM/VALIDATE/WRITE logic is introduced. It does NOT mean zero new code:
+   this BC's gate reaches `rotate_changelog` via a small, NAMED, bounded extension to the
+   primitive's path-resolution surface (an explicit `archive_path` parameter, in place of deriving
+   one from `cycle_name` — see Postcondition 2), because `BC-INDEX.md` has no natural `cycle_name`
+   value. This bounded, additive extension is fully consistent with the invariant's intent (no
+   duplicated business logic) and does not reintroduce any reimplementation risk.** This supersedes
+   the v1.0 invariant text ("`rotate_changelog` and `prepend_changelog_item` are called, never
+   reimplemented"), which incorrectly implied the gate itself calls both functions.
 
 2. **Existing `changelog:` items are never mutated in place, only relocated.** Rotation moves the
    oldest N+1th-and-beyond items out of the live frontmatter into a sealed shard file; it never
@@ -205,11 +242,11 @@ write, no exception carved out for B1.
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `changelog:` at N=50 items (config), agent's `Edit` call already contains its own new-item prepend | Item #50 (oldest) rotated into `BC-INDEX-changelog-shards/BC-INDEX-changelog.0001.md`; live sequence trimmed to 49 items; gate returns `Block{reason: "...rotated to make room... Retry your write..."}`; agent's retry lands the new item, sequence returns to 50 total | happy-path |
+| **CORRECTED (fix-burst pass-2, F-P2-001).** `changelog:` at N=50 items (config), agent's `Edit` call already contains its own new-item prepend | Item #50 (oldest) appended to the SINGLE evergreen archive `.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`; live sequence trimmed to 49 items; gate returns `Block{reason: "...rotated to make room (oldest item(s) appended to BC-INDEX-changelog-archive.md)... Retry your write..."}`; agent's retry lands the new item, sequence returns to 50 total | happy-path |
 | `changelog:` at 10 items, N=50, agent's `Write` call already contains its own new-item prepend | No rotation; `Continue`; the agent's original call's new item is simply prepended (11 items total) — single actor, no retry needed | happy-path |
 | `rotate_changelog` fails mid-operation (simulated disk-full) | `HookResult::Error`; frontmatter `changelog:` unchanged from its pre-attempt state | error |
 | Agent retries a blocked `Write` WITHOUT recomputing its payload against the post-rotation file (resubmits stale pre-rotation content) | The stale `Write` either fails at the tool layer (content mismatch with a validator expecting post-rotation shape) or, if it lands, re-introduces the just-rotated tail item — this is a caller-compliance failure, not a gate defect; the gate's own retry-instruction text (Postcondition 2 step 3) explicitly warns against this | error |
-| Reading full changelog history: sealed shard `BC-INDEX-changelog.0001.md` + current frontmatter `changelog:` sequence | Concatenation (sealed shards in `seq` order, oldest-to-newest, followed by current sequence, newest-first per existing convention) reproduces full history with no gaps or duplicates | edge-case |
+| **CORRECTED (fix-burst pass-2, F-P2-001).** Reading full changelog history: evergreen archive `BC-INDEX-changelog-archive.md` + current frontmatter `changelog:` sequence | Concatenation (archive file content in append order, oldest-to-newest, followed by current frontmatter sequence, newest-first per existing convention) reproduces full history with no gaps or duplicates — NEVER a multi-shard-directory glob (the withdrawn v1.1 model), since the archive is a single file | edge-case |
 | Static scan of `shard_manager.rs`'s B1 handler for `prepend_changelog_item` call sites | ZERO call sites found (Invariant 1) — the function is imported/used ONLY by agent-side tooling, never by the gate | happy-path |
 
 ## Verification Properties
@@ -218,7 +255,7 @@ write, no exception carved out for B1.
 |--------|----------|-------------|
 | VP-126 | No-reimplementation-and-no-gate-side-prepend invariant — `shard_manager.rs`'s B1 handler contains no changelog-rotation logic other than a call into `rotate_changelog`, and contains ZERO call sites for `prepend_changelog_item` (fix-burst-strengthened per F-S2502-F2-001) | code-review / static-analysis check (grep for duplicated rotation logic AND for any `prepend_changelog_item` call site inside the B1 handler) |
 | VP-125 | Bounded-live-sequence invariant — after any sequence of prepends, the live frontmatter `changelog:` sequence never exceeds N items | proptest (arbitrary prepend sequences; property: `len(changelog) <= N` after every operation) |
-| VP-125 | No-history-loss invariant — every `changelog:` item ever prepended remains recoverable (live or in a sealed shard) | proptest (arbitrary prepend sequences; property: total recoverable item count is monotonically non-decreasing and equals the total prepend count) |
+| VP-125 | No-history-loss invariant — every `changelog:` item ever prepended remains recoverable (live in the frontmatter, or appended to the single evergreen archive file) | proptest (arbitrary prepend sequences; property: total recoverable item count is monotonically non-decreasing and equals the total prepend count) |
 | VP-131 | Fail-loud rotate_changelog-failure invariant — a `rotate_changelog` invocation failure returns `HookResult::Error` (`E-SHD-004`), never `Block`/`Continue`, and leaves the live `changelog:` sequence byte-identical to its pre-rotation state (EC-003, Postcondition 6) | unit test (injected `rotate_changelog`-failure FS — disk-full/permission; assert `Error` variant naming artifact + failing op, and pre-rotation state preserved) |
 
 **Fix-burst note (F-S2502-F2-001):** formal-verifier should review VP-125/VP-126 against this BC's
@@ -236,12 +273,13 @@ symmetric with VP-120/VP-122/VP-124's mechanism-A fail-loud legs (F-S2502-F2-004
 - BC-1.18.005 — owns the item-count trigger condition (Postcondition 8) this BC's rotation responds to (depends on)
 - BC-1.18.010 — sibling mechanism B2 (per-subsystem body sharding) targets BC-INDEX's OTHER size driver; both mechanisms are triggered by the same gate (composes with)
 - BC-1.18.011 — the B2 migration BC's governed one-time-migration pattern is architecturally parallel to (but independent of) this BC's ongoing per-write rotation (related to)
+- BC-1.18.012 — the governed one-time B1 changelog BACKFILL migration for BC-INDEX's cold-start (~1,997-item) `changelog:` sequence; this BC specifies the ongoing STEADY-STATE per-write rotation contract that BC-1.18.012's migration establishes the precondition for (depended on by)
 - BC-10.13.001 — the sanctioned migration/rotation tool whose `rotate_changelog` primitive this BC automates the invocation of (depends on)
 
 ## Architecture Anchors
 
-- `crates/factory-dispatcher/src/shard_manager.rs` — the "frontmatter changelog array" artifact-shape handler, calling ONLY `rotate_changelog` from `last-amended-migrate` (never `prepend_changelog_item`)
-- `crates/last-amended-migrate/src/rotate.rs` — `rotate_changelog` / `rewrite_source_after_rotation` (reused, not reimplemented; verified pure-trim, no prepend call)
+- `crates/factory-dispatcher/src/shard_manager.rs` — the "frontmatter changelog array" artifact-shape handler, calling ONLY `rotate_changelog` from `last-amended-migrate` (never `prepend_changelog_item`), via the generalized `archive_path`-parameterized call surface (F-P2-001)
+- `crates/last-amended-migrate/src/rotate.rs` — `rotate_changelog` / `rewrite_source_after_rotation` / `resolve_archive_path` (reused, not reimplemented; verified pure-trim, no prepend call). CORRECTED (F-P2-001): the SHIPPED `resolve_archive_path(path, cycle_name)` derives exactly ONE fixed, cycle-scoped destination and has NO `<seq:04>`-numbering capability — this BC's gate requires a small, additive, explicit-`archive_path`-parameter extension to this function (or an equivalent `resolve_archive_path_at`) not yet present in the shipped code, to be implemented at F4 (see SDK Grounding Evidence below for the current-state grep).
 - `crates/last-amended-migrate/src/changelog.rs` — `prepend_changelog_item` (agent-side tooling only, per the corrected contract — never called by the gate)
 - `crates/hook-sdk/src/result.rs` — `HookResult` enum, whose `Block`/`Continue`/`Error` three-variant contract is what makes the single-actor correction structurally necessary (same SDK fact BC-1.18.006 Precondition 3 cites)
 
@@ -259,6 +297,21 @@ pub fn rotate_changelog
 $ grep -oE "^fn rewrite_source_after_rotation" crates/last-amended-migrate/src/rotate.rs
 fn rewrite_source_after_rotation
 ```
+
+```
+$ grep -oE "^fn resolve_archive_path\(path: &Path, cycle_name: &str\)" crates/last-amended-migrate/src/rotate.rs
+fn resolve_archive_path(path: &Path, cycle_name: &str)
+```
+
+**CORRECTED (fix-burst pass-2, F-P2-001) — current-state grounding, not yet the target state.**
+This confirms the SHIPPED `resolve_archive_path` signature derives its destination EXCLUSIVELY
+from `cycle_name` (no `archive_path` parameter exists yet, no `<seq:04>` numbering capability
+anywhere in this file) — grounding Postcondition 2/Invariant 1's finding that the withdrawn v1.1
+per-`seq` sealed-shard-directory citation was internally impossible against this function as
+shipped. The generalized, explicit-`archive_path`-parameterized call surface this BC's gate
+requires (Architecture Anchors above) is a TO-BE-IMPLEMENTED, additive extension at F4 — this grep
+intentionally shows its ABSENCE today, not its presence; implementer re-runs this grep at F4 and
+replaces this block with confirmation of the new parameter once added.
 
 ```
 $ grep -oE "^pub fn prepend_changelog_item|^pub fn ensure_changelog_field" crates/last-amended-migrate/src/changelog.rs
@@ -295,7 +348,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 ## VP Anchors
 
-- VP-125, VP-126, VP-131 — allocated by formal-verifier (VP-125/126: S-25.02 F2 verification-property extension burst, VP-INDEX v3.02; VP-131: S-25.02 F2 verification-property fix-burst, VP-INDEX v3.03, F-S2502-F2-004). VP-125 (proptest; bounded live changelog: sequence + no-history-loss), VP-126 (static-check; rotate_changelog reuse — no reimplemented rotation logic, and post-fix-burst, no gate-side `prepend_changelog_item` call site), VP-131 (unit-test; EC-003/Postcondition 6 fail-loud rotate_changelog failure, `E-SHD-004` — symmetric with VP-120/VP-122/VP-124's mechanism-A fail-loud legs). VP-125/126 bodies flagged for formal-verifier re-review against this BC's v1.1 corrected contract (fix-burst note above) — not yet actioned in this burst.
+- VP-125, VP-126, VP-131 — allocated by formal-verifier (VP-125/126: S-25.02 F2 verification-property extension burst, VP-INDEX v3.02; VP-131: S-25.02 F2 verification-property fix-burst, VP-INDEX v3.03, F-S2502-F2-004). VP-125 (proptest; bounded live changelog: sequence + no-history-loss against the SINGLE evergreen archive model), VP-126 (static-check; rotate_changelog reuse — no reimplemented rotation logic, and post-fix-burst, no gate-side `prepend_changelog_item` call site), VP-131 (unit-test; EC-003/Postcondition 6 fail-loud rotate_changelog failure, `E-SHD-004` — symmetric with VP-120/VP-122/VP-124's mechanism-A fail-loud legs). VP-125/126/131 bodies flagged for formal-verifier re-review against this BC's v1.2 corrected archive-path contract (F-P2-001) in addition to the v1.1 single-actor contract — neither re-review has been actioned in this burst (VP body edits are formal-verifier's domain).
 
 ## Traceability
 
@@ -305,7 +358,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 | Capability Anchor Justification | CAP-043 ("Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle Append-Logs and BC-INDEX Structured-Catalog Sharding") per capabilities.md §CAP-043 — this BC specifies mechanism B1 exactly as CAP-043 describes it: "B1 reuses the already-shipped `rotate_changelog` primitive (CAP-042) to automatically rotate the frontmatter `changelog:` array (BC-INDEX's dominant size driver...) once it overflows a configured item count." |
 | L2 Domain Invariants | none (dispatcher runtime architectural invariant, not an L2 domain-spec DI-NNN) |
 | Architecture Module | SS-01 (Hook Dispatcher Core — `shard_manager.rs` B1 artifact-shape handler) |
-| ADR | ADR-051 §Decision 7 (BC-INDEX two-level structured-catalog sharding, B1 sub-mechanism, CORRECTED single-actor block-and-retry subsection); ADR-049 §Decision 6 (`rotate_changelog` primitive, reused); §Decision 2 (`last_amended`/`changelog:` prepend discipline, respected unmodified) |
+| ADR | ADR-051 §Decision 7 (BC-INDEX two-level structured-catalog sharding, B1 sub-mechanism, CORRECTED single-actor block-and-retry subsection; v1.2 single-evergreen-archive-file + bounded path-resolution-extension correction); ADR-049 §Decision 6 (`rotate_changelog` primitive, reused); §Decision 2 (`last_amended`/`changelog:` prepend discipline, respected unmodified) |
 | Stories | S-25.02 |
 | Cycle | v1.0-brownfield-backfill (F2 — product-owner spec-evolution burst) |
 | Feature | E-25 — Validation Integrity and Large-Artifact Resilience |
@@ -314,5 +367,6 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.2 | 2026-09-05 | product-owner | Fix-burst amendment (adversary pass-2 finding F-P2-001, HIGH, ADR-051 v1.2 Decision 7 CORRECTED): REWROTE Postcondition 2/5/Invariant 1's archive-path citations from the internally-impossible per-`seq` sealed-shard-DIRECTORY layout (`BC-INDEX-changelog-shards/BC-INDEX-changelog.<seq:04>.md` — a layout the shipped `rotate_changelog`/`resolve_archive_path` cannot produce under any call pattern) to the single, evergreen, append-only archive file `.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`, reached via a small, NAMED, bounded extension to `rotate_changelog`'s path-resolution surface (an explicit `archive_path` parameter, not yet implemented — grounded via a current-state SDK grep showing the shipped `resolve_archive_path(path, cycle_name)` signature's absence of this parameter). Refined Invariant 1's "no reimplementation" framing to acknowledge this bounded, additive extension without weakening the no-duplicated-logic guarantee. Updated the retry-instruction text, Canonical Test Vectors, Related BCs (added BC-1.18.012), Architecture Anchors, SDK Grounding Evidence, and VP Anchors accordingly. No change to the single-actor block-and-retry contract itself (Postconditions 1/3/4/6, Invariants 2-4 unchanged from v1.1). |
 | 1.1 | 2026-09-05 | product-owner | **BLOCKER fix-burst amendment (F-S2502-F2-001, ADR-051 v1.1 Decision 7 "CORRECTED" subsection).** Postconditions 2 and 6 REWRITTEN and Invariant 1 REWRITTEN (with a new Invariant 4) to withdraw the v1.0 double-actor "gate rotates AND prepends, then Continues" design, which was unsound: (a) double-actor prepend hazard (gate and agent both perform the identical insert action); (b) stale-payload clobber for `Write`/`MultiEdit` (a pre-rotation full-file payload landing over a just-rotated file silently re-introduces the archived tail, causing infinite rotation churn) — grounded in `rotate_changelog`'s own verified pure-trim signature (no `prepend_changelog_item` call, no new-item parameter). CORRECTED contract: the gate performs ONLY the rotate/trim step, THEN returns `HookResult::Block` with a retry instruction; the new item's prepend is EXCLUSIVELY the responsibility of whichever `Edit`/`Write`/`MultiEdit` call ultimately lands (original or retried) — a strict structural mirror of BC-1.18.006's block-and-retry contract. Added EC-006 (static-detection of a reintroduced gate-side prepend as a defect) and updated Canonical Test Vectors/VP table notes accordingly. H1 title amended to "... — Single-Actor Block-and-Retry" to make the corrected contract load-bearing in the title per BC H1 Title Authority. Added `## SDK Grounding Evidence` section (F-S2502-F2-007). VP-125/126 flagged for formal-verifier re-review (not actioned this burst — VP bodies are formal-verifier's domain). |
 | 1.0 | 2026-09-05 | product-owner | Initial creation (NEW BC, not in the original F1 enumeration — mechanism B1, added per D-1166 human widest-scope decision covering BC-INDEX.md). Automatic size-triggered invocation of the already-shipped `rotate_changelog`/`prepend_changelog_item` primitives via the same native gate BC-1.18.006 defines, with a "Continue after rotation" divergence from mechanism A's block-and-retry (justified: rotation always succeeds in making room for a bounded-size changelog item prepend). CAP-043 capability anchor. ADR-051 §D7 + ADR-049 §D2/§D6 citations. **[WITHDRAWN by v1.1 — see above; this row is retained per POLICY 1 append-only history, not as a currently-valid contract description.]** |

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-09-05T00:00:00Z
@@ -14,7 +14,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/S-25.02-f2-architecture-delta.md
   - .factory/specs/domain-spec/capabilities.md
   - .factory/specs/verification-properties/VP-INDEX.md
-input-hash: "48d5fd4"
+input-hash: "b4d181e"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -75,11 +75,23 @@ F-S2502-F2-005).
    the `"flat"` artifact shape only — Postcondition 8 specifies the DIFFERENT, more-than-`stat()`
    read cost for the `"frontmatter-changelog-array"` shape.
 
-3. **Projected size, not current size, is compared against the cap.** `projected_size =
-   current_shard_bytes + payload_bytes`, where `payload_bytes` is read directly from the pending
-   tool call's own parameters (`content` length for `Write`; the net length delta —
-   `len(new_string) - len(old_string)` — for `Edit`/`MultiEdit`; for `MultiEdit`, the sum of each
-   individual edit's net delta) — never a re-read of the file after a hypothetical apply. If
+3. **CORRECTED (fix-burst pass-2, F-P2-002, HIGH) — projected size is computed PER-TOOL-SEMANTICS,
+   never by a single `current_shard_bytes + payload_bytes` formula applied uniformly to every
+   tool.** The WITHDRAWN formula (`current_shard_bytes + payload_bytes` for every tool, including
+   `Write`) is UNSOUND for `Write`: a `Write` call REPLACES a file's entire content — `content`'s
+   own length already IS the file's post-apply size — so adding `current_shard_bytes` on top
+   double-counts the shard's own pre-existing bytes on top of a payload that already represents the
+   complete post-apply file, over-triggering rotation on ordinary same-size-or-shrinking full-file
+   `Write` calls. The corrected, tool-discriminated formula:
+   - **`Write`:** `projected_size = len(content)` alone. `current_shard_bytes` is NOT added — the
+     `content` parameter is the file's complete post-apply state, not a delta.
+   - **`Edit`/`MultiEdit`:** `projected_size = current_shard_bytes + net_delta_bytes`, where
+     `net_delta_bytes` is the net length delta — `len(new_string) - len(old_string)` — for `Edit`,
+     or the SUM of each individual edit's net delta for `MultiEdit`. This leg is UNCHANGED from the
+     original formula — `Edit`/`MultiEdit` mutate existing content in place, so the delta-against-
+     current-size model was always correct for these two tools; only the `Write` leg required
+     correction.
+   Never a re-read of the file after a hypothetical apply, for either tool class. If
    `projected_size <= shard_cap_bytes`, the check returns `Continue` (no roll). If
    `projected_size > shard_cap_bytes`, the check triggers the roll-before-write sequence
    specified in BC-1.18.006 (this BC does not itself perform the roll or the block — it is the
@@ -147,12 +159,27 @@ F-S2502-F2-005).
      trigger — the gate dispatches to the shape-appropriate check based on this field alone; both
      shapes share the SAME config-match/no-match entry point (Postcondition 1's zero-cost bypass
      applies identically to both).
-   - **Read cost.** For the `"frontmatter-changelog-array"` shape, the trigger check parses the
-     target file's frontmatter far enough to count the existing `changelog:` sequence's items — a
-     BOUNDED read (the live sequence is itself capped at N-1/N items by this same mechanism after
-     every prior rotation, per BC-1.18.009's corrected contract, so this is never an
-     unbounded-growth read). This is MORE than a `stat()` call (it requires reading and lightly
-     parsing frontmatter content) but remains native, fuel-budget-free dispatcher code, not a WASM
+   - **Read cost — CORRECTED cold/steady-state split (fix-burst pass-2, F-P2-007, MEDIUM).** The
+     read-cost claim below is TRUE ONLY IN STEADY STATE (after at least one rotation has occurred)
+     and is FALSE at cold start; the two states MUST be characterized separately, never collapsed
+     into a single unqualified "bounded" claim:
+     - **Cold state (pre-BC-1.18.012 migration).** Direct measurement (2026-09-05) shows
+       `BC-INDEX.md`'s `changelog:` sequence, which has never been rotated, holds approximately
+       1,997 items across 177,305 bytes of frontmatter. The FIRST trigger evaluation against this
+       state must parse and count all ~1,997 items — a finite, single-file read, but NOT bounded
+       relative to N in any meaningful sense (it is ~40x the illustrative `N≈50` retention target).
+       This is a mischaracterization to correct, not a fuel-budget hazard (the check is native code
+       with no fuel budget), but it is genuinely NOT "bounded" in the sense Postcondition 8's
+       steady-state claim below uses that word. BC-1.18.012 (the governed one-time B1 changelog
+       backfill migration) exists specifically to eliminate this cold state before the ongoing
+       per-write gate (BC-1.18.009) is treated as steady-state-bounded.
+     - **Steady state (post-BC-1.18.012, and after every subsequent rotation).** The trigger check
+       parses the target file's frontmatter far enough to count the existing `changelog:`
+       sequence's items — a GENUINELY BOUNDED read: the live sequence is capped at `<= N` items by
+       this same mechanism after BC-1.18.012's one-time migration and every prior rotation, per
+       BC-1.18.009's corrected contract, so this is never an unbounded-growth read once steady state
+       is established. This is MORE than a `stat()` call (it requires reading and lightly
+       parsing frontmatter content) but remains native, fuel-budget-free dispatcher code, not a WASM
      plugin invocation — the "why native, not WASM" rationale (Postcondition 2) applies identically
      to this shape.
    - **Trigger condition.** `current_item_count + 1 > N` (a config value, per BC-1.18.009
@@ -213,12 +240,14 @@ F-S2502-F2-005).
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `Write` to `decision-log.md`, current shard 40,000 bytes, payload 5,000 bytes, `shard_cap_bytes=49,152` | `projected_size=45,000 <= 49,152` → `Continue` | happy-path |
-| `Write` to `decision-log.md`, current shard 45,000 bytes, payload 5,000 bytes, `shard_cap_bytes=49,152` | `projected_size=50,000 > 49,152` → roll triggers (BC-1.18.006) | edge-case |
+| **CORRECTED (fix-burst pass-2, F-P2-002).** `Write` to `decision-log.md`, current shard 40,000 bytes (irrelevant to the `Write` formula), `content` length 5,000 bytes, `shard_cap_bytes=49,152` | `projected_size = len(content) = 5,000 <= 49,152` → `Continue` — `current_shard_bytes` is NOT added for `Write` | happy-path |
+| **CORRECTED (fix-burst pass-2, F-P2-002).** `Write` to `decision-log.md`, current shard 45,000 bytes (irrelevant), `content` length 50,000 bytes, `shard_cap_bytes=49,152` | `projected_size = len(content) = 50,000 > 49,152` → roll triggers (BC-1.18.006) | edge-case |
+| **NEW regression vector (fix-burst pass-2, F-P2-002) — demonstrates the WITHDRAWN formula's over-trigger bug.** `Write` to `decision-log.md`, current shard 40,000 bytes, `content` length 40,000 bytes (a same-size full-file rewrite), `shard_cap_bytes=49,152` | CORRECTED: `projected_size = len(content) = 40,000 <= 49,152` → `Continue`. The WITHDRAWN formula would have wrongly computed `40,000 + 40,000 = 80,000 > 49,152` and over-triggered a roll on an ordinary same-size `Write` | edge-case |
+| `Edit` to `decision-log.md`, current shard 45,000 bytes, `old_string`/`new_string` netting +5,000 bytes, `shard_cap_bytes=49,152` | `Edit`/`MultiEdit` formula UNCHANGED: `projected_size = current_shard_bytes + net_delta_bytes = 45,000 + 5,000 = 50,000 > 49,152` → roll triggers (BC-1.18.006) | edge-case |
 | `Edit` to `some/unrelated/file.md` (no `[[shard]]` match) | `Continue`, zero `stat()` calls | happy-path |
 | `Write` to `burst-log.md`, `cap_for(validate-burst-log)=40,000`, `cap_for(regression-gate)=49,152`, `cap_for(convergence-tracker)=52,000` | Effective `shard_cap_bytes = MIN(40000, 49152, 52000) = 40,000` (Cross-Validator Minimum Rule) | edge-case |
 | `Write` to `decision-log.md` (not read by `validate-burst-log`), `cap_for(regression-gate)=49,152`, `cap_for(convergence-tracker)=52,000` | Effective `shard_cap_bytes = MIN(49152, 52000) = 49,152` — `validate-burst-log`'s cap is NOT applied | edge-case |
-| `MultiEdit` on `lessons.md` with edits netting +2,000 / -500 / +100 bytes, current shard 48,000, `shard_cap_bytes=49,152` | `payload_bytes = 2000-500+100 = 1,600`; `projected_size=49,600 > 49,152` → roll triggers | edge-case |
+| `MultiEdit` on `lessons.md` with edits netting +2,000 / -500 / +100 bytes, current shard 48,000, `shard_cap_bytes=49,152` | `net_delta_bytes = 2000-500+100 = 1,600`; `projected_size = current_shard_bytes + net_delta_bytes = 49,600 > 49,152` → roll triggers (`Edit`/`MultiEdit` formula, unchanged) | edge-case |
 | `projected_size` == `shard_cap_bytes` exactly (boundary) | `Continue` — inclusive boundary, no roll | error |
 | `Edit` to `BC-INDEX.md`'s frontmatter, `shape="frontmatter-changelog-array"`, `N=50`, live `changelog:` at 50 items | `current_item_count + 1 = 51 > 50` → item-count trigger fires (Postcondition 8); BC-1.18.009's rotation-then-retry outcome applies | edge-case |
 | `Edit` to `BC-INDEX.md`'s frontmatter, `shape="frontmatter-changelog-array"`, `N=50`, live `changelog:` at 10 items | `current_item_count + 1 = 11 <= 50` → `Continue`, no rotation | happy-path |
@@ -243,6 +272,7 @@ fix-burst. No property content changed, only the Proof Method column.
 - BC-1.18.007 — retention/compaction policy for shards this BC's cap produces (composes with)
 - BC-1.18.008 — one-time backfill-split applies this BC's SAME formula retroactively (depends on)
 - BC-1.18.009 — owns the observable rotate/block-and-retry outcome once this BC's item-count trigger (Postcondition 8) fires (depended on by)
+- BC-1.18.012 — the governed one-time B1 changelog backfill migration whose successful completion is what MAKES Postcondition 8's steady-state "bounded" characterization true (the cold-state characterization above holds only before this BC's migration runs) (depended on by)
 - BC-7.08.001 — Cohort B fail-closed flip is gated on this BC's postconditions holding at F4-lock (depended on by)
 - BC-1.18.001 — sibling Layer-1 fail-closed INDETERMINATE contract this BC's cap prevents from firing (related to)
 
@@ -341,5 +371,6 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.2 | 2026-09-05 | product-owner | Fix-burst amendment (adversary pass-2 findings F-P2-002 HIGH + F-P2-007 MEDIUM, ADR-051 v1.2 Decisions 1/13): REWROTE Postcondition 3's `projected_size` formula from the WITHDRAWN uniform `current_shard_bytes + payload_bytes` (unsound for `Write` — double-counted a `Write`'s own already-complete content on top of the current shard's size) to the CORRECTED tool-discriminated formula: `Write` → `projected_size = len(content)` alone; `Edit`/`MultiEdit` → `projected_size = current_shard_bytes + net_delta_bytes` (unchanged — this leg was never wrong). Updated Canonical Test Vectors: corrected the two `Write` vectors, added a regression vector demonstrating the withdrawn formula's over-trigger bug on a same-size full-file `Write`, and added an explicit `Edit` vector to preserve coverage of the unchanged current+delta formula. Corrected Postcondition 8's read-cost claim into an explicit COLD-STATE (pre-BC-1.18.012 migration: ~1,997-item, non-N-relative-bounded, one-time read) vs. STEADY-STATE (post-migration: genuinely `<= N`-item-bounded) split — the prior text's unqualified "bounded" claim was true only in steady state. Added BC-1.18.012 to Related BCs (the new governed one-time B1 changelog backfill migration BC that makes the steady-state characterization true). |
 | 1.1 | 2026-09-05 | product-owner | Fix-burst amendment (adversary pass-1 findings F-S2502-F2-005 + F-S2502-F2-003 + F-S2502-F2-007, ADR-051 v1.1 Decision 1 amendment): NEW Postcondition 8 + Invariant 5 + EC-008/EC-009 adding the item-count-denominated trigger for the `"frontmatter-changelog-array"` artifact shape (mechanism B1, BC-INDEX's `changelog:` array) — this BC now owns BOTH trigger shapes the native gate dispatches on, distinguished by a `[[shard]]` config `shape` field; does not replace or weaken the existing byte-size postconditions. VP table reconciled to VP-INDEX v3.02 authoritative methods: VP-116 unit-test→kani-proof, VP-117 byte-denomination row proptest→unit-test (no property content change). Added `## SDK Grounding Evidence` section with literal stable-anchor grep output for `HookResult`, `block_if_marker_check`, Cohort B validator registry entries, and CAP-041/042/043 existence. |
 | 1.0 | 2026-09-05 | product-owner | Initial creation. F2 spec-evolution burst, S-25.02 activation. Byte-size-denominated shard-cap formula, native `stat()`-only deterministic size-trigger, Cross-Validator Minimum Rule, provisional-constants table (explicitly marked PROVISIONAL-until-F4-harness-calibration per ADR-051 Decision 2). CAP-043 capability anchor. ADR-051 §D1/§D2 + ADR-047 §D8b + ADR-042 citations. |
