@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.9"
+version: "1.10"
 status: draft
 producer: product-owner
 timestamp: 2026-09-06T00:00:00Z
@@ -132,6 +132,37 @@ F-S2502-F2-005).
    would be needlessly conservative for artifacts only two of the three Cohort B validators read
    (ADR-051 Decision 2 step 5).
 
+   **Timing clarified (NEW, S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4 finding
+   F-C1-P4-003, LOW pending-intent, product-owner adjudication, v1.10) — this Rule is a
+   CONFIG-AUTHORING / F4-CALIBRATION-HARNESS-TIME computation, not a live per-write runtime
+   obligation.** ADR-051 §Decision 2 places the Cross-Validator Minimum Rule inside the F4
+   calibration harness's own design (harness step 5: "Per-artifact cap = MIN over every Cohort B
+   plugin that reads that artifact") — the harness computes each per-plugin cap, takes the MIN
+   across an artifact's Cohort B readers, and the RESULT is what gets DECLARED as that entry's
+   single `shard_cap_bytes` value in the `[[shard]]` config. `ShardEntry` carries exactly ONE
+   `shard_cap_bytes` field (Postcondition 4) — there is no per-validator breakdown for a live gate
+   to combine at write time. The live per-write gate (Postcondition 3) therefore consumes
+   `entry.shard_cap_bytes` DIRECTLY, as an already-MIN'd value; it does NOT re-derive the MIN
+   across Cohort B readers on each write. `effective_shard_cap_bytes(per_validator_caps: &[u64])
+   -> u64` (`crates/factory-dispatcher/src/shard_manager.rs`) is this Rule's
+   CONFIG-AUTHORING/HARNESS-TIME helper — the F4 harness or an operator calls it once, offline,
+   when computing what value to declare for a given artifact's `shard_cap_bytes`; it is not a
+   function the live gate invokes per write, and the absence of a `shard_cap_gate_check` call site
+   for it is CORRECT, not a wiring gap. This clarification is wording-only: the numeric examples
+   already in this Postcondition's own prose and in the Canonical Test Vectors table below
+   (`MIN(40000, 49152, 52000) = 40,000`, etc.) already describe exactly this authoring-time
+   computation; only the earlier ambiguity about WHEN the MIN is computed is resolved — no
+   Postcondition-3 wording, no Canonical Test Vector, and no code change follow from this
+   clarification. **Deferred, separate obligation (explicitly out of scope for this BC and for
+   cluster-1):** a RUNTIME re-derivation of the Cross-Validator Minimum — e.g. because a Cohort-B
+   reader-set for an artifact could change without a config republish — is a fundamentally
+   different capability than this Postcondition describes: it would require wiring a
+   Cohort-B-reader-set-to-artifact mapping into the live gate, which `ShardEntry`'s current
+   single-`shard_cap_bytes` schema does not carry and which this BC does not specify. If that need
+   ever materializes, it MUST be raised as a NEW postcondition (with `architect`/ADR-051
+   involvement, since it changes the config schema and the gate's runtime data dependencies), not
+   assumed to already be satisfied by `effective_shard_cap_bytes`'s existing authoring-time role.
+
 6. **Constants are PROVISIONAL until the F4 synthetic calibration harness runs; the formula shape
    is locked now, the numbers are not.** The current provisional values (ADR-051 Decision 2,
    grounded in ADR-042's measured `fuel = 2,585,970 + 53.18 × payload_bytes` linear model and
@@ -237,6 +268,37 @@ F-S2502-F2-005).
      sequence back at the trigger boundary after the very next prepend, causing a block+retry
      round-trip on essentially every subsequent write; `low_water_mark` amortizes rotation to once
      per `N - low_water_mark` writes (ADR-051 §Decision 14).
+   - **Load-time presence requirement for `N` (NEW, S-25.02 Phase F4 LOCAL adversary cluster-1
+     pass-4 finding F-C1-P4-002, MEDIUM, product-owner adjudication) — a
+     `"frontmatter-changelog-array"`-shaped entry that omits `N` MUST fail-loud at
+     `ShardRegistry::load()` time, not merely at gate/dispatch time.** `N` is REQUIRED for this
+     shape — without it, neither the trigger condition (`current_item_count + 1 > N`) nor the
+     `low_water_mark` fail-loud/advisory validation (`0 <= low_water_mark < N`) is even
+     well-defined. The sanctioned implementation currently checks `entry.n`'s presence only inside
+     the per-write dispatch path (`HookResult::Error` on `None`) — a genuine, load-bearing
+     fail-loud check, but at the WRONG time relative to this BC's own established uniform posture:
+     `shape` (EC-009), `low_water_mark`'s numeric range (EC-011), and `shard_cap_bytes` vs. its
+     formula ceiling (Postcondition 9/EC-013) all fail loud at LOAD time, so an operator learns of
+     a malformed `[[shard]]` entry before any write is ever attempted against the artifact, not on
+     the first write that happens to target it. Deferring the missing-`N` check to gate time is an
+     asymmetry with no principled justification, and — per CLAUDE.md's production-grade default —
+     a load-time-checkable malformation that is only caught at first-use is a defer-pattern smell.
+     `ShardRegistry::load()` MUST therefore validate, for every `"frontmatter-changelog-array"`-
+     shaped entry, that `entry.n` is `Some` — fail-loud `HookResult::Error` (a new
+     `ShardConfigError` variant, e.g. `MissingN { artifact_stem }`, mirroring `MissingShape`'s
+     convention) on `None`, evaluated BEFORE the entry's `low_water_mark` is examined.
+     **Restructuring consequence — EC-011 is never silently bypassed by a missing `N`:** the
+     existing `ShardRegistry::load()` logic validates `low_water_mark` only when BOTH `entry.n`
+     and `entry.low_water_mark` are `Some` (a destructure-and-short-circuit pattern) — this meant
+     an entry that omitted `N` AND declared an out-of-range `low_water_mark` passed load-time
+     validation entirely (neither condition was checked), with the error deferred to the first
+     gate-time write. Requiring `N`'s presence as an unconditional, load-time, shape-scoped check —
+     evaluated first, independent of whether `low_water_mark` is present — closes this gap
+     structurally: every `"frontmatter-changelog-array"` entry now either (a) fails loud on a
+     missing `N` at load time, or (b) has `N` present, in which case the existing `low_water_mark`
+     numeric-range validation (when `low_water_mark` is also present) runs exactly as before. No
+     entry can silently load with BOTH a missing `N` and an out-of-range `low_water_mark`
+     undetected. See EC-016.
    - **CORRECTED (fix-burst pass-4, F-P4-001, HIGH, ADR-051 v1.4 Decision 14 adjudication Option
      (b)) — a legal-but-poorly-amortizing `low_water_mark` value NEVER fail-louds; it loads
      normally and instead emits a non-fatal amortization advisory.** Any value satisfying
@@ -284,6 +346,39 @@ F-S2502-F2-005).
    any re-derivation of the F4 harness's calibration itself (Postcondition 6/7 continue to own
    HOW the constants are measured; this postcondition only owns verifying INTERNAL CONSISTENCY
    between a given entry's own declared `shard_cap_bytes` and its own declared four inputs).
+
+   **Formula-input validity precondition to the cap-vs-formula comparison — "divisor-door" closure
+   (NEW, S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4 finding F-C1-P4-001, MEDIUM/HIGH,
+   product-owner adjudication).** `compute_shard_cap_bytes` divides `practical_fuel_ceiling` by
+   `worst_case_fuel_per_byte`. `practical_fuel_ceiling` is `u64`-typed (Precondition 2), so TOML
+   deserialization already guarantees it is a finite, non-negative integer — no additional check
+   is needed for it. `worst_case_fuel_per_byte` is `f64`-typed and therefore NOT type-guaranteed
+   finite or positive — TOML's float grammar accepts `nan`, `inf`, `-inf`, `0.0`, and negative
+   literals. If `worst_case_fuel_per_byte = 0.0` (with `practical_fuel_ceiling > 0`), the division
+   yields `+inf`; `(+inf).floor() as u64` saturates to `u64::MAX` (Rust's saturating
+   float-to-integer cast), so `compute_shard_cap_bytes` returns a ceiling of effectively
+   `u64::MAX - MAX_SINGLE_RECORD_BYTES - SAFETY_MARGIN` — a value no realistic `shard_cap_bytes`
+   declaration will ever exceed. This DEFEATS the cap-vs-formula comparison immediately above: an
+   arbitrarily-large `shard_cap_bytes` passes the `shard_cap_bytes > computed_ceiling` check
+   silently, the entry loads, the roll never triggers at the resulting oversized cap, and the
+   exact fuel-exhaustion failure mode this Postcondition exists to prevent (see the rationale
+   paragraph above and BC-1.18.001 in Related BCs) is reintroduced through a divisor-door rather
+   than a directly-oversized `shard_cap_bytes`. `ShardRegistry::load()` MUST therefore validate,
+   for EVERY `[[shard]]` entry and BEFORE computing `compute_shard_cap_bytes(entry.cap_formula_
+   inputs())` for that entry, that `worst_case_fuel_per_byte.is_finite() && worst_case_fuel_per_byte
+   > 0.0`. If this validation fails, `load()` MUST return `HookResult::Error` (a new
+   `ShardConfigError` variant — e.g. `InvalidWorstCaseFuelPerByte { artifact_stem,
+   worst_case_fuel_per_byte }` — mirroring `MissingShape`/`InvalidLowWaterMark`/
+   `CapExceedsFormulaCeiling`'s existing per-field-diagnostic convention); it MUST NEVER silently
+   substitute a default rate and MUST NEVER silently skip the cap-vs-formula comparison for that
+   entry. **Scope — no analogous check needed for the other three inputs.**
+   `max_single_record_bytes` and `safety_margin` are likewise `u64`-typed (Precondition 2), so
+   TOML deserialization already excludes NaN/±infinite/negative values for them; and a degenerate
+   `0` value for any of `practical_fuel_ceiling`, `max_single_record_bytes`, or `safety_margin`
+   drives `compute_shard_cap_bytes`'s result toward its floor of `0` (via `saturating_sub`) — the
+   SAFE, maximally-conservative direction, never the exploitable-widening-toward-`u64::MAX`
+   direction this clause closes. Only `worst_case_fuel_per_byte`'s `f64` type creates that hazard.
+   See EC-015.
 
 ## Invariants
 
@@ -353,6 +448,8 @@ F-S2502-F2-005).
 | EC-012 (fix-burst pass-4, F-P4-001, HIGH, ADR-051 v1.4 Decision 14 adjudication Option (b)) | A `"frontmatter-changelog-array"`-shaped config entry declares a legal-but-poorly-amortizing `low_water_mark` in `(floor(N/2), N)`, up to and including the boundary value `N-1` | Loads normally — `Continue`, config load NEVER returns `HookResult::Error` (the value satisfies `0 <= low_water_mark < N`) — but config-load emits a non-fatal `tracing::warn!` amortization advisory citing the configured `(N, low_water_mark)` pair and the resulting amortization factor `N - low_water_mark`, compared against the default's `N - floor(N/2)` amortization |
 | EC-013 (NEW, S-25.02 Phase F4 LOCAL adversary cluster-1 finding, product-owner adjudication) | A `[[shard]]` config entry declares `shard_cap_bytes` GREATER than `compute_shard_cap_bytes(entry.cap_formula_inputs())` — i.e., the declared cap exceeds its own formula-derived ceiling (applies to ANY `shape`, not `"flat"`-only) | Fail-loud: `ShardRegistry::load()` returns `HookResult::Error` — the misconfigured entry is REJECTED; NEVER silently accepted, NEVER silently clamped down to the computed ceiling (Postcondition 9) |
 | EC-014 (NEW, S-25.02 Phase F4 LOCAL adversary cluster-1 pass-3 finding F-C1-P3-001, MEDIUM, product-owner adjudication) | A `"frontmatter-changelog-array"`-shaped target artifact does not yet exist on disk (a legitimate first-ever `Write` CREATES it) | `read_changelog_item_count` maps `io::ErrorKind::NotFound` to `Ok(0)` — treated as 0 existing items, mirroring EC-004's flat-shape missing-file precedent; the item-count trigger (`current_item_count + 1 > N`) evaluates `0 + 1 > N`, which is `false` for any `N >= 1`, so `Continue` — the legitimate create is NEVER hard-blocked as `HookResult::Error`. Any OTHER `io::Error` kind reading an EXISTING file (malformed frontmatter fence, permissions failure, etc.) is UNCHANGED and still propagates as `HookResult::Error` — only `NotFound` is special-cased |
+| EC-015 (NEW, S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4 finding F-C1-P4-001, MEDIUM/HIGH, product-owner adjudication) | A `[[shard]]` config entry declares `worst_case_fuel_per_byte` as non-finite (`NaN`, `inf`, or `-inf`) or `<= 0.0` (including `0.0` itself — the "divisor-door" case that saturates `compute_shard_cap_bytes` to near-`u64::MAX`) | Fail-loud: `ShardRegistry::load()` returns `HookResult::Error` — the entry is REJECTED BEFORE the cap-vs-formula comparison (Postcondition 9) is even attempted; `practical_fuel_ceiling`, `max_single_record_bytes`, and `safety_margin` need no analogous check (all `u64`-typed; a degenerate `0` drives the ceiling toward the safe direction, never away from it) |
+| EC-016 (NEW, S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4 finding F-C1-P4-002, MEDIUM, product-owner adjudication) | A `"frontmatter-changelog-array"`-shaped `[[shard]]` config entry omits the required `N` item-count trigger threshold | Fail-loud: `ShardRegistry::load()` returns `HookResult::Error` — evaluated at LOAD time (not merely gate/dispatch time), and BEFORE `low_water_mark` is examined, so an entry that also declares an invalid `low_water_mark` is never silently accepted merely because `N` happened to be absent |
 
 ## Canonical Test Vectors
 
@@ -375,6 +472,9 @@ F-S2502-F2-005).
 | **NEW (S-25.02 Phase F4 LOCAL adversary cluster-1 finding, product-owner adjudication).** `[[shard]]` entry declares `practical_fuel_ceiling=8,000,000`, `worst_case_fuel_per_byte=106.36`, `max_single_record_bytes=16,384`, `safety_margin=8,192` (`compute_shard_cap_bytes(inputs) = 49,152`), and declares `shard_cap_bytes=100,000` (far above its own formula ceiling) | `ShardRegistry::load()` returns `HookResult::Error` (Postcondition 9 / EC-013) — the misconfigured entry is REJECTED; the too-large cap is NEVER loaded and NEVER honored by the live per-write gate | error |
 | **NEW (S-25.02 Phase F4 LOCAL adversary cluster-1 finding, product-owner adjudication).** `[[shard]]` entry declares the SAME four inputs as above (`compute_shard_cap_bytes(inputs) = 49,152`) and `shard_cap_bytes=49,152` (exactly equal to its own formula ceiling) | `ShardRegistry::load()` succeeds (`Ok`) — Postcondition 4's `<=` comparison is inclusive of the boundary (Postcondition 9), mirroring EC-002's inclusive-boundary precedent for the per-write trigger | happy-path |
 | **NEW (S-25.02 Phase F4 LOCAL adversary cluster-1 pass-3 finding F-C1-P3-001, product-owner adjudication).** `Write` to a NOT-YET-EXISTING `"frontmatter-changelog-array"`-shaped target artifact (e.g. the first-ever `Write` of a new sharded index file), `shape="frontmatter-changelog-array"`, `N=50`, target file absent on disk, valid frontmatter with a `changelog:` array present in the `content` payload | `read_changelog_item_count` maps `io::ErrorKind::NotFound` to `Ok(0)`; `current_item_count + 1 = 0 + 1 = 1 <= 50` → `Continue` — the create is NEVER hard-blocked as `HookResult::Error` (EC-014; mirrors EC-004's flat-shape missing-file precedent) | edge-case |
+| **NEW (S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4 finding F-C1-P4-001, product-owner adjudication).** `[[shard]]` entry declares `practical_fuel_ceiling=8,000,000`, `worst_case_fuel_per_byte=0.0` (divisor-door), `max_single_record_bytes=16,384`, `safety_margin=8,192`, `shard_cap_bytes=999,999,999` (arbitrarily large) | `ShardRegistry::load()` returns `HookResult::Error` (EC-015) BEFORE the cap-vs-formula comparison runs — WITHOUT this check, `compute_shard_cap_bytes` would compute `(8,000,000 / 0.0).floor() as u64 = u64::MAX` (saturating cast of `+inf`), the resulting near-`u64::MAX` ceiling would pass ANY declared `shard_cap_bytes` including this vector's `999,999,999`, and Postcondition 9's own protection would be silently defeated | error |
+| **NEW (S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4 finding F-C1-P4-001, product-owner adjudication).** `[[shard]]` entry declares the SAME four inputs as the Postcondition-9/EC-013 happy-path vector above except `worst_case_fuel_per_byte=NaN` | `ShardRegistry::load()` returns `HookResult::Error` (EC-015) — `NaN` is non-finite and fails the `worst_case_fuel_per_byte.is_finite() && worst_case_fuel_per_byte > 0.0` guard identically to the `0.0` case above, even though a bare `NaN` division would itself saturate to `0` (the safe direction) rather than `u64::MAX` — the config is still malformed and MUST be rejected regardless of which direction the resulting arithmetic degenerates | error |
+| **NEW (S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4 finding F-C1-P4-002, product-owner adjudication).** `shape="frontmatter-changelog-array"` config entry omits `n` entirely and declares `low_water_mark=999` (which would itself be invalid against any realistic `N`) | `ShardRegistry::load()` returns `HookResult::Error` (EC-016, missing `N`) — caught AT LOAD TIME, not deferred to the first gate-time write against the artifact; the entry's ALSO-invalid `low_water_mark` is superseded by the load-time missing-`N` failure, but the entry is rejected either way, never silently accepted | error |
 
 ## Verification Properties
 
@@ -416,6 +516,21 @@ VP-140 with a sixth facet (or allocate a new VP) covering `read_changelog_item_c
 `NotFound -> Ok(0)` mapping and the resulting `0 + 1 <= N` non-trigger for a not-yet-existing target
 artifact, and propagate to VP-INDEX.md, verification-architecture.md, and
 verification-coverage-matrix.md per `vp_index_is_vp_catalog_source_of_truth` (POLICY 9).
+
+**Adjudication note (S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4, product-owner, v1.10):** new
+EC-015 (non-finite/non-positive `worst_case_fuel_per_byte` load-time fail-loud "divisor-door" guard)
+and EC-016 (missing-`N` load-time fail-loud guard for the `"frontmatter-changelog-array"` shape) are
+NEW verification obligations not yet covered by VP-116, VP-117, or VP-140. Per this BC's own
+Postcondition-9/EC-013 and EC-014 precedent immediately above (product-owner does not self-allocate
+a VP number for a load-time-validation extension), product-owner does NOT allocate a VP number here
+either. **Routed to architect/formal-verifier; VP allocation DEFERRED TO F6 (per the PC9/EC-014
+precedent above):** extend VP-117's multi-facet unit-test row (or allocate a new VP) covering (a)
+EC-015's `worst_case_fuel_per_byte` finiteness/positivity guard at `ShardRegistry::load()` time —
+including the `0.0` divisor-door case and the `NaN` non-finite case — and (b) EC-016's missing-`N`
+load-time guard for the `"frontmatter-changelog-array"` shape, including the restructured ordering
+that keeps EC-011 from being silently bypassed on an entry that also omits `N`; propagate to
+VP-INDEX.md, verification-architecture.md, and verification-coverage-matrix.md per
+`vp_index_is_vp_catalog_source_of_truth` (POLICY 9).
 
 ## Related BCs
 
@@ -522,6 +637,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.10 | 2026-09-06 | product-owner | Load-time fail-loud gap-closure + PC5 wiring-intent adjudication (S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4 findings F-C1-P4-001 MEDIUM/HIGH + F-C1-P4-002 MEDIUM + F-C1-P4-003 LOW pending-intent). **F-C1-P4-001 (substantive, FAIL-LOUD ruling):** `compute_shard_cap_bytes` divides `practical_fuel_ceiling` by `worst_case_fuel_per_byte` with no validation that the latter is finite and strictly positive — a `[[shard]]` entry declaring `worst_case_fuel_per_byte = 0.0` makes the division yield `+inf`, whose saturating `as u64` cast is `u64::MAX`, so Postcondition 9's cap-vs-formula check (`shard_cap_bytes > computed_ceiling`) is defeated: ANY declared `shard_cap_bytes` passes, the oversized cap loads silently, and the roll never triggers — reintroducing the exact fuel-exhaustion failure mode this BC exists to prevent. ADJUDICATED FAIL-LOUD (this is squarely this cluster's own load-time-validation job, per this BC's own EC-009/EC-011/EC-013 precedent and CLAUDE.md's production-grade default): ADDED a new sub-bullet to Postcondition 9 requiring `ShardRegistry::load()` to validate `worst_case_fuel_per_byte.is_finite() && worst_case_fuel_per_byte > 0.0` for every entry BEFORE computing `compute_shard_cap_bytes`, fail-loud `HookResult::Error` (new `ShardConfigError` variant, e.g. `InvalidWorstCaseFuelPerByte`) on violation. Explicitly scoped OUT the other three formula inputs: `practical_fuel_ceiling`/`max_single_record_bytes`/`safety_margin` are `u64`-typed (TOML already excludes non-finite/negative values for them) and a degenerate `0` on any of the three drives the ceiling toward the SAFE direction (0), not the exploitable-widening direction — no analogous check needed for them. ADDED EC-015 (non-finite/`<=0.0` `worst_case_fuel_per_byte` → `HookResult::Error`) and two matching Canonical Test Vectors (the `0.0` divisor-door case and a `NaN` case). **F-C1-P4-002 (substantive, FAIL-LOUD ruling):** `ShardRegistry::load()` only validates a `"frontmatter-changelog-array"` entry's `low_water_mark` when BOTH `entry.n` and `entry.low_water_mark` are `Some` — the destructure short-circuits when `n` is `None`, so an entry that omits `n` AND declares an out-of-range `low_water_mark` is never validated at load time (EC-011 silently bypassed for that entry); the current implementation only fail-louds on missing `n` at gate/dispatch time (`shard_cap_gate_check`), not at load time, an asymmetry with EC-009/EC-011/EC-013's uniform load-time posture. ADJUDICATED YES — missing `n` MUST fail-loud AT LOAD: ADDED a new sub-bullet to Postcondition 8's rotation-target-config bullet requiring `ShardRegistry::load()` to validate `entry.n.is_some()` for every `"frontmatter-changelog-array"`-shaped entry, evaluated BEFORE `low_water_mark` is examined, fail-loud `HookResult::Error` (new `ShardConfigError` variant, e.g. `MissingN`) on `None` — this restructuring ensures no entry can silently load with BOTH a missing `N` and an out-of-range `low_water_mark` undetected. ADDED EC-016 and a matching Canonical Test Vector. **F-C1-P4-003 (wording-only, Reading (A) CONFIG-TIME/HARNESS-HELPER adjudicated over Reading (B) RUNTIME):** `effective_shard_cap_bytes` (implementing Postcondition 5's Cross-Validator Minimum Rule) is implemented and unit-tested but has no live caller in `shard_cap_gate_check`, which compares against the raw single `entry.shard_cap_bytes` instead. ADJUDICATED Reading (A): ADR-051 §Decision 2 places the Cross-Validator Minimum Rule inside the F4 calibration harness's own design (harness step 5), `ShardEntry` carries exactly one `shard_cap_bytes` field (no per-validator breakdown for a live gate to combine), and the existing Postcondition-5 prose/Canonical Test Vectors already describe an authoring-time MIN computation — REWORDED Postcondition 5 (additive "Timing clarified" paragraph) to state explicitly that the effective cap is DECLARED as `shard_cap_bytes`, computed via the MIN rule at config-authoring/F4-harness time, and consumed directly (not re-derived per-write) by the live gate; `effective_shard_cap_bytes` is correctly implemented as this authoring-time helper and needs no live caller wired into `shard_cap_gate_check` — NO code change follows from this ruling. Recorded an explicit deferral: a hypothetical future RUNTIME re-derivation of the Cross-Validator Minimum is a separate, out-of-scope obligation requiring a new postcondition and `architect`/ADR-051 involvement (a Cohort-B-reader-set-to-artifact mapping the current schema does not carry) — not assumed to already exist. VP allocation for EC-015/EC-016 deferred to F6 per the PC9/EC-014 precedent (adjudication note added under §Verification Properties). No change to Postconditions 1-4, 6-7, Invariants, or any pre-existing Edge Case/Canonical Test Vector/VP — additive/clarifying only. |
 | 1.9 | 2026-09-06 | product-owner | Spec/implementation asymmetry + wording-precision adjudication (S-25.02 Phase F4 LOCAL adversary cluster-1 pass-3 findings F-C1-P3-001 MEDIUM + F-C1-P3-003 OBSERVATION). **F-C1-P3-001 (substantive, GRACEFUL ruling):** the item-count shape's `read_changelog_item_count` did NOT special-case `io::ErrorKind::NotFound` the way the flat shape's `current_shard_bytes_flat` already does per EC-004 — a bare `read_to_string(target_path)?` propagated `NotFound` as an `io::Error` -> `HookResult::Error`, hard-blocking a legitimate FIRST-EVER `Write` that CREATES a `"frontmatter-changelog-array"` artifact (e.g. the first-ever `Write` of a new sharded index file). ADJUDICATED GRACEFUL over FAIL-LOUD: this is the identical "artifact absent on disk" precondition EC-004 already treats as size-0, not an error, for the sibling flat shape; there is no principled reason for the two trigger shapes to diverge on that precondition, and per CLAUDE.md's production-grade default a hard block on a legitimate create is a user-facing wrong behavior, not an acceptable, unexamined asymmetry. Postcondition 8's read-cost bullet was SILENT on the missing-file case (it characterized only cold/steady state of an EXISTING file) — this was the gap. ADDED a new missing-file/first-write sub-bullet to Postcondition 8 specifying `read_changelog_item_count` MUST map `NotFound -> Ok(0)` (any OTHER `io::Error` kind on an existing file is UNCHANGED, still fail-loud). ADDED EC-014 (missing target artifact -> `Ok(0)` -> `Continue` for any `N >= 1`, mirroring EC-004) and a matching Canonical Test Vector. Added an adjudication note routing VP-140 sixth-facet extension (or new VP) to architect/formal-verifier, per this BC's own Postcondition-9/EC-013 precedent for not self-allocating a VP number. **F-C1-P3-003 (cheap permanent close, OBSERVATION):** Postcondition 1 / Invariant 3 said the applicability check performs "no `stat()` call" / "zero measurable per-call overhead" for unmatched paths — but the implementation's applicability check does a small `Path::exists()` probe on a FIXED, small `[[shard]]` config file (not the target artifact) to decide whether the gate is even a candidate for the dispatch. REWORDED Postcondition 1 and Invariant 3 (minimally, additively) to scope the "no stat() / zero-cost" guarantee to the TARGET ARTIFACT specifically, explicitly exempting the one-time, O(1), fixed-size, fuel-free config-presence probe as the necessary applicability check — the load-bearing guarantee (no target-artifact stat, no fuel-budgeted content read on unmatched paths) is unchanged; only the literal wording's scope is clarified, preventing a future adversary pass from re-flagging the same literal-wording tension. No change to Postconditions 2-9, other Invariants, or any pre-existing Edge Case/Canonical Test Vector/VP — additive/clarifying only. |
 | 1.8 | 2026-09-06 | product-owner | Spec/implementation wording-tension adjudication (S-25.02 Phase F4 LOCAL adversary cluster-1 pass-2 finding F-C1-P2-003, LOW). Invariant 4 and EC-010 said `low_water_mark`'s `floor(N/2)` default is "computed at config-load time when the field is omitted" — but the sanctioned cluster-1 implementation (`crates/factory-dispatcher/src/shard_manager.rs`) leaves `low_water_mark = None` after `ShardRegistry::load()` when the field is omitted (`load()`'s own EC-010 branch only runs `validate_low_water_mark` when an EXPLICIT value is present) and derives `floor(N/2)` LAZILY in the pure function `resolved_low_water_mark(n, low_water_mark)`, called by the caller at first use/consumption (BC-1.18.009's rotation-target resolution). ADJUDICATED: the BINDING invariant this BC actually needs — grounded in ADR-051 §Decision 14's own framing ("This is a config DEFAULT, not a hardcoded Rust constant inside `shard_manager.rs` — consistent with BC-1.18.005 Invariant 4's 'formula inputs are configuration, not embedded constants' discipline") — is that the default is ALWAYS DERIVED FROM config `N`, NEVER a hardcoded fallback constant; ADR-051 never states derivation TIMING (load-time materialization vs. lazy first-use resolution) as a load-bearing constraint, and the cluster-1 lazy design has zero behavioral consequence in cluster 1 (nothing consumes `low_water_mark` until BC-1.18.009/cluster 4) and is a legitimate, pure, engineering choice (single source of truth is `N`; no derived-value staleness risk since config loads once per process; avoids mutating parsed config state). Per CLAUDE.md's production-grade default (over-specifying an implementation-timing detail that carries no safety value, then treating the resulting non-conformance as a defect, is itself the anti-pattern — the mechanical question "is timing load-bearing" is answerable now from ADR-051, not a TODO), REWORDED Invariant 4's `low_water_mark` clause and EC-010 to state the constraint as "derived from config `N`, never a hardcoded fallback constant; derivation MAY be materialized at config-load time OR deferred to first-use/resolution — timing is an implementation choice, not a contract obligation." No change to the numeric default (`floor(N/2)`), to the fail-loud validation constraint (`0 <= low_water_mark < N`, still validated at config-load time when an explicit value is declared — EC-011/EC-012 unaffected), to any Postcondition, or to any other Edge Case/Canonical Test Vector/VP. The sanctioned implementation was already conformant under the corrected wording; no code or test change is required. |
 | 1.7 | 2026-09-06 | product-owner | BC-semantic intent adjudication (S-25.02 Phase F4 LOCAL adversary cluster-1 finding — PC4 load-enforcement-intent question). The cluster-1 implementation (`crates/factory-dispatcher/src/shard_manager.rs`) parses the four cap-formula inputs into `ShardEntry` and computes `compute_shard_cap_bytes()`, but `ShardRegistry::load()` never compared a declared `shard_cap_bytes` against its own entry's formula-derived ceiling — a misconfigured `[[shard]]` entry declaring `shard_cap_bytes` far ABOVE its own formula ceiling would load silently and the live per-write gate would honor the too-large cap, reintroducing the exact fuel-exhaustion failure this BC exists to prevent. ADJUDICATED Reading (B) RUNTIME-ENFORCED over Reading (A) HARNESS-CONSUMED-ONLY: the four inputs are parsed into the SAME `ShardEntry` the live per-write gate consumes (not a separate harness-only config surface), Postcondition 6 already states "the formula shape is locked now" (a live constraint, not merely a future-harness reference), and this BC's own Related BCs section identifies BC-1.18.005 as the mechanism that prevents BC-1.18.001's sibling Layer-1 fail-closed INDETERMINATE contract from firing — an unenforced cap-vs-formula inequality would defeat that stated purpose. Per CLAUDE.md's production-grade default (Rule 1 — no MVP-driven deferrals; a gate that lets an over-cap misconfiguration through silently is a defer-pattern smell), ADDED new Postcondition 9 (load-time fail-loud enforcement of `shard_cap_bytes <= compute_shard_cap_bytes(entry.cap_formula_inputs())` at `ShardRegistry::load()` time, for every `[[shard]]` entry regardless of `shape`, mirroring EC-009/EC-011's established fail-loud-at-load-time posture for this same config surface). ADDED EC-013 (cap exceeds formula ceiling → `HookResult::Error`). ADDED two Canonical Test Vectors (error case: `shard_cap_bytes=100,000` against a `49,152`-byte formula ceiling → `HookResult::Error`; boundary happy-path: `shard_cap_bytes` exactly equal to the formula ceiling → `Ok`, inclusive boundary mirroring EC-002). ADDED an adjudication note under §Verification Properties routing new-VP allocation for Postcondition 9/EC-013 to architect/formal-verifier (no VP number invented by product-owner, per this BC's own Postcondition-8-then-VP-140 precedent). No change to Postconditions 1-8, Invariants, or existing Edge Cases/Canonical Test Vectors — additive only. |
