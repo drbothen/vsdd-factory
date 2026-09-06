@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-09-06T21:04:16Z","command":"cd crates/factory-dispatcher && cargo test --lib shard_manager 2>&1 | tail -10 && cargo test --test bc_1_18_005_shard_cap_trigger_test 2>&1 | tail -15 && cd ../.. && cargo fmt --check --all 2>&1 | tail -30 && cargo clippy --workspace --all-targets -- -D warnings 2>&1 | tail -60"}
+{"status":"pass","timestamp":"2026-09-06T21:33:52Z","command":"cd crates/factory-dispatcher && cargo test -p factory-dispatcher --all-targets --no-fail-fast 2>&1 | grep -E \"^test result|Running (unittests|tests/)\""}
