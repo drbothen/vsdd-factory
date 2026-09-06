@@ -629,7 +629,9 @@ grounded code fact, not a hypothetical:
    avoid.
 3. **Grounded in the actual `rotate_changelog` signature, not assumed:** `rotate_changelog`'s
    implementation (`rewrite_source_after_rotation` in `rotate.rs`) is a PURE TRIM — it keeps only
-   `keep_items` (the retained N-1 most-recent items) and writes a `changelog_archive:` discoverability
+   `keep_items` (the retained `keep_recent` most-recent items — for B1, the configured
+   `low_water_mark`, default `floor(N/2)` per Decision 14; NEVER a fixed `N-1`) and writes a
+   `changelog_archive:` discoverability
    pointer; it never calls `prepend_changelog_item` itself and has no parameter for a "new item to
    insert." `prepend_changelog_item` (`changelog.rs`) is a SEPARATE, independently-callable
    function. Nothing in the ALREADY-SHIPPED library requires or expects the trim step and the
@@ -652,11 +654,12 @@ is needed:
    — no rotation, the agent's own prepend lands normally, unmodified (EC-002, unchanged from v1.0).
 3. If true: the gate invokes `rotate_changelog` (via the generalized, explicit-`archive_path`
    surface, Decision 7's fix-burst correction above) to trim the live `changelog:` sequence down to
-   N-1 items, appending the overflow tail to the SINGLE evergreen archive file, THEN returns
-   `HookResult::Block` with an explicit retry instruction: "BC-INDEX.md's `changelog:` sequence was
-   rotated to make room (oldest item(s) appended to
+   `low_water_mark` items (Decision 14's high-water/low-water hysteresis target — default
+   `floor(N/2)`; NEVER a fixed `N-1`), appending the overflow tail to the SINGLE evergreen archive
+   file, THEN returns `HookResult::Block` with an explicit retry instruction: "BC-INDEX.md's
+   `changelog:` sequence was rotated to make room (oldest item(s) appended to
    `.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`); the frontmatter now has
-   N-1 items. Retry your write: if you
+   `low_water_mark` items. Retry your write: if you
    used `Edit`, reissue as a fresh `Write` or a fresh `Edit` re-read against the current
    (post-rotation) file, since your original `old_string`/`new_string` pair may no longer match; if
    you used `Write`, recompute your `content` payload against the current (post-rotation) file
@@ -665,7 +668,9 @@ is needed:
    2's retry-wording contract, not a divergent one — B1's wording differs from mechanism A's only
    because the underlying state changed shape, not filename.)
 4. Agent retries, reading/recomputing against the now-rotated file; its retried prepend lands via
-   `Continue` (item count is now `N-1+1 = N`, not exceeding N) — SINGLE ACTOR, exactly once.
+   `Continue` (item count is now `low_water_mark + 1`, comfortably below the `N` trigger threshold —
+   Decision 14's amortization gain over the withdrawn fixed-`N-1` target, which left the count back
+   at exactly `N`) — SINGLE ACTOR, exactly once.
 
 **Atomicity is preserved identically to mechanism A's pattern:** the rotate/trim step (evergreen
 archive-file append + live-frontmatter trim) completes BEFORE the `Block` is returned, in the
@@ -864,7 +869,8 @@ mechanism is invented.
 
 **Staged sequence (mechanism A; mechanism B1 substitutes `rotate_changelog`'s own trim+archive-append
 write for steps 1-2, per Decision 7, but composes with steps 3-4 identically for the frontmatter
-truncate-to-N-1-items and index-adjacent bookkeeping):**
+truncate-to-`low_water_mark`-items (Decision 14; NEVER a fixed `N-1`) and index-adjacent
+bookkeeping):**
 
 1. **Read** the canonical file's current full content (roll-only; the cheap per-write trigger check
    remains `stat()`-only, per BC-1.18.005 Postcondition 2).
@@ -1314,7 +1320,8 @@ family (`ARCH-INDEX.md`, `BC-INDEX.md`, `VP-INDEX.md` all carry the same `change
 ADR-049 audit finding 3) with no benefit.
 
 **Why B1's gate performs ONLY the trim, never the prepend (fix-burst amendment, F-S2502-F2-001):**
-`rotate_changelog`'s own signature is a pure trim (keep N-1, archive the rest) — it has no
+`rotate_changelog`'s own signature is a pure trim (keep `keep_recent` items — for B1, the
+configured `low_water_mark` per Decision 14, NEVER a fixed `N-1` — archive the rest) — it has no
 parameter for inserting a new item and never calls `prepend_changelog_item`. Fusing "trim" and
 "insert the new item" into one gate-side action (the withdrawn v1.0 design) required the gate to
 duplicate the AGENT's own already-planned write, which is both redundant (two writers, one logical
@@ -1668,6 +1675,7 @@ properties still hold structurally; fixtures must assert the post-rotation floor
 
 | Version | Date | Author | Summary |
 |---|---|---|---|
+| 1.7 | 2026-09-06 | architect | S-25.02 F2 sibling-sweep micro-burst (adversary pass-7 F-P7-001 closure, product-owner-flagged architect stragglers): Decision 7's block-and-retry sequence (the "PURE TRIM" grounding bullet, and steps 3-4 of the corrected single-actor contract) and Decision 11's staged-roll-sequence heading both still described B1's rotation TARGET as a literal `N-1`, contradicting Decision 14 (v1.3+), which replaced the fixed `N-1` eviction target with the configured `low_water_mark` (default `floor(N/2)`) precisely to close the every-write rotation-churn pathology Decision 14 documents. Corrected all four LIVE occurrences (Decision 7's pure-trim descriptor; Decision 7 step 3's rotation-target citation and step 4's post-retry item-count math; Decision 11's "truncate-to-N-1-items" heading clause; the Rationale section's "Why B1's gate performs ONLY the trim" pure-trim descriptor) to cite `low_water_mark`/`keep_recent` generically, each with an explicit "NEVER a fixed `N-1`" cross-reference to Decision 14. No decision content changed — Decision 14 already establishes `low_water_mark` as the authoritative target; this burst brings Decision 7/11/Rationale's own exposition into agreement with the Decision they predate. Full grep-verified: every remaining `N-1` occurrence in this ADR is now either an explicit negation ("NEVER `N-1`", "distinct from `N-1`"), a legal-but-poor-boundary-value discussion (Decision 14's own F-P4-001 adjudication, which correctly treats `N-1` as an admitted-but-suboptimal value, not the design target), a superseded-version attribution (Decision 14's "Problem" paragraph, explicitly citing "`BC-1.18.009` **v1.2**'s rotation step"), or a Changelog/Status-narrative historical row (POLICY-1 append-only exempt). Reviewed the companion `S-25.02-f2-architecture-delta.md`'s §4a/§4b per-pass BC-authorship-input tables for the same staleness: LEFT UNCHANGED — those sections are explicitly labeled by adversary-pass number ("adversary pass-1"/"adversary pass-2, architect-routed findings"), and §4c/§4d already perform the identical `N-1`→`low_water_mark` correction one/two passes later in the SAME append-only document, so §4a/§4b's `N-1` content is a genuinely historical record of what THAT pass's ADR version (v1.1/v1.2) instructed, superseded in-document rather than in need of retroactive rewrite. Status remains PROPOSED — not a POLICY 22 reversal; corrects this ADR's own exposition to agree with its own already-adopted Decision 14, no decision content altered. Companion `S-25.02-f2-architecture-delta.md` UNCHANGED this burst.|
 | 1.6 | 2026-09-06 | architect | S-25.02 F2 gate-audit fix (F-P6-001, MEDIUM): Decision 6's opening justification paragraph carried a now-stale present-tense claim that CAP-043's `SS-01/SS-07`-only subsystem list was "incomplete" and "flagged as a product-owner follow-up ... not amended here." That follow-up CLOSED same-cycle — CAP-043 (v1.21) now lists SS-01/SS-04/SS-07 — leaving the ADR body contradicting the capability it describes. Rewrote the clause to past tense/closure-acknowledging, referencing CAP-043's §Subsystems list structurally (by name/section anchor, no version pin) rather than reasserting incompleteness. SS-04 justification substance (the four-WASM-crate validator-enumeration audit + POLICY-1 archive-inclusive-glob obligation) is UNCHANGED. Status remains PROPOSED — not a POLICY 22 reversal; corrects a stale cross-reference only.|
 | 1.5 | 2026-09-06 | architect | S-25.02 F2 gate-audit fix (F3, MEDIUM, ADJUDICATION) resolving a perimeter-consistency finding raised ahead of the F2 human ratification gate: `subsystems_affected: [SS-01, SS-04, SS-07]` carried SS-04 with no substantive body justification (Decisions 1–5/7–14 are exclusively SS-01/SS-07; CAP-043 lists only SS-01/SS-07). ADJUDICATED Option (a) — SS-04 is genuinely affected: Decision 6's validator enumeration audits four SS-04-owned WASM crates (`validate-dispatch-advance`, `validate-state-structure`, `validate-closes-completeness`, `validate-cross-site-correspondence`) for archival-scheme correctness and imposes a new archive-inclusive-glob obligation on POLICY-1's SS-04-adjacent enforcement path. Added an explicit one-line justification note at the top of Decision 6 naming this touchpoint; `subsystems_affected` and the mirrored ARCH-INDEX ADR-051 row Subsystems column are UNCHANGED (`[SS-01, SS-04, SS-07]` was already correct, only unjustified). Flags CAP-043's `SS-01/SS-07`-only subsystem list as a product-owner follow-up (business-analyst/product-owner domain, not amended by this architect-authored fix). Status remains PROPOSED — not a POLICY 22 design-direction reversal; adds justification only, no decision content altered.|
 | 1.4 | 2026-09-06 | architect | Fix-burst amendment resolving fresh-context adversary pass-4 findings against v1.3 (both ARCHITECTURE-routed). F-P4-001 (HIGH, ADJUDICATION): Decision 14's own "fail-loud... including the degenerate `N-1`" framing and BC-1.18.005 EC-011's identical phrasing directly contradicted the numeric constraint they both cite (`0 <= low_water_mark < N` mathematically ADMITS `N-1`) and directly contradicted BC-1.18.005's own Canonical Test Vectors table plus VP-140/VP-125, all of which already treat `N-1` as VALID — a live, mutually-unsatisfiable test-obligation contradiction (an EC-011-literal test expecting `Error` at `N-1` cannot pass alongside a VP-140-literal test expecting normal load at `N-1`). ADJUDICATED as Option (b): the numeric constraint `0 <= low_water_mark < N` is UNCHANGED and remains correct; the erroneous "fail-loud on `N-1`" prose is WITHDRAWN from Decision 14 (this ADR corrects its own text in this burst) with the exact strike/add wording obligations enumerated for product-owner's BC-1.18.005 v1.3→v1.4 follow-on fix-burst (Postcondition 8 sentence rewrite, EC-011 scope narrowed to exactly `>= N`/negative, NEW EC-012, one new Canonical Test Vector row) and formal-verifier's VP-140 v1.0→v1.1 follow-on fix-burst (one new amortization-advisory proof leg; VP-125 confirmed to need NO wording change, its property already generalizes over the full valid domain). The latent every-write-rotation pathology a legal `low_water_mark` close to `N` could reproduce is closed via a NEW non-fatal `tracing::warn!` amortization advisory (fires when `low_water_mark > floor(N/2)`, reusing this Decision's own already-justified default as the non-arbitrary advisory threshold rather than inventing a second free constant) — never a fail-loud rejection of a value the constraint already declares legal. Option (a) (tightening the numeric constraint to forbid high `low_water_mark` values) was considered and rejected: any such hard floor is exactly as arbitrary as `N-1` itself (`N-2`/`N-3` amortize almost as poorly) and would require reopening three already-correct downstream artifacts to newly exclude values they currently, correctly, treat as valid — Option (b) is the smaller, consistency-preserving change. F-P4-004 (LOW): Decision 13's worked-example arithmetic corrected from the stale withdrawn-target remainder `1,947` (`1,997 - 50`, the WITHDRAWN `keep_recent = N` target) to the correct `1,972` (`1,997 - 25`, the CURRENT `keep_recent = low_water_mark` target per Decision 14) — three occurrences corrected, now consistent with BC-1.18.012 v1.1's own EC-001/Canonical-Test-Vector figures (not itself a wording obligation for product-owner, since BC-1.18.012 already carries the correct number; this was an ADR-body-only citation lag). Status remains PROPOSED — neither finding is a POLICY 22 reversal; both correct v1.3's own stated design intent, the first by withdrawing an internally-contradictory claim in favor of content three sibling artifacts already state correctly, the second by fixing stale arithmetic against an already-superseded target. Companion `S-25.02-f2-architecture-delta.md` v1.3→v1.4 (§4d added).|
