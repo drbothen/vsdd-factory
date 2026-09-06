@@ -14,7 +14,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/S-25.02-f2-architecture-delta.md
   - .factory/specs/domain-spec/capabilities.md
   - .factory/specs/verification-properties/VP-INDEX.md
-input-hash: "b4d181e"
+input-hash: "9050ce6"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -283,6 +283,7 @@ F-S2502-F2-005).
 |--------|----------|-------------|
 | VP-117 | Unmatched-path zero-cost invariant (no `stat()` call issued when target path does not match any `[[shard]]` config entry); Cross-Validator Minimum Rule (effective cap for a multi-reader artifact equals the MIN of all applicable per-plugin caps); Byte-denomination invariant (no code path compares a non-byte-denominated quantity against `shard_cap_bytes`) | unit test — three facets: mock filesystem call counter; table-driven over the 4 mechanism-A artifacts × 3 Cohort B plugins; arbitrary payload/current-shard sizes compared against a byte-for-byte oracle |
 | VP-116 | Boundary inclusivity — `projected_size == shard_cap_bytes` never triggers a roll; `projected_size == shard_cap_bytes + 1` always triggers a roll | kani-proof (exact-boundary + overflow/underflow-safety over symbolic inputs) |
+| VP-140 | Postcondition 8 item-count trigger boundary AND `low_water_mark` rotation-target config validation — shape-dispatch read-once; item-count off-by-one (`current_item_count + 1 > N`: `N-1` → Continue, exactly `N`/`N+1` → fire, EC-008); `low_water_mark` default `floor(N/2)` when omitted (EC-010); fail-loud `HookResult::Error` on `low_water_mark >= N` (incl. degenerate `== N`) or negative, `N-1` valid (EC-011) | unit test — four facets: mock-config shape-dispatch + content-read counter; `{N-1, N, N+1}` trigger-boundary table; even/odd-`N` default table; `{N, N-1, 0, -1}` config-validation table |
 
 **Fix-burst note (F-S2502-F2-003):** the two rows above that previously read "unit test" (for
 VP-116) and "proptest" (for VP-117's byte-denomination row) were reconciled to the authoritative
@@ -380,7 +381,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 ## VP Anchors
 
-- VP-116, VP-117 — allocated by formal-verifier (S-25.02 F2 verification-property extension burst; VP-INDEX v3.02). VP-116 (kani-proof; boundary inclusivity + cap-comparison arithmetic overflow-safety), VP-117 (unit-test; unmatched-path zero-cost bypass, Cross-Validator Minimum Rule, byte denomination). Cap-constant numeric bounds PROVISIONAL-until-F4 per ADR-051 §Decision 2. **Forward reference (fix-burst pass-3, F-P3-005, superseding the prior stale note):** formal-verifier authors a dedicated PC8 item-count-trigger VP — covering the shape-dispatch, the `current_item_count + 1 > N` trigger condition, and the `low_water_mark` rotation-target config (default/fail-loud validation, EC-010/EC-011) added in this fix-burst — in the following verification-property burst.
+- VP-116, VP-117, VP-140 — allocated by formal-verifier (VP-116/VP-117: S-25.02 F2 verification-property extension burst, VP-INDEX v3.02; VP-140: S-25.02 F2 verification-property fix-burst PASS-3, VP-INDEX v3.05, F-P3-004). VP-116 (kani-proof; boundary inclusivity + cap-comparison arithmetic overflow-safety, `"flat"` byte-size shape), VP-117 (unit-test; unmatched-path zero-cost bypass, Cross-Validator Minimum Rule, byte denomination, `"flat"` byte-size shape). Cap-constant numeric bounds PROVISIONAL-until-F4 per ADR-051 §Decision 2. **VP-140 (unit-test; the dedicated Postcondition 8 item-count-trigger VP the prior forward reference called for, F-P3-004):** covers the shape-dispatch (read-once, no content-sniff), the `current_item_count + 1 > N` item-count trigger off-by-one boundary (`N-1` → Continue, exactly `N`/`N+1` → fire, EC-008), and the `low_water_mark` rotation-target config validation added in the pass-3 BC fix-burst — default `floor(N/2)` when omitted (EC-010), fail-loud `HookResult::Error` on `low_water_mark >= N` or negative with `N-1` valid (EC-011). VP-140 is the item-count-shape analogue of VP-116's role for the byte boundary; it carries NO F4-provisional numeric dependency (the item-count trigger is deliberately not byte-denominated).
 
 ## Traceability
 
