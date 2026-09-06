@@ -30,25 +30,15 @@
 //! point only, per Postcondition 3's and Postcondition 8's "Ownership"
 //! bullets.
 //!
-//! # BC-5.38.001 Red Gate discipline
+//! # BC-5.38.001 Red Gate discipline — implemented (S-25.02 F4 BC-cluster 1)
 //!
-//! All non-trivial function bodies use `todo!()`. The implementer fills in
-//! real logic in the TDD step that follows this stub. See the stub commit
-//! report for the GREEN-BY-DESIGN and WIRING-EXEMPT exceptions (both
-//! narrowly scoped: one pure field-copy constructor, one `From` delegation).
-
-// BC-5.38.001 Red Gate stub: every non-trivial function body below is
-// `todo!()`, so its parameters are structurally unused until the
-// implementer fills them in. `unused_variables` is allowed at MODULE scope
-// (rather than a `#[allow(...)]` repeated on each of the ~20 stubbed
-// signatures) so every parameter name is retained, undocumented and
-// un-underscored, giving the test-writer and implementer stages the full,
-// real public signature to write tests and implementations against — per
-// the stub-architect contract's "public function signatures ... must be
-// complete and correct" requirement. This is the ONLY clippy/rustc
-// allowance this module adds; `todo!()` itself needs no allow (it is not a
-// clippy lint under this workspace's lint table).
-#![allow(unused_variables)]
+//! Every function below now carries a real implementation driving the
+//! test-writer's Red Gate suite green. A fired trigger (either shape) never
+//! constructs `HookResult::Block` from this module — that observable
+//! roll/rotate-and-retry outcome is owned by the later BC-1.18.006 /
+//! BC-1.18.009 clusters (see the "Scope note" above); this module surfaces a
+//! fired trigger as a non-fatal `tracing::warn!` advisory and returns
+//! `Continue`, an honest hand-off rather than a fabricated block.
 
 use std::io;
 use std::path::Path;
