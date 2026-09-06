@@ -1,7 +1,7 @@
 ---
 document_type: adr
 adr_id: ADR-051
-status: proposed
+status: accepted
 date: 2026-09-05
 subsystems_affected: [SS-01, SS-04, SS-07]
 supersedes: null
@@ -1468,14 +1468,15 @@ preserves both callers' correctness.
     per-event archive-write payload, traded against a `(N - low_water_mark)`-times reduction in how
     often that payload is written at all (Decision 14's amortization analysis).
 
-### Status as of 2026-09-05 (v1.0); fix-burst amendment 2026-09-05 (v1.1); fix-burst amendment 2026-09-05 (v1.2); fix-burst amendment 2026-09-05 (v1.3)
+### Status as of 2026-09-05 (v1.0) through the POLICY 22 status flip 2026-09-06 (v1.8)
 
-Proposed. Not yet human-ratified (POLICY 22). Frontmatter `status: proposed` per this project's
-`create-adr` convention (never `accepted` at authoring time). The Decision 2 calibration
-constants are explicitly provisional and are NOT to be treated as final until the F4 synthetic
-harness runs. D-1166 (OQ-1 scope width) is the only sub-question of this ADR's scope already
-human-ratified; OQ-2 through OQ-5 are architect-resolved design decisions pending the same F2
-human gate this ADR's dispatch instructions describe.
+**Accepted — Human-Ratified 2026-09-06 (D-1167, POLICY 22).** Frontmatter `status: accepted`.
+The Decision 2 calibration constants remain explicitly provisional and are NOT to be treated as
+numerically final until the F4 synthetic harness runs (this is a calibration detail scoped inside
+an already-accepted design, not a condition on acceptance itself — see the v1.8 paragraph below).
+D-1166 (OQ-1 scope width) and D-1167 (F2 whole-spec ratification) are the two human decisions
+this ADR's scope and acceptance rest on; OQ-2 through OQ-5 remain architect-resolved design
+decisions, now accepted alongside the rest of the design under D-1167.
 
 **v1.1 (this fix burst) resolves a fresh-context adversarial review's findings against v1.0,
 routed to the architect:** F-S2502-F2-001 (BLOCKER — B1's gate-vs-agent double-actor prepend
@@ -1558,6 +1559,42 @@ from `N` to `low_water_mark`); formal-verifier reviews VP-125/126 fixtures again
 `low_water_mark`-parameterized `keep_recent` call (the bounded-live-sequence and no-history-loss
 properties still hold structurally; fixtures must assert the post-rotation floor is
 `low_water_mark`, not `N-1`) — full enumeration in the companion F2 architecture-delta doc §4c.
+
+**v1.6/v1.7 (intervening fix-bursts, both non-status-affecting):** v1.6 corrected a stale
+present-tense cross-reference in Decision 6 (CAP-043's SS-04 gap, closed same-cycle) [F-P6-001,
+MEDIUM]; v1.7 corrected four remaining `N-1` exposition occurrences (Decision 7/11/Rationale) to
+cite `low_water_mark` generically, matching Decision 14's already-adopted design (adversary pass-7
+F-P7-001). Neither altered Decision content or this ADR's proposed status.
+
+**v1.8 (POLICY 22 STATUS FLIP — this burst, D-1167, S-25.02 Phase F2 CLOSE):** the human REVIEWED
+the full F2 spec delta — this ADR's two-mechanism design plus the simpler/validator-fix
+alternatives considered — and RATIFIED the current design as-is on 2026-09-06. Status flips
+`proposed` -> `accepted`. **Adjudication against the top-of-file BROWNFIELD template note**
+("cite implementation evidence [file:line from crates/] before this ADR can be accepted"): this
+ADR is forward design for a not-yet-built module (`shard_manager.rs`, and the `rotate_changelog`
+`archive_path`-parameter generalization) — F4 (TDD implementation) has not run, so no crates/
+file:line exists yet for the NEW code, only for the primitives this design REUSES, all of which
+ARE already cited with file:line evidence: `write_atomic`
+(`crates/last-amended-migrate/src/atomic_write.rs`), `write_indeterminate_marker`/
+`block_if_marker_check` (`crates/factory-dispatcher/src/indeterminate_marker.rs`), `HookResult`
+(`crates/hook-sdk/src/result.rs`), and `rotate_changelog`/`resolve_archive_path`
+(`crates/last-amended-migrate/src/rotate.rs`, directly re-inspected at v1.2/F-P2-001). This
+satisfies the template note's evidentiary intent for the design's grounded portions and follows
+the SAME precedent this project already set for identically-postured forward-design ADRs carrying
+the identical BROWNFIELD comment: ADR-048 and ADR-049 both carry `status: accepted` with the
+comment still present in the file, their net-new implementation evidence having been delivered
+downstream of acceptance, not as a precondition of it. The broader platform pattern confirms the
+same rule: ADR-050 (ARCH-INDEX v4.13, D-1158 — "human ratification of ADR-050 (POLICY 22): status
+proposed->accepted ... ci.yml implementation routed to devops-engineer" — implementation explicitly
+ROUTED AFTER the acceptance flip) and ADR-039's per-amendment AMD-001/AMD-002/AMD-003
+sub-decisions (each ratified via the "POLICY 22 ratification-channel" purely on human sign-off of
+the design, with Phase 3/4 implementation queued or in progress at the time of each flip) both
+gate POLICY 22 acceptance on human ratification of the DESIGN, never on crates/ implementation
+evidence for code that does not yet exist. This ADR's own §Decision 2/4/7/11/13 already name F4 as
+the owner of the calibration-harness run, the backfill migrations, and (implicitly) the
+`shard_manager.rs` implementation itself — new-module implementation evidence is therefore deferred
+to a named, concrete future story (S-25.02 F4), not an unattached defer under CLAUDE.md's Canonical
+Principle Rule 3. Not a design-content change — no Decision text is altered by this status flip.
 
 ## Alternatives Considered
 
@@ -1675,6 +1712,7 @@ properties still hold structurally; fixtures must assert the post-rotation floor
 
 | Version | Date | Author | Summary |
 |---|---|---|---|
+| 1.8 | 2026-09-06 | architect | POLICY 22 STATUS FLIP (D-1167; S-25.02 Phase F2 CLOSE): frontmatter `status: proposed` -> `accepted`. Human REVIEWED the full F2 spec delta (this ADR's two-mechanism design plus the simpler/validator-fix alternatives considered) and RATIFIED the current design as-is on 2026-09-06. ADJUDICATED the top-of-file BROWNFIELD template note ("cite implementation evidence before this ADR can be accepted") against this ADR's forward-design posture: `shard_manager.rs` and the `rotate_changelog` `archive_path` extension are F4-implementer scope, not yet built, so no crates/ file:line exists for the NEW code — but this ADR already cites file:line evidence for every REUSED primitive (`write_atomic`, `write_indeterminate_marker`/`block_if_marker_check`, `HookResult`, `rotate_changelog`/`resolve_archive_path`), satisfying the note's evidentiary intent for the design's grounded portions. Followed this project's own established precedent for identically-postured forward-design ADRs carrying the SAME BROWNFIELD comment: ADR-048 and ADR-049 (both `status: accepted`, comment still present, new-code evidence delivered downstream of acceptance) and the platform-wide POLICY 22 pattern of ADR-050 (D-1158 — "ci.yml implementation routed to devops-engineer" AFTER the accept flip) and ADR-039's AMD-001/AMD-002/AMD-003 sub-decisions (each ratified purely on human sign-off of the design, ahead of Phase 3/4 implementation) — POLICY 22 gates on human ratification of the DESIGN, not on crates/ evidence for not-yet-built code. New-module implementation evidence deferred to F4 (named future story S-25.02 F4), per §Decision 2/4/7/11/13's own F4-ownership language — not an unattached defer. Added a v1.8 Status-section paragraph and updated the Status header/opening paragraph to ACCEPTED; also folded in the untracked v1.6 (F-P6-001) and v1.7 (adversary pass-7 F-P7-001) fix-bursts' Status-section coverage, which had not yet been backfilled into the narrative Status paragraphs (Changelog rows below already documented both). No Decision content altered by this row.|
 | 1.7 | 2026-09-06 | architect | S-25.02 F2 sibling-sweep micro-burst (adversary pass-7 F-P7-001 closure, product-owner-flagged architect stragglers): Decision 7's block-and-retry sequence (the "PURE TRIM" grounding bullet, and steps 3-4 of the corrected single-actor contract) and Decision 11's staged-roll-sequence heading both still described B1's rotation TARGET as a literal `N-1`, contradicting Decision 14 (v1.3+), which replaced the fixed `N-1` eviction target with the configured `low_water_mark` (default `floor(N/2)`) precisely to close the every-write rotation-churn pathology Decision 14 documents. Corrected all four LIVE occurrences (Decision 7's pure-trim descriptor; Decision 7 step 3's rotation-target citation and step 4's post-retry item-count math; Decision 11's "truncate-to-N-1-items" heading clause; the Rationale section's "Why B1's gate performs ONLY the trim" pure-trim descriptor) to cite `low_water_mark`/`keep_recent` generically, each with an explicit "NEVER a fixed `N-1`" cross-reference to Decision 14. No decision content changed — Decision 14 already establishes `low_water_mark` as the authoritative target; this burst brings Decision 7/11/Rationale's own exposition into agreement with the Decision they predate. Full grep-verified: every remaining `N-1` occurrence in this ADR is now either an explicit negation ("NEVER `N-1`", "distinct from `N-1`"), a legal-but-poor-boundary-value discussion (Decision 14's own F-P4-001 adjudication, which correctly treats `N-1` as an admitted-but-suboptimal value, not the design target), a superseded-version attribution (Decision 14's "Problem" paragraph, explicitly citing "`BC-1.18.009` **v1.2**'s rotation step"), or a Changelog/Status-narrative historical row (POLICY-1 append-only exempt). Reviewed the companion `S-25.02-f2-architecture-delta.md`'s §4a/§4b per-pass BC-authorship-input tables for the same staleness: LEFT UNCHANGED — those sections are explicitly labeled by adversary-pass number ("adversary pass-1"/"adversary pass-2, architect-routed findings"), and §4c/§4d already perform the identical `N-1`→`low_water_mark` correction one/two passes later in the SAME append-only document, so §4a/§4b's `N-1` content is a genuinely historical record of what THAT pass's ADR version (v1.1/v1.2) instructed, superseded in-document rather than in need of retroactive rewrite. Status remains PROPOSED — not a POLICY 22 reversal; corrects this ADR's own exposition to agree with its own already-adopted Decision 14, no decision content altered. Companion `S-25.02-f2-architecture-delta.md` UNCHANGED this burst.|
 | 1.6 | 2026-09-06 | architect | S-25.02 F2 gate-audit fix (F-P6-001, MEDIUM): Decision 6's opening justification paragraph carried a now-stale present-tense claim that CAP-043's `SS-01/SS-07`-only subsystem list was "incomplete" and "flagged as a product-owner follow-up ... not amended here." That follow-up CLOSED same-cycle — CAP-043 (v1.21) now lists SS-01/SS-04/SS-07 — leaving the ADR body contradicting the capability it describes. Rewrote the clause to past tense/closure-acknowledging, referencing CAP-043's §Subsystems list structurally (by name/section anchor, no version pin) rather than reasserting incompleteness. SS-04 justification substance (the four-WASM-crate validator-enumeration audit + POLICY-1 archive-inclusive-glob obligation) is UNCHANGED. Status remains PROPOSED — not a POLICY 22 reversal; corrects a stale cross-reference only.|
 | 1.5 | 2026-09-06 | architect | S-25.02 F2 gate-audit fix (F3, MEDIUM, ADJUDICATION) resolving a perimeter-consistency finding raised ahead of the F2 human ratification gate: `subsystems_affected: [SS-01, SS-04, SS-07]` carried SS-04 with no substantive body justification (Decisions 1–5/7–14 are exclusively SS-01/SS-07; CAP-043 lists only SS-01/SS-07). ADJUDICATED Option (a) — SS-04 is genuinely affected: Decision 6's validator enumeration audits four SS-04-owned WASM crates (`validate-dispatch-advance`, `validate-state-structure`, `validate-closes-completeness`, `validate-cross-site-correspondence`) for archival-scheme correctness and imposes a new archive-inclusive-glob obligation on POLICY-1's SS-04-adjacent enforcement path. Added an explicit one-line justification note at the top of Decision 6 naming this touchpoint; `subsystems_affected` and the mirrored ARCH-INDEX ADR-051 row Subsystems column are UNCHANGED (`[SS-01, SS-04, SS-07]` was already correct, only unjustified). Flags CAP-043's `SS-01/SS-07`-only subsystem list as a product-owner follow-up (business-analyst/product-owner domain, not amended by this architect-authored fix). Status remains PROPOSED — not a POLICY 22 design-direction reversal; adds justification only, no decision content altered.|
