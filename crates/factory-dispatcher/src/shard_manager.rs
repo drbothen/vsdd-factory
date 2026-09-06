@@ -168,10 +168,11 @@ pub struct ShardRegistry {
 
 /// Config-load-time errors for the `[[shard]]` registry.
 ///
-/// `MissingShape` (EC-009), `InvalidLowWaterMark` (EC-011), and
-/// `CapExceedsFormulaCeiling` (Postcondition 9 / EC-013) are the three
-/// fail-loud conditions this BC's config surface owns — all three are NEVER
-/// silently defaulted or clamped around.
+/// `MissingShape` (EC-009), `InvalidLowWaterMark` (EC-011),
+/// `CapExceedsFormulaCeiling` (Postcondition 9 / EC-013), and
+/// `InvalidWorstCaseFuelPerByte` (Postcondition 9's divisor-door closure /
+/// EC-015) are fail-loud conditions this BC's config surface owns — all are
+/// NEVER silently defaulted or clamped around.
 #[derive(Debug, Error)]
 pub enum ShardConfigError {
     #[error("shard config read failed: {0}")]
@@ -236,6 +237,34 @@ pub enum ShardConfigError {
         /// the entry's OWN four formula inputs justify.
         computed_ceiling: u64,
     },
+
+    /// EC-015 (BC-1.18.005 v1.10, Postcondition 9's "divisor-door" closure
+    /// sub-bullet): a `[[shard]]` entry declares `worst_case_fuel_per_byte`
+    /// as non-finite (`NaN`, `inf`, `-inf`) or `<= 0.0` (including `0.0`
+    /// itself — the divisor-door case that saturates
+    /// `compute_shard_cap_bytes`'s division to near-`u64::MAX`, defeating
+    /// the `CapExceedsFormulaCeiling` check above for ANY declared
+    /// `shard_cap_bytes`). Fail-loud: rejected BEFORE the cap-vs-formula
+    /// comparison is even attempted. `practical_fuel_ceiling`,
+    /// `max_single_record_bytes`, and `safety_margin` need no analogous
+    /// check — all three are `u64`-typed (TOML excludes non-finite/negative
+    /// values for them) and a degenerate `0` on any of them drives the
+    /// ceiling toward the SAFE direction (0 via `saturating_sub`), never the
+    /// exploitable-widening direction only `worst_case_fuel_per_byte`'s
+    /// `f64` type creates.
+    #[error(
+        "[[shard]] entry for artifact_stem = \"{artifact_stem}\" declares \
+         worst_case_fuel_per_byte = {worst_case_fuel_per_byte}, which must be finite and > 0.0 \
+         (BC-1.18.005 EC-015). Fail-loud: never silently substituted with a default rate, and \
+         the cap-vs-formula comparison (Postcondition 9) is never silently skipped for this \
+         entry."
+    )]
+    InvalidWorstCaseFuelPerByte {
+        /// The offending entry's `artifact_stem`, so the operator can locate it.
+        artifact_stem: String,
+        /// The entry's configured (invalid) `worst_case_fuel_per_byte`.
+        worst_case_fuel_per_byte: f64,
+    },
 }
 
 /// Fail-loud config-load errors surface to the dispatcher's PreToolUse
@@ -272,6 +301,13 @@ impl ShardRegistry {
     ///   (up to and including `N-1`) loads normally (`Ok`) but emits a
     ///   non-fatal `tracing::warn!` amortization advisory (EC-012) — see
     ///   [`validate_low_water_mark`].
+    /// - EVERY entry's `worst_case_fuel_per_byte` MUST be finite and strictly
+    ///   positive (fail-loud [`ShardConfigError::InvalidWorstCaseFuelPerByte`]
+    ///   — EC-015's "divisor-door" closure), checked BEFORE
+    ///   `compute_shard_cap_bytes` is even called for that entry — a `0.0`
+    ///   or non-finite divisor would otherwise saturate the computed ceiling
+    ///   toward `u64::MAX`, defeating the cap-vs-formula check below for ANY
+    ///   declared `shard_cap_bytes`.
     /// - EVERY entry, regardless of `shape`, MUST NOT declare `shard_cap_bytes`
     ///   greater than `compute_shard_cap_bytes(entry.cap_formula_inputs())`
     ///   (fail-loud [`ShardConfigError::CapExceedsFormulaCeiling`] —
@@ -286,6 +322,25 @@ impl ShardRegistry {
             let shape = entry.shape.ok_or_else(|| ShardConfigError::MissingShape {
                 artifact_stem: entry.artifact_stem.clone(),
             })?;
+
+            // EC-015 (Postcondition 9's "divisor-door" closure): validate
+            // BEFORE compute_shard_cap_bytes is called for this entry — a
+            // 0.0 divisor makes the internal division yield +inf, whose
+            // saturating `as u64` cast is u64::MAX, defeating the
+            // cap-vs-formula comparison below for ANY declared
+            // shard_cap_bytes. A NaN divisor is likewise non-finite and
+            // rejected regardless of which direction its own degenerate
+            // arithmetic happens to saturate. practical_fuel_ceiling,
+            // max_single_record_bytes, and safety_margin need no analogous
+            // check (all u64-typed; a degenerate 0 on any of them drives the
+            // ceiling toward the safe direction, never the exploitable one).
+            if !entry.worst_case_fuel_per_byte.is_finite() || entry.worst_case_fuel_per_byte <= 0.0
+            {
+                return Err(ShardConfigError::InvalidWorstCaseFuelPerByte {
+                    artifact_stem: entry.artifact_stem.clone(),
+                    worst_case_fuel_per_byte: entry.worst_case_fuel_per_byte,
+                });
+            }
 
             // Postcondition 9 / EC-013: applies to EVERY entry regardless of
             // `shape` — Postcondition 8 already establishes that
