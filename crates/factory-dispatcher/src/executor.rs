@@ -383,6 +383,53 @@ fn shard_cap_precheck(inputs: &ExecutorInputs<'_>) -> Option<vsdd_hook_sdk::Hook
     ))
 }
 
+/// Synthesize a blocking [`PluginOutcome`] for the native shard-cap gate's
+/// own fail-loud verdict (F-C1-P2-001, S-25.02 Phase F4 LOCAL adversary
+/// pass-2 cluster-1, MEDIUM).
+///
+/// Before this fix, `execute_tiers`'s shard-gate match arm only flipped the
+/// local `block_intent` bool for a `HookResult::Error`/`HookResult::Block`
+/// verdict — it never appended anything to `all_outcomes` (the
+/// `Vec<PluginOutcome>` that becomes `TierExecutionSummary::per_plugin_results`).
+/// `main.rs::extract_block_info` (the TD #71 operator-facing surfacing path)
+/// derives `block_reason` EXCLUSIVELY by scanning `per_plugin_results`, so an
+/// empty tier list (the native gate's own "nothing else runs" shape) meant
+/// `block_reason` was always `""` for a malformed `[[shard]]` config —
+/// silently dropping the artifact_stem + failure-kind diagnostic
+/// `ShardConfigError`'s own `Display` impl already carries.
+///
+/// This synthesizes a `PluginOutcome` shaped exactly like a real WASM
+/// plugin's advisory-block verdict — `stdout` carrying
+/// `{"outcome":"block","reason":"..."}`, `on_error = Block`, `exit_code = 2`
+/// — so it flows through `extract_block_info`'s existing `is_blocking`
+/// check (the `advisory` arm) and `extract_reason_from_outcome`'s existing
+/// JSON-reason parse exactly the way a real plugin's verdict would, with no
+/// parallel surfacing path required. `plugin_name` is `"shard-cap-gate"` so
+/// an operator can distinguish this native gate's own verdict from a WASM
+/// plugin's in `blocking_plugins`. `message` is either `ShardConfigError`'s
+/// own `Display` text (`HookResult::Error` case — already names the
+/// offending `artifact_stem` and the `EC-009`/`EC-011`/`EC-013` BC-1.18.005
+/// failure-kind marker) or a `HookResult::Block`'s `reason` (reserved for a
+/// later cluster's fired-trigger block outcome; `shard_cap_gate_check` does
+/// not construct one today — see `shard_cap_precheck`'s doc comment).
+fn shard_gate_block_outcome(message: String) -> PluginOutcome {
+    let stdout = serde_json::json!({ "outcome": "block", "reason": message }).to_string();
+    PluginOutcome {
+        plugin_name: "shard-cap-gate".to_string(),
+        plugin_version: String::new(),
+        on_error: OnError::Block,
+        result: PluginResult::Ok {
+            exit_code: 2,
+            stdout,
+            stderr: String::new(),
+            elapsed_ms: 0,
+            fuel_consumed: 0,
+        },
+        block_if_marker_fired: false,
+        block_if_marker_fields: None,
+    }
+}
+
 /// Run every tier and return the aggregated summary.
 pub async fn execute_tiers(
     inputs: ExecutorInputs<'_>,
@@ -412,10 +459,21 @@ pub async fn execute_tiers(
     // advisory for a fired trigger (see `shard_manager.rs`) — this match
     // arm is wired now so that hand-off requires no further executor.rs
     // change when those later clusters land.
+    // F-C1-P2-001 fix (S-25.02 Phase F4 LOCAL adversary pass-2 cluster-1,
+    // MEDIUM): a fail-loud verdict here MUST also be appended to
+    // `all_outcomes` (via `shard_gate_block_outcome`) — not just flip
+    // `block_intent` — so `main.rs::extract_block_info`'s scan over
+    // `TierExecutionSummary::per_plugin_results` has something to find. See
+    // `shard_gate_block_outcome`'s doc comment for the full rationale.
     if let Some(shard_gate_result) = shard_cap_precheck(&inputs) {
         match shard_gate_result {
-            vsdd_hook_sdk::HookResult::Error { .. } | vsdd_hook_sdk::HookResult::Block { .. } => {
+            vsdd_hook_sdk::HookResult::Error { message } => {
                 block_intent = true;
+                all_outcomes.push(shard_gate_block_outcome(message));
+            }
+            vsdd_hook_sdk::HookResult::Block { reason } => {
+                block_intent = true;
+                all_outcomes.push(shard_gate_block_outcome(reason));
             }
             vsdd_hook_sdk::HookResult::Continue => {}
         }
