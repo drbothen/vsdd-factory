@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
+version: "1.7"
 status: draft
 producer: product-owner
 timestamp: 2026-09-06T00:00:00Z
@@ -14,7 +14,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/S-25.02-f2-architecture-delta.md
   - .factory/specs/domain-spec/capabilities.md
   - .factory/specs/verification-properties/VP-INDEX.md
-input-hash: "5a9f9fd"
+input-hash: "af83d3c"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -226,6 +226,36 @@ F-S2502-F2-005).
      load ALWAYS succeeds for any value satisfying the numeric constraint — this is the load-time
      equivalent of a lint warning, not a second validation gate.
 
+9. **NEW (S-25.02 Phase F4 LOCAL adversary cluster-1 finding, PC4 load-enforcement-intent
+   question, product-owner adjudication) — load-time fail-loud enforcement of the cap-vs-formula
+   inequality.** `ShardRegistry::load()` MUST, for EVERY `[[shard]]` config entry — regardless of
+   `shape` (Postcondition 8 already establishes that `shard_cap_bytes` bounds an artifact's TOTAL
+   byte footprint as a whole-artifact concern even for the `"frontmatter-changelog-array"` shape,
+   so this check is NOT `"flat"`-shape-only) — independently recompute
+   `compute_shard_cap_bytes(entry.cap_formula_inputs())` from that SAME entry's own four parsed
+   formula inputs (`practical_fuel_ceiling`, `worst_case_fuel_per_byte`, `max_single_record_bytes`,
+   `safety_margin` — Precondition 2, Postcondition 4/6) and compare it against that entry's own
+   declared `shard_cap_bytes`. If `shard_cap_bytes > compute_shard_cap_bytes(entry.cap_formula_inputs())`
+   — the declared cap exceeds what the entry's OWN stated formula inputs justify — `load()` MUST
+   return `HookResult::Error`; it MUST NEVER silently accept the oversized value and MUST NEVER
+   silently clamp `shard_cap_bytes` down to the computed ceiling. This mirrors the fail-loud-at-
+   load-time posture EC-009 (`shape` omission) and EC-011 (`low_water_mark` out of range) already
+   establish for this SAME config surface, extended to the cap-vs-formula relationship. **Adjudication
+   rationale (Reading (B) adopted over Reading (A)):** without this check, a `[[shard]]` entry whose
+   declared `shard_cap_bytes` is set far above its own declared formula ceiling loads silently, and
+   the live per-write gate (Postcondition 3) then honors the too-large cap — reintroducing the exact
+   fuel-exhaustion failure mode BC-1.18.001's sibling Layer-1 fail-closed INDETERMINATE contract
+   exists to prevent (see Related BCs). The four formula inputs are therefore load-bearing
+   configuration at load time, not merely documentary/harness-facing metadata carried for the F4
+   calibration harness's offline use — Postcondition 6's "the formula shape is locked now, the
+   numbers are not" already states that the INEQUALITY itself (not just its eventual F4-locked
+   numeric inputs) is a live constraint of the system today, under the current provisional
+   constants. This is a load-time misconfiguration guard: it protects against a human/config-authoring
+   error in a `[[shard]]` entry's own internally-inconsistent inputs; it does NOT require or perform
+   any re-derivation of the F4 harness's calibration itself (Postcondition 6/7 continue to own
+   HOW the constants are measured; this postcondition only owns verifying INTERNAL CONSISTENCY
+   between a given entry's own declared `shard_cap_bytes` and its own declared four inputs).
+
 ## Invariants
 
 1. **The size check is native code, never a WASM plugin.** No `[[hooks]]` registry entry, no
@@ -276,6 +306,7 @@ F-S2502-F2-005).
 | EC-010 (fix-burst pass-3, F-P3-005) | A `"frontmatter-changelog-array"`-shaped config entry omits `low_water_mark` | Defaults to `floor(N/2)` (Postcondition 8's rotation-target-config bullet) — computed at config-load time, never a hardcoded fallback constant in `shard_manager.rs` |
 | EC-011 (fix-burst pass-3, F-P3-005; scope CORRECTED fix-burst pass-4, F-P4-001, HIGH) | A `"frontmatter-changelog-array"`-shaped config entry declares `low_water_mark >= N` (the `== N` boundary included) or a negative `low_water_mark` | Fail-loud: `HookResult::Error` — the config is treated as malformed and NEVER silently clamped or defaulted around (mirrors EC-009's posture for the `shape` field, extended to this field). Scope is EXACTLY `>= N` or negative — `low_water_mark = N-1` is NOT in this scope; see EC-012 |
 | EC-012 (fix-burst pass-4, F-P4-001, HIGH, ADR-051 v1.4 Decision 14 adjudication Option (b)) | A `"frontmatter-changelog-array"`-shaped config entry declares a legal-but-poorly-amortizing `low_water_mark` in `(floor(N/2), N)`, up to and including the boundary value `N-1` | Loads normally — `Continue`, config load NEVER returns `HookResult::Error` (the value satisfies `0 <= low_water_mark < N`) — but config-load emits a non-fatal `tracing::warn!` amortization advisory citing the configured `(N, low_water_mark)` pair and the resulting amortization factor `N - low_water_mark`, compared against the default's `N - floor(N/2)` amortization |
+| EC-013 (NEW, S-25.02 Phase F4 LOCAL adversary cluster-1 finding, product-owner adjudication) | A `[[shard]]` config entry declares `shard_cap_bytes` GREATER than `compute_shard_cap_bytes(entry.cap_formula_inputs())` — i.e., the declared cap exceeds its own formula-derived ceiling (applies to ANY `shape`, not `"flat"`-only) | Fail-loud: `ShardRegistry::load()` returns `HookResult::Error` — the misconfigured entry is REJECTED; NEVER silently accepted, NEVER silently clamped down to the computed ceiling (Postcondition 9) |
 
 ## Canonical Test Vectors
 
@@ -295,6 +326,8 @@ F-S2502-F2-005).
 | **NEW (fix-burst pass-3, F-P3-005).** `shape="frontmatter-changelog-array"` config entry declares `N=50`, omits `low_water_mark` | `low_water_mark` defaults to `floor(50/2) = 25` at config-load time (EC-010) | edge-case |
 | **NEW (fix-burst pass-3, F-P3-005).** `shape="frontmatter-changelog-array"` config entry declares `N=50`, `low_water_mark=50` (the degenerate `== N` case) or `low_water_mark=-1` (negative) | Fail-loud: `HookResult::Error` in both cases — both values violate `0 <= low_water_mark < N` and are NEVER silently clamped or defaulted around (EC-011). (`low_water_mark=49`, i.e. `N-1`, is a VALID boundary value — `49 < 50` satisfies the constraint — and does NOT fail-loud.) | error |
 | **NEW (fix-burst pass-4, F-P4-001, ADR-051 v1.4 Decision 14 adjudication Option (b)).** `shape="frontmatter-changelog-array"` config entry declares `N=50`, `low_water_mark=49` (i.e. `N-1`) | Loads normally — `Continue`, no `HookResult::Error` (EC-012; `49 < 50` satisfies `0 <= low_water_mark < N`) — config-load emits a non-fatal `tracing::warn!` amortization advisory: amortization factor `N - low_water_mark = 50 - 49 = 1` (rotation fires roughly every 1 write), versus the recommended default `low_water_mark=25`'s amortization factor `50 - 25 = 25` | edge-case |
+| **NEW (S-25.02 Phase F4 LOCAL adversary cluster-1 finding, product-owner adjudication).** `[[shard]]` entry declares `practical_fuel_ceiling=8,000,000`, `worst_case_fuel_per_byte=106.36`, `max_single_record_bytes=16,384`, `safety_margin=8,192` (`compute_shard_cap_bytes(inputs) = 49,152`), and declares `shard_cap_bytes=100,000` (far above its own formula ceiling) | `ShardRegistry::load()` returns `HookResult::Error` (Postcondition 9 / EC-013) — the misconfigured entry is REJECTED; the too-large cap is NEVER loaded and NEVER honored by the live per-write gate | error |
+| **NEW (S-25.02 Phase F4 LOCAL adversary cluster-1 finding, product-owner adjudication).** `[[shard]]` entry declares the SAME four inputs as above (`compute_shard_cap_bytes(inputs) = 49,152`) and `shard_cap_bytes=49,152` (exactly equal to its own formula ceiling) | `ShardRegistry::load()` succeeds (`Ok`) — Postcondition 4's `<=` comparison is inclusive of the boundary (Postcondition 9), mirroring EC-002's inclusive-boundary precedent for the per-write trigger | happy-path |
 
 ## Verification Properties
 
@@ -313,6 +346,17 @@ fix-burst. No property content changed, only the Proof Method column.
 collapsed to ONE row listing its three facets (multi-facet convention — VP-117 is a single
 allocated VP covering all three properties, not three separate VPs). No property content or
 coverage change, only table presentation.
+
+**Adjudication note (S-25.02 Phase F4 LOCAL adversary cluster-1, product-owner, v1.7):** new
+Postcondition 9 / EC-013 (load-time fail-loud enforcement of `shard_cap_bytes <=
+compute_shard_cap_bytes(inputs)`) is a NEW verification obligation not yet covered by VP-116,
+VP-117, or VP-140. Per this BC's own precedent for Postcondition 8 (added at v1.1 without a VP,
+with VP-140 allocated by formal-verifier in a later burst — see the §VP Anchors note below),
+product-owner does NOT allocate a VP number here. **Routed to architect/formal-verifier:** allocate
+a new VP (or extend VP-117's multi-facet unit-test row) covering the Postcondition 9 / EC-013
+config-validation property — `compute_shard_cap_bytes(inputs) >= shard_cap_bytes` boundary-inclusive
+check at `ShardRegistry::load()` time — and propagate to VP-INDEX.md, verification-architecture.md,
+and verification-coverage-matrix.md per `vp_index_is_vp_catalog_source_of_truth` (POLICY 9).
 
 ## Related BCs
 
@@ -419,6 +463,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.7 | 2026-09-06 | product-owner | BC-semantic intent adjudication (S-25.02 Phase F4 LOCAL adversary cluster-1 finding — PC4 load-enforcement-intent question). The cluster-1 implementation (`crates/factory-dispatcher/src/shard_manager.rs`) parses the four cap-formula inputs into `ShardEntry` and computes `compute_shard_cap_bytes()`, but `ShardRegistry::load()` never compared a declared `shard_cap_bytes` against its own entry's formula-derived ceiling — a misconfigured `[[shard]]` entry declaring `shard_cap_bytes` far ABOVE its own formula ceiling would load silently and the live per-write gate would honor the too-large cap, reintroducing the exact fuel-exhaustion failure this BC exists to prevent. ADJUDICATED Reading (B) RUNTIME-ENFORCED over Reading (A) HARNESS-CONSUMED-ONLY: the four inputs are parsed into the SAME `ShardEntry` the live per-write gate consumes (not a separate harness-only config surface), Postcondition 6 already states "the formula shape is locked now" (a live constraint, not merely a future-harness reference), and this BC's own Related BCs section identifies BC-1.18.005 as the mechanism that prevents BC-1.18.001's sibling Layer-1 fail-closed INDETERMINATE contract from firing — an unenforced cap-vs-formula inequality would defeat that stated purpose. Per CLAUDE.md's production-grade default (Rule 1 — no MVP-driven deferrals; a gate that lets an over-cap misconfiguration through silently is a defer-pattern smell), ADDED new Postcondition 9 (load-time fail-loud enforcement of `shard_cap_bytes <= compute_shard_cap_bytes(entry.cap_formula_inputs())` at `ShardRegistry::load()` time, for every `[[shard]]` entry regardless of `shape`, mirroring EC-009/EC-011's established fail-loud-at-load-time posture for this same config surface). ADDED EC-013 (cap exceeds formula ceiling → `HookResult::Error`). ADDED two Canonical Test Vectors (error case: `shard_cap_bytes=100,000` against a `49,152`-byte formula ceiling → `HookResult::Error`; boundary happy-path: `shard_cap_bytes` exactly equal to the formula ceiling → `Ok`, inclusive boundary mirroring EC-002). ADDED an adjudication note under §Verification Properties routing new-VP allocation for Postcondition 9/EC-013 to architect/formal-verifier (no VP number invented by product-owner, per this BC's own Postcondition-8-then-VP-140 precedent). No change to Postconditions 1-8, Invariants, or existing Edge Cases/Canonical Test Vectors — additive only. |
 | 1.6 | 2026-09-06 | product-owner | Surgical parity tidy-up (adversary pass-11 LOW observation — §VP Anchors/§Verification Properties/VP-INDEX sibling parity): the §VP Anchors VP-140 bullet enumerated VP-140's facets (shape-dispatch, item-count off-by-one/EC-008, `low_water_mark` default/EC-010, fail-loud/EC-011) but OMITTED the EC-012 amortization-advisory facet that the v1.5 fix-burst already reconciled into the sibling §Verification Properties table row and that VP-INDEX's own VP-140 entry already carried — a §VP Anchors-only lag (the pass-7 fix swept the table row but not this bullet). APPENDED the EC-012 amortization-advisory facet (`tracing::warn!` fires IFF `low_water_mark > floor(N/2)`; config-load always succeeds for any `0 <= low_water_mark < N` incl. `N-1`) to the §VP Anchors VP-140 bullet, bringing it to parity with the table row and VP-INDEX at five facets. No postcondition, invariant, or contract-behavior change; reference-completeness only. |
 | 1.5 | 2026-09-06 | product-owner | Surgical residual-sweep fix-burst (adversary pass-7 observation — VP-140 row completeness): the §Verification Properties VP-140 row description listed the shape-dispatch, item-count off-by-one (EC-008), and `low_water_mark` default/fail-loud (EC-010/EC-011) facets but OMITTED the EC-012 amortization-advisory facet VP-140 gained at v1.1 (pass-4, F-P4-001, ADR-051 v1.4 Decision 14 Option (b)) — a row-description completeness lag only; the VP↔BC linkage itself was already correct (VP-INDEX.md's own VP-140 row already carries all five facets). APPENDED the amortization-advisory biconditional facet (`tracing::warn!` fires IFF `low_water_mark > floor(N/2)`; config-load always succeeds for any `0 <= low_water_mark < N` incl. `N-1`, EC-012) to the VP-140 row's Property column and Proof Method column (four facets → five facets, matching VP-140 v1.1). No postcondition, invariant, or contract-behavior change; row-description reconciliation only. |
 | 1.4 | 2026-09-06 | product-owner | Fix-burst amendment (adversary pass-4 finding F-P4-001 HIGH, ADR-051 v1.4 Decision 14 ADJUDICATION Option (b), per `.factory/cycles/v1.0-brownfield-backfill/S-25.02-f2-architecture-delta.md` §4d): resolved the live, mutually-unsatisfiable contradiction between Postcondition 8/EC-011 (which folded `low_water_mark = N-1` into the fail-loud `>= N` bucket) and this BC's own Canonical Test Vectors table + VP-140 + VP-125 (which already stated `N-1` is a VALID, non-fail-loud boundary value). Postcondition 8's rotation-target-config bullet: STRUCK the parenthetical `"(including the degenerate N-1)"` from the fail-loud sentence — the fail-loud scope is now stated as EXACTLY `low_water_mark >= N` (the `== N` boundary included) or negative. ADDED a new sentence/bullet: any legal value in `(floor(N/2), N)`, up to and including `N-1`, loads normally (`Continue`, NEVER `HookResult::Error`) but config-load emits a NEW non-fatal `tracing::warn!` amortization advisory citing `(N, low_water_mark)` and the amortization factor `N - low_water_mark`, compared against the default's `N - floor(N/2)`. REWROTE EC-011: struck `"(including the degenerate low_water_mark = N-1)"` from its description (scope narrows to exactly `>= N`/negative; `HookResult::Error` outcome unchanged for that narrowed scope) and added a cross-reference to EC-012. ADDED NEW EC-012 (legal-but-poorly-amortizing `low_water_mark` in `(floor(N/2), N)` incl. `N-1` → loads normally + `tracing::warn!` amortization advisory, never `HookResult::Error`). Canonical Test Vectors: the existing `N=50`/`low_water_mark=49` parenthetical was already correct (no change); ADDED one new row for EC-012 (`N=50`, `low_water_mark=49` → loads, advisory fires with amortization factor 1). The numeric constraint `0 <= low_water_mark < N` itself is UNCHANGED — it was never wrong; only the erroneous "fail-loud on `N-1`" prose is withdrawn. No other BC-1.18.005 wording (Postconditions 1-7, other Edge Cases, VP-140/VP-125 rows, which were already correct) required amendment for this finding. |

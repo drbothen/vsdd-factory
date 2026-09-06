@@ -7442,3 +7442,95 @@ UNCHANGED — this is not an adversary pass. No trajectory-tail drift — unchan
 ### Canonical 6-column row (STATE.md Decisions Log)
 
 | D-1170 | D-1170-S2502-F4-GATE-RESOLVED-INCREMENTAL-BY-BC-CLUSTER | **Human RESOLVED the F4 delivery-sequencing gate — S-25.02's 45-pt Phase F4 (delta-implementation) will be delivered INCREMENTALLY BY BC-CLUSTER (7 sub-cycles, cluster-1 = cap+trigger first), NOT one-shot — Phase F4 CLEARED TO BEGIN** 2026-09-06 (state-manager; single-commit TD-VSDD-053; human-gate-resolution burst — cite-only, NO ADR/BC/VP/STORY content authored). Human resolved the PRIMARY open item carried in the Session Resume Checkpoint §4 since D-1169/F3-close: the F4 delivery-sequencing gate. Decision: deliver the 45-pt story via **seven delivery sub-cycles**, each its own TDD→PR→merge on a `feature/S-25.02-<cluster>` branch, in order: **(1) cap+trigger** (BC-1.18.005; T-1/T-2/T-3; AC-001..005); **(2) roll** (BC-1.18.006; T-4; AC-006..009); **(3) mechanism-A backfill** (BC-1.18.007, BC-1.18.008; T-5/T-6; AC-010..014); **(4) B1 rotation** (BC-1.18.009; T-7/T-8; AC-015..016); **(5) B2 sharding** (BC-1.18.010, BC-1.18.011; T-10/T-11; AC-017..018); **(6) migrations** (BC-1.18.012; T-9; AC-019); **(7) Cohort-B flip** (BC-7.08.001; T-12/T-13; AC-020..022) — **CAPSTONE**, hard-gated on cluster-3 (mechanism-A backfill-split) MERGED (BC-7.08.001 precondition 3 / VP-130) AND on the F4 calibration harness locking the cap constants first. Phase F4 (delta-implementation) is now **CLEARED TO BEGIN**; **cluster-1 (cap+trigger, BC-1.18.005) is first**. `pipeline:` **PAUSED→in_progress**. No BC/VP/STORY/ARCH content changed this burst — all 4 indexes UNCHANGED (BC-INDEX v5.58 / VP-INDEX v3.07 / STORY-INDEX v4.440 / ARCH-INDEX v4.22). BC-5.39.001 cycle-level streak stays 3/3 CONVERGED, UNCHANGED — no adversary pass ran. No trajectory-tail drift — unchanged →0→1→1→1 LENGTH=4. Session Resume Checkpoint replaced (prior SESSION-WRAP-PAUSE-2026-09-06 checkpoint archived verbatim to `cycles/v1.0-brownfield-backfill/session-checkpoints.md`). **NEXT: orchestrator dispatches cluster-1 (cap+trigger, BC-1.18.005) per-story delivery** — worktree → stubs → failing tests → TDD → LOCAL adversary 3-CLEAN → demo → PR → merge. Refs: D-1170, D-1169, S-25.02, BC-1.18.005..012, BC-7.08.001, VP-130. STATE.md v9.89→v9.90. | D-1170 | 2026-09-06 |
+
+## D-1171
+
+**D-1171-S2502-F4-CLUSTER1-PASS1-PC9-SPEC-CASCADE**
+
+Allocated as next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was D-1170
+(this cycle's decision-log.md, D-1170 authored directly the same burst). D-1171 allocated cleanly
+above the true max.
+
+**Summary:** S-25.02 Phase F4 cluster-1 (cap+trigger, BC-1.18.005) LOCAL adversary pass-1 =
+**NOT CLEAN** (3 findings: F-001 HIGH, F-002/F-003 MEDIUM, plus a PC4 load-enforcement-intent
+question that ESCALATED to a spec change). product-owner adjudicated Reading (B) RUNTIME-ENFORCED
+over Reading (A) HARNESS-CONSUMED-ONLY and amended BC-1.18.005 v1.6→v1.7; story-writer propagated
+the amendment into S-25.02 v2.1→v2.2 per POLICY 8. This burst (state-manager) closes the spec-side
+of the cascade with the version/hash/index bookkeeping, in the SAME single commit as the BC and
+story content edits per TD-VSDD-053/the orchestrator's explicit instruction.
+
+### Adjudication (product-owner, 2026-09-06)
+
+PC4 asked whether `ShardRegistry::load()` needs to enforce, at load time, that a `[[shard]]`
+entry's declared `shard_cap_bytes` does not exceed its own formula-derived ceiling
+(`compute_shard_cap_bytes(entry.cap_formula_inputs())`), or whether the four formula inputs are
+purely harness-facing metadata (Reading (A)). ADJUDICATED **Reading (B) RUNTIME-ENFORCED**: the
+four inputs are parsed into the SAME `ShardEntry` the live per-write gate consumes, Postcondition 6
+already states the formula shape is "locked now" (a live constraint), and this BC's own Related BCs
+section identifies BC-1.18.005 as the mechanism preventing BC-1.18.001's sibling Layer-1
+fail-closed INDETERMINATE contract from firing — an unenforced cap-vs-formula inequality would
+defeat that stated purpose. Per CLAUDE.md's production-grade default (no MVP-driven deferrals), this
+is a defect requiring a spec fix, not a documentary note.
+
+### BC-1.18.005 v1.6→v1.7 (product-owner)
+
+Added Postcondition 9: `ShardRegistry::load()` MUST, for EVERY `[[shard]]` entry regardless of
+`shape`, independently recompute `compute_shard_cap_bytes(entry.cap_formula_inputs())` and compare
+it against the entry's own declared `shard_cap_bytes`. A declared cap exceeding the computed
+ceiling MUST return `HookResult::Error` — never silently accepted, never silently clamped. A
+declared cap exactly equal to the computed ceiling loads normally (`Ok`), mirroring EC-002's
+inclusive-boundary precedent. Added EC-013 (cap exceeds ceiling → `HookResult::Error`) and 2 new
+Canonical Test Vectors (error case + inclusive-boundary happy-path). No VP allocated this burst —
+routed to architect/formal-verifier per this BC's own Postcondition-8→VP-140 precedent (added at
+v1.1 without a VP; VP-140 allocated later by formal-verifier).
+
+### S-25.02 v2.1→v2.2 (story-writer)
+
+New AC-023 (traces to BC-1.18.005 postcondition 9, edge case EC-013). New §Edge Cases row EC-025
+(source BC-1.18.005) mirroring EC-013. §Behavioral Contracts table BC-1.18.005 cell v1.6→v1.7.
+T-13's RED-Gate stub-coverage count corrected 22 ACs→23 ACs. §Token Budget nudged
+~72,600/~36%→~73,600/~37% (BC-1.18.005/story-spec context-source lines). `verification_properties:`
+frontmatter UNCHANGED this burst (still VP-116..VP-141, 26 VPs) — AC-023 carries an inline
+VP-deferral note (PC9's VP owed to Phase F6; unit-tested at F4) instead of a frontmatter VP entry.
+
+### State-Manager Bookkeeping (this burst)
+
+- Story `version:` frontmatter 2.1→2.2 (resolves the validate-changelog-monotonicity advisory —
+  frontmatter now matches the story's own top changelog row 2.2 story-writer already added).
+- Input-hashes recomputed via the sanctioned `plugins/vsdd-factory/bin/compute-input-hash --update`:
+  `BC-1.18.005.md` → `af83d3c`; `S-25.02-artifact-sharding-layer2.md` → `36fea89` (BC-1.18.005 is a
+  declared story input and its content changed; the stored `34a9439` was stale). `--check` CLEAN on
+  both; no unrelated repo hashes mass-updated.
+- BC-INDEX v5.58→v5.59: BC-1.18.005 version-cell v1.6→v1.7; `total_bcs` UNCHANGED 2,006 (no new BC
+  registered, version-cell/changelog-cell update only).
+- STORY-INDEX v4.440→v4.441: S-25.02 row BC-1.18.005 cell v1.6→v1.7 + v2.2 narrative.
+
+### Not Changed This Burst
+
+VP-INDEX v3.07 / ARCH-INDEX v4.22 UNCHANGED — PC9/EC-013's formal VP is DEFERRED to Phase F6
+targeted-hardening, mirroring BC-1.18.005's own Postcondition-8→VP-140 precedent; recorded as a new
+OPEN row in STATE.md §Blocking Issues so it is not lost. `total_vps` stays 141, CONFIRMED.
+
+### Cluster-1 Convergence Status
+
+This is a **cluster-1 LOCAL fix-burst, NOT a phase advance** — cluster-1 is NOT yet converged.
+Code-side fixes for F-001 (HIGH)/F-002 (MEDIUM)/F-003 (MEDIUM) remain **IN FLIGHT** on
+`feature/S-25.02-cap-trigger`. BC-5.39.001 LOCAL cluster-1 streak is **0/3** — a separate track from
+the cycle-level 3/3 CONVERGED streak (UNCHANGED), the same convention S-25.01's own LOCAL adversary
+cascade established. `pipeline:` stays `in_progress`. No trajectory-tail drift — unchanged
+→0→1→1→1 LENGTH=4.
+
+### Cycle-Closing Checklist S-7.02
+
+No `[process-gap]` findings from this fix-burst — the 3 adversary findings (F-001/F-002/F-003) are
+content/wiring defects, not process gaps. CONFIRMED.
+
+### Next Steps
+
+1. Implementer closes F-001 (HIGH)/F-002 (MEDIUM)/F-003 (MEDIUM) on `feature/S-25.02-cap-trigger`,
+   implementing the new Postcondition 9 / AC-023 load-time guard alongside the other cluster-1 fixes.
+2. Re-run LOCAL adversary pass-2 (fresh context, frozen worktree) toward BC-5.39.001 3-CLEAN.
+
+### Canonical 6-column row (STATE.md Decisions Log)
+
+| D-1171 | D-1171-S2502-F4-CLUSTER1-PASS1-PC9-SPEC-CASCADE | **S-25.02 Phase F4 cluster-1 (cap+trigger, BC-1.18.005) LOCAL adversary pass-1 = NOT CLEAN (F-001 HIGH, F-002/F-003 MEDIUM) — PC4 load-enforcement-intent question ADJUDICATED Reading (B) RUNTIME-ENFORCED, amending BC-1.18.005 v1.6→v1.7 (new Postcondition 9 + EC-013 + 2 canonical test vectors) and propagating into S-25.02 v2.1→v2.2 (AC-023, EC-025) — spec-side cascade CLOSED this commit** 2026-09-06 (state-manager; single-commit TD-VSDD-053; product-owner authored the BC v1.7 content, story-writer authored the story v2.2 content, state-manager applies the version/hash/index bookkeeping in this SAME commit per the orchestrator's explicit single-commit-per-burst directive). Story `version:` frontmatter 2.1→2.2 (resolves the validate-changelog-monotonicity advisory — frontmatter now matches the story's own top changelog row). Input-hashes recomputed via the sanctioned `compute-input-hash --update`: BC-1.18.005.md → `af83d3c`; S-25.02 story → `36fea89` (BC-1.18.005 is a declared story input and its content changed; the stored `34a9439` was stale). `--check` CLEAN on both. BC-INDEX v5.58→v5.59 (BC-1.18.005 version-cell v1.6→v1.7; `total_bcs` UNCHANGED 2,006 — no new BC registered). STORY-INDEX v4.440→v4.441 (S-25.02 row: BC-1.18.005 cell v1.6→v1.7 + v2.2 narrative). VP-INDEX v3.07 / ARCH-INDEX v4.22 UNCHANGED this burst — PC9/EC-013's formal VP is DEFERRED to Phase F6 targeted-hardening, mirroring BC-1.18.005's own Postcondition-8→VP-140 precedent (unit-tested at F4 in the interim); recorded as a new OPEN Blocking Issues row so it is not lost. This is a **cluster-1 LOCAL fix-burst, NOT a phase advance** — cluster-1 is NOT yet converged: code-side fixes for F-001/F-002/F-003 remain IN FLIGHT on `feature/S-25.02-cap-trigger`. BC-5.39.001 LOCAL cluster-1 streak is 0/3 — a separate track from the cycle-level 3/3 CONVERGED streak (UNCHANGED), same convention S-25.01's own LOCAL adversary cascade established. `pipeline:` stays in_progress. No trajectory-tail drift — unchanged →0→1→1→1 LENGTH=4. Cycle-Closing Checklist S-7.02: no `[process-gap]` findings from this fix-burst — the 3 adversary findings are content/wiring defects, not process gaps — CONFIRMED. **NEXT: implementer closes F-001/F-002/F-003 on `feature/S-25.02-cap-trigger`, then LOCAL adversary pass-2.** Refs: D-1171, D-1170, S-25.02, BC-1.18.005 v1.7, BC-INDEX v5.59, STORY-INDEX v4.441. STATE.md v9.90→v9.91. | D-1171 | 2026-09-06 |
