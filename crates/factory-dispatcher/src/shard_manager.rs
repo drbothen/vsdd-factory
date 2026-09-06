@@ -552,7 +552,17 @@ pub fn read_changelog_item_count(target_path: &Path) -> io::Result<u64> {
         changelog: Option<Vec<serde_norway::Value>>,
     }
 
-    let raw = std::fs::read_to_string(target_path)?;
+    let raw = match std::fs::read_to_string(target_path) {
+        Ok(raw) => raw,
+        // EC-014 (BC-1.18.005 v1.9): a not-yet-existing
+        // "frontmatter-changelog-array"-shaped target file is a legitimate
+        // first-ever Write CREATING it, not a fail-loud condition — treated
+        // as holding 0 existing changelog items, mirroring
+        // current_shard_bytes_flat's EC-004 NotFound->Ok(0) precedent above.
+        // Any OTHER io::Error kind stays fail-loud.
+        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(0),
+        Err(e) => return Err(e),
+    };
     // Opportunistic hardening (S-25.02 Phase F4 LOCAL adversary pass-1
     // cluster-1 observation): tolerate a `---\r\n` (CRLF) opening fence in
     // addition to `---\n`, so a CRLF-line-ended frontmatter file is not
@@ -1280,6 +1290,71 @@ mod tests {
         assert_eq!(
             size, 0,
             "EC-004: first write ever -> current_shard_bytes treated as 0"
+        );
+    }
+
+    // ===================================================================
+    // EC-014 (NEW, S-25.02 Phase F4 LOCAL adversary cluster-1 pass-3
+    // finding F-C1-P3-001, MEDIUM, product-owner adjudication, BC-1.18.005
+    // v1.9) — item-count shape's missing-file graceful degradation,
+    // mirroring EC-004's flat-shape precedent above. NOT fail-loud: a
+    // legitimate first-ever Write that CREATES a not-yet-existing
+    // "frontmatter-changelog-array"-shaped target artifact MUST be treated
+    // as holding 0 existing changelog items, never hard-blocked as
+    // HookResult::Error.
+    // ===================================================================
+
+    #[test]
+    fn test_BC_1_18_005_EC_014_read_changelog_item_count_missing_file_is_ok_zero() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let path = dir.path().join("never-written-index.md");
+        assert!(!path.exists(), "precondition: fixture path must not exist");
+        let count = read_changelog_item_count(&path).expect(
+            "EC-014: a missing frontmatter-changelog-array target file MUST be Ok(0), not an \
+             io::Error — read_changelog_item_count must map io::ErrorKind::NotFound to Ok(0), \
+             mirroring EC-004's current_shard_bytes_flat precedent",
+        );
+        assert_eq!(
+            count, 0,
+            "EC-014: first write ever -> current_item_count treated as 0, mirroring EC-004's \
+             flat-shape missing-file precedent"
+        );
+    }
+
+    #[test]
+    fn test_BC_1_18_005_EC_014_shard_cap_gate_check_create_path_missing_file_continues() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        // Deliberately do NOT create the target file — this is the
+        // first-ever Write that CREATES a new "frontmatter-changelog-array"-
+        // shaped sharded index file, with valid frontmatter (including a
+        // changelog: array) present in the content payload.
+        let target = dir.path().join("BC-INDEX.md");
+        assert!(
+            !target.exists(),
+            "precondition: fixture path must not exist"
+        );
+
+        let mut entry = flat_entry("BC-INDEX", 49_152);
+        entry.shape = Some(ShardShape::FrontmatterChangelogArray);
+        entry.n = Some(50);
+        let registry = ShardRegistry {
+            shards: vec![entry],
+        };
+
+        let content = "---\ntitle: \"BC-INDEX\"\nchangelog:\n  - version: \"1.0\"\n---\n\n# Body\n";
+        let result = shard_cap_gate_check(
+            &registry,
+            "Write",
+            &target,
+            &serde_json::json!({"content": content}),
+        );
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "EC-014: a Write that CREATES a not-yet-existing frontmatter-changelog-array-shaped \
+             target MUST Continue — read_changelog_item_count's NotFound->Ok(0) mapping makes \
+             current_item_count + 1 = 0 + 1 = 1 <= N=50, so the legitimate create is NEVER \
+             hard-blocked as HookResult::Error"
         );
     }
 
