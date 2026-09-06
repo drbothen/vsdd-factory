@@ -782,7 +782,11 @@ architect's authorship input to product-owner, per this dispatch's constraints):
    begins, capture an independent census: the complete set of `BC-X.YY.NNN` IDs present in the
    ORIGINAL (pre-split) `BC-INDEX.md` body (a fresh enumeration, not reused from any cached count),
    cross-checked against `BC-INDEX.md`'s own `total_bcs` frontmatter field (an independent
-   count-oracle, e.g. 1,997 per BC-INDEX v5.50) as a sanity bound. After the split, verify: (a)
+   count-oracle — its value AT MIGRATION TIME, whatever the corpus has grown to by then; `total_bcs`
+   is an actively-incrementing counter this ADR does not pin to a specific historical figure, per
+   the STRUCTURAL-FORM re-grounding convention F-P2-006 already established for BC-1.18.010's own
+   count citation — the migration re-reads the live field at execution time rather than trusting any
+   number written into this ADR's prose) as a sanity bound. After the split, verify: (a)
    every census ID appears in EXACTLY ONE resulting shard file (`shards/BC-INDEX-SS-NN.md`, or a
    sub-shard once second-level splitting applies) — never zero, never two; (b) the union of all
    shard files' row counts equals the pre-split census count exactly; (c) `BC-INDEX.md`'s own body,
@@ -956,7 +960,8 @@ would need to (a) parse and count roughly 1,997 items to evaluate the trigger (a
 to-N read, though still a finite, single-file read — this is a mischaracterization to correct, not
 a fuel-budget hazard, since the check is native code with no fuel budget), and (b), if the trigger
 fires, invoke a SINGLE `rotate_changelog` call moving approximately 1,947 items (down to a
-`keep_recent = N ≈ 50`) into the archive in one operation.
+`keep_recent = low_water_mark ≈ 25`, **CORRECTED, fix-burst pass-3, F-P3-005 — NEVER
+`keep_recent = N`; see Decision 14 below**) into the archive in one operation.
 
 **This is the B1 analogue of the exact gap BC-1.18.008 (mechanism A) and BC-1.18.011 (mechanism B2)
 were each independently created to close, and B1 must not be the one mechanism left to a
@@ -986,10 +991,19 @@ authorship input to product-owner, enumerated in full in the companion F2 archit
    Postcondition 8's "bounded read" characterization true; it is false as a description of the
    COLD state, which this BC exists to eliminate.
 2. Uses the SAME `rotate_changelog` primitive (via the Decision 7 fix-burst's generalized
-   `archive_path`-parameterized call surface) — `keep_recent = N` (the same config value
-   BC-1.18.009 Postcondition 1 introduces) — no new rotation logic, only a governed ONE-TIME CALLER
-   with pre/post verification wrapped around it, mirroring BC-1.18.008's exact relationship to
-   BC-1.18.006's primitives.
+   `archive_path`-parameterized call surface) — **CORRECTED (fix-burst pass-3, F-P3-005, MEDIUM):
+   `keep_recent = low_water_mark`, NEVER `keep_recent = N`.** The v1.2 text's `keep_recent = N`
+   target was withdrawn because it would leave the live sequence at EXACTLY the trigger boundary
+   immediately after this one-time migration completes — the very FIRST ordinary write against
+   `BC-INDEX.md`'s frontmatter after go-live would then re-evaluate `current_item_count + 1 > N`
+   against a count already AT `N` and immediately re-trigger rotation, reproducing from write #1 of
+   the new steady state the exact per-write retrigger pathology Decision 14 exists to eliminate.
+   Migrating to `low_water_mark` (the SAME companion config value Decision 14 introduces for the
+   ongoing per-write gate, BC-1.18.005 Postcondition 8) instead of `N` establishes the steady state
+   at the correct hysteresis floor from the FIRST post-migration write, not merely from the SECOND
+   rotation onward — no new rotation logic, only a governed ONE-TIME CALLER with pre/post
+   verification wrapped around it, mirroring BC-1.18.008's exact relationship to BC-1.18.006's
+   primitives.
 3. **Independent-census integrity check:** capture the exact pre-migration `changelog:` item count
    (a fresh enumeration, not reused from any cached count) BEFORE invoking `rotate_changelog`;
    after it completes, verify `(items retained in the live frontmatter) + (items appended to the
@@ -1025,6 +1039,101 @@ authorship input to product-owner, enumerated in full in the companion F2 archit
 mechanism A has BC-1.18.008, mechanism B2 has BC-1.18.011, and mechanism B1 now has this Decision's
 BC-1.18.012 — no sharded artifact class is left to depend on an ungoverned lazy-first-write
 migration for its largest one-time content displacement.**
+
+### Decision 14 — B1 High-Water/Low-Water Hysteresis for the Item-Count Rotation Target (fix-burst addition, F-P3-005, MEDIUM)
+
+**Problem, traced through one full cycle.** BC-1.18.009 v1.2's rotation step trims the live
+`changelog:` sequence to `N-1` items (calling `rotate_changelog`'s `keep_recent: usize` parameter
+with the value `N-1`), while BC-1.18.005 v1.2's trigger fires at `current_item_count + 1 > N` —
+i.e., exactly when the live count reaches `N`. Following one full rotation cycle: rotation fires
+when the live count reaches `N`, trims to `N-1`, blocks, and the agent retries — landing its own
+prepend and bringing the live count back to exactly `N` again (BC-1.18.009 Postcondition 2 step 4:
+`current_item_count = (N-1)+1 = N`). The VERY NEXT `Edit`/`Write`/`MultiEdit` against
+`BC-INDEX.md`'s frontmatter therefore evaluates the trigger against a live count already AT `N` —
+`N + 1 > N` is true — and rotates again. Because `BC-INDEX.md`'s frontmatter changelog is prepended
+on essentially every burst that amends `BC-INDEX.md` (ADR-049 §Decision 2's own prepend discipline,
+exercised by every POLICY-7/8-propagating burst), this means **every steady-state write to
+`BC-INDEX.md` after the first rotation pays the full block+retry (≈2 dispatch cycles) round-trip
+cost** — directly contradicting this ADR's own "zero added latency for ~99% of writes" framing
+(Decision 1 step 1's zero-cost bypass covers only the UNMATCHED-path case; it does not help here,
+since `BC-INDEX.md` is a matched, and — under 4-index discipline — one of the MOST FREQUENTLY
+written artifacts in the whole pipeline). This is a genuine steady-state design defect in the
+minimal-eviction (trim-by-exactly-one) policy, not a cosmetic one.
+
+**Grounded fix: reuse `rotate_changelog`'s ALREADY-EXISTING `keep_recent: usize` parameter as a
+genuine, independently-configurable low-water floor, distinct from `N-1`.** Direct re-inspection of
+the shipped `pub fn rotate_changelog(path: &Path, cycle_name: &str, keep_recent: usize, mode:
+MigrationMode)` (`crates/last-amended-migrate/src/rotate.rs`) confirms `keep_recent` is ALREADY a
+free parameter, not hardcoded to `N-1` anywhere in the function: its no-op guard is
+`total <= keep_recent` (`rotate_changelog`'s own EC-004), and its retained/moved split
+(`let (keep_items, move_items) = doc.changelog_items_raw.split_at(keep_recent)`, operating on the
+existing newest-first `changelog_items_raw` ordering) already moves exactly "everything older than
+the retained `keep_recent` newest items" to the archive, in order, for ANY `keep_recent` value the
+caller supplies. **Introducing hysteresis therefore requires ZERO new logic in `rotate_changelog` or
+any change to its ordering/content-preservation guarantees — it is purely a call-site config-value
+change** (the gate's B1 handler passes a different, independently-configured number instead of
+`N-1`), staying entirely inside Decision 7's "reuse, never reimplement" boundary and
+BC-1.18.009 Invariant 1's "no new rotation/trim/validate/write logic" constraint.
+
+**High-water/low-water semantics:**
+- **`N` (high-water mark, UNCHANGED — already BC-1.18.005 Postcondition 8's config value)** remains
+  the trigger threshold: rotation fires when `current_item_count + 1 > N`, exactly as today. No
+  change to the trigger condition itself.
+- **`low_water_mark` (NEW config value, sibling to `N` in the same `[[shard]]` config entry, for
+  `shape = "frontmatter-changelog-array"` artifacts)** is the rotation TARGET: when the trigger
+  fires, the gate calls `rotate_changelog(..., keep_recent = low_water_mark, ...)` — NEVER `N-1`.
+  Constraint, fail-loud (mirroring BC-1.18.005 EC-009's "no silent default for a malformed
+  shape-config" posture, extended to this new field): `0 <= low_water_mark < N`, validated at
+  config-load time; a config declaring `low_water_mark >= N` (including the degenerate `N-1`, which
+  would silently reproduce today's withdrawn minimal-eviction behavior) or a negative value is a
+  config error (`HookResult::Error`), never silently clamped or defaulted around.
+- **Default when `low_water_mark` is omitted from config:** `floor(N / 2)`. This is a config
+  DEFAULT, not a hardcoded Rust constant inside `shard_manager.rs` — consistent with BC-1.18.005
+  Invariant 4's "formula inputs are configuration, not embedded constants" discipline, extended to
+  this new field.
+
+**Amortized cost, stated precisely.** After a rotation trims to `low_water_mark` and the retry
+lands (count becomes `low_water_mark + 1`), every subsequent write is a plain `Continue`
+(Postcondition 8's trigger does not fire) until the live count climbs back to `N` — i.e., for
+`N - low_water_mark - 1` additional writes beyond the retry. Rotation (and its expensive block+retry
+round-trip) therefore fires once per `N - low_water_mark` writes to the artifact, amortized — a
+strict, quantified reduction from today's once-per-write. At the recommended default
+`low_water_mark = floor(N/2)`, this is a ~`N/2`-times reduction in block+retry frequency — for the
+illustrative `N ≈ 50` this ADR's own Decision 13 already cites, once per ~25 writes instead of
+every write. The per-rotation-EVENT cost rises correspondingly (each rotation now moves `~N/2`
+items instead of exactly 1), but remains `O(N)` — bounded by the same small, config-driven `N` this
+ADR already treats as a small illustrative constant (tens of items, not thousands) — so the
+batched cost is not a new scalability concern; it trades a fixed per-rotation `O(N)` archive-write
+cost, paid `1/(N - low_water_mark)` as often, for the previous `O(1)`-per-rotation cost paid on
+EVERY write. The thing that amortizes is the actually latency-dominant part this finding
+identifies: the fixed block+retry dispatch round-trip overhead, not the archive-write itself.
+
+**Why mechanism A needs NO analogous change (confirmed, not merely assumed).** Mechanism A's seal
+step (Decision 3, copy-then-atomic-truncate-in-place) has no "trim by one record" concept at all —
+it seals the ENTIRE current shard's content and atomically replaces the canonical file's content
+with EMPTY (0 bytes). This is already the MAXIMAL possible low-water mark for a flat-file artifact
+shape (there is no partial-retention concept analogous to B1's "keep the newest `keep_recent` YAML
+items" for an undifferentiated byte stream — a flat file has no internal record boundary the seal
+step could partially preserve across) — mechanism A's low-water mark is unconditionally `0` after
+every roll, by construction, not by a tunable choice a config value could set differently.
+Consequently, mechanism A's amortization factor is already `shard_cap_bytes / typical_write_size`
+(e.g., ~48 KiB / a few hundred bytes for a typical `decision-log.md` entry — hundreds of writes
+between rolls), far larger than B1's pre-fix one-write amortization, and requires no
+Decision-14-style correction. This asymmetry — mechanism A structurally hysteretic by the shape of
+its seal operation, mechanism B1 requiring an explicit low-water parameter because its shape
+supports partial retention — is the reason F-P3-005 is a B1-only defect, not a two-mechanism one,
+stated here explicitly per this fix-burst's own instruction that the asymmetry be documented rather
+than left for a future reader to independently re-derive.
+
+**Consistency with Decision 13's one-time cold-start migration.** Decision 13 (above) is amended in
+this SAME fix-burst to target `keep_recent = low_water_mark`, not `keep_recent = N`, for the exact
+same reason this Decision exists: migrating the cold-start backfill down to `N` would leave the
+live sequence at the trigger boundary immediately after go-live, and the very first ordinary
+post-migration write would immediately re-trigger rotation — reproducing this Decision's own
+just-closed pathology from write #1 of the new steady state. Both the ongoing per-write gate
+(BC-1.18.009) and the one-time cold-start migration (BC-1.18.012) MUST target the SAME
+`low_water_mark` config value for the corrected steady state to hold from the first post-migration
+write onward, not merely from the second rotation.
 
 ---
 
@@ -1077,6 +1186,20 @@ atomic directory-entry REPLACEMENT, not a delete-then-create — this is the sam
 makes `write_atomic`/`write_indeterminate_marker` safe for every OTHER mutation in this codebase,
 simply applied to "replace with empty content" instead of "replace with new content."
 
+**Why hysteresis (a `low_water_mark` distinct from `N-1`) for B1's rotation target, and why
+mechanism A needs no analogous change (fix-burst, F-P3-005):** trimming to exactly `N-1` on every
+rotation leaves the live sequence back at the trigger boundary (`N`) after the very next successful
+prepend, so every steady-state write after the first rotation re-triggers the block+retry
+round-trip — the opposite of this ADR's own "zero added latency for ~99% of writes" goal for an
+artifact (`BC-INDEX.md`) that is written on essentially every burst. `rotate_changelog`'s
+`keep_recent: usize` parameter is ALREADY free (never hardcoded to `N-1` in the shipped function),
+so batching the eviction down to a configurable low-water floor costs nothing beyond a different
+call-site argument and one new config field — no new rotation logic, no change to
+`rotate_changelog`'s content-preservation or ordering guarantees. Mechanism A needs no equivalent
+because its seal step already truncates the canonical file to fully empty (0 bytes) on every roll —
+the maximal possible low-water mark for an undifferentiated flat-file shape, which has no partial
+per-record retention concept to tune in the first place. See Decision 14 for the full design.
+
 **Why B1's archive path needed a bounded extension, not a forced `cycle_name` (fix-burst,
 F-P2-001):** `rotate_changelog`'s existing `cycle_name`-derived path convention is correct
 and unchanged for its EXISTING (cycle-scoped) callers; forcing a synthetic `cycle_name` for a
@@ -1125,6 +1248,10 @@ preserves both callers' correctness.
 12. **(fix-burst, v1.2)** No sharded artifact class (mechanism A, B1, or B2) is left depending on an
     ungoverned lazy-first-write migration for its largest one-time content displacement (Decision
     13 closes B1's remaining asymmetry with BC-1.18.008/BC-1.18.011).
+13. **(fix-burst, v1.3)** B1's rotation cost now amortizes across a batch of `N - low_water_mark`
+    writes instead of being paid on every single write to `BC-INDEX.md` after the first rotation —
+    closing the steady-state-retrigger defect F-P3-005 identified, with zero new logic in
+    `rotate_changelog` (Decision 14 reuses its already-free `keep_recent` parameter).
 
 ### Negative / Trade-offs
 
@@ -1171,8 +1298,16 @@ preserves both callers' correctness.
    enforcement remains entirely at the `consistency-validator`/adversary-prompt agent level
    (unchanged from Decision 6's existing posture), an explicit, accepted scope boundary rather than
    a gap this ADR silently leaves unaddressed.
+10. **(fix-burst, v1.3)** `low_water_mark` introduces one additional config value per
+    `"frontmatter-changelog-array"`-shaped `[[shard]]` entry, beyond `N` — mitigated by defaulting
+    to `floor(N/2)` when omitted, so an operator who never touches the new field gets a sound
+    hysteresis band automatically, not a required extra configuration burden.
+11. **(fix-burst, v1.3)** Each individual rotation event now moves `~N - low_water_mark` items
+    instead of exactly 1 — a larger, but still `O(N)`-bounded (tens of items, not thousands),
+    per-event archive-write payload, traded against a `(N - low_water_mark)`-times reduction in how
+    often that payload is written at all (Decision 14's amortization analysis).
 
-### Status as of 2026-09-05 (v1.0); fix-burst amendment 2026-09-05 (v1.1); fix-burst amendment 2026-09-05 (v1.2)
+### Status as of 2026-09-05 (v1.0); fix-burst amendment 2026-09-05 (v1.1); fix-burst amendment 2026-09-05 (v1.2); fix-burst amendment 2026-09-05 (v1.3)
 
 Proposed. Not yet human-ratified (POLICY 22). Frontmatter `status: proposed` per this project's
 `create-adr` convention (never `accepted` at authoring time). The Decision 2 calibration
@@ -1228,6 +1363,40 @@ no per-seq shard directory), and authors the new B1 backfill migration BC (illus
 BC-1.18.012); formal-verifier allocates new VP coverage (next free VP-135+ against VP-INDEX v3.03)
 for the staged partial-failure model, the corrected formula/retry contract, and the new migration
 BC — full enumeration in the companion F2 architecture-delta doc §4b.
+
+**v1.3 (this fix burst) resolves a fresh-context adversary pass-3 review's ARCHITECTURE-routed
+findings against v1.2:** F-P3-005 (MEDIUM — B1's minimal-eviction rotation target, trimming to
+exactly `N-1` on every rotation, leaves the live `changelog:` sequence back at the trigger boundary
+after the very next successful prepend, so EVERY steady-state write to `BC-INDEX.md` after the
+first rotation re-triggers a block+retry round-trip, contradicting this ADR's own "zero added
+latency for ~99% of writes" framing for the single hottest 4-index-discipline artifact; resolved by
+new Decision 14, introducing a `low_water_mark` config value — sibling to the unchanged trigger
+threshold `N` — that the gate's rotation step targets instead of `N-1`, reusing `rotate_changelog`'s
+already-free `keep_recent: usize` parameter with zero new rotation/ordering/content-preservation
+logic; default `floor(N/2)` when omitted; rotation now amortizes to once per `N - low_water_mark`
+writes; mechanism A confirmed, not merely assumed, to need no analogous change, since its
+copy-then-atomic-truncate seal already resets the live shard to the maximal possible low-water
+mark — fully empty — on every roll). Decision 13 amended in the SAME burst for consistency: the
+one-time cold-start backfill migration (BC-1.18.012) now targets `keep_recent = low_water_mark`,
+never `keep_recent = N`, so the corrected steady state holds from the FIRST post-migration write,
+not merely from the second rotation onward (an inconsistency this burst caught and closed
+proactively, not itself a separately-numbered finding). F-P3-007 (LOW — Decision 10 Postcondition
+2's independent-census sanity-bound cited a pinned, already-stale illustrative `total_bcs` figure,
+"e.g. 1,997 per BC-INDEX v5.50"; corrected to a structural, count-redacted description — the
+field's value AT MIGRATION TIME, re-read live rather than pinned to a historical snapshot — per
+TD-VSDD-091 and the SAME re-grounding convention F-P2-006 already established for BC-1.18.010's own
+count citation). Status remains PROPOSED — neither finding is a POLICY 22 design-direction
+reversal; both correct v1.2's own stated design intent. Downstream: product-owner rewrites
+BC-1.18.005 (new `low_water_mark` config field declaration + fail-loud validation, Postcondition 8
+amendment; two new Edge Cases), BC-1.18.009 (Postcondition 1's "capped at N most-recent items"
+framing corrected to the fluctuating-between-`low_water_mark+1`-and-`N` hysteresis band;
+Postcondition 2's rotation-target citation corrected from `N-1` to `low_water_mark`;
+retry-instruction text updated; one new Edge Case and Canonical Test Vector demonstrating the
+amortized cadence), and BC-1.18.012 (Decision 13 item 2's `keep_recent` target citation corrected
+from `N` to `low_water_mark`); formal-verifier reviews VP-125/126 fixtures against the
+`low_water_mark`-parameterized `keep_recent` call (the bounded-live-sequence and no-history-loss
+properties still hold structurally; fixtures must assert the post-rotation floor is
+`low_water_mark`, not `N-1`) — full enumeration in the companion F2 architecture-delta doc §4c.
 
 ## Alternatives Considered
 
@@ -1329,6 +1498,17 @@ BC — full enumeration in the companion F2 architecture-delta doc §4b.
   (v1.1 bodies — direct inspection confirming the exact Postcondition/Invariant text this fix-burst's
   findings contradict, grounding the precise rewrite obligations enumerated in the companion F2
   architecture-delta doc §4b).
+- **Fix-burst (v1.3) code re-inspection (2026-09-05), grounding Decision 14:**
+  `crates/last-amended-migrate/src/rotate.rs`'s `rotate_changelog` signature
+  (`keep_recent: usize` — confirmed a genuinely free caller-supplied parameter, never hardcoded to
+  `N-1` anywhere in the function) and its no-op guard (`total <= keep_recent`, `rotate_changelog`'s
+  own EC-004) and retained/moved split
+  (`doc.changelog_items_raw.split_at(keep_recent)`, operating on the existing newest-first ordering)
+  — re-inspected to confirm Decision 14's hysteresis fix requires passing a DIFFERENT numeric value
+  to this ALREADY-EXISTING parameter, not any change to `rotate_changelog`'s own logic, ordering, or
+  content-preservation guarantees. This ADR's own Decision 13 (v1.2 text) was re-inspected in the
+  same pass to find and correct the `keep_recent = N` cold-start-backfill target, which would have
+  reintroduced Decision 14's just-closed pathology from the first post-migration write.
 
 ## Changelog
 
@@ -1337,3 +1517,4 @@ BC — full enumeration in the companion F2 architecture-delta doc §4b.
 | 1.0 | 2026-09-05 | architect | Initial authoring. Layer-2 two-mechanism design (append-log rotation + BC-INDEX structured-catalog sharding) per D-1166 widest-scope human decision. Resolves OQ-2 (stable-current-filename addressing + BC-ID-prefix deterministic addressing), OQ-3 (`/compact-state` gets shard-awareness for free via the native dispatcher-mediated gate), OQ-4 (synthetic calibration harness adopted; provisional constants derived from ADR-042's measured fuel/byte model and direct byte measurements of the live artifacts), OQ-5 (co-amended into ADR-047 in the same burst). Identifies and resolves a structural gap the story draft did not address: `HookResult`'s Continue/Block/Error-only contract makes transparent write-redirection impossible, requiring a block-and-retry roll mechanism instead of silent rotation. Status: proposed, pending F2 human gate.|
 | 1.1 | 2026-09-05 | architect | Fix-burst amendment resolving fresh-context adversary pass-1 findings against v1.0. F-S2502-F2-001 (BLOCKER): Decision 7's B1 sub-mechanism corrected from a double-actor "gate rotates+prepends, then Continue" design (unsound — double-prepend/stale-payload-clobber, the exact hazard BC-1.18.006 forbids) to a single-actor block-and-retry contract structurally identical to mechanism A's (gate performs ONLY the `rotate_changelog` trim, then Blocks with a retry instruction; the agent's own call, original or retried, performs the sole prepend), grounded in direct inspection of `rotate_changelog`'s actual pure-trim signature. F-S2502-F2-002 (HIGH): added Decision 10, a governed one-time migration for the B2 BC-INDEX body split (content-preservation, independent-census, crash-atomicity, rollback, idempotency, covering SS-05/SS-06 second-level sub-splits in the same operation), modeled on BC-1.18.008, with enumerated postcondition obligations for product-owner's new migration BC (illustratively BC-1.18.011). F-S2502-F2-005 (MEDIUM): Decision 1 amended with an explicit trigger-shape dispatch — BC-1.18.005 owns BOTH the byte-size trigger (mechanism A) and the item-count trigger (mechanism B1), with the item-count shape's distinct (bounded-parse, not `stat()`-only) read-cost model documented. F-S2502-F2-008 (MEDIUM): Decision 6 amended with a code-grounded enumeration of every candidate whole-corpus history-scanning validator — `check_d_chain_currency`/`scan_max_d_nnn`/`scan_max_decision_log_id`, `check_decisions_log_monotonicity`, `validate-closes-completeness`'s decision-log arm, `validate-cross-site-correspondence`'s `is_volatile_path`, and Cohort B (`validate-burst-log`/`regression-gate`/`convergence-tracker`) are all verified NOT affected by archival (STATE.md-scoped or correctly current-shard-scoped); POLICY-1 (`append_only_numbering`) enforcement (`consistency-validator`/adversary-prompt, `lint_hook: null`) is identified as the one genuine gap and MUST default to an archive-inclusive whole-corpus scan mode, an explicit carve-out from this Decision's general opt-in-required default. Cosmetic: Decision 3's sort-order rationale corrected (the operative comparison is digit-vs-`m` one byte past the shared `decision-log` prefix, not `.` vs. digit; conclusion unchanged). Status remains PROPOSED — none of these are POLICY 22 reversals.|
 | 1.2 | 2026-09-05 | architect | Fix-burst amendment resolving fresh-context adversary pass-2 findings against v1.1 (all ARCHITECTURE-routed). F-P2-001 (HIGH): Decision 7's B1 archive scheme corrected from an impossible per-`seq` sealed-shard-directory layout to a single evergreen append-file (`.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`), reached via a small, named, bounded extension to `rotate_changelog`'s path-resolution surface (explicit `archive_path` parameter, replacing forced `cycle_name` derivation for non-cycle callers) — grounded in direct re-inspection of `resolve_archive_path`'s actual single-fixed-destination/append/cycle_name-required behavior. F-P2-002 (HIGH): Decision 1 step 3's `projected_size` formula corrected to be tool-discriminated (`Write`: `len(content)` alone; `Edit`/`MultiEdit`: `current_size + net_delta_bytes`, unchanged) — the withdrawn v1.1 formula double-counted a `Write`'s complete content on top of current size; Decision 3's retry wording unified into a single "recompute against post-roll state" instruction for both tool classes, closing the stale-full-payload block/retry deadlock the v1.1 "if Write, retry unchanged" text permitted. F-P2-003 (HIGH): Decision 3's seal mechanism corrected from rename-away (which directly contradicted BC-1.18.006's own Invariant 3 and opened an ENOENT transparency window) to copy-then-atomic-truncate-in-place, reusing only the existing `write_atomic` temp-file-then-rename-ONTO-destination primitive. F-P2-004 (MEDIUM): new Decision 11 adds a staged, crash-recoverable per-write roll sequence with two new self-healing partial-failure error codes (`E-SHD-006` seal-published-but-canonical-not-truncated; `E-SHD-007` canonical-truncated-but-index-not-published), closing the gap between the per-write roll's under-specified atomicity and the one-time migrations' (BC-1.18.008/011) already-rigorous staging+verify+rollback treatment. F-P2-005 (MEDIUM): new Decision 12 makes the append-only-tail assumption underlying the roll/retry contract explicit (grounded in POLICY-1) and specifies the sealed-shard direct-edit escape hatch as the correct, gate-transparent recovery path for a caller needing to touch already-relocated historical content. F-P2-007 (MEDIUM): new Decision 13 requires a governed one-time B1 changelog backfill migration (illustratively BC-1.18.012, modeled on BC-1.18.008) to eliminate B1's cold-start ~1,997-item ungoverned lazy-first-write migration and corrects BC-1.18.005 Postcondition 8's "bounded" claim to distinguish cold-state from steady-state. Status remains PROPOSED — none of these are POLICY 22 reversals; all correct v1.1's own stated design intent against the actual shipped `rotate_changelog`/`write_atomic` implementations. Companion `S-25.02-f2-architecture-delta.md` v1.1→v1.2 (§4b added).|
+| 1.3 | 2026-09-05 | architect | Fix-burst amendment resolving fresh-context adversary pass-3 findings against v1.2 (both ARCHITECTURE-routed). F-P3-005 (MEDIUM): new Decision 14 introduces high-water/low-water hysteresis for B1's item-count rotation target — trimming to exactly `N-1` on every rotation left the live `changelog:` sequence back at the trigger boundary after the very next successful prepend, so EVERY steady-state write to `BC-INDEX.md` re-triggered a block+retry round-trip; corrected by reusing `rotate_changelog`'s already-free `keep_recent: usize` parameter with a NEW sibling config value `low_water_mark` (default `floor(N/2)`, fail-loud-validated `0 <= low_water_mark < N`) instead of `N-1` — zero new rotation/ordering logic, rotation now amortizes to once per `N - low_water_mark` writes. Decision 13 amended for consistency: the one-time cold-start backfill migration now targets `keep_recent = low_water_mark`, never `keep_recent = N`, so the corrected steady state holds from the FIRST post-migration write. Mechanism A confirmed (not merely assumed) to need no analogous change — its copy-then-atomic-truncate seal already resets the live shard to the maximal possible low-water mark (fully empty) on every roll, since a flat-file shape has no partial-retention concept to tune. F-P3-007 (LOW): Decision 10 Postcondition 2's pinned, already-stale illustrative `total_bcs` citation ("e.g. 1,997 per BC-INDEX v5.50") corrected to a structural, count-redacted description per TD-VSDD-091, matching the F-P2-006 re-grounding convention already established for BC-1.18.010. Status remains PROPOSED — neither finding is a POLICY 22 reversal; both correct v1.2's own stated design intent. Companion `S-25.02-f2-architecture-delta.md` v1.2→v1.3 (§4c added).|
