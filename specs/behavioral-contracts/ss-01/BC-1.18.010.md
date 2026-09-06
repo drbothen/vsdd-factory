@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-09-05T00:00:00Z
@@ -11,7 +11,8 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.009.md
-input-hash: "d52ce53"
+  - .factory/specs/verification-properties/VP-INDEX.md
+input-hash: "1ad0839"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -41,7 +42,10 @@ the already-authoritative BC-S-prefix→SS-NN mapping (ARCH-INDEX Subsystem Regi
 index file read is required for the common single-BC-lookup case. Two subsystems (SS-05, SS-06)
 already exceed the provisional cap on their own section size alone and require immediate
 second-level sub-sharding, addressed via a per-subsystem manifest (a manifest read IS required at
-that second level, since sub-shard boundaries are growth-based, not ID-prefix-deterministic).
+that second level, since sub-shard boundaries are growth-based, not ID-prefix-deterministic). A NEW
+sibling BC (BC-1.18.011, added in this fix-burst per F-S2502-F2-002/ADR-051 v1.1 Decision 10)
+governs the ONE-TIME migration from today's monolithic body to this BC's end-state; this BC
+specifies the end-state addressing scheme only, not the transition mechanics.
 
 ## Preconditions
 
@@ -63,6 +67,9 @@ that second level, since sub-shard boundaries are growth-based, not ID-prefix-de
    this split, retains only: `§Summary`, `§Subsystem Shard Manifest` (a new top-level section
    listing all ten shard files and their `sub_sharded` state), and any cross-cutting invariants
    that are not specific to one subsystem — no full per-BC tables remain in `BC-INDEX.md`'s body.
+   The TRANSITION mechanics that produce this end-state from today's monolithic body (content-
+   preservation, independent census, crash-atomicity, rollback) are BC-1.18.011's scope, not this
+   BC's — this BC specifies the end-state shape only.
 
 2. **First-level addressing requires NO index file read.** Any reader wanting `BC-X.YY.NNN`'s row
    computes its shard path directly: `BC-X` → the ARCH-INDEX `BC-S Prefix` mapping → `SS-NN` →
@@ -95,13 +102,14 @@ that second level, since sub-shard boundaries are growth-based, not ID-prefix-de
    boundaries, for any subsystem shard that itself exceeds `shard_cap_bytes`.** SS-05 (Pipeline
    Orchestration, 661 BCs, ~88,695 bytes measured 2026-09-05) and SS-06 (Skill Catalog, 592 BCs,
    ~85,407 bytes) both already exceed the provisional 48 KiB today-cap on their own section size
-   and require immediate second-level sub-sharding at F4 activation. A sub-shard boundary is
-   growth-based (e.g., `shards/BC-INDEX-SS-05.a.md` covering `BC-5.01.001`..`BC-5.30.099`), NOT
-   ID-prefix-deterministic like the first level — so, unlike first-level addressing, a reader
-   needing a specific `BC-5.YY.NNN` row MUST consult `shards/BC-INDEX-SS-05.manifest.toml` to
-   determine which sub-shard (`.a`, `.b`, ...) holds that ID range. This second-level manifest read
-   is the genuine, acknowledged asymmetry with mechanism A's near-zero-cost addressing (ADR-051
-   Consequences §Negative item 2).
+   and require immediate second-level sub-sharding at F4 activation (covered by BC-1.18.011's
+   one-time migration operation — see Related BCs). A sub-shard boundary is growth-based (e.g.,
+   `shards/BC-INDEX-SS-05.a.md` covering `BC-5.01.001`..`BC-5.30.099`), NOT ID-prefix-deterministic
+   like the first level — so, unlike first-level addressing, a reader needing a specific
+   `BC-5.YY.NNN` row MUST consult `shards/BC-INDEX-SS-05.manifest.toml` to determine which
+   sub-shard (`.a`, `.b`, ...) holds that ID range. This second-level manifest read is the genuine,
+   acknowledged asymmetry with mechanism A's near-zero-cost addressing (ADR-051 Consequences
+   §Negative item 2).
    The SAME size-check gate that triggers first-level splitting also triggers second-level
    sub-sharding for every subsystem — SS-05/SS-06 are not hardcoded as the only subsystems that can
    ever need a second level; the other eight subsystems (SS-07 measured at ~39,072 bytes,
@@ -142,7 +150,9 @@ that second level, since sub-shard boundaries are growth-based, not ID-prefix-de
 3. **No BC row is ever present in both `BC-INDEX.md`'s body AND a `shards/BC-INDEX-SS-NN.md` file
    simultaneously.** After the first-level split (Postcondition 1), `BC-INDEX.md`'s body contains
    zero per-BC table rows; every row lives in exactly one shard file (or, post-second-level-split,
-   exactly one sub-shard file).
+   exactly one sub-shard file). BC-1.18.011 governs the one-time transition that establishes this
+   state; this invariant is the STEADY-STATE property BC-1.18.011's own migration-integrity checks
+   verify at transition time.
 4. **Second-level sub-sharding is triggered by the identical size-check mechanism as first-level
    splitting — no separate, differently-calibrated trigger exists for sub-shards.**
 
@@ -172,19 +182,47 @@ that second level, since sub-shard boundaries are growth-based, not ID-prefix-de
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
 | VP-127 | Zero-lookup invariant — first-level shard-path computation for a non-sub-sharded subsystem never reads the shard-manifest file | unit test (mock filesystem read-call counter, assert zero manifest reads for SS-01/02/03/04/07/08/09/10 lookups) |
-| VP-128 | Single-authoritative-row invariant — after the split, no BC ID's row appears in both `BC-INDEX.md`'s body and a shard file | consistency-validator scan (post-split full-corpus scan asserting exactly one row per BC ID across all shard files, zero in `BC-INDEX.md`'s body) |
+| VP-128 | Single-authoritative-row invariant — after the split, no BC ID's row appears in both `BC-INDEX.md`'s body and a shard file | integration test (consistency-validator scan: post-split full-corpus scan asserting exactly one row per BC ID across all shard files, zero in `BC-INDEX.md`'s body) |
 | VP-128 | Mapping-source-of-truth invariant — the BC-S-prefix→SS-NN mapping used by this BC's addressing logic is byte-identical to ARCH-INDEX's own Subsystem Registry `BC-S Prefix` column | integration test (cross-reference `shard_manager.rs`'s mapping table against a parsed ARCH-INDEX Subsystem Registry) |
+
+**Fix-burst note (F-S2502-F2-003):** the single-authoritative-row row's Proof Method previously
+read "consistency-validator scan" without a leading category keyword; normalized to "integration
+test (consistency-validator scan...)" to match VP-INDEX v3.02's authoritative VP-128 = integration
+assignment, consistent with the sibling VP-128 row above. No property content changed.
 
 ## Related BCs
 
 - BC-1.18.006 — this BC's size-check trigger for second-level sub-sharding reuses the SAME native gate (depends on)
 - BC-1.18.009 — sibling mechanism B1 (changelog rotation) targets BC-INDEX's OTHER size driver; both triggered by the same gate (composes with)
 - BC-1.18.005 — the cap formula this BC's sub-sharding trigger reuses unmodified (depends on)
+- BC-1.18.011 — governs the ONE-TIME migration from today's monolithic BC-INDEX body to this BC's end-state addressing scheme; this BC specifies the end-state, BC-1.18.011 specifies the transition (depended on by)
 
 ## Architecture Anchors
 
 - `crates/factory-dispatcher/src/shard_manager.rs` — the "per-subsystem body table" artifact-shape handler for B2's second-level sub-sharding trigger
 - `.factory/specs/architecture/ARCH-INDEX.md` §Subsystem Registry — the authoritative `BC-S Prefix`→`SS-NN` mapping this BC's first-level addressing reuses (POLICY 6)
+
+## SDK Grounding Evidence
+
+Literal stable-anchor greps substantiating this BC's external-artifact claims (POLICY 5;
+no `grep -n` / no file:line citations per TD-VSDD-091):
+
+```
+$ grep -oE "^\| SS-01 Hook Dispatcher Core \| BC-1 \| [0-9]+ \| ss-01/ \|" .factory/specs/behavioral-contracts/BC-INDEX.md
+| SS-01 Hook Dispatcher Core | BC-1 | 133 | ss-01/ |
+```
+
+Confirms the live `### SS-NN`/`BC-INDEX.md` §Summary partition this BC's B2 mechanism shards along
+already exists with the exact `BC-S Prefix`→count→shard-directory shape this BC's Postcondition 1
+assumes.
+
+```
+$ grep -oE "^pub enum HookResult" crates/hook-sdk/src/result.rs
+pub enum HookResult
+```
+
+Confirms the shared SDK contract this BC's second-level sub-sharding trigger (reusing the same
+native gate as BC-1.18.006/009) is bound by.
 
 ## Story Anchor
 
@@ -202,7 +240,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 | Capability Anchor Justification | CAP-043 ("Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle Append-Logs and BC-INDEX Structured-Catalog Sharding") per capabilities.md §CAP-043 — this BC specifies mechanism B2 exactly as CAP-043 describes it: "B2 splits the file's ten already-existing `### SS-NN` per-subsystem body sections into individually-addressable shard files, keyed by the already-authoritative BC-S-prefix→SS-NN mapping... for zero-lookup first-level addressing." |
 | L2 Domain Invariants | none (dispatcher runtime architectural invariant, not an L2 domain-spec DI-NNN) |
 | Architecture Module | SS-01 (Hook Dispatcher Core — `shard_manager.rs` B2 artifact-shape handler) |
-| ADR | ADR-051 §Decision 7 (B2 per-subsystem sharding design); §Decision 8 (shard-manifest schema, reader/writer migration surface); §Rationale ("Why the per-subsystem BC-INDEX partition is not a new invention") |
+| ADR | ADR-051 §Decision 7 (B2 per-subsystem sharding design); §Decision 8 (shard-manifest schema, reader/writer migration surface); §Decision 10 (governed one-time migration, BC-1.18.011); §Rationale ("Why the per-subsystem BC-INDEX partition is not a new invention") |
 | Stories | S-25.02 |
 | Cycle | v1.0-brownfield-backfill (F2 — product-owner spec-evolution burst) |
 | Feature | E-25 — Validation Integrity and Large-Artifact Resilience |
@@ -211,4 +249,5 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.1 | 2026-09-05 | product-owner | Fix-burst amendment (F-S2502-F2-002 + F-S2502-F2-003 + F-S2502-F2-007): Description/Postcondition 1/Invariant 3 amended to cross-reference the new BC-1.18.011 (governed one-time B2 migration BC) — this BC now explicitly states it specifies the END-STATE addressing scheme only, deferring transition mechanics (content-preservation, census, atomicity, rollback) to BC-1.18.011. Added a Related BCs row and an ADR Traceability citation for ADR-051 §Decision 10. VP-128's single-authoritative-row row Proof Method normalized from bare "consistency-validator scan" to "integration test (consistency-validator scan...)" per VP-INDEX v3.02's authoritative method assignment — no property content change. Added `## SDK Grounding Evidence` section. |
 | 1.0 | 2026-09-05 | product-owner | Initial creation (NEW BC, not in the original F1 enumeration — mechanism B2, added per D-1166 human widest-scope decision). Per-subsystem body-table sharding with zero-lookup first-level addressing (BC-S-prefix→SS-NN, reusing ARCH-INDEX's authoritative mapping) and manifest-based second-level sub-sharding for SS-05/SS-06 (both already over cap on section size alone). Enumerated the bounded reader/writer migration surface. CAP-043 capability anchor. ADR-051 §D7/§D8 citations. |

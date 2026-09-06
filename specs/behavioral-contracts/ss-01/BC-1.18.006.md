@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-09-05T00:00:00Z
@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.005.md
   - crates/hook-sdk/src/result.rs
   - .factory/cycles/v1.0-brownfield-backfill/S-25.02-f2-architecture-delta.md
-input-hash: "c344290"
+input-hash: "bdc083d"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -197,6 +197,45 @@ factory-artifacts commit (TD-VSDD-053 alignment).
 - `crates/factory-dispatcher/src/indeterminate_marker.rs` — `write_indeterminate_marker`'s temp-file-then-rename atomic-write pattern, reused for shard-index publication
 - `crates/last-amended-migrate/src/atomic_write.rs` — `write_atomic`, the alternative existing atomic-write primitive this BC's implementation may reuse instead of duplicating `indeterminate_marker.rs`'s
 
+## SDK Grounding Evidence
+
+Literal stable-anchor greps substantiating this BC's external-artifact claims (POLICY 5;
+no `grep -n` / no file:line citations per TD-VSDD-091):
+
+```
+$ grep -oE "^pub enum HookResult" crates/hook-sdk/src/result.rs
+pub enum HookResult
+```
+
+```
+$ grep -oE "^\s*(Continue|Block \{[^}]*\}|Error \{[^}]*\})" crates/hook-sdk/src/result.rs | sed -E 's/^\s+//' | sort -u
+Block { reason: String }
+Continue
+Error { message: String }
+```
+
+Confirms the exact three-variant `HookResult` contract this BC's Precondition 3 and Invariant 1
+depend on — no fourth "redirect" variant exists, grounding the "transparent redirection is
+structurally impossible" claim in the Description.
+
+```
+$ grep -oE "^pub fn write_indeterminate_marker|^pub fn block_if_marker_check|^pub fn should_write_marker" crates/factory-dispatcher/src/indeterminate_marker.rs
+pub fn block_if_marker_check
+pub fn should_write_marker
+pub fn write_indeterminate_marker
+```
+
+Confirms `write_indeterminate_marker`'s existence as the temp-file-then-rename atomic-write
+precedent this BC's Postcondition 1(c) and Architecture Anchors cite.
+
+```
+$ grep -oE "^pub fn write_atomic" crates/last-amended-migrate/src/atomic_write.rs
+pub fn write_atomic
+```
+
+Confirms the alternative atomic-write primitive (`write_atomic`) this BC's Architecture Anchors
+name as a reuse candidate.
+
 ## Story Anchor
 
 S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle Artifacts
@@ -222,4 +261,5 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.1 | 2026-09-05 | product-owner | Fix-burst amendment (F-S2502-F2-007, POLICY 5): added `## SDK Grounding Evidence` section with literal stable-anchor grep output for `HookResult`'s three-variant enum, `write_indeterminate_marker`/`block_if_marker_check`, and `write_atomic`. No postcondition/invariant/VP content change — this BC's contract was confirmed unaffected by the sibling BC-1.18.009 BLOCKER fix (architect: "No change required," F2 architecture-delta §4a). |
 | 1.0 | 2026-09-05 | product-owner | Initial creation. F2 spec-evolution burst, S-25.02 activation. Encodes the CORRECTED block-and-retry roll semantics (per ADR-051's finding that `HookResult`'s Continue/Block/Error contract forbids transparent write-redirection) rather than a transparent-redirect fiction; shard-index schema; stable-current-filename addressing as a structural consequence of the seal mechanism. CAP-043 capability anchor. ADR-051 §D1/§D3/§D4 citations. |

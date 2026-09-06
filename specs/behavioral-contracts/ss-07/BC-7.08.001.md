@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-09-05T00:00:00Z
@@ -14,7 +14,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.008.md
   - plugins/vsdd-factory/hooks-registry.toml
-input-hash: "fcbf3f0"
+input-hash: "482e746"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -151,9 +151,14 @@ merely on the cap-check gate existing) that make this flip safe.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-129 | Bash-arm-exclusion invariant — `validate-burst-log`'s `^Bash$` registry entry's `failure_policy` is never set to `fail-closed` by this BC's implementation | static config-diff check on the `hooks-registry.toml` change (assert the `^Bash$` entry's `failure_policy` field is absent both before and after) |
-| VP-130 | Sequencing-gate invariant — the Cohort B flip's registry change commit never lands before (or in the same commit as) BC-1.18.008's backfill-split completion evidence | integration/process check (CI or PR-template gate requiring the backfill-split PR's merge SHA to be an ancestor of the Cohort B flip PR) |
-| VP-129 | Closed-cohort invariant — exactly three `[[hooks]]` entries carry `failure_policy = "fail-closed"` as an attributable consequence of this BC, matching the named set (`validate-burst-log` Edit/Write/MultiEdit arm, `regression-gate`, `convergence-tracker`) | config audit (grep `hooks-registry.toml` for `failure_policy = "fail-closed"`, cross-reference against BC-1.18.004's Cohort A enumeration plus this BC's Cohort B enumeration — no unattributed entries) |
+| VP-129 | Bash-arm-exclusion invariant — `validate-burst-log`'s `^Bash$` registry entry's `failure_policy` is never set to `fail-closed` by this BC's implementation | static-check (config-diff on the `hooks-registry.toml` change: assert the `^Bash$` entry's `failure_policy` field is absent both before and after) |
+| VP-130 | Sequencing-gate invariant — the Cohort B flip's registry change commit never lands before (or in the same commit as) BC-1.18.008's backfill-split completion evidence | integration test (CI or PR-template gate requiring the backfill-split PR's merge SHA to be an ancestor of the Cohort B flip PR) |
+| VP-129 | Closed-cohort invariant — exactly three `[[hooks]]` entries carry `failure_policy = "fail-closed"` as an attributable consequence of this BC, matching the named set (`validate-burst-log` Edit/Write/MultiEdit arm, `regression-gate`, `convergence-tracker`) | static-check (config audit: grep `hooks-registry.toml` for `failure_policy = "fail-closed"`, cross-reference against BC-1.18.004's Cohort A enumeration plus this BC's Cohort B enumeration — no unattributed entries) |
+
+**Fix-burst note (F-S2502-F2-003):** the closed-cohort row's Proof Method previously read bare
+"config audit" without a leading category keyword; normalized to "static-check (config audit...)"
+per VP-INDEX v3.02's authoritative VP-129 = static-check assignment, matching the sibling VP-129
+row above. No property content changed.
 
 ## Related BCs
 
@@ -168,6 +173,47 @@ merely on the cap-check gate existing) that make this flip safe.
 
 - `plugins/vsdd-factory/hooks-registry.toml` — the three `[[hooks]]` entries (`validate-burst-log` Edit/Write/MultiEdit arm; `regression-gate`; `convergence-tracker`) this BC assigns `failure_policy = "fail-closed"` to
 - `crates/factory-dispatcher/src/executor.rs` — `should_write_marker`/marker-write/gate-arming logic these three validators trigger identically to Cohort A once flipped (no new logic; BC-1.18.001/002 own this)
+
+## SDK Grounding Evidence
+
+Literal stable-anchor greps substantiating this BC's external-artifact claims (POLICY 5;
+no `grep -n` / no file:line citations per TD-VSDD-091):
+
+```
+$ grep -A6 'name = "validate-burst-log"' plugins/vsdd-factory/hooks-registry.toml | grep -E "^tool =|^priority ="
+tool = "^(Edit|Write|MultiEdit)$"
+priority = 152
+tool = "^Bash$"
+priority = 152
+```
+
+```
+$ grep -A5 'name = "convergence-tracker"' plugins/vsdd-factory/hooks-registry.toml | grep -E "^priority =|^plugin ="
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+priority = 210
+```
+
+```
+$ grep -A5 'name = "regression-gate"' plugins/vsdd-factory/hooks-registry.toml | grep -E "^priority =|^on_error ="
+priority = 230
+on_error = "continue"
+```
+
+Confirms the exact registry-entry identities, priorities, and (for `convergence-tracker`) the
+`legacy-bash-adapter.wasm` routing this BC's Postcondition 1 cites verbatim, and confirms both
+`validate-burst-log` registry entries (Edit/Write/MultiEdit and Bash arms) exist as distinct
+entries sharing priority 152 — grounding Invariant 1's "the Bash arm is a SIBLING entry, not the
+same entry" claim.
+
+```
+$ grep -oE "^pub fn write_indeterminate_marker|^pub fn should_write_marker" crates/factory-dispatcher/src/indeterminate_marker.rs
+should_write_marker
+write_indeterminate_marker
+```
+
+Confirms `should_write_marker`/`write_indeterminate_marker` exist as the marker-write logic this
+BC's Postcondition 4 states its flipped validators trigger identically to Cohort A (no new logic
+introduced by this BC).
 
 ## Story Anchor
 
@@ -185,7 +231,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 | Capability Anchor Justification | CAP-041 ("Validation Integrity: INDETERMINATE Outcome, Durable Mutation Marker, and Next-Advance Gate") per capabilities.md §CAP-041 — this BC extends CAP-041's own text verbatim: "For plugins with `failure_policy = 'fail-closed'`..." to a SECOND human-confirmed cohort (Cohort B), using the exact same durable-marker/next-advance-gate mechanism CAP-041 defines; it does not define new INDETERMINATE semantics, only a second cohort assignment gated on CAP-043's shard-bounding postconditions holding. This BC is intentionally anchored to CAP-041 (the INDETERMINATE/fail-closed-assignment capability), not CAP-043 (the shard-sizing capability), because the registry `failure_policy` flip itself — not the shard-size bounding that makes it safe — is what this BC specifies; the shard-bounding precondition is satisfied by BC-1.18.005/006/008 (CAP-043) and cited here as a dependency, not restated as this BC's own capability anchor. |
 | L2 Domain Invariants | none (dispatcher runtime architectural invariant, not an L2 domain-spec DI-NNN) |
 | Architecture Module | SS-07 (Hook Bash Layer — `hooks-registry.toml` routing-table `failure_policy` assignment) |
-| ADR | ADR-051 §Decision 9 (Cohort B fail-closed flip sequencing, corrected); ADR-047 §Decision 8a (Cohort B partition, plugin-name corrected v1.6) and §Decision 8b (ratified future phase); ADR-039 §Decision 3 (calibration-precedes-fail-closed-flip ordering constraint) |
+| ADR | ADR-051 §Decision 9 (Cohort B fail-closed flip sequencing, corrected); ADR-047 §Decision 8a (Cohort B partition, plugin-name corrected) and §Decision 8b (ratified future phase); ADR-039 §Decision 3 (calibration-precedes-fail-closed-flip ordering constraint) |
 | Stories | S-25.02 |
 | Cycle | v1.0-brownfield-backfill (F2 — product-owner spec-evolution burst) |
 | Feature | E-25 — Validation Integrity and Large-Artifact Resilience |
@@ -194,4 +240,5 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.1 | 2026-09-05 | product-owner | Fix-burst amendment (F-S2502-F2-009 + F-S2502-F2-003 + F-S2502-F2-007): Traceability ADR row's `ADR-047 §Decision 8a (Cohort B partition, plugin-name corrected v1.6)` de-loaded of its volatile `v1.6` version pin per TD-VSDD-091/POLICY 19 — the stable `§Decision 8a` section anchor already resolves the citation without the version token, mirroring the CAP-032/`ADR-026` precedent. VP-129's closed-cohort row Proof Method normalized from bare "config audit" to "static-check (config audit...)" per VP-INDEX v3.02's authoritative method assignment (both VP-129 rows now consistently read "static-check") — no property content changed. Added `## SDK Grounding Evidence` section with literal stable-anchor grep output for the three Cohort B registry entries and the marker-write primitives. No postcondition/invariant/scope change. |
 | 1.0 | 2026-09-05 | product-owner | Initial creation. F2 spec-evolution burst, S-25.02 activation. Allocated as BC-7.08.001 (next free SS-07 family slot after the existing BC-7.01–BC-7.07 range; confirmed against BC-INDEX.md and the live `ss-07/` directory listing at authoring time — no collision). Cohort B fail-closed flip for the CORRECTED plugin name `validate-burst-log` (Edit/Write/MultiEdit arm only — explicitly excluding the unrelated `^Bash$` chain-detection arm), `regression-gate`, `convergence-tracker`; hard-gated on BC-1.18.005/006/008's postconditions holding (shard cap enforced, gate live, AND the pre-existing oversized files already backfill-split) per ADR-051 Decision 9's corrected sequencing. CAP-041 capability anchor (extends the INDETERMINATE/fail-closed cohort mechanism to a second, human-confirmed set). ADR-051 §D9 + ADR-047 §D8a/§D8b + ADR-039 §D3 citations. |

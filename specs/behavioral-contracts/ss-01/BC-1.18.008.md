@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-09-05T00:00:00Z
@@ -11,7 +11,8 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.007.md
   - .factory/cycles/v1.0-brownfield-backfill/S-25.02-f1-delta-analysis.md
-input-hash: "2277883"
+  - .factory/specs/verification-properties/VP-INDEX.md
+input-hash: "d7ab601"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -154,20 +155,50 @@ default (no partial/MVP delivery of a shipped feature).
 |--------|----------|-------------|
 | VP-123 | Content-preservation invariant — concatenation of all resulting shards (in `seq` order) plus the final current file reproduces the original monolithic file byte-for-byte | property test / golden-file round-trip against real (or synthetic fixture) monolithic files |
 | VP-123 | Record-integrity invariant — every structural record present in the original file appears in EXACTLY ONE resulting shard | property test (record-count-conservation check against synthetic fixtures with known record counts) |
-| VP-124 | Atomicity-under-interruption invariant — a simulated crash at any point during the split leaves the original file either fully intact or the split fully complete, never a partial/corrupt intermediate state | fault-injection test (simulated crash at each of N write steps; assert post-recovery state is one of the two valid states) |
-| VP-124 | Idempotency invariant — running the backfill-split twice against an already-sharded artifact does not produce duplicate or additional shards | unit test (double-invocation against a fixture with a pre-existing shard-index) |
+| VP-124 | Atomicity-under-interruption invariant — a simulated crash at any point during the split leaves the original file either fully intact or the split fully complete, never a partial/corrupt intermediate state | integration test / fault-injection (simulated crash at each of N write steps; assert post-recovery state is one of the two valid states) |
+| VP-124 | Idempotency invariant — running the backfill-split twice against an already-sharded artifact does not produce duplicate or additional shards | integration test (double-invocation against a fixture with a pre-existing shard-index) |
+
+**Fix-burst note (F-S2502-F2-003):** the second VP-124 row's Proof Method previously read "unit
+test"; reconciled to the authoritative `VP-INDEX.md` v3.02 catalog assignment — VP-124 =
+integration — matching the sibling VP-124 row above. No property content changed.
 
 ## Related BCs
 
 - BC-1.18.005 — this BC applies BC-1.18.005's cap formula retroactively (depends on)
 - BC-1.18.006 — this BC reuses BC-1.18.006's atomic-write and shard-index-schema primitives (depends on)
 - BC-1.18.007 — this BC's output composes immediately with the retention policy if the backfill produces more shards than `retention_count` (depends on)
+- BC-1.18.011 — the B2 BC-INDEX migration mirrors this BC's content-preservation/census/atomicity/rollback governance pattern for a content partition instead of a time partition (related to)
 - BC-7.08.001 — the Cohort B fail-closed flip is gated on THIS BC completing (the existing oversized files must be split before flipping fail-closed, or the flip would immediately re-trigger the exact INDETERMINATE loop Layer 2 exists to eliminate) (depended on by)
 
 ## Architecture Anchors
 
 - `crates/factory-dispatcher/src/shard_manager.rs` — backfill-split entry point, reusing the seal/index-publish primitives
 - `crates/last-amended-migrate/` — the crate's existing one-time-migration pattern (ADR-049's precedent) this BC's operational model follows
+
+## SDK Grounding Evidence
+
+Literal stable-anchor greps substantiating this BC's external-artifact claims (POLICY 5;
+no `grep -n` / no file:line citations per TD-VSDD-091):
+
+```
+$ grep -oE "^pub fn write_atomic" crates/last-amended-migrate/src/atomic_write.rs
+pub fn write_atomic
+```
+
+```
+$ grep -oE "^pub fn rotate_changelog" crates/last-amended-migrate/src/rotate.rs
+pub fn rotate_changelog
+```
+
+Confirms the `last-amended-migrate` crate's existing one-time-migration primitives this BC's
+"applies an existing primitive retroactively, once" pattern (Invariant 1) is modeled on.
+
+```
+$ grep -oE "^pub enum HookResult" crates/hook-sdk/src/result.rs
+pub enum HookResult
+```
+
+Confirms `HookResult::Error` (EC-004's fail-loud abort outcome) is a real SDK contract variant.
 
 ## Story Anchor
 
@@ -194,4 +225,5 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.1 | 2026-09-05 | product-owner | Fix-burst amendment (F-S2502-F2-003 + F-S2502-F2-007): VP-124's idempotency row Proof Method reconciled from "unit test" to "integration" per VP-INDEX v3.02's authoritative method assignment (both VP-124 rows now consistently read "integration test"); the atomicity row's wording tightened to lead with "integration test" for internal consistency. Added `## SDK Grounding Evidence` section with literal stable-anchor grep output for `write_atomic`, `rotate_changelog`, and `HookResult`. No postcondition/invariant content change. Related BCs gained a cross-reference to the new BC-1.18.011 (B2 migration BC modeled on this BC's governance pattern). |
 | 1.0 | 2026-09-05 | product-owner | Initial creation (NEW BC, not in the original F1 enumeration — required per ADR-051 Decision 2's finding that AC-002/AC-003 only gate future writes). One-time backfill-split of the four pre-existing oversized cycle append-log files, record-boundary-safe partitioning, content-preservation verification gate, composition with the retention policy. CAP-043 capability anchor. ADR-051 §D2 citation. |

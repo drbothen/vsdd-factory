@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-09-05T00:00:00Z
@@ -10,7 +10,7 @@ inputs:
   - .factory/specs/architecture/decisions/ADR-051-layer-2-two-mechanism-size-triggered-shard-rotation-append-logs-and-bc-index-sharding.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
   - .factory/specs/architecture/decisions/ADR-047-indeterminate-outcome-model-durable-mutation-marker-next-advance-gate.md
-input-hash: "88179dd"
+input-hash: "9751e3a"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -146,6 +146,32 @@ default whole-corpus validators are honestly `O(active shards)`, not `O(1)` and 
 - `crates/factory-dispatcher/src/shard_manager.rs` — archival-move logic, `retention_count` read from shard-index config
 - `crates/last-amended-migrate/src/atomic_write.rs` / `crates/factory-dispatcher/src/indeterminate_marker.rs` — atomic-write primitives reused for the shard-index update accompanying an archival move
 
+## SDK Grounding Evidence
+
+Literal stable-anchor greps substantiating this BC's external-artifact claims (POLICY 5;
+no `grep -n` / no file:line citations per TD-VSDD-091):
+
+```
+$ grep -oE "^pub fn write_atomic" crates/last-amended-migrate/src/atomic_write.rs
+pub fn write_atomic
+```
+
+```
+$ grep -oE "^pub fn write_indeterminate_marker" crates/factory-dispatcher/src/indeterminate_marker.rs
+pub fn write_indeterminate_marker
+```
+
+Confirms both existing atomic-write primitives this BC's Architecture Anchors name as reuse
+candidates for the shard-index update that accompanies an archival move.
+
+```
+$ grep -oE "^pub enum HookResult" crates/hook-sdk/src/result.rs
+pub enum HookResult
+```
+
+Confirms `HookResult::Error` (EC-005's fail-loud outcome on a missing/corrupt shard-index) is a
+real variant of the SDK contract this BC's error-path edge case relies on.
+
 ## Story Anchor
 
 S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle Artifacts
@@ -171,4 +197,5 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.1 | 2026-09-05 | product-owner | Fix-burst amendment (F-S2502-F2-007, POLICY 5): added `## SDK Grounding Evidence` section with literal stable-anchor grep output for `write_atomic`, `write_indeterminate_marker`, and `HookResult`. No postcondition/invariant/VP content change. |
 | 1.0 | 2026-09-05 | product-owner | Initial creation. F2 spec-evolution burst, S-25.02 activation. Configurable `retention_count`, same-invocation archival move, `path_allow`-preserved-but-default-glob-excluded archive scope, honest O(active-shards) accounting per ADR-047 §8b mandate. CAP-043 capability anchor. ADR-051 §D6 citation. |
