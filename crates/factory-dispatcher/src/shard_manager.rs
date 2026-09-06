@@ -169,10 +169,11 @@ pub struct ShardRegistry {
 /// Config-load-time errors for the `[[shard]]` registry.
 ///
 /// `MissingShape` (EC-009), `InvalidLowWaterMark` (EC-011),
-/// `CapExceedsFormulaCeiling` (Postcondition 9 / EC-013), and
+/// `CapExceedsFormulaCeiling` (Postcondition 9 / EC-013),
 /// `InvalidWorstCaseFuelPerByte` (Postcondition 9's divisor-door closure /
-/// EC-015) are fail-loud conditions this BC's config surface owns — all are
-/// NEVER silently defaulted or clamped around.
+/// EC-015), and `MissingN` (Postcondition 8's load-time `N`-presence
+/// requirement / EC-016) are fail-loud conditions this BC's config surface
+/// owns — all are NEVER silently defaulted or clamped around.
 #[derive(Debug, Error)]
 pub enum ShardConfigError {
     #[error("shard config read failed: {0}")]
@@ -265,6 +266,24 @@ pub enum ShardConfigError {
         /// The entry's configured (invalid) `worst_case_fuel_per_byte`.
         worst_case_fuel_per_byte: f64,
     },
+
+    /// EC-016 (BC-1.18.005 v1.10, Postcondition 8's load-time presence
+    /// requirement for `N`): a `"frontmatter-changelog-array"`-shaped entry
+    /// omits the required `N` item-count trigger threshold. Fail-loud AT
+    /// LOAD TIME (not merely deferred to the first gate-time write against
+    /// the artifact), evaluated BEFORE `low_water_mark` is examined, so an
+    /// entry that also declares an invalid `low_water_mark` is never
+    /// silently accepted merely because `N` happened to be absent.
+    #[error(
+        "[[shard]] entry for artifact_stem = \"{artifact_stem}\" declares \
+         shape = \"frontmatter-changelog-array\" but omits the required `n` item-count trigger \
+         threshold (BC-1.18.005 EC-016). Fail-loud: caught at ShardRegistry::load() time, not \
+         deferred to the first gate-time write against the artifact."
+    )]
+    MissingN {
+        /// The offending entry's `artifact_stem`, so the operator can locate it.
+        artifact_stem: String,
+    },
 }
 
 /// Fail-loud config-load errors surface to the dispatcher's PreToolUse
@@ -301,6 +320,11 @@ impl ShardRegistry {
     ///   (up to and including `N-1`) loads normally (`Ok`) but emits a
     ///   non-fatal `tracing::warn!` amortization advisory (EC-012) — see
     ///   [`validate_low_water_mark`].
+    /// - `"frontmatter-changelog-array"`-shaped entries MUST declare `n`
+    ///   (fail-loud [`ShardConfigError::MissingN`] — EC-016), checked BEFORE
+    ///   `low_water_mark` is examined, so an entry missing `n` AND declaring
+    ///   an out-of-range `low_water_mark` is never silently accepted merely
+    ///   because `n` was absent.
     /// - EVERY entry's `worst_case_fuel_per_byte` MUST be finite and strictly
     ///   positive (fail-loud [`ShardConfigError::InvalidWorstCaseFuelPerByte`]
     ///   — EC-015's "divisor-door" closure), checked BEFORE
@@ -363,24 +387,43 @@ impl ShardRegistry {
             // (EC-010) without ever running the fail-loud/advisory check
             // below (that default is, by construction, never poorly
             // amortizing and never invalid).
-            if shape == ShardShape::FrontmatterChangelogArray
-                && let (Some(n), Some(low_water_mark)) = (entry.n, entry.low_water_mark)
-            {
-                let fires_advisory =
-                    validate_low_water_mark(&entry.artifact_stem, n, low_water_mark)?;
-                if fires_advisory {
-                    let default_low_water_mark = n / 2;
-                    tracing::warn!(
-                        artifact_stem = %entry.artifact_stem,
-                        n,
-                        low_water_mark,
-                        amortization_factor = n.saturating_sub(low_water_mark as u64),
-                        default_low_water_mark,
-                        default_amortization_factor = n.saturating_sub(default_low_water_mark),
-                        "BC-1.18.005 EC-012: configured low_water_mark amortizes rotation \
-                         worse than the recommended default floor(N/2); config load still \
-                         succeeds (non-fatal advisory only)"
-                    );
+            if shape == ShardShape::FrontmatterChangelogArray {
+                // EC-016 (Postcondition 8's load-time presence requirement
+                // for `N`): required for this shape, evaluated BEFORE
+                // low_water_mark is examined — the prior destructure-and-
+                // short-circuit pattern (`if let (Some(n), Some(low_water_
+                // mark)) = ...`) ran NO validation at all when `n` was
+                // `None`, silently letting an entry that ALSO declared an
+                // out-of-range low_water_mark load undetected. Requiring
+                // `n`'s presence as an unconditional, shape-scoped check
+                // first closes that gap structurally: every
+                // FrontmatterChangelogArray entry now either (a) fails loud
+                // here on a missing `n`, or (b) has `n` present, in which
+                // case the existing low_water_mark numeric-range validation
+                // below runs exactly as before.
+                let Some(n) = entry.n else {
+                    return Err(ShardConfigError::MissingN {
+                        artifact_stem: entry.artifact_stem.clone(),
+                    });
+                };
+
+                if let Some(low_water_mark) = entry.low_water_mark {
+                    let fires_advisory =
+                        validate_low_water_mark(&entry.artifact_stem, n, low_water_mark)?;
+                    if fires_advisory {
+                        let default_low_water_mark = n / 2;
+                        tracing::warn!(
+                            artifact_stem = %entry.artifact_stem,
+                            n,
+                            low_water_mark,
+                            amortization_factor = n.saturating_sub(low_water_mark as u64),
+                            default_low_water_mark,
+                            default_amortization_factor = n.saturating_sub(default_low_water_mark),
+                            "BC-1.18.005 EC-012: configured low_water_mark amortizes rotation \
+                             worse than the recommended default floor(N/2); config load still \
+                             succeeds (non-fatal advisory only)"
+                        );
+                    }
                 }
             }
         }
