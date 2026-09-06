@@ -7244,18 +7244,28 @@ the dispatcher-native shard-cap gate) — and RATIFIED the current two-mechanism
 PreToolUse shard-cap gate for the 4 cycle append-logs, plus BC-INDEX two-level structured-catalog
 sharding) as-is, with no further amendment directed. This closes S-25.02 Phase F2.
 
-### Ground-Truth Correction Applied This Burst
+### Ground-Truth Correction Applied This Burst — SUPERSEDED, SEE D-1168
 
-This burst's own dispatch instructions (forwarded through the orchestrator) cited **"ADR-051
-v1.7"** as the delta version. Verified against `specs/architecture/ARCH-INDEX.md`'s changelog: the
-highest ADR-051 version recorded is **v1.5** (the F3 gate-audit justification-only amendment,
-2026-09-06), with `status: proposed` still current in the ADR's own frontmatter — no v1.6/v1.7
-entry exists anywhere in ARCH-INDEX for ADR-051. The incorrect "v1.7" figure is corrected here and
-is NOT propagated into STATE.md, per TD-VSDD-059 paper-fix-detection discipline applied reflexively
-to the dispatching instructions themselves (implementer/dispatch self-disclosure is not
-authoritative; ground truth is read from the artifact, not asserted). The POLICY-22
-proposed→accepted status-flip this ratification unblocks is recorded as an OWED, architect-owned,
-mechanical Drift Item (state-manager cannot edit ADR bodies).
+**[CORRECTED 2026-09-06, D-1168 — this entire subsection was WRONG and is superseded; text below
+preserved verbatim per archival discipline, do not treat as current fact.]** This burst's own
+dispatch instructions (forwarded through the orchestrator) cited **"ADR-051 v1.7"** as the delta
+version. Verified against `specs/architecture/ARCH-INDEX.md`'s changelog: the highest ADR-051
+version recorded is **v1.5** (the F3 gate-audit justification-only amendment, 2026-09-06), with
+`status: proposed` still current in the ADR's own frontmatter — no v1.6/v1.7 entry exists anywhere
+in ARCH-INDEX for ADR-051. The incorrect "v1.7" figure is corrected here and is NOT propagated into
+STATE.md, per TD-VSDD-059 paper-fix-detection discipline applied reflexively to the dispatching
+instructions themselves (implementer/dispatch self-disclosure is not authoritative; ground truth is
+read from the artifact, not asserted). The POLICY-22 proposed→accepted status-flip this ratification
+unblocks is recorded as an OWED, architect-owned, mechanical Drift Item (state-manager cannot edit
+ADR bodies).
+
+**D-1168 ground truth (2026-09-06):** the analysis above read a STALE ARCH-INDEX pointer, not the
+ADR-051 FILE itself, which was already at **v1.7** at F2-close — the dispatch's original "v1.7"
+citation was CORRECT all along, and this burst's rejection of it was the actual error. The architect
+has since (commit `2ce09cb9`) synced ARCH-INDEX to v4.22 and flipped ADR-051 to **v1.8, status:
+accepted**, per the same POLICY-22 human ratification recorded above, matching sibling precedent
+ADR-048/ADR-049/ADR-050/ADR-039. The Drift Item this subsection spawned ("ADR-051 status-flip OWED")
+is RESOLVED/CLOSED per D-1168 — see `.factory/STATE.md` Drift Items table.
 
 ### `[process-gap]` Codified
 
@@ -7272,9 +7282,11 @@ allocated yet) per Canonical Principle Rule 3 — the in-cycle instance is alrea
    populate `behavioral_contracts` [9 BCs] + `verification_properties` [VP-116..140] + `subsystems`
    (+SS-04, pending product-owner CAP-043 disposition); integrate into the dependency graph/wave
    schedule.
-2. Architect flips ADR-051 `status:` proposed→accepted per POLICY 22, now unblocked by this
-   ratification.
+2. ~~Architect flips ADR-051 `status:` proposed→accepted per POLICY 22, now unblocked by this
+   ratification.~~ **DONE — see D-1168.** The architect flipped ADR-051 to v1.8, status: accepted,
+   commit `2ce09cb9`, and synced ARCH-INDEX to v4.22.
 
 ### Canonical 6-column row (STATE.md Decisions Log)
 
-| D-1167 | D-1167-S2502-F2-SPEC-EVOLUTION-CONVERGED-HUMAN-RATIFIED | **S-25.02 F2 (spec-evolution) CONVERGED via a 12-pass fresh-context adversarial cascade plus a consistency-validator gate audit plus a CLEAN input-hash drift check — human RATIFIED the current design as-is 2026-09-06 — F2 COMPLETE, F3 NEXT** 2026-09-06 (state-manager; single-commit TD-VSDD-053). 12-pass ledger: P1 FINDINGS(1B/3H/5M/1L)→P2 FINDINGS(0B/3H/4M/1L)→P3 FINDINGS(0B/2H/3M/3L+[process-gap])→P4 FINDINGS(1H-adj/3M/1L)→P5 CLEAN→P6 FINDINGS(1M/1L)→P7 FINDINGS(1L)→P8 CLEAN(delta)→P9 FINDINGS(1H)→**P10/P11/P12 CLEAN — 3-CONSECUTIVE-CLEAN**. Consistency-validator audit closed F1 (BC-count sync 1,997→2,006) + F3 (ADR-051 SS-04 justification). Input-hash drift CLEAN. Delta: ADR-051 v1.5 (status PROPOSED — POLICY-22 flip OWED, architect; this burst corrects an incorrect "v1.7" dispatch citation against ground truth) + ADR-047 v1.6; ARCH-INDEX v4.21. 9 new BCs (BC-1.18.005..012, BC-7.08.001) + CAP-043; BC-INDEX v5.57 (2,006 BCs). VP-116..140; VP-INDEX v3.06 (140 VPs). All cite-only — NOT re-bumped this burst. STATE.md BC-count citation corrected 1,997→2,006. `[process-gap]` VP-body-same-burst-sweep lesson L-BB-D1167 codified + Drift Item deferral (E-12 follow-up, no ID yet). STORY-INDEX v4.437→v4.438 (S-25.02 → F2-COMPLETE; subsystems SS-05→SS-01/SS-07). `cycles/v1.0-brownfield-backfill/INDEX.md` gains §S-25.02 F2 Adversarial Reviews + Convergence Status. NOT the cycle-level gate — BC-5.39.001 cycle-level streak stays 3/3 CONVERGED, UNCHANGED. No trajectory-tail drift — unchanged →0→1→1→1 LENGTH=4. NEXT: Phase F3 (incremental-stories), story-writer. Refs: D-1167, S-25.02, ADR-051, ADR-047 v1.6, BC-1.18.005..012, BC-7.08.001, VP-116..140. STATE.md v9.85→v9.86. | D-1167 | 2026-09-06 |
+| D-1167 | D-1167-S2502-F2-SPEC-EVOLUTION-CONVERGED-HUMAN-RATIFIED | **S-25.02 F2 (spec-evolution) CONVERGED via a 12-pass fresh-context adversarial cascade plus a consistency-validator gate audit plus a CLEAN input-hash drift check — human RATIFIED the current design as-is 2026-09-06 — F2 COMPLETE, F3 NEXT** 2026-09-06 (state-manager; single-commit TD-VSDD-053). 12-pass ledger: P1 FINDINGS(1B/3H/5M/1L)→P2 FINDINGS(0B/3H/4M/1L)→P3 FINDINGS(0B/2H/3M/3L+[process-gap])→P4 FINDINGS(1H-adj/3M/1L)→P5 CLEAN→P6 FINDINGS(1M/1L)→P7 FINDINGS(1L)→P8 CLEAN(delta)→P9 FINDINGS(1H)→**P10/P11/P12 CLEAN — 3-CONSECUTIVE-CLEAN**. Consistency-validator audit closed F1 (BC-count sync 1,997→2,006) + F3 (ADR-051 SS-04 justification). Input-hash drift CLEAN. Delta: **ADR-051 v1.8, status: accepted** (POLICY 22, human-ratified 2026-09-06 — see D-1168: this row originally read "v1.5, status PROPOSED... corrects an incorrect 'v1.7' dispatch citation", which was WRONG — v1.7 was ground truth) + ADR-047 v1.6; ARCH-INDEX v4.22. 9 new BCs (BC-1.18.005..012, BC-7.08.001) + CAP-043; BC-INDEX v5.57 (2,006 BCs). VP-116..140; VP-INDEX v3.06 (140 VPs). All cite-only — NOT re-bumped this burst. STATE.md BC-count citation corrected 1,997→2,006. `[process-gap]` VP-body-same-burst-sweep lesson L-BB-D1167 codified + Drift Item deferral (E-12 follow-up, no ID yet). STORY-INDEX v4.437→v4.438 (S-25.02 → F2-COMPLETE; subsystems SS-05→SS-01/SS-07). `cycles/v1.0-brownfield-backfill/INDEX.md` gains §S-25.02 F2 Adversarial Reviews + Convergence Status. NOT the cycle-level gate — BC-5.39.001 cycle-level streak stays 3/3 CONVERGED, UNCHANGED. No trajectory-tail drift — unchanged →0→1→1→1 LENGTH=4. NEXT: Phase F3 (incremental-stories), story-writer. Refs: D-1167, D-1168 (correction), S-25.02, ADR-051 v1.8, ADR-047 v1.6, BC-1.18.005..012, BC-7.08.001, VP-116..140. STATE.md v9.85→v9.86. | D-1167 | 2026-09-06 |
+| D-1168 | D-1168-ADR051-VERSION-CORRECTION-PLUS-WORKTREE-HYGIENE | **CORRECTS D-1167 — ADR-051 is v1.8, status: accepted (POLICY 22, human-ratified 2026-09-06), NOT v1.5/PROPOSED as D-1167 wrongly recorded; D-1167's dispute of its own dispatch's correct "v1.7" citation is WITHDRAWN; D-1167's ADR-051 status-flip Drift Item RESOLVED/CLOSED; worktree hygiene** 2026-09-06 (state-manager; single-commit TD-VSDD-053; correction + hygiene burst). D-1167 (factory-artifacts commit `1531149e`) read a STALE ARCH-INDEX pointer, not the ADR-051 FILE, which was already at v1.7 at F2-close. Architect commit `2ce09cb9` synced ARCH-INDEX (now v4.22) and flipped ADR-051 to v1.8, status: accepted, per the POLICY-22 human ratification recorded at D-1167, matching sibling precedent ADR-048/049/050/039. Every STATE.md + this file's D-1167 SoT block location carrying the wrong v1.5/PROPOSED/"v1.7-incorrect" text corrected this burst (narrative + canonical row; original wrong text preserved verbatim inline, marked superseded, per archival discipline). D-1167 Drift Item "ADR-051 status-flip OWED" RESOLVED/CLOSED (DONE) in `.factory/STATE.md`. Worktree hygiene: removed 2 untracked pr-manager transient scratch dirs (`code-delivery/PR-817/`, `code-delivery/fix-register-prd-supplement-path/`, each holding only a `pr-review.md` scratch file for the already-merged PR #817) after confirming no durable content; folded dirty telemetry (`logs/dispatcher-internal-2026-09-06.jsonl`, `sidecar-learning.md`) into this SAME commit so the worktree ends CLEAN. No BC/VP/STORY content changed — BC-INDEX v5.57 / VP-INDEX v3.06 / STORY-INDEX v4.438 UNCHANGED. `pipeline:` stays in_progress. BC-5.39.001 streak stays 3/3 CONVERGED, UNCHANGED — not an adversary pass. No trajectory-tail drift — unchanged →0→1→1→1 LENGTH=4. NEXT: unchanged from D-1167 — story-writer for S-25.02 F3. Refs: D-1167, D-1168, ADR-051 v1.8, ARCH-INDEX v4.22, commit `2ce09cb9`. STATE.md v9.86→v9.87. | D-1168 | 2026-09-06 |
