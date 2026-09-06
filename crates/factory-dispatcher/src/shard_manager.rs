@@ -1842,9 +1842,9 @@ mod tests {
             "F-002: a Write's projected_size = len(content) alone (Postcondition 3 CORRECTED) — \
              current_shard_bytes, and any stat() failure reading it (here ELOOP on a \
              self-referential symlink), is irrelevant to the Write formula and MUST NOT block it. \
-             Today's implementation calls current_shard_bytes_flat() unconditionally BEFORE the \
-             tool-kind match, so this non-NotFound stat error wrongly returns HookResult::Error \
-             even for Write."
+             shard_cap_gate_check's ToolKind::Write arm never calls current_shard_bytes_flat() at \
+             all — that stat() call is pushed down into ONLY the Edit/MultiEdit arms (F-002 fix), \
+             so this non-NotFound stat error on a Write's own target path is never observed."
         );
     }
 
@@ -1880,9 +1880,12 @@ mod tests {
             result.is_err(),
             "PC9/EC-013: an entry declaring shard_cap_bytes (100,000) GREATER than its own \
              compute_shard_cap_bytes(inputs) ceiling (50,640) MUST fail-loud at load() time. \
-             Asserted generically via is_err() — the new ShardConfigError variant this \
-             postcondition requires does not exist yet, so naming it would fail to compile; \
-             load() currently never performs this comparison at all, so this MUST fail today."
+             load() now performs this comparison (ShardConfigError::CapExceedsFormulaCeiling) — \
+             asserted generically via is_err() here since this test's concern is the fail-loud \
+             boundary itself; the sibling test \
+             test_BC_1_18_005_EC_009_load_missing_shape_field_is_fail_loud (and this module's \
+             other EC-009/EC-011 tests) demonstrate the pattern for matching a specific variant \
+             where that additional precision matters."
         );
     }
 
