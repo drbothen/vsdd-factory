@@ -637,6 +637,46 @@ and fixed (full ledger: decision-log.md D-1082..D-1124 (exhaustive)). Nine strea
 set: ADR-046 v1.23 + BC-4.17.001 v1.26 + BC-5.40.001 v1.21 + BC-7.07.001 v1.39 (UNCHANGED since
 pass-59 fix, D-1116). 4-index UNCHANGED: BC v5.18 / VP v2.79 / STORY v4.393 / ARCH v3.94.
 
+## S-25.02 F2 Adversarial Reviews (spec-evolution cascade)
+
+> **Gate:** local-equivalent convergence track for S-25.02 Feature Mode Phase F2 (spec-evolution),
+> same convention as the S-17.05/S-25.01/S-25.04 LOCAL BC-5.39.001 cascades — NOT the cycle-level
+> gate (cycle-level BC-5.39.001 streak stays 3/3 CONVERGED, UNCHANGED throughout this table).
+> Frozen delta: ADR-051 (two-mechanism shard rotation) + co-amended ADR-047 v1.6 erratum;
+> BC-1.18.005..012 (ss-01) + BC-7.08.001 (ss-07); CAP-043; VP-116..140;
+> `verification-architecture.md` / `verification-coverage-matrix.md` / `error-taxonomy.md`.
+> Per-pass reports were returned in-agent, not persisted as separate files this cascade — this
+> table is the compact record; full narrative detail is in `decision-log.md` D-1167.
+
+| Pass | Verdict | Findings | Streak | Notes |
+|------|---------|----------|--------|-------|
+| **1** | **FINDINGS** | 1 BLOCKER + 3 HIGH + 5 MED + 1 LOW | 0/3 | B1 double-prepend blocker (double-actor gate-prepend-then-Continue design withdrawn as unsound; single-actor block-and-retry contract adopted) plus assorted design holes. Fixed same-pass (ADR-051 v1.0→v1.1). |
+| **2** | **FINDINGS** | 0 BLOCKER + 3 HIGH + 4 MED + 1 LOW | 0/3 | `rotate_changelog` archive-scheme layout, `Write`-tool `projected_size` semantics, seal rename-vs-truncate-in-place — grounded in direct re-inspection of shipped `rotate.rs`. Fixed same-pass (ADR-051 v1.1→v1.2). |
+| **3** | **FINDINGS** | 0 BLOCKER + 2 HIGH + 3 MED + 3 LOW | 0/3 | Plus `[process-gap]`: VP body re-review deferred rather than actioned same-burst as the BC/ADR contract changes (see `L-BB-D1167-vp-body-same-burst-sweep-discipline`). Fixed same-pass (ADR-051 v1.2→v1.3). |
+| **4** | **FINDINGS** | 1 HIGH (adjudication) + 3 MED + 1 LOW | 0/3 | `low_water_mark = N-1` legal-vs-fail-loud self-contradiction ADJUDICATED Option (b); comprehensive VP-116..140 sweep this pass closes the pass-3 process-gap. Fixed same-pass (ADR-051 v1.3→v1.4). |
+| **5** | **CLEAN** | 0 blocking at any severity | 0/3 | First CLEAN of the cascade (pre perimeter-fixes). |
+| **6** | **FINDINGS** | 1 MED + 1 LOW | 0/3 | Perimeter-fix residues. Fixed same-pass. |
+| **7** | **FINDINGS** | 1 LOW | 0/3 | N-1 wording straggler from the pass-4 adjudication. Fixed same-pass. |
+| **8** | **CLEAN (delta)** | 0 blocking; 1 non-blocking | 0/3 | Sole item raised was F3-scoped (story frontmatter population), out of F2 perimeter — not a defect. |
+| **9** | **FINDINGS** | 1 HIGH | 0/3 | ARCH-INDEX Subsystem Registry summed 2,002≠2,006; prior burst's DOCUMENTED-AND-DEFERRED stale cells (SS-04/SS-06/SS-08) were a CLAUDE.md Canonical Principle Rule 3/4 defer-pattern for a ~3-integer in-scope fix. Fixed same-pass (SS-04 45→46, SS-06 590→592, SS-08 222→223; ARCH-INDEX v4.20→v4.21), full ten-row sum re-verified against BC-INDEX §Summary + disk. |
+| **10** | **CLEAN** | 0 blocking at any severity | **1/3** | First CLEAN of the post-pass-9 sequence. |
+| **11** | **CLEAN** | 0 blocking; 1 non-blocking LOW | **2/3** | VP-140 §VP Anchors EC-012 parity lag (LOW) closed same-pass, batched per the LOW-only documentary-findings-batching precedent (D-1127). |
+| **12** | **CLEAN** | 0 blocking at any severity | **3/3 — 3-CONSECUTIVE-CLEAN ACHIEVED** | Ground-truthed against the frozen delta's actual shipped implementation surface (`crates/last-amended-migrate/src/rotate.rs`, shard-manager `result.rs`). |
+
+**Convergence Status (S-25.02 F2 spec-evolution cascade): CONVERGED (D-1167, 2026-09-06).**
+3-CONSECUTIVE-CLEAN ACHIEVED (passes 10/11/12); a fresh-context consistency-validator gate audit
+closed F1 (ARCH-INDEX BC-count sync 1,997→2,006) + F3 (ADR-051 `subsystems_affected` SS-04
+justification, adjudicated Option (a)); a CLEAN input-hash drift check confirmed no stale hashes
+across the delta. Human RATIFIED the current two-mechanism shard-rotation design as-is 2026-09-06
+after reviewing the full spec plus simpler/validator-fix alternatives — no further amendment
+directed. **F2 COMPLETE.** 12 total adversarial passes; 5 substantive FINDINGS-then-fixed rounds
+(passes 1/2/3/4/9) plus 2 minor residual-findings rounds (6/7); 5 CLEAN passes (5/8/10/11/12).
+Frozen delta: ADR-051 v1.5 (status remains PROPOSED — POLICY-22 flip OWED, architect) + ADR-047
+v1.6; BC-1.18.005..012 + BC-7.08.001; CAP-043; VP-116..140; BC-INDEX v5.57 (2,006 BCs) / VP-INDEX
+v3.06 (140 VPs) / ARCH-INDEX v4.21 / STORY-INDEX v4.438. This is NOT the cycle-level gate —
+cycle-level BC-5.39.001 streak stays 3/3 CONVERGED, UNCHANGED. Full narrative: `decision-log.md`
+D-1167. **NEXT: Phase F3 (incremental-stories) — story-writer.**
+
 ## Artifact Size Budgets (IP-003 / D-835)
 
 | Artifact | Soft Cap | Hard Cap | Current Lines | Compaction Destination | Codified |
