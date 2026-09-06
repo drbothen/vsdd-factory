@@ -433,43 +433,37 @@ low_water_mark = 50
 
 // ---------------------------------------------------------------------------
 // F-C1-P2-001 (MEDIUM, S-25.02 Phase F4 LOCAL adversary pass-2 cluster-1) —
-// F-001 above already pins that a malformed [[shard]] config's fail-loud
+// F-001 above pins that a malformed [[shard]] config's fail-loud
 // HookResult::Error becomes a blocking dispatch outcome (non-zero exit_code).
-// It does NOT pin that the operator-facing *reason text* — the same
-// artifact_stem-naming, failure-kind-naming message
+// This finding additionally required that the operator-facing *reason
+// text* — the same artifact_stem-naming, failure-kind-naming message
 // `ShardConfigError`'s own `Display` impl already produces (see
 // `shard_manager.rs`'s `MissingShape` / `InvalidLowWaterMark` /
-// `CapExceedsFormulaCeiling` error variants) — actually reaches anywhere an
+// `CapExceedsFormulaCeiling` error variants) — actually reaches somewhere an
 // operator (or `main.rs::extract_block_info`, which scans
 // `TierExecutionSummary::per_plugin_results` for a blocking entry's reason)
 // can see it.
 //
-// Today, `executor.rs::execute_tiers`'s shard-gate match arm only flips the
-// local `block_intent` bool for `HookResult::Error` / `HookResult::Block` —
-// it never appends anything describing the native gate's own verdict to
-// `all_outcomes` (i.e. the `Vec<PluginOutcome>` that becomes
-// `summary.per_plugin_results`). With an empty tier list (as these fixtures
-// use, mirroring the F-001 tests' "reaches the native gate, nothing else
-// runs" shape), `per_plugin_results` is therefore always `[]` regardless of
-// what the native gate decided — `extract_block_info` (main.rs) has nothing
-// to scan and falls back to its empty-string default for both
-// `blocking_plugins` and `block_reason`. An operator seeing
-// `block_intent=true exit_code=2` in the dispatcher's stderr summary line
-// today gets `block_reason=""` for a malformed shard-cap config: the
-// artifact_stem and failure-kind information `ShardConfigError`'s `Display`
-// impl already carries is silently dropped on the floor between
-// `ShardRegistry::load` and the operator.
+// FIXED: `executor.rs`'s `shard_gate_block_outcome` helper, called from the
+// `execute_tiers` match arm on the native gate's verdict, now synthesizes a
+// `PluginOutcome` (shaped like a real WASM plugin's advisory-block verdict,
+// `plugin_name = "shard-cap-gate"`, `stdout` carrying
+// `{"outcome":"block","reason":"..."}`) and appends it to `all_outcomes` for
+// both `HookResult::Error` and `HookResult::Block`. `summary
+// .per_plugin_results` is therefore no longer always `[]` for the native
+// gate's own fail-loud verdict — `main.rs::extract_block_info`'s scan over
+// it now has something to find, so an operator seeing
+// `block_intent=true exit_code=2` gets a non-empty `block_reason` naming
+// both the offending `artifact_stem` and the BC-1.18.005 failure-kind
+// marker.
 //
-// Each test below MUST fail today for exactly that reason: `is_empty()` is
-// asserted false but the Debug-dump of `per_plugin_results` is always the
-// empty-vec text, which contains neither the artifact_stem nor the
-// failure-kind marker. Asserted generically against
+// Each test below is GREEN, asserting against
 // `format!("{:?}", summary.per_plugin_results)` (the same
 // `Vec<PluginOutcome>` structure `main.rs::extract_block_info` reads) rather
 // than against a specific new field name, since `extract_block_info` itself
 // is a private `main.rs` fn not reachable from this integration-test crate,
 // and the exact plumbing shape (a synthetic `PluginOutcome` entry vs. some
-// other channel) is the implementer's call — this test only pins that the
+// other channel) was the implementer's call — these tests only pin that the
 // message ends up SOMEWHERE inside the structure the operator-facing
 // surfacing path already scans.
 // ---------------------------------------------------------------------------
@@ -630,15 +624,20 @@ shape = \"flat\"
 // ---------------------------------------------------------------------------
 // F-C1-P2-004 (LOW, S-25.02 Phase F4 LOCAL adversary pass-2 cluster-1) —
 // negative control proving the native shard-cap gate is PreToolUse-scoped
-// ONLY (BC-1.18.005 Precondition 1). `shard_cap_precheck` (executor.rs)
-// filters on `tool_name` (Edit/Write/MultiEdit) and on `[[shard]]`
-// config-presence — it never reads `event_name` / classifies the dispatch's
-// `EventType` at all, so a PostToolUse Edit/Write/MultiEdit call against a
-// matched, malformed `[[shard]]` entry reaches `ShardRegistry::load` and
-// blocks EXACTLY like a PreToolUse call would (see the F-001 tests above,
-// which omit `event_name` from their payload entirely). This test MUST fail
-// today for that reason: it asserts the PostToolUse call does NOT block,
-// which is false under today's event-blind `shard_cap_precheck`.
+// ONLY (BC-1.18.005 Precondition 1). `shard_cap_precheck` (executor.rs) now
+// reads `event_name` and classifies it via `EventType` (mirroring `main.rs`'s
+// `EventType::from_event_str(&payload.event_name)`) BEFORE the `tool_name` /
+// `[[shard]]` config-presence guards, and short-circuits with `None` (no
+// gate check performed at all) for any dispatch whose `event_name`
+// classifies as something other than `PreToolUse`. A dispatch that omits
+// `event_name` entirely — as the F-001 tests above do — is treated as
+// `PreToolUse`-equivalent for backward compatibility with those
+// pre-existing fixtures; only an EXPLICIT non-`PreToolUse` `event_name`
+// opts a dispatch out. This test is GREEN: a PostToolUse Edit/Write/
+// MultiEdit call against a matched, malformed `[[shard]]` entry now
+// short-circuits before ever reaching `ShardRegistry::load`, and therefore
+// does NOT block, unlike the PreToolUse-equivalent case the F-001 tests
+// exercise.
 // ---------------------------------------------------------------------------
 
 /// Same shape as `inputs_for`, plus an explicit `event_name` field in the
@@ -732,11 +731,11 @@ shard_cap_bytes = 49152
         "BC-1.18.005 Precondition 1: the native shard-cap gate is PreToolUse-scoped ONLY. A \
          PostToolUse Edit call against the SAME malformed [[shard]] config that \
          test_BC_1_18_005_F001_malformed_config_missing_shape_ec009_blocks_dispatch_outcome \
-         proves blocks a PreToolUse-equivalent dispatch MUST NOT be blocked here — the gate \
-         must not even run for a non-PreToolUse event. shard_cap_precheck currently filters on \
-         tool_name and config-presence only, never on event_name/EventType, so this PostToolUse \
-         call reaches ShardRegistry::load exactly like the PreToolUse case and blocks \
-         identically (exit_code=2)."
+         proves blocks a PreToolUse-equivalent dispatch MUST NOT be blocked here. \
+         shard_cap_precheck's event_name guard classifies this PostToolUse call and \
+         short-circuits with None BEFORE the tool_name/config-presence guards and BEFORE \
+         ShardRegistry::load ever runs, so the malformed config is never even loaded for this \
+         event (exit_code=0)."
     );
     assert!(
         !summary.block_intent,

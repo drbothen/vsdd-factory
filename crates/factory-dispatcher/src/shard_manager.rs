@@ -2048,18 +2048,31 @@ mod tests {
         // Postcondition 6's own worked example — see
         // test_BC_1_18_005_PC6_compute_shard_cap_bytes_bc_provisional_worked_example
         // above) — 100,000 is far above its own formula-derived ceiling.
-        let result = ShardRegistry::load(&cfg_path);
-        assert!(
-            result.is_err(),
+        //
+        // TIGHTENED (S-25.02 Phase F4 LOCAL adversary cluster-1 pass-3
+        // finding F-C1-P3-004, OBSERVATION): matches the specific
+        // ShardConfigError::CapExceedsFormulaCeiling variant and its three
+        // fields, aligning with the sibling EC-009/EC-011 unit tests
+        // (test_BC_1_18_005_EC_009_load_missing_shape_field_is_fail_loud,
+        // test_BC_1_18_005_EC_011_load_rejects_low_water_mark_equal_to_n)
+        // that already match their own specific variant rather than a
+        // generic is_err().
+        let err = ShardRegistry::load(&cfg_path).expect_err(
             "PC9/EC-013: an entry declaring shard_cap_bytes (100,000) GREATER than its own \
-             compute_shard_cap_bytes(inputs) ceiling (50,640) MUST fail-loud at load() time. \
-             load() now performs this comparison (ShardConfigError::CapExceedsFormulaCeiling) — \
-             asserted generically via is_err() here since this test's concern is the fail-loud \
-             boundary itself; the sibling test \
-             test_BC_1_18_005_EC_009_load_missing_shape_field_is_fail_loud (and this module's \
-             other EC-009/EC-011 tests) demonstrate the pattern for matching a specific variant \
-             where that additional precision matters."
+             compute_shard_cap_bytes(inputs) ceiling (50,640) MUST fail-loud at load() time",
         );
+        match err {
+            ShardConfigError::CapExceedsFormulaCeiling {
+                artifact_stem,
+                shard_cap_bytes,
+                computed_ceiling,
+            } => {
+                assert_eq!(artifact_stem, "decision-log");
+                assert_eq!(shard_cap_bytes, 100_000);
+                assert_eq!(computed_ceiling, 50_640);
+            }
+            other => panic!("expected CapExceedsFormulaCeiling, got {other:?}"),
+        }
     }
 
     #[test]
