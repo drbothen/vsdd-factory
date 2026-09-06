@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
   - .factory/cycles/v1.0-brownfield-backfill/S-25.02-f2-architecture-delta.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
-input-hash: "a487acb"
+input-hash: "be0ef59"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -181,18 +181,21 @@ size alone and require immediate sub-sharding at the same F4 activation moment.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (pending) | Content-preservation invariant — concatenation of all resulting first-level (and, where applicable, second-level) shard files in `SS-01`..`SS-10` order plus the retained lean top-level body reproduces the original monolithic `BC-INDEX.md` body byte-for-byte, modulo the new `§Subsystem Shard Manifest` section | proptest / golden-file round-trip against the live (or a synthetic fixture) `BC-INDEX.md` body |
-| (pending) | Independent-census integrity invariant — every `BC-X.YY.NNN` ID in the pre-split census appears in EXACTLY ONE post-split shard (or sub-shard) file; the union of all shard row counts equals the pre-split census count; `BC-INDEX.md`'s post-split body contains zero per-BC rows | integration test (full-corpus census comparison against synthetic fixtures with known BC-ID sets, including a duplicated-row negative-control fixture) |
-| (pending) | Atomicity-under-interruption invariant — a simulated crash at any staging step leaves `BC-INDEX.md`'s body either fully original or fully split, never a partial/corrupt intermediate state | fault-injection / integration test (simulated crash at each of N staging steps; assert post-recovery state is one of the two valid states) |
-| (pending) | Idempotency invariant — running the migration twice against an already-split `BC-INDEX.md`, or resuming from a verified-complete staged state, does not re-split, re-duplicate, or corrupt any shard | integration test (double-invocation + resume-from-staged-checkpoint fixtures) |
-| (pending) | SS-05/SS-06 second-level sub-split coverage invariant — the same content-preservation/census/atomicity/rollback obligations hold at the sub-shard level for SS-05 and SS-06 specifically, verified against an independent `BC-5.*`/`BC-6.*`-scoped count | integration test (sub-shard-scoped census comparison for SS-05/SS-06 fixtures) |
-| (pending) | No-new-Cohort-B-dependency invariant — this BC's migration completion is never referenced as a precondition in `hooks-registry.toml`'s `failure_policy` deployment sequencing for `regression-gate`/`convergence-tracker` | static-check (config/PR-template audit confirming BC-7.08.001's gating conditions cite only BC-1.18.005/006/008, never this BC) |
+| VP-132 | Content-preservation invariant — concatenation of all resulting first-level (and, where applicable, second-level) shard files in `SS-01`..`SS-10` order plus the retained lean top-level body reproduces the original monolithic `BC-INDEX.md` body byte-for-byte, modulo the new `§Subsystem Shard Manifest` section | proptest / golden-file round-trip against the live (or a synthetic fixture) `BC-INDEX.md` body |
+| VP-133 | Independent-census integrity invariant — every `BC-X.YY.NNN` ID in the pre-split census appears in EXACTLY ONE post-split shard (or sub-shard) file; the union of all shard row counts equals the pre-split census count; `BC-INDEX.md`'s post-split body contains zero per-BC rows | integration test (full-corpus census comparison against synthetic fixtures with known BC-ID sets, including a duplicated-row negative-control fixture) |
+| VP-133 | Atomicity-under-interruption invariant — a simulated crash at any staging step leaves `BC-INDEX.md`'s body either fully original or fully split, never a partial/corrupt intermediate state | fault-injection / integration test (simulated crash at each of N staging steps; assert post-recovery state is one of the two valid states) |
+| VP-133 | Idempotency invariant — running the migration twice against an already-split `BC-INDEX.md`, or resuming from a verified-complete staged state, does not re-split, re-duplicate, or corrupt any shard | integration test (double-invocation + resume-from-staged-checkpoint fixtures) |
+| VP-133 | SS-05/SS-06 second-level sub-split coverage invariant — the same content-preservation/census/atomicity/rollback obligations hold at the sub-shard level for SS-05 and SS-06 specifically, verified against an independent `BC-5.*`/`BC-6.*`-scoped count | integration test (sub-shard-scoped census comparison for SS-05/SS-06 fixtures) |
+| VP-134 | No-new-Cohort-B-dependency invariant — this BC's migration completion is never referenced as a precondition in `hooks-registry.toml`'s `failure_policy` deployment sequencing for `regression-gate`/`convergence-tracker` | static-check (config/PR-template audit confirming BC-7.08.001's gating conditions cite only BC-1.18.005/006/008, never this BC) |
 
-VP IDs are pending VP-INDEX allocation by formal-verifier (S-25.02 F2 verification-property
-extension follow-on burst). Per the established project convention (e.g. BC-5.39.006's `(pending)`
-rows), this BC's VPs are enumerated here as an explicit input for formal-verifier, analogous to
-VP-123/VP-124 (BC-1.18.008's content-preservation + atomicity/idempotency pair) but keyed to
-BC-INDEX's ID-census model instead of decision-log's byte-count model.
+VP IDs allocated by formal-verifier (S-25.02 F2 verification-property fix-burst; VP-INDEX v3.03):
+**VP-132** (proptest; content-preservation byte-for-byte), **VP-133** (integration; independent-census
+integrity + crash-atomicity + fail-loud rollback E-SHD-005 + idempotency + SS-05/SS-06 sub-split
+census — the four same-method safety obligations consolidated per the single-method-per-VP convention,
+mirroring VP-124), and **VP-134** (static-check; no-new-Cohort-B-dependency). This is the B2 analogue
+of VP-123/VP-124 (BC-1.18.008's content-preservation + atomicity/idempotency pair) but keyed to
+BC-INDEX's ID-census model instead of decision-log's byte-count model. Traceability-reference
+completion only (VP-side of the trace); no BC body/postcondition/version change.
 
 ## Related BCs
 
@@ -252,7 +255,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 ## VP Anchors
 
-- (pending) — formal-verifier allocates new VP-NNN(s) analogous to VP-123/VP-124 (content-preservation + record-integrity; atomicity-under-interruption + idempotency) but keyed to BC-INDEX's ID-census model instead of decision-log's byte-count model, per the F2 architecture-delta doc §4a authorship input for this BC. Six candidate properties are enumerated in `## Verification Properties` above as formal-verifier's starting input.
+- VP-132, VP-133, VP-134 — allocated by formal-verifier (S-25.02 F2 verification-property fix-burst; VP-INDEX v3.03), analogous to VP-123/VP-124 (content-preservation + record-integrity; atomicity-under-interruption + idempotency) but keyed to BC-INDEX's ID-census model instead of decision-log's byte-count model, per the F2 architecture-delta doc §4a authorship input for this BC. VP-132 (proptest; content-preservation byte-for-byte), VP-133 (integration; independent-census integrity + crash-atomicity + fail-loud rollback E-SHD-005 + idempotency + SS-05/SS-06 second-level sub-split census — four same-method obligations consolidated per the single-method-per-VP convention), VP-134 (static-check; no-new-Cohort-B-dependency). The six candidate properties enumerated in `## Verification Properties` above map to these three VPs: candidate 1 → VP-132; candidates 2/3/4/5 → VP-133; candidate 6 → VP-134.
 
 ## Traceability
 
