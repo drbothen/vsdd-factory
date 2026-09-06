@@ -14,7 +14,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.005.md
   - .factory/cycles/v1.0-brownfield-backfill/S-25.02-f2-architecture-delta.md
-input-hash: "574d8b7"
+input-hash: "14b0031"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -219,13 +219,16 @@ write, no exception carved out for B1.
 | VP-126 | No-reimplementation-and-no-gate-side-prepend invariant — `shard_manager.rs`'s B1 handler contains no changelog-rotation logic other than a call into `rotate_changelog`, and contains ZERO call sites for `prepend_changelog_item` (fix-burst-strengthened per F-S2502-F2-001) | code-review / static-analysis check (grep for duplicated rotation logic AND for any `prepend_changelog_item` call site inside the B1 handler) |
 | VP-125 | Bounded-live-sequence invariant — after any sequence of prepends, the live frontmatter `changelog:` sequence never exceeds N items | proptest (arbitrary prepend sequences; property: `len(changelog) <= N` after every operation) |
 | VP-125 | No-history-loss invariant — every `changelog:` item ever prepended remains recoverable (live or in a sealed shard) | proptest (arbitrary prepend sequences; property: total recoverable item count is monotonically non-decreasing and equals the total prepend count) |
+| VP-131 | Fail-loud rotate_changelog-failure invariant — a `rotate_changelog` invocation failure returns `HookResult::Error` (`E-SHD-004`), never `Block`/`Continue`, and leaves the live `changelog:` sequence byte-identical to its pre-rotation state (EC-003, Postcondition 6) | unit test (injected `rotate_changelog`-failure FS — disk-full/permission; assert `Error` variant naming artifact + failing op, and pre-rotation state preserved) |
 
 **Fix-burst note (F-S2502-F2-001):** formal-verifier should review VP-125/VP-126 against this BC's
 corrected contract — the "bounded-live-sequence" and "no-history-loss" properties still hold
 structurally, but any proptest/static-analysis harness must now model TWO tool-call events (block,
 then retry) for the over-N case, not one, and VP-126's static scan must additionally assert zero
 `prepend_changelog_item` call sites in the gate's own code (not yet re-verified against VP bodies
-in this burst — VP body edits are formal-verifier's domain).
+in this burst — VP body edits are formal-verifier's domain). VP-131 (new in the S-25.02 F2
+verification-property fix-burst, VP-INDEX v3.03) closes the EC-003/Postcondition-6 fail-loud gap
+symmetric with VP-120/VP-122/VP-124's mechanism-A fail-loud legs (F-S2502-F2-004).
 
 ## Related BCs
 
@@ -292,7 +295,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 ## VP Anchors
 
-- VP-125, VP-126 — allocated by formal-verifier (S-25.02 F2 verification-property extension burst; VP-INDEX v3.02). VP-125 (proptest; bounded live changelog: sequence + no-history-loss), VP-126 (static-check; rotate_changelog reuse — no reimplemented rotation logic, and post-fix-burst, no gate-side `prepend_changelog_item` call site). VP-125/126 bodies flagged for formal-verifier re-review against this BC's v1.1 corrected contract (fix-burst note above) — not yet actioned in this burst.
+- VP-125, VP-126, VP-131 — allocated by formal-verifier (VP-125/126: S-25.02 F2 verification-property extension burst, VP-INDEX v3.02; VP-131: S-25.02 F2 verification-property fix-burst, VP-INDEX v3.03, F-S2502-F2-004). VP-125 (proptest; bounded live changelog: sequence + no-history-loss), VP-126 (static-check; rotate_changelog reuse — no reimplemented rotation logic, and post-fix-burst, no gate-side `prepend_changelog_item` call site), VP-131 (unit-test; EC-003/Postcondition 6 fail-loud rotate_changelog failure, `E-SHD-004` — symmetric with VP-120/VP-122/VP-124's mechanism-A fail-loud legs). VP-125/126 bodies flagged for formal-verifier re-review against this BC's v1.1 corrected contract (fix-burst note above) — not yet actioned in this burst.
 
 ## Traceability
 
