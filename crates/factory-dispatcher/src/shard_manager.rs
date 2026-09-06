@@ -948,6 +948,20 @@ pub fn shard_cap_gate_check(
             HookResult::Continue
         }
         ShardShape::FrontmatterChangelogArray => {
+            // O-C1-P4-001 (LOW, S-25.02 Phase F4 LOCAL adversary cluster-1
+            // pass-4 observation): mirror the "flat" arm's
+            // ToolKind::from_tool_name early-Continue guard here, so a
+            // non-Edit/Write/MultiEdit tool_name never reads the target
+            // file. Benign in production today (executor.rs's caller
+            // already pre-filters to mutating tools before this function is
+            // reached at all) but restores internal symmetry between the
+            // two shape arms and avoids surfacing a spurious
+            // HookResult::Error for a non-mutating tool call that happens
+            // to hit a malformed/unreadable frontmatter fence.
+            if ToolKind::from_tool_name(tool_name).is_none() {
+                return HookResult::Continue;
+            }
+
             // Postcondition 8's item-count trigger is state-based (current
             // item count in the file on disk), not payload-based — every
             // candidate tool call is evaluated identically regardless of
