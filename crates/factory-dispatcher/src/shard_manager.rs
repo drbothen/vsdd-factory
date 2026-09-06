@@ -645,14 +645,173 @@ pub fn shard_cap_gate_check(
     target_path: &Path,
     tool_input: &serde_json::Value,
 ) -> HookResult {
-    todo!(
-        "BC-1.18.005 Invariant 1 / T-2: native PreToolUse shard-cap gate entry point. \
-         Dispatch order: find_matching_entry (Postcondition 1 zero-cost bypass) -> \
-         shape dispatch (Postcondition 8) -> stat()-only read (flat) or frontmatter \
-         item-count read (frontmatter-changelog-array) -> per-tool projected-size / \
-         item-count trigger evaluation -> Continue, or hand off to BC-1.18.006 / \
-         BC-1.18.009 (out of scope for this cluster's stub)."
-    )
+    // Postcondition 1 / Invariant 3: unmatched paths return Continue before
+    // any stat() call or shape dispatch.
+    let Some(entry) = find_matching_entry(shard_registry, target_path) else {
+        return HookResult::Continue;
+    };
+
+    let Some(shape) = entry.shape else {
+        // Should never happen for an entry that went through
+        // `ShardRegistry::load` (EC-009 rejects this at load time), but a
+        // caller may construct a `ShardEntry` directly (e.g. in tests) —
+        // fail loud rather than silently guessing a shape (mirrors EC-009's
+        // posture for the same missing-shape condition).
+        return ShardConfigError::MissingShape {
+            artifact_stem: entry.artifact_stem.clone(),
+        }
+        .into();
+    };
+
+    match shape {
+        ShardShape::Flat => {
+            let Some(tool_kind) = ToolKind::from_tool_name(tool_name) else {
+                // Not a candidate mutating tool for the "flat" byte-size
+                // trigger — zero-cost-bypass spirit of Postcondition 1
+                // extended to an unsupported tool kind.
+                return HookResult::Continue;
+            };
+
+            let current_bytes = match current_shard_bytes_flat(target_path) {
+                Ok(bytes) => bytes,
+                Err(e) => {
+                    return HookResult::Error {
+                        message: format!(
+                            "BC-1.18.005: failed to stat() shard '{}' for artifact_stem \
+                             \"{}\": {e}",
+                            target_path.display(),
+                            entry.artifact_stem
+                        ),
+                    };
+                }
+            };
+
+            let projected_size = match tool_kind {
+                ToolKind::Write => {
+                    let content_len = tool_input
+                        .get("content")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.len() as u64)
+                        .unwrap_or(0);
+                    projected_size_write(content_len)
+                }
+                ToolKind::Edit => {
+                    let old_len = tool_input
+                        .get("old_string")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.len() as u64)
+                        .unwrap_or(0);
+                    let new_len = tool_input
+                        .get("new_string")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.len() as u64)
+                        .unwrap_or(0);
+                    let net_delta = net_delta_bytes_for_edit(old_len, new_len);
+                    projected_size_edit(current_bytes, net_delta)
+                }
+                ToolKind::MultiEdit => {
+                    let edits: Vec<EditDelta> = tool_input
+                        .get("edits")
+                        .and_then(|v| v.as_array())
+                        .map(|edits| {
+                            edits
+                                .iter()
+                                .map(|edit| {
+                                    let old_len = edit
+                                        .get("old_string")
+                                        .and_then(|v| v.as_str())
+                                        .map(|s| s.len() as u64)
+                                        .unwrap_or(0);
+                                    let new_len = edit
+                                        .get("new_string")
+                                        .and_then(|v| v.as_str())
+                                        .map(|s| s.len() as u64)
+                                        .unwrap_or(0);
+                                    EditDelta {
+                                        old_len_bytes: old_len,
+                                        new_len_bytes: new_len,
+                                    }
+                                })
+                                .collect()
+                        })
+                        .unwrap_or_default();
+                    let net_delta = net_delta_bytes_for_multi_edit(&edits);
+                    projected_size_edit(current_bytes, net_delta)
+                }
+            };
+
+            if size_trigger_fires(projected_size, entry.shard_cap_bytes) {
+                // Postcondition 3's "Ownership" bullet: this BC owns the
+                // trigger-boundary DECISION only. BC-1.18.006 owns the
+                // observable roll/block outcome once it fires — that BC is
+                // explicitly out of scope for this cluster (see this
+                // module's own "Scope note"), so this function itself NEVER
+                // constructs a `HookResult::Block` for a fired trigger. The
+                // fired decision is still surfaced (non-fatally) via
+                // `tracing::warn!` so it is visible in telemetry rather than
+                // silently swallowed while the roll implementation lands.
+                tracing::warn!(
+                    artifact_stem = %entry.artifact_stem,
+                    projected_size,
+                    shard_cap_bytes = entry.shard_cap_bytes,
+                    "BC-1.18.005: byte-size shard-cap trigger fired; roll/block outcome is \
+                     owned by BC-1.18.006 (not yet implemented in this cluster) — allowing \
+                     the call to proceed"
+                );
+            }
+
+            HookResult::Continue
+        }
+        ShardShape::FrontmatterChangelogArray => {
+            // Postcondition 8's item-count trigger is state-based (current
+            // item count in the file on disk), not payload-based — every
+            // candidate tool call is evaluated identically regardless of
+            // Edit/Write/MultiEdit shape.
+            let Some(n) = entry.n else {
+                return HookResult::Error {
+                    message: format!(
+                        "BC-1.18.005: artifact_stem \"{}\" declares \
+                         shape = \"frontmatter-changelog-array\" but omits the required \
+                         `n` item-count trigger threshold",
+                        entry.artifact_stem
+                    ),
+                };
+            };
+
+            let current_item_count = match read_changelog_item_count(target_path) {
+                Ok(count) => count,
+                Err(e) => {
+                    return HookResult::Error {
+                        message: format!(
+                            "BC-1.18.005: failed to read changelog: item count for \
+                             artifact_stem \"{}\" at '{}': {e}",
+                            entry.artifact_stem,
+                            target_path.display()
+                        ),
+                    };
+                }
+            };
+
+            if item_count_trigger_fires(current_item_count, n) {
+                // Ownership bullet (Postcondition 8): BC-1.18.009 owns the
+                // observable rotate-then-block-and-retry outcome once this
+                // trigger fires — out of scope for this cluster (see this
+                // module's own "Scope note"). Same non-Block, honest
+                // hand-off posture as the "flat" shape's trigger-fired
+                // branch above.
+                tracing::warn!(
+                    artifact_stem = %entry.artifact_stem,
+                    current_item_count,
+                    n,
+                    "BC-1.18.005: item-count shard-cap trigger fired; rotate/block outcome is \
+                     owned by BC-1.18.009 (not yet implemented in this cluster) — allowing \
+                     the call to proceed"
+                );
+            }
+
+            HookResult::Continue
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
