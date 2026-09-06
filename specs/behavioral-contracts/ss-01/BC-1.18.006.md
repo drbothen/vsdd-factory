@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.005.md
   - crates/hook-sdk/src/result.rs
   - .factory/cycles/v1.0-brownfield-backfill/S-25.02-f2-architecture-delta.md
-input-hash: "4c6d36a"
+input-hash: "c344290"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -177,10 +177,10 @@ factory-artifacts commit (TD-VSDD-053 alignment).
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (pending) | Seal-then-block ordering invariant — the shard-index TOML always contains the seal entry for a given roll BEFORE (or atomically with) the corresponding `HookResult::Block` is observed by the caller | integration test (dispatcher harness: assert index file content immediately upon receiving the Block result) |
-| (pending) | No-over-cap invariant — no sealed shard file's byte size, sampled at any point after this BC's gate executes, ever exceeds its recorded `shard_cap_bytes` at seal time | proptest (arbitrary sequence of writes against a simulated artifact; property: every sealed shard's `bytes_at_seal <= shard_cap_bytes`) |
-| (pending) | Retry-wording determinism — the block reason's retry instruction is a pure function of the original tool name (`Edit`/`MultiEdit` vs `Write`) | unit test (table-driven over both tool-name classes) |
-| (pending) | Stable-current-filename invariant — the canonical filename is never itself renamed to a sealed name across any sequence of rolls | proptest (arbitrary roll sequence; property: `stat(canonical_path)` always succeeds and is never the sealed inode from a prior roll) |
+| VP-118 | Seal-then-block ordering invariant — the shard-index TOML always contains the seal entry for a given roll BEFORE (or atomically with) the corresponding `HookResult::Block` is observed by the caller | integration test (dispatcher harness: assert index file content immediately upon receiving the Block result) |
+| VP-119 | No-over-cap invariant — no sealed shard file's byte size, sampled at any point after this BC's gate executes, ever exceeds its recorded `shard_cap_bytes` at seal time | proptest (arbitrary sequence of writes against a simulated artifact; property: every sealed shard's `bytes_at_seal <= shard_cap_bytes`) |
+| VP-120 | Retry-wording determinism — the block reason's retry instruction is a pure function of the original tool name (`Edit`/`MultiEdit` vs `Write`) | unit test (table-driven over both tool-name classes) |
+| VP-119 | Stable-current-filename invariant — the canonical filename is never itself renamed to a sealed name across any sequence of rolls | proptest (arbitrary roll sequence; property: `stat(canonical_path)` always succeeds and is never the sealed inode from a prior roll) |
 
 ## Related BCs
 
@@ -203,7 +203,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 ## VP Anchors
 
-- (pending) — VP IDs pending VP-INDEX allocation by formal-verifier/state-manager per the existing `(pending)` placeholder convention.
+- VP-118, VP-119, VP-120 — allocated by formal-verifier (S-25.02 F2 verification-property extension burst; VP-INDEX v3.02). VP-118 (integration; seal→create→atomic-index-publish before Block + same-invocation atomicity), VP-119 (proptest; no-over-cap + stable-current-filename), VP-120 (unit-test; retry-wording determinism + fail-loud seal-rename error E-SHD-001).
 
 ## Traceability
 

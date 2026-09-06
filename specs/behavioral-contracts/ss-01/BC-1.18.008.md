@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.007.md
   - .factory/cycles/v1.0-brownfield-backfill/S-25.02-f1-delta-analysis.md
-input-hash: "ce17474"
+input-hash: "2277883"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -152,10 +152,10 @@ default (no partial/MVP delivery of a shipped feature).
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (pending) | Content-preservation invariant — concatenation of all resulting shards (in `seq` order) plus the final current file reproduces the original monolithic file byte-for-byte | property test / golden-file round-trip against real (or synthetic fixture) monolithic files |
-| (pending) | Record-integrity invariant — every structural record present in the original file appears in EXACTLY ONE resulting shard | property test (record-count-conservation check against synthetic fixtures with known record counts) |
-| (pending) | Atomicity-under-interruption invariant — a simulated crash at any point during the split leaves the original file either fully intact or the split fully complete, never a partial/corrupt intermediate state | fault-injection test (simulated crash at each of N write steps; assert post-recovery state is one of the two valid states) |
-| (pending) | Idempotency invariant — running the backfill-split twice against an already-sharded artifact does not produce duplicate or additional shards | unit test (double-invocation against a fixture with a pre-existing shard-index) |
+| VP-123 | Content-preservation invariant — concatenation of all resulting shards (in `seq` order) plus the final current file reproduces the original monolithic file byte-for-byte | property test / golden-file round-trip against real (or synthetic fixture) monolithic files |
+| VP-123 | Record-integrity invariant — every structural record present in the original file appears in EXACTLY ONE resulting shard | property test (record-count-conservation check against synthetic fixtures with known record counts) |
+| VP-124 | Atomicity-under-interruption invariant — a simulated crash at any point during the split leaves the original file either fully intact or the split fully complete, never a partial/corrupt intermediate state | fault-injection test (simulated crash at each of N write steps; assert post-recovery state is one of the two valid states) |
+| VP-124 | Idempotency invariant — running the backfill-split twice against an already-sharded artifact does not produce duplicate or additional shards | unit test (double-invocation against a fixture with a pre-existing shard-index) |
 
 ## Related BCs
 
@@ -175,7 +175,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 ## VP Anchors
 
-- (pending) — VP IDs pending VP-INDEX allocation by formal-verifier/state-manager per the existing `(pending)` placeholder convention.
+- VP-123, VP-124 — allocated by formal-verifier (S-25.02 F2 verification-property extension burst; VP-INDEX v3.02). VP-123 (proptest / golden-file; content-preservation byte-for-byte + record integrity), VP-124 (integration; atomicity-under-interruption + fail-loud preservation gate E-SHD-003 + idempotency). Cap-constant numeric bound PROVISIONAL-until-F4.
 
 ## Traceability
 

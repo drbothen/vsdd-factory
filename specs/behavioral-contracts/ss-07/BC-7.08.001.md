@@ -14,7 +14,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.008.md
   - plugins/vsdd-factory/hooks-registry.toml
-input-hash: "025658e"
+input-hash: "fcbf3f0"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -151,9 +151,9 @@ merely on the cap-check gate existing) that make this flip safe.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (pending) | Bash-arm-exclusion invariant — `validate-burst-log`'s `^Bash$` registry entry's `failure_policy` is never set to `fail-closed` by this BC's implementation | static config-diff check on the `hooks-registry.toml` change (assert the `^Bash$` entry's `failure_policy` field is absent both before and after) |
-| (pending) | Sequencing-gate invariant — the Cohort B flip's registry change commit never lands before (or in the same commit as) BC-1.18.008's backfill-split completion evidence | integration/process check (CI or PR-template gate requiring the backfill-split PR's merge SHA to be an ancestor of the Cohort B flip PR) |
-| (pending) | Closed-cohort invariant — exactly three `[[hooks]]` entries carry `failure_policy = "fail-closed"` as an attributable consequence of this BC, matching the named set (`validate-burst-log` Edit/Write/MultiEdit arm, `regression-gate`, `convergence-tracker`) | config audit (grep `hooks-registry.toml` for `failure_policy = "fail-closed"`, cross-reference against BC-1.18.004's Cohort A enumeration plus this BC's Cohort B enumeration — no unattributed entries) |
+| VP-129 | Bash-arm-exclusion invariant — `validate-burst-log`'s `^Bash$` registry entry's `failure_policy` is never set to `fail-closed` by this BC's implementation | static config-diff check on the `hooks-registry.toml` change (assert the `^Bash$` entry's `failure_policy` field is absent both before and after) |
+| VP-130 | Sequencing-gate invariant — the Cohort B flip's registry change commit never lands before (or in the same commit as) BC-1.18.008's backfill-split completion evidence | integration/process check (CI or PR-template gate requiring the backfill-split PR's merge SHA to be an ancestor of the Cohort B flip PR) |
+| VP-129 | Closed-cohort invariant — exactly three `[[hooks]]` entries carry `failure_policy = "fail-closed"` as an attributable consequence of this BC, matching the named set (`validate-burst-log` Edit/Write/MultiEdit arm, `regression-gate`, `convergence-tracker`) | config audit (grep `hooks-registry.toml` for `failure_policy = "fail-closed"`, cross-reference against BC-1.18.004's Cohort A enumeration plus this BC's Cohort B enumeration — no unattributed entries) |
 
 ## Related BCs
 
@@ -175,7 +175,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 ## VP Anchors
 
-- (pending) — VP IDs pending VP-INDEX allocation by formal-verifier/state-manager per the existing `(pending)` placeholder convention.
+- VP-129, VP-130 — allocated by formal-verifier (S-25.02 F2 verification-property extension burst; VP-INDEX v3.02). VP-129 (static-check; Bash-arm exclusion + closed-cohort config audit), VP-130 (integration; sequencing gate after BC-1.18.008 backfill-split + per-validator calibration evidence). Fuel-ceiling numeric bound PROVISIONAL-until-F4.
 
 ## Traceability
 

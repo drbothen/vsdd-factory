@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.009.md
-input-hash: "a21ceac"
+input-hash: "d52ce53"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -171,9 +171,9 @@ that second level, since sub-shard boundaries are growth-based, not ID-prefix-de
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (pending) | Zero-lookup invariant — first-level shard-path computation for a non-sub-sharded subsystem never reads the shard-manifest file | unit test (mock filesystem read-call counter, assert zero manifest reads for SS-01/02/03/04/07/08/09/10 lookups) |
-| (pending) | Single-authoritative-row invariant — after the split, no BC ID's row appears in both `BC-INDEX.md`'s body and a shard file | consistency-validator scan (post-split full-corpus scan asserting exactly one row per BC ID across all shard files, zero in `BC-INDEX.md`'s body) |
-| (pending) | Mapping-source-of-truth invariant — the BC-S-prefix→SS-NN mapping used by this BC's addressing logic is byte-identical to ARCH-INDEX's own Subsystem Registry `BC-S Prefix` column | integration test (cross-reference `shard_manager.rs`'s mapping table against a parsed ARCH-INDEX Subsystem Registry) |
+| VP-127 | Zero-lookup invariant — first-level shard-path computation for a non-sub-sharded subsystem never reads the shard-manifest file | unit test (mock filesystem read-call counter, assert zero manifest reads for SS-01/02/03/04/07/08/09/10 lookups) |
+| VP-128 | Single-authoritative-row invariant — after the split, no BC ID's row appears in both `BC-INDEX.md`'s body and a shard file | consistency-validator scan (post-split full-corpus scan asserting exactly one row per BC ID across all shard files, zero in `BC-INDEX.md`'s body) |
+| VP-128 | Mapping-source-of-truth invariant — the BC-S-prefix→SS-NN mapping used by this BC's addressing logic is byte-identical to ARCH-INDEX's own Subsystem Registry `BC-S Prefix` column | integration test (cross-reference `shard_manager.rs`'s mapping table against a parsed ARCH-INDEX Subsystem Registry) |
 
 ## Related BCs
 
@@ -192,7 +192,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 ## VP Anchors
 
-- (pending) — VP IDs pending VP-INDEX allocation by formal-verifier/state-manager per the existing `(pending)` placeholder convention.
+- VP-127, VP-128 — allocated by formal-verifier (S-25.02 F2 verification-property extension burst; VP-INDEX v3.02). VP-127 (unit-test; zero-lookup first-level addressing), VP-128 (integration; manifest-keyed second-level + single-authoritative-row integrity + ARCH-INDEX-sourced prefix mapping).
 
 ## Traceability
 

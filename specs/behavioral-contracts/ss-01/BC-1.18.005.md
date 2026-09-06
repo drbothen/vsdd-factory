@@ -179,10 +179,10 @@ cannot exhaust a fuel budget because it has none (native code, not a WASM plugin
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (pending) | Unmatched-path zero-cost invariant — no `stat()` call issued when target path does not match any `[[shard]]` config entry | unit test (mock filesystem call counter) |
-| (pending) | Cross-Validator Minimum Rule — effective cap for a multi-reader artifact equals the MIN of all applicable per-plugin caps | unit test (table-driven over the 4 mechanism-A artifacts × 3 Cohort B plugins) |
-| (pending) | Byte-denomination invariant — no code path compares a non-byte-denominated quantity against `shard_cap_bytes` | proptest (arbitrary payload sizes, current-shard sizes; property: comparison result matches a byte-for-byte oracle) |
-| (pending) | Boundary inclusivity — `projected_size == shard_cap_bytes` never triggers a roll; `projected_size == shard_cap_bytes + 1` always triggers a roll | unit test (exact-boundary table) |
+| VP-117 | Unmatched-path zero-cost invariant — no `stat()` call issued when target path does not match any `[[shard]]` config entry | unit test (mock filesystem call counter) |
+| VP-117 | Cross-Validator Minimum Rule — effective cap for a multi-reader artifact equals the MIN of all applicable per-plugin caps | unit test (table-driven over the 4 mechanism-A artifacts × 3 Cohort B plugins) |
+| VP-117 | Byte-denomination invariant — no code path compares a non-byte-denominated quantity against `shard_cap_bytes` | proptest (arbitrary payload sizes, current-shard sizes; property: comparison result matches a byte-for-byte oracle) |
+| VP-116 | Boundary inclusivity — `projected_size == shard_cap_bytes` never triggers a roll; `projected_size == shard_cap_bytes + 1` always triggers a roll | unit test (exact-boundary table) |
 
 ## Related BCs
 
@@ -205,7 +205,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 ## VP Anchors
 
-- (pending) — VP IDs pending VP-INDEX allocation by formal-verifier/state-manager per the existing `(pending)` placeholder convention.
+- VP-116, VP-117 — allocated by formal-verifier (S-25.02 F2 verification-property extension burst; VP-INDEX v3.02). VP-116 (kani-proof; boundary inclusivity + cap-comparison arithmetic overflow-safety), VP-117 (unit-test; unmatched-path zero-cost bypass, Cross-Validator Minimum Rule, byte denomination). Cap-constant numeric bounds PROVISIONAL-until-F4 per ADR-051 §Decision 2.
 
 ## Traceability
 

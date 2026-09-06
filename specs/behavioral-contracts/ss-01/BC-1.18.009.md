@@ -12,7 +12,7 @@ inputs:
   - crates/last-amended-migrate/src/rotate.rs
   - crates/last-amended-migrate/src/changelog.rs
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
-input-hash: "d92ac49"
+input-hash: "c6f9cfb"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -150,9 +150,9 @@ manual CLI invocation.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (pending) | No-reimplementation invariant — `shard_manager.rs`'s B1 handler contains no changelog-rotation logic other than calls into `rotate_changelog`/`prepend_changelog_item` | code-review / static-analysis check (grep for duplicated rotation logic) |
-| (pending) | Bounded-live-sequence invariant — after any sequence of prepends, the live frontmatter `changelog:` sequence never exceeds N items | proptest (arbitrary prepend sequences; property: `len(changelog) <= N` after every operation) |
-| (pending) | No-history-loss invariant — every `changelog:` item ever prepended remains recoverable (live or in a sealed shard) | proptest (arbitrary prepend sequences; property: total recoverable item count is monotonically non-decreasing and equals the total prepend count) |
+| VP-126 | No-reimplementation invariant — `shard_manager.rs`'s B1 handler contains no changelog-rotation logic other than calls into `rotate_changelog`/`prepend_changelog_item` | code-review / static-analysis check (grep for duplicated rotation logic) |
+| VP-125 | Bounded-live-sequence invariant — after any sequence of prepends, the live frontmatter `changelog:` sequence never exceeds N items | proptest (arbitrary prepend sequences; property: `len(changelog) <= N` after every operation) |
+| VP-125 | No-history-loss invariant — every `changelog:` item ever prepended remains recoverable (live or in a sealed shard) | proptest (arbitrary prepend sequences; property: total recoverable item count is monotonically non-decreasing and equals the total prepend count) |
 
 ## Related BCs
 
@@ -172,7 +172,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 ## VP Anchors
 
-- (pending) — VP IDs pending VP-INDEX allocation by formal-verifier/state-manager per the existing `(pending)` placeholder convention.
+- VP-125, VP-126 — allocated by formal-verifier (S-25.02 F2 verification-property extension burst; VP-INDEX v3.02). VP-125 (proptest; bounded live changelog: sequence + no-history-loss), VP-126 (static-check; rotate_changelog/prepend_changelog_item reuse — no reimplemented rotation logic).
 
 ## Traceability
 
