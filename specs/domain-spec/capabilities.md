@@ -2,11 +2,11 @@
 document_type: domain-spec-section
 level: L2
 section: capabilities
-version: "1.21"
+version: "1.22"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: "2026-09-06 (v1.21) — S-25.02 F3 consistency closure (product-owner): CAP-043 §Subsystems extended with SS-04 (was SS-01/SS-07 only) per ADR-051 (v1.5) §Decision 6's adjudication that SS-04 is genuinely affected — Decision 6's validator enumeration audits four SS-04-owned WASM crates (`validate-dispatch-advance`, `validate-state-structure`, `validate-closes-completeness`, `validate-cross-site-correspondence`) and imposes an archive-inclusive-glob obligation on POLICY-1's SS-04-adjacent enforcement path. Closes the CAP-043/ADR-051 `subsystems_affected` drift ADR-051 v1.5's own changelog row flagged as a product-owner follow-up. No other CAP-043 body-text change; no CAP count change (still 43)."
+last_amended: "2026-09-06 (v1.22) — S-25.02 F2 fix-burst (product-owner; adversary pass-6 finding F-P6-002 LOW routed): CAP-043 §Subsystems SS-04 bullet de-loaded of its volatile `ADR-051 (v1.5)` version pin per TD-VSDD-091 — the stable `§Decision 6` section anchor already resolves the citation without the version token, mirroring the CAP-043 v1.18 precedent that de-loaded a prior `ADR-047 v1.6` token for the identical reason. The pin was already stale at authoring (ADR-051 is now v1.6). No other CAP-043 body-text change; no CAP count change (still 43)."
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
@@ -14,7 +14,7 @@ inputs:
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/architecture/decisions/ADR-051-layer-2-two-mechanism-size-triggered-shard-rotation-append-logs-and-bc-index-sharding.md
-input-hash: "0b37bd2"
+input-hash: "05a5309"
 traces_to: L2-INDEX.md
 ---
 
@@ -456,7 +456,7 @@ one-time backfill-split retroactively shards the four EXISTING append-log files 
 future overflow and never shrink the artifacts already producing the majority of observed
 INDETERMINATE events, an incomplete delivery of its own stated purpose.
 Subsystems: SS-01 (native `shard_manager.rs` dispatcher module; cap-check, roll-before-write,
-shard-index and shard-manifest publication), SS-04 (per ADR-051 (v1.5) §Decision 6's adjudicated
+shard-index and shard-manifest publication), SS-04 (per ADR-051 §Decision 6's adjudicated
 touchpoint — Decision 6's validator enumeration audits four SS-04-owned WASM crates,
 `validate-dispatch-advance`, `validate-state-structure`, `validate-closes-completeness`, and
 `validate-cross-site-correspondence`, for archival-scheme correctness, and imposes a new
@@ -497,6 +497,7 @@ CAP-042 is the prior entry.
 
 | Version | Date | Change |
 |---|---|---|
+| v1.22 | 2026-09-06 | S-25.02 F2 fix-burst (product-owner; adversary pass-6 finding F-P6-002 LOW routed): CAP-043 §Subsystems SS-04 bullet de-loaded of its volatile `ADR-051 (v1.5)` version pin per TD-VSDD-091 — the stable `§Decision 6` section anchor already resolves the citation without the version token, mirroring the CAP-043 v1.18 precedent (same file) that de-loaded a prior `ADR-047 v1.6` token for the identical reason. The pin was already stale at authoring (ADR-051 is now v1.6). No other CAP-043 body-text change; no subsystem-mapping or outcome-statement change; no CAP count change (still 43). |
 | v1.21 | 2026-09-06 | S-25.02 F3 consistency closure (product-owner): CAP-043 §Subsystems extended with SS-04 (was SS-01/SS-07 only), per ADR-051 (v1.5) §Decision 6's adjudication that SS-04 is genuinely affected — Decision 6's validator enumeration audits four SS-04-owned WASM crates (`validate-dispatch-advance`, `validate-state-structure`, `validate-closes-completeness`, `validate-cross-site-correspondence`) for archival-scheme correctness and imposes a new archive-inclusive-glob obligation on POLICY-1's SS-04-adjacent enforcement path. Closes the CAP-043/ADR-051 `subsystems_affected` drift that ADR-051 v1.5's own changelog row (2026-09-06) flagged as an unresolved product-owner follow-up. No other CAP-043 body-text change; no CAP count change (still 43). |
 | v1.20 | 2026-09-05 | S-25.02 F2 fix-burst (product-owner; adversary pass-3 finding F-P3-002 HIGH routed): CAP-043 body text CORRECTED — replaced the stale withdrawn rename-away seal description ("seal the current shard by rename, create a fresh empty current file"; "sealed shards are renamed away with a `<stem>.<seq:04>.md` suffix") with the current copy-then-atomic-truncate-in-place mechanism BC-1.18.006 v1.2 already established (a sealed-shard COPY is published as a NEW file; the canonical file's content is atomically replaced with empty IN PLACE; the canonical filename is NEVER renamed away). This corrects the v1.19 row's "No CAP-043 body-text semantic change" claim, which — while accurate as to v1.19's own citation-list-only diff — left a genuine, pre-existing body-text staleness (dating to v1.17's original rename-away authoring) uncorrected and unflagged. No CAP count change (still 43). |
 | v1.19 | 2026-09-05 | S-25.02 F2 fix-burst (product-owner; adversary pass-2 finding F-P2-007 routed): CAP-043 §Source citation list extended with `BC-1.18.012` (the new governed one-time B1 changelog backfill migration BC, authored in the same fix-burst — closes B1's cold-start ~1,997-item ungoverned-migration gap and establishes the precondition for BC-1.18.005 Postcondition 8's steady-state "bounded" read-cost characterization). No CAP-043 body-text semantic change and no CAP count change (still 43). |
