@@ -2232,13 +2232,12 @@ mod tests {
     // comparison entirely, reintroducing the exact fuel-exhaustion failure
     // mode that comparison exists to prevent.
     //
-    // RED (BC-1.18.005 v1.10): the sanctioned implementation has no such
-    // guard yet — `ShardRegistry::load` performs no finiteness/positivity
-    // check on `worst_case_fuel_per_byte` at all today. Both failing tests
-    // below use generic `.is_err()` only: the
-    // `ShardConfigError::InvalidWorstCaseFuelPerByte` variant this
-    // postcondition calls for does not exist yet, and naming it here would
-    // fail to compile.
+    // `ShardRegistry::load` validates `worst_case_fuel_per_byte.is_finite()
+    // && worst_case_fuel_per_byte > 0.0` for every entry BEFORE
+    // `compute_shard_cap_bytes` is ever called for it, returning
+    // `Err(ShardConfigError::InvalidWorstCaseFuelPerByte { artifact_stem,
+    // worst_case_fuel_per_byte })` on violation. The three tests below pin
+    // the two rejection cases (zero and NaN) plus the valid-input control.
     // ===================================================================
 
     #[test]
@@ -2258,21 +2257,29 @@ mod tests {
         )
         .expect("write fixture");
 
-        // TODAY: worst_case_fuel_per_byte = 0.0 makes compute_shard_cap_bytes's
-        // internal division yield +inf, whose saturating `as u64` cast is
-        // u64::MAX — the resulting ceiling comfortably exceeds this
-        // fixture's already-enormous shard_cap_bytes = 100,000,000, so
-        // Postcondition 9's `shard_cap_bytes > computed_ceiling` check never
-        // fires. load() therefore currently returns Ok(_), not Err(_) — RED
-        // until EC-015's load-time finiteness/positivity guard is added.
-        let result = ShardRegistry::load(&cfg_path);
-        assert!(
-            result.is_err(),
+        // Without the load-time guard, worst_case_fuel_per_byte = 0.0 would
+        // make compute_shard_cap_bytes's internal division yield +inf, whose
+        // saturating `as u64` cast is u64::MAX — the resulting ceiling would
+        // comfortably exceed this fixture's already-enormous
+        // shard_cap_bytes = 100,000,000, letting it sail past Postcondition
+        // 9's `shard_cap_bytes > computed_ceiling` check via the degenerate
+        // divisor. The guard rejects the entry BEFORE that comparison is
+        // ever attempted.
+        let err = ShardRegistry::load(&cfg_path).expect_err(
             "EC-015: worst_case_fuel_per_byte = 0.0 (the divisor-door case) MUST fail-loud at \
              load() time, BEFORE the cap-vs-formula comparison is even attempted — an \
-             arbitrarily-large shard_cap_bytes must never sail through via a degenerate divisor. \
-             Got: {result:?}"
+             arbitrarily-large shard_cap_bytes must never sail through via a degenerate divisor.",
         );
+        match err {
+            ShardConfigError::InvalidWorstCaseFuelPerByte {
+                artifact_stem,
+                worst_case_fuel_per_byte,
+            } => {
+                assert_eq!(artifact_stem, "zero-divisor-log");
+                assert_eq!(worst_case_fuel_per_byte, 0.0);
+            }
+            other => panic!("expected InvalidWorstCaseFuelPerByte, got {other:?}"),
+        }
     }
 
     #[test]
@@ -2292,21 +2299,31 @@ mod tests {
         )
         .expect("write fixture");
 
-        // TODAY: worst_case_fuel_per_byte = NaN makes the internal division
-        // yield NaN, whose saturating `as u64` cast is 0 (Rust maps a NaN
-        // float-to-int cast to 0) — the computed ceiling then also saturates
-        // at 0 (0.saturating_sub(16_384).saturating_sub(8_192) = 0), which
-        // is NOT LESS than this fixture's own shard_cap_bytes = 0, so
-        // Postcondition 9's `shard_cap_bytes > computed_ceiling` check
-        // (0 > 0 = false) never fires either. load() therefore currently
-        // returns Ok(_), not Err(_) — RED until EC-015's guard lands.
-        let result = ShardRegistry::load(&cfg_path);
-        assert!(
-            result.is_err(),
+        // Without the load-time guard, worst_case_fuel_per_byte = NaN would
+        // make the internal division yield NaN, whose saturating `as u64`
+        // cast is 0 (Rust maps a NaN float-to-int cast to 0) — the computed
+        // ceiling would then also saturate at 0
+        // (0.saturating_sub(16_384).saturating_sub(8_192) = 0), which is NOT
+        // LESS than this fixture's own shard_cap_bytes = 0, so Postcondition
+        // 9's `shard_cap_bytes > computed_ceiling` check (0 > 0 = false)
+        // would never fire either. The guard rejects the entry regardless of
+        // which direction the resulting degenerate arithmetic would have
+        // saturated — the config is malformed either way and must never be
+        // silently accepted.
+        let err = ShardRegistry::load(&cfg_path).expect_err(
             "EC-015: worst_case_fuel_per_byte = NaN MUST fail-loud at load() time regardless of \
-             which direction the resulting degenerate arithmetic happens to saturate — the \
-             config is malformed either way and must never be silently accepted. Got: {result:?}"
+             which direction the resulting degenerate arithmetic happens to saturate.",
         );
+        match err {
+            ShardConfigError::InvalidWorstCaseFuelPerByte {
+                artifact_stem,
+                worst_case_fuel_per_byte,
+            } => {
+                assert_eq!(artifact_stem, "nan-divisor-log");
+                assert!(worst_case_fuel_per_byte.is_nan());
+            }
+            other => panic!("expected InvalidWorstCaseFuelPerByte, got {other:?}"),
+        }
     }
 
     #[test]
@@ -2350,13 +2367,14 @@ mod tests {
     // HookResult::Error-on-None-`n` check runs too late relative to this
     // BC's own EC-009/EC-011/EC-013 load-time posture).
     //
-    // RED (BC-1.18.005 v1.10): load()'s current
-    // `if let (Some(n), Some(low_water_mark)) = (entry.n, entry.low_water_mark)`
-    // destructure silently short-circuits to NO validation at all when `n`
-    // is None, so both failing tests below currently observe Ok(_) where
-    // the BC now requires Err(_). Generic `.is_err()` only — the
-    // `ShardConfigError::MissingN` variant this postcondition calls for
-    // does not exist yet.
+    // `ShardRegistry::load` requires `n` for every
+    // `"frontmatter-changelog-array"`-shaped entry via a
+    // `let Some(n) = entry.n else { return Err(ShardConfigError::MissingN {
+    // artifact_stem }) }` guard, evaluated BEFORE `low_water_mark` is
+    // examined — so an entry missing `n` AND declaring an independently
+    // invalid `low_water_mark` is rejected on the missing-`n` condition, not
+    // silently accepted. The two tests below pin both the plain-omission
+    // case and the omitted-`n`-plus-invalid-`low_water_mark` case.
     // ===================================================================
 
     #[test]
@@ -2376,21 +2394,21 @@ mod tests {
         )
         .expect("write fixture");
 
-        // TODAY: entry.n is None, so load()'s
-        // `if let (Some(n), Some(low_water_mark)) = (entry.n, entry.low_water_mark)`
-        // guard short-circuits and runs NO validation at all for this entry
-        // — the missing-`n` condition is currently only caught later, inside
-        // shard_cap_gate_check, at the first gate-time write against the
-        // artifact. load() therefore currently returns Ok(_), not Err(_) —
-        // RED until EC-016's load-time guard lands.
-        let result = ShardRegistry::load(&cfg_path);
-        assert!(
-            result.is_err(),
+        // entry.n is None here (this fixture never declares `n`), so
+        // load()'s `let Some(n) = entry.n else { ... }` guard fires and
+        // rejects the entry at load time — never deferred to the first
+        // gate-time write inside shard_cap_gate_check.
+        let err = ShardRegistry::load(&cfg_path).expect_err(
             "EC-016: a \"frontmatter-changelog-array\"-shaped entry that omits the required `n` \
              item-count trigger threshold MUST fail-loud at ShardRegistry::load() time, mirroring \
-             EC-009/EC-011/EC-013's uniform load-time posture for this same config surface. Got: \
-             {result:?}"
+             EC-009/EC-011/EC-013's uniform load-time posture for this same config surface.",
         );
+        match err {
+            ShardConfigError::MissingN { artifact_stem } => {
+                assert_eq!(artifact_stem, "BC-INDEX");
+            }
+            other => panic!("expected MissingN, got {other:?}"),
+        }
     }
 
     #[test]
@@ -2411,43 +2429,45 @@ mod tests {
         )
         .expect("write fixture");
 
-        // TODAY: entry.n is still None here (this fixture never declares
-        // `n`), so the SAME `if let (Some(n), Some(low_water_mark))`
-        // destructure short-circuits on the missing-`n` half of the tuple —
-        // EC-011's existing negative-low_water_mark check is NEVER reached
-        // for this entry, even though low_water_mark = -1 is independently
-        // invalid against any realistic N. load() therefore currently
-        // returns Ok(_) for an entry carrying BOTH defects undetected — RED
-        // until EC-016's load-time guard (evaluated BEFORE low_water_mark is
-        // examined, per Postcondition 8's restructuring requirement) lands.
-        let result = ShardRegistry::load(&cfg_path);
-        assert!(
-            result.is_err(),
+        // entry.n is still None here (this fixture never declares `n`), so
+        // load()'s `let Some(n) = entry.n else { ... }` guard fires and
+        // reports the missing-`n` condition BEFORE EC-011's
+        // negative-low_water_mark check is ever reached for this entry —
+        // per Postcondition 8's ordering requirement, MissingN is the
+        // reported error even though low_water_mark = -1 is independently
+        // invalid against any realistic N.
+        let err = ShardRegistry::load(&cfg_path).expect_err(
             "EC-016: an entry missing `n` AND declaring an independently-invalid low_water_mark \
              (-1) MUST still be rejected at load() time — with EC-016's guard ordered before the \
              low_water_mark check, the reported error is the missing-`n` condition, but either \
-             way this entry must never silently load. Got: {result:?}"
+             way this entry must never silently load.",
         );
+        match err {
+            ShardConfigError::MissingN { artifact_stem } => {
+                assert_eq!(artifact_stem, "BC-INDEX");
+            }
+            other => panic!("expected MissingN, got {other:?}"),
+        }
     }
 
     // ===================================================================
     // O-C1-P4-001 (LOW, S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4
-    // observation) — benign symmetry gap between the two `shard_cap_gate_check`
-    // shape arms. The `"flat"` arm guards against a non-mutating `tool_name`
-    // via `ToolKind::from_tool_name` BEFORE ever touching the target file
+    // observation) — symmetry between the two `shard_cap_gate_check` shape
+    // arms. The `"flat"` arm guards against a non-mutating `tool_name` via
+    // `ToolKind::from_tool_name` BEFORE ever touching the target file
     // (Postcondition 1's zero-cost-bypass spirit, extended to an
-    // unsupported tool kind). The `FrontmatterChangelogArray` arm has NO
-    // analogous guard: it proceeds straight to reading `entry.n` and
-    // calling `read_changelog_item_count(target_path)` for ANY `tool_name`,
-    // including one that isn't Edit/Write/MultiEdit at all.
+    // unsupported tool kind). The `FrontmatterChangelogArray` arm mirrors
+    // that same guard: it early-returns `Continue` for a
+    // non-Edit/Write/MultiEdit `tool_name` BEFORE reading `entry.n` or
+    // calling `read_changelog_item_count(target_path)`.
     //
-    // This test drives that asymmetry into an observable difference: the
+    // This test drives that symmetry into an observable difference: the
     // target file's content is deliberately malformed (no well-formed `---`
-    // frontmatter fence), so `read_changelog_item_count` fails loud with an
-    // `io::Error` if the FrontmatterChangelogArray arm ever reaches it. A
-    // correctly-guarded arm would return `Continue` for the non-mutating
-    // `"Read"` tool_name WITHOUT ever reading the file, so the malformed
-    // content would never be observed.
+    // frontmatter fence), so `read_changelog_item_count` would fail loud
+    // with an `io::Error` if the FrontmatterChangelogArray arm ever reached
+    // it for a non-mutating call. The guarded arm returns `Continue` for the
+    // non-mutating `"Read"` tool_name WITHOUT ever reading the file, so the
+    // malformed content is never observed.
     // ===================================================================
 
     #[test]
@@ -2463,11 +2483,10 @@ mod tests {
             shards: vec![entry],
         };
 
-        // TODAY: the FrontmatterChangelogArray arm has no tool_name guard,
-        // so it proceeds to read_changelog_item_count(target_path)
-        // regardless of the non-mutating "Read" tool_name, hits the
-        // fixture's deliberately malformed (fence-less) frontmatter, and
-        // surfaces a fail-loud HookResult::Error instead of Continue.
+        // The FrontmatterChangelogArray arm's tool_name guard early-returns
+        // Continue for the non-mutating "Read" tool_name WITHOUT ever
+        // calling read_changelog_item_count(target_path), so the fixture's
+        // deliberately malformed (fence-less) frontmatter is never observed.
         let result = shard_cap_gate_check(&registry, "Read", &target, &serde_json::json!({}));
 
         assert_eq!(
