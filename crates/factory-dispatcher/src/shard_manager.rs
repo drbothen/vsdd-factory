@@ -504,7 +504,38 @@ pub fn size_trigger_fires(projected_size: u64, shard_cap_bytes: u64) -> bool {
 /// cold/steady-state split BC-1.18.005 documents is a PERFORMANCE
 /// characterization, not a different code path this function branches on.
 pub fn read_changelog_item_count(target_path: &Path) -> io::Result<u64> {
-    todo!("BC-1.18.005 Postcondition 8: parse frontmatter, count changelog: array items")
+    /// Deserialization target isolating just the `changelog:` sequence —
+    /// mirrors `last-amended-migrate/src/yaml_guard.rs`'s `MinimalFrontmatter`
+    /// pattern (extra frontmatter fields are ignored by default struct
+    /// deserialization; no `deny_unknown_fields`).
+    #[derive(Deserialize)]
+    struct ChangelogFrontmatter {
+        #[serde(default)]
+        changelog: Option<Vec<serde_norway::Value>>,
+    }
+
+    let raw = std::fs::read_to_string(target_path)?;
+    let block = raw
+        .strip_prefix("---\n")
+        .and_then(|after_open| after_open.find("\n---").map(|end| &after_open[..end]))
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!(
+                    "{}: no well-formed --- frontmatter fence found (BC-1.18.005 Postcondition 8)",
+                    target_path.display()
+                ),
+            )
+        })?;
+
+    let parsed: ChangelogFrontmatter = serde_norway::from_str(block).map_err(|e| {
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("{}: frontmatter YAML parse failed: {e}", target_path.display()),
+        )
+    })?;
+
+    Ok(parsed.changelog.map(|items| items.len() as u64).unwrap_or(0))
 }
 
 /// `true` iff `current_item_count + 1 > N` — the item-count trigger boundary
@@ -515,7 +546,7 @@ pub fn read_changelog_item_count(target_path: &Path) -> io::Result<u64> {
 /// bounds the artifact's total byte footprint as a whole-artifact concern,
 /// but the rotation decision within this shape is item-count-based only.
 pub fn item_count_trigger_fires(current_item_count: u64, n: u64) -> bool {
-    todo!("BC-1.18.005 Postcondition 8 / EC-008: current_item_count + 1 > N")
+    current_item_count.saturating_add(1) > n
 }
 
 /// Resolve the effective `low_water_mark` for a `"frontmatter-changelog-
@@ -527,7 +558,12 @@ pub fn item_count_trigger_fires(current_item_count: u64, n: u64) -> bool {
 /// function does NOT re-validate `0 <= low_water_mark < N`; it only resolves
 /// the omitted-vs-explicit default.
 pub fn resolved_low_water_mark(n: u64, low_water_mark: Option<i64>) -> u64 {
-    todo!("BC-1.18.005 EC-010: default floor(N/2) when low_water_mark is omitted")
+    match low_water_mark {
+        // Caller-validated: already known non-negative and < N.
+        Some(v) => v as u64,
+        // EC-010: integer division floors naturally.
+        None => n / 2,
+    }
 }
 
 /// Validate a `"frontmatter-changelog-array"`-shaped entry's `low_water_mark`
@@ -552,10 +588,21 @@ pub fn validate_low_water_mark(
     n: u64,
     low_water_mark: i64,
 ) -> Result<bool, ShardConfigError> {
-    todo!(
-        "BC-1.18.005 EC-011/EC-012: fail-loud on low_water_mark >= N or negative; \
-         otherwise Ok(low_water_mark > floor(N/2)) as the advisory-fires flag"
-    )
+    // i128 comparison sidesteps any u64/i64 range mismatch for the `>= N`
+    // check — N is realistically far below i64::MAX/u64::MAX for this BC's
+    // item-count trigger, but the wider comparison type costs nothing and
+    // removes the need to reason about cast overflow at the boundary.
+    if low_water_mark < 0 || i128::from(low_water_mark) >= i128::from(n) {
+        return Err(ShardConfigError::InvalidLowWaterMark {
+            artifact_stem: artifact_stem.to_string(),
+            n,
+            low_water_mark,
+        });
+    }
+
+    let default_low_water_mark = n / 2;
+    // Safe: low_water_mark just checked >= 0 above.
+    Ok(low_water_mark as u64 > default_low_water_mark)
 }
 
 // ---------------------------------------------------------------------------
