@@ -167,8 +167,9 @@ pub struct ShardRegistry {
 
 /// Config-load-time errors for the `[[shard]]` registry.
 ///
-/// `MissingShape` (EC-009) and `InvalidLowWaterMark` (EC-011) are the two
-/// fail-loud conditions this BC's config surface owns — both are NEVER
+/// `MissingShape` (EC-009), `InvalidLowWaterMark` (EC-011), and
+/// `CapExceedsFormulaCeiling` (Postcondition 9 / EC-013) are the three
+/// fail-loud conditions this BC's config surface owns — all three are NEVER
 /// silently defaulted or clamped around.
 #[derive(Debug, Error)]
 pub enum ShardConfigError {
@@ -207,6 +208,33 @@ pub enum ShardConfigError {
         /// The entry's configured (invalid) `low_water_mark`.
         low_water_mark: i64,
     },
+
+    /// Postcondition 9 / EC-013: a `[[shard]]` entry declares `shard_cap_bytes`
+    /// GREATER than `compute_shard_cap_bytes(entry.cap_formula_inputs())` —
+    /// the declared cap exceeds its own formula-derived ceiling. Applies to
+    /// EVERY `shape`, not `"flat"`-only (Postcondition 8 already establishes
+    /// that `shard_cap_bytes` bounds an artifact's TOTAL byte footprint even
+    /// for the `"frontmatter-changelog-array"` shape). Fail-loud: NEVER
+    /// silently accepted, NEVER silently clamped down to the computed
+    /// ceiling — mirrors EC-009/EC-011's established fail-loud-at-load-time
+    /// posture for this same config surface. The `==` boundary is legal
+    /// (Postcondition 4's `<=` comparison is inclusive — EC-002 precedent).
+    #[error(
+        "[[shard]] entry for artifact_stem = \"{artifact_stem}\" declares shard_cap_bytes = \
+         {shard_cap_bytes}, which EXCEEDS its own formula-derived ceiling \
+         compute_shard_cap_bytes(inputs) = {computed_ceiling} (BC-1.18.005 Postcondition 9 / \
+         EC-013). Fail-loud: never silently accepted, never silently clamped down to the \
+         computed ceiling."
+    )]
+    CapExceedsFormulaCeiling {
+        /// The offending entry's `artifact_stem`, so the operator can locate it.
+        artifact_stem: String,
+        /// The entry's own declared `shard_cap_bytes`.
+        shard_cap_bytes: u64,
+        /// `compute_shard_cap_bytes(entry.cap_formula_inputs())` — the ceiling
+        /// the entry's OWN four formula inputs justify.
+        computed_ceiling: u64,
+    },
 }
 
 /// Fail-loud config-load errors surface to the dispatcher's PreToolUse
@@ -229,7 +257,7 @@ impl From<ShardConfigError> for HookResult {
 impl ShardRegistry {
     /// Load + validate a `[[shard]]` config file from disk.
     ///
-    /// Validation (Preconditions 2 + EC-009/EC-010/EC-011/EC-012):
+    /// Validation (Preconditions 2 + EC-009/EC-010/EC-011/EC-012/Postcondition 9/EC-013):
     /// - every entry MUST declare `shape` (fail-loud [`ShardConfigError::MissingShape`]
     ///   on omission — EC-009).
     /// - `"frontmatter-changelog-array"`-shaped entries with an EXPLICIT
@@ -243,6 +271,11 @@ impl ShardRegistry {
     ///   (up to and including `N-1`) loads normally (`Ok`) but emits a
     ///   non-fatal `tracing::warn!` amortization advisory (EC-012) — see
     ///   [`validate_low_water_mark`].
+    /// - EVERY entry, regardless of `shape`, MUST NOT declare `shard_cap_bytes`
+    ///   greater than `compute_shard_cap_bytes(entry.cap_formula_inputs())`
+    ///   (fail-loud [`ShardConfigError::CapExceedsFormulaCeiling`] —
+    ///   Postcondition 9 / EC-013; the `==` boundary is inclusive, mirroring
+    ///   EC-002's precedent for the per-write trigger).
     pub fn load(path: &Path) -> Result<Self, ShardConfigError> {
         let text = std::fs::read_to_string(path)?;
         let parsed: Self = toml::from_str(&text)?;
@@ -252,6 +285,21 @@ impl ShardRegistry {
             let shape = entry.shape.ok_or_else(|| ShardConfigError::MissingShape {
                 artifact_stem: entry.artifact_stem.clone(),
             })?;
+
+            // Postcondition 9 / EC-013: applies to EVERY entry regardless of
+            // `shape` — Postcondition 8 already establishes that
+            // `shard_cap_bytes` bounds an artifact's TOTAL byte footprint as
+            // a whole-artifact concern even for the
+            // `"frontmatter-changelog-array"` shape, so this is NOT a
+            // `"flat"`-shape-only check.
+            let computed_ceiling = compute_shard_cap_bytes(&entry.cap_formula_inputs());
+            if entry.shard_cap_bytes > computed_ceiling {
+                return Err(ShardConfigError::CapExceedsFormulaCeiling {
+                    artifact_stem: entry.artifact_stem.clone(),
+                    shard_cap_bytes: entry.shard_cap_bytes,
+                    computed_ceiling,
+                });
+            }
 
             // Postcondition 8's rotation-target-config bullet / EC-010/EC-011/
             // EC-012 apply to the item-count shape's OPTIONAL explicit
@@ -505,8 +553,13 @@ pub fn read_changelog_item_count(target_path: &Path) -> io::Result<u64> {
     }
 
     let raw = std::fs::read_to_string(target_path)?;
+    // Opportunistic hardening (S-25.02 Phase F4 LOCAL adversary pass-1
+    // cluster-1 observation): tolerate a `---\r\n` (CRLF) opening fence in
+    // addition to `---\n`, so a CRLF-line-ended frontmatter file is not
+    // spuriously treated as having no fence at all.
     let block = raw
-        .strip_prefix("---\n")
+        .strip_prefix("---\r\n")
+        .or_else(|| raw.strip_prefix("---\n"))
         .and_then(|after_open| after_open.find("\n---").map(|end| &after_open[..end]))
         .ok_or_else(|| {
             io::Error::new(
@@ -1794,6 +1847,74 @@ mod tests {
              Today's implementation calls current_shard_bytes_flat() unconditionally BEFORE the \
              tool-kind match, so this non-NotFound stat error wrongly returns HookResult::Error \
              even for Write."
+        );
+    }
+
+    // ===================================================================
+    // Postcondition 9 / EC-013 (BC-1.18.005 v1.7, S-25.02 Phase F4 LOCAL
+    // adversary pass-1 cluster-1 finding) — load-time fail-loud enforcement
+    // of shard_cap_bytes <= compute_shard_cap_bytes(entry.cap_formula_inputs()).
+    // ===================================================================
+
+    #[test]
+    fn test_BC_1_18_005_PC9_EC013_load_rejects_cap_greater_than_formula_ceiling() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let cfg_path = dir.path().join("shard-config.toml");
+        std::fs::write(
+            &cfg_path,
+            "[[shard]]\n\
+             artifact_stem = \"decision-log\"\n\
+             practical_fuel_ceiling = 8000000\n\
+             worst_case_fuel_per_byte = 106.36\n\
+             max_single_record_bytes = 16384\n\
+             safety_margin = 8192\n\
+             shard_cap_bytes = 100000\n\
+             shape = \"flat\"\n",
+        )
+        .expect("write fixture");
+
+        // compute_shard_cap_bytes(these four inputs) = 50,640 (BC-1.18.005
+        // Postcondition 6's own worked example — see
+        // test_BC_1_18_005_PC6_compute_shard_cap_bytes_bc_provisional_worked_example
+        // above) — 100,000 is far above its own formula-derived ceiling.
+        let result = ShardRegistry::load(&cfg_path);
+        assert!(
+            result.is_err(),
+            "PC9/EC-013: an entry declaring shard_cap_bytes (100,000) GREATER than its own \
+             compute_shard_cap_bytes(inputs) ceiling (50,640) MUST fail-loud at load() time. \
+             Asserted generically via is_err() — the new ShardConfigError variant this \
+             postcondition requires does not exist yet, so naming it would fail to compile; \
+             load() currently never performs this comparison at all, so this MUST fail today."
+        );
+    }
+
+    #[test]
+    fn test_BC_1_18_005_PC9_load_accepts_cap_exactly_equal_to_formula_ceiling() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let cfg_path = dir.path().join("shard-config.toml");
+        std::fs::write(
+            &cfg_path,
+            "[[shard]]\n\
+             artifact_stem = \"decision-log\"\n\
+             practical_fuel_ceiling = 8000000\n\
+             worst_case_fuel_per_byte = 106.36\n\
+             max_single_record_bytes = 16384\n\
+             safety_margin = 8192\n\
+             shard_cap_bytes = 50640\n\
+             shape = \"flat\"\n",
+        )
+        .expect("write fixture");
+
+        // compute_shard_cap_bytes(these four inputs) = 50,640 exactly.
+        // Postcondition 4's `<=` comparison is inclusive of the boundary
+        // (Postcondition 9's own text: "mirroring EC-002's inclusive-boundary
+        // precedent"), so an exactly-equal declared cap MUST load
+        // successfully, never fail-loud.
+        let result = ShardRegistry::load(&cfg_path);
+        assert!(
+            result.is_ok(),
+            "PC9 boundary: shard_cap_bytes EXACTLY EQUAL to compute_shard_cap_bytes(inputs) MUST \
+             load successfully (inclusive <=), mirroring EC-002's boundary precedent: {result:?}"
         );
     }
 }
