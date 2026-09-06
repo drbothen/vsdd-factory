@@ -143,6 +143,15 @@ artifacts:
     description: Product requirements document
     enforcement_level: block
 
+  - artifact_type: prd-supplement
+    canonical_path_pattern: ".factory/specs/prd-supplements/{slug}.md"
+    description: >
+      PRD supplement extracted from the monolithic PRD per DF-021 (interface-definitions.md,
+      error-taxonomy.md, test-vectors.md, nfr-catalog.md). Producer: product-owner. Added
+      S-25.02 F2 fix-burst (F-S2502-F2-006) closing a pre-existing gap — prd.md §5.1/§5b/§4/§3
+      have referenced this directory since before this registry entry existed.
+    enforcement_level: block
+
   - artifact_type: state
     canonical_path_pattern: ".factory/STATE.md"
     description: Pipeline state document
