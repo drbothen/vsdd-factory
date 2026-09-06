@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-09-05T00:00:00Z
@@ -14,7 +14,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.006.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.18.005.md
   - .factory/cycles/v1.0-brownfield-backfill/S-25.02-f2-architecture-delta.md
-input-hash: "5db017e"
+input-hash: "6e06d08"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -179,7 +179,8 @@ write, no exception carved out for B1.
    (BC-1.18.006 Postcondition 2) applies IDENTICALLY to this artifact shape; there is NO
    "Continue after rotation" divergence.** If the rotation itself cannot complete (e.g.,
    `rotate_changelog` errors), the gate returns `HookResult::Error`, mirroring BC-1.18.006's EC-003
-   (seal-rename-failure) contract for mechanism A — unchanged from v1.0. If the rotation completes
+   (`E-SHD-001`, shard-seal-write failure — copy+atomic-truncate mechanism, no rename involved)
+   contract for mechanism A — unchanged from v1.0. If the rotation completes
    successfully, the gate returns `HookResult::Block` (Postcondition 2 above) — NEVER `Continue` —
    because `Continue` after a successful rotation would let the agent's own already-composed,
    PRE-rotation payload land on top of the just-rotated file, which is exactly the double-actor /
@@ -211,9 +212,11 @@ write, no exception carved out for B1.
    reimplemented"), which incorrectly implied the gate itself calls both functions.
 
 2. **Existing `changelog:` items are never mutated in place, only relocated.** Rotation moves the
-   oldest N+1th-and-beyond items out of the live frontmatter into a sealed shard file; it never
-   edits the content of a surviving item, and it never edits the content of a rotated-out item
-   (the rotated-out items are moved byte-for-byte into the sealed shard).
+   oldest N+1th-and-beyond items out of the live frontmatter into the single evergreen archive file
+   (`.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`, Postcondition 5 — CORRECTED,
+   F-P2-001: never a per-`seq` sealed shard); it never edits the content of a surviving item, and it
+   never edits the content of a rotated-out item (the rotated-out items are appended byte-for-byte
+   to the archive file, never overwritten or truncated).
 
 3. **`ARCH-INDEX.md`/`VP-INDEX.md`'s identical `changelog:` shape is NOT auto-rotated by this BC.**
    This BC's scope is `BC-INDEX.md` specifically, per S-25.02's own scope. Extending the same
@@ -231,9 +234,9 @@ write, no exception carved out for B1.
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | `changelog:` sequence is exactly at N items; a new prepend would make N+1 | Rotation triggers: the oldest item (previously item N) is moved to a new sealed shard, live sequence trimmed to N-1 items, THEN `HookResult::Block` returned with a retry instruction (Postcondition 2) — the agent's retried write lands the new item, bringing the sequence back to N |
+| EC-001 | `changelog:` sequence is exactly at N items; a new prepend would make N+1 | Rotation triggers: the oldest item (previously item N) is appended to the single evergreen archive file (`BC-INDEX-changelog-archive.md`), live sequence trimmed to N-1 items, THEN `HookResult::Block` returned with a retry instruction (Postcondition 2) — the agent's retried write lands the new item, bringing the sequence back to N |
 | EC-002 | `changelog:` sequence is well under N items | No rotation; the new item is simply prepended by the agent's own original call (`Continue`, standard ADR-049 §Decision 2 discipline, unmodified) |
-| EC-003 | `rotate_changelog` itself fails (e.g., cannot write the sealed shard file — disk full) | `HookResult::Error`; the triggering prepend is NOT applied; the frontmatter is left in its pre-rotation state (fail-loud, matching BC-1.18.006 EC-003's mechanism-A precedent) — unchanged from v1.0 |
+| EC-003 | `rotate_changelog` itself fails (e.g., cannot write to the archive file — disk full) | `HookResult::Error`; the triggering prepend is NOT applied; the frontmatter is left in its pre-rotation state (fail-loud, matching BC-1.18.006 EC-003's `E-SHD-001` shard-seal-write-failure mechanism-A precedent) — unchanged from v1.0 |
 | EC-004 | A single `changelog:` item is itself extremely large (e.g., the 16,521-byte line ADR-051 directly measured) | That item still counts as exactly ONE item toward the N-item cap — rotation is item-count-triggered for this mechanism, per BC-1.18.005 Postcondition 8, not byte-size-triggered per item |
 | EC-005 | Two concurrent sessions both attempt to prepend a `changelog:` item near the N-item boundary | TD-VSDD-053 single-commit-per-burst and the project's factory-lock discipline (ADR-025) prevent concurrent factory-artifacts commits from landing interleaved; the second session's dispatch re-reads the (now-rotated) frontmatter state before its own prepend is evaluated |
 | EC-006 (fix-burst, F-S2502-F2-001) | An implementer mistakenly has the gate call `prepend_changelog_item` after a successful `rotate_changelog`, then returns `Continue` | This is the withdrawn v1.0 design and a direct violation of Postcondition 2/6 and Invariant 1/4 — a static-analysis check (VP-126) MUST detect any `prepend_changelog_item` call site inside `shard_manager.rs`'s B1 handler as a defect, not a valid implementation choice |
@@ -367,6 +370,7 @@ S-25.02 — Artifact Sharding Layer 2: Size-Triggered Shard Rotation for Cycle A
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.3 | 2026-09-05 | product-owner | Residual-cleanup micro-burst (S-25.02 F2, formal-verifier-flagged gap ahead of the re-run adversary; no ADR/postcondition/invariant-set change — surgical wording reconciliation only). Invariant 2 and EC-001 still described the B1 rotation destination as "a sealed shard file" / "a new sealed shard" — a withdrawn per-`seq` shape v1.2 had already corrected everywhere else; both now read "the single evergreen archive file (`BC-INDEX-changelog-archive.md`)" to match Postcondition 2/5's v1.2 corrected mechanics. Postcondition 6 and EC-003's cross-reference to BC-1.18.006's EC-003 corrected from the withdrawn "seal-rename-failure" label to the current `E-SHD-001` "shard-seal-write failure" label (BC-1.18.006 v1.2's copy+atomic-truncate mechanism has no rename step). No behavior, postcondition-count, or invariant-count change — pure terminology reconciliation. |
 | 1.2 | 2026-09-05 | product-owner | Fix-burst amendment (adversary pass-2 finding F-P2-001, HIGH, ADR-051 v1.2 Decision 7 CORRECTED): REWROTE Postcondition 2/5/Invariant 1's archive-path citations from the internally-impossible per-`seq` sealed-shard-DIRECTORY layout (`BC-INDEX-changelog-shards/BC-INDEX-changelog.<seq:04>.md` — a layout the shipped `rotate_changelog`/`resolve_archive_path` cannot produce under any call pattern) to the single, evergreen, append-only archive file `.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`, reached via a small, NAMED, bounded extension to `rotate_changelog`'s path-resolution surface (an explicit `archive_path` parameter, not yet implemented — grounded via a current-state SDK grep showing the shipped `resolve_archive_path(path, cycle_name)` signature's absence of this parameter). Refined Invariant 1's "no reimplementation" framing to acknowledge this bounded, additive extension without weakening the no-duplicated-logic guarantee. Updated the retry-instruction text, Canonical Test Vectors, Related BCs (added BC-1.18.012), Architecture Anchors, SDK Grounding Evidence, and VP Anchors accordingly. No change to the single-actor block-and-retry contract itself (Postconditions 1/3/4/6, Invariants 2-4 unchanged from v1.1). |
 | 1.1 | 2026-09-05 | product-owner | **BLOCKER fix-burst amendment (F-S2502-F2-001, ADR-051 v1.1 Decision 7 "CORRECTED" subsection).** Postconditions 2 and 6 REWRITTEN and Invariant 1 REWRITTEN (with a new Invariant 4) to withdraw the v1.0 double-actor "gate rotates AND prepends, then Continues" design, which was unsound: (a) double-actor prepend hazard (gate and agent both perform the identical insert action); (b) stale-payload clobber for `Write`/`MultiEdit` (a pre-rotation full-file payload landing over a just-rotated file silently re-introduces the archived tail, causing infinite rotation churn) — grounded in `rotate_changelog`'s own verified pure-trim signature (no `prepend_changelog_item` call, no new-item parameter). CORRECTED contract: the gate performs ONLY the rotate/trim step, THEN returns `HookResult::Block` with a retry instruction; the new item's prepend is EXCLUSIVELY the responsibility of whichever `Edit`/`Write`/`MultiEdit` call ultimately lands (original or retried) — a strict structural mirror of BC-1.18.006's block-and-retry contract. Added EC-006 (static-detection of a reintroduced gate-side prepend as a defect) and updated Canonical Test Vectors/VP table notes accordingly. H1 title amended to "... — Single-Actor Block-and-Retry" to make the corrected contract load-bearing in the title per BC H1 Title Authority. Added `## SDK Grounding Evidence` section (F-S2502-F2-007). VP-125/126 flagged for formal-verifier re-review (not actioned this burst — VP bodies are formal-verifier's domain). |
 | 1.0 | 2026-09-05 | product-owner | Initial creation (NEW BC, not in the original F1 enumeration — mechanism B1, added per D-1166 human widest-scope decision covering BC-INDEX.md). Automatic size-triggered invocation of the already-shipped `rotate_changelog`/`prepend_changelog_item` primitives via the same native gate BC-1.18.006 defines, with a "Continue after rotation" divergence from mechanism A's block-and-retry (justified: rotation always succeeds in making room for a bounded-size changelog item prepend). CAP-043 capability anchor. ADR-051 §D7 + ADR-049 §D2/§D6 citations. **[WITHDRAWN by v1.1 — see above; this row is retained per POLICY 1 append-only history, not as a currently-valid contract description.]** |
