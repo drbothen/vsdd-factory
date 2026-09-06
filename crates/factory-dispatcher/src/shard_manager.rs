@@ -668,20 +668,21 @@ pub fn shard_cap_gate_check(
                 return HookResult::Continue;
             };
 
-            let current_bytes = match current_shard_bytes_flat(target_path) {
-                Ok(bytes) => bytes,
-                Err(e) => {
-                    return HookResult::Error {
-                        message: format!(
-                            "BC-1.18.005: failed to stat() shard '{}' for artifact_stem \
-                             \"{}\": {e}",
-                            target_path.display(),
-                            entry.artifact_stem
-                        ),
-                    };
-                }
-            };
-
+            // F-002 fix (S-25.02 Phase F4 LOCAL adversary pass-1 cluster-1,
+            // MEDIUM): `current_shard_bytes_flat` (a stat()/metadata() call)
+            // is ONLY needed by the Edit/MultiEdit legs of Postcondition 3's
+            // CORRECTED formula — `Write`'s `projected_size = len(content)`
+            // alone never consults `current_shard_bytes` at all. Calling it
+            // unconditionally here (i.e. before this match) would fail a
+            // `Write` on a stat() error the Write formula doesn't even need
+            // (e.g. a non-`NotFound` I/O error such as `ELOOP`), which is
+            // never sound: `Write` must never be blocked by a read it
+            // doesn't perform. So the stat() call is pushed down into ONLY
+            // the Edit/MultiEdit arms below, each of which does need
+            // `current_shard_bytes` for the current+delta formula.
+            // EC-004 (a missing shard file treated as size 0) is preserved:
+            // `current_shard_bytes_flat` itself still maps `NotFound` to
+            // `Ok(0)`, unchanged.
             let projected_size = match tool_kind {
                 ToolKind::Write => {
                     let content_len = tool_input
@@ -692,6 +693,19 @@ pub fn shard_cap_gate_check(
                     projected_size_write(content_len)
                 }
                 ToolKind::Edit => {
+                    let current_bytes = match current_shard_bytes_flat(target_path) {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            return HookResult::Error {
+                                message: format!(
+                                    "BC-1.18.005: failed to stat() shard '{}' for artifact_stem \
+                                     \"{}\": {e}",
+                                    target_path.display(),
+                                    entry.artifact_stem
+                                ),
+                            };
+                        }
+                    };
                     let old_len = tool_input
                         .get("old_string")
                         .and_then(|v| v.as_str())
@@ -706,6 +720,19 @@ pub fn shard_cap_gate_check(
                     projected_size_edit(current_bytes, net_delta)
                 }
                 ToolKind::MultiEdit => {
+                    let current_bytes = match current_shard_bytes_flat(target_path) {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            return HookResult::Error {
+                                message: format!(
+                                    "BC-1.18.005: failed to stat() shard '{}' for artifact_stem \
+                                     \"{}\": {e}",
+                                    target_path.display(),
+                                    entry.artifact_stem
+                                ),
+                            };
+                        }
+                    };
                     let edits: Vec<EditDelta> = tool_input
                         .get("edits")
                         .and_then(|v| v.as_array())
@@ -1715,6 +1742,58 @@ mod tests {
             warn_count, 0,
             "EC-010: an omitted low_water_mark resolves to floor(N/2) — the default itself — \
              and MUST NOT fire the advisory"
+        );
+    }
+
+    // ===================================================================
+    // F-002 (MED, S-25.02 Phase F4 LOCAL adversary pass-1 cluster-1) — a
+    // Write against a [[shard]]-matched path whose current shard cannot be
+    // stat()-ed for a reason OTHER than NotFound (e.g. EC-004's already-
+    // covered missing-file case) MUST NOT be blocked when the Write's own
+    // content length is under cap. Postcondition 3's CORRECTED Write leg
+    // computes projected_size = len(content) ALONE — current_shard_bytes
+    // (and, by extension, any failure reading it) is irrelevant to Write.
+    // ===================================================================
+
+    #[cfg(unix)]
+    #[test]
+    fn test_BC_1_18_005_F002_write_under_cap_continues_despite_irrelevant_stat_failure() {
+        // Same portable technique as the existing unmatched-path zero-cost
+        // canary test above (a self-referential symlink makes ANY
+        // stat()/metadata() call on this path fail with ELOOP) — but here the
+        // path's STEM MATCHES a [[shard]] entry, so the gate does NOT
+        // short-circuit before stat(); it must instead recognize that a
+        // Write's formula never needs current_shard_bytes at all.
+        //
+        // Portability caveat: ELOOP via a self-referential symlink is a
+        // Unix-only technique (`std::os::unix::fs::symlink`), hence
+        // `#[cfg(unix)]` — mirroring this file's own existing precedent for
+        // the same landmine (`test_BC_1_18_005_INV3_EC_001_...`). No portable
+        // cross-platform non-NotFound stat() failure was substituted because
+        // this exact technique is already the codebase's established pattern
+        // for this class of test.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let looped = dir.path().join("decision-log.md");
+        std::os::unix::fs::symlink(&looped, &looped).expect("create self-referential symlink");
+
+        let registry = ShardRegistry {
+            shards: vec![flat_entry("decision-log", 49_152)],
+        };
+        let result = shard_cap_gate_check(
+            &registry,
+            "Write",
+            &looped,
+            &serde_json::json!({"content": "x".repeat(5_000)}),
+        );
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "F-002: a Write's projected_size = len(content) alone (Postcondition 3 CORRECTED) — \
+             current_shard_bytes, and any stat() failure reading it (here ELOOP on a \
+             self-referential symlink), is irrelevant to the Write formula and MUST NOT block it. \
+             Today's implementation calls current_shard_bytes_flat() unconditionally BEFORE the \
+             tool-kind match, so this non-NotFound stat error wrongly returns HookResult::Error \
+             even for Write."
         );
     }
 }
