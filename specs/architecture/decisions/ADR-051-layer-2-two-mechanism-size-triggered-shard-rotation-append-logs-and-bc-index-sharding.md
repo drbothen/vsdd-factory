@@ -122,16 +122,26 @@ inputs, and current cap.
 2. If matched: `stat()` the current shard's byte size (metadata only — no file content read into
    memory, addressing F1 §4's fuel-budget-for-the-checker-itself risk natively, since native code
    has no fuel budget at all).
-3. Compute `projected_size = current_size + payload_size` (payload size is read directly from the
-   tool call's own parameters — `content` for `Write`, `new_string` length delta for `Edit`/
-   `MultiEdit` — no file re-read required).
+3. **Compute `projected_size` PER-TOOL-SEMANTICS (CORRECTED, fix-burst F-P2-002,
+   BLOCKER; the v1.1 formula below is WITHDRAWN as unsound):** `Write` REPLACES a file's entire
+   content — `len(content)` alone IS the file's post-apply size, never `current_size + len(content)`.
+   `Edit`/`MultiEdit` MUTATE existing content in place — `current_size + net_delta_bytes` (the sum
+   of each edit's `len(new_string) - len(old_string)`) correctly models their post-apply size. The
+   WITHDRAWN v1.1 formula (`current_size + payload_size` for every tool, including `Write`)
+   double-counted a `Write`'s own already-complete content on top of the current shard's size,
+   over-triggering rotation on ordinary same-size-or-shrinking full-file `Write` calls. The
+   corrected, tool-discriminated formula:
+   - `Write`: `projected_size = len(content)`.
+   - `Edit`/`MultiEdit`: `projected_size = current_size + net_delta_bytes` (unchanged from v1.0/
+     v1.1 — this leg was never wrong; only the `Write` leg was).
 4. If `projected_size <= shard_cap_bytes`: `Continue`.
 5. If `projected_size > shard_cap_bytes`: **perform the roll** (Decision 3) — seal the current
-   shard (rename to its sealed name), create a fresh empty current file, atomically publish the
-   updated shard index (Decision 4) — THEN return `HookResult::Block { reason: "Shard <artifact>
-   rotated (cap <N> bytes reached); the current shard is now empty. Retry your write: if you
-   used Edit, reissue as a fresh Write containing only your new entry (Edit's old_string will no
-   longer match); if you used Write, simply retry unchanged." }`.
+   shard's content (copy to its sealed name, then atomically empty the canonical file in place —
+   see Decision 3's fix-burst correction; the current shard is NEVER renamed away), atomically
+   publish the updated shard index (Decision 4/Decision 11) — THEN return `HookResult::Block`
+   with the CORRECTED retry-instruction wording (Decision 3's fix-burst correction below; the
+   v1.1 "if you used Write, simply retry unchanged" wording is WITHDRAWN as unsound — see F-P2-002
+   in the companion F2 architecture-delta doc §4b).
 
 **Why block-and-retry, not silent pass-through:** because `HookResult` cannot redirect or mutate
 the pending call (see Context above), and because an `Edit` call's `old_string` is matched against
@@ -266,13 +276,76 @@ an incomplete, non-production-grade delivery of the story's own stated purpose.
 ### Decision 3 — Stable-Current-Filename Addressing for Append-Log Shards (OQ-2, mechanism A)
 
 The artifact's canonical, unchanging filename (e.g. `decision-log.md`) is ALWAYS the current
-(actively-written) shard. Sealing a shard **renames it away** to `<stem>.<seq:04>.md` (e.g.
-`decision-log.0001.md`) and creates a fresh empty file at the canonical name. This is the
-addressing resolution for OQ-2's option (a) — achieved by naming convention, not a symlink (a
-symlink would need to be re-pointed atomically alongside the seal+create step and adds a
-platform-portability concern the `factory-dispatcher` cross-compilation targets (darwin/linux/
-windows) would need to separately verify; a plain rename achieves the same transparency with one
-fewer moving part).
+(actively-written) shard. Sealing a shard publishes its content under a NEW sealed filename
+`<stem>.<seq:04>.md` (e.g. `decision-log.0001.md`) and leaves the canonical file in place,
+**atomically emptied**. This is the addressing resolution for OQ-2's option (a) — achieved by
+naming convention, not a symlink (a symlink would need to be re-pointed atomically alongside the
+seal step and adds a platform-portability concern the `factory-dispatcher` cross-compilation
+targets (darwin/linux/windows) would need to separately verify).
+
+**CORRECTED (fix-burst F-P2-003, HIGH) — seal is COPY-then-ATOMIC-TRUNCATE-IN-PLACE,
+NEVER a rename-away of the canonical path.** The v1.0/v1.1 text above ("renames it away") and
+BC-1.18.006 Postcondition 1(a) as originally drafted described the seal step as `rename(canonical,
+sealed)` followed by a separate `create(canonical)` — two distinct filesystem operations with an
+interstitial window, between the rename completing and the fresh-file create completing, during
+which the canonical path **does not exist on disk at all**. Any shard-unaware reader (the ~76
+fail-open production plugins with directory-scoped `path_allow` globs, `check_d_chain_currency`,
+a human `cat`) that happens to `open()` the canonical path inside that window observes `ENOENT` —
+a hard failure, not a stale-but-valid read — directly contradicting AC-007's "zero-code-change
+transparency" guarantee and BC-1.18.006 Invariant 3's own text ("the canonical filename is NEVER
+renamed away; only its CONTENT is replaced"), which the v1.0/v1.1 Postcondition 1(a) rename-based
+mechanism structurally could not satisfy. The corrected seal sequence, reusing ONLY the
+already-established `write_atomic` (`crates/last-amended-migrate/src/atomic_write.rs`) /
+`write_indeterminate_marker` (`crates/factory-dispatcher/src/indeterminate_marker.rs`)
+temp-file-then-rename primitive — no new atomic-write primitive, no reimplementation:
+
+1. **Read** the canonical file's current full content (a one-time, roll-only read — the cheap
+   per-write TRIGGER check, BC-1.18.005 Postcondition 2, remains `stat()`-only; content is read
+   ONLY once a roll is already confirmed necessary).
+2. **Publish the sealed shard as a brand-NEW file** at `<stem>.<seq:04>.md` via `write_atomic`
+   (temp-file-then-rename; the destination does not yet exist, so this is a `rename()` that
+   CREATES an entry, not one that could interrupt any reader of the canonical path — sealed
+   filenames are never read by shard-unaware code, only by whole-corpus glob consumers).
+3. **Atomically REPLACE the canonical file's content with empty**, via the SAME temp-file-then-
+   rename primitive — write an empty temp file, then `rename(temp, canonical)`. A `rename()` onto
+   an EXISTING destination path is an atomic in-place replace at the directory-entry level (POSIX
+   `rename(2)`; the dispatcher's Windows target uses the equivalent `MoveFileEx` with
+   `MOVEFILE_REPLACE_EXISTING`, already required by `write_atomic`'s existing cross-platform
+   contract) — the canonical path resolves to SOME valid file (old content, then instantaneously
+   the new empty content) at every observable instant; it is NEVER absent. This is the crucial
+   difference from the withdrawn rename-away mechanism: step 3 renames a temp file **INTO** the
+   canonical path (always-occupied), never the canonical path itself **OUT** (would-be-vacated).
+4. Publish the updated shard index (Decision 4/Decision 11).
+
+This produces the IDENTICAL on-disk end-state and IDENTICAL sealed-shard naming/glob-sort
+properties the v1.0/v1.1 text already established (the sort-order rationale below is unchanged —
+only the MECHANISM by which the canonical file ends up empty and the sealed file ends up populated
+changes, from "rename away + create" to "copy-out + atomic-replace-in-place"), while making
+BC-1.18.006 Invariant 3's "canonical filename never renamed away" claim literally, structurally
+true rather than contradicted by its own Postcondition 1(a). See the companion F2
+architecture-delta doc §4b (F-P2-003) for the exact BC-1.18.006 Postcondition 1(a)/Invariant
+2/Invariant 3 rewrite this requires of product-owner.
+
+**Corrected retry-instruction wording (supersedes the v1.1 "if you used Write, simply retry
+unchanged" text, which is UNSOUND under BOTH the withdrawn rename mechanism and the corrected
+per-tool formula above — F-P2-002):** because the canonical file is now EMPTY after a
+roll (copy+truncate, not rename-away), and because a blocked `Write`'s own `content` parameter was
+composed by the agent BEFORE the roll (typically by reading the OLD, over-cap file and appending
+one new entry — the same "stale full-file payload" pattern already named unsound for mechanism
+B1's `Write` case, Decision 7), retrying that SAME `content` unchanged would resubmit content that
+is STILL over cap relative to the fresh empty shard (since `projected_size = len(content)` for
+`Write`, per the corrected formula, and `len(content)` has not shrunk) — producing a permanent
+block/retry deadlock, not a duplicate. The corrected, UNIFIED retry instruction (same text
+regardless of original tool, since both branches now converge on "recompute against the current,
+post-roll state"): `"Shard <artifact> rotated (cap <N> bytes reached); the current shard is now
+empty. Retry your write against the CURRENT (post-roll, empty) file — do not resubmit your
+original payload unchanged: if you used Edit or MultiEdit, your old_string will no longer match
+(the content it targeted is now in <sealed-path>) — reissue as a fresh Write containing ONLY your
+new entry; if you used Write, recompute content to contain ONLY your new entry (not your original
+full pre-roll payload, which reflects discarded state and will exceed the cap again if
+resubmitted)."` This closes the mechanism-A analogue of the exact hazard Decision 7's fix-burst
+correction already closed for mechanism B1's `Write` path — mechanism A's own `Write` path carried
+the identical unfixed hazard through v1.1, per F-P2-002's finding.
 
 **Consequence for shard-UNAWARE readers/validators (AC-007):** any validator or human command
 that reads `decision-log.md` by its canonical name — including every one of the ~76 fail-open
@@ -324,11 +397,15 @@ bytes_at_seal = 49087
 
 The index and the newly-sealed shard file MUST be written in the SAME native gate invocation,
 which the native-check placement (Decision 1) makes structural rather than conventional: because
-the gate performs both the rename (seal) and the index publish before returning `Block`, and
-because both are filesystem writes issued by the SAME PreToolUse invocation before any
+the gate performs the sealed-shard publish, the canonical atomic-truncate (Decision 3's fix-burst
+copy-then-atomic-truncate-in-place correction), and the index publish before returning `Block`, and
+because all three are filesystem writes issued by the SAME PreToolUse invocation before any
 `git add`/`git commit` occurs, they are guaranteed to land in the SAME subsequent factory-artifacts
 commit — satisfying AC-004/TD-VSDD-053 by construction, not by state-manager discipline (this
-directly resolves F1 §4's "TD-VSDD-053 vs. shard+index atomicity" MEDIUM risk).
+directly resolves F1 §4's "TD-VSDD-053 vs. shard+index atomicity" MEDIUM risk). **A crash between
+these three writes is a genuinely distinct, previously-unspecified failure surface — see Decision
+11's fix-burst addition for the staged execution order and the partial-failure postconditions/error
+codes this composite operation requires (F-P2-004, MEDIUM).**
 
 ### Decision 5 — `/compact-state` Interaction (OQ-3)
 
@@ -443,13 +520,69 @@ matched artifact is "frontmatter changelog array" rather than "flat append-only 
 item-count trigger (Decision 1's trigger-shape dispatch, above) fires, the gate performs a **rotate
 (trim) step**, using `rotate_changelog` (`crates/last-amended-migrate/src/rotate.rs`, already
 implemented and tested — ADR-049 §Decision 6 built this exact primitive as a manual safety-net
-tool) to move the overflowing tail into a new sealed changelog shard under
-`.factory/specs/behavioral-contracts/BC-INDEX-changelog-shards/BC-INDEX-changelog.<seq:04>.md`,
-leaving the live frontmatter's `changelog:` sequence at exactly N-1 items (room for exactly one new
-item) — THEN returns `HookResult::Block` with a retry instruction, per the CORRECTED single-actor
-contract below. This automates, for BC-INDEX specifically, exactly what ADR-049 could previously
-only do via manual CLI invocation — no new rotation logic is designed, only a new automatic
-size-triggered CALLER of the existing `rotate_changelog` function.
+tool) to move the overflowing tail into a sealed changelog archive — THEN returns
+`HookResult::Block` with a retry instruction, per the CORRECTED single-actor contract below. This
+automates, for BC-INDEX specifically, exactly what ADR-049 could previously only do via manual CLI
+invocation — no new rotation logic is designed, only a new automatic size-triggered CALLER of the
+existing `rotate_changelog` function.
+
+**CORRECTED (fix-burst F-P2-001, HIGH) — the archive is a SINGLE, ever-growing
+append-file at a BC-INDEX-appropriate path, NEVER per-`seq` sealed shards under a
+`BC-INDEX-changelog-shards/` directory; reusing `rotate_changelog` requires a small, NAMED,
+bounded extension to its path-resolution surface, not the unqualified "zero new logic" claim the
+v1.0/v1.1 text above made.** Direct inspection of the SHIPPED implementation
+(`crates/last-amended-migrate/src/rotate.rs`) shows `rotate_changelog`/`resolve_archive_path`:
+
+- derive exactly ONE fixed destination path per invocation —
+  `<factory-root>/cycles/<cycle_name>/<basename>-changelog-archive.md` — with NO `<seq:04>`
+  per-rotation numbering scheme anywhere in the function;
+- **APPEND** to that single destination on every invocation (`archive_content.push_str(item)` for
+  each moved item, after first reading any pre-existing archive content at that same path) — the
+  function is already, by construction, a single-evergreen-file archiver, not a shard-per-rotation
+  archiver;
+- **REQUIRE** a `cycle_name: &str` parameter used only to construct the
+  `cycles/<cycle_name>/` path segment — `BC-INDEX.md` is a `.factory/specs/behavioral-contracts/`
+  catalog artifact, not a cycle artifact, and has no natural `cycle_name` value to supply; forcing
+  a synthetic/sentinel `cycle_name` string would misfile BC-INDEX's changelog archive under
+  `.factory/cycles/`, a directory whose semantic meaning (and whose `path_allow`-scoped validators)
+  is "this cycle's artifacts," not "catalog metadata archives."
+
+The v1.0/v1.1 text's claim that B1 "reuses `rotate_changelog`, no reimplementation" while
+separately specifying a per-`seq` sealed-shard-directory archive layout
+(`BC-INDEX-changelog-shards/BC-INDEX-changelog.<seq:04>.md`) is **internally impossible**: the
+shipped function cannot produce that layout under any call pattern. Two remediation options were
+weighed (per this fix-burst's own dispatch instructions): (a) accept `rotate_changelog`'s ACTUAL
+single-append-file behavior as-is, forcing a sentinel `cycle_name`; or (b) make a small, explicit,
+NAMED extension to the primitive's path-resolution surface so a non-cycle caller can supply its own
+archive path directly. **Option (b) is adopted** — it is the sounder engineering choice (it avoids
+semantically misfiling a specs-catalog artifact under `.factory/cycles/`) and remains a genuinely
+bounded extension, not new rotation logic:
+
+- **New, additive function `resolve_archive_path_at(archive_path: &Path) -> PathBuf`** (or,
+  equivalently, generalize `rotate_changelog`'s existing internals to accept an `archive_path: &Path`
+  parameter DIRECTLY in place of deriving one from `cycle_name`) — this changes ONLY where the
+  archive destination path comes from; every other line of `rotate_changelog`'s logic (frontmatter
+  parsing, `keep_recent` split, `archive_content.push_str` accumulation, `yaml_guard` validation,
+  `write_atomic` for both files) is REUSED VERBATIM, unmodified. Existing mechanism-A-style callers
+  (which ARE genuinely cycle-scoped) are UNAFFECTED: they continue to compute their archive path via
+  the EXISTING, unchanged `resolve_archive_path(path, cycle_name)` helper and pass the result
+  through the same call surface.
+- **The dispatcher's B1 handler in `shard_manager.rs` pre-computes a FIXED, non-cycle,
+  BC-INDEX-sibling archive path** — `.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`
+  (a single evergreen file, sibling to `BC-INDEX.md` itself, matching `rotate_changelog`'s actual
+  single-append-file behavior exactly) — and calls the generalized primitive with that path. NO
+  `cycle_name` value is invented or threaded through for this call at all.
+- **Accepted trade-off, documented not hidden:** `BC-INDEX-changelog-archive.md` is itself
+  APPEND-ONLY and UNBOUNDED across the artifact's lifetime (every rotation appends more, never
+  splits into fresh files) — this is the SAME shape ADR-049's original manual tool already accepted
+  as sufficient, and is sound here because (a) the archive is small per-append (individual
+  `changelog:` items, not whole BC rows), (b) it is read by NEITHER the item-count trigger (which
+  inspects only the LIVE frontmatter sequence) NOR any Cohort B validator (confirmed per the
+  companion F2 delta doc §5 migration-impact map), so it sits entirely outside Layer 2's own
+  bounded-artifact concern, and (c) if it later becomes large enough to be a NEW forensic
+  contributor in its own right, that is a follow-up Layer-2-on-Layer-2 story, not a defect of this
+  design. This is a deliberate, minimal-footprint choice consistent with this finding's own framing
+  ("the changelog array is small metadata, so a single append-archive may be entirely adequate").
 
 **CORRECTED (fix-burst amendment, F-S2502-F2-001, BLOCKER) — B1 is block-and-retry, identical in
 actor-ownership shape to BC-1.18.006's mechanism-A contract; the original "gate rotates AND
@@ -506,11 +639,13 @@ is needed:
 2. The gate's item-count trigger (Decision 1, trigger-shape dispatch) evaluates
    `current_item_count + 1 > N` against the file's CURRENT (pre-write) state. If false: `Continue`
    — no rotation, the agent's own prepend lands normally, unmodified (EC-002, unchanged from v1.0).
-3. If true: the gate invokes `rotate_changelog` to trim the live `changelog:` sequence down to
-   N-1 items (archiving the overflow tail), publishes the sealed changelog shard, THEN returns
+3. If true: the gate invokes `rotate_changelog` (via the generalized, explicit-`archive_path`
+   surface, Decision 7's fix-burst correction above) to trim the live `changelog:` sequence down to
+   N-1 items, appending the overflow tail to the SINGLE evergreen archive file, THEN returns
    `HookResult::Block` with an explicit retry instruction: "BC-INDEX.md's `changelog:` sequence was
-   rotated to make room (oldest item(s) moved to `BC-INDEX-changelog-shards/
-   BC-INDEX-changelog.<seq:04>.md`); the frontmatter now has N-1 items. Retry your write: if you
+   rotated to make room (oldest item(s) appended to
+   `.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`); the frontmatter now has
+   N-1 items. Retry your write: if you
    used `Edit`, reissue as a fresh `Write` or a fresh `Edit` re-read against the current
    (post-rotation) file, since your original `old_string`/`new_string` pair may no longer match; if
    you used `Write`, recompute your `content` payload against the current (post-rotation) file
@@ -521,11 +656,11 @@ is needed:
 4. Agent retries, reading/recomputing against the now-rotated file; its retried prepend lands via
    `Continue` (item count is now `N-1+1 = N`, not exceeding N) — SINGLE ACTOR, exactly once.
 
-**Atomicity is preserved identically to mechanism A's pattern:** the rotate/trim step (sealed
-changelog shard write + live-frontmatter trim) completes BEFORE the `Block` is returned, in the
-SAME native-gate invocation — the same "seal-then-block" atomicity guarantee Decision 4 already
-establishes for mechanism A, just with `rotate_changelog`'s trim in place of mechanism A's
-rename-based seal. The actual NEW-item prepend, like mechanism A's actual oversized write, lands in
+**Atomicity is preserved identically to mechanism A's pattern:** the rotate/trim step (evergreen
+archive-file append + live-frontmatter trim) completes BEFORE the `Block` is returned, in the
+SAME native-gate invocation — the same "seal-then-block" atomicity guarantee Decision 4/Decision 11
+already establishes for mechanism A, just with `rotate_changelog`'s trim in place of mechanism A's
+copy-then-atomic-truncate seal. The actual NEW-item prepend, like mechanism A's actual oversized write, lands in
 a SEPARATE subsequent tool call (the retry) — this is not a regression in atomicity, since
 mechanism A's own contract already splits "the roll" (atomic, same-invocation) from "the content
 that triggered it" (a separate, later call) in exactly this way.
@@ -697,6 +832,200 @@ to close for mechanism A, but B2's equivalent gap was not independently recogniz
 original F2 burst. This Decision closes it using the identical migration-governance pattern already
 proven sound for mechanism A, rather than inventing new migration machinery.
 
+### Decision 11 — Staged, Crash-Recoverable Per-Write Roll Sequence and Partial-Failure Error Codes (fix-burst addition, F-P2-004, MEDIUM)
+
+BC-1.18.006/BC-1.18.009's ongoing (per-write, NOT one-time-migration) roll is the FAR more frequent
+operation in this ADR's scope — it fires on every over-cap `Edit`/`Write`/`MultiEdit`, unlike
+BC-1.18.008/BC-1.18.011's one-time backfills, which run exactly once each. Yet, as originally
+drafted, the ongoing roll's crash-atomicity was under-specified relative to the one-time
+migrations: BC-1.18.008/011 both received explicit staging + independent-verification + atomic
+replace + rollback-on-failure treatment; the per-write roll's Postcondition 1 asserted an ordered
+sequence of filesystem writes but named only ONE failure mode (`E-SHD-001`, "seal[-write] failure")
+and left the OTHER two possible crash points between the three composite writes (Decision 3's
+corrected copy-then-atomic-truncate seal step, and Decision 4's index publish) completely
+unspecified. This Decision closes that gap with a staged sequence and named partial-failure
+postconditions, reusing ONLY already-established atomic-write primitives — no new atomicity
+mechanism is invented.
+
+**Staged sequence (mechanism A; mechanism B1 substitutes `rotate_changelog`'s own trim+archive-append
+write for steps 1-2, per Decision 7, but composes with steps 3-4 identically for the frontmatter
+truncate-to-N-1-items and index-adjacent bookkeeping):**
+
+1. **Read** the canonical file's current full content (roll-only; the cheap per-write trigger check
+   remains `stat()`-only, per BC-1.18.005 Postcondition 2).
+2. **Publish the sealed shard as a new file** at `<stem>.<seq:04>.md` via `write_atomic` (creates a
+   not-yet-existing path).
+3. **Atomically replace the canonical file's content with empty** via `write_atomic` (renames a temp
+   file ONTO the existing canonical path — Decision 3's fix-burst correction).
+4. **Atomically publish the updated shard-index TOML** via `write_atomic` (records the new
+   `[[shard]]` entry).
+5. Return `HookResult::Block` (Decision 3's corrected retry wording).
+
+**Partial-failure postconditions, one new/refined `E-SHD-NNN` code per crash point (product-owner
+adds these rows to `.factory/specs/prd-supplements/error-taxonomy.md` — architect does not edit
+that file directly per CLAUDE.md routing; see the companion F2 architecture-delta doc §4b for the
+exact obligation):**
+
+- **Step 1-2 fails (`E-SHD-001`, REFINED — description text updated from "seal-rename failure" to
+  "shard-seal-write failure" to match the corrected copy-based mechanism; the error CODE and
+  observable contract — `HookResult::Error`, canonical file completely untouched — are unchanged,
+  so no error-taxonomy renumbering is required, only a description-text refresh):** the canonical
+  file is left in its exact pre-roll state (still over cap, still holding its full original
+  content) — safe, no data loss, no duplicate; the next dispatch attempt against this artifact
+  re-evaluates the trigger and re-attempts the FULL sequence from step 1.
+- **Step 3 fails after step 2 succeeded (NEW `E-SHD-006`):** the sealed shard now durably exists
+  (a byte-for-byte copy of the pre-roll content) AND the canonical file STILL holds that same
+  content too (not yet truncated) — a transient, DETECTABLE duplicate-content state, not a
+  data-loss state. **Recovery (self-healing, no operator intervention):** on the NEXT dispatch
+  attempt for this artifact, BEFORE evaluating any new trigger, the gate checks whether a sealed
+  shard exists at the index's next-expected `seq` path whose content is byte-identical to the
+  canonical file's CURRENT content; if so, this is recognized as "seal published, truncate did
+  not," and the gate resumes from step 3 alone (re-attempting ONLY the truncate + index publish,
+  never re-writing the already-correct sealed shard) — idempotent by construction, since step 2's
+  `write_atomic` create is itself a no-op if reissued against identical content.
+- **Step 4 fails after step 3 succeeded (NEW `E-SHD-007`):** the canonical file is CORRECTLY fresh
+  and empty (safe for all future writes — no over-cap risk, no data loss) and the sealed shard file
+  exists correctly on disk, but `<artifact-stem>.shard-index.toml` has not yet recorded the new
+  `[[shard]]` entry — a discoverability-METADATA gap only: whole-corpus glob-based readers
+  (`<stem>*.md`) still find the sealed file regardless of index membership, so no reader-visible
+  data loss occurs. **Recovery (self-healing):** on the next dispatch attempt, the gate reconciles
+  the index by scanning the filesystem for sealed-shard files matching the artifact's naming
+  convention that are absent from the index, and appends the missing entries before evaluating any
+  new trigger.
+- **All four steps succeed:** normal `Block` outcome, no error.
+
+This staged model is the mechanism-A/B1 per-write-roll analogue of the staging+verify+atomic-replace
++rollback discipline BC-1.18.008/BC-1.18.011 already apply to their one-time migrations — applied
+here to a composite THREE-write operation instead of an N-way partition, with detection-and-resume
+substituting for a from-scratch rollback (rollback-to-original-state is not meaningful here, since
+unlike the one-time migrations, the "original state" — the over-cap canonical file — is exactly the
+state the roll exists to eliminate; resuming forward through the remaining steps is the correct
+recovery direction, not reverting).
+
+### Decision 12 — Non-Append-Edit Gate Scope: the Append-Only-Tail Assumption Made Explicit, and the Sealed-Shard Direct-Edit Escape Hatch (fix-burst addition, F-P2-005, MEDIUM)
+
+The gate (Decision 1) matches `Edit`/`Write`/`MultiEdit` against a sharded artifact's CANONICAL
+path and computes `projected_size` from a pure byte-delta/length formula (Decision 1 step 3,
+fix-burst-corrected) — it has NO semantic understanding of WHERE within the file an edit lands, and
+was never designed to. The roll+block+retry wording (Decision 3's corrected text, and
+BC-1.18.009's B1 equivalent) is phrased for the common case this gate exists to serve: a pure
+APPEND of one new record at the file's end. This Decision makes explicit an assumption the v1.0/
+v1.1 text left implicit, and specifies the (narrow, caller-responsibility, not gate-defect) failure
+mode when the assumption is violated.
+
+**The four mechanism-A artifacts and BC-INDEX's `changelog:` array are, by construction, POLICY-1
+governed append-only records.** POLICY-1 (`append_only_numbering`, `.factory/policies.yaml` id 1)
+already forbids renumbering or rewriting historical D-NNN/BC/VP/story entries. Legitimate
+`Edit`/`MultiEdit` mutations against these artifacts are therefore, by the SAME policy, already
+expected to be one of: (a) a pure append of a brand-new record at file end, or (b) a narrow
+amendment to a STILL-MUTABLE, recently-added record near the tail (e.g., a same-burst typo fix to
+an entry that has not yet been sealed away) — never an edit to arbitrarily old, already-sealed, or
+deep-mid-file historical content, since POLICY-1 already forbids rewriting that content's meaning
+regardless of this gate's existence.
+
+**Gate behavior is UNCHANGED and requires no new detection logic — this is a documentation/edge-case
+clarification, not a code change to the trigger or roll.** A net-positive `Edit`/`MultiEdit` that
+happens to target a still-mutable tail record and pushes `projected_size` over cap triggers the
+SAME generic roll+block+retry sequence as any other over-cap write; BC-1.18.006 EC-002 (an `Edit`'s
+`old_string` failing to match against the emptied canonical file) already covers the resulting
+tool-level failure mode generically. **The genuinely new edge case this Decision names:** if an
+`Edit`/`MultiEdit`'s target content was ALREADY relocated to a SEALED shard by an EARLIER roll (a
+policy-violating attempt to amend deep-historical content, or a caller operating on stale
+in-memory state), the retry-instruction text ("reissue as a fresh Write containing only your new
+entry") is INAPPLICABLE — there is no "new entry" to reissue; the caller's actual goal (amending
+old content) cannot be satisfied against the canonical file AT ALL, because that content no longer
+lives there. **Resolution (an explicit escape hatch, not a workaround):** a sealed shard file
+(`<stem>.<seq:04>.md`) is an ORDINARY file that does NOT match any `[[shard]]` config entry's
+canonical-path pattern (Postcondition 1's zero-cost bypass for unmatched paths) — it is therefore
+entirely UNGATED by Layer 2, and a caller with a genuine, policy-sanctioned need to touch historical
+content addresses the sealed file DIRECTLY by its own on-disk filename, exactly as it would edit
+any other ordinary file. Layer 2 makes no attempt to detect, permit, or forbid such an edit — that
+is POLICY-1's concern (enforced at the `consistency-validator`/adversary-prompt agent level per
+Decision 6's amendment), entirely orthogonal to this gate's byte-size-triggered rotation concern.
+
+### Decision 13 — Governed One-Time B1 Changelog Backfill Migration Required at Cold Start (fix-burst addition, F-P2-007, MEDIUM)
+
+Decision 1's trigger-shape dispatch (BC-1.18.005 Postcondition 8, v1.1) characterizes the
+item-count trigger's frontmatter-parse read as "bounded... the live sequence is itself capped at N
+items by this same mechanism after every prior rotation." **This characterization is TRUE only in
+STEADY STATE (after at least one rotation has occurred) and is FALSE at cold start.** Direct
+measurement (2026-09-05, this ADR's own Context section) shows `BC-INDEX.md`'s `changelog:`
+sequence, which has NEVER been rotated, holds approximately 1,997 items across 177,305 bytes of
+frontmatter — the FIRST `Edit`/`Write`/`MultiEdit` against `BC-INDEX.md` after Layer 2 activates
+would need to (a) parse and count roughly 1,997 items to evaluate the trigger (an unbounded-relative-
+to-N read, though still a finite, single-file read — this is a mischaracterization to correct, not
+a fuel-budget hazard, since the check is native code with no fuel budget), and (b), if the trigger
+fires, invoke a SINGLE `rotate_changelog` call moving approximately 1,947 items (down to a
+`keep_recent = N ≈ 50`) into the archive in one operation.
+
+**This is the B1 analogue of the exact gap BC-1.18.008 (mechanism A) and BC-1.18.011 (mechanism B2)
+were each independently created to close, and B1 must not be the one mechanism left to a
+lazy/ungoverned first-write trigger.** Unlike mechanism A's/B2's monolithic files, B1's cold-start
+excess (≈1,947 items) does not risk data LOSS on its own — `rotate_changelog` already validates via
+`yaml_guard` and writes both files via `write_atomic` — but performing a ~1,947-item one-time
+displacement as an incidental SIDE EFFECT of whichever ordinary agent write happens to be first
+after F4 activation has two production-grade deficiencies relative to BC-1.18.008/011's governed
+pattern: (1) it imposes an unpredictable, undocumented latency/behavior surprise on an arbitrary
+future caller instead of being an explicit, planned, operator-visible activation step; and (2) it
+receives NONE of BC-1.18.008/011's INDEPENDENT-CENSUS verification (a fresh, oracle-cross-checked
+count confirming every item is preserved in exactly one location) — it relies solely on
+`rotate_changelog`'s own internal correctness, with no external check that the split was lossless,
+for the single largest content-volume migration this entire ADR specifies.
+
+**Resolution: a NEW governed one-time migration BC is required, modeled directly on BC-1.18.008's
+structure (Preconditions/Postconditions/Invariants/Edge Cases/Canonical Test Vectors/Verification
+Properties), applied to BC-INDEX's `changelog:` array instead of a monolithic append-log file.
+Illustrative numbering: BC-1.18.012 (the next free SS-01 slot after BC-1.18.011 at time of
+authoring — product-owner confirms the exact free slot against BC-INDEX at authoring time, per this
+ADR's own numbering convention).** Postcondition obligations this BC MUST encode (architect's
+authorship input to product-owner, enumerated in full in the companion F2 architecture-delta doc
+§4b):
+
+1. Executes exactly once, at F4 activation, BEFORE the ongoing per-write B1 gate (BC-1.18.009) is
+   treated as steady-state-bounded — this BC's successful completion is what MAKES BC-1.18.005
+   Postcondition 8's "bounded read" characterization true; it is false as a description of the
+   COLD state, which this BC exists to eliminate.
+2. Uses the SAME `rotate_changelog` primitive (via the Decision 7 fix-burst's generalized
+   `archive_path`-parameterized call surface) — `keep_recent = N` (the same config value
+   BC-1.18.009 Postcondition 1 introduces) — no new rotation logic, only a governed ONE-TIME CALLER
+   with pre/post verification wrapped around it, mirroring BC-1.18.008's exact relationship to
+   BC-1.18.006's primitives.
+3. **Independent-census integrity check:** capture the exact pre-migration `changelog:` item count
+   (a fresh enumeration, not reused from any cached count) BEFORE invoking `rotate_changelog`;
+   after it completes, verify `(items retained in the live frontmatter) + (items appended to the
+   archive) == pre-migration count` exactly — this is BC-1.18.008 Postcondition 6(b)'s exact
+   analogue, applied to `changelog:` items instead of decision-log rows.
+4. **Content-preservation, byte-for-byte:** every migrated item's `date:`/`summary:` text is
+   preserved verbatim in the archive (BC-1.18.008 Postcondition 6(a)'s analogue) — `rotate_changelog`
+   already guarantees this internally (Description above), but this BC's independent verification
+   re-confirms it externally, exactly as BC-1.18.008/011 re-confirm their own respective primitives'
+   internal guarantees rather than trusting them un-verified.
+5. **Fail-loud on verification failure:** if the independent census does not reconcile, the
+   migration aborts and `BC-INDEX.md`'s frontmatter is left in its exact pre-migration state
+   (`rotate_changelog`'s own `write_atomic` calls are the last step, not the census check — so an
+   aborted migration means the census ran against a DRY-RUN/staged computation before any write,
+   OR — if `rotate_changelog` must actually execute to be checked — a restorable pre-migration
+   snapshot is retained until the census passes; product-owner selects the exact staging mechanic,
+   mirroring whichever of BC-1.18.008/011's two staging patterns fits `rotate_changelog`'s actual
+   write ordering, per architect's `rotate.rs` grounding above). A new error-taxonomy row
+   (`E-SHD-003`'s existing wording, "backfill-split content-preservation verification failed for
+   `<artifact>`," is already artifact-generic and MAY be reused for this BC rather than allocating a
+   new code — product-owner confirms).
+6. **Idempotency:** re-running against an already-migrated (post-first-rotation, steady-state)
+   `changelog:` sequence is a safe no-op (the sequence is already `<= N` items, so the trigger
+   simply does not fire) — no special-casing needed beyond BC-1.18.009's own EC-002 (under-N
+   no-rotation `Continue`).
+7. **Corrects BC-1.18.005 Postcondition 8's "bounded" claim:** Postcondition 8's read-cost
+   characterization MUST be split into two explicit states — cold (pre-this-BC, a single
+   one-time oversized-but-finite read, non-fuel-budgeted since native) and steady-state
+   (post-this-BC, genuinely bounded at `<= N` items per read, by construction) — never a single
+   unqualified "bounded" claim.
+
+**This closes the ONE remaining asymmetry among Layer 2's three structured/append artifact classes:
+mechanism A has BC-1.18.008, mechanism B2 has BC-1.18.011, and mechanism B1 now has this Decision's
+BC-1.18.012 — no sharded artifact class is left to depend on an ungoverned lazy-first-write
+migration for its largest one-time content displacement.**
+
 ---
 
 ## Rationale
@@ -738,6 +1067,25 @@ scheme for every other BC-related lookup in the pipeline (ARCH-INDEX §Subsystem
 6). B2 shards ALONG an existing seam rather than choosing an arbitrary new one, which is why this
 ADR assesses B2 as tractable within S-25.02 rather than warranting a split to a follow-up story.
 
+**Why copy-then-atomic-truncate over rename-away for the seal step (fix-burst, F-P2-003):**
+a two-step "rename canonical away, then create a fresh canonical" sequence has an unavoidable
+interstitial window where the canonical path resolves to nothing at all — `rename()` and `create()`
+are two separate syscalls, and nothing prevents a concurrent reader's `open()` from landing between
+them. Replacing the canonical file's CONTENT via a single `write_atomic` temp-then-rename-ONTO
+operation has no such window, because renaming a temp file onto an EXISTING destination is an
+atomic directory-entry REPLACEMENT, not a delete-then-create — this is the same distinction that
+makes `write_atomic`/`write_indeterminate_marker` safe for every OTHER mutation in this codebase,
+simply applied to "replace with empty content" instead of "replace with new content."
+
+**Why B1's archive path needed a bounded extension, not a forced `cycle_name` (fix-burst,
+F-P2-001):** `rotate_changelog`'s existing `cycle_name`-derived path convention is correct
+and unchanged for its EXISTING (cycle-scoped) callers; forcing a synthetic `cycle_name` for a
+non-cycle catalog artifact like `BC-INDEX.md` would misfile its archive under `.factory/cycles/`,
+a directory whose established meaning is cycle-scoped content — a cheap-looking shortcut that would
+create a permanent, confusing address-space collision. Parameterizing the archive path directly
+(reusing every other line of the existing function unmodified) costs one new parameter and
+preserves both callers' correctness.
+
 ## Consequences
 
 ### Positive
@@ -768,6 +1116,15 @@ ADR assesses B2 as tractable within S-25.02 rather than warranting a split to a 
    same content-preservation/atomicity/rollback guarantees mechanism A's backfill already has —
    closing the one place B2 previously relied on an unstated, unverified "the split happens
    correctly" assumption for a POLICY-7 title-authority-critical file.
+10. **(fix-burst, v1.2)** No sharded artifact class is left depending on a rename-away seal with an
+    ENOENT window (Decision 3) — every shard-unaware reader's AC-007 transparency guarantee now
+    holds structurally, not merely in the common case.
+11. **(fix-burst, v1.2)** The per-write roll's crash surface is now fully enumerated with
+    self-healing recovery for every partial-failure point (Decision 11), matching the rigor
+    BC-1.18.008/011 already apply to the (far less frequent) one-time migrations.
+12. **(fix-burst, v1.2)** No sharded artifact class (mechanism A, B1, or B2) is left depending on an
+    ungoverned lazy-first-write migration for its largest one-time content displacement (Decision
+    13 closes B1's remaining asymmetry with BC-1.18.008/BC-1.18.011).
 
 ### Negative / Trade-offs
 
@@ -800,8 +1157,22 @@ ADR assesses B2 as tractable within S-25.02 rather than warranting a split to a 
    active shards — a small but real widening of what "whole-corpus" means for THIS specific policy,
    diverging from every other whole-corpus validator's default active-shards-only scope (Decision 6
    general rule). This asymmetry is intentional and documented, not an oversight.
+7. **(fix-burst, v1.2)** B1's archive file (`BC-INDEX-changelog-archive.md`) is itself append-only
+   and unbounded across the artifact's lifetime — an accepted, documented residual (Decision 7's
+   fix-burst correction), not a defect, since it is read by neither the trigger nor any Cohort B
+   validator today; if it later becomes large enough to matter, that is a follow-up story, not a
+   gap in this design.
+8. **(fix-burst, v1.2)** The corrected retry wording (Decision 3) removes the v1.1 asymmetry between
+   `Edit`/`MultiEdit` and `Write` retry text — both branches now converge on "recompute against
+   post-roll state" — which is a net UX simplification, not a cost, but is listed here because it
+   is a behavior CHANGE relative to v1.1 that downstream test vectors must track.
+9. **(fix-burst, v1.2)** Decision 12's sealed-shard direct-edit escape hatch means Layer 2 provides
+   NO automated detection or prevention of a POLICY-1-violating edit to historical content —
+   enforcement remains entirely at the `consistency-validator`/adversary-prompt agent level
+   (unchanged from Decision 6's existing posture), an explicit, accepted scope boundary rather than
+   a gap this ADR silently leaves unaddressed.
 
-### Status as of 2026-09-05 (v1.0); fix-burst amendment 2026-09-05 (v1.1)
+### Status as of 2026-09-05 (v1.0); fix-burst amendment 2026-09-05 (v1.1); fix-burst amendment 2026-09-05 (v1.2)
 
 Proposed. Not yet human-ratified (POLICY 22). Frontmatter `status: proposed` per this project's
 `create-adr` convention (never `accepted` at authoring time). The Decision 2 calibration
@@ -823,6 +1194,40 @@ design intent. Downstream: product-owner rewrites BC-1.18.005 (add item-count tr
 postcondition), BC-1.18.009 (rewrite Postconditions 2/6 to the single-actor contract), and authors
 the new B2 migration BC (illustratively numbered BC-1.18.011); formal-verifier updates/adds VP
 coverage for the corrected B1 contract and the new migration BC.
+
+**v1.2 (this fix burst) resolves a fresh-context adversary pass-2 review's ARCHITECTURE-routed
+findings against v1.1:** F-P2-001 (HIGH — `rotate_changelog`'s shipped signature cannot produce the
+per-`seq` sealed-shard layout BC-1.18.009 v1.1 described; corrected to a single evergreen
+archive file at `.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`, reached via a
+small, named, bounded extension to `rotate_changelog`'s path-resolution surface — Decision 7
+amendment); F-P2-002 (HIGH — the `Write`-tool `projected_size` formula double-counted a `Write`'s
+already-complete `content` on top of `current_size`, over-triggering rotation, and the v1.1 "retry
+unchanged" `Write` guidance could re-land a stale over-cap payload into a freshly-emptied shard,
+causing a permanent block/retry deadlock; corrected to a tool-discriminated formula and a unified
+"recompute against post-roll state" retry instruction — Decision 1 step 3 + Decision 3 amendments);
+F-P2-003 (HIGH — BC-1.18.006 Postcondition 1(a)'s rename-away seal directly contradicted its own
+Invariant 3 and opened an ENOENT transparency window for shard-unaware readers; corrected to a
+copy-then-atomic-truncate-in-place seal mechanism using only already-established `write_atomic`
+primitives — Decision 3 amendment); F-P2-004 (MEDIUM — the per-write roll's three composite writes
+had only ONE named partial-failure code, `E-SHD-001`, leaving two crash points unspecified;
+resolved with a staged sequence and two new self-healing partial-failure codes, `E-SHD-006`/
+`E-SHD-007` — new Decision 11); F-P2-005 (MEDIUM — the roll/retry contract's implicit
+append-only-tail assumption was never stated, and had no defined behavior for an edit targeting
+already-sealed historical content; resolved by making the POLICY-1-grounded append-only assumption
+explicit and specifying the sealed-shard-direct-edit escape hatch as the caller's correct recovery
+path — new Decision 12); F-P2-007 (MEDIUM — BC-1.18.005 Postcondition 8's "bounded read"
+characterization is false at B1's cold start, ~1,997 unrotated `changelog:` items today, and B1 had
+no governed one-time backfill migration analogous to BC-1.18.008/BC-1.18.011; resolved by requiring
+a new governed migration BC, illustratively BC-1.18.012, modeled on BC-1.18.008 — new Decision 13).
+Status remains PROPOSED — none of these are POLICY 22 design-direction reversals; all correct or
+complete v1.0/v1.1's own stated design intent, grounded directly in `rotate_changelog`'s shipped
+implementation. Downstream: product-owner rewrites BC-1.18.005 (per-tool formula), BC-1.18.006
+(copy+truncate seal mechanics, unified retry wording, new Invariant for the append-only-tail
+assumption, new EC for the sealed-shard escape hatch), BC-1.18.009 (corrected archive path/scheme,
+no per-seq shard directory), and authors the new B1 backfill migration BC (illustratively
+BC-1.18.012); formal-verifier allocates new VP coverage (next free VP-135+ against VP-INDEX v3.03)
+for the staged partial-failure model, the corrected formula/retry contract, and the new migration
+BC — full enumeration in the companion F2 architecture-delta doc §4b.
 
 ## Alternatives Considered
 
@@ -848,6 +1253,21 @@ coverage for the corrected B1 contract and the new migration BC.
   alternative).** Rejected per F1 §2/§6's own recommendation, adopted unchanged here: a harness is
   faster, can construct adversarial worst-case inputs directly, and does not depend on production
   happening to exercise the worst case within the observation window.
+- **(fix-burst, v1.2) Option: force a sentinel `cycle_name` value through `rotate_changelog`'s
+  existing signature unmodified, accepting a `BC-INDEX-changelog-archive.md` path under
+  `.factory/cycles/<sentinel>/`.** Rejected: this is the "zero-code-change" option the F-P2-001
+  finding also offered, but it permanently misfiles a specs-catalog artifact's archive under a
+  directory whose established meaning is cycle-scoped content, creating a standing address-space
+  confusion for any future human or validator inspecting `.factory/cycles/`. A one-parameter,
+  additive path-resolution extension (Decision 7's adopted fix) costs less than the semantic debt
+  the sentinel-value option would leave behind.
+- **(fix-burst, v1.2) Option: leave the ongoing per-write roll's crash-atomicity unspecified beyond
+  `E-SHD-001`, treating a mid-roll crash as an out-of-scope operational concern.** Rejected: the
+  per-write roll is the single MOST FREQUENT operation this ADR introduces (it fires on every
+  future over-cap write, unlike the one-time migrations), and CLAUDE.md's production-grade default
+  forbids leaving a genuinely-identified partial-failure surface undocumented merely because the
+  one-time migrations already received more rigorous treatment — Decision 11 closes the gap with
+  bounded, reused-primitive machinery, not a new atomicity mechanism.
 
 ## Source / Origin
 
@@ -893,6 +1313,22 @@ coverage for the corrected B1 contract and the new migration BC.
   policies.yaml` (POLICY id 1, `append_only_numbering`, `enforced_by: [adversary-prompt,
   consistency-validator]`, `lint_hook: null` — the actual current enforcement mechanism the
   archive-inclusive-mode obligation attaches to).
+- **Fix-burst (v1.2) code inspection (2026-09-05), grounding Decisions 1/3/7/11/12/13's
+  amendments:** `crates/last-amended-migrate/src/rotate.rs` (`resolve_archive_path`,
+  `rewrite_source_after_rotation`, `rotate_changelog` — re-inspected line-by-line to confirm the
+  single-fixed-destination/`cycle_name`-required/append-not-shard behavior grounding Decision 7's
+  archive-scheme correction, and the write-then-validate-then-`write_atomic` ordering grounding
+  Decision 11's staged-sequence design); `crates/last-amended-migrate/src/atomic_write.rs`
+  (`write_atomic` — re-confirmed as a temp-file-then-rename-ONTO-destination primitive, grounding
+  Decision 3's copy-then-atomic-truncate correction: renaming onto an EXISTING path is an atomic
+  replace, never a delete-then-create); `.factory/specs/prd-supplements/error-taxonomy.md`
+  (existing `E-SHD-001`..`E-SHD-005` rows — confirmed `E-SHD-001`'s code/contract is reusable
+  under a refreshed description, and `E-SHD-003`'s wording is already artifact-generic and
+  reusable for Decision 13's B1 backfill, avoiding unnecessary new-code proliferation);
+  `.factory/specs/behavioral-contracts/ss-01/BC-1.18.005.md`/`BC-1.18.006.md`/`BC-1.18.009.md`
+  (v1.1 bodies — direct inspection confirming the exact Postcondition/Invariant text this fix-burst's
+  findings contradict, grounding the precise rewrite obligations enumerated in the companion F2
+  architecture-delta doc §4b).
 
 ## Changelog
 
@@ -900,3 +1336,4 @@ coverage for the corrected B1 contract and the new migration BC.
 |---|---|---|---|
 | 1.0 | 2026-09-05 | architect | Initial authoring. Layer-2 two-mechanism design (append-log rotation + BC-INDEX structured-catalog sharding) per D-1166 widest-scope human decision. Resolves OQ-2 (stable-current-filename addressing + BC-ID-prefix deterministic addressing), OQ-3 (`/compact-state` gets shard-awareness for free via the native dispatcher-mediated gate), OQ-4 (synthetic calibration harness adopted; provisional constants derived from ADR-042's measured fuel/byte model and direct byte measurements of the live artifacts), OQ-5 (co-amended into ADR-047 in the same burst). Identifies and resolves a structural gap the story draft did not address: `HookResult`'s Continue/Block/Error-only contract makes transparent write-redirection impossible, requiring a block-and-retry roll mechanism instead of silent rotation. Status: proposed, pending F2 human gate.|
 | 1.1 | 2026-09-05 | architect | Fix-burst amendment resolving fresh-context adversary pass-1 findings against v1.0. F-S2502-F2-001 (BLOCKER): Decision 7's B1 sub-mechanism corrected from a double-actor "gate rotates+prepends, then Continue" design (unsound — double-prepend/stale-payload-clobber, the exact hazard BC-1.18.006 forbids) to a single-actor block-and-retry contract structurally identical to mechanism A's (gate performs ONLY the `rotate_changelog` trim, then Blocks with a retry instruction; the agent's own call, original or retried, performs the sole prepend), grounded in direct inspection of `rotate_changelog`'s actual pure-trim signature. F-S2502-F2-002 (HIGH): added Decision 10, a governed one-time migration for the B2 BC-INDEX body split (content-preservation, independent-census, crash-atomicity, rollback, idempotency, covering SS-05/SS-06 second-level sub-splits in the same operation), modeled on BC-1.18.008, with enumerated postcondition obligations for product-owner's new migration BC (illustratively BC-1.18.011). F-S2502-F2-005 (MEDIUM): Decision 1 amended with an explicit trigger-shape dispatch — BC-1.18.005 owns BOTH the byte-size trigger (mechanism A) and the item-count trigger (mechanism B1), with the item-count shape's distinct (bounded-parse, not `stat()`-only) read-cost model documented. F-S2502-F2-008 (MEDIUM): Decision 6 amended with a code-grounded enumeration of every candidate whole-corpus history-scanning validator — `check_d_chain_currency`/`scan_max_d_nnn`/`scan_max_decision_log_id`, `check_decisions_log_monotonicity`, `validate-closes-completeness`'s decision-log arm, `validate-cross-site-correspondence`'s `is_volatile_path`, and Cohort B (`validate-burst-log`/`regression-gate`/`convergence-tracker`) are all verified NOT affected by archival (STATE.md-scoped or correctly current-shard-scoped); POLICY-1 (`append_only_numbering`) enforcement (`consistency-validator`/adversary-prompt, `lint_hook: null`) is identified as the one genuine gap and MUST default to an archive-inclusive whole-corpus scan mode, an explicit carve-out from this Decision's general opt-in-required default. Cosmetic: Decision 3's sort-order rationale corrected (the operative comparison is digit-vs-`m` one byte past the shared `decision-log` prefix, not `.` vs. digit; conclusion unchanged). Status remains PROPOSED — none of these are POLICY 22 reversals.|
+| 1.2 | 2026-09-05 | architect | Fix-burst amendment resolving fresh-context adversary pass-2 findings against v1.1 (all ARCHITECTURE-routed). F-P2-001 (HIGH): Decision 7's B1 archive scheme corrected from an impossible per-`seq` sealed-shard-directory layout to a single evergreen append-file (`.factory/specs/behavioral-contracts/BC-INDEX-changelog-archive.md`), reached via a small, named, bounded extension to `rotate_changelog`'s path-resolution surface (explicit `archive_path` parameter, replacing forced `cycle_name` derivation for non-cycle callers) — grounded in direct re-inspection of `resolve_archive_path`'s actual single-fixed-destination/append/cycle_name-required behavior. F-P2-002 (HIGH): Decision 1 step 3's `projected_size` formula corrected to be tool-discriminated (`Write`: `len(content)` alone; `Edit`/`MultiEdit`: `current_size + net_delta_bytes`, unchanged) — the withdrawn v1.1 formula double-counted a `Write`'s complete content on top of current size; Decision 3's retry wording unified into a single "recompute against post-roll state" instruction for both tool classes, closing the stale-full-payload block/retry deadlock the v1.1 "if Write, retry unchanged" text permitted. F-P2-003 (HIGH): Decision 3's seal mechanism corrected from rename-away (which directly contradicted BC-1.18.006's own Invariant 3 and opened an ENOENT transparency window) to copy-then-atomic-truncate-in-place, reusing only the existing `write_atomic` temp-file-then-rename-ONTO-destination primitive. F-P2-004 (MEDIUM): new Decision 11 adds a staged, crash-recoverable per-write roll sequence with two new self-healing partial-failure error codes (`E-SHD-006` seal-published-but-canonical-not-truncated; `E-SHD-007` canonical-truncated-but-index-not-published), closing the gap between the per-write roll's under-specified atomicity and the one-time migrations' (BC-1.18.008/011) already-rigorous staging+verify+rollback treatment. F-P2-005 (MEDIUM): new Decision 12 makes the append-only-tail assumption underlying the roll/retry contract explicit (grounded in POLICY-1) and specifies the sealed-shard direct-edit escape hatch as the correct, gate-transparent recovery path for a caller needing to touch already-relocated historical content. F-P2-007 (MEDIUM): new Decision 13 requires a governed one-time B1 changelog backfill migration (illustratively BC-1.18.012, modeled on BC-1.18.008) to eliminate B1's cold-start ~1,997-item ungoverned lazy-first-write migration and corrects BC-1.18.005 Postcondition 8's "bounded" claim to distinguish cold-state from steady-state. Status remains PROPOSED — none of these are POLICY 22 reversals; all correct v1.1's own stated design intent against the actual shipped `rotate_changelog`/`write_atomic` implementations. Companion `S-25.02-f2-architecture-delta.md` v1.1→v1.2 (§4b added).|
