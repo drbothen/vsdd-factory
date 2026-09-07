@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-09-06T23:34:42Z","command":"cargo test --workspace --all-targets 2>&1 | tee /tmp/full-test-run.log | grep -E \"^test result:|FAILED|error\\[|^error:\" "}
+{"status":"pass","timestamp":"2026-09-07T00:17:13Z","command":"cargo test -p validate-cross-site-correspondence --lib test_BC_corpus_version_sync_all_indexed_bcs_match_frontmatter -- --nocapture 2>&1 | tail -20"}
