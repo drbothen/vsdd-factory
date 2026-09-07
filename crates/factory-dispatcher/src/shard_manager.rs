@@ -171,9 +171,11 @@ pub struct ShardRegistry {
 /// `MissingShape` (EC-009), `InvalidLowWaterMark` (EC-011),
 /// `CapExceedsFormulaCeiling` (Postcondition 9 / EC-013),
 /// `InvalidWorstCaseFuelPerByte` (Postcondition 9's divisor-door closure /
-/// EC-015), and `MissingN` (Postcondition 8's load-time `N`-presence
-/// requirement / EC-016) are fail-loud conditions this BC's config surface
-/// owns — all are NEVER silently defaulted or clamped around.
+/// EC-015), `MissingN` (Postcondition 8's load-time `N`-presence
+/// requirement / EC-016), and `FormulaCeilingSaturated` (Postcondition 9's
+/// residual divisor-door closure / EC-017) are fail-loud conditions this
+/// BC's config surface owns — all are NEVER silently defaulted or clamped
+/// around.
 #[derive(Debug, Error)]
 pub enum ShardConfigError {
     #[error("shard config read failed: {0}")]
@@ -284,6 +286,40 @@ pub enum ShardConfigError {
         /// The offending entry's `artifact_stem`, so the operator can locate it.
         artifact_stem: String,
     },
+
+    /// EC-017 (BC-1.18.005 v1.11, Postcondition 9's "Residual divisor-door
+    /// closure" sub-paragraph): a `[[shard]]` entry declares a
+    /// `worst_case_fuel_per_byte` that is finite and `> 0.0` (passes
+    /// EC-015's guard above) but is so small (e.g. `1e-300`) that the RAW,
+    /// pre-cast division `practical_fuel_ceiling as f64 /
+    /// worst_case_fuel_per_byte` is itself non-finite or `>= u64::MAX as
+    /// f64` — i.e. the computed ceiling saturates the subsequent
+    /// `.floor() as u64` cast to (or beyond) `u64::MAX`, even though the
+    /// divisor itself is legal under EC-015. Distinct from
+    /// `InvalidWorstCaseFuelPerByte`, which catches an illegal `<=
+    /// 0.0`/non-finite DIVISOR itself, not a saturated RESULT arising from
+    /// an otherwise-legal tiny-positive divisor. Fail-loud: rejected BEFORE
+    /// the `CapExceedsFormulaCeiling` comparison is even attempted — a
+    /// saturated ceiling cannot meaningfully bound any declared
+    /// `shard_cap_bytes`, so it is never silently accepted and never
+    /// silently substituted with a fallback ceiling.
+    #[error(
+        "[[shard]] entry for artifact_stem = \"{artifact_stem}\" declares \
+         practical_fuel_ceiling = {practical_fuel_ceiling} and worst_case_fuel_per_byte = \
+         {worst_case_fuel_per_byte}, whose raw division saturates the formula's ceiling \
+         computation to (or beyond) u64::MAX (BC-1.18.005 EC-017, residual divisor-door \
+         closure). Fail-loud: a saturated ceiling cannot meaningfully bound any declared \
+         shard_cap_bytes, so it is never silently accepted and never silently substituted with \
+         a fallback ceiling."
+    )]
+    FormulaCeilingSaturated {
+        /// The offending entry's `artifact_stem`, so the operator can locate it.
+        artifact_stem: String,
+        /// The entry's configured `practical_fuel_ceiling`.
+        practical_fuel_ceiling: u64,
+        /// The entry's configured (legal-but-degenerate) `worst_case_fuel_per_byte`.
+        worst_case_fuel_per_byte: f64,
+    },
 }
 
 /// Fail-loud config-load errors surface to the dispatcher's PreToolUse
@@ -332,6 +368,13 @@ impl ShardRegistry {
     ///   or non-finite divisor would otherwise saturate the computed ceiling
     ///   toward `u64::MAX`, defeating the cap-vs-formula check below for ANY
     ///   declared `shard_cap_bytes`.
+    /// - EVERY entry that passes the check above MUST ALSO have its RAW
+    ///   `practical_fuel_ceiling as f64 / worst_case_fuel_per_byte` division
+    ///   result be finite and `< u64::MAX as f64` (fail-loud
+    ///   [`ShardConfigError::FormulaCeilingSaturated`] — EC-017's residual
+    ///   divisor-door closure), checked BEFORE the cap-vs-formula comparison
+    ///   below — a legal-but-tiny-positive divisor can still saturate the
+    ///   computed ceiling even though it passes the check above.
     /// - EVERY entry, regardless of `shape`, MUST NOT declare `shard_cap_bytes`
     ///   greater than `compute_shard_cap_bytes(entry.cap_formula_inputs())`
     ///   (fail-loud [`ShardConfigError::CapExceedsFormulaCeiling`] —
@@ -362,6 +405,28 @@ impl ShardRegistry {
             {
                 return Err(ShardConfigError::InvalidWorstCaseFuelPerByte {
                     artifact_stem: entry.artifact_stem.clone(),
+                    worst_case_fuel_per_byte: entry.worst_case_fuel_per_byte,
+                });
+            }
+
+            // EC-017 (Postcondition 9's "Residual divisor-door closure"):
+            // the EC-015 guard above is NECESSARY but INSUFFICIENT — a legal
+            // tiny-positive divisor (e.g. 1e-300) passes it yet still drives
+            // the RAW, pre-cast division result to a value so large that
+            // compute_shard_cap_bytes's subsequent `.floor() as u64` cast
+            // saturates to u64::MAX, defeating the CapExceedsFormulaCeiling
+            // comparison below for ANY declared shard_cap_bytes exactly as
+            // EC-015's own divisor-door does. Evaluate the SAME raw f64
+            // quantity compute_shard_cap_bytes computes internally, BEFORE
+            // that comparison is attempted, and reject the entry if it is
+            // non-finite or at/beyond the saturation boundary of the
+            // subsequent lossy cast (u64::MAX as f64).
+            let raw_ceiling_division =
+                entry.practical_fuel_ceiling as f64 / entry.worst_case_fuel_per_byte;
+            if !raw_ceiling_division.is_finite() || raw_ceiling_division >= u64::MAX as f64 {
+                return Err(ShardConfigError::FormulaCeilingSaturated {
+                    artifact_stem: entry.artifact_stem.clone(),
+                    practical_fuel_ceiling: entry.practical_fuel_ceiling,
                     worst_case_fuel_per_byte: entry.worst_case_fuel_per_byte,
                 });
             }
