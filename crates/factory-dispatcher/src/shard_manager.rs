@@ -2358,6 +2358,71 @@ mod tests {
     }
 
     // ===================================================================
+    // EC-017 (NEW, S-25.02 Phase F4 LOCAL adversary cluster-1 pass-5
+    // finding F-C1-P5, MEDIUM/HIGH, BC-1.18.005 v1.11) — residual
+    // divisor-door closure: a saturated COMPUTED CEILING, not merely an
+    // illegal divisor. EC-015's `worst_case_fuel_per_byte.is_finite() &&
+    // > 0.0` guard is necessary but insufficient — a legal tiny-positive
+    // divisor (e.g. `1e-300`) satisfies that guard yet still drives
+    // `compute_shard_cap_bytes`'s internal division
+    // (`practical_fuel_ceiling as f64 / worst_case_fuel_per_byte`) to a
+    // value so large that its `.floor() as u64` cast saturates to
+    // `u64::MAX`, reproducing the identical failure mode EC-015's guard
+    // exists to close: an oversized `shard_cap_bytes` sails past the
+    // `CapExceedsFormulaCeiling` comparison because the computed ceiling
+    // itself is meaninglessly large.
+    //
+    // `ShardRegistry::load` MUST, for every entry that passes the EC-015
+    // guard and BEFORE the `CapExceedsFormulaCeiling` comparison is
+    // evaluated, independently evaluate the RAW, pre-cast division result
+    // `practical_fuel_ceiling as f64 / worst_case_fuel_per_byte` and reject
+    // the entry if that raw f64 value is non-finite or `>= u64::MAX as
+    // f64` — a NEW `ShardConfigError::FormulaCeilingSaturated` variant,
+    // distinct from `InvalidWorstCaseFuelPerByte` (which catches an
+    // illegal `<= 0.0`/non-finite DIVISOR itself, not a saturated RESULT
+    // arising from an otherwise-legal tiny-positive divisor).
+    // ===================================================================
+
+    #[test]
+    fn test_BC_1_18_005_EC_017_load_rejects_saturating_formula_ceiling() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let cfg_path = dir.path().join("shard-config.toml");
+        std::fs::write(
+            &cfg_path,
+            "[[shard]]\n\
+             artifact_stem = \"saturating-ceiling-log\"\n\
+             practical_fuel_ceiling = 8000000\n\
+             worst_case_fuel_per_byte = 1e-300\n\
+             max_single_record_bytes = 16384\n\
+             safety_margin = 8192\n\
+             shard_cap_bytes = 100000000\n\
+             shape = \"flat\"\n",
+        )
+        .expect("write fixture");
+
+        // worst_case_fuel_per_byte = 1e-300 is finite and > 0.0, so it
+        // PASSES the EC-015 guard. But the raw division
+        // 8,000,000 / 1e-300 = ~8e306, which is >= u64::MAX as f64 — the
+        // subsequent `.floor() as u64` cast in `compute_shard_cap_bytes`
+        // saturates to u64::MAX, so the resulting ceiling would
+        // comfortably exceed this fixture's already-enormous
+        // shard_cap_bytes = 100,000,000, letting it sail past
+        // Postcondition 9's `shard_cap_bytes > computed_ceiling` check via
+        // a legal-but-degenerate divisor. The residual closure rejects the
+        // entry BEFORE that comparison is ever attempted.
+        let result = ShardRegistry::load(&cfg_path);
+        assert!(
+            result.is_err(),
+            "EC-017: worst_case_fuel_per_byte = 1e-300 is legal under EC-015's is_finite() && \
+             > 0.0 guard, yet the raw division practical_fuel_ceiling as f64 / \
+             worst_case_fuel_per_byte saturates the subsequent .floor() as u64 cast to \
+             u64::MAX — ShardRegistry::load() MUST reject this entry (residual divisor-door \
+             closure) BEFORE the CapExceedsFormulaCeiling comparison is even attempted, \
+             regardless of the arbitrarily-large declared shard_cap_bytes. Got: {result:?}"
+        );
+    }
+
+    // ===================================================================
     // EC-016 (NEW, S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4
     // finding F-C1-P4-002, MEDIUM, BC-1.18.005 v1.10) — a
     // "frontmatter-changelog-array"-shaped [[shard]] entry that OMITS the
