@@ -2079,13 +2079,15 @@ mod tests {
     // fail loud, unchanged — only the entry-SCOPE narrows away from
     // sibling entries, never the matched entry's own outcome.
     // `shard_cap_gate_check` already carries this exact defensive check
-    // today (see its own doc comment: "a caller may construct a
-    // `ShardEntry` directly... fail loud rather than silently guessing a
-    // shape"), so this assertion is GREEN now via that pre-existing
-    // defensive path, and remains GREEN post-restructure once
-    // `shard_cap_gate_check` calls `validate_entry(entry)` on the matched
-    // entry before shape-dispatch (the routing note's "same fail-loud
-    // outcome, now via entry-match time" guarantee).
+    // today: it calls `validate_entry(entry)` on the matched entry
+    // immediately after `find_matching_entry` resolves it (before any
+    // shape-dispatch), and `validate_entry` rejects a `None` `shape` via
+    // its own EC-009 guard, returning `Err(MissingShape)`. So this
+    // assertion is GREEN now via that pre-existing entry-match-time
+    // validation path, and remains GREEN post-restructure for the same
+    // reason — the inline `let Some(shape) = entry.shape else { .. }`
+    // fallback further down in `shard_cap_gate_check` is an unreachable
+    // defensive backstop, not the mechanism this test actually exercises.
     #[test]
     fn test_BC_1_18_005_EC_009_matched_entry_missing_shape_field_is_fail_loud() {
         let entry = ShardEntry {
