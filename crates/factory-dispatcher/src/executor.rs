@@ -356,9 +356,10 @@ fn shard_cap_precheck(inputs: &ExecutorInputs<'_>) -> Option<vsdd_hook_sdk::Hook
     }
 
     // A `[[shard]]` config file is present and this is a candidate tool —
-    // from here on, real BC-1.18.005 gate logic runs: config load
-    // (EC-009/EC-010/EC-011/EC-012/Postcondition 9 validation) followed by
-    // the trigger-boundary check itself.
+    // from here on, real BC-1.18.005 gate logic runs: structural TOML
+    // config load, followed by `shard_cap_gate_check`'s entry-match-time
+    // semantic validation (EC-009/EC-010/EC-011/EC-012/Postcondition 9, via
+    // `validate_entry`) and the trigger-boundary check itself.
     let registry = match crate::shard_manager::ShardRegistry::load(&shard_config_path) {
         Ok(reg) => reg,
         Err(e) => return Some(e.into()),
@@ -446,9 +447,10 @@ pub async fn execute_tiers(
     // Edit/Write/MultiEdit PreToolUse call AND has a `[[shard]]` config file
     // present, which covers 100% of this crate's pre-existing test fixtures.
     // F-001 fix (S-25.02 Phase F4 LOCAL adversary pass-1 cluster-1, HIGH):
-    // a fail-loud `HookResult::Error` from `ShardRegistry::load` (EC-009
-    // missing `shape`; EC-011 `low_water_mark >= N`) is BC-1.18.005's OWN
-    // postcondition and MUST become a BLOCKING dispatch outcome here — the
+    // a fail-loud `HookResult::Error` from `shard_cap_gate_check`'s
+    // entry-match-time `validate_entry` call (EC-009 missing `shape`;
+    // EC-011 `low_water_mark >= N`) is BC-1.18.005's OWN postcondition and
+    // MUST become a BLOCKING dispatch outcome here — the
     // same way `plugin_fail_closed`/`plugin_requests_block` translate a
     // WASM plugin's fail-closed verdict into `block_intent` below. A
     // `HookResult::Block` is likewise translated identically, though

@@ -117,8 +117,10 @@ pub struct ShardEntry {
     /// so an entry that omits it deserializes to `None` at the TOML layer
     /// (rather than a hard parse failure with no artifact-stem context) —
     /// EC-009's fail-loud `HookResult::Error` is enforced by
-    /// [`ShardRegistry::load`]'s post-deserialize validation pass, which
-    /// can name the offending `artifact_stem` in the error.
+    /// [`validate_entry`] at entry-match time (BC-1.18.005 v1.12 MATCH-FIRST
+    /// restructure), scoped to the single entry [`find_matching_entry`]
+    /// resolves for the current dispatch, which can name the offending
+    /// `artifact_stem` in the error.
     #[serde(default)]
     pub shape: Option<ShardShape>,
 
@@ -129,7 +131,10 @@ pub struct ShardEntry {
 
     /// Rotation-target config (`"frontmatter-changelog-array"` shape only;
     /// Postcondition 8's rotation-target-config bullet). `None` when
-    /// omitted — resolves to `floor(N/2)` at config-load time (EC-010).
+    /// omitted — resolves to `floor(N/2)` via [`resolved_low_water_mark`]
+    /// (EC-010; the timing of that resolution is an implementation choice
+    /// per BC-1.18.005 v1.8 — `load` itself never eagerly materializes this
+    /// default).
     ///
     /// `i64` (not `u64`) so a negative config value round-trips for
     /// EC-011's fail-loud validation instead of failing opaquely at the
@@ -229,8 +234,9 @@ pub enum ShardConfigError {
     /// that `shard_cap_bytes` bounds an artifact's TOTAL byte footprint even
     /// for the `"frontmatter-changelog-array"` shape). Fail-loud: NEVER
     /// silently accepted, NEVER silently clamped down to the computed
-    /// ceiling — mirrors EC-009/EC-011's established fail-loud-at-load-time
-    /// posture for this same config surface. The `==` boundary is legal
+    /// ceiling — mirrors EC-009/EC-011's established fail-loud-at-
+    /// entry-match-time posture for this same config surface. The `==`
+    /// boundary is legal
     /// (Postcondition 4's `<=` comparison is inclusive — EC-002 precedent).
     #[error(
         "[[shard]] entry for artifact_stem = \"{artifact_stem}\" declares shard_cap_bytes = \
@@ -809,9 +815,9 @@ pub fn item_count_trigger_fires(current_item_count: u64, n: u64) -> bool {
 
 /// Resolve the effective `low_water_mark` for a `"frontmatter-changelog-
 /// array"`-shaped entry: the entry's explicit value if present, otherwise
-/// `floor(N/2)` (EC-010's config-load-time default).
+/// `floor(N/2)` (EC-010's default).
 ///
-/// Callers MUST have already validated the entry via [`ShardRegistry::load`]
+/// Callers MUST have already validated the entry via [`validate_entry`]
 /// (or [`validate_low_water_mark`] directly) before calling this — this
 /// function does NOT re-validate `0 <= low_water_mark < N`; it only resolves
 /// the omitted-vs-explicit default.
