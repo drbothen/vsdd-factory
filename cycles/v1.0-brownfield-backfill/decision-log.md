@@ -7534,3 +7534,113 @@ content/wiring defects, not process gaps. CONFIRMED.
 ### Canonical 6-column row (STATE.md Decisions Log)
 
 | D-1171 | D-1171-S2502-F4-CLUSTER1-PASS1-PC9-SPEC-CASCADE | **S-25.02 Phase F4 cluster-1 (cap+trigger, BC-1.18.005) LOCAL adversary pass-1 = NOT CLEAN (F-001 HIGH, F-002/F-003 MEDIUM) — PC4 load-enforcement-intent question ADJUDICATED Reading (B) RUNTIME-ENFORCED, amending BC-1.18.005 v1.6→v1.7 (new Postcondition 9 + EC-013 + 2 canonical test vectors) and propagating into S-25.02 v2.1→v2.2 (AC-023, EC-025) — spec-side cascade CLOSED this commit** 2026-09-06 (state-manager; single-commit TD-VSDD-053; product-owner authored the BC v1.7 content, story-writer authored the story v2.2 content, state-manager applies the version/hash/index bookkeeping in this SAME commit per the orchestrator's explicit single-commit-per-burst directive). Story `version:` frontmatter 2.1→2.2 (resolves the validate-changelog-monotonicity advisory — frontmatter now matches the story's own top changelog row). Input-hashes recomputed via the sanctioned `compute-input-hash --update`: BC-1.18.005.md → `af83d3c`; S-25.02 story → `36fea89` (BC-1.18.005 is a declared story input and its content changed; the stored `34a9439` was stale). `--check` CLEAN on both. BC-INDEX v5.58→v5.59 (BC-1.18.005 version-cell v1.6→v1.7; `total_bcs` UNCHANGED 2,006 — no new BC registered). STORY-INDEX v4.440→v4.441 (S-25.02 row: BC-1.18.005 cell v1.6→v1.7 + v2.2 narrative). VP-INDEX v3.07 / ARCH-INDEX v4.22 UNCHANGED this burst — PC9/EC-013's formal VP is DEFERRED to Phase F6 targeted-hardening, mirroring BC-1.18.005's own Postcondition-8→VP-140 precedent (unit-tested at F4 in the interim); recorded as a new OPEN Blocking Issues row so it is not lost. This is a **cluster-1 LOCAL fix-burst, NOT a phase advance** — cluster-1 is NOT yet converged: code-side fixes for F-001/F-002/F-003 remain IN FLIGHT on `feature/S-25.02-cap-trigger`. BC-5.39.001 LOCAL cluster-1 streak is 0/3 — a separate track from the cycle-level 3/3 CONVERGED streak (UNCHANGED), same convention S-25.01's own LOCAL adversary cascade established. `pipeline:` stays in_progress. No trajectory-tail drift — unchanged →0→1→1→1 LENGTH=4. Cycle-Closing Checklist S-7.02: no `[process-gap]` findings from this fix-burst — the 3 adversary findings are content/wiring defects, not process gaps — CONFIRMED. **NEXT: implementer closes F-001/F-002/F-003 on `feature/S-25.02-cap-trigger`, then LOCAL adversary pass-2.** Refs: D-1171, D-1170, S-25.02, BC-1.18.005 v1.7, BC-INDEX v5.59, STORY-INDEX v4.441. STATE.md v9.90→v9.91. | D-1171 | 2026-09-06 |
+
+## D-1172
+
+**D-1172-S2502-CLUSTER1-CAP-TRIGGER-LOCAL-3CLEAN-CONVERGED**
+
+Allocated as next GLOBAL D-NNN per POLICY 16: max D-NNN across all cycle decision-logs was D-1171
+(this cycle's decision-log.md). D-1172 allocated cleanly above the true max.
+
+**Summary:** S-25.02 Phase F4 cluster-1 (cap+trigger, BC-1.18.005) LOCAL adversary cascade
+**CONVERGED** at LITERAL BC-5.39.001 3-CONSECUTIVE-CLEAN — passes 10/11/12 all CLEAN (0 findings)
+on the frozen delta `feature/S-25.02-cap-trigger` HEAD `95f07d9d`, per the human's explicit
+grind-to-literal-3-CLEAN direction for this cluster (NOT the cycle-level D-386 Option C
+asymptotic-acceptance convention). This is a bookkeeping-only state-manager burst — NO BC/VP/
+STORY/ARCH content or index-version change this burst; the spec content (BC-1.18.005 v1.6→v1.12)
+and index bumps (BC-INDEX v5.64, STORY-INDEX v4.445) were already applied and committed across the
+pass-1..pass-6 bursts (D-1171 and the 4 intervening lightweight Current-Phase-Steps bursts).
+
+### Cascade Ledger (12 passes, fresh-context each)
+
+- **Pass 1** (D-1171): NOT CLEAN — F-001 HIGH, F-002/F-003 MEDIUM; PC4 escalated to a spec change
+  (Reading (B) RUNTIME-ENFORCED). BC-1.18.005 v1.6→v1.7 (Postcondition 9 + EC-013).
+- **Pass 2**: NOT CLEAN — 4 findings (2 MEDIUM, 2 LOW). F-C1-P2-003 wording tension resolved via
+  BC-1.18.005 v1.7→v1.8 (Invariant 4/EC-010 reworded); remaining 3 findings code-side.
+- **Pass 3**: NOT CLEAN — 2 findings (1 MEDIUM item-count missing-file, 1 LOW stale-comment 3rd
+  recurrence). BC-1.18.005 v1.8→v1.9 (new EC-014 + Postcondition 8 missing-file sub-bullet).
+- **Pass 4**: NOT CLEAN — 3 findings (divisor-door, missing-N, PC5 wiring-intent). BC-1.18.005
+  v1.9→v1.10 (new EC-015 + EC-016).
+- **Pass 5**: NOT CLEAN — 2 findings (stale-comment 4TH recurrence [FIXED], assertion-tighten
+  [FIXED]); zero runtime defect. BC-1.18.005 v1.10→v1.11 (new EC-017 residual divisor-door
+  closure). Stale-comment class UPGRADED to `[process-gap][codified-pending]` past the 3+
+  recurrence threshold.
+- **Pass 6**: NOT CLEAN — 2 findings (LOW match-first composition [BC amended], LOW EC-017
+  assertion-tighten [FIXED]); zero runtime defects. BC-1.18.005 v1.11→v1.12 — MATCH-FIRST
+  blast-radius restructure: `ShardRegistry::load()` becomes structural-parse-only, new
+  `validate_entry(&ShardEntry) -> Result<(), ShardConfigError>` carries the semantic checks;
+  new EC-018 (malformed sibling, unmatched → `Continue`) + EC-019 (whole-file structural parse
+  failure → `Error` regardless of match).
+- **Pass 7**: NOT CLEAN — doc/test propagation gaps from the pass-6 MATCH-FIRST restructure
+  (F-P7-001..005, the single highest-yield trigger for the stale-comment/partial-fix-propagation
+  finding class — moved behavior between functions without a full sibling sweep). Code-side only;
+  no further BC amendment.
+- **Pass 8**: NOT CLEAN — 2 further propagation-gap findings (F-P8-001/002), same finding class,
+  fixed code-side.
+- **Pass 9**: NOT CLEAN — 1 further propagation-gap finding (F-P9-001), same finding class, fixed
+  code-side; this is the class's 7TH and final recurrence this cascade
+  (F-P1-003→F-P2-002→F-P3-002→F-P5-001→F-P7-001/002/003/004/005→F-P8-001/002→F-P9-001).
+- **Pass 10**: CLEAN — 0 findings. 1/3.
+- **Pass 11**: CLEAN — 0 findings. 2/3.
+- **Pass 12**: CLEAN — 0 findings. **3/3 — LITERAL BC-5.39.001 3-CLEAN ACHIEVED.**
+
+Full code gate GREEN throughout the cascade: 2,985 workspace tests + `cargo fmt --check --all` +
+`cargo clippy --workspace --all-targets -- -D warnings` + 2,234 bats, parallel-stable.
+
+### BC-1.18.005 Version Span (already committed, cite-only this burst)
+
+v1.6 (pre-cascade) → v1.7 (pass-1, PC9/EC-013) → v1.8 (pass-2, Invariant 4/EC-010 wording) → v1.9
+(pass-3, EC-014) → v1.10 (pass-4, EC-015/EC-016) → v1.11 (pass-5, EC-017) → **v1.12** (pass-6,
+Postcondition 1 'Blast-radius scoping' + Invariant 3 extension + EC-018/EC-019, MATCH-FIRST). All
+6 amendments are ALREADY reflected in BC-INDEX v5.64 and STORY-INDEX v4.445 (S-25.02 v2.6) — this
+burst confirms both indexes UNCHANGED at their pass-6 values, no new bump.
+
+### Carry-Forward Advisory Drift Item (adversary O2/pass-10 + ADVISORY/pass-12)
+
+BC-1.18.005's `read_changelog_item_count` closing-fence heuristic (`after_open.find("\n---")`)
+can undercount changelog items if the frontmatter body contains a `---` line. **HARMLESS in
+cluster-1**: the item-count trigger is `tracing::warn!` + `Continue` (non-blocking), so an
+undercount only delays a fire — the safe direction, never a false block. **Becomes LOAD-BEARING
+in BC-1.18.009 (cluster 4, B1 rotation)** once that cluster's roll/block outcome depends on an
+accurate count against unbounded growth. Recorded as a new OPEN Drift Item this burst, anchored to
+BC-1.18.009's own spec-evolution burst, which MUST address robust fence parsing before relying on
+the count for a load-bearing (non-warn-only) decision.
+
+### Cycle-Closing Checklist S-7.02 — `[process-gap]` Promotion
+
+The pass-5 `[process-gap][codified-pending]` stale-comment/partial-fix-propagation finding class
+(D-1171 era) is now FULLY EVIDENCED across all 12 passes — **7 recurrences**
+(F-P1-003→F-P2-002→F-P3-002→F-P5-001→F-P7-001/002/003/004/005→F-P8-001/002→F-P9-001). PROMOTED
+`[codified-pending]`→`[codified]` this burst: lesson
+`L-BB-D1172-partial-fix-propagation-stale-comment-sibling-sweep` appended to
+`cycles/v1.0-brownfield-backfill/lessons.md`, generalizing the standing rule (a comment-domain +
+test-vacuity EXTENSION of TD-VSDD-060 sibling-sweep: every restructure that renames symbols/tests,
+moves behavior between functions, or rewrites a doc comment MUST, in the SAME burst, exhaustively
+sweep field-docs, test comments, negative-control tests, renamed-test cross-references in other
+files, quoted doc-comment excerpts, and crate-root re-exports — not just the adversary-enumerated
+ones). Cluster-1's Cycle-Closing Checklist S-7.02 obligation for THIS finding class is now
+**SATISFIED**. The BC-1.18.005 PC3 `replace_all` occurrence-multiplicity Drift Item (pass-5,
+JUSTIFIED-DEFERRAL to BC-1.18.006/cluster-2) stands unchanged, not duplicated.
+
+### Not Changed This Burst
+
+BC-INDEX v5.64 / VP-INDEX v3.07 / STORY-INDEX v4.445 / ARCH-INDEX v4.22 all CONFIRMED UNCHANGED —
+cite-only cross-checked via `grep -m1 "^version:"` against all 4 index files this burst.
+
+### Cluster-1 Convergence Status
+
+**BC-5.39.001 LOCAL cluster-1 streak: 0/3 → 3/3 CONVERGED.** This is a separate track from the
+cycle-level 3/3 CONVERGED streak (UNCHANGED this burst — no cycle-level adversary pass ran), the
+same LOCAL-streak convention S-17.05/S-25.01/S-25.04 each established for their own cascades.
+`pipeline:` stays `in_progress`. No trajectory-tail drift — unchanged →0→1→1→1 LENGTH=4.
+
+### Next Steps
+
+1. `demo-recorder` records cluster-1 AC-001..005/AC-023 evidence against the converged code.
+2. `pr-manager` opens the PR on `feature/S-25.02-cap-trigger` → 9-step PR cycle (AI review, security
+   review, finding triage, convergence tracking) → squash-merge → `state-manager` post-merge burst.
+3. Cluster-2 (roll, BC-1.18.006) begins per D-1170's 7-sub-cycle sequencing.
+
+### Canonical 6-column row (STATE.md Decisions Log)
+
+| D-1172 | D-1172-S2502-CLUSTER1-CAP-TRIGGER-LOCAL-3CLEAN-CONVERGED | **S-25.02 Phase F4 cluster-1 (cap+trigger, BC-1.18.005) LOCAL adversary cascade CONVERGED at LITERAL BC-5.39.001 3-CONSECUTIVE-CLEAN — passes 10/11/12 all CLEAN (0 findings) on the frozen delta `feature/S-25.02-cap-trigger` HEAD `95f07d9d`, human-directed grind-to-literal-3-CLEAN (not the cycle-level D-386 Option C asymptotic-acceptance convention)** 2026-09-06 (state-manager; single-commit TD-VSDD-053; BOOKKEEPING-ONLY burst — NO BC/VP/STORY/ARCH content or index-version change). The cascade ran 12 passes total: substantive fixes landed through pass 6 (F-001 fail-loud wiring, F-002 `Write`-no-`stat`, PC9 cap-vs-formula, EC-015 divisor-sanity, EC-017 divisor-door closure, EC-016 missing-N, EC-014 missing-file graceful, and the MATCH-FIRST blast-radius restructure — `ShardRegistry::load()` becomes parse-only, new `validate_entry`); passes 7-9 closed residual doc/test propagation gaps; passes 10-12 converged CLEAN. Full code gate GREEN throughout (2,985 workspace tests + `cargo fmt --check` + `cargo clippy -D warnings` + 2,234 bats), parallel-stable. BC-1.18.005 spans v1.6→v1.12 across the cascade — ALREADY reflected in BC-INDEX v5.64 / STORY-INDEX v4.445 (S-25.02 v2.6) from the prior pass-1..pass-6 bursts; UNCHANGED this burst. **BC-5.39.001 LOCAL cluster-1 streak: 0/3→3/3 CONVERGED** (cycle-level 3/3 CONVERGED streak, separate track, UNCHANGED — same LOCAL-streak convention as S-17.05/S-25.01/S-25.04). Carry-forward advisory Drift Item recorded (adversary O2/pass-10 + ADVISORY/pass-12, anchored BC-1.18.009/cluster-4 scope): BC-1.18.005's `read_changelog_item_count` closing-fence heuristic (`after_open.find("\n---")`) can undercount changelog items if the frontmatter body contains a `---` line — HARMLESS in cluster-1 (item-count trigger is warn+`Continue`, undercount only delays a fire, safe direction) but becomes LOAD-BEARING against unbounded growth in BC-1.18.009 — anchored to BC-1.18.009's own spec-evolution burst, which must address robust fence parsing. Cycle-Closing Checklist S-7.02: the pass-5 `[process-gap][codified-pending]` stale-comment/partial-fix-propagation finding class (D-1171) is now FULLY EVIDENCED across all 12 passes — 7 recurrences (F-P1-003→F-P2-002→F-P3-002→F-P5-001→F-P7-001/002/003/004/005→F-P8-001/002→F-P9-001) — PROMOTED `[codified-pending]`→`[codified]`: lesson `L-BB-D1172-partial-fix-propagation-stale-comment-sibling-sweep` appended to `cycles/v1.0-brownfield-backfill/lessons.md`; cluster-1's S-7.02 obligation for THIS finding class is SATISFIED. NO BC/VP/STORY/ARCH content or index-version change this burst — BC-INDEX v5.64 / VP-INDEX v3.07 / STORY-INDEX v4.445 / ARCH-INDEX v4.22 all CONFIRMED UNCHANGED. Pre-existing dirty telemetry (`logs/*.jsonl`, `regression-state.json`, `sidecar-learning.md`) folded into this SAME single commit so the `.factory/` worktree ends CLEAN. `pipeline:` stays in_progress. No trajectory-tail drift — unchanged →0→1→1→1 LENGTH=4. **NEXT = demo-recorder records cluster-1 AC-001..005/AC-023 evidence → pr-manager opens PR on `feature/S-25.02-cap-trigger` → 9-step PR cycle → squash-merge → state-manager post-merge burst → cluster-2 (roll, BC-1.18.006) begins.** Refs: D-1172, D-1171, S-25.02, BC-1.18.005 v1.12, BC-INDEX v5.64, STORY-INDEX v4.445. STATE.md v9.96→v9.97. | D-1172 | 2026-09-06 |
