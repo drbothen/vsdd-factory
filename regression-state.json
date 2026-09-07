@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-09-07T00:17:13Z","command":"cargo test -p validate-cross-site-correspondence --lib test_BC_corpus_version_sync_all_indexed_bcs_match_frontmatter -- --nocapture 2>&1 | tail -20"}
+{"status":"pass","timestamp":"2026-09-07T00:48:27Z","command":"for i in 1 2 3; do echo \"=== LIB RUN $i ===\"; cargo test -p factory-dispatcher --lib 2>&1 | tail -3; done\necho \"=== fmt ===\"; cargo fmt --check --all 2>&1 | tail -20; echo \"exit=$?\"\necho \"=== clippy ===\"; cargo clippy --workspace --all-targets -- -D warnings 2>&1 | tail -20"}
