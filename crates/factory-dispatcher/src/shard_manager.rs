@@ -2410,10 +2410,17 @@ mod tests {
         .expect("write fixture");
 
         // compute_shard_cap_bytes(these four inputs) = 50,640 exactly.
-        // Postcondition 4's `<=` comparison is inclusive of the boundary
-        // (Postcondition 9's own text: "mirroring EC-002's inclusive-boundary
-        // precedent"), so an exactly-equal declared cap MUST load
-        // successfully, never fail-loud.
+        // POST-v1.12 MATCH-FIRST restructure (F-C1-P6-001): the
+        // cap-vs-formula-ceiling comparison (Postcondition 9 / EC-013,
+        // inclusive `<=` per Postcondition 4's own text "mirroring EC-002's
+        // inclusive-boundary precedent") now lives in `validate_entry`, not
+        // `ShardRegistry::load` — this test only pins that an exactly-equal
+        // declared cap continues to structurally parse via `load`
+        // successfully; it does NOT itself exercise the inclusive `<=`
+        // boundary check (see
+        // `test_BC_1_18_005_PC9_EC013_validate_entry_rejects_cap_greater_than_formula_ceiling`
+        // above for that comparison's rejection-side coverage against
+        // `validate_entry`).
         let result = ShardRegistry::load(&cfg_path);
         assert!(
             result.is_ok(),
@@ -2437,12 +2444,14 @@ mod tests {
     // comparison entirely, reintroducing the exact fuel-exhaustion failure
     // mode that comparison exists to prevent.
     //
-    // `ShardRegistry::load` validates `worst_case_fuel_per_byte.is_finite()
-    // && worst_case_fuel_per_byte > 0.0` for every entry BEFORE
-    // `compute_shard_cap_bytes` is ever called for it, returning
-    // `Err(ShardConfigError::InvalidWorstCaseFuelPerByte { artifact_stem,
-    // worst_case_fuel_per_byte })` on violation. The three tests below pin
-    // the two rejection cases (zero and NaN) plus the valid-input control.
+    // POST-v1.12 MATCH-FIRST restructure (F-C1-P6-001): `validate_entry`
+    // validates `worst_case_fuel_per_byte.is_finite() &&
+    // worst_case_fuel_per_byte > 0.0` for the matched entry, at entry-match
+    // time, BEFORE `compute_shard_cap_bytes` is ever called for it,
+    // returning `Err(ShardConfigError::InvalidWorstCaseFuelPerByte {
+    // artifact_stem, worst_case_fuel_per_byte })` on violation. The three
+    // tests below pin the two rejection cases (zero and NaN) plus the
+    // valid-input control.
     // ===================================================================
 
     // MIGRATED (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001):
@@ -2517,12 +2526,14 @@ mod tests {
 
     #[test]
     fn test_BC_1_18_005_EC_015_load_accepts_valid_positive_worst_case_fuel_per_byte_control() {
-        // Control: a well-formed, finite, strictly-positive
-        // worst_case_fuel_per_byte with shard_cap_bytes AT (not over) its own
-        // formula ceiling MUST continue to load successfully once EC-015's
-        // guard is added — this test stays GREEN both before and after the
-        // fix, pinning that the new finiteness/positivity check does not
-        // regress the happy path.
+        // POST-v1.12 MATCH-FIRST restructure (F-C1-P6-001): EC-015's
+        // finiteness/positivity guard now lives in `validate_entry`, not
+        // `ShardRegistry::load` — this control only pins that a well-formed,
+        // finite, strictly-positive worst_case_fuel_per_byte with
+        // shard_cap_bytes AT (not over) its own formula ceiling continues to
+        // structurally parse via `load` successfully; it does NOT itself
+        // exercise EC-015's guard (see the sibling
+        // `validate_entry`-rejecting tests above for that guard's coverage).
         let dir = tempfile::tempdir().expect("tempdir");
         let cfg_path = dir.path().join("shard-config.toml");
         std::fs::write(
@@ -2630,14 +2641,15 @@ mod tests {
     // HookResult::Error-on-None-`n` check runs too late relative to this
     // BC's own EC-009/EC-011/EC-013 load-time posture).
     //
-    // `ShardRegistry::load` requires `n` for every
-    // `"frontmatter-changelog-array"`-shaped entry via a
-    // `let Some(n) = entry.n else { return Err(ShardConfigError::MissingN {
-    // artifact_stem }) }` guard, evaluated BEFORE `low_water_mark` is
-    // examined — so an entry missing `n` AND declaring an independently
-    // invalid `low_water_mark` is rejected on the missing-`n` condition, not
-    // silently accepted. The two tests below pin both the plain-omission
-    // case and the omitted-`n`-plus-invalid-`low_water_mark` case.
+    // POST-v1.12 MATCH-FIRST restructure (F-C1-P6-001): `validate_entry`
+    // requires `n` for every `"frontmatter-changelog-array"`-shaped entry,
+    // at entry-match time, via a `let Some(n) = entry.n else { return
+    // Err(ShardConfigError::MissingN { artifact_stem }) }` guard, evaluated
+    // BEFORE `low_water_mark` is examined — so an entry missing `n` AND
+    // declaring an independently invalid `low_water_mark` is rejected on the
+    // missing-`n` condition, not silently accepted. The two tests below pin
+    // both the plain-omission case and the omitted-`n`-plus-invalid-
+    // `low_water_mark` case.
     // ===================================================================
 
     // MIGRATED (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001):

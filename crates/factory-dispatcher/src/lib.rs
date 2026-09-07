@@ -78,7 +78,7 @@ pub use shard_manager::{
     find_matching_entry, item_count_trigger_fires, net_delta_bytes_for_edit,
     net_delta_bytes_for_multi_edit, projected_size_edit, projected_size_write,
     read_changelog_item_count, resolved_low_water_mark, shard_cap_gate_check, size_trigger_fires,
-    validate_low_water_mark,
+    validate_entry, validate_low_water_mark,
 };
 
 /// ABI version the dispatcher speaks. Kept in lock-step with

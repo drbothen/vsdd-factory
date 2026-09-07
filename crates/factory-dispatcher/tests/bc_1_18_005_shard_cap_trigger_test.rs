@@ -310,11 +310,16 @@ async fn test_BC_1_18_005_PC1_non_mutating_tool_name_bypasses_native_gate_no_pan
 // verdict. The final `exit_code: if block_intent { 2 } else { 0 }` therefore
 // reflects the native gate's decision, not just downstream tier plugins.
 // Both tests below assert that resulting non-zero `exit_code` and are green —
-// `ShardRegistry::load` itself already correctly returns `Err` for both
-// malformed shapes (see the shard_manager.rs unit tests
-// `test_BC_1_18_005_EC_009_...` and
-// `test_BC_1_18_005_EC_011_load_rejects_low_water_mark_equal_to_n`), and
-// `execute_tiers` now propagates that verdict into the dispatch outcome.
+// post-v1.12 MATCH-FIRST restructure (F-C1-P6-001), `ShardRegistry::load` is
+// structural-TOML-parse-only and does NOT itself reject either malformed
+// shape (both `shape` and `low_water_mark` are `Option`-typed, so they
+// deserialize fine); fail-loud enforcement for both cases now happens in
+// `validate_entry`, called by `shard_cap_gate_check` at entry-MATCH time on
+// the entry `find_matching_entry` resolves for the dispatch (see the
+// shard_manager.rs unit tests
+// `test_BC_1_18_005_EC_009_matched_entry_missing_shape_field_is_fail_loud`
+// and `test_BC_1_18_005_EC_011_validate_entry_rejects_low_water_mark_equal_to_n`),
+// and `execute_tiers` now propagates that verdict into the dispatch outcome.
 // ---------------------------------------------------------------------------
 
 /// Shared driver for the two F-001 malformed-config cases: writes the given
@@ -578,7 +583,7 @@ async fn test_BC_1_18_005_P2001_cap_exceeds_ceiling_block_reason_names_artifact_
     // Postcondition 9 / EC-013: declared shard_cap_bytes (100,000) exceeds
     // compute_shard_cap_bytes(these four inputs) = 50,640 — same worked
     // example as shard_manager.rs's
-    // test_BC_1_18_005_PC9_EC013_load_rejects_cap_greater_than_formula_ceiling.
+    // test_BC_1_18_005_PC9_EC013_validate_entry_rejects_cap_greater_than_formula_ceiling.
     let malformed_cap_exceeds_ceiling: &str = "\
 [[shard]]
 artifact_stem = \"over-cap-log\"
