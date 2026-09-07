@@ -2429,6 +2429,53 @@ mod tests {
         );
     }
 
+    // NEW (S-25.02 F4 comprehensive-sweep vacuity closure): the `load()`
+    // control immediately above stopped exercising PC9's inclusive `<=`
+    // boundary once the cap-vs-formula-ceiling comparison migrated to
+    // `validate_entry` at v1.12 (its own comment says so) — it would still
+    // pass even if `validate_entry` regressed the boundary from `<=` to `<`,
+    // because `load()` never calls `validate_entry` at all. This test calls
+    // `validate_entry` DIRECTLY with `shard_cap_bytes` set to EXACTLY
+    // `compute_shard_cap_bytes(entry.cap_formula_inputs())` and asserts
+    // `Ok(())`.
+    //
+    // Non-vacuousness: PAIRED with
+    // `test_BC_1_18_005_PC9_EC013_validate_entry_rejects_cap_greater_than_formula_ceiling`
+    // (cap = ceiling + 1 → `Err(CapExceedsFormulaCeiling)`), this test pins
+    // BOTH sides of the inclusive `<=` boundary against `validate_entry`
+    // itself: if the guard ever regressed from `<=` to `<`, THIS test is the
+    // one that would fail (the exact-equal case would wrongly be rejected).
+    // Manually verified load-bearing during authoring: temporarily bumping
+    // this test's `shard_cap_bytes` to `computed_ceiling + 1` flips the
+    // assertion below to a failure (`validate_entry` returns
+    // `Err(CapExceedsFormulaCeiling { shard_cap_bytes: 50641, computed_ceiling:
+    // 50640, .. })`), confirming the exact-equal `Ok` assertion is
+    // meaningful before reverting to the exact ceiling.
+    #[test]
+    fn test_BC_1_18_005_PC9_validate_entry_accepts_cap_exactly_equal_to_formula_ceiling() {
+        // `flat_entry`'s own default calibration inputs (practical_fuel_ceiling
+        // = 8_000_000, worst_case_fuel_per_byte = 106.36, max_single_record_bytes
+        // = 16_384, safety_margin = 8_192) are the SAME inputs the sibling
+        // EC-013 rejection test and the BC's own Postcondition 6 worked
+        // example use, whose `compute_shard_cap_bytes` result is the
+        // documented 50,640 — computed here from the entry's own
+        // `cap_formula_inputs()` (not hardcoded) so this test tracks the
+        // formula rather than pinning a second, independently-derived magic
+        // number.
+        let mut entry = flat_entry("decision-log", 0);
+        let computed_ceiling = compute_shard_cap_bytes(&entry.cap_formula_inputs());
+        entry.shard_cap_bytes = computed_ceiling;
+
+        let result = validate_entry(&entry);
+        assert!(
+            result.is_ok(),
+            "PC9: shard_cap_bytes EXACTLY EQUAL to compute_shard_cap_bytes(entry.cap_formula_inputs()) \
+             ({computed_ceiling}) MUST be accepted by validate_entry itself (inclusive <=) — paired \
+             with the EC-013 (>ceiling -> Err) test above, this pins both sides of the boundary \
+             against validate_entry directly. Got: {result:?}"
+        );
+    }
+
     // ===================================================================
     // EC-015 (NEW, S-25.02 Phase F4 LOCAL adversary cluster-1 pass-4
     // finding F-C1-P4-001, MEDIUM/HIGH, BC-1.18.005 v1.10) — "divisor-door"
@@ -2554,6 +2601,52 @@ mod tests {
             result.is_ok(),
             "control: a valid finite positive worst_case_fuel_per_byte with shard_cap_bytes <= \
              its own formula ceiling MUST load successfully. Got: {result:?}"
+        );
+    }
+
+    // NEW (S-25.02 F4 comprehensive-sweep vacuity closure): the `load()`
+    // control immediately above stopped exercising EC-015's finiteness/
+    // positivity guard once that guard migrated to `validate_entry` at
+    // v1.12 (its own comment says so) — it would still pass even if
+    // `validate_entry` regressed the guard to reject a normal valid
+    // positive `worst_case_fuel_per_byte`, because `load()` never calls
+    // `validate_entry` at all. This test calls `validate_entry` DIRECTLY
+    // with a normal valid positive `worst_case_fuel_per_byte` (the BC's own
+    // 106.36 provisional calibration value) and an otherwise-valid entry
+    // (`shard_cap_bytes` at its own formula ceiling), and asserts `Ok(())`.
+    //
+    // Non-vacuousness: PAIRED with
+    // `test_BC_1_18_005_EC_015_validate_entry_rejects_zero_worst_case_fuel_per_byte_divisor_door`
+    // and `..._rejects_nan_worst_case_fuel_per_byte` (0.0/NaN -> `Err`),
+    // this test pins the accept side of the finiteness/positivity guard
+    // against `validate_entry` itself: if the guard ever regressed to
+    // reject finite positive values too (e.g. an inverted comparison), THIS
+    // test is the one that would fail.
+    #[test]
+    fn test_BC_1_18_005_EC_015_validate_entry_accepts_valid_positive_worst_case_fuel_per_byte() {
+        // A normal valid positive worst_case_fuel_per_byte (flat_entry's own
+        // default, the BC's provisional 106.36 calibration value — see the
+        // EC-015 rejection tests above for the 0.0/NaN degenerate cases this
+        // pairs against). shard_cap_bytes is set to the entry's own computed
+        // formula ceiling (not hardcoded) so this test exercises ONLY the
+        // divisor guard, not the separate PC9 cap-vs-ceiling comparison
+        // pinned by the sibling PC9 test above.
+        let mut entry = flat_entry("valid-fuel-log", 0);
+        assert!(
+            entry.worst_case_fuel_per_byte.is_finite() && entry.worst_case_fuel_per_byte > 0.0,
+            "fixture sanity: flat_entry's default worst_case_fuel_per_byte must itself be the \
+             valid-positive case this test exercises"
+        );
+        entry.shard_cap_bytes = compute_shard_cap_bytes(&entry.cap_formula_inputs());
+
+        let result = validate_entry(&entry);
+        assert!(
+            result.is_ok(),
+            "EC-015: a normal valid positive worst_case_fuel_per_byte ({}) with an otherwise-valid \
+             entry MUST be accepted by validate_entry itself — paired with the 0.0/NaN rejection \
+             tests above, this pins the accept side of the finiteness/positivity guard against \
+             validate_entry directly. Got: {result:?}",
+            entry.worst_case_fuel_per_byte
         );
     }
 
