@@ -1237,10 +1237,16 @@ mod tests {
     }
 
     /// Serializes every test in this module that can execute the
-    /// `tracing::warn!` callsite inside `ShardRegistry::load` (BC-1.18.005
-    /// EC-012's amortization advisory) — i.e. every test whose fixture has
-    /// `low_water_mark > floor(N/2)`, whether or not that particular test
-    /// cares about counting the resulting warn.
+    /// `tracing::warn!` callsite inside `validate_entry` (BC-1.18.005
+    /// EC-012's amortization advisory) — i.e. every test that drives
+    /// `validate_entry` on a `"frontmatter-changelog-array"`-shaped fixture,
+    /// whether or not that particular test's fixture actually crosses the
+    /// `low_water_mark > floor(N/2)` threshold that fires the warn (a test
+    /// asserting the NON-firing half of VP-140's biconditional still
+    /// touches the callsite — it just expects `Interest` to resolve to
+    /// "no warn recorded" for ITS fixture, which is exactly the resolution
+    /// this discipline protects against being poisoned by callsite-wide
+    /// caching).
     ///
     /// `tracing-core`'s per-callsite `Interest` cache
     /// (`tracing_core::callsite`) is a single table shared by the whole
@@ -1251,28 +1257,32 @@ mod tests {
     /// using whatever `Subscriber` is ambient **on the thread that gets
     /// there first**, and cheaply caches that verdict forever after
     /// (`DefaultCallsite`'s registration state machine never revisits a
-    /// callsite once it flips from `UNREGISTERED` to `REGISTERED`). Two
-    /// tests reach this exact callsite:
-    /// `test_BC_1_18_005_EC_012_load_accepts_n_minus_1_low_water_mark_and_succeeds`
-    /// (fixture `low_water_mark=49`, `n=50`) and
-    /// `test_BC_1_18_005_EC_012_load_emits_warn_advisory_when_low_water_mark_exceeds_default`
-    /// below (same fixture, but this one asserts the resulting warn count).
-    /// Confirmed by instrumenting `WarnCapture` and re-running under
-    /// `--test-threads>1`: if the FIRST test does not install a
-    /// `WarnCapture` default before calling `ShardRegistry::load`, the
-    /// ambient subscriber on its thread is the no-op default (never
-    /// interested), so `Interest::never()` gets cached for the callsite
-    /// **permanently** — and a later `tracing::subscriber::with_default`
-    /// call does not, by itself, invalidate that cached decision:
-    /// `with_default`/`set_default` only swap the thread-local dispatch,
-    /// they do not call `tracing::callsite::rebuild_interest_cache()`.
-    /// Whichever of the two tests the `cargo test` thread pool happens to
-    /// schedule first therefore decides, non-deterministically, whether
-    /// the warn is ever observable again in this process — this is
-    /// exactly the intermittent (~2/5) failure this fixes.
+    /// callsite once it flips from `UNREGISTERED` to `REGISTERED`). Three
+    /// tests reach this exact callsite via `validate_entry`, all under
+    /// `count_warns`:
+    /// `test_BC_1_18_005_EC_012_validate_entry_emits_warn_advisory_when_low_water_mark_exceeds_default`
+    /// (fixture `low_water_mark=49`, `n=50` — fires),
+    /// `test_BC_1_18_005_VP_140_validate_entry_default_low_water_mark_does_not_emit_warn_advisory`
+    /// (fixture `low_water_mark=25`, `n=50` — does not fire), and
+    /// `test_BC_1_18_005_EC_010_validate_entry_omitted_low_water_mark_does_not_emit_warn_advisory`
+    /// (fixture `low_water_mark=None`, `n=50`, resolving to `floor(N/2)=25`
+    /// — does not fire). Confirmed by instrumenting `WarnCapture` and
+    /// re-running under `--test-threads>1`: if the FIRST of these tests to
+    /// run does not install a `WarnCapture` default before calling
+    /// `validate_entry`, the ambient subscriber on its thread is the no-op
+    /// default (never interested), so `Interest::never()` gets cached for
+    /// the callsite **permanently** — and a later
+    /// `tracing::subscriber::with_default` call does not, by itself,
+    /// invalidate that cached decision: `with_default`/`set_default` only
+    /// swap the thread-local dispatch, they do not call
+    /// `tracing::callsite::rebuild_interest_cache()`. Whichever of these
+    /// tests the `cargo test` thread pool happens to schedule first
+    /// therefore decides, non-deterministically, whether the warn is ever
+    /// observable again in this process — this is exactly the intermittent
+    /// (~2/5) failure this fixes.
     ///
-    /// The fix requires BOTH tests that reach this callsite to be under
-    /// the SAME discipline (see the two now-locked call sites below); a
+    /// The fix requires EVERY test that reaches this callsite to be under
+    /// the SAME discipline (see the now-locked call sites above); a
     /// serialized capture-only helper does not, by itself, close the race
     /// against an unsynchronized non-capturing sibling. The discipline has
     /// two parts:
@@ -1304,11 +1314,13 @@ mod tests {
     static CAPTURE_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
     // Generic over the closure's return type `T` (BC-1.18.005 v1.12
-    // MATCH-FIRST restructure): the EC-012 amortization-advisory warn now
-    // fires from `validate_entry` (returning `Result<(), ShardConfigError>`)
-    // as well as from `ShardRegistry::load` (returning
-    // `Result<ShardRegistry, ShardConfigError>`) — both call shapes route
-    // through this same helper.
+    // MATCH-FIRST restructure): the EC-012 amortization-advisory warn fires
+    // solely from `validate_entry` (returning `Result<(), ShardConfigError>`)
+    // post-restructure — `ShardRegistry::load` is structural-TOML-parse-only
+    // and no longer reaches this callsite under any input. This helper stays
+    // generic over `T` so any future closure shape (a direct
+    // `validate_entry` call today) can route through it unchanged without a
+    // signature change.
     fn count_warns<T>(f: impl FnOnce() -> T) -> (usize, T) {
         // A prior capture test panicking mid-assertion (lock still held via
         // its guard's unwind drop) must not cascade into every subsequent
@@ -2225,17 +2237,28 @@ mod tests {
         );
     }
 
+    // MIGRATED (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001,
+    // F-C1-P7-003): the EC-012 amortization-advisory `tracing::warn!`
+    // callsite this negative control guards now lives solely in
+    // `validate_entry` (called at entry-MATCH time), not in
+    // `ShardRegistry::load` (structural-TOML-parse-only, post-restructure).
+    // Wrapping `ShardRegistry::load` in `count_warns` here would be
+    // VACUOUS — `load` can no longer reach that callsite under any input,
+    // so `warn_count == 0` would hold even if the "does NOT fire when
+    // `low_water_mark <= floor(N/2)`" half of VP-140's biconditional broke.
+    // This test drives `validate_entry` directly, mirroring the sibling
+    // positive-control test above
+    // (`test_BC_1_18_005_EC_012_validate_entry_emits_warn_advisory_when_low_water_mark_exceeds_default`),
+    // restoring genuine emission-level coverage of the "does not fire"
+    // half.
     #[test]
-    fn test_BC_1_18_005_VP_140_load_default_low_water_mark_does_not_emit_warn_advisory() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let cfg_path = dir.path().join("shard-config.toml");
-        std::fs::write(
-            &cfg_path,
-            shard_toml_frontmatter_entry("BC-INDEX", 50, Some(25)),
-        )
-        .expect("write fixture");
+    fn test_BC_1_18_005_VP_140_validate_entry_default_low_water_mark_does_not_emit_warn_advisory() {
+        let mut entry = flat_entry("BC-INDEX", 49_152);
+        entry.shape = Some(ShardShape::FrontmatterChangelogArray);
+        entry.n = Some(50);
+        entry.low_water_mark = Some(25);
 
-        let (warn_count, result) = count_warns(|| ShardRegistry::load(&cfg_path));
+        let (warn_count, result) = count_warns(|| validate_entry(&entry));
 
         assert!(result.is_ok());
         assert_eq!(
@@ -2244,17 +2267,21 @@ mod tests {
         );
     }
 
+    // MIGRATED (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001,
+    // F-C1-P7-003): same VACUOUSNESS closure as the sibling test
+    // immediately above — the EC-012 advisory callsite this negative
+    // control guards is reached via `validate_entry`, not
+    // `ShardRegistry::load`. This test drives `validate_entry` directly
+    // with an OMITTED `low_water_mark`, so `resolved_low_water_mark`
+    // resolves it to `floor(N/2)` before the advisory check ever runs.
     #[test]
-    fn test_BC_1_18_005_EC_010_load_omitted_low_water_mark_does_not_emit_warn_advisory() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let cfg_path = dir.path().join("shard-config.toml");
-        std::fs::write(
-            &cfg_path,
-            shard_toml_frontmatter_entry("BC-INDEX", 50, None),
-        )
-        .expect("write fixture");
+    fn test_BC_1_18_005_EC_010_validate_entry_omitted_low_water_mark_does_not_emit_warn_advisory() {
+        let mut entry = flat_entry("BC-INDEX", 49_152);
+        entry.shape = Some(ShardShape::FrontmatterChangelogArray);
+        entry.n = Some(50);
+        entry.low_water_mark = None;
 
-        let (warn_count, result) = count_warns(|| ShardRegistry::load(&cfg_path));
+        let (warn_count, result) = count_warns(|| validate_entry(&entry));
 
         assert!(result.is_ok());
         assert_eq!(

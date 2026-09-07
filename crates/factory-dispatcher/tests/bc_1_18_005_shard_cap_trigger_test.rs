@@ -772,12 +772,13 @@ shard_cap_bytes = 49152
 // F-001/P2001 tests above use) — this is deliberate: `shard_cap_gate_check`
 // alone never eagerly validates siblings (it only ever looks at the entry
 // `find_matching_entry` resolves), so exercising it in isolation would
-// trivially return `Continue` today and prove nothing about the CURRENT bug.
-// Only the full `shard_cap_precheck` path — which calls
-// `ShardRegistry::load()` BEFORE matching — reproduces today's
-// whole-config-eager-validation blast radius. These two tests therefore
-// MUST FAIL against the current (pre-restructure) implementation, for the
-// right reason: the malformed `lessons` sibling entry blocks a dispatch this
+// trivially return `Continue` and prove nothing about blast-radius scoping.
+// Only the full `shard_cap_precheck` path exercises the ordering guarantee
+// end to end: `ShardRegistry::load()` (structural-parse-only, post-v1.12)
+// runs first, `find_matching_entry` resolves the dispatch's target to (at
+// most) one entry, and ONLY that resolved entry — never a sibling — is ever
+// passed to `validate_entry`. These two tests pin that ordering: the
+// malformed `lessons` sibling entry MUST NOT block a dispatch this
 // Postcondition promises is entirely unaffected by it.
 //
 // The matched-to-the-malformed-entry-itself scenario (BC-1.18.005's third
@@ -831,13 +832,10 @@ async fn test_BC_1_18_005_EC_018_malformed_sibling_unmatched_target_continues() 
     // MUST fire — `find_matching_entry` returns `None` for `foo.rs` BEFORE
     // `validate_entry` (or any semantic check) is ever invoked on the
     // malformed `lessons` entry, so its `shape` omission is NEVER evaluated
-    // for this dispatch. Pre-v1.12 (current implementation),
-    // `shard_cap_precheck` calls the eager, whole-config
-    // `ShardRegistry::load()` validation loop BEFORE matching, which
-    // returns `HookResult::Error` for this exact dispatch — so this
-    // assertion MUST FAIL against the current implementation, for the right
-    // reason (whole-config eager validation, not per-matched-entry
-    // validation).
+    // for this dispatch. `ShardRegistry::load()` is structural-TOML-parse-
+    // only (post-v1.12 MATCH-FIRST restructure) and never validates entry
+    // semantics itself, so the malformed sibling's `shape` omission has no
+    // opportunity to surface for a dispatch that never matches it.
     assert_eq!(
         summary.exit_code, 0,
         "EC-018: a dispatch whose target matches NO [[shard]] entry MUST Continue \
@@ -880,11 +878,12 @@ async fn test_BC_1_18_005_EC_018_malformed_sibling_matched_different_well_formed
     // `projected_size = len(content) = 5,000 <= 49,152` -> normal
     // Postcondition 3 gate logic against `decision-log.md`'s OWN
     // well-formed entry proceeds entirely unaffected by the `lessons`
-    // entry's malformation (EC-018). Pre-v1.12 (current implementation),
-    // `ShardRegistry::load()`'s eager loop fails on the `lessons` entry
-    // BEFORE `decision-log`'s own well-formed entry is ever reached or
-    // matched — so this assertion MUST FAIL against the current
-    // implementation, for the right reason.
+    // entry's malformation (EC-018). `ShardRegistry::load()`'s structural
+    // parse (post-v1.12) never validates entry semantics, so the malformed
+    // `lessons` entry never fails anything at load time; `validate_entry`
+    // is invoked ONLY on the resolved `decision-log` entry that
+    // `find_matching_entry` matches, so `lessons`'s malformation is never
+    // examined for this dispatch at all.
     assert_eq!(
         summary.exit_code, 0,
         "EC-018: a dispatch matching a DIFFERENT, well-formed [[shard]] entry MUST proceed with \
