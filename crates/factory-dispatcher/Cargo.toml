@@ -33,6 +33,16 @@ test-support = []
 serde.workspace = true
 serde_json.workspace = true
 toml.workspace = true
+# S-25.02 BC-1.18.005 Postcondition 8: `shard_manager::read_changelog_item_count`
+# parses a `[[shard]]`-registered artifact's frontmatter `changelog:` sequence
+# to count its items. `serde_norway` is already a workspace dependency (used
+# by `factory-lock-parse`, `last-amended-migrate`, `vsdd-context-resolvers`);
+# this is the same general-purpose-YAML-on-a-bounded-frontmatter-block usage
+# pattern `last-amended-migrate/src/yaml_guard.rs` documents for its own
+# `MinimalFrontmatter`/`ChangelogOnly` structs — never the hand-rolled
+# unbounded-single-scalar-line scan `factory-lock-parse`/`frontmatter.rs` use
+# for a different (unrelated) bounded-resource reason.
+serde_norway.workspace = true
 anyhow.workspace = true
 thiserror.workspace = true
 uuid.workspace = true
@@ -42,6 +52,10 @@ wasmtime.workspace = true
 wasmtime-wasi.workspace = true
 tokio.workspace = true
 tracing.workspace = true
+# S-25.02 BC-1.18.005: `shard_manager` reuses the canonical `HookResult`
+# three-variant contract (Continue/Block/Error) rather than inventing a
+# parallel result type for the native shard-cap gate check.
+vsdd-hook-sdk = { path = "../hook-sdk" }
 factory-lock-parse = { path = "../factory-lock-parse", version = "0.0.1" }
 sink-core = { path = "../sink-core", version = "0.0.1" }
 sink-datadog = { path = "../sink-datadog", version = "0.0.1" }
