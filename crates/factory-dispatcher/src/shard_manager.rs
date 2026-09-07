@@ -2474,17 +2474,34 @@ mod tests {
         // shard_cap_bytes = 100,000,000, letting it sail past
         // Postcondition 9's `shard_cap_bytes > computed_ceiling` check via
         // a legal-but-degenerate divisor. The residual closure rejects the
-        // entry BEFORE that comparison is ever attempted.
-        let result = ShardRegistry::load(&cfg_path);
-        assert!(
-            result.is_err(),
+        // entry BEFORE that comparison is ever attempted — and it MUST do
+        // so via the specific `FormulaCeilingSaturated` variant (not merely
+        // *some* error), mirroring EC-013/EC-015/EC-016's sibling pattern:
+        // a generic `.is_err()` would still pass if a future regression
+        // made this same input error out through a DIFFERENT variant (e.g.
+        // if EC-015's guard were mistakenly widened to also catch
+        // tiny-positive divisors), silently no longer proving the residual
+        // FormulaCeilingSaturated path is exercised at all.
+        let err = ShardRegistry::load(&cfg_path).expect_err(
             "EC-017: worst_case_fuel_per_byte = 1e-300 is legal under EC-015's is_finite() && \
              > 0.0 guard, yet the raw division practical_fuel_ceiling as f64 / \
              worst_case_fuel_per_byte saturates the subsequent .floor() as u64 cast to \
              u64::MAX — ShardRegistry::load() MUST reject this entry (residual divisor-door \
              closure) BEFORE the CapExceedsFormulaCeiling comparison is even attempted, \
-             regardless of the arbitrarily-large declared shard_cap_bytes. Got: {result:?}"
+             regardless of the arbitrarily-large declared shard_cap_bytes.",
         );
+        match err {
+            ShardConfigError::FormulaCeilingSaturated {
+                artifact_stem,
+                practical_fuel_ceiling,
+                worst_case_fuel_per_byte,
+            } => {
+                assert_eq!(artifact_stem, "saturating-ceiling-log");
+                assert_eq!(practical_fuel_ceiling, 8_000_000);
+                assert_eq!(worst_case_fuel_per_byte, 1e-300);
+            }
+            other => panic!("EC-017: expected FormulaCeilingSaturated, got {other:?}"),
+        }
     }
 
     // ===================================================================
