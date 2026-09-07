@@ -742,3 +742,258 @@ shard_cap_bytes = 49152
         "PC1: a PostToolUse dispatch MUST NOT have block_intent set by the shard-cap gate"
     );
 }
+
+// ---------------------------------------------------------------------------
+// EC-018 / EC-019 (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001,
+// LOW pending-intent, product-owner adjudication) — "Blast-radius scoping".
+//
+// Pre-v1.12, `executor.rs::shard_cap_precheck` calls `ShardRegistry::load()`
+// — which parses AND semantically validates EVERY `[[shard]]` entry
+// (fail-loud on EC-009/EC-011/EC-013/EC-015/EC-016/EC-017 for ANY entry) —
+// BEFORE `shard_cap_gate_check` ever matches the dispatch's target path to a
+// specific entry. Consequence: a SINGLE malformed SIBLING entry causes
+// `HookResult::Error` for EVERY Edit/Write/MultiEdit dispatch in the repo
+// whose config file exists, INCLUDING dispatches whose target matches NO
+// entry at all, or matches a DIFFERENT, well-formed entry.
+//
+// v1.12 ADJUDICATED (B) MATCH-FIRST: `ShardRegistry::load()` becomes
+// structural-TOML-deserialization-only; a NEW `validate_entry(&ShardEntry)`
+// carries the semantic checks, invoked ONLY on the entry `find_matching_entry`
+// resolves for the current dispatch. EC-018 pins the RESOLVED blast-radius
+// scenario (`Continue`/normal gate logic, sibling never validated). EC-019
+// pins the ONE residual, unavoidable exception: a config file that fails
+// STRUCTURAL TOML deserialization still blocks every dispatch regardless of
+// match, since `find_matching_entry` cannot run without a successfully
+// deserialized registry.
+//
+// The two EC-018 tests below drive the FULL public gate path
+// (`execute_tiers` -> `shard_cap_precheck` -> `ShardRegistry::load` ->
+// `shard_cap_gate_check`, via the same `run_shard_gate_for_config` helper the
+// F-001/P2001 tests above use) — this is deliberate: `shard_cap_gate_check`
+// alone never eagerly validates siblings (it only ever looks at the entry
+// `find_matching_entry` resolves), so exercising it in isolation would
+// trivially return `Continue` today and prove nothing about the CURRENT bug.
+// Only the full `shard_cap_precheck` path — which calls
+// `ShardRegistry::load()` BEFORE matching — reproduces today's
+// whole-config-eager-validation blast radius. These two tests therefore
+// MUST FAIL against the current (pre-restructure) implementation, for the
+// right reason: the malformed `lessons` sibling entry blocks a dispatch this
+// Postcondition promises is entirely unaffected by it.
+//
+// The matched-to-the-malformed-entry-itself scenario (BC-1.18.005's third
+// Canonical Test Vector for this ruling — "UNCHANGED from pre-v1.12
+// behavior") is already covered by the existing F-001/P2001 tests above
+// (`test_BC_1_18_005_F001_malformed_config_missing_shape_ec009_...`,
+// `..._low_water_mark_ge_n_ec011_...`,
+// `test_BC_1_18_005_P2001_cap_exceeds_ceiling_...`) — each of those already
+// targets the SAME artifact_stem as the single malformed entry in its
+// fixture, so they already pin "matched malformed entry still fails loud"
+// and require no changes here.
+// ---------------------------------------------------------------------------
+
+/// A `[[shard]]` config entry for `lessons` that OMITS `shape` entirely
+/// (EC-009-style malformation) — the "malformed SIBLING entry" fixture for
+/// the EC-018 pinning tests below. THE F-C1-P6-001 scenario's own malformed
+/// entry (BC-1.18.005's Postcondition 1 "Blast-radius scoping" sub-paragraph
+/// and its first two new Canonical Test Vectors both use this exact
+/// `lessons`-omits-`shape` fixture).
+const MALFORMED_LESSONS_SIBLING_ENTRY: &str = "\
+[[shard]]
+artifact_stem = \"lessons\"
+practical_fuel_ceiling = 8000000
+worst_case_fuel_per_byte = 106.36
+max_single_record_bytes = 16384
+safety_margin = 8192
+shard_cap_bytes = 49152
+";
+
+#[tokio::test(flavor = "current_thread")]
+async fn test_BC_1_18_005_EC_018_malformed_sibling_unmatched_target_continues() {
+    let dir = tempfile::tempdir().unwrap();
+    // Target does NOT exist on disk and its stem ("foo") matches NO
+    // `[[shard]]` entry in the config below — mirroring BC-1.18.005's own
+    // "THE F-C1-P6-001 scenario" Canonical Test Vector exactly (`Edit` to
+    // `src/foo.rs`).
+    let target = dir.path().join("foo.rs");
+
+    // The config's ONLY entry ("lessons") omits `shape` entirely — it would
+    // fail EC-009 if matched, but this dispatch's target does not match it.
+    let summary = run_shard_gate_for_config(
+        dir.path(),
+        MALFORMED_LESSONS_SIBLING_ENTRY,
+        &target,
+        "Edit",
+        serde_json::json!({"old_string": "a", "new_string": "ab"}),
+    )
+    .await;
+
+    // Postcondition 1's "Blast-radius scoping" ruling (v1.12): `Continue`
+    // MUST fire — `find_matching_entry` returns `None` for `foo.rs` BEFORE
+    // `validate_entry` (or any semantic check) is ever invoked on the
+    // malformed `lessons` entry, so its `shape` omission is NEVER evaluated
+    // for this dispatch. Pre-v1.12 (current implementation),
+    // `shard_cap_precheck` calls the eager, whole-config
+    // `ShardRegistry::load()` validation loop BEFORE matching, which
+    // returns `HookResult::Error` for this exact dispatch — so this
+    // assertion MUST FAIL against the current implementation, for the right
+    // reason (whole-config eager validation, not per-matched-entry
+    // validation).
+    assert_eq!(
+        summary.exit_code, 0,
+        "EC-018: a dispatch whose target matches NO [[shard]] entry MUST Continue \
+         (exit_code 0) even when a SIBLING entry (\"lessons\") is malformed — the malformed \
+         sibling must NEVER be validated for this dispatch. Got exit_code={} (per_plugin_results: \
+         {:?}) — if this fired, `ShardRegistry::load()` is still eagerly validating every entry \
+         BEFORE find_matching_entry runs, reproducing the pre-v1.12 blast-radius bug \
+         (BC-1.18.005 Postcondition 1's \"Blast-radius scoping\" ruling, F-C1-P6-001).",
+        summary.exit_code, summary.per_plugin_results
+    );
+    assert!(
+        !summary.block_intent,
+        "EC-018: block_intent MUST NOT be set by a malformed SIBLING entry for an unmatched target"
+    );
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn test_BC_1_18_005_EC_018_malformed_sibling_matched_different_well_formed_entry_continues() {
+    let dir = tempfile::tempdir().unwrap();
+    // Target MATCHES the DIFFERENT, well-formed `decision-log` entry —
+    // mirroring BC-1.18.005's own matching Canonical Test Vector exactly
+    // (`Write` to `decision-log.md`, `shard_cap_bytes=49,152`, `content`
+    // length 5,000 bytes).
+    let target = dir.path().join("decision-log.md");
+
+    // Two-entry config: the malformed `lessons` sibling (omits `shape`)
+    // PLUS the well-formed `decision-log` entry this dispatch actually
+    // targets.
+    let config = format!("{MALFORMED_LESSONS_SIBLING_ENTRY}\n{FLAT_SHARD_CONFIG}");
+
+    let summary = run_shard_gate_for_config(
+        dir.path(),
+        &config,
+        &target,
+        "Write",
+        serde_json::json!({"content": "x".repeat(5_000)}),
+    )
+    .await;
+
+    // `projected_size = len(content) = 5,000 <= 49,152` -> normal
+    // Postcondition 3 gate logic against `decision-log.md`'s OWN
+    // well-formed entry proceeds entirely unaffected by the `lessons`
+    // entry's malformation (EC-018). Pre-v1.12 (current implementation),
+    // `ShardRegistry::load()`'s eager loop fails on the `lessons` entry
+    // BEFORE `decision-log`'s own well-formed entry is ever reached or
+    // matched — so this assertion MUST FAIL against the current
+    // implementation, for the right reason.
+    assert_eq!(
+        summary.exit_code, 0,
+        "EC-018: a dispatch matching a DIFFERENT, well-formed [[shard]] entry MUST proceed with \
+         normal gate logic (Continue here: 5,000 <= 49,152) even when a SIBLING entry \
+         (\"lessons\") is malformed — the malformed sibling must NEVER be validated for this \
+         dispatch, and must NEVER cause this dispatch's own well-formed entry to be skipped or \
+         its verdict overridden. Got exit_code={} (per_plugin_results: {:?})",
+        summary.exit_code, summary.per_plugin_results
+    );
+    assert!(
+        !summary.block_intent,
+        "EC-018: block_intent MUST NOT be set by a malformed SIBLING entry for a dispatch \
+         matching a different, well-formed entry"
+    );
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn test_BC_1_18_005_EC_019_structurally_invalid_toml_syntax_blocks_regardless_of_match() {
+    let dir = tempfile::tempdir().unwrap();
+    // Target does NOT match anything in the (structurally broken) config —
+    // mirroring BC-1.18.005's own EC-019 residual-exception Canonical Test
+    // Vector exactly (`Edit` to `src/foo.rs`, config file has invalid TOML
+    // syntax).
+    let target = dir.path().join("foo.rs");
+
+    // Invalid TOML syntax (unterminated array-of-tables header) — `toml::
+    // from_str` cannot deserialize this AT ALL, regardless of how many
+    // (if any) `[[shard]]` entries it was meant to contain.
+    let invalid_toml_syntax = "[[shard]\nartifact_stem = \"decision-log\"\n";
+
+    let summary = run_shard_gate_for_config(
+        dir.path(),
+        invalid_toml_syntax,
+        &target,
+        "Edit",
+        serde_json::json!({"old_string": "a", "new_string": "ab"}),
+    )
+    .await;
+
+    // EC-019: `find_matching_entry` cannot run at all without a
+    // successfully deserialized registry — this is the ONE residual case
+    // where a config defect retains whole-file blast radius, regardless of
+    // match. This is a REGRESSION PIN: `toml::from_str` already rejects
+    // syntactically-invalid TOML at the very top of `ShardRegistry::load`
+    // TODAY (before any per-entry loop), so this assertion is GREEN now and
+    // MUST remain GREEN after the match-first restructure — the v1.12
+    // ruling explicitly does NOT weaken this residual exception.
+    assert_ne!(
+        summary.exit_code, 0,
+        "EC-019: a [[shard]] config FILE that fails STRUCTURAL TOML deserialization MUST \
+         fail-loud (HookResult::Error) for EVERY Edit/Write/MultiEdit dispatch while the file \
+         exists, matched or not — find_matching_entry cannot run without a successfully \
+         deserialized registry. Got exit_code=0 (Continue) instead."
+    );
+    assert!(
+        summary.block_intent,
+        "EC-019: block_intent MUST be set for a structurally-invalid [[shard]] config file"
+    );
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn test_BC_1_18_005_EC_019_missing_required_non_option_field_blocks_regardless_of_match() {
+    let dir = tempfile::tempdir().unwrap();
+    // Target does NOT match anything relevant — mirroring EC-019's
+    // "matched or not" scope (the residual exception applies regardless of
+    // match).
+    let target = dir.path().join("foo.rs");
+
+    // `shard_cap_bytes: u64` (non-`Option`) is omitted entirely — `toml::
+    // from_str` cannot deserialize a `Vec<ShardEntry>` with a missing
+    // required field; this is a STRUCTURAL parse failure (EC-019), not a
+    // semantic one (contrast with EC-009's `shape: Option<ShardShape>`,
+    // which deserializes fine when omitted and is instead a MATCH-TIME
+    // semantic failure).
+    let missing_required_field: &str = "\
+[[shard]]
+artifact_stem = \"decision-log\"
+practical_fuel_ceiling = 8000000
+worst_case_fuel_per_byte = 106.36
+max_single_record_bytes = 16384
+safety_margin = 8192
+shape = \"flat\"
+";
+
+    let summary = run_shard_gate_for_config(
+        dir.path(),
+        missing_required_field,
+        &target,
+        "Edit",
+        serde_json::json!({"old_string": "a", "new_string": "ab"}),
+    )
+    .await;
+
+    // REGRESSION PIN (same rationale as the invalid-syntax EC-019 test
+    // above): `toml::from_str` already rejects a missing non-`Option`
+    // field TODAY (a `serde`-level deserialize error, still surfaced via
+    // `ShardConfigError::Toml`'s `#[from] toml::de::Error`), so this
+    // assertion is GREEN now and MUST remain GREEN after the match-first
+    // restructure.
+    assert_ne!(
+        summary.exit_code, 0,
+        "EC-019: a [[shard]] entry omitting a non-Option field required for toml::from_str to \
+         succeed (here, shard_cap_bytes) MUST fail-loud (HookResult::Error) for EVERY \
+         Edit/Write/MultiEdit dispatch while the file exists, matched or not. Got exit_code=0 \
+         (Continue) instead."
+    );
+    assert!(
+        summary.block_intent,
+        "EC-019: block_intent MUST be set for a [[shard]] config file missing a required \
+         non-Option field"
+    );
+}

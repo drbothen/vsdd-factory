@@ -1987,28 +1987,72 @@ mod tests {
         assert_eq!(registry.shards[0].shape, Some(ShardShape::Flat));
     }
 
+    // MIGRATED (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001):
+    // this test previously asserted EC-009's fail-loud outcome via
+    // `ShardRegistry::load(path).is_err()` — the pre-v1.12 eager,
+    // whole-file validation loop. Post-restructure, `ShardRegistry::load`
+    // becomes structural-TOML-parse-only (an entry omitting `shape`
+    // deserializes fine, since `shape: Option<ShardShape>`) and this
+    // semantic check moves to entry-MATCH time (`validate_entry`, called
+    // only on the entry `find_matching_entry` resolves for the current
+    // dispatch — never on sibling entries; see EC-018/EC-019 below). This
+    // test now drives the PUBLIC match-time gate path directly
+    // (`shard_cap_gate_check`, constructing the `ShardEntry` in-memory
+    // rather than round-tripping it through `load()`) to pin the PRESERVED
+    // behavior Postcondition 1's "Blast-radius scoping" ruling requires: a
+    // dispatch whose target MATCHES a `shape`-omitting entry MUST still
+    // fail loud, unchanged — only the entry-SCOPE narrows away from
+    // sibling entries, never the matched entry's own outcome.
+    // `shard_cap_gate_check` already carries this exact defensive check
+    // today (see its own doc comment: "a caller may construct a
+    // `ShardEntry` directly... fail loud rather than silently guessing a
+    // shape"), so this assertion is GREEN now via that pre-existing
+    // defensive path, and remains GREEN post-restructure once
+    // `shard_cap_gate_check` calls `validate_entry(entry)` on the matched
+    // entry before shape-dispatch (the routing note's "same fail-loud
+    // outcome, now via entry-match time" guarantee).
     #[test]
-    fn test_BC_1_18_005_EC_009_load_missing_shape_field_is_fail_loud() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let cfg_path = dir.path().join("shard-config.toml");
-        std::fs::write(
-            &cfg_path,
-            "[[shard]]\n\
-             artifact_stem = \"decision-log\"\n\
-             practical_fuel_ceiling = 8000000\n\
-             worst_case_fuel_per_byte = 106.36\n\
-             max_single_record_bytes = 16384\n\
-             safety_margin = 8192\n\
-             shard_cap_bytes = 49152\n",
-        )
-        .expect("write fixture");
-        let err = ShardRegistry::load(&cfg_path)
-            .expect_err("EC-009: an entry omitting `shape` entirely MUST be a config error, never a silent default");
-        match err {
-            ShardConfigError::MissingShape { artifact_stem } => {
-                assert_eq!(artifact_stem, "decision-log");
+    fn test_BC_1_18_005_EC_009_matched_entry_missing_shape_field_is_fail_loud() {
+        let entry = ShardEntry {
+            artifact_stem: "decision-log".to_string(),
+            practical_fuel_ceiling: 8_000_000,
+            worst_case_fuel_per_byte: 106.36,
+            max_single_record_bytes: 16_384,
+            safety_margin: 8_192,
+            shard_cap_bytes: 49_152,
+            shape: None, // EC-009: omitted entirely — fail-loud, never defaulted.
+            n: None,
+            low_water_mark: None,
+        };
+        let registry = ShardRegistry {
+            shards: vec![entry],
+        };
+        // Target path's stem ("decision-log") MATCHES the malformed entry
+        // itself — this is the "matched malformed entry" scenario EC-018's
+        // blast-radius ruling explicitly preserves, as opposed to the
+        // unmatched/matched-different-entry scenarios EC-018 pins as
+        // `Continue` in the integration test suite.
+        let target = std::path::Path::new("decision-log.md");
+
+        let result = shard_cap_gate_check(
+            &registry,
+            "Write",
+            target,
+            &serde_json::json!({"content": "x"}),
+        );
+
+        match result {
+            HookResult::Error { message } => {
+                assert!(
+                    message.contains("decision-log") && message.contains("EC-009"),
+                    "EC-009: expected the MissingShape diagnostic naming artifact_stem \
+                     \"decision-log\" and citing EC-009, got: {message}"
+                );
             }
-            other => panic!("expected MissingShape, got {other:?}"),
+            other => panic!(
+                "EC-009: a dispatch whose target MATCHES an entry omitting `shape` entirely MUST \
+                 be a fail-loud HookResult::Error, never a silent default — got {other:?}"
+            ),
         }
     }
 
@@ -2030,6 +2074,21 @@ mod tests {
         assert_eq!(registry.shards[0].n, Some(50));
     }
 
+    // IMPLEMENTER: re-point to validate_entry after match-first restructure
+    // (BC-1.18.005 v1.12, F-C1-P6-001). `low_water_mark` validation is NOT
+    // duplicated in `shard_cap_gate_check` today (only `shape` and
+    // `"frontmatter-changelog-array"`'s `n` presence have an inline
+    // defensive check there) — it is checked ONLY inside
+    // `ShardRegistry::load`'s per-entry loop. A clean behavioral migration
+    // to the matched-gate path (mirroring EC-009/EC-016's migration above)
+    // is therefore not possible without `validate_entry` existing yet. This
+    // test intentionally still asserts `ShardRegistry::load(..).is_err()`
+    // and WILL need re-pointing to `validate_entry(&matched_entry)` in the
+    // same restructure commit that splits `load()` into structural-parse-
+    // only + `validate_entry` (Postcondition 1's "Blast-radius scoping"
+    // ruling) — otherwise this test starts failing post-restructure, since
+    // structural-parse-only `load()` will accept this fixture's
+    // syntactically-valid `low_water_mark = 50` without erroring.
     #[test]
     fn test_BC_1_18_005_EC_011_load_rejects_low_water_mark_equal_to_n() {
         let dir = tempfile::tempdir().expect("tempdir");
@@ -2044,6 +2103,12 @@ mod tests {
         assert!(matches!(err, ShardConfigError::InvalidLowWaterMark { .. }));
     }
 
+    // IMPLEMENTER: re-point to validate_entry after match-first restructure
+    // (BC-1.18.005 v1.12, F-C1-P6-001) — same rationale as the
+    // `..._rejects_low_water_mark_equal_to_n` test immediately above:
+    // `low_water_mark` validation is not duplicated in
+    // `shard_cap_gate_check` today, so a clean behavioral migration is not
+    // possible without `validate_entry` existing yet.
     #[test]
     fn test_BC_1_18_005_EC_011_load_rejects_negative_low_water_mark() {
         let dir = tempfile::tempdir().expect("tempdir");
@@ -2204,6 +2269,21 @@ mod tests {
     // of shard_cap_bytes <= compute_shard_cap_bytes(entry.cap_formula_inputs()).
     // ===================================================================
 
+    // IMPLEMENTER: re-point to validate_entry after match-first restructure
+    // (BC-1.18.005 v1.12, F-C1-P6-001). The cap-vs-formula-ceiling
+    // comparison (Postcondition 9) is NOT duplicated in
+    // `shard_cap_gate_check` today — that function consumes
+    // `entry.shard_cap_bytes` directly for the trigger-boundary comparison
+    // and never re-derives `compute_shard_cap_bytes` as a validation step;
+    // the check lives ONLY inside `ShardRegistry::load`'s per-entry loop. A
+    // clean behavioral migration to the matched-gate path is therefore not
+    // possible without `validate_entry` existing yet. This test
+    // intentionally still asserts `ShardRegistry::load(..).is_err()` and
+    // WILL need re-pointing to `validate_entry(&matched_entry)` in the same
+    // restructure commit — otherwise it starts failing post-restructure,
+    // since structural-parse-only `load()` will accept this fixture's
+    // syntactically-valid (if semantically oversized) `shard_cap_bytes`
+    // without erroring.
     #[test]
     fn test_BC_1_18_005_PC9_EC013_load_rejects_cap_greater_than_formula_ceiling() {
         let dir = tempfile::tempdir().expect("tempdir");
@@ -2305,6 +2385,20 @@ mod tests {
     // the two rejection cases (zero and NaN) plus the valid-input control.
     // ===================================================================
 
+    // IMPLEMENTER: re-point to validate_entry after match-first restructure
+    // (BC-1.18.005 v1.12, F-C1-P6-001). `worst_case_fuel_per_byte`
+    // finiteness/positivity validation is NOT duplicated in
+    // `shard_cap_gate_check` today — that field is never even read by the
+    // live per-write gate (only `entry.shard_cap_bytes` is consumed
+    // directly); the check lives ONLY inside `ShardRegistry::load`'s
+    // per-entry loop. A clean behavioral migration to the matched-gate path
+    // is therefore not possible without `validate_entry` existing yet. This
+    // test intentionally still asserts `ShardRegistry::load(..).is_err()`
+    // and WILL need re-pointing to `validate_entry(&matched_entry)` in the
+    // same restructure commit — otherwise it starts failing post-
+    // restructure, since structural-parse-only `load()` will accept this
+    // fixture's syntactically-valid (if semantically degenerate)
+    // `worst_case_fuel_per_byte = 0.0` without erroring.
     #[test]
     fn test_BC_1_18_005_EC_015_load_rejects_zero_worst_case_fuel_per_byte_divisor_door() {
         let dir = tempfile::tempdir().expect("tempdir");
@@ -2347,6 +2441,10 @@ mod tests {
         }
     }
 
+    // IMPLEMENTER: re-point to validate_entry after match-first restructure
+    // (BC-1.18.005 v1.12, F-C1-P6-001) — same rationale as
+    // `..._rejects_zero_worst_case_fuel_per_byte_divisor_door` immediately
+    // above.
     #[test]
     fn test_BC_1_18_005_EC_015_load_rejects_nan_worst_case_fuel_per_byte() {
         let dir = tempfile::tempdir().expect("tempdir");
@@ -2448,6 +2546,19 @@ mod tests {
     // arising from an otherwise-legal tiny-positive divisor).
     // ===================================================================
 
+    // IMPLEMENTER: re-point to validate_entry after match-first restructure
+    // (BC-1.18.005 v1.12, F-C1-P6-001). The residual divisor-door /
+    // saturated-ceiling check is NOT duplicated in `shard_cap_gate_check`
+    // today — like EC-013/EC-015, it lives ONLY inside
+    // `ShardRegistry::load`'s per-entry loop. A clean behavioral migration
+    // to the matched-gate path is therefore not possible without
+    // `validate_entry` existing yet. This test intentionally still asserts
+    // `ShardRegistry::load(..).is_err()` and WILL need re-pointing to
+    // `validate_entry(&matched_entry)` in the same restructure commit —
+    // otherwise it starts failing post-restructure, since structural-
+    // parse-only `load()` will accept this fixture's syntactically-valid
+    // (if semantically saturating) `worst_case_fuel_per_byte = 1e-300`
+    // without erroring.
     #[test]
     fn test_BC_1_18_005_EC_017_load_rejects_saturating_formula_ceiling() {
         let dir = tempfile::tempdir().expect("tempdir");
@@ -2524,40 +2635,77 @@ mod tests {
     // case and the omitted-`n`-plus-invalid-`low_water_mark` case.
     // ===================================================================
 
+    // MIGRATED (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001):
+    // this test previously asserted EC-016's fail-loud outcome via
+    // `ShardRegistry::load(path).is_err()` — the pre-v1.12 eager,
+    // whole-file validation loop. Post-restructure, `ShardRegistry::load`
+    // becomes structural-TOML-parse-only (an entry omitting `n`
+    // deserializes fine, since `n: Option<u64>`) and this semantic check
+    // moves to entry-MATCH time (`validate_entry`, called only on the
+    // entry `find_matching_entry` resolves — never on sibling entries).
+    // This test now drives the PUBLIC match-time gate path directly
+    // (`shard_cap_gate_check`, constructing the `ShardEntry` in-memory
+    // rather than round-tripping it through `load()`): `shard_cap_gate_check`
+    // ALREADY carries this exact defensive check today inside its
+    // `ShardShape::FrontmatterChangelogArray` arm (`let Some(n) = entry.n
+    // else { return HookResult::Error { .. } }`), so this assertion is
+    // GREEN now via that pre-existing gate-time path, and remains GREEN
+    // post-restructure once the check is (re)homed inside `validate_entry`
+    // — the OBSERVABLE outcome of a dispatch matching this entry is
+    // unchanged either way.
     #[test]
-    fn test_BC_1_18_005_EC_016_load_rejects_frontmatter_shape_missing_n() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let cfg_path = dir.path().join("shard-config.toml");
-        std::fs::write(
-            &cfg_path,
-            "[[shard]]\n\
-             artifact_stem = \"BC-INDEX\"\n\
-             practical_fuel_ceiling = 8000000\n\
-             worst_case_fuel_per_byte = 106.36\n\
-             max_single_record_bytes = 16384\n\
-             safety_margin = 8192\n\
-             shard_cap_bytes = 49152\n\
-             shape = \"frontmatter-changelog-array\"\n",
-        )
-        .expect("write fixture");
+    fn test_BC_1_18_005_EC_016_matched_entry_missing_n_is_fail_loud() {
+        let mut entry = flat_entry("BC-INDEX", 49_152);
+        entry.shape = Some(ShardShape::FrontmatterChangelogArray);
+        entry.n = None; // EC-016: omitted entirely — fail-loud, never deferred.
+        let registry = ShardRegistry {
+            shards: vec![entry],
+        };
+        // Target path's stem ("BC-INDEX") MATCHES the malformed entry
+        // itself — the "matched malformed entry" scenario EC-018's
+        // blast-radius ruling explicitly preserves unchanged.
+        let target = std::path::Path::new("BC-INDEX.md");
 
-        // entry.n is None here (this fixture never declares `n`), so
-        // load()'s `let Some(n) = entry.n else { ... }` guard fires and
-        // rejects the entry at load time — never deferred to the first
-        // gate-time write inside shard_cap_gate_check.
-        let err = ShardRegistry::load(&cfg_path).expect_err(
-            "EC-016: a \"frontmatter-changelog-array\"-shaped entry that omits the required `n` \
-             item-count trigger threshold MUST fail-loud at ShardRegistry::load() time, mirroring \
-             EC-009/EC-011/EC-013's uniform load-time posture for this same config surface.",
+        let result = shard_cap_gate_check(
+            &registry,
+            "Edit",
+            target,
+            &serde_json::json!({"old_string": "a", "new_string": "ab"}),
         );
-        match err {
-            ShardConfigError::MissingN { artifact_stem } => {
-                assert_eq!(artifact_stem, "BC-INDEX");
+
+        match result {
+            HookResult::Error { message } => {
+                assert!(
+                    message.contains("BC-INDEX")
+                        && message.contains("item-count trigger threshold"),
+                    "EC-016: expected the missing-`n` diagnostic naming artifact_stem \
+                     \"BC-INDEX\" and the item-count trigger threshold, got: {message}"
+                );
             }
-            other => panic!("expected MissingN, got {other:?}"),
+            other => panic!(
+                "EC-016: a dispatch whose target MATCHES a \"frontmatter-changelog-array\"-shaped \
+                 entry omitting the required `n` MUST be a fail-loud HookResult::Error, evaluated \
+                 at match time, never deferred — got {other:?}"
+            ),
         }
     }
 
+    // IMPLEMENTER: re-point to validate_entry after match-first restructure
+    // (BC-1.18.005 v1.12, F-C1-P6-001). Unlike the plain missing-`n` case
+    // migrated immediately above, THIS test pins EC-016's ORDERING
+    // requirement — that a missing `n` is reported even when the entry
+    // ALSO declares an independently-invalid `low_water_mark` — which
+    // depends on `low_water_mark` being examined at all in the same
+    // validation pass. `shard_cap_gate_check` does not read
+    // `entry.low_water_mark` at gate time today (only BC-1.18.009's later
+    // rotation-target resolution consumes it), so this ordering guarantee
+    // cannot be behaviorally reproduced via the matched-gate path without
+    // `validate_entry` existing yet to house BOTH checks in the required
+    // order. This test intentionally still asserts
+    // `ShardRegistry::load(..).is_err()` and WILL need re-pointing to
+    // `validate_entry(&matched_entry)` in the same restructure commit —
+    // otherwise it starts failing post-restructure, since structural-
+    // parse-only `load()` will accept this fixture without erroring.
     #[test]
     fn test_BC_1_18_005_EC_016_load_rejects_missing_n_even_with_invalid_low_water_mark() {
         let dir = tempfile::tempdir().expect("tempdir");
