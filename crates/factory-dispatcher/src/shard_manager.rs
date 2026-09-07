@@ -166,16 +166,24 @@ pub struct ShardRegistry {
     pub shards: Vec<ShardEntry>,
 }
 
-/// Config-load-time errors for the `[[shard]]` registry.
+/// Config errors for the `[[shard]]` registry.
 ///
-/// `MissingShape` (EC-009), `InvalidLowWaterMark` (EC-011),
-/// `CapExceedsFormulaCeiling` (Postcondition 9 / EC-013),
-/// `InvalidWorstCaseFuelPerByte` (Postcondition 9's divisor-door closure /
-/// EC-015), `MissingN` (Postcondition 8's load-time `N`-presence
+/// `Io`/`Toml` surface from [`ShardRegistry::load`]'s STRUCTURAL parse step
+/// (whole-file, unavoidable — EC-019). `MissingShape` (EC-009),
+/// `InvalidLowWaterMark` (EC-011), `CapExceedsFormulaCeiling` (Postcondition
+/// 9 / EC-013), `InvalidWorstCaseFuelPerByte` (Postcondition 9's
+/// divisor-door closure / EC-015), `MissingN` (Postcondition 8's `N`-presence
 /// requirement / EC-016), and `FormulaCeilingSaturated` (Postcondition 9's
-/// residual divisor-door closure / EC-017) are fail-loud conditions this
-/// BC's config surface owns — all are NEVER silently defaulted or clamped
-/// around.
+/// residual divisor-door closure / EC-017) are the SEMANTIC fail-loud
+/// conditions [`validate_entry`] owns — all are NEVER silently defaulted or
+/// clamped around.
+///
+/// **Retimed, BC-1.18.005 v1.12 MATCH-FIRST restructure (F-C1-P6-001):** the
+/// six semantic variants above are evaluated at ENTRY-MATCH time (inside
+/// [`validate_entry`], called by [`shard_cap_gate_check`] only on the entry
+/// [`find_matching_entry`] resolves for the current dispatch), not eagerly
+/// for every `[[shard]]` entry at [`ShardRegistry::load`] time — see
+/// Postcondition 1's "Blast-radius scoping" ruling and EC-018/EC-019.
 #[derive(Debug, Error)]
 pub enum ShardConfigError {
     #[error("shard config read failed: {0}")]
@@ -269,18 +277,18 @@ pub enum ShardConfigError {
         worst_case_fuel_per_byte: f64,
     },
 
-    /// EC-016 (BC-1.18.005 v1.10, Postcondition 8's load-time presence
-    /// requirement for `N`): a `"frontmatter-changelog-array"`-shaped entry
-    /// omits the required `N` item-count trigger threshold. Fail-loud AT
-    /// LOAD TIME (not merely deferred to the first gate-time write against
-    /// the artifact), evaluated BEFORE `low_water_mark` is examined, so an
-    /// entry that also declares an invalid `low_water_mark` is never
-    /// silently accepted merely because `N` happened to be absent.
+    /// EC-016 (BC-1.18.005 v1.10, Postcondition 8's presence requirement for
+    /// `N`; retimed to entry-match time by the v1.12 MATCH-FIRST restructure):
+    /// a `"frontmatter-changelog-array"`-shaped entry omits the required `N`
+    /// item-count trigger threshold. Fail-loud, evaluated BEFORE
+    /// `low_water_mark` is examined, so an entry that also declares an
+    /// invalid `low_water_mark` is never silently accepted merely because
+    /// `N` happened to be absent.
     #[error(
         "[[shard]] entry for artifact_stem = \"{artifact_stem}\" declares \
          shape = \"frontmatter-changelog-array\" but omits the required `n` item-count trigger \
-         threshold (BC-1.18.005 EC-016). Fail-loud: caught at ShardRegistry::load() time, not \
-         deferred to the first gate-time write against the artifact."
+         threshold (BC-1.18.005 EC-016). Fail-loud: caught at entry-match time (validate_entry), \
+         not deferred to the first gate-time write against the artifact."
     )]
     MissingN {
         /// The offending entry's `artifact_stem`, so the operator can locate it.
@@ -340,161 +348,189 @@ impl From<ShardConfigError> for HookResult {
 }
 
 impl ShardRegistry {
-    /// Load + validate a `[[shard]]` config file from disk.
+    /// Load a `[[shard]]` config file from disk.
     ///
-    /// Validation (Preconditions 2 + EC-009/EC-010/EC-011/EC-012/Postcondition 9/EC-013):
-    /// - every entry MUST declare `shape` (fail-loud [`ShardConfigError::MissingShape`]
-    ///   on omission — EC-009).
-    /// - `"frontmatter-changelog-array"`-shaped entries with an EXPLICIT
-    ///   `low_water_mark` MUST satisfy `0 <= low_water_mark < N` (fail-loud
-    ///   [`ShardConfigError::InvalidLowWaterMark`] — EC-011; `N-1` is a VALID
-    ///   boundary value, never routed to this error — see EC-012).
-    /// - `"frontmatter-changelog-array"`-shaped entries that OMIT
-    ///   `low_water_mark` resolve to `floor(N/2)` (EC-010) — see
-    ///   [`resolved_low_water_mark`]. Loading NEVER fails for an omitted value.
-    /// - a legal-but-poorly-amortizing `low_water_mark` in `(floor(N/2), N)`
-    ///   (up to and including `N-1`) loads normally (`Ok`) but emits a
-    ///   non-fatal `tracing::warn!` amortization advisory (EC-012) — see
-    ///   [`validate_low_water_mark`].
-    /// - `"frontmatter-changelog-array"`-shaped entries MUST declare `n`
-    ///   (fail-loud [`ShardConfigError::MissingN`] — EC-016), checked BEFORE
-    ///   `low_water_mark` is examined, so an entry missing `n` AND declaring
-    ///   an out-of-range `low_water_mark` is never silently accepted merely
-    ///   because `n` was absent.
-    /// - EVERY entry's `worst_case_fuel_per_byte` MUST be finite and strictly
-    ///   positive (fail-loud [`ShardConfigError::InvalidWorstCaseFuelPerByte`]
-    ///   — EC-015's "divisor-door" closure), checked BEFORE
-    ///   `compute_shard_cap_bytes` is even called for that entry — a `0.0`
-    ///   or non-finite divisor would otherwise saturate the computed ceiling
-    ///   toward `u64::MAX`, defeating the cap-vs-formula check below for ANY
-    ///   declared `shard_cap_bytes`.
-    /// - EVERY entry that passes the check above MUST ALSO have its RAW
-    ///   `practical_fuel_ceiling as f64 / worst_case_fuel_per_byte` division
-    ///   result be finite and `< u64::MAX as f64` (fail-loud
-    ///   [`ShardConfigError::FormulaCeilingSaturated`] — EC-017's residual
-    ///   divisor-door closure), checked BEFORE the cap-vs-formula comparison
-    ///   below — a legal-but-tiny-positive divisor can still saturate the
-    ///   computed ceiling even though it passes the check above.
-    /// - EVERY entry, regardless of `shape`, MUST NOT declare `shard_cap_bytes`
-    ///   greater than `compute_shard_cap_bytes(entry.cap_formula_inputs())`
-    ///   (fail-loud [`ShardConfigError::CapExceedsFormulaCeiling`] —
-    ///   Postcondition 9 / EC-013; the `==` boundary is inclusive, mirroring
-    ///   EC-002's precedent for the per-write trigger).
+    /// **STRUCTURAL TOML deserialization ONLY** (BC-1.18.005 v1.12
+    /// MATCH-FIRST restructure, F-C1-P6-001, Postcondition 1's "Blast-radius
+    /// scoping" ruling) — this function no longer runs any SEMANTIC
+    /// per-entry validation loop. It fails (`ShardConfigError::Io`/`Toml`)
+    /// ONLY when the file cannot be read, or `toml::from_str` cannot
+    /// deserialize the whole `Vec<ShardEntry>` at all — invalid TOML syntax,
+    /// or any entry omitting a non-`Option`-typed field required for
+    /// `toml::from_str` to succeed (`artifact_stem`, `shard_cap_bytes`, or
+    /// any of the four `cap_formula_inputs` fields). This is the ONE
+    /// residual, unavoidable whole-file blast-radius case (EC-019) — it is
+    /// inherent to TOML's whole-file grammar (a `Vec<ShardEntry>` cannot
+    /// partially deserialize), not a validation-eagerness design choice.
+    ///
+    /// Every SEMANTIC check this function used to run inline (EC-009's
+    /// `shape` presence, EC-015/EC-017's `worst_case_fuel_per_byte`
+    /// divisor-door guards, Postcondition 9/EC-013's cap-vs-formula
+    /// comparison, EC-016's `N` presence, EC-011/EC-012's `low_water_mark`
+    /// range/advisory) now lives in [`validate_entry`], called by
+    /// [`shard_cap_gate_check`] ONLY on the entry [`find_matching_entry`]
+    /// resolves for the current dispatch — never eagerly, for every entry,
+    /// regardless of match (see Postcondition 1's "Blast-radius scoping"
+    /// sub-paragraph and EC-018).
     pub fn load(path: &Path) -> Result<Self, ShardConfigError> {
         let text = std::fs::read_to_string(path)?;
         let parsed: Self = toml::from_str(&text)?;
-
-        for entry in &parsed.shards {
-            // EC-009: `shape` is fail-loud-required, never silently defaulted.
-            let shape = entry.shape.ok_or_else(|| ShardConfigError::MissingShape {
-                artifact_stem: entry.artifact_stem.clone(),
-            })?;
-
-            // EC-015 (Postcondition 9's "divisor-door" closure): validate
-            // BEFORE compute_shard_cap_bytes is called for this entry — a
-            // 0.0 divisor makes the internal division yield +inf, whose
-            // saturating `as u64` cast is u64::MAX, defeating the
-            // cap-vs-formula comparison below for ANY declared
-            // shard_cap_bytes. A NaN divisor is likewise non-finite and
-            // rejected regardless of which direction its own degenerate
-            // arithmetic happens to saturate. practical_fuel_ceiling,
-            // max_single_record_bytes, and safety_margin need no analogous
-            // check (all u64-typed; a degenerate 0 on any of them drives the
-            // ceiling toward the safe direction, never the exploitable one).
-            if !entry.worst_case_fuel_per_byte.is_finite() || entry.worst_case_fuel_per_byte <= 0.0
-            {
-                return Err(ShardConfigError::InvalidWorstCaseFuelPerByte {
-                    artifact_stem: entry.artifact_stem.clone(),
-                    worst_case_fuel_per_byte: entry.worst_case_fuel_per_byte,
-                });
-            }
-
-            // EC-017 (Postcondition 9's "Residual divisor-door closure"):
-            // the EC-015 guard above is NECESSARY but INSUFFICIENT — a legal
-            // tiny-positive divisor (e.g. 1e-300) passes it yet still drives
-            // the RAW, pre-cast division result to a value so large that
-            // compute_shard_cap_bytes's subsequent `.floor() as u64` cast
-            // saturates to u64::MAX, defeating the CapExceedsFormulaCeiling
-            // comparison below for ANY declared shard_cap_bytes exactly as
-            // EC-015's own divisor-door does. Evaluate the SAME raw f64
-            // quantity compute_shard_cap_bytes computes internally, BEFORE
-            // that comparison is attempted, and reject the entry if it is
-            // non-finite or at/beyond the saturation boundary of the
-            // subsequent lossy cast (u64::MAX as f64).
-            let raw_ceiling_division =
-                entry.practical_fuel_ceiling as f64 / entry.worst_case_fuel_per_byte;
-            if !raw_ceiling_division.is_finite() || raw_ceiling_division >= u64::MAX as f64 {
-                return Err(ShardConfigError::FormulaCeilingSaturated {
-                    artifact_stem: entry.artifact_stem.clone(),
-                    practical_fuel_ceiling: entry.practical_fuel_ceiling,
-                    worst_case_fuel_per_byte: entry.worst_case_fuel_per_byte,
-                });
-            }
-
-            // Postcondition 9 / EC-013: applies to EVERY entry regardless of
-            // `shape` — Postcondition 8 already establishes that
-            // `shard_cap_bytes` bounds an artifact's TOTAL byte footprint as
-            // a whole-artifact concern even for the
-            // `"frontmatter-changelog-array"` shape, so this is NOT a
-            // `"flat"`-shape-only check.
-            let computed_ceiling = compute_shard_cap_bytes(&entry.cap_formula_inputs());
-            if entry.shard_cap_bytes > computed_ceiling {
-                return Err(ShardConfigError::CapExceedsFormulaCeiling {
-                    artifact_stem: entry.artifact_stem.clone(),
-                    shard_cap_bytes: entry.shard_cap_bytes,
-                    computed_ceiling,
-                });
-            }
-
-            // Postcondition 8's rotation-target-config bullet / EC-010/EC-011/
-            // EC-012 apply to the item-count shape's OPTIONAL explicit
-            // low_water_mark only — an omitted value resolves to floor(N/2)
-            // (EC-010) without ever running the fail-loud/advisory check
-            // below (that default is, by construction, never poorly
-            // amortizing and never invalid).
-            if shape == ShardShape::FrontmatterChangelogArray {
-                // EC-016 (Postcondition 8's load-time presence requirement
-                // for `N`): required for this shape, evaluated BEFORE
-                // low_water_mark is examined — the prior destructure-and-
-                // short-circuit pattern (`if let (Some(n), Some(low_water_
-                // mark)) = ...`) ran NO validation at all when `n` was
-                // `None`, silently letting an entry that ALSO declared an
-                // out-of-range low_water_mark load undetected. Requiring
-                // `n`'s presence as an unconditional, shape-scoped check
-                // first closes that gap structurally: every
-                // FrontmatterChangelogArray entry now either (a) fails loud
-                // here on a missing `n`, or (b) has `n` present, in which
-                // case the existing low_water_mark numeric-range validation
-                // below runs exactly as before.
-                let Some(n) = entry.n else {
-                    return Err(ShardConfigError::MissingN {
-                        artifact_stem: entry.artifact_stem.clone(),
-                    });
-                };
-
-                if let Some(low_water_mark) = entry.low_water_mark {
-                    let fires_advisory =
-                        validate_low_water_mark(&entry.artifact_stem, n, low_water_mark)?;
-                    if fires_advisory {
-                        let default_low_water_mark = n / 2;
-                        tracing::warn!(
-                            artifact_stem = %entry.artifact_stem,
-                            n,
-                            low_water_mark,
-                            amortization_factor = n.saturating_sub(low_water_mark as u64),
-                            default_low_water_mark,
-                            default_amortization_factor = n.saturating_sub(default_low_water_mark),
-                            "BC-1.18.005 EC-012: configured low_water_mark amortizes rotation \
-                             worse than the recommended default floor(N/2); config load still \
-                             succeeds (non-fatal advisory only)"
-                        );
-                    }
-                }
-            }
-        }
-
         Ok(parsed)
     }
+}
+
+/// Validate a single `[[shard]]` entry's SEMANTIC config surface
+/// (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001, Postcondition
+/// 1's "Blast-radius scoping" ruling).
+///
+/// Callers (namely [`shard_cap_gate_check`]) MUST call this ONLY on the
+/// entry [`find_matching_entry`] resolves for the current dispatch's target
+/// path — NEVER eagerly across every entry in a `[[shard]]` config,
+/// regardless of match (that eager-whole-config posture is the pre-v1.12 bug
+/// this restructure fixes — see EC-018). This function itself performs no
+/// I/O and reads no sibling entries — it is pure over the single `entry` it
+/// is given.
+///
+/// Checks, in order (every check after the first assumes the ones before it
+/// passed):
+/// 1. `shape` MUST be present (fail-loud [`ShardConfigError::MissingShape`]
+///    — EC-009).
+/// 2. `worst_case_fuel_per_byte` MUST be finite and strictly positive
+///    (fail-loud [`ShardConfigError::InvalidWorstCaseFuelPerByte`] —
+///    EC-015's "divisor-door" closure) — checked BEFORE
+///    `compute_shard_cap_bytes` is ever called for this entry, since a
+///    `0.0`/non-finite divisor would otherwise saturate the computed
+///    ceiling toward `u64::MAX`, defeating check 4 below for ANY declared
+///    `shard_cap_bytes`.
+/// 3. The RAW `practical_fuel_ceiling as f64 / worst_case_fuel_per_byte`
+///    division result MUST be finite and `< u64::MAX as f64` (fail-loud
+///    [`ShardConfigError::FormulaCeilingSaturated`] — EC-017's residual
+///    divisor-door closure) — a legal-but-tiny-positive divisor can still
+///    saturate the computed ceiling even though it passes check 2.
+/// 4. `shard_cap_bytes` MUST NOT exceed
+///    `compute_shard_cap_bytes(entry.cap_formula_inputs())` (fail-loud
+///    [`ShardConfigError::CapExceedsFormulaCeiling`] — Postcondition 9 /
+///    EC-013; the `==` boundary is inclusive, mirroring EC-002's precedent
+///    for the per-write trigger) — applies to EVERY `shape`, not
+///    `"flat"`-only.
+/// 5. For a `"frontmatter-changelog-array"`-shaped entry ONLY: `n` MUST be
+///    present (fail-loud [`ShardConfigError::MissingN`] — EC-016), checked
+///    BEFORE `low_water_mark` is examined, so an entry missing `n` AND
+///    declaring an out-of-range `low_water_mark` is never silently accepted
+///    merely because `n` was absent (see EC-016's ordering vector).
+/// 6. For a `"frontmatter-changelog-array"`-shaped entry with an EXPLICIT
+///    `low_water_mark` ONLY: `0 <= low_water_mark < N` (fail-loud
+///    [`ShardConfigError::InvalidLowWaterMark`] — EC-011; `N-1` is a VALID
+///    boundary value, never routed to this error — see EC-012), and a
+///    legal-but-poorly-amortizing value in `(floor(N/2), N)` (up to and
+///    including `N-1`) succeeds (`Ok(())`) but emits a non-fatal
+///    `tracing::warn!` amortization advisory (EC-012) — see
+///    [`validate_low_water_mark`]. An OMITTED `low_water_mark` resolves to
+///    `floor(N/2)` (EC-010) — see [`resolved_low_water_mark`] — and never
+///    runs this check at all (that default is, by construction, never
+///    poorly amortizing and never invalid).
+pub fn validate_entry(entry: &ShardEntry) -> Result<(), ShardConfigError> {
+    // EC-009: `shape` is fail-loud-required, never silently defaulted.
+    let shape = entry.shape.ok_or_else(|| ShardConfigError::MissingShape {
+        artifact_stem: entry.artifact_stem.clone(),
+    })?;
+
+    // EC-015 (Postcondition 9's "divisor-door" closure): validate BEFORE
+    // compute_shard_cap_bytes is called for this entry — a 0.0 divisor
+    // makes the internal division yield +inf, whose saturating `as u64`
+    // cast is u64::MAX, defeating the cap-vs-formula comparison below for
+    // ANY declared shard_cap_bytes. A NaN divisor is likewise non-finite
+    // and rejected regardless of which direction its own degenerate
+    // arithmetic happens to saturate. practical_fuel_ceiling,
+    // max_single_record_bytes, and safety_margin need no analogous check
+    // (all u64-typed; a degenerate 0 on any of them drives the ceiling
+    // toward the safe direction, never the exploitable one).
+    if !entry.worst_case_fuel_per_byte.is_finite() || entry.worst_case_fuel_per_byte <= 0.0 {
+        return Err(ShardConfigError::InvalidWorstCaseFuelPerByte {
+            artifact_stem: entry.artifact_stem.clone(),
+            worst_case_fuel_per_byte: entry.worst_case_fuel_per_byte,
+        });
+    }
+
+    // EC-017 (Postcondition 9's "Residual divisor-door closure"): the
+    // EC-015 guard above is NECESSARY but INSUFFICIENT — a legal
+    // tiny-positive divisor (e.g. 1e-300) passes it yet still drives the
+    // RAW, pre-cast division result to a value so large that
+    // compute_shard_cap_bytes's subsequent `.floor() as u64` cast saturates
+    // to u64::MAX, defeating the CapExceedsFormulaCeiling comparison below
+    // for ANY declared shard_cap_bytes exactly as EC-015's own
+    // divisor-door does. Evaluate the SAME raw f64 quantity
+    // compute_shard_cap_bytes computes internally, BEFORE that comparison
+    // is attempted, and reject the entry if it is non-finite or at/beyond
+    // the saturation boundary of the subsequent lossy cast (u64::MAX as
+    // f64).
+    let raw_ceiling_division = entry.practical_fuel_ceiling as f64 / entry.worst_case_fuel_per_byte;
+    if !raw_ceiling_division.is_finite() || raw_ceiling_division >= u64::MAX as f64 {
+        return Err(ShardConfigError::FormulaCeilingSaturated {
+            artifact_stem: entry.artifact_stem.clone(),
+            practical_fuel_ceiling: entry.practical_fuel_ceiling,
+            worst_case_fuel_per_byte: entry.worst_case_fuel_per_byte,
+        });
+    }
+
+    // Postcondition 9 / EC-013: applies to EVERY entry regardless of
+    // `shape` — Postcondition 8 already establishes that shard_cap_bytes
+    // bounds an artifact's TOTAL byte footprint as a whole-artifact
+    // concern even for the "frontmatter-changelog-array" shape, so this is
+    // NOT a "flat"-shape-only check.
+    let computed_ceiling = compute_shard_cap_bytes(&entry.cap_formula_inputs());
+    if entry.shard_cap_bytes > computed_ceiling {
+        return Err(ShardConfigError::CapExceedsFormulaCeiling {
+            artifact_stem: entry.artifact_stem.clone(),
+            shard_cap_bytes: entry.shard_cap_bytes,
+            computed_ceiling,
+        });
+    }
+
+    // Postcondition 8's rotation-target-config bullet / EC-010/EC-011/
+    // EC-012 apply to the item-count shape's OPTIONAL explicit
+    // low_water_mark only — an omitted value resolves to floor(N/2)
+    // (EC-010) without ever running the fail-loud/advisory check below
+    // (that default is, by construction, never poorly amortizing and never
+    // invalid).
+    if shape == ShardShape::FrontmatterChangelogArray {
+        // EC-016 (Postcondition 8's `N`-presence requirement): required for
+        // this shape, evaluated BEFORE low_water_mark is examined — a
+        // destructure-and-short-circuit pattern that only validates
+        // low_water_mark when BOTH `n` and `low_water_mark` are `Some`
+        // would silently let an entry that ALSO declares an out-of-range
+        // low_water_mark pass validation entirely when `n` is `None`.
+        // Requiring `n`'s presence as an unconditional, shape-scoped check
+        // first closes that gap structurally: every FrontmatterChangelogArray
+        // entry now either (a) fails loud here on a missing `n`, or (b) has
+        // `n` present, in which case the existing low_water_mark
+        // numeric-range validation below runs exactly as before.
+        let Some(n) = entry.n else {
+            return Err(ShardConfigError::MissingN {
+                artifact_stem: entry.artifact_stem.clone(),
+            });
+        };
+
+        if let Some(low_water_mark) = entry.low_water_mark {
+            let fires_advisory = validate_low_water_mark(&entry.artifact_stem, n, low_water_mark)?;
+            if fires_advisory {
+                let default_low_water_mark = n / 2;
+                tracing::warn!(
+                    artifact_stem = %entry.artifact_stem,
+                    n,
+                    low_water_mark,
+                    amortization_factor = n.saturating_sub(low_water_mark as u64),
+                    default_low_water_mark,
+                    default_amortization_factor = n.saturating_sub(default_low_water_mark),
+                    "BC-1.18.005 EC-012: configured low_water_mark amortizes rotation worse \
+                     than the recommended default floor(N/2); entry validation still succeeds \
+                     (non-fatal advisory only)"
+                );
+            }
+        }
+    }
+
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
@@ -852,9 +888,14 @@ pub fn validate_low_water_mark(
 ///   cluster fully implements the trigger boundary and hand-off point (this
 ///   function's own logic is not a stub), and deliberately never implements
 ///   the roll/rotation behavior itself — that is later clusters' own scope.
-/// - `HookResult::Error { .. }` — fail-loud on a malformed `[[shard]]`
-///   config entry (EC-009 missing `shape`; EC-011 invalid `low_water_mark`),
-///   via [`ShardConfigError`]'s `From<ShardConfigError> for HookResult` impl.
+/// - `HookResult::Error { .. }` — fail-loud when [`find_matching_entry`]
+///   resolves a MATCHED entry that fails [`validate_entry`] (EC-009 missing
+///   `shape`; EC-011 invalid `low_water_mark`; EC-013/EC-015/EC-016/EC-017),
+///   via [`ShardConfigError`]'s `From<ShardConfigError> for HookResult`
+///   impl. A malformed SIBLING entry the current dispatch's target does NOT
+///   match is NEVER validated and NEVER produces this outcome (EC-018,
+///   BC-1.18.005 v1.12 MATCH-FIRST restructure, Postcondition 1's
+///   "Blast-radius scoping" ruling).
 ///
 /// `tool_input` carries the tool-specific payload (`content` for `Write`;
 /// `old_string`/`new_string` for `Edit`; an `edits` array for `MultiEdit`) —
@@ -868,18 +909,30 @@ pub fn shard_cap_gate_check(
     target_path: &Path,
     tool_input: &serde_json::Value,
 ) -> HookResult {
-    // Postcondition 1 / Invariant 3: unmatched paths return Continue before
-    // any stat() call or shape dispatch.
+    // Postcondition 1 / Invariant 3 / EC-018: unmatched paths return
+    // Continue before any stat() call, shape dispatch, OR entry validation —
+    // `validate_entry` below is NEVER called for a sibling entry the current
+    // dispatch's target does not match (BC-1.18.005 v1.12 MATCH-FIRST
+    // restructure, F-C1-P6-001, Postcondition 1's "Blast-radius scoping"
+    // ruling).
     let Some(entry) = find_matching_entry(shard_registry, target_path) else {
         return HookResult::Continue;
     };
 
+    // Entry-match-time semantic validation (EC-009/EC-011/EC-012/EC-013/
+    // EC-015/EC-016/EC-017), scoped to THIS matched entry only — never a
+    // sibling. A malformed entry that the current dispatch's target
+    // actually matches still fails loud here, unchanged from the pre-v1.12
+    // load()-time posture (only the SCOPE narrowed, not the outcome).
+    if let Err(e) = validate_entry(entry) {
+        return e.into();
+    }
+
+    // `validate_entry` above already rejects a missing `shape` (EC-009), so
+    // `entry.shape` is guaranteed `Some` here. Kept as a fail-loud
+    // defensive fallback (never an `unwrap()`/`expect()`) rather than an
+    // assumption a future refactor could silently invalidate.
     let Some(shape) = entry.shape else {
-        // Should never happen for an entry that went through
-        // `ShardRegistry::load` (EC-009 rejects this at load time), but a
-        // caller may construct a `ShardEntry` directly (e.g. in tests) —
-        // fail loud rather than silently guessing a shape (mirrors EC-009's
-        // posture for the same missing-shape condition).
         return ShardConfigError::MissingShape {
             artifact_stem: entry.artifact_stem.clone(),
         }
@@ -1030,16 +1083,16 @@ pub fn shard_cap_gate_check(
             // Postcondition 8's item-count trigger is state-based (current
             // item count in the file on disk), not payload-based — every
             // candidate tool call is evaluated identically regardless of
-            // Edit/Write/MultiEdit shape.
+            // Edit/Write/MultiEdit shape. `validate_entry` above already
+            // rejects a missing `n` for this shape (EC-016), so `entry.n` is
+            // guaranteed `Some` here — kept as a fail-loud defensive
+            // fallback (never an `unwrap()`/`expect()`) rather than an
+            // assumption a future refactor could silently invalidate.
             let Some(n) = entry.n else {
-                return HookResult::Error {
-                    message: format!(
-                        "BC-1.18.005: artifact_stem \"{}\" declares \
-                         shape = \"frontmatter-changelog-array\" but omits the required \
-                         `n` item-count trigger threshold",
-                        entry.artifact_stem
-                    ),
-                };
+                return ShardConfigError::MissingN {
+                    artifact_stem: entry.artifact_stem.clone(),
+                }
+                .into();
             };
 
             let current_item_count = match read_changelog_item_count(target_path) {
@@ -1244,9 +1297,13 @@ mod tests {
     /// callsite is `Interest::always()`.
     static CAPTURE_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
-    fn count_warns(
-        f: impl FnOnce() -> Result<ShardRegistry, ShardConfigError>,
-    ) -> (usize, Result<ShardRegistry, ShardConfigError>) {
+    // Generic over the closure's return type `T` (BC-1.18.005 v1.12
+    // MATCH-FIRST restructure): the EC-012 amortization-advisory warn now
+    // fires from `validate_entry` (returning `Result<(), ShardConfigError>`)
+    // as well as from `ShardRegistry::load` (returning
+    // `Result<ShardRegistry, ShardConfigError>`) — both call shapes route
+    // through this same helper.
+    fn count_warns<T>(f: impl FnOnce() -> T) -> (usize, T) {
         // A prior capture test panicking mid-assertion (lock still held via
         // its guard's unwind drop) must not cascade into every subsequent
         // capture test failing on a poisoned-lock panic; the poisoning
@@ -2074,57 +2131,51 @@ mod tests {
         assert_eq!(registry.shards[0].n, Some(50));
     }
 
-    // IMPLEMENTER: re-point to validate_entry after match-first restructure
-    // (BC-1.18.005 v1.12, F-C1-P6-001). `low_water_mark` validation is NOT
-    // duplicated in `shard_cap_gate_check` today (only `shape` and
-    // `"frontmatter-changelog-array"`'s `n` presence have an inline
-    // defensive check there) — it is checked ONLY inside
-    // `ShardRegistry::load`'s per-entry loop. A clean behavioral migration
-    // to the matched-gate path (mirroring EC-009/EC-016's migration above)
-    // is therefore not possible without `validate_entry` existing yet. This
-    // test intentionally still asserts `ShardRegistry::load(..).is_err()`
-    // and WILL need re-pointing to `validate_entry(&matched_entry)` in the
-    // same restructure commit that splits `load()` into structural-parse-
-    // only + `validate_entry` (Postcondition 1's "Blast-radius scoping"
-    // ruling) — otherwise this test starts failing post-restructure, since
-    // structural-parse-only `load()` will accept this fixture's
-    // syntactically-valid `low_water_mark = 50` without erroring.
+    // MIGRATED (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001):
+    // `low_water_mark` range validation now lives in `validate_entry`
+    // (called at entry-MATCH time, never eagerly across every `[[shard]]`
+    // entry — see EC-018/EC-019). This test now drives `validate_entry`
+    // directly on an in-memory `ShardEntry`, preserving the exact assertion
+    // (the same malformed `low_water_mark == N` input still routes to the
+    // same specific `InvalidLowWaterMark` variant) — only the call surface
+    // moved from `ShardRegistry::load` to `validate_entry`.
     #[test]
-    fn test_BC_1_18_005_EC_011_load_rejects_low_water_mark_equal_to_n() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let cfg_path = dir.path().join("shard-config.toml");
-        std::fs::write(
-            &cfg_path,
-            shard_toml_frontmatter_entry("BC-INDEX", 50, Some(50)),
-        )
-        .expect("write fixture");
-        let err = ShardRegistry::load(&cfg_path)
-            .expect_err("EC-011: low_water_mark == N MUST fail-loud at load time");
+    fn test_BC_1_18_005_EC_011_validate_entry_rejects_low_water_mark_equal_to_n() {
+        let mut entry = flat_entry("BC-INDEX", 49_152);
+        entry.shape = Some(ShardShape::FrontmatterChangelogArray);
+        entry.n = Some(50);
+        entry.low_water_mark = Some(50);
+
+        let err = validate_entry(&entry)
+            .expect_err("EC-011: low_water_mark == N MUST fail-loud at entry-match time");
         assert!(matches!(err, ShardConfigError::InvalidLowWaterMark { .. }));
     }
 
-    // IMPLEMENTER: re-point to validate_entry after match-first restructure
-    // (BC-1.18.005 v1.12, F-C1-P6-001) — same rationale as the
-    // `..._rejects_low_water_mark_equal_to_n` test immediately above:
-    // `low_water_mark` validation is not duplicated in
-    // `shard_cap_gate_check` today, so a clean behavioral migration is not
-    // possible without `validate_entry` existing yet.
+    // MIGRATED (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001) —
+    // same rationale as the `..._rejects_low_water_mark_equal_to_n` test
+    // immediately above.
     #[test]
-    fn test_BC_1_18_005_EC_011_load_rejects_negative_low_water_mark() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let cfg_path = dir.path().join("shard-config.toml");
-        std::fs::write(
-            &cfg_path,
-            shard_toml_frontmatter_entry("BC-INDEX", 50, Some(-1)),
-        )
-        .expect("write fixture");
-        let err = ShardRegistry::load(&cfg_path)
-            .expect_err("EC-011: negative low_water_mark MUST fail-loud at load time");
+    fn test_BC_1_18_005_EC_011_validate_entry_rejects_negative_low_water_mark() {
+        let mut entry = flat_entry("BC-INDEX", 49_152);
+        entry.shape = Some(ShardShape::FrontmatterChangelogArray);
+        entry.n = Some(50);
+        entry.low_water_mark = Some(-1);
+
+        let err = validate_entry(&entry)
+            .expect_err("EC-011: negative low_water_mark MUST fail-loud at entry-match time");
         assert!(matches!(err, ShardConfigError::InvalidLowWaterMark { .. }));
     }
 
     #[test]
     fn test_BC_1_18_005_EC_012_load_accepts_n_minus_1_low_water_mark_and_succeeds() {
+        // MIGRATED comment (BC-1.18.005 v1.12 MATCH-FIRST restructure,
+        // F-C1-P6-001): `ShardRegistry::load` is now structural-TOML-parse-
+        // only and no longer reaches the `tracing::warn!` amortization-
+        // advisory callsite (that callsite now lives solely in
+        // `validate_entry` — see the emission test immediately below, which
+        // exercises it via `validate_entry` under `count_warns`). This test
+        // pins the STRUCTURAL claim only: a syntactically-valid
+        // `low_water_mark = 49` round-trips through `load()` unchanged.
         let dir = tempfile::tempdir().expect("tempdir");
         let cfg_path = dir.path().join("shard-config.toml");
         std::fs::write(
@@ -2133,41 +2184,37 @@ mod tests {
         )
         .expect("write fixture");
 
-        // Routed through `count_warns` (its warn count is unused here)
-        // rather than a bare `ShardRegistry::load` call: this fixture's
-        // `low_water_mark=49` (> floor(50/2)) walks through the SAME
-        // `tracing::warn!` callsite the EC-012 *emission* test below
-        // asserts on. See `CAPTURE_LOCK`'s doc comment — this is required,
-        // not cosmetic: an uncoordinated call through that callsite can
-        // win its one-time `Interest` registration using the ambient
-        // no-op subscriber, permanently caching `Interest::never()` and
-        // making the emission test's assertion flaky.
-        let (_warn_count, result) = count_warns(|| ShardRegistry::load(&cfg_path));
-        let registry = result.expect(
-            "EC-012: low_water_mark = N-1 = 49 MUST load successfully, never HookResult::Error",
-        );
+        let registry = ShardRegistry::load(&cfg_path)
+            .expect("EC-012: low_water_mark = N-1 = 49 MUST load successfully (structural parse)");
         assert_eq!(registry.shards[0].low_water_mark, Some(49));
     }
 
+    // MIGRATED (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001): the
+    // EC-012 amortization-advisory `tracing::warn!` now fires from
+    // `validate_entry` (called at entry-MATCH time), not from
+    // `ShardRegistry::load`. This test drives `validate_entry` directly via
+    // `count_warns`, preserving the exact assertion (exactly one warn for
+    // this `(N, low_water_mark)` pair) — `count_warns` is generic over its
+    // closure's return type, so `validate_entry`'s `Result<(), _>` and
+    // `ShardRegistry::load`'s `Result<ShardRegistry, _>` both route through
+    // it unchanged.
     #[test]
-    fn test_BC_1_18_005_EC_012_load_emits_warn_advisory_when_low_water_mark_exceeds_default() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let cfg_path = dir.path().join("shard-config.toml");
-        std::fs::write(
-            &cfg_path,
-            shard_toml_frontmatter_entry("BC-INDEX", 50, Some(49)),
-        )
-        .expect("write fixture");
+    fn test_BC_1_18_005_EC_012_validate_entry_emits_warn_advisory_when_low_water_mark_exceeds_default()
+     {
+        let mut entry = flat_entry("BC-INDEX", 49_152);
+        entry.shape = Some(ShardShape::FrontmatterChangelogArray);
+        entry.n = Some(50);
+        entry.low_water_mark = Some(49);
 
-        let (warn_count, result) = count_warns(|| ShardRegistry::load(&cfg_path));
+        let (warn_count, result) = count_warns(|| validate_entry(&entry));
 
         assert!(
             result.is_ok(),
-            "EC-012: low_water_mark=49 (N-1, N=50) MUST load successfully: {result:?}"
+            "EC-012: low_water_mark=49 (N-1, N=50) MUST validate successfully: {result:?}"
         );
         assert_eq!(
             warn_count, 1,
-            "EC-012/VP-140: config-load MUST emit exactly one non-fatal tracing::warn! \
+            "EC-012/VP-140: validate_entry MUST emit exactly one non-fatal tracing::warn! \
              amortization advisory when low_water_mark(49) > floor(N/2)(25)"
         );
     }
@@ -2269,37 +2316,19 @@ mod tests {
     // of shard_cap_bytes <= compute_shard_cap_bytes(entry.cap_formula_inputs()).
     // ===================================================================
 
-    // IMPLEMENTER: re-point to validate_entry after match-first restructure
-    // (BC-1.18.005 v1.12, F-C1-P6-001). The cap-vs-formula-ceiling
-    // comparison (Postcondition 9) is NOT duplicated in
-    // `shard_cap_gate_check` today — that function consumes
-    // `entry.shard_cap_bytes` directly for the trigger-boundary comparison
-    // and never re-derives `compute_shard_cap_bytes` as a validation step;
-    // the check lives ONLY inside `ShardRegistry::load`'s per-entry loop. A
-    // clean behavioral migration to the matched-gate path is therefore not
-    // possible without `validate_entry` existing yet. This test
-    // intentionally still asserts `ShardRegistry::load(..).is_err()` and
-    // WILL need re-pointing to `validate_entry(&matched_entry)` in the same
-    // restructure commit — otherwise it starts failing post-restructure,
-    // since structural-parse-only `load()` will accept this fixture's
-    // syntactically-valid (if semantically oversized) `shard_cap_bytes`
-    // without erroring.
+    // MIGRATED (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001): the
+    // cap-vs-formula-ceiling comparison (Postcondition 9) now lives in
+    // `validate_entry`, called at entry-MATCH time only. This test drives
+    // `validate_entry` directly, preserving the exact assertion (the same
+    // oversized `shard_cap_bytes` input still routes to the same
+    // `CapExceedsFormulaCeiling` variant with the same three fields).
     #[test]
-    fn test_BC_1_18_005_PC9_EC013_load_rejects_cap_greater_than_formula_ceiling() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let cfg_path = dir.path().join("shard-config.toml");
-        std::fs::write(
-            &cfg_path,
-            "[[shard]]\n\
-             artifact_stem = \"decision-log\"\n\
-             practical_fuel_ceiling = 8000000\n\
-             worst_case_fuel_per_byte = 106.36\n\
-             max_single_record_bytes = 16384\n\
-             safety_margin = 8192\n\
-             shard_cap_bytes = 100000\n\
-             shape = \"flat\"\n",
-        )
-        .expect("write fixture");
+    fn test_BC_1_18_005_PC9_EC013_validate_entry_rejects_cap_greater_than_formula_ceiling() {
+        let mut entry = flat_entry("decision-log", 100_000);
+        entry.practical_fuel_ceiling = 8_000_000;
+        entry.worst_case_fuel_per_byte = 106.36;
+        entry.max_single_record_bytes = 16_384;
+        entry.safety_margin = 8_192;
 
         // compute_shard_cap_bytes(these four inputs) = 50,640 (BC-1.18.005
         // Postcondition 6's own worked example — see
@@ -2309,14 +2338,12 @@ mod tests {
         // TIGHTENED (S-25.02 Phase F4 LOCAL adversary cluster-1 pass-3
         // finding F-C1-P3-004, OBSERVATION): matches the specific
         // ShardConfigError::CapExceedsFormulaCeiling variant and its three
-        // fields, aligning with the sibling EC-009/EC-011 unit tests
-        // (test_BC_1_18_005_EC_009_load_missing_shape_field_is_fail_loud,
-        // test_BC_1_18_005_EC_011_load_rejects_low_water_mark_equal_to_n)
-        // that already match their own specific variant rather than a
-        // generic is_err().
-        let err = ShardRegistry::load(&cfg_path).expect_err(
+        // fields, aligning with the sibling EC-009/EC-011 unit tests that
+        // already match their own specific variant rather than a generic
+        // is_err().
+        let err = validate_entry(&entry).expect_err(
             "PC9/EC-013: an entry declaring shard_cap_bytes (100,000) GREATER than its own \
-             compute_shard_cap_bytes(inputs) ceiling (50,640) MUST fail-loud at load() time",
+             compute_shard_cap_bytes(inputs) ceiling (50,640) MUST fail-loud at entry-match time",
         );
         match err {
             ShardConfigError::CapExceedsFormulaCeiling {
@@ -2385,48 +2412,26 @@ mod tests {
     // the two rejection cases (zero and NaN) plus the valid-input control.
     // ===================================================================
 
-    // IMPLEMENTER: re-point to validate_entry after match-first restructure
-    // (BC-1.18.005 v1.12, F-C1-P6-001). `worst_case_fuel_per_byte`
-    // finiteness/positivity validation is NOT duplicated in
-    // `shard_cap_gate_check` today — that field is never even read by the
-    // live per-write gate (only `entry.shard_cap_bytes` is consumed
-    // directly); the check lives ONLY inside `ShardRegistry::load`'s
-    // per-entry loop. A clean behavioral migration to the matched-gate path
-    // is therefore not possible without `validate_entry` existing yet. This
-    // test intentionally still asserts `ShardRegistry::load(..).is_err()`
-    // and WILL need re-pointing to `validate_entry(&matched_entry)` in the
-    // same restructure commit — otherwise it starts failing post-
-    // restructure, since structural-parse-only `load()` will accept this
-    // fixture's syntactically-valid (if semantically degenerate)
-    // `worst_case_fuel_per_byte = 0.0` without erroring.
+    // MIGRATED (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001):
+    // `worst_case_fuel_per_byte` finiteness/positivity validation now lives
+    // in `validate_entry`, called at entry-MATCH time only. This test
+    // drives `validate_entry` directly, preserving the exact assertion.
     #[test]
-    fn test_BC_1_18_005_EC_015_load_rejects_zero_worst_case_fuel_per_byte_divisor_door() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let cfg_path = dir.path().join("shard-config.toml");
-        std::fs::write(
-            &cfg_path,
-            "[[shard]]\n\
-             artifact_stem = \"zero-divisor-log\"\n\
-             practical_fuel_ceiling = 8000000\n\
-             worst_case_fuel_per_byte = 0.0\n\
-             max_single_record_bytes = 16384\n\
-             safety_margin = 8192\n\
-             shard_cap_bytes = 100000000\n\
-             shape = \"flat\"\n",
-        )
-        .expect("write fixture");
+    fn test_BC_1_18_005_EC_015_validate_entry_rejects_zero_worst_case_fuel_per_byte_divisor_door() {
+        let mut entry = flat_entry("zero-divisor-log", 100_000_000);
+        entry.worst_case_fuel_per_byte = 0.0;
 
-        // Without the load-time guard, worst_case_fuel_per_byte = 0.0 would
-        // make compute_shard_cap_bytes's internal division yield +inf, whose
+        // Without this guard, worst_case_fuel_per_byte = 0.0 would make
+        // compute_shard_cap_bytes's internal division yield +inf, whose
         // saturating `as u64` cast is u64::MAX — the resulting ceiling would
         // comfortably exceed this fixture's already-enormous
         // shard_cap_bytes = 100,000,000, letting it sail past Postcondition
         // 9's `shard_cap_bytes > computed_ceiling` check via the degenerate
         // divisor. The guard rejects the entry BEFORE that comparison is
         // ever attempted.
-        let err = ShardRegistry::load(&cfg_path).expect_err(
+        let err = validate_entry(&entry).expect_err(
             "EC-015: worst_case_fuel_per_byte = 0.0 (the divisor-door case) MUST fail-loud at \
-             load() time, BEFORE the cap-vs-formula comparison is even attempted — an \
+             entry-match time, BEFORE the cap-vs-formula comparison is even attempted — an \
              arbitrarily-large shard_cap_bytes must never sail through via a degenerate divisor.",
         );
         match err {
@@ -2441,31 +2446,18 @@ mod tests {
         }
     }
 
-    // IMPLEMENTER: re-point to validate_entry after match-first restructure
-    // (BC-1.18.005 v1.12, F-C1-P6-001) — same rationale as
-    // `..._rejects_zero_worst_case_fuel_per_byte_divisor_door` immediately
-    // above.
+    // MIGRATED (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001) —
+    // same rationale as `..._rejects_zero_worst_case_fuel_per_byte_divisor_door`
+    // immediately above.
     #[test]
-    fn test_BC_1_18_005_EC_015_load_rejects_nan_worst_case_fuel_per_byte() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let cfg_path = dir.path().join("shard-config.toml");
-        std::fs::write(
-            &cfg_path,
-            "[[shard]]\n\
-             artifact_stem = \"nan-divisor-log\"\n\
-             practical_fuel_ceiling = 8000000\n\
-             worst_case_fuel_per_byte = nan\n\
-             max_single_record_bytes = 16384\n\
-             safety_margin = 8192\n\
-             shard_cap_bytes = 0\n\
-             shape = \"flat\"\n",
-        )
-        .expect("write fixture");
+    fn test_BC_1_18_005_EC_015_validate_entry_rejects_nan_worst_case_fuel_per_byte() {
+        let mut entry = flat_entry("nan-divisor-log", 0);
+        entry.worst_case_fuel_per_byte = f64::NAN;
 
-        // Without the load-time guard, worst_case_fuel_per_byte = NaN would
-        // make the internal division yield NaN, whose saturating `as u64`
-        // cast is 0 (Rust maps a NaN float-to-int cast to 0) — the computed
-        // ceiling would then also saturate at 0
+        // Without this guard, worst_case_fuel_per_byte = NaN would make the
+        // internal division yield NaN, whose saturating `as u64` cast is 0
+        // (Rust maps a NaN float-to-int cast to 0) — the computed ceiling
+        // would then also saturate at 0
         // (0.saturating_sub(16_384).saturating_sub(8_192) = 0), which is NOT
         // LESS than this fixture's own shard_cap_bytes = 0, so Postcondition
         // 9's `shard_cap_bytes > computed_ceiling` check (0 > 0 = false)
@@ -2473,9 +2465,10 @@ mod tests {
         // which direction the resulting degenerate arithmetic would have
         // saturated — the config is malformed either way and must never be
         // silently accepted.
-        let err = ShardRegistry::load(&cfg_path).expect_err(
-            "EC-015: worst_case_fuel_per_byte = NaN MUST fail-loud at load() time regardless of \
-             which direction the resulting degenerate arithmetic happens to saturate.",
+        let err = validate_entry(&entry).expect_err(
+            "EC-015: worst_case_fuel_per_byte = NaN MUST fail-loud at entry-match time \
+             regardless of which direction the resulting degenerate arithmetic happens to \
+             saturate.",
         );
         match err {
             ShardConfigError::InvalidWorstCaseFuelPerByte {
@@ -2546,35 +2539,14 @@ mod tests {
     // arising from an otherwise-legal tiny-positive divisor).
     // ===================================================================
 
-    // IMPLEMENTER: re-point to validate_entry after match-first restructure
-    // (BC-1.18.005 v1.12, F-C1-P6-001). The residual divisor-door /
-    // saturated-ceiling check is NOT duplicated in `shard_cap_gate_check`
-    // today — like EC-013/EC-015, it lives ONLY inside
-    // `ShardRegistry::load`'s per-entry loop. A clean behavioral migration
-    // to the matched-gate path is therefore not possible without
-    // `validate_entry` existing yet. This test intentionally still asserts
-    // `ShardRegistry::load(..).is_err()` and WILL need re-pointing to
-    // `validate_entry(&matched_entry)` in the same restructure commit —
-    // otherwise it starts failing post-restructure, since structural-
-    // parse-only `load()` will accept this fixture's syntactically-valid
-    // (if semantically saturating) `worst_case_fuel_per_byte = 1e-300`
-    // without erroring.
+    // MIGRATED (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001): the
+    // residual divisor-door / saturated-ceiling check now lives in
+    // `validate_entry`, called at entry-MATCH time only. This test drives
+    // `validate_entry` directly, preserving the exact assertion.
     #[test]
-    fn test_BC_1_18_005_EC_017_load_rejects_saturating_formula_ceiling() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let cfg_path = dir.path().join("shard-config.toml");
-        std::fs::write(
-            &cfg_path,
-            "[[shard]]\n\
-             artifact_stem = \"saturating-ceiling-log\"\n\
-             practical_fuel_ceiling = 8000000\n\
-             worst_case_fuel_per_byte = 1e-300\n\
-             max_single_record_bytes = 16384\n\
-             safety_margin = 8192\n\
-             shard_cap_bytes = 100000000\n\
-             shape = \"flat\"\n",
-        )
-        .expect("write fixture");
+    fn test_BC_1_18_005_EC_017_validate_entry_rejects_saturating_formula_ceiling() {
+        let mut entry = flat_entry("saturating-ceiling-log", 100_000_000);
+        entry.worst_case_fuel_per_byte = 1e-300;
 
         // worst_case_fuel_per_byte = 1e-300 is finite and > 0.0, so it
         // PASSES the EC-015 guard. But the raw division
@@ -2593,11 +2565,11 @@ mod tests {
         // if EC-015's guard were mistakenly widened to also catch
         // tiny-positive divisors), silently no longer proving the residual
         // FormulaCeilingSaturated path is exercised at all.
-        let err = ShardRegistry::load(&cfg_path).expect_err(
+        let err = validate_entry(&entry).expect_err(
             "EC-017: worst_case_fuel_per_byte = 1e-300 is legal under EC-015's is_finite() && \
              > 0.0 guard, yet the raw division practical_fuel_ceiling as f64 / \
              worst_case_fuel_per_byte saturates the subsequent .floor() as u64 cast to \
-             u64::MAX — ShardRegistry::load() MUST reject this entry (residual divisor-door \
+             u64::MAX — validate_entry() MUST reject this entry (residual divisor-door \
              closure) BEFORE the CapExceedsFormulaCeiling comparison is even attempted, \
              regardless of the arbitrarily-large declared shard_cap_bytes.",
         );
@@ -2690,52 +2662,32 @@ mod tests {
         }
     }
 
-    // IMPLEMENTER: re-point to validate_entry after match-first restructure
-    // (BC-1.18.005 v1.12, F-C1-P6-001). Unlike the plain missing-`n` case
-    // migrated immediately above, THIS test pins EC-016's ORDERING
-    // requirement — that a missing `n` is reported even when the entry
-    // ALSO declares an independently-invalid `low_water_mark` — which
-    // depends on `low_water_mark` being examined at all in the same
-    // validation pass. `shard_cap_gate_check` does not read
-    // `entry.low_water_mark` at gate time today (only BC-1.18.009's later
-    // rotation-target resolution consumes it), so this ordering guarantee
-    // cannot be behaviorally reproduced via the matched-gate path without
-    // `validate_entry` existing yet to house BOTH checks in the required
-    // order. This test intentionally still asserts
-    // `ShardRegistry::load(..).is_err()` and WILL need re-pointing to
-    // `validate_entry(&matched_entry)` in the same restructure commit —
-    // otherwise it starts failing post-restructure, since structural-
-    // parse-only `load()` will accept this fixture without erroring.
+    // MIGRATED (BC-1.18.005 v1.12 MATCH-FIRST restructure, F-C1-P6-001):
+    // unlike the plain missing-`n` case migrated further above, THIS test
+    // pins EC-016's ORDERING requirement — that a missing `n` is reported
+    // even when the entry ALSO declares an independently-invalid
+    // `low_water_mark`. `validate_entry` houses BOTH checks in the required
+    // order (EC-016's `n`-presence check BEFORE EC-011's `low_water_mark`
+    // range check), so this ordering guarantee is now driven directly
+    // against `validate_entry`.
     #[test]
-    fn test_BC_1_18_005_EC_016_load_rejects_missing_n_even_with_invalid_low_water_mark() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let cfg_path = dir.path().join("shard-config.toml");
-        std::fs::write(
-            &cfg_path,
-            "[[shard]]\n\
-             artifact_stem = \"BC-INDEX\"\n\
-             practical_fuel_ceiling = 8000000\n\
-             worst_case_fuel_per_byte = 106.36\n\
-             max_single_record_bytes = 16384\n\
-             safety_margin = 8192\n\
-             shard_cap_bytes = 49152\n\
-             shape = \"frontmatter-changelog-array\"\n\
-             low_water_mark = -1\n",
-        )
-        .expect("write fixture");
+    fn test_BC_1_18_005_EC_016_validate_entry_rejects_missing_n_even_with_invalid_low_water_mark() {
+        let mut entry = flat_entry("BC-INDEX", 49_152);
+        entry.shape = Some(ShardShape::FrontmatterChangelogArray);
+        entry.n = None;
+        entry.low_water_mark = Some(-1);
 
-        // entry.n is still None here (this fixture never declares `n`), so
-        // load()'s `let Some(n) = entry.n else { ... }` guard fires and
-        // reports the missing-`n` condition BEFORE EC-011's
-        // negative-low_water_mark check is ever reached for this entry —
-        // per Postcondition 8's ordering requirement, MissingN is the
-        // reported error even though low_water_mark = -1 is independently
-        // invalid against any realistic N.
-        let err = ShardRegistry::load(&cfg_path).expect_err(
+        // entry.n is None here, so validate_entry's `let Some(n) = entry.n
+        // else { ... }` guard fires and reports the missing-`n` condition
+        // BEFORE EC-011's negative-low_water_mark check is ever reached for
+        // this entry — per Postcondition 8's ordering requirement, MissingN
+        // is the reported error even though low_water_mark = -1 is
+        // independently invalid against any realistic N.
+        let err = validate_entry(&entry).expect_err(
             "EC-016: an entry missing `n` AND declaring an independently-invalid low_water_mark \
-             (-1) MUST still be rejected at load() time — with EC-016's guard ordered before the \
-             low_water_mark check, the reported error is the missing-`n` condition, but either \
-             way this entry must never silently load.",
+             (-1) MUST still be rejected at entry-match time — with EC-016's guard ordered \
+             before the low_water_mark check, the reported error is the missing-`n` condition, \
+             but either way this entry must never silently pass validation.",
         );
         match err {
             ShardConfigError::MissingN { artifact_stem } => {
